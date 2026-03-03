@@ -116,9 +116,10 @@
 # Reports (private — not tracked)
 # QC execution results (public — track for review)
 !reports/
-!reports/coconala_prompts/
-!reports/coconala_prompts/execution_qc/
-!reports/coconala_prompts/execution_qc/*.yaml
+# coconala_prompts is now a git submodule — no longer whitelisted here
+# !reports/coconala_prompts/
+# !reports/coconala_prompts/execution_qc/
+# !reports/coconala_prompts/execution_qc/*.yaml
 
 # Memory (MEMORY.md is private; only the sample template is OSS)
 !memory/

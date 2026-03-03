@@ -4,3 +4,6 @@
 [submodule "tests/test_helper/bats-support"]
 	path = tests/test_helper/bats-support
 	url = https://github.com/bats-core/bats-support
+[submodule "reports/coconala_prompts"]
+	path = reports/coconala_prompts
+	url = https://github.com/naginata63/coconala-prompts.git
