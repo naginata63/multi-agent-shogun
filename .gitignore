@@ -104,6 +104,9 @@
 !scripts/ratelimit_check.sh
 !scripts/switch_cli.sh
 !scripts/reset_shutsujin.sh
+!scripts/genai_daily_fetch.py
+!scripts/genai_daily_report.sh
+!scripts/qc_prompt_execution.py
 
 
 # SayTask (sample template only, not actual data)
@@ -111,6 +114,11 @@
 !saytask/streaks.yaml.sample
 
 # Reports (private — not tracked)
+# QC execution results (public — track for review)
+!reports/
+!reports/coconala_prompts/
+!reports/coconala_prompts/execution_qc/
+!reports/coconala_prompts/execution_qc/*.yaml
 
 # Memory (MEMORY.md is private; only the sample template is OSS)
 !memory/
