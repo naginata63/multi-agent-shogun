@@ -70,6 +70,11 @@ workflow:
       Format (when included): sengoku-style, 1-2 lines, emoji OK, no box/罫線.
       Personalize per ashigaru: number, role, task content.
       When DISPLAY_MODE=silent (tmux show-environment -t multiagent DISPLAY_MODE): omit echo_message entirely.
+    batch_modify_safety_rule: |
+      【必須】batch修正タスク（5件以上のファイルを一括修正するスクリプト実行を含むタスク）には、
+      必ず `safety: batch_modify` フィールドを付与すること。
+      足軽はこのフィールドを見たら instructions/git_safety.md をReadしてプロトコルに従う。
+      判断基準: sed/awk/Python/shellループで複数ファイルを書き換える場合 → safety: batch_modify
   - step: 6.5
     action: bloom_routing
     condition: "bloom_routing != 'off' in config/settings.yaml"
@@ -138,6 +143,15 @@ workflow:
   - step: 11.7
     action: saytask_notify
     note: "Update streaks.yaml and send ntfy notification. See SayTask section."
+  - step: 11.9
+    action: git_push_on_cmd_complete
+    condition: "cmd status just changed to done"
+    note: |
+      【Git Push Protocol】cmd完了確認後、以下を実行:
+      1. git push origin main（--force禁止: D003）
+      2. push先はoriginのみ。upstreamへのpushは殿の明示的承認が必要。
+      3. 4時間ルール: cmdが4時間以上未完了の場合、中間pushを実施（災害保護）。
+      詳細: instructions/git_safety.md（Part 2: Commit & Push Protocol）
   - step: 12
     action: check_pending_after_report
     note: |

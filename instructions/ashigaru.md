@@ -60,8 +60,8 @@ workflow:
     command: 'tmux set-option -p @current_task ""'
     note: "Clear task label for next task"
   - step: 7
-    action: git_push
-    note: "If project has git repo, commit + push your changes. Only for article/documentation completion."
+    action: git_commit
+    note: "If project has git repo, commit your changes. Use commit message format from instructions/git_safety.md. git push は禁止（家老の責務）。"
   - step: 7.5
     action: build_verify
     note: "If project has build system (npm run build, etc.), run and verify success. Report failures in report YAML."
