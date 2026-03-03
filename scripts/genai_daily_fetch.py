@@ -118,6 +118,10 @@ NON_AI_EXCLUDE_PATTERNS = [
     "[Sponsored]", "[PR]", "[AD]", "Sponsored",
     # その他非AI
     "Mastodon", "VAIOバッテリー",
+    # 製造/CAD系（新規追加）
+    "CAD", "Onshape", "3Dプリンタ", "MBD", "モデルベース定義",
+    # 家電レビュー系（新規追加）
+    "ロボット掃除機", "robot vacuum", "スマートホーム", "smart home",
 ]
 
 

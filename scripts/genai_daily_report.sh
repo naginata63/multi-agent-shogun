@@ -132,7 +132,10 @@ if [[ "$GENAI_MODE" == "rss" ]]; then
     # 英語見出し和訳ステップ（claude CLI が利用可能な場合のみ）
     if command -v claude &>/dev/null && [[ -s "$OUTPUT_FILE" ]]; then
         log "RSSレポートの英語見出しを和訳中..."
-        TRANSLATE_PROMPT="以下のmarkdownレポートの## 見出し行のうち、英語タイトルのみを日本語に翻訳してください。日本語のタイトルはそのままにしてください。見出し以外の行（要約・ソース行・空行・---）は一切変更しないでください。レポート全文をそのまま出力してください。
+        TRANSLATE_PROMPT="以下のmarkdownレポートについて:
+1. ## 見出し行に英語タイトルがあれば日本語に翻訳
+2. 英語で書かれた要約・説明文（箇条書きや段落）も日本語に翻訳
+形式は変えず、原文の数値・固有名詞は保持すること。日本語化のみで追記・削除はしないこと。
 
 ---
 
@@ -140,9 +143,9 @@ $(cat "$OUTPUT_FILE")"
         TRANSLATED="$(env -u CLAUDECODE claude -p "$TRANSLATE_PROMPT" 2>/dev/null)"
         if [[ -n "$TRANSLATED" ]]; then
             echo "$TRANSLATED" > "$OUTPUT_FILE"
-            log "英語見出し和訳完了"
+            log "英語見出し・サマリー和訳完了"
         else
-            log "WARN: 和訳失敗。英語見出しのまま継続"
+            log "WARN: 和訳失敗。英語のまま継続"
         fi
     fi
 fi
