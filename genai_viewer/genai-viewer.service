@@ -1,0 +1,16 @@
+[Unit]
+Description=GenAI Daily Report Viewer
+After=network.target
+
+[Service]
+Type=simple
+User=murakami
+WorkingDirectory=/home/murakami/multi-agent-shogun/genai_viewer
+ExecStart=/usr/bin/python3 /home/murakami/multi-agent-shogun/genai_viewer/app.py
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:/home/murakami/multi-agent-shogun/logs/genai_viewer.log
+StandardError=append:/home/murakami/multi-agent-shogun/logs/genai_viewer.log
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,198 @@
+#!/usr/bin/env python3
+"""生成AIレポートビューア — stdlib版 (Flask不要)"""
+import json
+import re
+import urllib.parse
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from pathlib import Path
+
+STATIC_DIR = Path(__file__).parent / "static"
+REPORTS_DIR = Path(__file__).parent.parent / "reports" / "genai_daily"
+PORT = 8580
+
+CATEGORY_MAP = {
+    "🤖": "model",
+    "📄": "paper",
+    "💰": "api",
+    "🛠️": "oss",
+    "📢": "news",
+}
+
+
+def _get_category(emoji: str) -> tuple:
+    """絵文字からカテゴリ文字列とアイコンを返す。"""
+    for icon, category in CATEGORY_MAP.items():
+        if emoji.startswith(icon):
+            return category, icon
+    return "other", emoji[:2] if emoji else ""
+
+
+def _parse_report(md_text: str) -> list:
+    """Markdownテキストからトピックリストを返す。"""
+    topics = []
+    lines = md_text.splitlines()
+
+    current_title = None
+    current_icon = ""
+    current_category = ""
+    summary_lines = []
+    in_topic = False
+
+    source_pattern = re.compile(
+        r'\*\*ソース\*\*:\s*\[([^\]]+)\]\(([^)]+)\)'
+    )
+
+    def flush_topic():
+        nonlocal summary_lines
+        if current_title is None:
+            return
+        source_name = ""
+        source_url = ""
+        cleaned = []
+        for line in summary_lines:
+            m = source_pattern.search(line)
+            if m:
+                source_name = m.group(1)
+                source_url = m.group(2)
+            else:
+                cleaned.append(line)
+        summary = "\n".join(cleaned).strip()
+        topics.append({
+            "title": current_title,
+            "category": current_category,
+            "category_icon": current_icon,
+            "summary": summary,
+            "source_name": source_name,
+            "source_url": source_url,
+        })
+
+    for line in lines:
+        if line.startswith("## "):
+            if in_topic:
+                flush_topic()
+
+            heading = line[3:].strip()
+            category, icon = _get_category(heading)
+            # 先頭の絵文字ブロックを除去
+            title = re.sub(r'^[^\w\d\u3000-\u9FFF\uF900-\uFAFF]+', '', heading)
+
+            current_title = title.strip()
+            current_icon = icon
+            current_category = category
+            summary_lines = []
+            in_topic = True
+
+        elif line.strip() == "---":
+            if in_topic:
+                flush_topic()
+                in_topic = False
+                current_title = None
+                summary_lines = []
+
+        elif in_topic:
+            summary_lines.append(line)
+
+    if in_topic and current_title:
+        flush_topic()
+
+    return topics
+
+
+def _list_dates() -> list:
+    """日付降順でレポートファイル名（拡張子なし）を返す。テスト・ハイフン含むファイルは除外。"""
+    if not REPORTS_DIR.exists():
+        return []
+    dates = []
+    for f in REPORTS_DIR.glob("*.md"):
+        stem = f.stem
+        if "test" in stem or stem.count("-") != 2:
+            continue
+        if re.fullmatch(r'\d{4}-\d{2}-\d{2}', stem):
+            dates.append(stem)
+    return sorted(dates, reverse=True)
+
+
+class Handler(BaseHTTPRequestHandler):
+    def log_message(self, fmt, *args):
+        pass
+
+    def send_json(self, data: dict, status: int = 200):
+        body = json.dumps(data, ensure_ascii=False).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def send_file(self, path: Path, content_type: str):
+        try:
+            body = path.read_bytes()
+        except FileNotFoundError:
+            self.send_json({"error": "not found"}, 404)
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_GET(self):
+        parsed = urllib.parse.urlparse(self.path)
+        path = parsed.path
+
+        if path == "/" or path == "/index.html":
+            self.send_file(STATIC_DIR / "index.html", "text/html; charset=utf-8")
+
+        elif path.startswith("/static/"):
+            rel = path[len("/static/"):]
+            ext = rel.rsplit(".", 1)[-1]
+            ctype = {"js": "application/javascript", "css": "text/css"}.get(ext, "application/octet-stream")
+            self.send_file(STATIC_DIR / rel, ctype)
+
+        elif path == "/api/dates":
+            self.send_json({"dates": _list_dates()})
+
+        elif path.startswith("/api/report/"):
+            date = path[len("/api/report/"):]
+            if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', date):
+                self.send_json({"error": "invalid date"}, 400)
+                return
+            md_path = REPORTS_DIR / f"{date}.md"
+            if not md_path.exists():
+                self.send_json({"error": "not found"}, 404)
+                return
+            md_text = md_path.read_text(encoding="utf-8")
+            self.send_json({"date": date, "markdown": md_text, "topics": _parse_report(md_text)})
+
+        elif path == "/api/search":
+            qs = urllib.parse.parse_qs(parsed.query)
+            q = (qs.get("q", [""])[0]).lower()
+            cat = qs.get("category", [""])[0]
+            results = []
+            for date in _list_dates():
+                md_path = REPORTS_DIR / f"{date}.md"
+                if not md_path.exists():
+                    continue
+                try:
+                    md_text = md_path.read_text(encoding="utf-8")
+                except OSError:
+                    continue
+                for topic in _parse_report(md_text):
+                    if cat and topic["category"] != cat:
+                        continue
+                    if q and q not in topic["title"].lower() and q not in topic["summary"].lower():
+                        continue
+                    results.append({"date": date, "topic": topic})
+                    if len(results) >= 50:
+                        self.send_json({"results": results})
+                        return
+            self.send_json({"results": results})
+
+        else:
+            self.send_json({"error": "not found"}, 404)
+
+
+if __name__ == "__main__":
+    server = HTTPServer(("0.0.0.0", PORT), Handler)
+    print(f"[GenAI Viewer] http://0.0.0.0:{PORT}")
+    server.serve_forever()

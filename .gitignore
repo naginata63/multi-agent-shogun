@@ -24,12 +24,17 @@
 !.claude/
 !.claude/settings.json
 
+# Claude Code slash commands / skills (public OSS)
+!.claude/commands/
+!.claude/commands/*.md
+
 # Instructions (core OSS)
 !instructions/
 !instructions/shogun.md
 !instructions/karo.md
 !instructions/ashigaru.md
 !instructions/gunshi.md
+!instructions/git_safety.md
 
 # Multi-CLI: CLI-specific tool descriptions
 !instructions/cli_specific/
@@ -94,9 +99,11 @@
 !scripts/seo_qc.py
 !scripts/seo_qc.sh
 !scripts/stop_hook_inbox.sh
+!scripts/sessionstart_hook.sh
 !scripts/agent_status.sh
 !scripts/ratelimit_check.sh
 !scripts/switch_cli.sh
+!scripts/reset_shutsujin.sh
 
 
 # SayTask (sample template only, not actual data)
@@ -183,3 +190,7 @@ tests/specs/osato_lms_*
 # Android companion app
 !android/
 !android/**
+
+# GenAI Daily Report Viewer (汎用ローカルWebサーバー、秘密情報なし)
+!genai_viewer/
+!genai_viewer/**
