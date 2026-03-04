@@ -113,6 +113,10 @@
 !saytask/
 !saytask/streaks.yaml.sample
 
+# Projects (private content, submodules only)
+!projects/
+!projects/note_mcp_server
+
 # Reports (private — not tracked)
 # QC execution results (public — track for review)
 !reports/

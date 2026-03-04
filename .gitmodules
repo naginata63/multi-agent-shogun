@@ -7,3 +7,6 @@
 [submodule "reports/coconala_prompts"]
 	path = reports/coconala_prompts
 	url = https://github.com/naginata63/coconala-prompts.git
+[submodule "projects/note_mcp_server"]
+	path = projects/note_mcp_server
+	url = https://github.com/naginata63/note-mcp-server.git
