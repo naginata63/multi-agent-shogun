@@ -14,6 +14,12 @@
 
 set -uo pipefail
 
+# cron環境でもclaudeが見つかるようにPATHを補完
+export PATH="$HOME/.local/bin:$PATH"
+# cron環境でもGEMINI_API_KEYを取得
+GEMINI_API_KEY="${GEMINI_API_KEY:-$(grep -E '^export GEMINI_API_KEY=' ~/.bashrc 2>/dev/null | tail -1 | cut -d= -f2- | tr -d '"' || true)}"
+export GEMINI_API_KEY
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
@@ -104,7 +110,7 @@ if [[ "$GENAI_MODE" == "claude" ]]; then
 各トピックに必ず実在するソースURLを付けること。URLは推測しない。"
 
         log "claudeモード: Web検索+日本語レポート生成を開始..."
-        if env -u CLAUDECODE claude -p "$PROMPT" > "$OUTPUT_FILE" 2>> "$LOG_FILE"; then
+        if env -u CLAUDECODE claude -p "$PROMPT" --tools "WebSearch,WebFetch" --dangerously-skip-permissions > "$OUTPUT_FILE" 2>> "$LOG_FILE"; then
             log "claude コマンド完了"
         else
             log "WARN: claude コマンドが失敗しました（終了コード $?）。RSSモードにフォールバック"
@@ -129,9 +135,8 @@ if [[ "$GENAI_MODE" == "rss" ]]; then
     log "RSSモード: Pythonスクリプト呼び出し中..."
     python3 "$FETCH_SCRIPT" "$DATE_STR" "$OUTPUT_FILE" 2>> "$LOG_FILE"
 
-    # 英語見出し和訳ステップ（claude CLI が利用可能な場合のみ）
-    if command -v claude &>/dev/null && [[ -s "$OUTPUT_FILE" ]]; then
-        log "RSSレポートの英語見出しを和訳中..."
+    # 英語見出し和訳ステップ（claude CLI または Gemini API を使用）
+    if [[ -s "$OUTPUT_FILE" ]]; then
         TRANSLATE_PROMPT="以下のmarkdownレポートについて:
 1. ## 見出し行に英語タイトルがあれば日本語に翻訳
 2. 英語で書かれた要約・説明文（箇条書きや段落）も日本語に翻訳
@@ -140,12 +145,38 @@ if [[ "$GENAI_MODE" == "rss" ]]; then
 ---
 
 $(cat "$OUTPUT_FILE")"
-        TRANSLATED="$(env -u CLAUDECODE claude -p "$TRANSLATE_PROMPT" 2>/dev/null)"
+        TRANSLATED=""
+
+        # まずclaudeを試す
+        if command -v claude &>/dev/null; then
+            log "RSSレポートの英語見出しを和訳中（claude）..."
+            TRANSLATED="$(env -u CLAUDECODE claude -p "$TRANSLATE_PROMPT" --tools "" --dangerously-skip-permissions 2>/dev/null || true)"
+        fi
+
+        # claudeが失敗した場合はGemini APIにフォールバック
+        if [[ -z "$TRANSLATED" ]] && [[ -n "${GEMINI_API_KEY:-}" ]]; then
+            log "RSSレポートの英語見出しを和訳中（Gemini APIフォールバック）..."
+            GEMINI_PROMPT="以下のmarkdownレポートについて:\n1. ## 見出し行に英語タイトルがあれば日本語に翻訳\n2. 英語で書かれた要約・説明文（箇条書きや段落）も日本語に翻訳\n形式は変えず、原文の数値・固有名詞は保持すること。日本語化のみで追記・削除はしないこと。\n\n---\n\n$(cat "$OUTPUT_FILE" | head -200)"
+            GEMINI_RESPONSE="$(curl -s -X POST \
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_API_KEY}" \
+                -H "Content-Type: application/json" \
+                -d "{\"contents\":[{\"parts\":[{\"text\":$(echo "$GEMINI_PROMPT" | python3 -c 'import sys,json; print(json.dumps(sys.stdin.read()))')}]}]}" \
+                2>/dev/null || true)"
+            TRANSLATED="$(echo "$GEMINI_RESPONSE" | python3 -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)
+    print(d['candidates'][0]['content']['parts'][0]['text'])
+except:
+    sys.exit(1)
+" 2>/dev/null || true)"
+        fi
+
         if [[ -n "$TRANSLATED" ]]; then
             echo "$TRANSLATED" > "$OUTPUT_FILE"
             log "英語見出し・サマリー和訳完了"
         else
-            log "WARN: 和訳失敗。英語のまま継続"
+            log "WARN: 和訳失敗（claude・Gemini両方不可）。英語のまま継続"
         fi
     fi
 fi
