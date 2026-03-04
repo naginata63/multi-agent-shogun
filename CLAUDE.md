@@ -185,6 +185,17 @@ When Karo determines a task needs to be redone:
 
 Race condition is eliminated: `/clear` wipes old context. Agent re-reads YAML with new task_id.
 
+## Karo Task Assignment Checklist (MANDATORY)
+
+家老がタスクYAMLを足軽/軍師に割り当てる際、以下を**必ず順番に**実行せよ:
+1. タスクYAML書き込み完了（queue/tasks/{agent}.yaml）
+2. `inbox_write.sh` でターゲットに通知 ← **これを絶対に忘れるな**
+3. 通知完了確認（inbox YAMLにメッセージが追加されたことを tail で確認）
+
+**タスクYAML書き込み後、inbox_writeせずに次の作業へ移ることは禁止。**
+1つのタスク割り当て = YAML書き込み + inbox_write の2アクションで1セット。
+（2026-03-04 是正: subtask_206a3でYAML書き込み後inbox通知を忘れた事例から制定）
+
 ## Report Flow (interrupt prevention)
 
 | Direction | Method | Reason |
@@ -211,6 +222,18 @@ Layer 4: Session context — volatile (CLAUDE.md auto-loaded, instructions/*.md,
 # Project Management
 
 System manages ALL white-collar work, not just self-improvement. Project folders can be external (outside this repo). `projects/` is git-ignored (contains secrets).
+
+# Karo Context Relief Trigger (条件トリガー/clear)
+
+家老は以下の条件のいずれかを満たした場合、**タスクとタスクの間で自発的に/clearを実施**せよ:
+- **(a)** 最後の/clearまたはSession Startから **6時間以上**経過
+- **(b)** `queue/precompact/karo.yaml` の `compaction_count` が **3以上**
+- **(c)** 自身の手順に不確実性を感じた時（自己申告）
+
+**/clear後は必ず Session Start手順（フル）で回復**すること（`/clear Recovery`の軽量版ではなく）。
+`instructions/karo.md` を必ず読み直す。
+
+（2026-03-04 制定: 14時間36 cmd連続稼働でinbox_write漏れ発生。cmd_209/軍師分析より。）
 
 # Shogun Mandatory Rules
 

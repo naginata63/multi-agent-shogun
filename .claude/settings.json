@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash scripts/sessionstart_hook.sh",
+            "command": "bash /home/murakami/multi-agent-shogun/scripts/sessionstart_hook.sh",
             "timeout": 10
           }
         ]
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash scripts/stop_hook_inbox.sh",
+            "command": "bash /home/murakami/multi-agent-shogun/scripts/stop_hook_inbox.sh",
             "timeout": 10
           }
         ]
@@ -27,7 +27,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash scripts/precompact_hook.sh",
+            "command": "bash /home/murakami/multi-agent-shogun/scripts/precompact_hook.sh",
             "timeout": 5
           }
         ]
