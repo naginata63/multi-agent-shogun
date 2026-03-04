@@ -704,23 +704,28 @@ agent_has_self_watch() {
 # Returns 0 (true) if agent is busy, 1 if idle.
 # Implementation: delegates to lib/agent_status.sh (shared library).
 agent_is_busy() {
-    # /clear cooldown: treat agent as busy for 30s after /clear was sent.
-    # Claude Code's /clear takes 10-30s (CLAUDE.md reload + context init).
-    # Without this, nudges sent during /clear processing queue up at the prompt
-    # and cause race conditions (inbox1 arrives before /clear completes).
     local now_busy
     now_busy=$(date +%s)
     if [ "${LAST_CLEAR_TS:-0}" -gt 0 ] && [ "$((now_busy - LAST_CLEAR_TS))" -lt 30 ]; then
         return 0  # busy — /clear still processing
     fi
-
     local effective_cli
     effective_cli=$(get_effective_cli_type)
     if [[ "$effective_cli" == "claude" ]]; then
-        # フラグファイル方式: フラグなし=busy(return 0)、あり=idle(return 1)
-        [ ! -f "${IDLE_FLAG_DIR:-/tmp}/shogun_idle_${AGENT_ID}" ]
+        # Primary: flag file check (高信頼)
+        if [ -f "${IDLE_FLAG_DIR:-/tmp}/shogun_idle_${AGENT_ID}" ]; then
+            return 1  # idle — flag exists
+        fi
+        # Fallback: pane直接検出 (flag不整合時の回復)
+        # agent_is_busy_check returns 0=busy, 1=idle, 2=absent
+        if ! agent_is_busy_check "$PANE_TARGET"; then
+            return 0  # pane says busy — trust it
+        fi
+        # Pane says idle but flag is missing → false-busy状態を回復
+        echo "[$(date)] RECOVERY: $AGENT_ID flag missing but pane is idle — recreating flag" >&2
+        touch "${IDLE_FLAG_DIR:-/tmp}/shogun_idle_${AGENT_ID}"
+        return 1  # idle — recovered
     else
-        # 従来のpane解析（Codex等フォールバック）
         agent_is_busy_check "$PANE_TARGET"
     fi
 }
@@ -1000,7 +1005,7 @@ for s in data.get('specials', []):
             # Stale busy safety net: if agent has been "busy" for >5 minutes with
             # unread messages, force-create idle flag. This recovers from false-busy
             # deadlock where stop_hook failed to create the flag.
-            local stale_busy_limit=300  # 5 minutes
+            local stale_busy_limit=60  # 1 minute (shortened from 300s to reduce deadlock window)
             if [ "${FIRST_UNREAD_SEEN:-0}" -gt 0 ] && [ "$((now - FIRST_UNREAD_SEEN))" -ge "$stale_busy_limit" ]; then
                 echo "[$(date)] WARNING: $AGENT_ID busy for $((now - FIRST_UNREAD_SEEN))s with $normal_count unread — forcing idle flag (stale busy recovery)" >&2
                 touch "${IDLE_FLAG_DIR:-/tmp}/shogun_idle_${AGENT_ID}"
@@ -1136,7 +1141,7 @@ process_unread_once
 # ─── Main loop: event-driven via inotifywait ───
 # Timeout 30s: WSL2 /mnt/c/ can miss inotify events.
 # Shorter timeout = faster escalation retry for stuck agents.
-INOTIFY_TIMEOUT="${INOTIFY_TIMEOUT:-30}"
+INOTIFY_TIMEOUT="${INOTIFY_TIMEOUT:-10}"
 
 while true; do
     # Block until file is modified OR timeout

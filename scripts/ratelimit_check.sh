@@ -134,9 +134,9 @@ so = data.get('seven_day_opus') or {}
 ex = data.get('extra_usage') or {}
 
 print(f'5H_UTIL={fh.get(\"utilization\", \"?\")}')
-print(f'5H_RESET={fh.get(\"resets_at\", \"?\")[:16]}')
+print(f'5H_RESET={fh.get(\"resets_at\", \"?\")}')
 print(f'7D_UTIL={sd.get(\"utilization\", \"?\")}')
-print(f'7D_RESET={sd.get(\"resets_at\", \"?\")[:10]}')
+print(f'7D_RESET={sd.get(\"resets_at\", \"?\")}')
 print(f'7D_SONNET={ss.get(\"utilization\", \"-\")}')
 print(f'7D_OPUS={so.get(\"utilization\", \"-\")}')
 print(f'EXTRA={ex.get(\"is_enabled\", False)}')

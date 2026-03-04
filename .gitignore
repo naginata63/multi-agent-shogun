@@ -163,6 +163,9 @@
 # Python venv (explicit deny — whitelist patterns like LICENSE leak through !*/)
 .venv/
 
+# PreCompact snapshots (agent-local ephemeral data, not for git)
+queue/precompact/
+
 # Test specs
 !tests/specs/
 !tests/specs/*.md

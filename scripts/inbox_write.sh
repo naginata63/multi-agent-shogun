@@ -111,6 +111,9 @@ except Exception as e:
     sys.exit(1)
 "
         STATUS=$?
+        # Force close_write event for inotifywait
+        # (atomic rename alone doesn't trigger modify/close_write)
+        [ $STATUS -eq 0 ] && touch "$INBOX" 2>/dev/null
         _release_lock
         [ $STATUS -eq 0 ] && exit 0
         attempt=$((attempt + 1))

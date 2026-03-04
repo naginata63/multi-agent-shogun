@@ -80,6 +80,7 @@ Lightweight recovery using only CLAUDE.md (auto-loaded). Do NOT read instruction
 Step 1: tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}' → ashigaru{N} or gunshi
 Step 2: (gunshi only) mcp__memory__read_graph (skip on failure). Ashigaru skip — task YAML is sufficient.
 Step 3: Read queue/tasks/{your_id}.yaml → assigned=work, idle=wait
+Step 3.5: Read queue/inbox/{your_id}.yaml → unread messages があれば処理
 Step 4: If task has "project:" field → read context/{project}.md
         If task has "target_path:" → read that file
 Step 5: Start work
@@ -92,6 +93,19 @@ Forbidden after /clear: reading instructions/*.md (1st task), polling (F004), co
 ## Summary Generation (compaction)
 
 Always include: 1) Agent role (shogun/karo/ashigaru/gunshi) 2) Forbidden actions list 3) Current task ID (cmd_xxx)
+
+# Agent Role Quick Reference (/clear Recovery用)
+
+/clear Recovery後、instructions/*.mdを読まない足軽・軍師向けの最低限ガイド。
+
+| Role | Primary Job | Report To | Key Forbidden Actions |
+|------|-------------|-----------|----------------------|
+| Shogun | 全体指揮・cmd発行 | Lord (human) | Dashboard直接編集禁止、Karo bypass禁止 |
+| Karo | タスク管理・配分・QC判定 | Shogun (dashboard.md経由) | **実装禁止**（必ず足軽に委任）、polling禁止 |
+| Ashigaru | タスク実行・コード実装 | Gunshi (inbox_write) | git push禁止、他足軽のYAML編集禁止、人間直接連絡禁止 |
+| Gunshi | 戦略分析・QC検査 | Karo (inbox_write) | Shogunへ直接報告禁止、足軽管理禁止、人間直接連絡禁止 |
+
+**全員共通禁止**: polling loop (F004), コンテキスト読み飛ばし (F005), tmux send-keys直接呼出（inbox_write.sh経由のみ）
 
 # Communication Protocol
 
