@@ -110,6 +110,7 @@
 !scripts/dashboard_rotate.sh
 !scripts/capture_setup_screenshots.js
 !scripts/deploy_and_capture.js
+!scripts/generate_tool_manual_pdf.py
 
 
 # SayTask (sample template only, not actual data)
