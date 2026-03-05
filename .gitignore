@@ -109,10 +109,10 @@
 !scripts/qc_prompt_execution.py
 !scripts/dashboard_rotate.sh
 !scripts/cmd_rotate.sh
-!scripts/auto_handoff.sh
 !scripts/capture_setup_screenshots.js
 !scripts/deploy_and_capture.js
 !scripts/generate_tool_manual_pdf.py
+!scripts/precompact_hook.sh
 
 
 # SayTask (sample template only, not actual data)
