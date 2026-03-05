@@ -1,0 +1,125 @@
+---
+name: note-article
+description: |
+  テーマ/キーワードを受け取り、note記事を執筆→画像生成→下書き投稿するフロー。
+  「note記事」「note書いて」「記事を作成」「/note-article」で起動。
+  記事執筆からQCチェック（Q1-Q10）まで全自動で完結。
+argument-hint: "[テーマ] [キーワード]"
+disable-model-invocation: false
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep
+---
+
+# note記事作成スキル (note-article)
+
+テーマとキーワードを受け取り、note記事を執筆→画像生成→下書き投稿するフローを実行する。
+
+## 引数
+
+- `$0`: テーマ（例: "AIと創造性"）
+- `$1`: キーワード（例: "生成AI 創作 未来"）
+- `$ARGUMENTS` が空の場合はユーザーに確認する
+
+---
+
+## 実行フロー
+
+### Step 1: テーマとキーワードを受け取る
+
+`$ARGUMENTS` からテーマとキーワードを取得。未指定の場合はユーザーに質問する。
+
+### Step 2: 記事をMarkdownで執筆
+
+以下のルールに従って記事を執筆し、ファイルに保存する:
+
+**執筆ルール:**
+- 一人称: 「わたし」または「私」（殿のnoteスタイル）
+- ですます調
+- 文字数: 1500〜2500文字
+- 最低1枚の画像を挿入
+- 記事ソース保存先: `projects/note_mcp_server/articles/{title}.md`
+- **noteで非対応の記法は使わない**: テーブル（`|...|`）、水平線（`---`）
+- URLは必ず `[リンクテキスト](URL)` 形式で記述（プレーンURLは使わない）
+
+### Step 3: Gemini Imagen APIで画像生成
+
+画像を `projects/note_mcp_server/images/` に保存する。
+
+```bash
+source ~/.bashrc
+OUTPUT_FILE="projects/note_mcp_server/images/<filename>.png"
+PROMPT="<記事に合った画像プロンプト（英語）>"
+
+curl -s "https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict" \
+  -H "x-goog-api-key: $GEMINI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d "{\"instances\":[{\"prompt\":\"${PROMPT}\"}],\"parameters\":{\"sampleCount\":1,\"aspectRatio\":\"16:9\"}}" \
+  | python3 -c "import sys,json,base64; d=json.load(sys.stdin); open('${OUTPUT_FILE}','wb').write(base64.b64decode(d['predictions'][0]['bytesBase64Encoded']))"
+```
+
+生成した画像を記事Markdownの適切な場所に `![代替テキスト](画像パス)` で挿入する。
+
+### Step 4: note-edit.js で下書き投稿
+
+```bash
+cd /home/murakami/multi-agent-shogun/projects/note_mcp_server
+DISPLAY=:0 PLAYWRIGHT_BROWSERS_PATH=~/.cache/ms-playwright \
+  node scripts/note-edit.js --action=create \
+    --title="<タイトル>" \
+    --body-file=articles/<filename>.md
+```
+
+コマンド出力から下書きURLを取得する。
+
+### Step 5: 下書きURLをユーザーに報告
+
+取得した下書きURLをユーザーに報告する。
+
+### Step 6: QCチェック（Q1-Q10全項目）
+
+投稿後にPlaywrightで記事プレビューを確認し、全項目をチェックする。
+
+| # | チェック項目 | 確認方法 | PASS基準 |
+|---|-------------|---------|---------|
+| Q1 | 表示崩れなし | noteプレビューをPlaywrightで開きスクショ | 黒い線・レイアウト崩れなし |
+| Q2 | 見出し変換 | スクショ確認 | 「## 」が残っていない |
+| Q3 | 太字変換 | スクショ確認 | 「**」が残っていない |
+| Q4 | リンク変換 | スクショ確認 | URLがハイパーリンク表示 |
+| Q5 | コードブロック | スクショ確認 | 「\`\`\`」が残っていない |
+| Q6 | 箇条書き | スクショ確認 | 「- 」が残っていない |
+| Q7 | 引用 | スクショ確認（引用あれば） | 「> 」が残っていない |
+| Q8 | 画像表示 | スクショ確認 | 画像が見えている |
+| Q9 | 誤字脱字 | 全文読み直し | 明らかな誤字なし |
+| Q10 | 文字数 | 本文カウント | 1500〜2500文字 |
+
+### Step 7: NG項目があれば修正→再投稿→QC再実施
+
+NG項目が1つでもあれば:
+1. 記事Markdownを修正
+2. note-edit.js で再投稿（`--action=update` または `--action=create` で上書き）
+3. QCチェックを全項目再実施
+4. 全PASSになるまでループ
+
+### Step 8: 全PASS後に完了報告
+
+全Q1-Q10がPASSしたら、以下を報告:
+- 下書きURL
+- 記事タイトル
+- 文字数
+- QC結果サマリー
+
+---
+
+## 禁止事項
+
+- **公開は絶対禁止**: `--action=publish` の実行禁止
+- 下書き保存（`--action=create`）のみ
+
+---
+
+## 参考ファイル
+
+- note-edit.js: `projects/note_mcp_server/scripts/note-edit.js`
+- Playwright設定: `context/note-playwright-workflow.md`
+- 記事サンプル: `projects/note_mcp_server/articles/ai_auto_post.md`
+- 画像保存先: `projects/note_mcp_server/images/`
+- 記事保存先: `projects/note_mcp_server/articles/`
