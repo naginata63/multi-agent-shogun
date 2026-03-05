@@ -455,7 +455,7 @@ def build_setup_with_screenshots_html(tool: dict, ss_dir: Path) -> str:
             "caption": "▲ STEP1：GASエディタにコードを貼り付けた状態（拡張機能→Apps Scriptで開く）",
         },
         {
-            "text": "スプレッドシートに戻り、メニューバーに「EC商品説明AI」が追加されていることを確認",
+            "text": "スプレッドシートに戻り、ページをリロード（F5キーまたはブラウザの再読み込みボタン）してから、メニューバーに「EC商品説明AI」が追加されていることを確認",
             "screenshot": "02_menu_open.png",
             "caption": "▲ STEP2：カスタムメニュー「EC商品説明AI」がメニューバーに表示されます",
         },
@@ -512,14 +512,21 @@ def build_sheet_structure_html(tool: dict) -> str:
 
 
 def build_code_html(code_gs_path: Path) -> str:
-    code_text = code_gs_path.read_text(encoding="utf-8")
-    return f"""
+    lines = code_gs_path.read_text(encoding="utf-8").split('\n')
+    header = '\n'.join(lines[:20])
+    gist_url = "https://gist.github.com/naginata63/c2eab9565928de5e492a9fa0f5e550e0"
+    return f'''
 <div class="code-section">
 <h2>GASコード全文</h2>
-<p>以下のコードをGASエディタに貼り付けて保存してください。</p>
-<pre><code>{escape_html(code_text)}</code></pre>
+<p>GASコードの全文は以下のGistからコピーしてください（「Raw」ボタンで全文一括コピー可能です）:</p>
+<p><a href="{gist_url}">{gist_url}</a></p>
+<p>コードの概要（先頭部分）:</p>
+<pre><code>{escape_html(header)}
+
+// ▼ 全コードはGistを参照してください ▼
+// {gist_url}</code></pre>
 </div>
-"""
+'''
 
 
 def _img_b64(path: Path) -> str:
