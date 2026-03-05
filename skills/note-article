@@ -44,17 +44,25 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 
 画像を `projects/note_mcp_server/images/` に保存する。
 
+**推奨モデル**: `gemini-3.1-flash-image-preview`（Nano Banana 2、4K対応、テキスト描画精度90%）
+
 ```bash
 source ~/.bashrc
 OUTPUT_FILE="projects/note_mcp_server/images/<filename>.png"
 PROMPT="<記事に合った画像プロンプト（英語）>"
 
-curl -s "https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict" \
+curl -s "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent" \
   -H "x-goog-api-key: $GEMINI_API_KEY" \
   -H "Content-Type: application/json" \
-  -d "{\"instances\":[{\"prompt\":\"${PROMPT}\"}],\"parameters\":{\"sampleCount\":1,\"aspectRatio\":\"16:9\"}}" \
-  | python3 -c "import sys,json,base64; d=json.load(sys.stdin); open('${OUTPUT_FILE}','wb').write(base64.b64decode(d['predictions'][0]['bytesBase64Encoded']))"
+  -d "{\"contents\":[{\"parts\":[{\"text\":\"Generate an image: ${PROMPT}\"}]}],\"generationConfig\":{\"responseModalities\":[\"TEXT\",\"IMAGE\"],\"imageConfig\":{\"aspectRatio\":\"16:9\"}}}" \
+  | python3 -c "import sys,json,base64; d=json.load(sys.stdin); parts=d['candidates'][0]['content']['parts']; img=[p for p in parts if 'inlineData' in p][0]; open('${OUTPUT_FILE}','wb').write(base64.b64decode(img['inlineData']['data']))"
 ```
+
+**画像内テキストの制約:**
+- 日本語・英語どちらも直接描画可能（25文字以下・3フレーズ以下）
+- テキスト不要な画像: プロンプト末尾に `no text, no letters, no words` を追加
+
+**フォールバック**: gemini-3.1-flash-image-previewでエラーが出る場合は `imagen-4.0-generate-001` を使用（predict API）
 
 生成した画像を記事Markdownの適切な場所に `![代替テキスト](画像パス)` で挿入する。
 
@@ -83,13 +91,16 @@ DISPLAY=:0 PLAYWRIGHT_BROWSERS_PATH=~/.cache/ms-playwright \
 | Q1 | 表示崩れなし | noteプレビューをPlaywrightで開きスクショ | 黒い線・レイアウト崩れなし |
 | Q2 | 見出し変換 | スクショ確認 | 「## 」が残っていない |
 | Q3 | 太字変換 | スクショ確認 | 「**」が残っていない |
-| Q4 | リンク変換 | スクショ確認 | URLがハイパーリンク表示 |
+| Q4 | リンクカード | Playwrightでリンクカード/リンクをクリック→遷移先URL確認 | クリックで正しいURLに遷移する（飛べなければFAIL） |
 | Q5 | コードブロック | スクショ確認 | 「\`\`\`」が残っていない |
 | Q6 | 箇条書き | スクショ確認 | 「- 」が残っていない |
 | Q7 | 引用 | スクショ確認（引用あれば） | 「> 」が残っていない |
 | Q8 | 画像表示 | スクショ確認 | 画像が見えている |
 | Q9 | 誤字脱字 | 全文読み直し | 明らかな誤字なし |
 | Q10 | 文字数 | 本文カウント | 1500〜2500文字 |
+| Q_R1 | 画像の意味 | 各画像が読者にとって意味があるか判断 | 「エディタのスクショのスクショ」等の意味不明画像はFAIL |
+| Q_R2 | キャプション | 全画像にキャプションが設定されているか | 「キャプションを入力」のままはFAIL |
+| Q_R3 | 読者視点通読 | 記事全体を読者として通読 | 違和感のあるコンテンツ・文脈不整合がないか |
 
 ### Step 7: NG項目があれば修正→再投稿→QC再実施
 
