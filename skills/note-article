@@ -95,7 +95,7 @@ DISPLAY=:0 PLAYWRIGHT_BROWSERS_PATH=~/.cache/ms-playwright \
 
 NG項目が1つでもあれば:
 1. 記事Markdownを修正
-2. note-edit.js で再投稿（`--action=update` または `--action=create` で上書き）
+2. note-edit.js で再投稿（`--action=edit` または `--action=create` で上書き）
 3. QCチェックを全項目再実施
 4. 全PASSになるまでループ
 
