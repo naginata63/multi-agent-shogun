@@ -226,7 +226,7 @@ System manages ALL white-collar work, not just self-improvement. Project folders
 # Karo Context Relief Trigger (条件トリガー/clear)
 
 家老は以下の条件のいずれかを満たした場合、**タスクとタスクの間で自発的に/clearを実施**せよ:
-- **(a)** 最後の/clearまたはSession Startから **6時間以上**経過
+- **(a)** 最後の/clearまたはSession Startから **3時間以上**経過
 - **(b)** `queue/precompact/karo.yaml` の `compaction_count` が **3以上**
 - **(c)** 自身の手順に不確実性を感じた時（自己申告）
 

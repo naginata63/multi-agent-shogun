@@ -39,6 +39,9 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 - 記事ソース保存先: `projects/note_mcp_server/articles/{title}.md`
 - **noteで非対応の記法は使わない**: テーブル（`|...|`）、水平線（`---`）
 - URLは必ず `[リンクテキスト](URL)` 形式で記述（プレーンURLは使わない）
+- **全画像にキャプションを設定**: 「キャプションを入力」のままにしない（QC_R2の強化）
+- **GitHubリンクはカードリンク形式**: 通常の `[テキスト](URL)` ではなく、URLのみ1行に書いてカードリンクを使用
+- **行間が広すぎないよう**: 連続する空行は最大1行まで
 
 ### Step 3: Gemini Imagen APIで画像生成
 
@@ -62,7 +65,30 @@ curl -s "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flas
 - 日本語・英語どちらも直接描画可能（25文字以下・3フレーズ以下）
 - テキスト不要な画像: プロンプト末尾に `no text, no letters, no words` を追加
 
-**フォールバック**: gemini-3.1-flash-image-previewでエラーが出る場合は `imagen-4.0-generate-001` を使用（predict API）
+**フォールバック**: gemini-3.1-flash-image-previewでエラーが出る場合は `gemini-3-pro-image-preview`（高忠実度テキスト描画・複雑指示向け）を使用。同じgenerateContentエンドポイントで呼び出し可能:
+
+```bash
+source ~/.bashrc
+OUTPUT_FILE="projects/note_mcp_server/images/<filename>.png"
+PROMPT="<記事に合った画像プロンプト（英語）>"
+
+curl -s "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent" \
+  -H "x-goog-api-key: $GEMINI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d "{\"contents\":[{\"parts\":[{\"text\":\"Generate an image: ${PROMPT}\"}]}],\"generationConfig\":{\"responseModalities\":[\"TEXT\",\"IMAGE\"],\"imageConfig\":{\"aspectRatio\":\"16:9\"}}}" \
+  | python3 -c "import sys,json,base64; d=json.load(sys.stdin); parts=d['candidates'][0]['content']['parts']; img=[p for p in parts if 'inlineData' in p][0]; open('${OUTPUT_FILE}','wb').write(base64.b64decode(img['inlineData']['data']))"
+```
+
+※ imagen-4.0-generate-001 は旧 predict API 形式（非推奨）。generateContent に統一すること。
+
+### カバー画像（トップ画像）の生成
+
+記事の最初に表示されるカバー画像を生成する（必須）。
+- アスペクト比: 16:9 推奨
+- 記事テーマを象徴するビジュアル
+- 生成後、note-edit.js の `--cover-image` オプションで設定するか、note画面から手動でアップロード
+
+カバー画像は記事本文の先頭に挿入するほか、noteのカバーとして設定すること。
 
 生成した画像を記事Markdownの適切な場所に `![代替テキスト](画像パス)` で挿入する。
 
@@ -86,6 +112,21 @@ DISPLAY=:0 PLAYWRIGHT_BROWSERS_PATH=~/.cache/ms-playwright \
 
 投稿後にPlaywrightで記事プレビューを確認し、全項目をチェックする。
 
+### QC事前準備: フルページスクショ取得
+
+QC項目チェック前に、下書きURLのフルページスクショを1枚取得する:
+
+```bash
+cd /home/murakami/multi-agent-shogun/projects/note_mcp_server
+DISPLAY=:0 PLAYWRIGHT_BROWSERS_PATH=~/.cache/ms-playwright \
+  node scripts/note-screenshot.js \
+    --url="<下書きURL>" \
+    --output=/tmp/note_qc_fullpage.png
+```
+
+取得した `/tmp/note_qc_fullpage.png` を Read ツールで開き、Q1〜Q8を一括確認する。
+部分スクショではなく記事全体を1枚で確認すること。
+
 | # | チェック項目 | 確認方法 | PASS基準 |
 |---|-------------|---------|---------|
 | Q1 | 表示崩れなし | noteプレビューをPlaywrightで開きスクショ | 黒い線・レイアウト崩れなし |
@@ -101,6 +142,11 @@ DISPLAY=:0 PLAYWRIGHT_BROWSERS_PATH=~/.cache/ms-playwright \
 | Q_R1 | 画像の意味 | 各画像が読者にとって意味があるか判断 | 「エディタのスクショのスクショ」等の意味不明画像はFAIL |
 | Q_R2 | キャプション | 全画像にキャプションが設定されているか | 「キャプションを入力」のままはFAIL |
 | Q_R3 | 読者視点通読 | 記事全体を読者として通読 | 違和感のあるコンテンツ・文脈不整合がないか |
+| Q_R4 | 行間の適切さ | フルページスクショ確認 | 連続空行が多すぎず読みやすい |
+| Q_R5 | 画像挿入位置 | フルページスクショ確認 | 各画像が関連する本文の直後に配置されている |
+| Q_R6 | カバー画像設定 | noteプレビュー確認 | トップ画像が設定されている |
+| Q_R7 | キャプション設定 | フルページスクショ確認 | 全画像に意味あるキャプションがある |
+| Q_R8 | GitHubリンク形式 | フルページスクショ確認 | GitHubリンクがカードリンクになっている |
 
 ### Step 7: NG項目があれば修正→再投稿→QC再実施
 
@@ -109,6 +155,13 @@ NG項目が1つでもあれば:
 2. note-edit.js で再投稿（`--action=edit` または `--action=create` で上書き）
 3. QCチェックを全項目再実施
 4. 全PASSになるまでループ
+
+### Step 7.5: タグ（ハッシュタグ）選定
+
+記事のテーマに合ったタグを3〜5個選定し、下書き投稿時に設定する:
+- 主テーマのタグ（例: #AI, #GAS, #自動化）
+- 記事スタイルのタグ（例: #体験談, #ツール紹介）
+- ターゲット読者のタグ（例: #副業, #フリーランス）
 
 ### Step 8: 全PASS後に完了報告
 
