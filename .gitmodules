@@ -10,3 +10,6 @@
 [submodule "projects/note_mcp_server"]
 	path = projects/note_mcp_server
 	url = https://github.com/naginata63/note-scripts.git
+[submodule "projects/dozle_kirinuki"]
+	path = projects/dozle_kirinuki
+	url = https://github.com/naginata63/dozle_kirinuki.git
