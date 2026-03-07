@@ -810,7 +810,12 @@ send_wakeup() {
     if timeout 5 tmux send-keys -t "$PANE_TARGET" "$nudge" 2>/dev/null; then
         sleep 0.3
         timeout 5 tmux send-keys -t "$PANE_TARGET" Enter 2>/dev/null || true
-        rm -f "${IDLE_FLAG_DIR:-/tmp}/shogun_idle_${AGENT_ID}"
+        # NOTE: Do NOT delete idle flag here. The flag should only be removed
+        # when the agent is confirmed busy (via stop_hook or pane detection).
+        # Deleting on nudge-send caused false-busy deadlocks: if the agent
+        # didn't process the nudge (e.g. after PC crash), the flag was gone
+        # and subsequent nudges were skipped as "busy" for 67+ seconds.
+        # The stop_hook (PreToolUse) already handles flag deletion on real activity.
         echo "[$(date)] Wake-up sent to $AGENT_ID (${unread_count} unread)" >&2
         return 0
     fi
