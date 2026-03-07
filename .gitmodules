@@ -13,3 +13,6 @@
 [submodule "projects/dozle_kirinuki"]
 	path = projects/dozle_kirinuki
 	url = https://github.com/naginata63/dozle_kirinuki.git
+[submodule "projects/coconala-tools"]
+	path = projects/coconala-tools
+	url = https://github.com/naginata63/coconala-tools.git
