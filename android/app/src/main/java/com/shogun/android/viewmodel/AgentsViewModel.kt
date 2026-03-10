@@ -83,7 +83,7 @@ class AgentsViewModel(application: Application) : AndroidViewModel(application) 
             val agentsSession = prefs.getString("agents_session", "multiagent") ?: "multiagent"
             // Batch all pane queries into a single SSH command
             val batchCmd = buildString {
-                append("for i in 0 1 2 3 4 5 6 7; do ")
+                append("for i in 0 1 2 3 4 5 6 7 8; do ")
                 append("echo \"===ID\$i===\"; ")
                 append("/usr/bin/tmux display-message -t $agentsSession:0.\$i -p '#{@agent_id}' 2>/dev/null || echo \"pane\$i\"; ")
                 append("echo \"===CONTENT\$i===\"; ")
@@ -104,7 +104,7 @@ class AgentsViewModel(application: Application) : AndroidViewModel(application) 
 
     private fun parseBatchOutput(output: String): List<PaneInfo> {
         val panes = mutableListOf<PaneInfo>()
-        for (i in 0..7) {
+        for (i in 0..8) {
             val idMarker = "===ID$i==="
             val contentMarker = "===CONTENT$i==="
             val nextIdMarker = "===ID${i + 1}==="
@@ -117,7 +117,7 @@ class AgentsViewModel(application: Application) : AndroidViewModel(application) 
             }
 
             val agentId = output.substring(idStart + idMarker.length, contentStart).trim()
-            val contentEnd = if (i < 7) {
+            val contentEnd = if (i < 8) {
                 val next = output.indexOf(nextIdMarker)
                 if (next != -1) next else output.length
             } else {

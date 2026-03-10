@@ -646,6 +646,8 @@ send_context_reset() {
     fi
 
     # Non-Codex CLIs: send /clear and wait for idle
+    # copy-mode解除（スクロール閲覧中だとsend-keysがサイレントに無視される）
+    timeout 2 tmux send-keys -t "$PANE_TARGET" -X cancel 2>/dev/null || true
     # Send the command (text and Enter separated for TUI compatibility)
     timeout 5 tmux send-keys -t "$PANE_TARGET" "$reset_cmd" 2>/dev/null || true
     # Longer gap for /clear — CLI prompt rendering needs time
@@ -793,6 +795,8 @@ send_wakeup() {
     # ntfy messages must reach Claude Code directly.
 
     # 優先度3: tmux send-keys（テキストとEnterを分離 — Codex TUI対策）
+    # copy-mode解除（スクロール閲覧中だとsend-keysがサイレントに無視される）
+    timeout 2 tmux send-keys -t "$PANE_TARGET" -X cancel 2>/dev/null || true
     echo "[$(date)] [SEND-KEYS] Sending nudge to $PANE_TARGET for $AGENT_ID" >&2
 
     # Codex suggestion UI dismissal: typing any character dismisses the autocomplete

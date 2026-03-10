@@ -100,13 +100,24 @@ private fun rateLimitBarColor(percent: Float): Color = when {
 
 private fun formatResetTime(resetStr: String): String {
     val locale = java.util.Locale.getDefault()
-    val now = java.time.LocalDateTime.now()
+    val zone = java.time.ZoneId.systemDefault()
+    val nowZoned = java.time.ZonedDateTime.now(zone)
+    val nowLocal = java.time.LocalDateTime.now()
     return try {
-        if (resetStr.contains('T')) {
+        if (resetStr.contains('T') && (resetStr.endsWith("Z") || resetStr.contains('+') || resetStr.lastIndexOf('-') > resetStr.indexOf('T'))) {
+            val zdt = java.time.OffsetDateTime.parse(resetStr).atZoneSameInstant(zone)
+            val dow = zdt.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, locale)
+            val timeStr = "${zdt.monthValue}/${zdt.dayOfMonth}($dow) %02d:%02d".format(zdt.hour, zdt.minute)
+            if (zdt.isBefore(nowZoned)) {
+                "$timeStr にリセット済み"
+            } else {
+                "$timeStr にリセット"
+            }
+        } else if (resetStr.contains('T')) {
             val ldt = java.time.LocalDateTime.parse(resetStr.take(16))
             val dow = ldt.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, locale)
             val timeStr = "${ldt.monthValue}/${ldt.dayOfMonth}($dow) %02d:%02d".format(ldt.hour, ldt.minute)
-            if (ldt.isBefore(now)) {
+            if (ldt.isBefore(nowLocal)) {
                 "$timeStr にリセット済み"
             } else {
                 "$timeStr にリセット"

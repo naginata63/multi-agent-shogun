@@ -278,7 +278,7 @@ get_agent_model() {
             # Claude Code/Codex/Copilot用デフォルトモデル
             case "$agent_id" in
                 shogun)         echo "opus" ;;
-                karo)           echo "sonnet" ;;
+                karo)           echo "opus" ;;
                 gunshi)         echo "opus" ;;
                 ashigaru*)      echo "sonnet" ;;
                 *)              echo "sonnet" ;;
