@@ -80,7 +80,7 @@ Lightweight recovery using only CLAUDE.md (auto-loaded). Do NOT read instruction
 ```
 Step 1: tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}' → ashigaru{N} or gunshi
 Step 2: (gunshi only) mcp__memory__read_graph (skip on failure). Ashigaru skip — task YAML is sufficient.
-Step 3: Read queue/tasks/{your_id}.yaml → assigned=work, idle=wait
+Step 3: Read queue/tasks/{your_id}.yaml → 末尾のstatus:assignedタスクを探す。なければidle
 Step 3.5: Read queue/inbox/{your_id}.yaml → unread messages があれば処理
 Step 4: If task has "project:" field → read context/{project}.md
         If task has "target_path:" → read that file
@@ -223,6 +223,16 @@ Layer 4: Session context — volatile (CLAUDE.md auto-loaded, instructions/*.md,
 # Project Management
 
 System manages ALL white-collar work, not just self-improvement. Project folders can be external (outside this repo). `projects/` is git-ignored (contains secrets).
+
+# Task YAML Format (追記方式)
+
+`queue/tasks/{agent}.yaml` はリスト形式（`tasks: [...]`）。新タスク割当時に過去タスクの記録が消えない。
+
+- **構造**: `tasks:` キー配下にリストとして各タスクを格納
+- **新タスク追加**: ファイル末尾に追記（上書き禁止）
+- **過去タスクのstatus**: 完了時は `status: done` に更新してから次タスクを追記
+- **足軽・軍師がタスクを読む手順**: 末尾の `status: assigned` を探す（複数ある場合は最新の末尾を優先）
+- **アーカイブ**: 100件超えたら `queue/tasks/archive/` に古いタスクを退避（手動）
 
 # Karo Context Relief Trigger (条件トリガー/clear)
 

@@ -52,6 +52,12 @@ workflow:
   - step: 6
     action: write_yaml
     target: "queue/tasks/ashigaru{N}.yaml"
+    append_only_rule: |
+      【必須】タスクYAMLは追記方式。上書き禁止。
+      - 既存ファイルをReadして末尾に新タスクを追記（Editツール使用）
+      - 前のタスクのstatusを `done` に更新してから新タスクを追記
+      - 形式: `tasks:` リスト（各タスクは `- task_id: ...` で始まる）
+      - parent_cmd フィールドは必須（どのcmdから派生したか記録する）
     bloom_level_rule: |
       【必須】全タスクYAMLに bloom_level フィールドを付与すること。省略禁止。
       config/settings.yaml のBloom定義コメントを参照:

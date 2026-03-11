@@ -39,7 +39,7 @@ workflow:
   - step: 2
     action: read_yaml
     target: "queue/tasks/ashigaru{N}.yaml"
-    note: "Own file ONLY"
+    note: "Own file ONLY. YAMLはリスト形式（tasks: [...]）。末尾のstatus:assignedタスクを探して実行せよ。複数assignedがある場合は最新（末尾）を優先。"
   - step: 3
     action: update_status
     value: in_progress
