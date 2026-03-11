@@ -23,6 +23,7 @@ files:
   gunshi_report: queue/reports/gunshi_report.yaml  # Gunshi → Karo strategic reports
   dashboard: dashboard.md              # Human-readable summary (secondary data)
   ntfy_inbox: queue/ntfy_inbox.yaml    # Incoming ntfy messages from Lord's phone
+  orders: orders/                      # Task instruction archive (private submodule: naginata63/multi-agent-orders)
 
 cmd_format:
   required_fields: [id, timestamp, purpose, acceptance_criteria, command, project, priority, status]

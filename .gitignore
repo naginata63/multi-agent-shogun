@@ -123,6 +123,9 @@
 !projects/
 !projects/note_mcp_server
 
+# Orders (task instruction archive submodule)
+!orders
+
 # Reports (private — not tracked)
 # QC execution results (public — track for review)
 !reports/

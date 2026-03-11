@@ -302,6 +302,24 @@ Report via dashboard.md update only. Reason: interrupt prevention during lord's 
 3. After all cmds dispatched: **stop** (await inbox wakeup from ashigaru)
 4. On wakeup: scan reports → process → check for more pending cmds → stop
 
+### orders/ Archive (Task Instruction Archive)
+
+`orders/` is a private submodule (`naginata63/multi-agent-orders`) that archives all task instructions for post-hoc inspection.
+
+**Copy rules:**
+- **On cmd issuance**: Copy cmd definition from `shogun_to_karo.yaml` → `orders/commands/cmd_XXX.yaml`
+- **On task assignment**: Copy subtask YAML → `orders/tasks/subtask_XXX.yaml`
+- **On report receipt**: Archive completion reports → `orders/reports/`
+- **Commit/push**: After each cmd cycle or daily (whichever is more frequent)
+
+```bash
+# Example: archive a cmd definition
+cp -n queue/shogun_to_karo.yaml orders/commands/cmd_512.yaml  # NOT correct — extract only that cmd's block
+# Use Python/awk to extract the specific cmd block, then save to orders/commands/cmd_XXX.yaml
+cd orders && git add . && git commit -m "archive: cmd_XXX" && git push origin main && cd ..
+git add orders && git commit -m "chore: update orders submodule"
+```
+
 ## Task Design: Five Questions
 
 Before assigning tasks, ask yourself these five questions:

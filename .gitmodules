@@ -16,3 +16,6 @@
 [submodule "projects/coconala-tools"]
 	path = projects/coconala-tools
 	url = https://github.com/naginata63/coconala-tools.git
+[submodule "orders"]
+	path = orders
+	url = https://github.com/naginata63/multi-agent-orders.git
