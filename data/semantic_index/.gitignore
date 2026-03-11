@@ -1,0 +1,4 @@
+# Generated index files (rebuild with: python3 scripts/semantic_search.py build)
+index.faiss
+metadata.json
+chunk_hashes.json

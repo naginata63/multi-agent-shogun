@@ -114,6 +114,7 @@
 !scripts/generate_tool_manual_pdf.py
 !scripts/precompact_hook.sh
 !scripts/monitor.sh
+!scripts/semantic_search.py
 
 
 # SayTask (sample template only, not actual data)
@@ -138,6 +139,12 @@
 # Memory (MEMORY.md is private; only the sample template is OSS)
 !memory/
 !memory/MEMORY.md.sample
+
+# Data directory (semantic index)
+!data/
+!data/semantic_index/
+!data/semantic_index/.gitignore
+!data/semantic_index/.gitkeep
 
 # Docs
 !docs/
