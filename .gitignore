@@ -113,6 +113,7 @@
 !scripts/deploy_and_capture.js
 !scripts/generate_tool_manual_pdf.py
 !scripts/precompact_hook.sh
+!scripts/monitor.sh
 
 
 # SayTask (sample template only, not actual data)
