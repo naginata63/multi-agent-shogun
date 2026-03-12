@@ -117,8 +117,10 @@
 !scripts/semantic_search.py
 !scripts/cmd_helper.py
 !scripts/gemini_transcribe.py
+!scripts/gemini_video_analysis.py
 !scripts/automation/
 !scripts/automation/cmd_rag_hook.sh
+!scripts/automation/post_fetch_recommend.sh
 
 
 # SayTask (sample template only, not actual data)
