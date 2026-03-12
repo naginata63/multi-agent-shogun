@@ -5,6 +5,7 @@ cmd_helper.py — cmdナレッジ支援ツール
 サブコマンド:
   similar  "テキスト"   — 類似cmdをshogun_to_karoから検索
   dedup    "テキスト"   — 同内容ナレッジがcontext/memoryに既存か確認
+  rag      "テキスト"   — 過去cmd・スクリプト・ナレッジ・コメントを統合検索
 """
 
 import argparse
@@ -126,6 +127,61 @@ def cmd_dedup(args):
         print()
 
 
+def cmd_rag(args):
+    """RAG参考資料統合表示"""
+    text = args.text
+    top = getattr(args, "top", 5)
+    output_json = getattr(args, "json", False)
+
+    sources = [
+        ("shogun_to_karo", "過去の類似cmd"),
+        ("scripts", "関連スクリプト"),
+        ("context", "関連ナレッジ"),
+        ("comments", "関連コメント"),
+    ]
+
+    all_results = {}
+    for source, label in sources:
+        results = run_semantic_search(text, source, top)
+        all_results[source] = (label, results)
+
+    if output_json:
+        output = {}
+        for source, (label, results) in all_results.items():
+            output[source] = {
+                "label": label,
+                "results": results[:top],
+            }
+        print(json.dumps(output, ensure_ascii=False, indent=2))
+        return
+
+    print(f"\n=== RAG参考資料 ===")
+    print(f"クエリ: {text!r}\n")
+
+    for source, (label, results) in all_results.items():
+        print(f"【{label}】")
+        if not results:
+            print("  (結果なし、またはインデックス未構築)")
+        else:
+            for i, r in enumerate(results[:top], 1):
+                chunk_id = r.get("chunk_id", "")
+                score = r.get("score", 0.0)
+                text_preview = r.get("text", "")[:80].replace("\n", " ")
+                file_path = r.get("file", "")
+
+                if source == "shogun_to_karo":
+                    display = chunk_id.split("::")[-1] if "::" in chunk_id else chunk_id
+                    print(f"  {i}. {display:15s} (score: {score:.2f}) {text_preview}")
+                elif source == "scripts":
+                    parts = chunk_id.split("::")
+                    display = parts[1] if len(parts) > 1 else chunk_id
+                    print(f"  {i}. {display} (score: {score:.2f}) — {text_preview}")
+                else:
+                    fname = Path(file_path).name if file_path else chunk_id
+                    print(f"  {i}. {fname} (score: {score:.2f}) — {text_preview}")
+        print()
+
+
 def main():
     parser = argparse.ArgumentParser(description="cmd_helper — cmdナレッジ支援ツール")
     sub = parser.add_subparsers(dest="command")
@@ -141,12 +197,20 @@ def main():
     dup.add_argument("--threshold", type=float, default=DEDUP_THRESHOLD,
                      help=f"類似度閾値 (default: {DEDUP_THRESHOLD})")
 
+    # rag
+    rag = sub.add_parser("rag", help="過去cmd・スクリプト・ナレッジ・コメントを統合検索")
+    rag.add_argument("text", help="検索テキスト（cmdテーマ）")
+    rag.add_argument("--top", type=int, default=5, help="各ソースの表示件数 (default: 5)")
+    rag.add_argument("--json", action="store_true", help="JSON形式で出力")
+
     args = parser.parse_args()
 
     if args.command == "similar":
         cmd_similar(args)
     elif args.command == "dedup":
         cmd_dedup(args)
+    elif args.command == "rag":
+        cmd_rag(args)
     else:
         parser.print_help()
 
