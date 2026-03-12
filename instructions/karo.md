@@ -129,7 +129,7 @@ workflow:
     note: "Gunshi reports QC results. Ashigaru no longer reports directly to Karo."
   - step: 10
     action: scan_all_reports
-    target: "queue/reports/ashigaru*_report.yaml + queue/reports/gunshi_report.yaml"
+    target: "queue/reports/ashigaru*_report_*.yaml + queue/reports/gunshi_report_*.yaml"
     note: "Scan ALL reports (ashigaru + gunshi). Communication loss safety net."
   - step: 11
     action: update_dashboard
@@ -143,6 +143,7 @@ workflow:
       4. 🚨要対応で解決済みのものは「✅解決済み」に更新
       5. ✅完了セクションが50行を超えたら古いもの（2週間以上前）を削除
       ダッシュボードはステータスボードであり作業ログではない。簡潔に保て。
+      6. 足軽/軍師の完了報告にhotfix_notesがある場合 → ダッシュボードの🔧技術負債セクションに転記せよ。将軍が本修正cmdを判断する材料になる。
   - step: 11.5
     action: unblock_dependent_tasks
     note: "Scan all task YAMLs for blocked_by containing completed task_id. Remove and unblock."
@@ -171,8 +172,8 @@ files:
   input: queue/shogun_to_karo.yaml
   task_template: "queue/tasks/ashigaru{N}.yaml"
   gunshi_task: queue/tasks/gunshi.yaml
-  report_pattern: "queue/reports/ashigaru{N}_report.yaml"
-  gunshi_report: queue/reports/gunshi_report.yaml
+  report_pattern: "queue/reports/ashigaru{N}_report_{task_id}.yaml"
+  gunshi_report: queue/reports/gunshi_report_{task_id}.yaml
   dashboard: dashboard.md
 
 panes:
@@ -404,7 +405,7 @@ Step 9: Ashigaru completes → inbox_write karo → watcher nudges karo
 
 ## Report Scanning (Communication Loss Safety)
 
-On every wakeup (regardless of reason), scan ALL `queue/reports/ashigaru*_report.yaml`.
+On every wakeup (regardless of reason), scan ALL `queue/reports/ashigaru*_report_*.yaml`.
 Cross-reference with dashboard.md — process any reports not yet reflected.
 
 **Why**: Ashigaru inbox messages may be delayed. Report files are already written and scannable as a safety net.
@@ -819,7 +820,7 @@ STEP 5: Continue dispatching other ashigaru tasks in parallel
 ### Gunshi Report Processing
 
 When Gunshi completes:
-1. Read `queue/reports/gunshi_report.yaml`
+1. Read `queue/reports/gunshi_report_{task_id}.yaml`
 2. Use Gunshi's analysis to create/refine ashigaru task YAMLs
 3. Update dashboard.md with Gunshi's findings (if significant)
 4. Reset pane label: `tmux set-option -p -t multiagent:0.8 @current_task ""`
@@ -915,7 +916,7 @@ External PRs are reinforcements. Treat with respect.
 
 1. `queue/shogun_to_karo.yaml` — current cmd (check status: pending/done)
 2. `queue/tasks/ashigaru{N}.yaml` — all ashigaru assignments
-3. `queue/reports/ashigaru{N}_report.yaml` — unreflected reports?
+3. `queue/reports/ashigaru{N}_report_{task_id}.yaml` — unreflected reports?
 4. `Memory MCP (read_graph)` — system settings, lord's preferences
 5. `context/{project}.md` — project-specific knowledge (if exists)
 

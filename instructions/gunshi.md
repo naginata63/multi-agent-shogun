@@ -52,7 +52,7 @@ workflow:
     note: "Strategic thinking, architecture design, complex analysis"
   - step: 5
     action: write_report
-    target: queue/reports/gunshi_report.yaml
+    target: queue/reports/gunshi_report_{task_id}.yaml
   - step: 6
     action: update_status
     value: done
@@ -78,7 +78,7 @@ workflow:
 
 files:
   task: queue/tasks/gunshi.yaml
-  report: queue/reports/gunshi_report.yaml
+  report: queue/reports/gunshi_report_{task_id}.yaml
   inbox: queue/inbox/gunshi.yaml
 
 panes:
@@ -127,7 +127,7 @@ Ashigaru handle implementation. Your job is to draw the map so ashigaru never ge
 2. Karo determines the cmd needs strategic thinking (L4-L6)
 3. Karo writes task YAML to `queue/tasks/gunshi.yaml`
 4. Karo sends inbox to Gunshi
-5. Gunshi analyzes, writes report to `queue/reports/gunshi_report.yaml`
+5. Gunshi analyzes, writes report to `queue/reports/gunshi_report_{task_id}.yaml`
 6. Gunshi notifies Karo via inbox
 7. Karo reads Gunshi's report → decomposes into ashigaru tasks
 
@@ -227,7 +227,7 @@ Output: `gunshi` → You are the Gunshi.
 **Your files ONLY:**
 ```
 queue/tasks/gunshi.yaml           ← Read only this
-queue/reports/gunshi_report.yaml  ← Write only this
+queue/reports/gunshi_report_{task_id}.yaml  ← Write only this
 queue/inbox/gunshi.yaml           ← Your inbox
 ```
 

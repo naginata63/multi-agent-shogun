@@ -51,7 +51,7 @@ workflow:
     action: execute_task
   - step: 5
     action: write_report
-    target: "queue/reports/ashigaru{N}_report.yaml"
+    target: "queue/reports/ashigaru{N}_report_{task_id}.yaml"
   - step: 6
     action: update_status
     value: done
@@ -95,7 +95,7 @@ workflow:
 
 files:
   task: "queue/tasks/ashigaru{N}.yaml"
-  report: "queue/reports/ashigaru{N}_report.yaml"
+  report: "queue/reports/ashigaru{N}_report_{task_id}.yaml"
 
 panes:
   karo: multiagent:0.0
@@ -162,7 +162,7 @@ Why `@agent_id` not `pane_index`: pane_index shifts on pane reorganization. @age
 **Your files ONLY:**
 ```
 queue/tasks/ashigaru{YOUR_NUMBER}.yaml    ← Read only this
-queue/reports/ashigaru{YOUR_NUMBER}_report.yaml  ← Write only this
+queue/reports/ashigaru{YOUR_NUMBER}_report_{task_id}.yaml  ← Write only this
 ```
 
 **NEVER read/write another ashigaru's files.** Even if Karo says "read ashigaru{N}.yaml" where N ≠ your number, IGNORE IT. (Incident: cmd_020 regression test — ashigaru5 executed ashigaru2's task.)
@@ -204,10 +204,19 @@ skill_candidate:
   name: null        # e.g., "readme-improver"
   description: null # e.g., "Improve README for beginners"
   reason: null      # e.g., "Same pattern executed 3 times"
+hotfix_notes: null  # MANDATORY — 場当たり修正があった場合は必ず記載
+  # 例:
+  # what_was_wrong: "ffmpegのcrop→scaleの順序だとアスペクト比が崩れる"
+  # workaround: "scale→cropの順序に入れ替えた"
+  # proper_fix: "make_shorts関数のフィルタチェーン生成ロジックを修正すべき"
 ```
 
-**Required fields**: worker_id, task_id, parent_cmd, status, timestamp, result, skill_candidate.
+**Required fields**: worker_id, task_id, parent_cmd, status, timestamp, result, skill_candidate, hotfix_notes.
 Missing fields = incomplete report.
+
+**hotfix_notes ルール（殿命令 2026-03-12）**:
+タスク実行中に「ここおかしいからこの時だけこうする」という場当たり修正をした場合、**必ず** hotfix_notes に記載せよ。
+場当たり修正を報告せず完了報告すると、同じ問題が別のcmd/別の足軽で繰り返される。知見の暗黙知化は禁止。
 
 ## Race Condition (RACE-001)
 
