@@ -334,8 +334,10 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
     WhisperX自身のtranscription+alignmentでms精度タイムスタンプを取得し、
     Geminiエントリのテキストと類似度マッチングでタイムスタンプを転写する。
 
-    forced alignment（外部テキスト→align()）は日本語で95%フォールバック率のため廃止。
-    代替: WhisperX transcription→自動align→テキスト類似度でGeminiエントリに転写。
+    Phase A: Word-levelプール構築
+    Phase B: Word-levelマッチング（find_longest_match）
+    Phase C: N:1 按分マッチング（WhisperXセグメント単位で複数Geminiエントリに按分）
+    Phase D: 最終フォールバック（Gemini元値維持）
     """
     try:
         import whisperx
@@ -361,7 +363,7 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
     total_dur = len(audio_full) / sample_rate
     print(f"[align] 総時間: {total_dur:.1f}秒", flush=True)
 
-    # Step 1: WhisperXモデルロード
+    # WhisperXモデルロード
     print("[align] WhisperXモデルロード中...", flush=True)
     wx_model = whisperx.load_model("large-v2", device, language="ja", compute_type="int8_float16")
     align_model, metadata = whisperx.load_align_model(language_code="ja", device=device)
@@ -373,6 +375,8 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
 
     # WhisperXセグメントを全チャンクから収集（絶対時刻）
     wx_all_segments: list[dict] = []
+    # Phase A: word-levelプール（絶対時刻）
+    wx_all_words: list[dict] = []
 
     for chunk_i, chunk_start in enumerate(chunk_starts):
         chunk_end = chunk_start + CHUNK_SEC
@@ -390,7 +394,7 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
 
             for seg in align_result["segments"]:
                 words = seg.get("words", [])
-                # word-levelの実値を優先
+                # word-levelの実値を優先してセグメントのstart/endを決定
                 start_val = None
                 for w in words:
                     w_start = w.get("start")
@@ -415,12 +419,22 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
                         "end": end_val + offset,
                         "text": seg.get("text", "").strip(),
                     })
+
+                # Phase A: word-levelプールに追加
+                for w in words:
+                    if w.get("start") is not None and w.get("end") is not None:
+                        wx_all_words.append({
+                            "word": w.get("word", ""),
+                            "start": w["start"] + offset,
+                            "end": w["end"] + offset,
+                        })
         except Exception as e:
             print(f"[align] チャンク{chunk_i} transcriptionエラー: {e}", flush=True)
 
         print(f"[align] チャンク{chunk_i+1}/{len(chunk_starts)} 完了", flush=True)
 
     print(f"[align] WhisperXセグメント数: {len(wx_all_segments)}", flush=True)
+    print(f"[align] WhisperX word数: {len(wx_all_words)}", flush=True)
 
     if not wx_all_segments:
         print("[align] 警告: WhisperXセグメントが空。元のエントリを返します。", flush=True)
@@ -435,83 +449,161 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
             ms = 999
         return f"{h:02d}:{mi:02d}:{sec:02d},{ms:03d}"
 
-    # Step 2 & 3: テキスト類似度マッチング → タイムスタンプ転写
-    MATCH_THRESHOLD = 0.3  # 閾値未満はGemini元値フォールバック
-    WINDOW_SEC = 60.0  # タイムウィンドウ（±60秒）
+    MATCH_THRESHOLD = 0.3
 
     wx_sorted = sorted(wx_all_segments, key=lambda s: s["start"])
     updated_entries = list(srt_entries)  # コピー
-    align_count = 0
-    fallback_count = 0
+    phase_b_count = 0
+    phase_c_count = 0
+
+    # Phase B対象外（タイムスタンプ解析不能等）のエントリはPhase D直行
+    fallback_set: set[int] = set()  # Phase B失敗インデックス
+
+    # Phase B: Word-levelマッチング
+    use_word_level = len(wx_all_words) > 50
+    wx_concat = ""
+    char_to_word_idx: list[int] = []  # 文字位置 → wx_all_words index
+
+    if use_word_level:
+        print(f"[align] Phase B: Word-levelマッチング開始 (words={len(wx_all_words)})", flush=True)
+        for wi, w in enumerate(wx_all_words):
+            word_text = w["word"]
+            for _ in word_text:
+                char_to_word_idx.append(wi)
+            wx_concat += word_text
+        print(f"[align] wx_concat長: {len(wx_concat)}文字", flush=True)
+    else:
+        print("[align] Phase B: word数不足のためスキップ", flush=True)
 
     for entry_idx, entry in enumerate(srt_entries):
         ts_parts = entry["timestamp"].split(" --> ")
         if len(ts_parts) != 2:
-            fallback_count += 1
+            fallback_set.add(entry_idx)
             continue
 
         gemini_start = _ts_to_seconds(ts_parts[0].strip())
         if gemini_start is None:
-            fallback_count += 1
+            fallback_set.add(entry_idx)
             continue
 
         # 話者ラベルを除去したテキストで比較
         gemini_text = entry["text"]
         if "]: " in gemini_text:
             gemini_text = gemini_text.split("]: ", 1)[-1]
+        gemini_text = gemini_text.strip()
 
-        # タイムウィンドウでWxセグメントを絞り込み
-        candidates = [
-            seg for seg in wx_sorted
-            if abs(seg["start"] - gemini_start) <= WINDOW_SEC
-        ]
-        if not candidates:
-            candidates = wx_sorted  # ウィンドウ内になければ全体から探す
+        matched = False
 
-        best_ratio = 0.0
-        best_wx_start = None
-        best_wx_end = None
+        if use_word_level and gemini_text:
+            sm = SequenceMatcher(None, gemini_text, wx_concat, autojunk=False)
+            match = sm.find_longest_match(0, len(gemini_text), 0, len(wx_concat))
+            if match.size > 0 and match.size / len(gemini_text) >= MATCH_THRESHOLD:
+                b_char = match.b
+                b_char_end = match.b + match.size - 1
+                if b_char < len(char_to_word_idx) and b_char_end < len(char_to_word_idx):
+                    first_word_idx = char_to_word_idx[b_char]
+                    last_word_idx = char_to_word_idx[b_char_end]
+                    wx_start = wx_all_words[first_word_idx]["start"]
+                    wx_end = wx_all_words[last_word_idx]["end"]
+                    if wx_end > wx_start:
+                        new_ts = f"{_sec_to_srt_ts(wx_start)} --> {_sec_to_srt_ts(wx_end)}"
+                        updated_entries[entry_idx] = {
+                            "index": entry["index"],
+                            "timestamp": new_ts,
+                            "text": entry["text"],
+                        }
+                        phase_b_count += 1
+                        matched = True
 
-        # 単一セグメントマッチ
-        for seg in candidates:
-            ratio = SequenceMatcher(None, gemini_text, seg["text"]).ratio()
-            if ratio > best_ratio:
-                best_ratio = ratio
-                best_wx_start = seg["start"]
-                best_wx_end = seg["end"]
+        if not matched:
+            fallback_set.add(entry_idx)
 
-        # N個連結（2-4個）でもトライ（1:N対応）
-        for n in range(2, 5):
-            for i in range(len(candidates) - n + 1):
-                combined_text = " ".join(s["text"] for s in candidates[i:i+n])
-                ratio = SequenceMatcher(None, gemini_text, combined_text).ratio()
-                if ratio > best_ratio:
-                    best_ratio = ratio
-                    best_wx_start = candidates[i]["start"]
-                    best_wx_end = candidates[i+n-1]["end"]
+    print(f"[align] Phase B完了: {phase_b_count}/{len(srt_entries)}件マッチ", flush=True)
 
-        # 閾値以上なら転写、未満はGemini元値フォールバック
-        if best_ratio >= MATCH_THRESHOLD and best_wx_start is not None and best_wx_end is not None:
-            if best_wx_end > best_wx_start:
-                new_ts = f"{_sec_to_srt_ts(best_wx_start)} --> {_sec_to_srt_ts(best_wx_end)}"
-                updated_entries[entry_idx] = {
-                    "index": entry["index"],
-                    "timestamp": new_ts,
-                    "text": entry["text"],
-                }
-                align_count += 1
-            else:
-                fallback_count += 1
+    # Phase C: N:1 按分マッチング
+    # fallback_setのエントリのstart時刻を取得
+    fallback_starts: dict[int, float | None] = {}
+    for fidx in fallback_set:
+        entry = srt_entries[fidx]
+        ts_parts = entry["timestamp"].split(" --> ")
+        if len(ts_parts) == 2:
+            gs = _ts_to_seconds(ts_parts[0].strip())
+            fallback_starts[fidx] = gs
         else:
-            fallback_count += 1
+            fallback_starts[fidx] = None
+
+    if fallback_set:
+        print(f"[align] Phase C: N:1按分マッチング開始 ({len(fallback_set)}件対象)", flush=True)
+
+        PHASE_C_WINDOW = 30.0
+        resolved_in_c: set[int] = set()
+
+        for seg in wx_sorted:
+            wx_seg_start = seg["start"]
+            wx_seg_end = seg["end"]
+
+            # このWXセグメントの時間範囲に重なる未解決Geminiエントリを収集
+            matched_fidxs = [
+                fidx for fidx in fallback_set
+                if fidx not in resolved_in_c
+                and fallback_starts.get(fidx) is not None
+                and wx_seg_start - PHASE_C_WINDOW <= fallback_starts[fidx] <= wx_seg_end + PHASE_C_WINDOW
+            ]
+
+            if not matched_fidxs:
+                continue
+
+            # 連結テキストとWXセグメントの類似度確認
+            gemini_texts_for_c = []
+            for fidx in matched_fidxs:
+                gt = srt_entries[fidx]["text"]
+                if "]: " in gt:
+                    gt = gt.split("]: ", 1)[-1]
+                gemini_texts_for_c.append(gt.strip())
+
+            combined_gemini = "".join(gemini_texts_for_c)
+            ratio = SequenceMatcher(None, combined_gemini, seg["text"]).ratio()
+
+            if ratio < 0.3:
+                continue
+
+            # 按分: WXセグメントのstart〜endを文字数比で分割
+            total_chars = sum(len(t) for t in gemini_texts_for_c)
+            if total_chars == 0:
+                continue
+
+            cursor = wx_seg_start
+            for i, fidx in enumerate(matched_fidxs):
+                entry = srt_entries[fidx]
+                char_share = len(gemini_texts_for_c[i]) / total_chars
+                entry_start = cursor
+                entry_end = cursor + (wx_seg_end - wx_seg_start) * char_share
+                cursor = entry_end
+
+                if entry_end > entry_start:
+                    new_ts = f"{_sec_to_srt_ts(entry_start)} --> {_sec_to_srt_ts(entry_end)}"
+                    updated_entries[fidx] = {
+                        "index": entry["index"],
+                        "timestamp": new_ts,
+                        "text": entry["text"],
+                    }
+                    phase_c_count += 1
+                    resolved_in_c.add(fidx)
+
+        print(f"[align] Phase C完了: {phase_c_count}件按分", flush=True)
+
+    # Phase D: 残りはGemini元値維持（updated_entriesにすでに元値が入っているので何もしない）
+    phase_d_count = len(fallback_set) - phase_c_count
 
     print(
-        f"[align] タイムスタンプ転写完了: 転写={align_count}/{len(srt_entries)}, "
-        f"フォールバック={fallback_count}",
+        f"[align] タイムスタンプ転写完了: Phase B={phase_b_count}, "
+        f"Phase C={phase_c_count}, Phase D(フォールバック)={phase_d_count}",
         flush=True,
     )
-    if len(srt_entries) > 0:
-        print(f"[align] フォールバック率: {fallback_count/len(srt_entries)*100:.1f}%", flush=True)
+    total = len(srt_entries)
+    if total > 0:
+        fallback_rate = phase_d_count / total * 100
+        print(f"[align] フォールバック率: {fallback_rate:.1f}% ({phase_d_count}/{total})", flush=True)
 
     # サンプル比較（先頭3件）
     for i in range(min(3, len(srt_entries), len(updated_entries))):
