@@ -6,29 +6,35 @@ LOCK_FILE="/tmp/automation_post_fetch.lock"
 exec 200>"$LOCK_FILE"
 flock -n 200 || { echo "already running"; exit 0; }
 
+LOG="/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/logs/post_fetch.log"
+REPORT_DIR="/home/murakami/multi-agent-shogun/queue/reports"
+
 cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
 source /home/murakami/multi-agent-shogun/venv/bin/activate
 source ~/.bashrc  # GEMINI_API_KEY
 
-# 最新動画IDを取得（auto_fetchのログから）
-LATEST_VIDEO=$(tail -1 logs/auto_fetch.log | grep -oP '[a-zA-Z0-9_-]{11}' | tail -1)
+# 最新動画IDを取得（auto_fetchのログから）— sentimentのみ使用
+LATEST_VIDEO=$(tail -1 logs/auto_fetch.log 2>/dev/null | grep -oP '[a-zA-Z0-9_-]{11}' | tail -1)
 
-if [ -z "$LATEST_VIDEO" ]; then
-  echo "$(date) No new video found" >> /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/logs/post_fetch.log
-  exit 0
+# recommend実行（--videoオプション不要、常に実行）
+echo "$(date) Running recommend (top 10)" >> "$LOG"
+python3 scripts/embedding_analytics.py recommend \
+  --top 10 \
+  --output "$REPORT_DIR/auto_recommend.yaml" \
+  2>> "$LOG"
+
+# sentiment実行（最新動画IDがあればフィルタリング）
+if [ -n "$LATEST_VIDEO" ]; then
+  echo "$(date) Running sentiment for $LATEST_VIDEO" >> "$LOG"
+  python3 scripts/embedding_analytics.py sentiment \
+    --video "$LATEST_VIDEO" \
+    --output "$REPORT_DIR/auto_sentiment.yaml" \
+    2>> "$LOG"
+else
+  echo "$(date) Running sentiment (no video filter)" >> "$LOG"
+  python3 scripts/embedding_analytics.py sentiment \
+    --output "$REPORT_DIR/auto_sentiment.yaml" \
+    2>> "$LOG"
 fi
 
-# recommend実行
-echo "$(date) Running recommend for $LATEST_VIDEO" >> /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/logs/post_fetch.log
-python3 scripts/embedding_analytics.py recommend \
-  --video "$LATEST_VIDEO" \
-  --top 10 \
-  >> /home/murakami/multi-agent-shogun/queue/reports/auto_recommend.yaml 2>&1
-
-# sentiment実行
-echo "$(date) Running sentiment for $LATEST_VIDEO" >> /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/logs/post_fetch.log
-python3 scripts/embedding_analytics.py sentiment \
-  --video "$LATEST_VIDEO" \
-  >> /home/murakami/multi-agent-shogun/queue/reports/auto_sentiment.yaml 2>&1
-
-echo "$(date) Post-fetch automation complete" >> /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/logs/post_fetch.log
+echo "$(date) Post-fetch automation complete" >> "$LOG"
