@@ -117,6 +117,7 @@
 !scripts/semantic_search.py
 !scripts/cmd_helper.py
 !scripts/gemini_transcribe.py
+!scripts/gemini_speaker_pipeline.py
 !scripts/gemini_video_analysis.py
 !scripts/automation/
 !scripts/automation/cmd_rag_hook.sh
