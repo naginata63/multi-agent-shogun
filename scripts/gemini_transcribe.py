@@ -475,6 +475,9 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
     else:
         print("[align] Phase B: word数不足のためスキップ", flush=True)
 
+    # Phase B: monotonic制約 — 前のマッチ末尾より後ろからのみ探索
+    search_start_char = 0
+
     for entry_idx, entry in enumerate(srt_entries):
         ts_parts = entry["timestamp"].split(" --> ")
         if len(ts_parts) != 2:
@@ -496,7 +499,8 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
 
         if use_word_level and gemini_text:
             sm = SequenceMatcher(None, gemini_text, wx_concat, autojunk=False)
-            match = sm.find_longest_match(0, len(gemini_text), 0, len(wx_concat))
+            # alo=search_start_char: 前エントリのマッチ末尾より後ろのみ探索（monotonic保証）
+            match = sm.find_longest_match(0, len(gemini_text), search_start_char, len(wx_concat))
             if match.size > 0 and match.size / len(gemini_text) >= MATCH_THRESHOLD:
                 b_char = match.b
                 b_char_end = match.b + match.size - 1
@@ -514,6 +518,8 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
                         }
                         phase_b_count += 1
                         matched = True
+                        # monotonic更新: 次のエントリはここより後ろを探索
+                        search_start_char = b_char_end + 1
 
         if not matched:
             fallback_set.add(entry_idx)
@@ -537,18 +543,23 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
 
         PHASE_C_WINDOW = 30.0
         resolved_in_c: set[int] = set()
+        # Phase C全体でmonotonic保証: 前のエントリのendより前には割り当てない
+        phase_c_prev_end = 0.0
 
         for seg in wx_sorted:
             wx_seg_start = seg["start"]
             wx_seg_end = seg["end"]
 
             # このWXセグメントの時間範囲に重なる未解決Geminiエントリを収集
-            matched_fidxs = [
-                fidx for fidx in fallback_set
-                if fidx not in resolved_in_c
-                and fallback_starts.get(fidx) is not None
-                and wx_seg_start - PHASE_C_WINDOW <= fallback_starts[fidx] <= wx_seg_end + PHASE_C_WINDOW
-            ]
+            # entry_idxでソートしてmonotonic保証
+            matched_fidxs = sorted(
+                [
+                    fidx for fidx in fallback_set
+                    if fidx not in resolved_in_c
+                    and fallback_starts.get(fidx) is not None
+                    and wx_seg_start - PHASE_C_WINDOW <= fallback_starts[fidx] <= wx_seg_end + PHASE_C_WINDOW
+                ]
+            )
 
             if not matched_fidxs:
                 continue
@@ -572,23 +583,26 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
             if total_chars == 0:
                 continue
 
-            cursor = wx_seg_start
+            cursor = max(wx_seg_start, phase_c_prev_end)
             for i, fidx in enumerate(matched_fidxs):
                 entry = srt_entries[fidx]
                 char_share = len(gemini_texts_for_c[i]) / total_chars
                 entry_start = cursor
                 entry_end = cursor + (wx_seg_end - wx_seg_start) * char_share
+                # monotonic保証: endがstartより小さい場合は最小間隔で補正
+                if entry_end <= entry_start:
+                    entry_end = entry_start + 0.1
                 cursor = entry_end
 
-                if entry_end > entry_start:
-                    new_ts = f"{_sec_to_srt_ts(entry_start)} --> {_sec_to_srt_ts(entry_end)}"
-                    updated_entries[fidx] = {
-                        "index": entry["index"],
-                        "timestamp": new_ts,
-                        "text": entry["text"],
-                    }
-                    phase_c_count += 1
-                    resolved_in_c.add(fidx)
+                new_ts = f"{_sec_to_srt_ts(entry_start)} --> {_sec_to_srt_ts(entry_end)}"
+                updated_entries[fidx] = {
+                    "index": entry["index"],
+                    "timestamp": new_ts,
+                    "text": entry["text"],
+                }
+                phase_c_count += 1
+                resolved_in_c.add(fidx)
+                phase_c_prev_end = entry_end
 
         print(f"[align] Phase C完了: {phase_c_count}件按分", flush=True)
 
@@ -604,6 +618,35 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
     if total > 0:
         fallback_rate = phase_d_count / total * 100
         print(f"[align] フォールバック率: {fallback_rate:.1f}% ({phase_d_count}/{total})", flush=True)
+
+    # 最終バリデーション: 全エントリの時系列順を保証（monotonic後処理）
+    # start-vs-start で比較（SRTのstart順が必須）
+    violations = 0
+    prev_start_final = 0.0
+    prev_end_final = 0.0
+    for i in range(len(updated_entries)):
+        ts_str = updated_entries[i]["timestamp"]
+        ts_parts = ts_str.split(" --> ")
+        if len(ts_parts) != 2:
+            continue
+        entry_start = _ts_to_seconds(ts_parts[0].strip())
+        entry_end = _ts_to_seconds(ts_parts[1].strip())
+        if entry_start is None or entry_end is None:
+            continue
+        if entry_start < prev_start_final - 1.0:
+            # 前エントリのstartより1秒以上逆行 → monotonic補正
+            entry_start = max(prev_start_final, prev_end_final)
+            entry_end = max(entry_end, entry_start + 0.1)
+            updated_entries[i]["timestamp"] = (
+                f"{_sec_to_srt_ts(entry_start)} --> {_sec_to_srt_ts(entry_end)}"
+            )
+            violations += 1
+        prev_start_final = entry_start
+        prev_end_final = max(prev_end_final, entry_end)
+    if violations > 0:
+        print(f"[align] Monotonic補正: {violations}件の逆行を修正", flush=True)
+    else:
+        print("[align] Monotonic検証: 逆行なし ✅", flush=True)
 
     # サンプル比較（先頭3件）
     for i in range(min(3, len(srt_entries), len(updated_entries))):
