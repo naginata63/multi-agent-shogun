@@ -331,8 +331,11 @@ def entries_to_srt(entries: list[dict]) -> str:
 
 def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | None = None) -> list[dict]:
     """
-    WhisperXアラインメントでSRTエントリのタイムスタンプをミリ秒精度に更新する。
-    Returns updated entries with aligned timestamps.
+    WhisperX自身のtranscription+alignmentでms精度タイムスタンプを取得し、
+    Geminiエントリのテキストと類似度マッチングでタイムスタンプを転写する。
+
+    forced alignment（外部テキスト→align()）は日本語で95%フォールバック率のため廃止。
+    代替: WhisperX transcription→自動align→テキスト類似度でGeminiエントリに転写。
     """
     try:
         import whisperx
@@ -342,86 +345,52 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
             "  source projects/dozle_kirinuki/venv/bin/activate"
         )
     import torch
+    from difflib import SequenceMatcher
 
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    print(f"[align] WhisperXアラインメント開始 (device={device})", flush=True)
+    print(f"[align] WhisperXタイムスタンプ転写方式開始 (device={device})", flush=True)
     print(f"[align] 対象エントリ数: {len(srt_entries)}", flush=True)
 
     import numpy as np
 
-    # WhisperXのsegments形式に変換（話者ラベルを除去）
-    segments = []
-    entry_indices = []  # segments[i] が元のどのエントリに対応するか
-    for idx, entry in enumerate(srt_entries):
-        ts_parts = entry["timestamp"].split(" --> ")
-        if len(ts_parts) != 2:
-            continue
-        start_sec = _ts_to_seconds(ts_parts[0].strip())
-        end_sec = _ts_to_seconds(ts_parts[1].strip())
-        if start_sec is None or end_sec is None:
-            continue
-        text = entry["text"]
-        # 話者ラベル「[speaker]: 」を除去
-        if "]: " in text:
-            text = text.split("]: ", 1)[-1]
-        segments.append({"start": start_sec, "end": end_sec, "text": text})
-        entry_indices.append(idx)
-
-    if not segments:
-        print("[align] 警告: アライン可能なセグメントがありません。元のエントリを返します。", flush=True)
-        return srt_entries
-
     # 全音声をロード（numpy float32 array @ 16kHz）
     audio_full = whisperx.load_audio(audio_path)
     sample_rate = 16000
+    total_dur = len(audio_full) / sample_rate
+    print(f"[align] 総時間: {total_dur:.1f}秒", flush=True)
+
+    # Step 1: WhisperXモデルロード
+    print("[align] WhisperXモデルロード中...", flush=True)
+    wx_model = whisperx.load_model("large-v2", device, language="ja", compute_type="int8_float16")
     align_model, metadata = whisperx.load_align_model(language_code="ja", device=device)
+    print("[align] モデルロード完了", flush=True)
 
     # VRAM節約のためチャンク分割処理（CHUNK_SEC秒単位）
     CHUNK_SEC = 300.0  # 5分チャンク
-    total_dur = len(audio_full) / sample_rate
-    print(f"[align] 総時間: {total_dur:.1f}秒, チャンクサイズ: {CHUNK_SEC}秒", flush=True)
-
-    # セグメントをチャンク別に振り分け
     chunk_starts = list(np.arange(0, total_dur, CHUNK_SEC))
-    aligned_map: dict[int, dict] = {}  # entry_index → aligned segment
+
+    # WhisperXセグメントを全チャンクから収集（絶対時刻）
+    wx_all_segments: list[dict] = []
 
     for chunk_i, chunk_start in enumerate(chunk_starts):
         chunk_end = chunk_start + CHUNK_SEC
-        # このチャンクに含まれるセグメントを選択
-        chunk_segs_idx = [
-            (i, seg)
-            for i, seg in enumerate(segments)
-            if seg["start"] >= chunk_start and seg["start"] < chunk_end
-        ]
-        if not chunk_segs_idx:
-            continue
-
-        # 音声スライス（少し前後にバッファ）
         buf = 1.0
         audio_start = max(0, int((chunk_start - buf) * sample_rate))
         audio_end = min(len(audio_full), int((chunk_end + buf) * sample_rate))
         audio_chunk = audio_full[audio_start:audio_end]
-        offset = audio_start / sample_rate  # チャンク開始時刻オフセット
-
-        # セグメント時刻をチャンク相対に変換
-        local_segs = [
-            {"start": seg["start"] - offset, "end": seg["end"] - offset, "text": seg["text"]}
-            for _, seg in chunk_segs_idx
-        ]
+        offset = audio_start / sample_rate
 
         try:
-            result = whisperx.align(local_segs, align_model, metadata, audio_chunk, device)
-            for (orig_i, _), aligned_seg in zip(chunk_segs_idx, result["segments"]):
-                # 絶対時刻に戻す
-                # fix(cmd_597): WhisperXのsegment-level start/endはGemini元値をほぼそのまま返す
-                # （segment.end = 次セグメント境界+20ms固定）ため、
-                # 常にword-levelの実値（words[0].start / words[-1].end）を優先して使う。
-                # wordsが空の場合のみsegment-levelにフォールバック。
-                words = aligned_seg.get("words", [])
+            # WhisperX自身のtranscription（forced alignmentではなく自前転写）
+            result = wx_model.transcribe(audio_chunk, batch_size=4)
+            # 転写結果に対してalignment（ms精度）
+            align_result = whisperx.align(result["segments"], align_model, metadata, audio_chunk, device)
 
-                # start: words[0]["start"] を優先、なければsegment-level、それもなければ元値
+            for seg in align_result["segments"]:
+                words = seg.get("words", [])
+                # word-levelの実値を優先
                 start_val = None
                 for w in words:
                     w_start = w.get("start")
@@ -429,11 +398,8 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
                         start_val = w_start
                         break
                 if start_val is None:
-                    start_val = aligned_seg.get("start")
-                if start_val is None:
-                    start_val = segments[orig_i]["start"] - offset
+                    start_val = seg.get("start")
 
-                # end: words[-1]["end"] を優先、なければsegment-level、それもなければ元値
                 end_val = None
                 for w in reversed(words):
                     w_end = w.get("end")
@@ -441,27 +407,24 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
                         end_val = w_end
                         break
                 if end_val is None:
-                    end_val = aligned_seg.get("end")
-                if end_val is None:
-                    end_val = segments[orig_i]["end"] - offset
+                    end_val = seg.get("end")
 
-                aligned_map[orig_i] = {
-                    "start": start_val + offset,
-                    "end": end_val + offset,
-                }
+                if start_val is not None and end_val is not None:
+                    wx_all_segments.append({
+                        "start": start_val + offset,
+                        "end": end_val + offset,
+                        "text": seg.get("text", "").strip(),
+                    })
         except Exception as e:
-            print(f"[align] チャンク{chunk_i} アラインエラー: {e}", flush=True)
-            # フォールバック: 元のタイムスタンプを維持
-            for orig_i, seg in chunk_segs_idx:
-                aligned_map[orig_i] = {"start": seg["start"], "end": seg["end"]}
+            print(f"[align] チャンク{chunk_i} transcriptionエラー: {e}", flush=True)
 
-        print(
-            f"[align] チャンク{chunk_i+1}/{len(chunk_starts)} 完了: {len(chunk_segs_idx)}セグメント",
-            flush=True,
-        )
+        print(f"[align] チャンク{chunk_i+1}/{len(chunk_starts)} 完了", flush=True)
 
-    aligned_segments_count = len(aligned_map)
-    print(f"[align] アラインメント完了: {aligned_segments_count}セグメント", flush=True)
+    print(f"[align] WhisperXセグメント数: {len(wx_all_segments)}", flush=True)
+
+    if not wx_all_segments:
+        print("[align] 警告: WhisperXセグメントが空。元のエントリを返します。", flush=True)
+        return srt_entries
 
     def _sec_to_srt_ts(s: float) -> str:
         h = int(s // 3600)
@@ -472,25 +435,83 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
             ms = 999
         return f"{h:02d}:{mi:02d}:{sec:02d},{ms:03d}"
 
-    # アラインされたタイムスタンプで元のエントリを更新
-    # entry_indices[i] → aligned_map[i] のマッピングを使って元のエントリに戻す
+    # Step 2 & 3: テキスト類似度マッチング → タイムスタンプ転写
+    MATCH_THRESHOLD = 0.3  # 閾値未満はGemini元値フォールバック
+    WINDOW_SEC = 60.0  # タイムウィンドウ（±60秒）
+
+    wx_sorted = sorted(wx_all_segments, key=lambda s: s["start"])
     updated_entries = list(srt_entries)  # コピー
     align_count = 0
-    for seg_i, entry_idx in enumerate(entry_indices):
-        if seg_i in aligned_map:
-            new_start = aligned_map[seg_i]["start"]
-            new_end = aligned_map[seg_i]["end"]
-            if new_start is not None and new_end is not None and new_end > new_start:
-                new_ts = f"{_sec_to_srt_ts(new_start)} --> {_sec_to_srt_ts(new_end)}"
-                entry = srt_entries[entry_idx]
+    fallback_count = 0
+
+    for entry_idx, entry in enumerate(srt_entries):
+        ts_parts = entry["timestamp"].split(" --> ")
+        if len(ts_parts) != 2:
+            fallback_count += 1
+            continue
+
+        gemini_start = _ts_to_seconds(ts_parts[0].strip())
+        if gemini_start is None:
+            fallback_count += 1
+            continue
+
+        # 話者ラベルを除去したテキストで比較
+        gemini_text = entry["text"]
+        if "]: " in gemini_text:
+            gemini_text = gemini_text.split("]: ", 1)[-1]
+
+        # タイムウィンドウでWxセグメントを絞り込み
+        candidates = [
+            seg for seg in wx_sorted
+            if abs(seg["start"] - gemini_start) <= WINDOW_SEC
+        ]
+        if not candidates:
+            candidates = wx_sorted  # ウィンドウ内になければ全体から探す
+
+        best_ratio = 0.0
+        best_wx_start = None
+        best_wx_end = None
+
+        # 単一セグメントマッチ
+        for seg in candidates:
+            ratio = SequenceMatcher(None, gemini_text, seg["text"]).ratio()
+            if ratio > best_ratio:
+                best_ratio = ratio
+                best_wx_start = seg["start"]
+                best_wx_end = seg["end"]
+
+        # N個連結（2-4個）でもトライ（1:N対応）
+        for n in range(2, 5):
+            for i in range(len(candidates) - n + 1):
+                combined_text = " ".join(s["text"] for s in candidates[i:i+n])
+                ratio = SequenceMatcher(None, gemini_text, combined_text).ratio()
+                if ratio > best_ratio:
+                    best_ratio = ratio
+                    best_wx_start = candidates[i]["start"]
+                    best_wx_end = candidates[i+n-1]["end"]
+
+        # 閾値以上なら転写、未満はGemini元値フォールバック
+        if best_ratio >= MATCH_THRESHOLD and best_wx_start is not None and best_wx_end is not None:
+            if best_wx_end > best_wx_start:
+                new_ts = f"{_sec_to_srt_ts(best_wx_start)} --> {_sec_to_srt_ts(best_wx_end)}"
                 updated_entries[entry_idx] = {
                     "index": entry["index"],
                     "timestamp": new_ts,
                     "text": entry["text"],
                 }
                 align_count += 1
+            else:
+                fallback_count += 1
+        else:
+            fallback_count += 1
 
-    print(f"[align] TS更新: {align_count}/{len(srt_entries)}エントリ", flush=True)
+    print(
+        f"[align] タイムスタンプ転写完了: 転写={align_count}/{len(srt_entries)}, "
+        f"フォールバック={fallback_count}",
+        flush=True,
+    )
+    if len(srt_entries) > 0:
+        print(f"[align] フォールバック率: {fallback_count/len(srt_entries)*100:.1f}%", flush=True)
 
     # サンプル比較（先頭3件）
     for i in range(min(3, len(srt_entries), len(updated_entries))):
