@@ -122,6 +122,7 @@
 !scripts/automation/cmd_rag_hook.sh
 !scripts/automation/post_fetch_recommend.sh
 !scripts/automation/selected_check_hook.sh
+!scripts/automation/dedup_check.sh
 
 
 # SayTask (sample template only, not actual data)
