@@ -179,7 +179,8 @@ def cmd_screen(args):
 ## ハイライト候補（長尺切り抜き）
 - 3〜10分の見どころシーン
 - 笑い・感動・盛り上がり・企画のクライマックスを優先
-- 5〜10件提案
+- **必ず**ハイライト候補を**5件以上**含めること。0件は不可。
+- ハイライト候補が見つからない場合でも、比較的盛り上がるシーンを5件選んで提案すること
 - スコア（1-10の整数）で評価。全候補が同じスコアにならないよう相対評価すること
 
 ## ショート候補（バズ系縦型ショート）
@@ -221,6 +222,7 @@ short_candidates:
 
     raw_text = response.text
     print(f"[generate] レスポンス長: {len(raw_text)} 文字 ({elapsed:.1f}s)", flush=True)
+    print(f"[screen] 生レスポンス（先頭2000文字）:\n{raw_text[:2000]}", flush=True)
 
     # YAMLブロック抽出
     yaml_text = extract_yaml_block(raw_text)
@@ -237,6 +239,43 @@ short_candidates:
         print(f"[warn] YAMLパース失敗: {e} — セクション別パースを試みる", flush=True)
         highlight_candidates = extract_section_yaml(raw_text, "highlight_candidates")
         short_candidates = extract_section_yaml(raw_text, "short_candidates")
+
+    # BUG-S1: HL候補0件の警告
+    if not highlight_candidates:
+        print("[warn] HL候補が0件です。プロンプトの指示が無視された可能性があります。", flush=True)
+
+    # BUG-S2: SH候補15秒未満・60秒超を自動除外
+    def parse_mmss(ts: str) -> float:
+        """'MM:SS' または 'H:MM:SS' 形式を秒数に変換"""
+        try:
+            parts = str(ts).strip().split(":")
+            if len(parts) == 2:
+                return int(parts[0]) * 60 + float(parts[1])
+            elif len(parts) == 3:
+                return int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
+        except Exception:
+            pass
+        return -1
+
+    valid_shorts = []
+    for candidate in short_candidates:
+        start_sec = parse_mmss(candidate.get("start", ""))
+        end_sec = parse_mmss(candidate.get("end", ""))
+        if start_sec < 0 or end_sec < 0:
+            print(f"[warn] SH候補 '{candidate.get('title', '')}' のタイムスタンプ解析失敗 (start={candidate.get('start')}, end={candidate.get('end')}) — 除外", flush=True)
+            continue
+        duration = end_sec - start_sec
+        if duration < 15:
+            print(f"[warn] SH候補 '{candidate.get('title', '')}' は{duration:.0f}秒で15秒未満のため除外", flush=True)
+            continue
+        if duration > 60:
+            print(f"[warn] SH候補 '{candidate.get('title', '')}' は{duration:.0f}秒で60秒超のため除外", flush=True)
+            continue
+        valid_shorts.append(candidate)
+    excluded_shorts = len(short_candidates) - len(valid_shorts)
+    if excluded_shorts > 0:
+        print(f"[info] SH候補 {excluded_shorts}件を尺バリデーションで除外 ({len(valid_shorts)}件残)", flush=True)
+    short_candidates = valid_shorts
 
     cost = calc_cost(response.usage_metadata, model)
 
