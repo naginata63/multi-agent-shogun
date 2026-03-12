@@ -415,9 +415,39 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
             result = whisperx.align(local_segs, align_model, metadata, audio_chunk, device)
             for (orig_i, _), aligned_seg in zip(chunk_segs_idx, result["segments"]):
                 # 絶対時刻に戻す
+                # fix(cmd_597): WhisperXのsegment-level start/endはGemini元値をほぼそのまま返す
+                # （segment.end = 次セグメント境界+20ms固定）ため、
+                # 常にword-levelの実値（words[0].start / words[-1].end）を優先して使う。
+                # wordsが空の場合のみsegment-levelにフォールバック。
+                words = aligned_seg.get("words", [])
+
+                # start: words[0]["start"] を優先、なければsegment-level、それもなければ元値
+                start_val = None
+                for w in words:
+                    w_start = w.get("start")
+                    if w_start is not None:
+                        start_val = w_start
+                        break
+                if start_val is None:
+                    start_val = aligned_seg.get("start")
+                if start_val is None:
+                    start_val = segments[orig_i]["start"] - offset
+
+                # end: words[-1]["end"] を優先、なければsegment-level、それもなければ元値
+                end_val = None
+                for w in reversed(words):
+                    w_end = w.get("end")
+                    if w_end is not None:
+                        end_val = w_end
+                        break
+                if end_val is None:
+                    end_val = aligned_seg.get("end")
+                if end_val is None:
+                    end_val = segments[orig_i]["end"] - offset
+
                 aligned_map[orig_i] = {
-                    "start": aligned_seg.get("start", segments[orig_i]["start"] - offset) + offset,
-                    "end": aligned_seg.get("end", segments[orig_i]["end"] - offset) + offset,
+                    "start": start_val + offset,
+                    "end": end_val + offset,
                 }
         except Exception as e:
             print(f"[align] チャンク{chunk_i} アラインエラー: {e}", flush=True)
