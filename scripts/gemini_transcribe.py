@@ -35,14 +35,32 @@ def generate_subtitles(client, video_file, model: str) -> tuple[str, object]:
         "この動画の全発話をSRT形式の字幕として書き起こしてください。\n"
         "要件:\n"
         "- SRT形式（番号、タイムスタンプ、テキスト）\n"
-        "- タイムスタンプは HH:MM:SS,mmm 形式で、ミリ秒も含めてできるだけ正確に\n"
+        "- タイムスタンプは HH:MM:SS,mmm 形式で必ず出力すること\n"
+        "- 【最重要】ミリ秒部分(,mmm)は実際の発話タイミングに合わせた値を使うこと。"
+        ",000に丸めないでください。例: ,123 ,456 ,789 のように50ms単位以上の精度で\n"
         "- 話者が変わったら新しいエントリにする\n"
         "- 可能なら話者名を [speaker_name]: 形式で先頭に付ける\n"
         "- ゲーム実況動画なので、ゲーム内SE/BGMは無視し発話のみ\n"
         "- ナレーション（ネコおじ/三木俊英）がいる場合は [ナレーション]: として区別\n"
         "- 動画の最後がエンドカード（チャンネル登録画面等）の場合、そこでの架空の発話は含めない\n"
         "- 日本語で出力\n"
-        "- SRTテキストのみを出力し、説明文は不要"
+        "- SRTテキストのみを出力し、説明文は不要\n"
+        "\n"
+        "【出力例（ミリ秒が多様な正しいSRT）】:\n"
+        "1\n"
+        "00:00:03,420 --> 00:00:05,780\n"
+        "[dozle]: よし、釣り始めるぞ！\n"
+        "\n"
+        "2\n"
+        "00:00:06,150 --> 00:00:08,930\n"
+        "[bon]: えー、もう始めるんですか？\n"
+        "\n"
+        "3\n"
+        "00:00:09,340 --> 00:00:11,620\n"
+        "[dozle]: うん、早速いくよ\n"
+        "\n"
+        "上記のように ,420 ,780 ,150 ,930 など実際の発話タイミングに合わせた多様なミリ秒値を使うこと。"
+        ",000 だけを使うのは禁止です。"
     )
 
     from google.genai import types as genai_types
@@ -51,7 +69,7 @@ def generate_subtitles(client, video_file, model: str) -> tuple[str, object]:
         model=model,
         contents=[video_file, prompt],
         config=genai_types.GenerateContentConfig(
-            temperature=0.1,
+            temperature=0.2,
             max_output_tokens=65536,
         ),
     )
