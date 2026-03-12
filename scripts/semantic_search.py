@@ -45,6 +45,14 @@ BATCH_SIZE = 100
 
 DOZLE_DIR = BASE_DIR / "projects" / "dozle_kirinuki"
 
+SCRIPT_DIRS = [
+    BASE_DIR / "scripts",
+    BASE_DIR / "projects" / "dozle_kirinuki" / "scripts",
+    BASE_DIR / "projects" / "note_mcp_server" / "scripts",
+]
+SCRIPT_EXTENSIONS = {".py", ".sh", ".js"}
+SCRIPT_EXCLUDE = {"__pycache__", "node_modules", "venv"}
+
 # ===== ソース定義 =====
 def get_data_sources():
     sources = []
@@ -77,6 +85,19 @@ def get_data_sources():
     if ctx_dir.exists():
         for f in ctx_dir.glob("*.md"):
             sources.append(("context", str(f)))
+
+    # 6. scripts (py/sh/js)
+    for script_dir in SCRIPT_DIRS:
+        if not script_dir.exists():
+            continue
+        for f in script_dir.rglob("*"):
+            if f.suffix not in SCRIPT_EXTENSIONS:
+                continue
+            if any(ex in f.parts for ex in SCRIPT_EXCLUDE):
+                continue
+            if f.name.endswith(".pyc"):
+                continue
+            sources.append(("scripts", str(f)))
 
     return sources
 
@@ -248,6 +269,129 @@ def chunk_markdown(filepath: str, source_type: str):
     return chunks
 
 
+def chunk_scripts(filepath: str):
+    """スクリプトを関数/クラス単位でチャンク化"""
+    chunks = []
+    try:
+        with open(filepath, "r", encoding="utf-8", errors="replace") as f:
+            content = f.read()
+    except Exception as e:
+        print(f"  WARN: {filepath}: {e}")
+        return chunks
+
+    path = Path(filepath)
+    fname = path.name
+    # スクリプトディレクトリからの相対パス
+    for sdir in SCRIPT_DIRS:
+        try:
+            rel = path.relative_to(sdir)
+            fname = str(rel)
+            break
+        except ValueError:
+            pass
+
+    def _add_chunk(name, text, header=""):
+        body = (header + "\n" + text).strip()
+        chunks.append({
+            "text": body[:4000],
+            "source": "scripts",
+            "source_file": filepath,
+            "chunk_id": f"scripts::{fname}::{name}",
+            "metadata": {"file": fname, "function": name},
+        })
+
+    if path.suffix == ".py":
+        # モジュールヘッダ（docstring + 冒頭コメント）抽出
+        header_lines = []
+        for line in content.splitlines()[:20]:
+            if line.startswith("#") or line.startswith('"""') or line.startswith("'''") or line.strip() == "":
+                header_lines.append(line)
+            else:
+                break
+        module_header = "\n".join(header_lines)
+
+        # def/class で分割
+        pattern = re.compile(r"^(def |class )", re.MULTILINE)
+        positions = [m.start() for m in pattern.finditer(content)]
+
+        if not positions:
+            _add_chunk("__module__", content, module_header)
+            return chunks
+
+        # モジュールレベルのコード（最初のdef/classより前）
+        if positions[0] > 0:
+            pre = content[:positions[0]].strip()
+            if pre:
+                _add_chunk("__module__", pre)
+
+        for i, pos in enumerate(positions):
+            end = positions[i + 1] if i + 1 < len(positions) else len(content)
+            block = content[pos:end].strip()
+            # 関数/クラス名
+            first_line = block.split("\n")[0]
+            m = re.match(r"(?:def|class)\s+(\w+)", first_line)
+            name = m.group(1) if m else f"chunk_{i}"
+            _add_chunk(name, block, module_header)
+
+    elif path.suffix == ".sh":
+        # 冒頭コメント（#で始まる行）
+        header_lines = []
+        for line in content.splitlines()[:10]:
+            if line.startswith("#"):
+                header_lines.append(line)
+        shell_header = "\n".join(header_lines)
+
+        # function キーワードで分割
+        pattern = re.compile(r"^(\w+\s*\(\s*\)|function\s+\w+)", re.MULTILINE)
+        positions = [m.start() for m in pattern.finditer(content)]
+
+        if not positions:
+            _add_chunk("__file__", content, shell_header)
+            return chunks
+
+        if positions[0] > 0:
+            pre = content[:positions[0]].strip()
+            if pre:
+                _add_chunk("__preamble__", pre, shell_header)
+
+        for i, pos in enumerate(positions):
+            end = positions[i + 1] if i + 1 < len(positions) else len(content)
+            block = content[pos:end].strip()
+            first_line = block.split("\n")[0]
+            m = re.match(r"(?:function\s+)?(\w+)", first_line)
+            name = m.group(1) if m else f"func_{i}"
+            _add_chunk(name, block, shell_header)
+
+    elif path.suffix == ".js":
+        # 冒頭コメント
+        header_lines = []
+        for line in content.splitlines()[:10]:
+            if line.startswith("//") or line.startswith("/*"):
+                header_lines.append(line)
+        js_header = "\n".join(header_lines)
+
+        # function キーワードで分割
+        pattern = re.compile(r"^(?:export\s+)?(?:async\s+)?function\s+\w+", re.MULTILINE)
+        positions = [m.start() for m in pattern.finditer(content)]
+
+        if not positions:
+            _add_chunk("__file__", content, js_header)
+            return chunks
+
+        for i, pos in enumerate(positions):
+            end = positions[i + 1] if i + 1 < len(positions) else len(content)
+            block = content[pos:end].strip()
+            first_line = block.split("\n")[0]
+            m = re.search(r"function\s+(\w+)", first_line)
+            name = m.group(1) if m else f"func_{i}"
+            _add_chunk(name, block, js_header)
+
+    else:
+        _add_chunk("__file__", content)
+
+    return chunks
+
+
 def collect_chunks(source_filter: Optional[str] = None):
     """全チャンクを収集"""
     all_chunks = []
@@ -267,6 +411,8 @@ def collect_chunks(source_filter: Optional[str] = None):
             all_chunks.extend(chunk_srt(filepath))
         elif src_type in ("memory", "context"):
             all_chunks.extend(chunk_markdown(filepath, src_type))
+        elif src_type == "scripts":
+            all_chunks.extend(chunk_scripts(filepath))
 
     return all_chunks
 
@@ -480,7 +626,7 @@ def main():
     q_parser.add_argument("query", help="検索クエリ")
     q_parser.add_argument("--top", type=int, default=10, help="表示件数 (default: 10)")
     q_parser.add_argument("--source", type=str, default=None,
-                          help="絞り込み: shogun_to_karo / tasks / srt / memory / context")
+                          help="絞り込み: shogun_to_karo / tasks / srt / memory / context / scripts")
 
     args = parser.parse_args()
 
