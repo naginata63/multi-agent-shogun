@@ -80,15 +80,34 @@ def generate_subtitles(client, video_file, model: str) -> tuple[str, object]:
 
 # SRTタイムスタンプの正規表現（HH:MM:SS,mmm）
 _TS_RE = re.compile(r"^(\d{1,2}):(\d{2}):(\d{2}),(\d{3})$")
+# MM:SS,mmm 形式（HH:省略、Geminiが10分以降で使用）
+_TS_MMSS_RE = re.compile(r"^(\d{1,3}):(\d{2}),(\d{3})$")
 
 
 def _ts_to_seconds(ts: str) -> float | None:
-    """'HH:MM:SS,mmm' を秒数に変換。パース失敗時はNone"""
-    m = _TS_RE.match(ts.strip())
-    if not m:
-        return None
-    h, mi, s, ms = int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4))
-    return h * 3600 + mi * 60 + s + ms / 1000.0
+    """'HH:MM:SS,mmm' または 'MM:SS,mmm' を秒数に変換。パース失敗時はNone"""
+    ts = ts.strip()
+    m = _TS_RE.match(ts)
+    if m:
+        h, mi, s, ms = int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4))
+        return h * 3600 + mi * 60 + s + ms / 1000.0
+    # MM:SS,mmm 形式（HH:省略）→ 00:MM:SS,mmm に変換
+    m2 = _TS_MMSS_RE.match(ts)
+    if m2:
+        mi, s, ms = int(m2.group(1)), int(m2.group(2)), int(m2.group(3))
+        return mi * 60 + s + ms / 1000.0
+    return None
+
+
+def _seconds_to_ts(sec: float) -> str:
+    """秒数を 'HH:MM:SS,mmm' 形式に変換"""
+    h = int(sec // 3600)
+    mi = int((sec % 3600) // 60)
+    s = int(sec % 60)
+    ms = int(round((sec % 1) * 1000))
+    if ms >= 1000:
+        ms = 999
+    return f"{h:02d}:{mi:02d}:{s:02d},{ms:03d}"
 
 
 def _fix_timestamp(ts: str) -> str | None:
@@ -154,6 +173,16 @@ def validate_srt(srt_text: str) -> tuple[str, dict]:
             continue
 
         start_raw, end_raw = ts_parts[0].strip(), ts_parts[1].strip()
+
+        # MM:SS,mmm 形式を HH:MM:SS,mmm に正規化
+        if _TS_MMSS_RE.match(start_raw):
+            sec = _ts_to_seconds(start_raw)
+            if sec is not None:
+                start_raw = _seconds_to_ts(sec)
+        if _TS_MMSS_RE.match(end_raw):
+            sec = _ts_to_seconds(end_raw)
+            if sec is not None:
+                end_raw = _seconds_to_ts(sec)
 
         # start の修正
         start_sec = _ts_to_seconds(start_raw)
