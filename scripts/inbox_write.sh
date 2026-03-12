@@ -115,6 +115,8 @@ except Exception as e:
         # (atomic rename alone doesn't trigger modify/close_write)
         [ $STATUS -eq 0 ] && touch "$INBOX" 2>/dev/null
         _release_lock
+        # cmd_new時にRAG自動実行（バックグラウンド、失敗してもinbox配信に影響しない）
+        [ "$TYPE" = "cmd_new" ] && bash "$(dirname "$0")/automation/cmd_rag_hook.sh" >> "$SCRIPT_DIR/logs/cmd_rag.log" 2>&1 &
         [ $STATUS -eq 0 ] && exit 0
         attempt=$((attempt + 1))
         [ $attempt -lt $max_attempts ] && sleep 1
