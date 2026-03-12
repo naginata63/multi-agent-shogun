@@ -332,12 +332,10 @@ def entries_to_srt(entries: list[dict]) -> str:
 def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | None = None) -> list[dict]:
     """
     WhisperX自身のtranscription+alignmentでms精度タイムスタンプを取得し、
-    Geminiエントリのテキストと類似度マッチングでタイムスタンプを転写する。
+    Opus 4.6 APIによる日本語テキスト理解でGeminiエントリのタイムスタンプをms精度に置換する。
 
-    Phase A: Word-levelプール構築
-    Phase B: Word-levelマッチング（find_longest_match）
-    Phase C: N:1 按分マッチング（WhisperXセグメント単位で複数Geminiエントリに按分）
-    Phase D: 最終フォールバック（Gemini元値維持）
+    Phase A: Word-levelプール構築（WhisperX）
+    Phase B: Opus 4.6 APIバッチ処理でタイムスタンプ割り当て
     """
     try:
         import whisperx
@@ -346,13 +344,13 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
             "whisperxが見つかりません。dozle_kirinukiのvenvを有効化してください:\n"
             "  source projects/dozle_kirinuki/venv/bin/activate"
         )
+    import json
     import torch
-    from difflib import SequenceMatcher
 
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    print(f"[align] WhisperXタイムスタンプ転写方式開始 (device={device})", flush=True)
+    print(f"[align] Opus 4.6 APIアラインメント開始 (device={device})", flush=True)
     print(f"[align] 対象エントリ数: {len(srt_entries)}", flush=True)
 
     import numpy as np
@@ -373,8 +371,6 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
     CHUNK_SEC = 300.0  # 5分チャンク
     chunk_starts = list(np.arange(0, total_dur, CHUNK_SEC))
 
-    # WhisperXセグメントを全チャンクから収集（絶対時刻）
-    wx_all_segments: list[dict] = []
     # Phase A: word-levelプール（絶対時刻）
     wx_all_words: list[dict] = []
 
@@ -387,40 +383,11 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
         offset = audio_start / sample_rate
 
         try:
-            # WhisperX自身のtranscription（forced alignmentではなく自前転写）
             result = wx_model.transcribe(audio_chunk, batch_size=4)
-            # 転写結果に対してalignment（ms精度）
             align_result = whisperx.align(result["segments"], align_model, metadata, audio_chunk, device)
 
             for seg in align_result["segments"]:
                 words = seg.get("words", [])
-                # word-levelの実値を優先してセグメントのstart/endを決定
-                start_val = None
-                for w in words:
-                    w_start = w.get("start")
-                    if w_start is not None:
-                        start_val = w_start
-                        break
-                if start_val is None:
-                    start_val = seg.get("start")
-
-                end_val = None
-                for w in reversed(words):
-                    w_end = w.get("end")
-                    if w_end is not None:
-                        end_val = w_end
-                        break
-                if end_val is None:
-                    end_val = seg.get("end")
-
-                if start_val is not None and end_val is not None:
-                    wx_all_segments.append({
-                        "start": start_val + offset,
-                        "end": end_val + offset,
-                        "text": seg.get("text", "").strip(),
-                    })
-
-                # Phase A: word-levelプールに追加
                 for w in words:
                     if w.get("start") is not None and w.get("end") is not None:
                         wx_all_words.append({
@@ -433,11 +400,10 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
 
         print(f"[align] チャンク{chunk_i+1}/{len(chunk_starts)} 完了", flush=True)
 
-    print(f"[align] WhisperXセグメント数: {len(wx_all_segments)}", flush=True)
     print(f"[align] WhisperX word数: {len(wx_all_words)}", flush=True)
 
-    if not wx_all_segments:
-        print("[align] 警告: WhisperXセグメントが空。元のエントリを返します。", flush=True)
+    if not wx_all_words:
+        print("[align] 警告: WhisperX wordが空。元のエントリを返します。", flush=True)
         return srt_entries
 
     def _sec_to_srt_ts(s: float) -> str:
@@ -449,178 +415,113 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
             ms = 999
         return f"{h:02d}:{mi:02d}:{sec:02d},{ms:03d}"
 
-    MATCH_THRESHOLD = 0.3
+    # WhisperX wordをms精度文字列に変換してAPIに渡す
+    wx_words_for_api = []
+    for w in wx_all_words:
+        start_ms = int(round(w["start"] * 1000))
+        end_ms = int(round(w["end"] * 1000))
+        wx_words_for_api.append({
+            "start_ms": start_ms,
+            "end_ms": end_ms,
+            "text": w["word"],
+        })
 
-    wx_sorted = sorted(wx_all_segments, key=lambda s: s["start"])
-    updated_entries = list(srt_entries)  # コピー
-    phase_b_count = 0
-    phase_c_count = 0
+    # Phase B: Opus 4.6 APIバッチ処理
+    import anthropic
+    client = anthropic.Anthropic()  # ANTHROPIC_API_KEY環境変数から取得
 
-    # Phase B対象外（タイムスタンプ解析不能等）のエントリはPhase D直行
-    fallback_set: set[int] = set()  # Phase B失敗インデックス
+    BATCH_SIZE = 50
+    updated_entries = list(srt_entries)
+    prev_last_ts = None  # バッチ間の連続性維持
 
-    # Phase B: Word-levelマッチング
-    use_word_level = len(wx_all_words) > 50
-    wx_concat = ""
-    char_to_word_idx: list[int] = []  # 文字位置 → wx_all_words index
+    total_batches = (len(srt_entries) + BATCH_SIZE - 1) // BATCH_SIZE
+    print(f"[align] Opus 4.6 APIバッチ処理開始: {total_batches}バッチ", flush=True)
 
-    if use_word_level:
-        print(f"[align] Phase B: Word-levelマッチング開始 (words={len(wx_all_words)})", flush=True)
-        for wi, w in enumerate(wx_all_words):
-            word_text = w["word"]
-            for _ in word_text:
-                char_to_word_idx.append(wi)
-            wx_concat += word_text
-        print(f"[align] wx_concat長: {len(wx_concat)}文字", flush=True)
-    else:
-        print("[align] Phase B: word数不足のためスキップ", flush=True)
+    for batch_idx in range(total_batches):
+        batch_start = batch_idx * BATCH_SIZE
+        batch_end = min(batch_start + BATCH_SIZE, len(srt_entries))
+        batch_entries = srt_entries[batch_start:batch_end]
 
-    # Phase B: monotonic制約 — 前のマッチ末尾より後ろからのみ探索
-    search_start_char = 0
-
-    for entry_idx, entry in enumerate(srt_entries):
-        ts_parts = entry["timestamp"].split(" --> ")
-        if len(ts_parts) != 2:
-            fallback_set.add(entry_idx)
-            continue
-
-        gemini_start = _ts_to_seconds(ts_parts[0].strip())
-        if gemini_start is None:
-            fallback_set.add(entry_idx)
-            continue
-
-        # 話者ラベルを除去したテキストで比較
-        gemini_text = entry["text"]
-        if "]: " in gemini_text:
-            gemini_text = gemini_text.split("]: ", 1)[-1]
-        gemini_text = gemini_text.strip()
-
-        matched = False
-
-        if use_word_level and gemini_text:
-            sm = SequenceMatcher(None, gemini_text, wx_concat, autojunk=False)
-            # alo=search_start_char: 前エントリのマッチ末尾より後ろのみ探索（monotonic保証）
-            match = sm.find_longest_match(0, len(gemini_text), search_start_char, len(wx_concat))
-            if match.size > 0 and match.size / len(gemini_text) >= MATCH_THRESHOLD:
-                b_char = match.b
-                b_char_end = match.b + match.size - 1
-                if b_char < len(char_to_word_idx) and b_char_end < len(char_to_word_idx):
-                    first_word_idx = char_to_word_idx[b_char]
-                    last_word_idx = char_to_word_idx[b_char_end]
-                    wx_start = wx_all_words[first_word_idx]["start"]
-                    wx_end = wx_all_words[last_word_idx]["end"]
-                    if wx_end > wx_start:
-                        new_ts = f"{_sec_to_srt_ts(wx_start)} --> {_sec_to_srt_ts(wx_end)}"
-                        updated_entries[entry_idx] = {
-                            "index": entry["index"],
-                            "timestamp": new_ts,
-                            "text": entry["text"],
-                        }
-                        phase_b_count += 1
-                        matched = True
-                        # monotonic更新: 次のエントリはここより後ろを探索
-                        search_start_char = b_char_end + 1
-
-        if not matched:
-            fallback_set.add(entry_idx)
-
-    print(f"[align] Phase B完了: {phase_b_count}/{len(srt_entries)}件マッチ", flush=True)
-
-    # Phase C: N:1 按分マッチング
-    # fallback_setのエントリのstart時刻を取得
-    fallback_starts: dict[int, float | None] = {}
-    for fidx in fallback_set:
-        entry = srt_entries[fidx]
-        ts_parts = entry["timestamp"].split(" --> ")
-        if len(ts_parts) == 2:
-            gs = _ts_to_seconds(ts_parts[0].strip())
-            fallback_starts[fidx] = gs
-        else:
-            fallback_starts[fidx] = None
-
-    if fallback_set:
-        print(f"[align] Phase C: N:1按分マッチング開始 ({len(fallback_set)}件対象)", flush=True)
-
-        PHASE_C_WINDOW = 30.0
-        resolved_in_c: set[int] = set()
-        # Phase C全体でmonotonic保証: 前のエントリのendより前には割り当てない
-        phase_c_prev_end = 0.0
-
-        for seg in wx_sorted:
-            wx_seg_start = seg["start"]
-            wx_seg_end = seg["end"]
-
-            # このWXセグメントの時間範囲に重なる未解決Geminiエントリを収集
-            # entry_idxでソートしてmonotonic保証
-            matched_fidxs = sorted(
-                [
-                    fidx for fidx in fallback_set
-                    if fidx not in resolved_in_c
-                    and fallback_starts.get(fidx) is not None
-                    and wx_seg_start - PHASE_C_WINDOW <= fallback_starts[fidx] <= wx_seg_end + PHASE_C_WINDOW
-                ]
+        # Geminiエントリ一覧（index, timestamp(秒精度), speaker, text）
+        gemini_list_lines = []
+        for e in batch_entries:
+            speaker = e.get("speaker", "")
+            gemini_list_lines.append(
+                f'  index={e["index"]}, timestamp="{e["timestamp"]}", speaker="{speaker}", text="{e["text"]}"'
             )
+        gemini_list_str = "\n".join(gemini_list_lines)
 
-            if not matched_fidxs:
-                continue
+        # WhisperX wordプール全体（JSON）
+        wx_pool_json = json.dumps(wx_words_for_api, ensure_ascii=False)
 
-            # 連結テキストとWXセグメントの類似度確認
-            gemini_texts_for_c = []
-            for fidx in matched_fidxs:
-                gt = srt_entries[fidx]["text"]
-                if "]: " in gt:
-                    gt = gt.split("]: ", 1)[-1]
-                gemini_texts_for_c.append(gt.strip())
+        # 前バッチ最終TSのヒント
+        prev_hint = ""
+        if prev_last_ts is not None:
+            prev_hint = f"\n前バッチの最後のエントリのタイムスタンプ: {prev_last_ts}（このバッチの先頭はこれ以降になるはず）"
 
-            combined_gemini = "".join(gemini_texts_for_c)
-            ratio = SequenceMatcher(None, combined_gemini, seg["text"]).ratio()
+        prompt = f"""以下のGemini字幕エントリ(B)に、WhisperXのword-levelタイムスタンプ(A)を割り当てよ。
+各Geminiエントリのstart/endに最も近い時刻のWhisperX wordのms精度タイムスタンプを使え。
+テキストの表記が異なっていても（漢字/かな等）、内容と時間位置から対応を判断せよ。{prev_hint}
 
-            if ratio < 0.3:
-                continue
+(A) WhisperX word-level タイムスタンプ一覧（start_ms, end_ms はミリ秒）:
+{wx_pool_json}
 
-            # 按分: WXセグメントのstart〜endを文字数比で分割
-            total_chars = sum(len(t) for t in gemini_texts_for_c)
-            if total_chars == 0:
-                continue
+(B) Gemini字幕エントリ一覧（このバッチ {len(batch_entries)} 件）:
+{gemini_list_str}
 
-            cursor = max(wx_seg_start, phase_c_prev_end)
-            for i, fidx in enumerate(matched_fidxs):
-                entry = srt_entries[fidx]
-                char_share = len(gemini_texts_for_c[i]) / total_chars
-                entry_start = cursor
-                entry_end = cursor + (wx_seg_end - wx_seg_start) * char_share
-                # monotonic保証: endがstartより小さい場合は最小間隔で補正
-                if entry_end <= entry_start:
-                    entry_end = entry_start + 0.1
-                cursor = entry_end
+出力はJSON配列のみ返せ（説明文不要）:
+[{{"index": N, "start": "HH:MM:SS,mmm", "end": "HH:MM:SS,mmm"}}, ...]
 
-                new_ts = f"{_sec_to_srt_ts(entry_start)} --> {_sec_to_srt_ts(entry_end)}"
-                updated_entries[fidx] = {
-                    "index": entry["index"],
-                    "timestamp": new_ts,
-                    "text": entry["text"],
-                }
-                phase_c_count += 1
-                resolved_in_c.add(fidx)
-                phase_c_prev_end = entry_end
+注意:
+- 全エントリ（{len(batch_entries)}件）に必ず出力せよ
+- WhisperXに対応するwordがない場合はGemini元のタイムスタンプをms=000として使え
+- startはend未満であること
+- 時刻は単調増加（前のエントリのstartより小さくならない）
+"""
 
-        print(f"[align] Phase C完了: {phase_c_count}件按分", flush=True)
+        print(f"[align] バッチ{batch_idx+1}/{total_batches} API呼び出し中...", flush=True)
+        try:
+            response = client.messages.create(
+                model="claude-opus-4-6",
+                max_tokens=4096,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            response_text = response.content[0].text.strip()
 
-    # Phase D: 残りはGemini元値維持（updated_entriesにすでに元値が入っているので何もしない）
-    phase_d_count = len(fallback_set) - phase_c_count
+            # JSON抽出（余分なテキストがある場合に備えて）
+            json_match = re.search(r'\[.*\]', response_text, re.DOTALL)
+            if json_match:
+                response_text = json_match.group(0)
 
-    print(
-        f"[align] タイムスタンプ転写完了: Phase B={phase_b_count}, "
-        f"Phase C={phase_c_count}, Phase D(フォールバック)={phase_d_count}",
-        flush=True,
-    )
-    total = len(srt_entries)
-    if total > 0:
-        fallback_rate = phase_d_count / total * 100
-        print(f"[align] フォールバック率: {fallback_rate:.1f}% ({phase_d_count}/{total})", flush=True)
+            batch_results = json.loads(response_text)
 
-    # 最終バリデーション: 全エントリの時系列順を保証（monotonic後処理）
-    # start-vs-start で比較（SRTのstart順が必須）
+            # 結果をupdated_entriesに反映
+            result_map = {r["index"]: r for r in batch_results}
+            for entry in batch_entries:
+                r = result_map.get(entry["index"])
+                if r and "start" in r and "end" in r:
+                    new_ts = f"{r['start']} --> {r['end']}"
+                    updated_entries[entry["index"] - 1] = {
+                        "index": entry["index"],
+                        "timestamp": new_ts,
+                        "text": entry["text"],
+                    }
+                    if entry.get("speaker"):
+                        updated_entries[entry["index"] - 1]["speaker"] = entry["speaker"]
+
+            # 前バッチ最終TSを更新
+            if batch_results:
+                last_r = batch_results[-1]
+                prev_last_ts = last_r.get("start", "")
+
+            print(f"[align] バッチ{batch_idx+1}/{total_batches} 完了: {len(batch_results)}件", flush=True)
+
+        except Exception as e:
+            print(f"[align] バッチ{batch_idx+1} エラー: {e}。フォールバック（元TS維持）", flush=True)
+
+    print("[align] Opus 4.6 APIバッチ処理完了", flush=True)
+
+    # 最終バリデーション: 逆行チェック
     violations = 0
     prev_start_final = 0.0
     prev_end_final = 0.0
@@ -634,7 +535,6 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
         if entry_start is None or entry_end is None:
             continue
         if entry_start < prev_start_final - 1.0:
-            # 前エントリのstartより1秒以上逆行 → monotonic補正
             entry_start = max(prev_start_final, prev_end_final)
             entry_end = max(entry_end, entry_start + 0.1)
             updated_entries[i]["timestamp"] = (
