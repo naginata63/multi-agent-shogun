@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -392,6 +393,177 @@ def chunk_scripts(filepath: str):
     return chunks
 
 
+def load_comments():
+    """YouTubeコメント(comment_analysis.yaml)をコメント1件=1チャンクで返す"""
+    chunks = []
+    work_dir = DOZLE_DIR / "work"
+    if not work_dir.exists():
+        return chunks
+    for yaml_path in work_dir.glob("*/comment_analysis.yaml"):
+        try:
+            with open(yaml_path, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f)
+            if not data:
+                continue
+            video_id = data.get("video_id", yaml_path.parent.name)
+            # top_liked_comments が主なコメントリスト
+            comments = data.get("top_liked_comments", data.get("comments", []))
+            if not isinstance(comments, list):
+                continue
+            for i, comment in enumerate(comments):
+                if not isinstance(comment, dict):
+                    continue
+                text = comment.get("text", comment.get("comment", ""))
+                like_count = comment.get("likes", comment.get("like_count", 0))
+                related_member = comment.get("related_member", "")
+                if not text:
+                    continue
+                chunks.append({
+                    "text": f"[{video_id}] {text}"[:4000],
+                    "source": "comments",
+                    "source_file": str(yaml_path),
+                    "chunk_id": f"comments::{video_id}::{i}",
+                    "metadata": {
+                        "video_id": video_id,
+                        "author": related_member,
+                        "like_count": like_count,
+                        "timestamp": "",
+                    },
+                })
+        except Exception as e:
+            print(f"  WARN comments: {yaml_path}: {e}")
+    return chunks
+
+
+def load_git_commits():
+    """git log -500 を両リポジトリから取得してコミット1件=1チャンクで返す"""
+    chunks = []
+    repos = [
+        ("multi-agent-shogun", BASE_DIR),
+        ("dozle_kirinuki", DOZLE_DIR),
+    ]
+    for repo_name, repo_dir in repos:
+        if not repo_dir.exists():
+            continue
+        try:
+            result = subprocess.run(
+                ["git", "log", "-500", "--format=%H|||%ai|||%an|||%s", "--stat"],
+                cwd=str(repo_dir),
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            if result.returncode != 0:
+                continue
+            output = result.stdout
+            # 各コミットブロックをパース: HASH|||DATE|||AUTHOR|||SUBJECT + stat行 + 空行
+            commit_pattern = re.compile(
+                r"([a-f0-9]{40})\|\|\|([^|]+)\|\|\|([^|]+)\|\|\|(.+?)(?=\n[a-f0-9]{40}\|\|\||\Z)",
+                re.DOTALL,
+            )
+            for m in commit_pattern.finditer(output):
+                commit_hash = m.group(1)
+                date = m.group(2).strip()
+                author = m.group(3).strip()
+                rest = m.group(4).strip()
+                lines = rest.split("\n")
+                subject = lines[0].strip()
+                stat_lines = [l.strip() for l in lines[1:] if l.strip()]
+                files_changed = [l for l in stat_lines if "|" in l or "changed" in l]
+                text = (
+                    f"Commit: {commit_hash[:8]} ({repo_name})\n"
+                    f"Date: {date}\nAuthor: {author}\nMessage: {subject}\n"
+                    f"Files:\n" + "\n".join(files_changed[:20])
+                )
+                chunks.append({
+                    "text": text[:4000],
+                    "source": "git",
+                    "source_file": f"git::{repo_name}",
+                    "chunk_id": f"git::{repo_name}::{commit_hash[:8]}",
+                    "metadata": {
+                        "commit_hash": commit_hash[:8],
+                        "date": date,
+                        "author": author,
+                        "repo": repo_name,
+                        "files_changed": ",".join(files_changed[:5]),
+                    },
+                })
+        except Exception as e:
+            print(f"  WARN git log {repo_name}: {e}")
+    return chunks
+
+
+def load_error_logs():
+    """logs/*.log からエラーブロック(Traceback/ERROR/FAIL行+前後5行)を抽出してチャンク化"""
+    chunks = []
+    logs_dir = BASE_DIR / "logs"
+    if not logs_dir.exists():
+        return chunks
+    for log_path in logs_dir.glob("*.log"):
+        try:
+            with open(log_path, "r", encoding="utf-8", errors="replace") as f:
+                all_lines = f.readlines()
+            lines = all_lines[-1000:]  # 末尾1000行のみ
+            fname = log_path.name
+            i = 0
+            while i < len(lines):
+                line = lines[i]
+                if "Traceback (most recent call last)" in line:
+                    block_lines = [line]
+                    i += 1
+                    while i < len(lines) and (
+                        lines[i].startswith(" ")
+                        or lines[i].strip() == ""
+                        or "Error:" in lines[i]
+                        or "Exception:" in lines[i]
+                    ):
+                        block_lines.append(lines[i])
+                        i += 1
+                    text = "".join(block_lines).strip()
+                    if text:
+                        ts_match = re.search(r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}", text)
+                        ts = ts_match.group(0) if ts_match else ""
+                        err_match = re.search(r"(\w+Error|\w+Exception).*", text)
+                        error_type = err_match.group(0)[:80] if err_match else "Traceback"
+                        chunk_i = len(chunks)
+                        chunks.append({
+                            "text": text[:4000],
+                            "source": "logs",
+                            "source_file": str(log_path),
+                            "chunk_id": f"logs::{fname}::{chunk_i}",
+                            "metadata": {
+                                "log_file": fname,
+                                "timestamp": ts,
+                                "error_type": error_type,
+                            },
+                        })
+                elif re.search(r"\b(ERROR|FAIL|CRITICAL)\b", line, re.IGNORECASE):
+                    start = max(0, i - 5)
+                    end = min(len(lines), i + 6)
+                    text = "".join(lines[start:end]).strip()
+                    if text:
+                        ts_match = re.search(r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}", line)
+                        ts = ts_match.group(0) if ts_match else ""
+                        chunk_i = len(chunks)
+                        chunks.append({
+                            "text": text[:4000],
+                            "source": "logs",
+                            "source_file": str(log_path),
+                            "chunk_id": f"logs::{fname}::err{chunk_i}",
+                            "metadata": {
+                                "log_file": fname,
+                                "timestamp": ts,
+                                "error_type": line.strip()[:80],
+                            },
+                        })
+                    i += 1
+                else:
+                    i += 1
+        except Exception as e:
+            print(f"  WARN logs: {log_path}: {e}")
+    return chunks
+
+
 def collect_chunks(source_filter: Optional[str] = None):
     """全チャンクを収集"""
     all_chunks = []
@@ -413,6 +585,14 @@ def collect_chunks(source_filter: Optional[str] = None):
             all_chunks.extend(chunk_markdown(filepath, src_type))
         elif src_type == "scripts":
             all_chunks.extend(chunk_scripts(filepath))
+
+    # 動的ソース（ファイルパス非依存）
+    if not source_filter or source_filter == "comments":
+        all_chunks.extend(load_comments())
+    if not source_filter or source_filter == "git":
+        all_chunks.extend(load_git_commits())
+    if not source_filter or source_filter == "logs":
+        all_chunks.extend(load_error_logs())
 
     return all_chunks
 
@@ -626,7 +806,7 @@ def main():
     q_parser.add_argument("query", help="検索クエリ")
     q_parser.add_argument("--top", type=int, default=10, help="表示件数 (default: 10)")
     q_parser.add_argument("--source", type=str, default=None,
-                          help="絞り込み: shogun_to_karo / tasks / srt / memory / context / scripts")
+                          help="絞り込み: shogun_to_karo / tasks / srt / memory / context / scripts / comments / git / logs")
 
     args = parser.parse_args()
 
