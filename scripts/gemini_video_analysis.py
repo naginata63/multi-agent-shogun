@@ -3,6 +3,7 @@
 
 import argparse
 import re
+import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -143,6 +144,53 @@ def parse_candidates_robust(raw_text: str, yaml_text: str) -> list:
     return []
 
 
+def parse_mmss(ts: str) -> float:
+    """'MM:SS' または 'H:MM:SS' 形式を秒数に変換"""
+    try:
+        parts = str(ts).strip().split(":")
+        if len(parts) == 2:
+            return int(parts[0]) * 60 + float(parts[1])
+        elif len(parts) == 3:
+            return int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
+    except Exception:
+        pass
+    return -1
+
+
+def get_video_duration(video_path: str) -> float:
+    """ffprobeで動画の長さ（秒）を取得する"""
+    try:
+        result = subprocess.run(
+            [
+                "ffprobe", "-v", "error",
+                "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1",
+                video_path,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        return float(result.stdout.strip())
+    except Exception as e:
+        print(f"[warn] ffprobeで動画長取得失敗: {e}", flush=True)
+        return 0.0
+
+
+def validate_distribution(candidates: list, video_duration: float, min_back_half: int = 2) -> tuple[bool, int]:
+    """後半候補数を検証する。(ok, back_half_count) を返す"""
+    if video_duration <= 0:
+        return True, 0  # 動画長不明なら検証スキップ
+    half_point = video_duration / 2
+    back_count = 0
+    for c in candidates:
+        start_sec = parse_mmss(c.get("start_time", ""))
+        if start_sec >= half_point:
+            back_count += 1
+    ok = back_count >= min_back_half
+    return ok, back_count
+
+
 def extract_section_yaml(text: str, section_key: str) -> list:
     """レスポンステキストから指定セクション(highlight_candidates/short_candidates)を抽出"""
     # 行頭のsection_keyから次のトップレベルキー（行頭の\w+:）まで抽出（MULTILINEで行頭マッチ）
@@ -256,18 +304,6 @@ short_candidates:
             short_candidates = sc
 
     # BUG-S2: SH候補15秒未満・60秒超を自動除外
-    def parse_mmss(ts: str) -> float:
-        """'MM:SS' または 'H:MM:SS' 形式を秒数に変換"""
-        try:
-            parts = str(ts).strip().split(":")
-            if len(parts) == 2:
-                return int(parts[0]) * 60 + float(parts[1])
-            elif len(parts) == 3:
-                return int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
-        except Exception:
-            pass
-        return -1
-
     valid_shorts = []
     for candidate in short_candidates:
         start_sec = parse_mmss(candidate.get("start", ""))
@@ -329,19 +365,8 @@ short_candidates:
     return 0
 
 
-def cmd_short_ideas(args):
-    """short-ideas: 動画からショート動画候補を提案"""
-    from google import genai
-    from google.genai import types as genai_types
-
-    client = genai.Client()
-
-    video_file = upload_video(client, args.video_path)
-
-    model = args.model
-    top_n = args.top
-
-    prompt = f"""この動画を分析して、9:16縦型ショート動画として切り出すのに最適なシーンを{top_n}件提案してください。
+def _build_short_ideas_prompt(top_n: int) -> str:
+    return f"""この動画を分析して、9:16縦型ショート動画として切り出すのに最適なシーンを{top_n}件提案してください。
 
 {MEMBER_INFO}
 
@@ -368,31 +393,191 @@ candidates:
     category: "ギャグ/リアクション/サプライズ/感動/その他"
 """
 
-    print(f"[generate] モデル: {model}", flush=True)
+
+def _build_retry_prompt(top_n: int, back_start_mmss: str, video_duration_mmss: str, back_count: int) -> str:
+    return f"""この動画を分析して、9:16縦型ショート動画として切り出すのに最適なシーンを{top_n}件提案してください。
+
+{MEMBER_INFO}
+
+**重要な指示（前回の候補は全て前半に集中していました。必ず後半も含めてください）**:
+- 前回の回答は後半候補が{back_count}件しかなく、不十分でした
+- **動画の後半（{back_start_mmss}〜{video_duration_mmss}の範囲）から最低3件の候補を必ず含めること**
+- 全体の候補を前半・中盤・後半に均等に分散させること
+
+要件:
+- 各候補は15秒以上60秒以下の区間を選ぶこと。短すぎる候補（15秒未満）は不可
+- 面白い瞬間、リアクション、サプライズ要素、オヤジギャグ、ボケツッコミを優先
+- 各候補にタイムスタンプ（開始-終了）、理由、推奨タイトルを含める
+- ショート動画のフック（冒頭3秒で視聴者を引き付ける要素）を明記
+- viral_scoreは1-10の整数で、バズる可能性を評価。全候補が同じスコアにならないよう相対的に評価すること。最高スコアは1件のみ、最低スコアの候補も含めること
+
+出力形式（YAMLのみ。説明文は不要）:
+candidates:
+  - id: 1
+    start_time: "MM:SS"
+    end_time: "MM:SS"
+    duration_sec: 30
+    title: "推奨タイトル"
+    hook: "冒頭フックの説明"
+    reason: "選出理由"
+    speakers: ["話者キー名"]
+    viral_score: 8
+    category: "ギャグ/リアクション/サプライズ/感動/その他"
+"""
+
+
+def _build_back_half_prompt(back_start_mmss: str, video_duration_mmss: str) -> str:
+    return f"""この動画の後半部分（{back_start_mmss}〜{video_duration_mmss}の範囲のみ）から、
+9:16縦型ショート動画として切り出すのに最適なシーンを5件提案してください。
+
+{MEMBER_INFO}
+
+**必ず {back_start_mmss} 以降のシーンのみを選ぶこと**
+
+要件:
+- 各候補は15秒以上60秒以下の区間を選ぶこと
+- 面白い瞬間、リアクション、サプライズ要素、オヤジギャグ、ボケツッコミを優先
+- 各候補にタイムスタンプ（開始-終了）、理由、推奨タイトルを含める
+- ショート動画のフック（冒頭3秒で視聴者を引き付ける要素）を明記
+- viral_scoreは1-10の整数で評価
+
+出力形式（YAMLのみ）:
+candidates:
+  - id: 1
+    start_time: "MM:SS"
+    end_time: "MM:SS"
+    duration_sec: 30
+    title: "推奨タイトル"
+    hook: "冒頭フックの説明"
+    reason: "選出理由"
+    speakers: ["話者キー名"]
+    viral_score: 8
+    category: "ギャグ/リアクション/サプライズ/感動/その他"
+"""
+
+
+def _secs_to_mmss(secs: float) -> str:
+    """秒数をMM:SS形式に変換"""
+    secs = int(secs)
+    return f"{secs // 60:02d}:{secs % 60:02d}"
+
+
+def cmd_short_ideas(args):
+    """short-ideas: 動画からショート動画候補を提案（後半分布バリデーション+リトライ付き）"""
+    from google import genai
+    from google.genai import types as genai_types
+
+    client = genai.Client()
+
+    video_file = upload_video(client, args.video_path)
+
+    model = args.model
+    top_n = args.top
+
+    # 動画長取得（後半バリデーション用）
+    video_duration = get_video_duration(args.video_path)
+    half_point = video_duration / 2 if video_duration > 0 else 0
+    back_start_mmss = _secs_to_mmss(half_point) if half_point > 0 else "??:??"
+    video_duration_mmss = _secs_to_mmss(video_duration) if video_duration > 0 else "??:??"
+    print(f"[info] 動画長: {video_duration:.1f}秒 ({video_duration_mmss}), 後半開始: {back_start_mmss}", flush=True)
+
+    total_cost_tokens_in = 0
+    total_cost_tokens_out = 0
+    retry_count = 0
+    candidates = []
+    raw_fallback = None
+
+    # --- 初回生成 ---
+    prompt = _build_short_ideas_prompt(top_n)
+    print(f"[generate] モデル: {model} (attempt 1)", flush=True)
     t0 = time.time()
     response = client.models.generate_content(
         model=model,
         contents=[video_file, prompt],
-        config=genai_types.GenerateContentConfig(
-            temperature=0.2,
-            max_output_tokens=8192,
-        ),
+        config=genai_types.GenerateContentConfig(temperature=0.2, max_output_tokens=8192),
     )
     elapsed = time.time() - t0
-
     raw_text = response.text
     print(f"[generate] レスポンス長: {len(raw_text)} 文字 ({elapsed:.1f}s)", flush=True)
+    cost = calc_cost(response.usage_metadata, model)
+    total_cost_tokens_in += cost.get("input_tokens", 0) or 0
+    total_cost_tokens_out += cost.get("output_tokens", 0) or 0
 
-    # YAMLパース（BUG-1対策: 複数フォールバック）
     yaml_text = extract_yaml_block(raw_text)
     candidates = parse_candidates_robust(raw_text, yaml_text)
-
-    raw_fallback = None
     if not candidates:
         print(f"[warn] 全パース失敗 — raw_responseとして保存\n[raw]\n{raw_text[:500]}", flush=True)
         raw_fallback = raw_text
 
-    cost = calc_cost(response.usage_metadata, model)
+    # --- 分布バリデーション + リトライ（最大2回）---
+    MAX_RETRIES = 2
+    while candidates and video_duration > 0:
+        ok, back_count = validate_distribution(candidates, video_duration, min_back_half=2)
+        print(f"[validate] 後半候補数: {back_count}/{len(candidates)} (half_point={back_start_mmss}) → {'OK' if ok else 'NG'}", flush=True)
+        if ok:
+            break
+        if retry_count >= MAX_RETRIES:
+            print(f"[warn] リトライ上限({MAX_RETRIES}回)到達。後半のみ追加生成でフォールバック", flush=True)
+            # フォールバック: 後半のみ5件生成 → 前半5件 + 後半5件マージ → 上位10件
+            back_prompt = _build_back_half_prompt(back_start_mmss, video_duration_mmss)
+            print(f"[generate] モデル: {model} (back-half fallback)", flush=True)
+            t0 = time.time()
+            back_response = client.models.generate_content(
+                model=model,
+                contents=[video_file, back_prompt],
+                config=genai_types.GenerateContentConfig(temperature=0.3, max_output_tokens=4096),
+            )
+            elapsed = time.time() - t0
+            back_raw = back_response.text
+            print(f"[generate] 後半生成レスポンス長: {len(back_raw)} 文字 ({elapsed:.1f}s)", flush=True)
+            back_cost = calc_cost(back_response.usage_metadata, model)
+            total_cost_tokens_in += back_cost.get("input_tokens", 0) or 0
+            total_cost_tokens_out += back_cost.get("output_tokens", 0) or 0
+
+            back_yaml = extract_yaml_block(back_raw)
+            back_candidates = parse_candidates_robust(back_raw, back_yaml)
+            if back_candidates:
+                # 前半5件 + 後半追加5件 → viral_scoreソートで上位top_n件
+                front_5 = sorted(candidates, key=lambda c: c.get("viral_score", 0), reverse=True)[:5]
+                back_5 = sorted(back_candidates, key=lambda c: c.get("viral_score", 0), reverse=True)[:5]
+                merged = front_5 + back_5
+                # IDを振り直し
+                merged_sorted = sorted(merged, key=lambda c: c.get("viral_score", 0), reverse=True)[:top_n]
+                for i, c in enumerate(merged_sorted, 1):
+                    c["id"] = i
+                candidates = merged_sorted
+                print(f"[info] マージ後候補数: {len(candidates)}", flush=True)
+            break
+
+        retry_count += 1
+        retry_prompt = _build_retry_prompt(top_n, back_start_mmss, video_duration_mmss, back_count)
+        print(f"[generate] モデル: {model} (retry {retry_count}/{MAX_RETRIES})", flush=True)
+        t0 = time.time()
+        response = client.models.generate_content(
+            model=model,
+            contents=[video_file, retry_prompt],
+            config=genai_types.GenerateContentConfig(temperature=0.3, max_output_tokens=8192),
+        )
+        elapsed = time.time() - t0
+        raw_text = response.text
+        print(f"[generate] レスポンス長: {len(raw_text)} 文字 ({elapsed:.1f}s)", flush=True)
+        cost = calc_cost(response.usage_metadata, model)
+        total_cost_tokens_in += cost.get("input_tokens", 0) or 0
+        total_cost_tokens_out += cost.get("output_tokens", 0) or 0
+
+        yaml_text = extract_yaml_block(raw_text)
+        new_candidates = parse_candidates_robust(raw_text, yaml_text)
+        if new_candidates:
+            candidates = new_candidates
+        else:
+            print(f"[warn] リトライ{retry_count}でもパース失敗 — 前回候補を継続", flush=True)
+
+    # 最終分布チェック（ログ用）
+    if candidates and video_duration > 0:
+        _, final_back_count = validate_distribution(candidates, video_duration, min_back_half=2)
+        print(f"[result] 最終後半候補数: {final_back_count}/{len(candidates)}", flush=True)
+
+    total_cost_str = f"${(total_cost_tokens_in / 1_000_000 * 0.10 + total_cost_tokens_out / 1_000_000 * 0.40):.4f}"
 
     output = {
         "metadata": {
@@ -400,8 +585,13 @@ candidates:
             "model": model,
             "top": top_n,
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "elapsed_sec": round(elapsed, 1),
-            "cost": cost,
+            "video_duration_sec": round(video_duration, 1),
+            "retry_count": retry_count,
+            "cost": {
+                "input_tokens": total_cost_tokens_in,
+                "output_tokens": total_cost_tokens_out,
+                "total_cost": total_cost_str,
+            },
         },
         "candidates": candidates,
     }
@@ -414,8 +604,8 @@ candidates:
         yaml.dump(output, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
 
     print(f"[output] 保存: {output_path}", flush=True)
-    print(f"[result] 候補数: {len(candidates)}", flush=True)
-    print(f"[cost] 入力: {cost.get('input_tokens', '?')} トークン, 出力: {cost.get('output_tokens', '?')} トークン, 合計: {cost.get('total_cost', '?')}", flush=True)
+    print(f"[result] 候補数: {len(candidates)}, リトライ: {retry_count}回", flush=True)
+    print(f"[cost] 入力: {total_cost_tokens_in} トークン, 出力: {total_cost_tokens_out} トークン, 合計: {total_cost_str}", flush=True)
 
     if candidates:
         print("\n=== Top3 候補 ===", flush=True)
