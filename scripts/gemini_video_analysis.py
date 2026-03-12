@@ -85,6 +85,142 @@ def parse_partial_yaml_candidates(yaml_text: str) -> list:
     return candidates
 
 
+def extract_section_yaml(text: str, section_key: str) -> list:
+    """レスポンステキストから指定セクション(highlight_candidates/short_candidates)を抽出"""
+    # セクションキーから次のトップレベルキーまでを抽出
+    pattern = rf"({section_key}:\s*(?:.*?))(?=\n\w+:|\Z)"
+    match = re.search(pattern, text, re.DOTALL)
+    if not match:
+        return []
+    section_text = match.group(1).strip()
+    try:
+        data = yaml.safe_load(section_text)
+        if isinstance(data, dict) and section_key in data:
+            items = data[section_key]
+            return items if isinstance(items, list) else []
+        return []
+    except Exception:
+        return []
+
+
+def cmd_screen(args):
+    """screen: 動画からハイライト候補とショート候補を同時提案（統合スクリーニング）"""
+    from google import genai
+    from google.genai import types as genai_types
+
+    client = genai.Client()
+
+    video_file = upload_video(client, args.video_path)
+
+    model = args.model
+
+    prompt = """この動画を分析して、切り抜き動画用の候補を2種類提案してください。
+
+## ハイライト候補（長尺切り抜き）
+- 3〜10分の見どころシーン
+- 笑い・感動・盛り上がり・企画のクライマックスを優先
+- 5〜10件提案
+- スコア（1-10）で評価
+
+## ショート候補（バズ系縦型ショート）
+- 15〜60秒の切り出しシーン
+- 冒頭3秒で視聴者を引き付けるフックが必要
+- オヤジギャグ・ボケツッコミ・サプライズ・リアクションを優先
+- 5〜10件提案
+- バイラルスコア（1-10）で評価
+
+話者名はキー名（dozle/bon/qnly/orafu/oo_men/nekooji）で出力してください。
+
+出力形式（YAMLのみ。説明文は不要）:
+highlight_candidates:
+  - start: "MM:SS"
+    end: "MM:SS"
+    title: "タイトル"
+    reason: "選出理由"
+    speakers: ["話者キー名"]
+    score: 9
+short_candidates:
+  - start: "MM:SS"
+    end: "MM:SS"
+    title: "タイトル"
+    hook: "冒頭フックの説明"
+    reason: "選出理由"
+    speakers: ["話者キー名"]
+    viral_score: 9
+"""
+
+    print(f"[generate] モデル: {model}", flush=True)
+    t0 = time.time()
+    response = client.models.generate_content(
+        model=model,
+        contents=[video_file, prompt],
+        config=genai_types.GenerateContentConfig(
+            temperature=0.2,
+            max_output_tokens=8192,
+        ),
+    )
+    elapsed = time.time() - t0
+
+    raw_text = response.text
+    print(f"[generate] レスポンス長: {len(raw_text)} 文字 ({elapsed:.1f}s)", flush=True)
+
+    # YAMLブロック抽出
+    yaml_text = extract_yaml_block(raw_text)
+
+    # 全体パースを試みる
+    highlight_candidates = []
+    short_candidates = []
+    try:
+        data = yaml.safe_load(yaml_text)
+        if isinstance(data, dict):
+            highlight_candidates = data.get("highlight_candidates", []) or []
+            short_candidates = data.get("short_candidates", []) or []
+    except Exception as e:
+        print(f"[warn] YAMLパース失敗: {e} — セクション別パースを試みる", flush=True)
+        highlight_candidates = extract_section_yaml(raw_text, "highlight_candidates")
+        short_candidates = extract_section_yaml(raw_text, "short_candidates")
+
+    cost = calc_cost(response.usage_metadata, model)
+
+    # video_id をパスから抽出（ファイル名の拡張子除去）
+    video_path = Path(args.video_path)
+    video_id = video_path.stem
+
+    output = {
+        "video_id": video_id,
+        "metadata": {
+            "video_path": str(args.video_path),
+            "model": model,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "elapsed_sec": round(elapsed, 1),
+            "cost": cost,
+        },
+        "highlight_candidates": highlight_candidates,
+        "short_candidates": short_candidates,
+    }
+
+    output_path = Path(args.output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        yaml.dump(output, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+
+    print(f"[output] 保存: {output_path}", flush=True)
+    print(f"[result] ハイライト候補: {len(highlight_candidates)}件, ショート候補: {len(short_candidates)}件", flush=True)
+    print(f"[cost] 入力: {cost.get('input_tokens', '?')} トークン, 出力: {cost.get('output_tokens', '?')} トークン, 合計: {cost.get('total_cost', '?')}", flush=True)
+
+    if highlight_candidates:
+        print("\n=== ハイライト Top3 ===", flush=True)
+        for c in highlight_candidates[:3]:
+            print(f"  [{c.get('start', '?')}-{c.get('end', '?')}] {c.get('title', '?')} (score={c.get('score', '?')})", flush=True)
+
+    if short_candidates:
+        print("\n=== ショート Top3 ===", flush=True)
+        for c in short_candidates[:3]:
+            print(f"  [{c.get('start', '?')}-{c.get('end', '?')}] {c.get('title', '?')} (viral={c.get('viral_score', '?')})", flush=True)
+
+    return 0
+
+
 def cmd_short_ideas(args):
     """short-ideas: 動画からショート動画候補を提案"""
     from google import genai
@@ -198,6 +334,17 @@ def main():
         help="使用モデル（デフォルト: gemini-2.0-flash）",
     )
     p_ideas.set_defaults(func=cmd_short_ideas)
+
+    # screen サブコマンド
+    p_screen = subparsers.add_parser("screen", help="ハイライト候補とショート候補を同時提案（統合スクリーニング）")
+    p_screen.add_argument("video_path", help="入力動画ファイルパス")
+    p_screen.add_argument("--output", "-o", required=True, help="出力YAMLファイルパス")
+    p_screen.add_argument(
+        "--model",
+        default="gemini-2.0-flash",
+        help="使用モデル（デフォルト: gemini-2.0-flash）",
+    )
+    p_screen.set_defaults(func=cmd_screen)
 
     args = parser.parse_args()
     return args.func(args)
