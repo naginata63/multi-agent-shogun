@@ -10,6 +10,25 @@ from pathlib import Path
 
 import yaml
 
+# ドズル社メンバー情報（プロンプト共通）
+MEMBER_INFO = """このYouTubeチャンネルのメンバー:
+- ドズル (dozle): チャンネル主、MC役
+- ぼんじゅうる (bon): ボケ・ギャグ担当
+- おんりー (qnly): ツッコミ担当
+- おらふくん (orafu): 天然担当
+- おおはらMEN (oo_men): リアクション担当
+- ネコおじ/三木 (nekooji): ナレーター、色々な声色で出演
+
+マイクラ内プレイヤーID → メンバー名:
+- Dooozle → dozle（ドズル）
+- bonj55 → bon（ぼんじゅうる）
+- ORAMAINECRAF → orafu（おらふくん）
+- Only_qdm → qnly（おんりー）
+- ooharaMEN → oo_men（おおはらMEN）
+- Neko_Oji → nekooji（ネコおじ/三木）
+これらのIDがゲーム画面に表示されている場合、対応するメンバー名（キー名）に変換して出力すること。
+話者名は上記の括弧内のキー名(dozle/bon/qnly/orafu/oo_men/nekooji)で出力すること。"""
+
 
 def upload_video(client, video_path: str):
     """File APIで動画をアップロードし、処理完了を待つ"""
@@ -34,7 +53,7 @@ def calc_cost(usage_metadata, model: str) -> dict:
     try:
         input_tokens = getattr(usage_metadata, "prompt_token_count", 0) or 0
         output_tokens = getattr(usage_metadata, "candidates_token_count", 0) or 0
-        # Gemini 2.0 Flash 料金（2026-03時点の仮定値）
+        # Gemini 3 Flash 料金（2026-03時点の仮定値）
         input_cost = input_tokens / 1_000_000 * 0.10
         output_cost = output_tokens / 1_000_000 * 0.40
         total_cost = input_cost + output_cost
@@ -85,6 +104,45 @@ def parse_partial_yaml_candidates(yaml_text: str) -> list:
     return candidates
 
 
+def parse_candidates_robust(raw_text: str, yaml_text: str) -> list:
+    """複数の方法でcandidatesリストをパースする（BUG-1対策）"""
+    # 方法1: 全体パース
+    try:
+        data = yaml.safe_load(yaml_text)
+        if isinstance(data, dict) and "candidates" in data:
+            items = data["candidates"]
+            if isinstance(items, list) and len(items) > 0:
+                return items
+    except Exception:
+        pass
+
+    # 方法2: 生テキストから candidates: セクションを抽出して再パース
+    section_match = re.search(r"(candidates:\s*\n(?:[ \t]+.*\n?)+)", raw_text, re.MULTILINE)
+    if section_match:
+        try:
+            data = yaml.safe_load(section_match.group(1))
+            if isinstance(data, dict) and "candidates" in data:
+                items = data["candidates"]
+                if isinstance(items, list) and len(items) > 0:
+                    return items
+        except Exception:
+            pass
+
+    # 方法3: 部分パース（インデントブロック単位）
+    candidates = parse_partial_yaml_candidates(yaml_text)
+    if candidates:
+        print(f"[info] 部分パースで {len(candidates)} 件の候補を取得", flush=True)
+        return candidates
+
+    # 方法4: 生テキストから直接ブロック抽出
+    candidates = parse_partial_yaml_candidates(raw_text)
+    if candidates:
+        print(f"[info] 生テキスト部分パースで {len(candidates)} 件の候補を取得", flush=True)
+        return candidates
+
+    return []
+
+
 def extract_section_yaml(text: str, section_key: str) -> list:
     """レスポンステキストから指定セクション(highlight_candidates/short_candidates)を抽出"""
     # セクションキーから次のトップレベルキーまでを抽出
@@ -114,22 +172,22 @@ def cmd_screen(args):
 
     model = args.model
 
-    prompt = """この動画を分析して、切り抜き動画用の候補を2種類提案してください。
+    prompt = f"""この動画を分析して、切り抜き動画用の候補を2種類提案してください。
+
+{MEMBER_INFO}
 
 ## ハイライト候補（長尺切り抜き）
 - 3〜10分の見どころシーン
 - 笑い・感動・盛り上がり・企画のクライマックスを優先
 - 5〜10件提案
-- スコア（1-10）で評価
+- スコア（1-10の整数）で評価。全候補が同じスコアにならないよう相対評価すること
 
 ## ショート候補（バズ系縦型ショート）
-- 15〜60秒の切り出しシーン
+- 各候補は15秒以上60秒以下の区間を選ぶこと。短すぎる候補（15秒未満）は不可
 - 冒頭3秒で視聴者を引き付けるフックが必要
 - オヤジギャグ・ボケツッコミ・サプライズ・リアクションを優先
 - 5〜10件提案
-- バイラルスコア（1-10）で評価
-
-話者名はキー名（dozle/bon/qnly/orafu/oo_men/nekooji）で出力してください。
+- バイラルスコア（1-10の整数）で評価。最高スコアは1件のみ、最低スコアの候補も含めること
 
 出力形式（YAMLのみ。説明文は不要）:
 highlight_candidates:
@@ -235,12 +293,14 @@ def cmd_short_ideas(args):
 
     prompt = f"""この動画を分析して、9:16縦型ショート動画として切り出すのに最適なシーンを{top_n}件提案してください。
 
+{MEMBER_INFO}
+
 要件:
-- 15〜60秒の長さで切り出せるシーン
+- 各候補は15秒以上60秒以下の区間を選ぶこと。短すぎる候補（15秒未満）は不可
 - 面白い瞬間、リアクション、サプライズ要素、オヤジギャグ、ボケツッコミを優先
 - 各候補にタイムスタンプ（開始-終了）、理由、推奨タイトルを含める
 - ショート動画のフック（冒頭3秒で視聴者を引き付ける要素）を明記
-- バイラル性（SNSでシェアされやすさ）を5段階で評価
+- viral_scoreは1-10の整数で、バズる可能性を評価。全候補が同じスコアにならないよう相対的に評価すること。最高スコアは1件のみ、最低スコアの候補も含めること
 
 出力形式（YAMLのみ。説明文は不要）:
 candidates:
@@ -251,12 +311,13 @@ candidates:
     title: "推奨タイトル"
     hook: "冒頭フックの説明"
     reason: "選出理由"
-    speakers: ["話者名"]
-    viral_score: 4
+    speakers: ["話者キー名"]
+    viral_score: 8
     category: "ギャグ/リアクション/サプライズ/感動/その他"
 """
 
     print(f"[generate] モデル: {model}", flush=True)
+    t0 = time.time()
     response = client.models.generate_content(
         model=model,
         contents=[video_file, prompt],
@@ -265,27 +326,19 @@ candidates:
             max_output_tokens=8192,
         ),
     )
+    elapsed = time.time() - t0
 
     raw_text = response.text
-    print(f"[generate] レスポンス長: {len(raw_text)} 文字", flush=True)
+    print(f"[generate] レスポンス長: {len(raw_text)} 文字 ({elapsed:.1f}s)", flush=True)
 
-    # YAMLパース
+    # YAMLパース（BUG-1対策: 複数フォールバック）
     yaml_text = extract_yaml_block(raw_text)
-    try:
-        data = yaml.safe_load(yaml_text)
-        if not isinstance(data, dict) or "candidates" not in data:
-            raise ValueError("candidatesキーが見つかりません")
-        candidates = data["candidates"]
-    except Exception as e:
-        print(f"[warn] YAMLパース失敗: {e} — 部分パースを試みる", flush=True)
-        candidates = parse_partial_yaml_candidates(yaml_text)
-        if candidates:
-            print(f"[info] 部分パースで {len(candidates)} 件の候補を取得", flush=True)
-            raw_fallback = None
-        else:
-            print(f"[raw]\n{raw_text[:500]}", flush=True)
-            candidates = []
-            raw_fallback = raw_text
+    candidates = parse_candidates_robust(raw_text, yaml_text)
+
+    raw_fallback = None
+    if not candidates:
+        print(f"[warn] 全パース失敗 — raw_responseとして保存\n[raw]\n{raw_text[:500]}", flush=True)
+        raw_fallback = raw_text
 
     cost = calc_cost(response.usage_metadata, model)
 
@@ -295,6 +348,7 @@ candidates:
             "model": model,
             "top": top_n,
             "timestamp": datetime.now(timezone.utc).isoformat(),
+            "elapsed_sec": round(elapsed, 1),
             "cost": cost,
         },
         "candidates": candidates,
@@ -330,8 +384,8 @@ def main():
     p_ideas.add_argument("--top", "-n", type=int, default=10, help="提案数（デフォルト: 10）")
     p_ideas.add_argument(
         "--model",
-        default="gemini-2.0-flash",
-        help="使用モデル（デフォルト: gemini-2.0-flash）",
+        default="gemini-3-flash-preview",
+        help="使用モデル（デフォルト: gemini-3-flash-preview）",
     )
     p_ideas.set_defaults(func=cmd_short_ideas)
 
@@ -341,8 +395,8 @@ def main():
     p_screen.add_argument("--output", "-o", required=True, help="出力YAMLファイルパス")
     p_screen.add_argument(
         "--model",
-        default="gemini-2.0-flash",
-        help="使用モデル（デフォルト: gemini-2.0-flash）",
+        default="gemini-3-flash-preview",
+        help="使用モデル（デフォルト: gemini-3-flash-preview）",
     )
     p_screen.set_defaults(func=cmd_screen)
 
