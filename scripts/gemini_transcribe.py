@@ -949,6 +949,13 @@ def main():
     # 字幕生成
     srt_text, response = generate_subtitles(client, video_file, args.model)
 
+    # 生テキスト保存（中間成果物保存ルール: バリデータ適用前のGemini生出力）
+    _out_p = Path(args.output)
+    raw_path = _out_p.parent / (_out_p.stem + "_raw" + _out_p.suffix)
+    raw_path.parent.mkdir(parents=True, exist_ok=True)
+    raw_path.write_text(srt_text, encoding="utf-8")
+    print(f"[raw] Gemini生出力保存: {raw_path}", flush=True)
+
     # SRTバリデーション
     validated_text, stats = validate_srt(srt_text)
 
