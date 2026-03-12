@@ -306,6 +306,309 @@ def trim_end_hallucination(srt_text: str, trim_seconds: float) -> str:
     return "\n".join(out_lines).strip() + "\n"
 
 
+def entries_to_srt(entries: list[dict]) -> str:
+    """SRTエントリリストをSRTテキストに変換する（連番振り直し）"""
+    out_lines = []
+    for i, e in enumerate(entries, 1):
+        out_lines.append(str(i))
+        out_lines.append(e["timestamp"])
+        out_lines.append(e["text"])
+        out_lines.append("")
+    return "\n".join(out_lines).strip() + "\n"
+
+
+def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | None = None) -> list[dict]:
+    """
+    WhisperXアラインメントでSRTエントリのタイムスタンプをミリ秒精度に更新する。
+    Returns updated entries with aligned timestamps.
+    """
+    try:
+        import whisperx
+    except ImportError:
+        raise ImportError(
+            "whisperxが見つかりません。dozle_kirinukiのvenvを有効化してください:\n"
+            "  source projects/dozle_kirinuki/venv/bin/activate"
+        )
+    import torch
+
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    print(f"[align] WhisperXアラインメント開始 (device={device})", flush=True)
+    print(f"[align] 対象エントリ数: {len(srt_entries)}", flush=True)
+
+    import numpy as np
+
+    # WhisperXのsegments形式に変換（話者ラベルを除去）
+    segments = []
+    entry_indices = []  # segments[i] が元のどのエントリに対応するか
+    for idx, entry in enumerate(srt_entries):
+        ts_parts = entry["timestamp"].split(" --> ")
+        if len(ts_parts) != 2:
+            continue
+        start_sec = _ts_to_seconds(ts_parts[0].strip())
+        end_sec = _ts_to_seconds(ts_parts[1].strip())
+        if start_sec is None or end_sec is None:
+            continue
+        text = entry["text"]
+        # 話者ラベル「[speaker]: 」を除去
+        if "]: " in text:
+            text = text.split("]: ", 1)[-1]
+        segments.append({"start": start_sec, "end": end_sec, "text": text})
+        entry_indices.append(idx)
+
+    if not segments:
+        print("[align] 警告: アライン可能なセグメントがありません。元のエントリを返します。", flush=True)
+        return srt_entries
+
+    # 全音声をロード（numpy float32 array @ 16kHz）
+    audio_full = whisperx.load_audio(audio_path)
+    sample_rate = 16000
+    align_model, metadata = whisperx.load_align_model(language_code="ja", device=device)
+
+    # VRAM節約のためチャンク分割処理（CHUNK_SEC秒単位）
+    CHUNK_SEC = 300.0  # 5分チャンク
+    total_dur = len(audio_full) / sample_rate
+    print(f"[align] 総時間: {total_dur:.1f}秒, チャンクサイズ: {CHUNK_SEC}秒", flush=True)
+
+    # セグメントをチャンク別に振り分け
+    chunk_starts = list(np.arange(0, total_dur, CHUNK_SEC))
+    aligned_map: dict[int, dict] = {}  # entry_index → aligned segment
+
+    for chunk_i, chunk_start in enumerate(chunk_starts):
+        chunk_end = chunk_start + CHUNK_SEC
+        # このチャンクに含まれるセグメントを選択
+        chunk_segs_idx = [
+            (i, seg)
+            for i, seg in enumerate(segments)
+            if seg["start"] >= chunk_start and seg["start"] < chunk_end
+        ]
+        if not chunk_segs_idx:
+            continue
+
+        # 音声スライス（少し前後にバッファ）
+        buf = 1.0
+        audio_start = max(0, int((chunk_start - buf) * sample_rate))
+        audio_end = min(len(audio_full), int((chunk_end + buf) * sample_rate))
+        audio_chunk = audio_full[audio_start:audio_end]
+        offset = audio_start / sample_rate  # チャンク開始時刻オフセット
+
+        # セグメント時刻をチャンク相対に変換
+        local_segs = [
+            {"start": seg["start"] - offset, "end": seg["end"] - offset, "text": seg["text"]}
+            for _, seg in chunk_segs_idx
+        ]
+
+        try:
+            result = whisperx.align(local_segs, align_model, metadata, audio_chunk, device)
+            for (orig_i, _), aligned_seg in zip(chunk_segs_idx, result["segments"]):
+                # 絶対時刻に戻す
+                aligned_map[orig_i] = {
+                    "start": aligned_seg.get("start", segments[orig_i]["start"] - offset) + offset,
+                    "end": aligned_seg.get("end", segments[orig_i]["end"] - offset) + offset,
+                }
+        except Exception as e:
+            print(f"[align] チャンク{chunk_i} アラインエラー: {e}", flush=True)
+            # フォールバック: 元のタイムスタンプを維持
+            for orig_i, seg in chunk_segs_idx:
+                aligned_map[orig_i] = {"start": seg["start"], "end": seg["end"]}
+
+        print(
+            f"[align] チャンク{chunk_i+1}/{len(chunk_starts)} 完了: {len(chunk_segs_idx)}セグメント",
+            flush=True,
+        )
+
+    aligned_segments_count = len(aligned_map)
+    print(f"[align] アラインメント完了: {aligned_segments_count}セグメント", flush=True)
+
+    def _sec_to_srt_ts(s: float) -> str:
+        h = int(s // 3600)
+        mi = int((s % 3600) // 60)
+        sec = int(s % 60)
+        ms = int(round((s % 1) * 1000))
+        if ms >= 1000:
+            ms = 999
+        return f"{h:02d}:{mi:02d}:{sec:02d},{ms:03d}"
+
+    # アラインされたタイムスタンプで元のエントリを更新
+    # entry_indices[i] → aligned_map[i] のマッピングを使って元のエントリに戻す
+    updated_entries = list(srt_entries)  # コピー
+    align_count = 0
+    for seg_i, entry_idx in enumerate(entry_indices):
+        if seg_i in aligned_map:
+            new_start = aligned_map[seg_i]["start"]
+            new_end = aligned_map[seg_i]["end"]
+            if new_start is not None and new_end is not None and new_end > new_start:
+                new_ts = f"{_sec_to_srt_ts(new_start)} --> {_sec_to_srt_ts(new_end)}"
+                entry = srt_entries[entry_idx]
+                updated_entries[entry_idx] = {
+                    "index": entry["index"],
+                    "timestamp": new_ts,
+                    "text": entry["text"],
+                }
+                align_count += 1
+
+    print(f"[align] TS更新: {align_count}/{len(srt_entries)}エントリ", flush=True)
+
+    # サンプル比較（先頭3件）
+    for i in range(min(3, len(srt_entries), len(updated_entries))):
+        before = srt_entries[i]["timestamp"].split(" --> ")[0]
+        after = updated_entries[i]["timestamp"].split(" --> ")[0]
+        print(f"[align] サンプル{i+1}: {before} → {after}", flush=True)
+
+    return updated_entries
+
+
+def identify_speakers_ecapa(
+    srt_entries: list[dict],
+    audio_path: str,
+    profile_dir: str,
+    threshold: float = 0.25,
+    device: str | None = None,
+) -> list[dict]:
+    """
+    ECAPA-TDNN声紋照合でSRTエントリの話者ラベルを上書きする。
+    profile_dir: {member}_embeddings.pt ファイルが置かれたディレクトリ。
+    """
+    import torch
+    import torch.nn.functional as F
+
+    try:
+        import torchaudio
+    except ImportError:
+        raise ImportError("torchaudioが見つかりません。pip install torchaudio")
+    try:
+        from speechbrain.inference.speaker import EncoderClassifier
+    except ImportError:
+        raise ImportError(
+            "speechbrainが見つかりません。dozle_kirinukiのvenvを有効化してください:\n"
+            "  source projects/dozle_kirinuki/venv/bin/activate"
+        )
+
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    profile_path = Path(profile_dir)
+    if not profile_path.exists():
+        raise FileNotFoundError(f"プロファイルディレクトリが見つかりません: {profile_dir}")
+
+    # プロファイルembedding読み込み（_embeddings.pt優先、なければ_embedding.pt）
+    members = {}
+    for pt_file in sorted(profile_path.glob("*_embeddings.pt")):
+        member_name = pt_file.stem.replace("_embeddings", "")
+        emb = torch.load(str(pt_file), weights_only=True)
+        if emb.dim() == 2:
+            emb = emb.mean(dim=0)  # [N, 192] → [192] 平均
+        members[member_name] = emb.to(device)
+    if not members:
+        for pt_file in sorted(profile_path.glob("*_embedding.pt")):
+            member_name = pt_file.stem.replace("_embedding", "")
+            emb = torch.load(str(pt_file), weights_only=True)
+            members[member_name] = emb.squeeze().to(device)
+
+    if not members:
+        print(f"[speaker-profile] 警告: {profile_dir} にembeddingファイルが見つかりません", flush=True)
+        return srt_entries
+
+    print(f"[speaker-profile] プロファイルロード: {list(members.keys())}", flush=True)
+
+    # ECAPA-TDNNモデルロード
+    savedir = str(profile_path / "pretrained_models" / "spkrec-ecapa-voxceleb")
+    print(f"[speaker-profile] ECAPAモデルロード中 (savedir={savedir})...", flush=True)
+    classifier = EncoderClassifier.from_hparams(
+        source="speechbrain/spkrec-ecapa-voxceleb",
+        savedir=savedir,
+        run_opts={"device": str(device)},
+    )
+    print(f"[speaker-profile] ECAPAモデルロード完了 (device={device})", flush=True)
+
+    # 音声ロード（16kHz mono）
+    waveform, sr = torchaudio.load(audio_path)
+    if sr != 16000:
+        resampler = torchaudio.transforms.Resample(sr, 16000)
+        waveform = resampler(waveform)
+        sr = 16000
+    if waveform.shape[0] > 1:
+        waveform = waveform.mean(dim=0, keepdim=True)
+
+    MIN_SAMPLES = 8000  # 0.5秒以上（16kHz）
+
+    updated_entries = []
+    matched = 0
+    unknown_count = 0
+    skip_count = 0
+
+    for entry in srt_entries:
+        ts_parts = entry["timestamp"].split(" --> ")
+        if len(ts_parts) != 2:
+            updated_entries.append(entry)
+            skip_count += 1
+            continue
+
+        start_sec = _ts_to_seconds(ts_parts[0].strip())
+        end_sec = _ts_to_seconds(ts_parts[1].strip())
+
+        if start_sec is None or end_sec is None or (end_sec - start_sec) < 0.5:
+            updated_entries.append(entry)
+            skip_count += 1
+            continue
+
+        # 音声セグメント抽出
+        start_sample = int(start_sec * sr)
+        end_sample = min(int(end_sec * sr), waveform.shape[1])
+        seg_audio = waveform[:, start_sample:end_sample]
+
+        if seg_audio.shape[1] < MIN_SAMPLES:
+            updated_entries.append(entry)
+            skip_count += 1
+            continue
+
+        # ECAPA embedding計算
+        seg_signal = seg_audio.squeeze()
+        seg_embedding = classifier.encode_batch(seg_signal.unsqueeze(0)).squeeze().to(device)
+
+        # コサイン類似度で照合
+        similarities = {}
+        for member_name, ref_emb in members.items():
+            sim = F.cosine_similarity(
+                seg_embedding.unsqueeze(0), ref_emb.unsqueeze(0)
+            ).item()
+            similarities[member_name] = sim
+
+        best_member = max(similarities, key=similarities.get)
+        best_sim = similarities[best_member]
+        assigned = best_member if best_sim >= threshold else "unknown"
+
+        if assigned == "unknown":
+            unknown_count += 1
+            updated_entries.append(entry)
+        else:
+            matched += 1
+            text = entry["text"]
+            # 話者ラベルを上書き（既存ラベルがある場合は置換）
+            if "]: " in text:
+                new_text = f"[{assigned}]: " + text.split("]: ", 1)[1]
+            else:
+                new_text = f"[{assigned}]: " + text
+            updated_entries.append(
+                {"index": entry["index"], "timestamp": entry["timestamp"], "text": new_text}
+            )
+
+    print(
+        f"[speaker-profile] 照合完了: 一致={matched}, unknown={unknown_count}, スキップ={skip_count}",
+        flush=True,
+    )
+
+    # サンプル表示（先頭3件）
+    for i in range(min(3, len(srt_entries), len(updated_entries))):
+        before = srt_entries[i]["text"][:60]
+        after = updated_entries[i]["text"][:60]
+        if before != after:
+            print(f"[speaker-profile] 更新{i+1}: {before!r} → {after!r}", flush=True)
+
+    return updated_entries
+
+
 def parse_srt(srt_text: str) -> list[dict]:
     """SRTテキストをエントリリストに変換する"""
     entries = []
@@ -421,6 +724,21 @@ def main():
         metavar="SRT_FILE",
         help="既存SRTファイルのバリデーションのみ実施（動画アップロード不要）",
     )
+    parser.add_argument(
+        "--input-srt",
+        metavar="SRT_FILE",
+        help="既存SRTファイルを入力として使用（Gemini APIをスキップ）",
+    )
+    parser.add_argument(
+        "--align",
+        action="store_true",
+        help="WhisperXでタイムスタンプをミリ秒精度にアライン",
+    )
+    parser.add_argument(
+        "--speaker-profile",
+        metavar="PROFILE_DIR",
+        help="ECAPA-TDNN声紋照合用プロファイルディレクトリ（{member}_embeddings.pt格納先）",
+    )
     args = parser.parse_args()
 
     # --validate-only モード
@@ -442,8 +760,47 @@ def main():
         print(f"[result] バリデーション後SRTエントリ数: {len(entries)}", flush=True)
         return 0
 
+    # --input-srt モード: 既存SRTを使用してGemini APIをスキップ
+    if args.input_srt:
+        srt_text = Path(args.input_srt).read_text(encoding="utf-8")
+        print(f"[input-srt] 入力SRT読み込み: {args.input_srt}", flush=True)
+        validated_text, stats = validate_srt(srt_text)
+
+        # 後処理: --align
+        if args.align:
+            if not args.video_path:
+                parser.error("--align には video_path が必要です")
+            entries = parse_srt(validated_text)
+            entries = align_with_whisperx(entries, args.video_path)
+            validated_text = entries_to_srt(entries)
+
+        # 後処理: --speaker-profile
+        if args.speaker_profile:
+            if not args.video_path:
+                parser.error("--speaker-profile には video_path が必要です")
+            entries = parse_srt(validated_text)
+            entries = identify_speakers_ecapa(entries, args.video_path, args.speaker_profile)
+            validated_text = entries_to_srt(entries)
+
+        if args.trim_end > 0:
+            validated_text = trim_end_hallucination(validated_text, args.trim_end)
+
+        output_path = Path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(validated_text, encoding="utf-8")
+        print(f"[output] SRT保存: {output_path}", flush=True)
+
+        entries = parse_srt(validated_text)
+        print(f"[result] SRTエントリ数: {len(entries)}", flush=True)
+
+        if args.compare:
+            report = compare_srt(validated_text, args.compare)
+            print(f"\n{report}", flush=True)
+
+        return 0
+
     if not args.video_path:
-        parser.error("video_path は --validate-only なしの場合に必須です")
+        parser.error("video_path は --validate-only / --input-srt なしの場合に必須です")
 
     # google-genai クライアント初期化
     from google import genai
@@ -458,6 +815,18 @@ def main():
 
     # SRTバリデーション
     validated_text, stats = validate_srt(srt_text)
+
+    # 後処理: --align
+    if args.align:
+        entries = parse_srt(validated_text)
+        entries = align_with_whisperx(entries, args.video_path)
+        validated_text = entries_to_srt(entries)
+
+    # 後処理: --speaker-profile
+    if args.speaker_profile:
+        entries = parse_srt(validated_text)
+        entries = identify_speakers_ecapa(entries, args.video_path, args.speaker_profile)
+        validated_text = entries_to_srt(entries)
 
     # 末尾ハルシネーション対策
     if args.trim_end > 0:
