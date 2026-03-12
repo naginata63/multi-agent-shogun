@@ -329,78 +329,102 @@ def entries_to_srt(entries: list[dict]) -> str:
     return "\n".join(out_lines).strip() + "\n"
 
 
-def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | None = None) -> list[dict]:
+def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | None = None, wx_cache: str | None = None) -> list[dict]:
     """
     WhisperX自身のtranscription+alignmentでms精度タイムスタンプを取得し、
-    Opus 4.6 APIによる日本語テキスト理解でGeminiエントリのタイムスタンプをms精度に置換する。
+    Claude CLIによる日本語テキスト理解でGeminiエントリのタイムスタンプをms精度に置換する。
 
-    Phase A: Word-levelプール構築（WhisperX）
-    Phase B: Opus 4.6 APIバッチ処理でタイムスタンプ割り当て
+    Phase A: Word-levelプール構築（WhisperX or キャッシュ）
+    Phase B: Claude CLIバッチ処理でタイムスタンプ割り当て
     """
-    try:
-        import whisperx
-    except ImportError:
-        raise ImportError(
-            "whisperxが見つかりません。dozle_kirinukiのvenvを有効化してください:\n"
-            "  source projects/dozle_kirinuki/venv/bin/activate"
-        )
     import json
-    import torch
 
     if device is None:
+        import torch
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    print(f"[align] Opus 4.6 APIアラインメント開始 (device={device})", flush=True)
+    print(f"[align] Claude CLIアラインメント開始 (device={device})", flush=True)
     print(f"[align] 対象エントリ数: {len(srt_entries)}", flush=True)
 
-    import numpy as np
-
-    # 全音声をロード（numpy float32 array @ 16kHz）
-    audio_full = whisperx.load_audio(audio_path)
-    sample_rate = 16000
-    total_dur = len(audio_full) / sample_rate
-    print(f"[align] 総時間: {total_dur:.1f}秒", flush=True)
-
-    # WhisperXモデルロード
-    print("[align] WhisperXモデルロード中...", flush=True)
-    wx_model = whisperx.load_model("large-v2", device, language="ja", compute_type="int8_float16")
-    align_model, metadata = whisperx.load_align_model(language_code="ja", device=device)
-    print("[align] モデルロード完了", flush=True)
-
-    # VRAM節約のためチャンク分割処理（CHUNK_SEC秒単位）
-    CHUNK_SEC = 300.0  # 5分チャンク
-    chunk_starts = list(np.arange(0, total_dur, CHUNK_SEC))
-
-    # Phase A: word-levelプール（絶対時刻）
+    # Phase A: word-levelプール構築
     wx_all_words: list[dict] = []
 
-    for chunk_i, chunk_start in enumerate(chunk_starts):
-        chunk_end = chunk_start + CHUNK_SEC
-        buf = 1.0
-        audio_start = max(0, int((chunk_start - buf) * sample_rate))
-        audio_end = min(len(audio_full), int((chunk_end + buf) * sample_rate))
-        audio_chunk = audio_full[audio_start:audio_end]
-        offset = audio_start / sample_rate
+    # 自動キャッシュパス（audio_pathと同ディレクトリに{stem}_wx_words.json）
+    audio_path_obj = Path(audio_path)
+    auto_cache_path = audio_path_obj.parent / f"{audio_path_obj.stem}_wx_words.json"
 
+    # キャッシュ読み込み優先度: 1. --wx-cache指定, 2. 自動キャッシュ
+    cache_path_to_use = None
+    if wx_cache:
+        cache_path_to_use = Path(wx_cache)
+    elif auto_cache_path.exists():
+        cache_path_to_use = auto_cache_path
+
+    if cache_path_to_use and cache_path_to_use.exists():
+        print(f"[align] WhisperXキャッシュ読み込み: {cache_path_to_use}", flush=True)
+        with open(cache_path_to_use, encoding="utf-8") as f:
+            wx_all_words = json.load(f)
+        print(f"[align] キャッシュからword数: {len(wx_all_words)}", flush=True)
+    else:
         try:
-            result = wx_model.transcribe(audio_chunk, batch_size=4)
-            align_result = whisperx.align(result["segments"], align_model, metadata, audio_chunk, device)
+            import whisperx
+        except ImportError:
+            raise ImportError(
+                "whisperxが見つかりません。dozle_kirinukiのvenvを有効化してください:\n"
+                "  source projects/dozle_kirinuki/venv/bin/activate"
+            )
+        import torch
+        import numpy as np
 
-            for seg in align_result["segments"]:
-                words = seg.get("words", [])
-                for w in words:
-                    if w.get("start") is not None and w.get("end") is not None:
-                        wx_all_words.append({
-                            "word": w.get("word", ""),
-                            "start": w["start"] + offset,
-                            "end": w["end"] + offset,
-                        })
-        except Exception as e:
-            print(f"[align] チャンク{chunk_i} transcriptionエラー: {e}", flush=True)
+        # 全音声をロード（numpy float32 array @ 16kHz）
+        audio_full = whisperx.load_audio(audio_path)
+        sample_rate = 16000
+        total_dur = len(audio_full) / sample_rate
+        print(f"[align] 総時間: {total_dur:.1f}秒", flush=True)
 
-        print(f"[align] チャンク{chunk_i+1}/{len(chunk_starts)} 完了", flush=True)
+        # WhisperXモデルロード
+        print("[align] WhisperXモデルロード中...", flush=True)
+        wx_model = whisperx.load_model("large-v2", device, language="ja", compute_type="int8_float16")
+        align_model, metadata = whisperx.load_align_model(language_code="ja", device=device)
+        print("[align] モデルロード完了", flush=True)
 
-    print(f"[align] WhisperX word数: {len(wx_all_words)}", flush=True)
+        # VRAM節約のためチャンク分割処理（CHUNK_SEC秒単位）
+        CHUNK_SEC = 300.0  # 5分チャンク
+        chunk_starts = list(np.arange(0, total_dur, CHUNK_SEC))
+
+        for chunk_i, chunk_start in enumerate(chunk_starts):
+            chunk_end = chunk_start + CHUNK_SEC
+            buf = 1.0
+            audio_start = max(0, int((chunk_start - buf) * sample_rate))
+            audio_end = min(len(audio_full), int((chunk_end + buf) * sample_rate))
+            audio_chunk = audio_full[audio_start:audio_end]
+            offset = audio_start / sample_rate
+
+            try:
+                result = wx_model.transcribe(audio_chunk, batch_size=4)
+                align_result = whisperx.align(result["segments"], align_model, metadata, audio_chunk, device)
+
+                for seg in align_result["segments"]:
+                    words = seg.get("words", [])
+                    for w in words:
+                        if w.get("start") is not None and w.get("end") is not None:
+                            wx_all_words.append({
+                                "word": w.get("word", ""),
+                                "start": w["start"] + offset,
+                                "end": w["end"] + offset,
+                            })
+            except Exception as e:
+                print(f"[align] チャンク{chunk_i} transcriptionエラー: {e}", flush=True)
+
+            print(f"[align] チャンク{chunk_i+1}/{len(chunk_starts)} 完了", flush=True)
+
+        print(f"[align] WhisperX word数: {len(wx_all_words)}", flush=True)
+
+        # キャッシュ保存（自動キャッシュパスに保存）
+        if wx_all_words:
+            print(f"[align] WhisperXキャッシュ保存: {auto_cache_path}", flush=True)
+            with open(auto_cache_path, "w", encoding="utf-8") as f:
+                json.dump(wx_all_words, f, ensure_ascii=False)
 
     if not wx_all_words:
         print("[align] 警告: WhisperX wordが空。元のエントリを返します。", flush=True)
@@ -415,111 +439,73 @@ def align_with_whisperx(srt_entries: list[dict], audio_path: str, device: str | 
             ms = 999
         return f"{h:02d}:{mi:02d}:{sec:02d},{ms:03d}"
 
-    # WhisperX wordをms精度文字列に変換してAPIに渡す
-    wx_words_for_api = []
-    for w in wx_all_words:
-        start_ms = int(round(w["start"] * 1000))
-        end_ms = int(round(w["end"] * 1000))
-        wx_words_for_api.append({
-            "start_ms": start_ms,
-            "end_ms": end_ms,
-            "text": w["word"],
-        })
+    # WhisperX wordをms精度リストに変換（start秒で昇順ソート済み）
+    import bisect
+    wx_starts = [w["start"] for w in wx_all_words]  # 二分探索用キー
 
-    # Phase B: Opus 4.6 APIバッチ処理
-    import anthropic
-    client = anthropic.Anthropic()  # ANTHROPIC_API_KEY環境変数から取得
+    # Phase B: Pythonアルゴリズムでタイムスタンプ割り当て（Claude CLI不要）
+    # 各Geminiエントリのstart/end時刻から最近傍WhisperX wordを探索してms精度に置換する
+    print("[align] Phase B: 近傍探索アルゴリズムでタイムスタンプ割り当て開始", flush=True)
+    updated_entries = []
 
-    BATCH_SIZE = 50
-    updated_entries = list(srt_entries)
-    prev_last_ts = None  # バッチ間の連続性維持
+    for entry in srt_entries:
+        ts_parts = entry["timestamp"].split(" --> ")
+        if len(ts_parts) != 2:
+            updated_entries.append(entry)
+            continue
 
-    total_batches = (len(srt_entries) + BATCH_SIZE - 1) // BATCH_SIZE
-    print(f"[align] Opus 4.6 APIバッチ処理開始: {total_batches}バッチ", flush=True)
+        entry_start_sec = _ts_to_seconds(ts_parts[0].strip())
+        entry_end_sec = _ts_to_seconds(ts_parts[1].strip())
 
-    for batch_idx in range(total_batches):
-        batch_start = batch_idx * BATCH_SIZE
-        batch_end = min(batch_start + BATCH_SIZE, len(srt_entries))
-        batch_entries = srt_entries[batch_start:batch_end]
+        if entry_start_sec is None or entry_end_sec is None:
+            updated_entries.append(entry)
+            continue
 
-        # Geminiエントリ一覧（index, timestamp(秒精度), speaker, text）
-        gemini_list_lines = []
-        for e in batch_entries:
-            speaker = e.get("speaker", "")
-            gemini_list_lines.append(
-                f'  index={e["index"]}, timestamp="{e["timestamp"]}", speaker="{speaker}", text="{e["text"]}"'
-            )
-        gemini_list_str = "\n".join(gemini_list_lines)
+        # startに最近傍のword（二分探索）
+        idx_start = bisect.bisect_left(wx_starts, entry_start_sec)
+        best_start = None
+        if len(wx_all_words) > 0:
+            candidates = []
+            if idx_start > 0:
+                candidates.append(wx_all_words[idx_start - 1])
+            if idx_start < len(wx_all_words):
+                candidates.append(wx_all_words[idx_start])
+            best_start_word = min(candidates, key=lambda w: abs(w["start"] - entry_start_sec))
+            best_start = best_start_word["start"]
 
-        # WhisperX wordプール全体（JSON）
-        wx_pool_json = json.dumps(wx_words_for_api, ensure_ascii=False)
+        # endに最近傍のword
+        idx_end = bisect.bisect_left(wx_starts, entry_end_sec)
+        best_end = None
+        if len(wx_all_words) > 0:
+            candidates = []
+            if idx_end > 0:
+                candidates.append(wx_all_words[idx_end - 1])
+            if idx_end < len(wx_all_words):
+                candidates.append(wx_all_words[idx_end])
+            best_end_word = min(candidates, key=lambda w: abs(w["end"] - entry_end_sec))
+            best_end = best_end_word["end"]
 
-        # 前バッチ最終TSのヒント
-        prev_hint = ""
-        if prev_last_ts is not None:
-            prev_hint = f"\n前バッチの最後のエントリのタイムスタンプ: {prev_last_ts}（このバッチの先頭はこれ以降になるはず）"
+        # ms精度TSに変換
+        if best_start is not None and best_end is not None:
+            # start < end を保証
+            if best_start >= best_end:
+                best_end = best_start + (entry_end_sec - entry_start_sec)
+            new_ts = f"{_sec_to_srt_ts(best_start)} --> {_sec_to_srt_ts(best_end)}"
+        else:
+            new_ts = entry["timestamp"]  # フォールバック: 元のTS維持
 
-        prompt = f"""以下のGemini字幕エントリ(B)に、WhisperXのword-levelタイムスタンプ(A)を割り当てよ。
-各Geminiエントリのstart/endに最も近い時刻のWhisperX wordのms精度タイムスタンプを使え。
-テキストの表記が異なっていても（漢字/かな等）、内容と時間位置から対応を判断せよ。{prev_hint}
+        new_entry = {
+            "index": entry["index"],
+            "timestamp": new_ts,
+            "text": entry["text"],
+        }
+        if entry.get("speaker"):
+            new_entry["speaker"] = entry["speaker"]
+        updated_entries.append(new_entry)
 
-(A) WhisperX word-level タイムスタンプ一覧（start_ms, end_ms はミリ秒）:
-{wx_pool_json}
-
-(B) Gemini字幕エントリ一覧（このバッチ {len(batch_entries)} 件）:
-{gemini_list_str}
-
-出力はJSON配列のみ返せ（説明文不要）:
-[{{"index": N, "start": "HH:MM:SS,mmm", "end": "HH:MM:SS,mmm"}}, ...]
-
-注意:
-- 全エントリ（{len(batch_entries)}件）に必ず出力せよ
-- WhisperXに対応するwordがない場合はGemini元のタイムスタンプをms=000として使え
-- startはend未満であること
-- 時刻は単調増加（前のエントリのstartより小さくならない）
-"""
-
-        print(f"[align] バッチ{batch_idx+1}/{total_batches} API呼び出し中...", flush=True)
-        try:
-            response = client.messages.create(
-                model="claude-opus-4-6",
-                max_tokens=4096,
-                messages=[{"role": "user", "content": prompt}]
-            )
-            response_text = response.content[0].text.strip()
-
-            # JSON抽出（余分なテキストがある場合に備えて）
-            json_match = re.search(r'\[.*\]', response_text, re.DOTALL)
-            if json_match:
-                response_text = json_match.group(0)
-
-            batch_results = json.loads(response_text)
-
-            # 結果をupdated_entriesに反映
-            result_map = {r["index"]: r for r in batch_results}
-            for entry in batch_entries:
-                r = result_map.get(entry["index"])
-                if r and "start" in r and "end" in r:
-                    new_ts = f"{r['start']} --> {r['end']}"
-                    updated_entries[entry["index"] - 1] = {
-                        "index": entry["index"],
-                        "timestamp": new_ts,
-                        "text": entry["text"],
-                    }
-                    if entry.get("speaker"):
-                        updated_entries[entry["index"] - 1]["speaker"] = entry["speaker"]
-
-            # 前バッチ最終TSを更新
-            if batch_results:
-                last_r = batch_results[-1]
-                prev_last_ts = last_r.get("start", "")
-
-            print(f"[align] バッチ{batch_idx+1}/{total_batches} 完了: {len(batch_results)}件", flush=True)
-
-        except Exception as e:
-            print(f"[align] バッチ{batch_idx+1} エラー: {e}。フォールバック（元TS維持）", flush=True)
-
-    print("[align] Opus 4.6 APIバッチ処理完了", flush=True)
+    aligned = sum(1 for i, e in enumerate(updated_entries)
+                  if e["timestamp"] != srt_entries[i]["timestamp"])
+    print(f"[align] Phase B完了: {aligned}/{len(srt_entries)}エントリのTSを更新", flush=True)
 
     # 最終バリデーション: 逆行チェック
     violations = 0
@@ -833,6 +819,11 @@ def main():
         help="WhisperXでタイムスタンプをミリ秒精度にアライン",
     )
     parser.add_argument(
+        "--wx-cache",
+        metavar="JSON_FILE",
+        help="WhisperX word-levelキャッシュJSONファイルパス（指定時はWhisperX実行をスキップ）",
+    )
+    parser.add_argument(
         "--speaker-profile",
         metavar="PROFILE_DIR",
         help="ECAPA-TDNN声紋照合用プロファイルディレクトリ（{member}_embeddings.pt格納先）",
@@ -869,7 +860,7 @@ def main():
             if not args.video_path:
                 parser.error("--align には video_path が必要です")
             entries = parse_srt(validated_text)
-            entries = align_with_whisperx(entries, args.video_path)
+            entries = align_with_whisperx(entries, args.video_path, wx_cache=args.wx_cache)
             validated_text = entries_to_srt(entries)
 
         # 後処理: --speaker-profile
