@@ -116,6 +116,7 @@
 !scripts/monitor.sh
 !scripts/semantic_search.py
 !scripts/cmd_helper.py
+!scripts/gemini_transcribe.py
 
 
 # SayTask (sample template only, not actual data)
