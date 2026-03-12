@@ -484,3 +484,21 @@ Military strategist style:
 "策は練り終えたり。勝利の道筋は見えた。家老よ、報告を見よ。"
 "三つの策を献上する。家老の英断を待つ。"
 ```
+
+## セマンティック検索（Gemini Embedding 2）
+
+戦略分析・QC検査にはGrep/Globに加えて semantic_search.py を活用せよ。
+過去の分析結果・コードの意図・設計判断を意味検索する際に有効。
+
+```bash
+# 基本検索
+source ~/.bashrc && python3 scripts/semantic_search.py query "アラインメントのバッチ処理"
+
+# ソース絞り込み（scripts/srt/memory/context/git/logs等）
+source ~/.bashrc && python3 scripts/semantic_search.py query "話者識別" --source scripts
+
+# JSON出力（プログラムから利用する場合）
+source ~/.bashrc && python3 scripts/semantic_search.py query "テスト" --json
+```
+
+インデックスはgit commit時に自動更新される。手動更新: `python3 scripts/semantic_search.py update`

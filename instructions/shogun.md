@@ -363,3 +363,21 @@ Save when:
 
 Save: Lord's preferences, key decisions + reasons, cross-project insights, solved problems.
 Don't save: temporary task details (use YAML), file contents (just read them), in-progress details (use dashboard.md).
+
+## セマンティック検索（Gemini Embedding 2）
+
+プロジェクト全体の横断調査にはGrep/Globに加えて semantic_search.py を活用せよ。
+過去のcmd・成果物・設計判断を意味で検索する際に有効。
+
+```bash
+# 基本検索
+source ~/.bashrc && python3 scripts/semantic_search.py query "アラインメントのバッチ処理"
+
+# ソース絞り込み（scripts/srt/memory/context/git/logs等）
+source ~/.bashrc && python3 scripts/semantic_search.py query "話者識別" --source scripts
+
+# JSON出力（プログラムから利用する場合）
+source ~/.bashrc && python3 scripts/semantic_search.py query "テスト" --json
+```
+
+インデックスはgit commit時に自動更新される。手動更新: `python3 scripts/semantic_search.py update`

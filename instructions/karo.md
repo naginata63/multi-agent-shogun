@@ -961,3 +961,21 @@ External PRs are reinforcements. Treat with respect.
 - Ashigaru report overdue → check pane status
 - Dashboard inconsistency → reconcile with YAML ground truth
 - Own context < 20% remaining → report to shogun via dashboard, prepare for /clear
+
+## セマンティック検索（Gemini Embedding 2）
+
+プロジェクト内の検索にはGrep/Globに加えて semantic_search.py を活用せよ。
+過去のタスク・報告・コード横断検索に有効。足軽への作業指示前に関連コードを確認する際にも使える。
+
+```bash
+# 基本検索
+source ~/.bashrc && python3 scripts/semantic_search.py query "アラインメントのバッチ処理"
+
+# ソース絞り込み（scripts/srt/memory/context/git/logs等）
+source ~/.bashrc && python3 scripts/semantic_search.py query "話者識別" --source scripts
+
+# JSON出力（プログラムから利用する場合）
+source ~/.bashrc && python3 scripts/semantic_search.py query "テスト" --json
+```
+
+インデックスはgit commit時に自動更新される。手動更新: `python3 scripts/semantic_search.py update`

@@ -303,3 +303,21 @@ After task completion, check whether to echo a battle cry:
    - If no `echo_message` field → compose a 1-line sengoku-style battle cry summarizing what you did
    - Do NOT output any text after the echo — it must remain directly above the ❯ prompt
 3. **When DISPLAY_MODE=silent or not set**: Do NOT echo. Skip silently.
+
+## セマンティック検索（Gemini Embedding 2）
+
+プロジェクト内の検索にはGrep/Globに加えて semantic_search.py を活用せよ。
+特にキーワードが分からない時・意味で探したい時に有効。
+
+```bash
+# 基本検索
+source ~/.bashrc && python3 scripts/semantic_search.py query "アラインメントのバッチ処理"
+
+# ソース絞り込み（scripts/srt/memory/context/git/logs等）
+source ~/.bashrc && python3 scripts/semantic_search.py query "話者識別" --source scripts
+
+# JSON出力（プログラムから利用する場合）
+source ~/.bashrc && python3 scripts/semantic_search.py query "テスト" --json
+```
+
+インデックスはgit commit時に自動更新される。手動更新: `python3 scripts/semantic_search.py update`
