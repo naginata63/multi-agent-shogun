@@ -145,9 +145,8 @@ def parse_candidates_robust(raw_text: str, yaml_text: str) -> list:
 
 def extract_section_yaml(text: str, section_key: str) -> list:
     """レスポンステキストから指定セクション(highlight_candidates/short_candidates)を抽出"""
-    # セクションキーから次のトップレベルキーまでを抽出
-    pattern = rf"({section_key}:\s*(?:.*?))(?=\n\w+:|\Z)"
-    match = re.search(pattern, text, re.DOTALL)
+    # 行頭のsection_keyから次のトップレベルキー（行頭の\w+:）まで抽出（MULTILINEで行頭マッチ）
+    match = re.search(rf"^({section_key}:.*?)(?=^\w|\Z)", text, re.DOTALL | re.MULTILINE)
     if not match:
         return []
     section_text = match.group(1).strip()
@@ -240,9 +239,21 @@ short_candidates:
         highlight_candidates = extract_section_yaml(raw_text, "highlight_candidates")
         short_candidates = extract_section_yaml(raw_text, "short_candidates")
 
-    # BUG-S1: HL候補0件の警告
+    # BUG-S1: HL候補0件のフォールバック（extract_yaml_blockのpartial match対策）
+    # extract_yaml_blockの3番目フォールバック "candidates:" が "highlight_candidates:" を部分マッチして
+    # "highlight_" プレフィックスを切り落とす場合があるため、HL=0件ならセクション別パースで再試行
     if not highlight_candidates:
-        print("[warn] HL候補が0件です。プロンプトの指示が無視された可能性があります。", flush=True)
+        hl = extract_section_yaml(raw_text, "highlight_candidates")
+        if hl:
+            print(f"[info] セクション別パースでHL {len(hl)} 件を回収（partial match対策）", flush=True)
+            highlight_candidates = hl
+        else:
+            print("[warn] HL候補が0件です。プロンプトの指示が無視された可能性があります。", flush=True)
+    if not short_candidates:
+        sc = extract_section_yaml(raw_text, "short_candidates")
+        if sc:
+            print(f"[info] セクション別パースでSH {len(sc)} 件を回収", flush=True)
+            short_candidates = sc
 
     # BUG-S2: SH候補15秒未満・60秒超を自動除外
     def parse_mmss(ts: str) -> float:
@@ -340,6 +351,8 @@ def cmd_short_ideas(args):
 - 各候補にタイムスタンプ（開始-終了）、理由、推奨タイトルを含める
 - ショート動画のフック（冒頭3秒で視聴者を引き付ける要素）を明記
 - viral_scoreは1-10の整数で、バズる可能性を評価。全候補が同じスコアにならないよう相対的に評価すること。最高スコアは1件のみ、最低スコアの候補も含めること
+- **動画の前半・中盤・後半から均等に候補を選べ。前半に偏らないこと**
+- **動画の後半（全体の後半60%以降）にも必ず3件以上の候補を含めること**
 
 出力形式（YAMLのみ。説明文は不要）:
 candidates:
