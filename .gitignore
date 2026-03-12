@@ -115,6 +115,7 @@
 !scripts/precompact_hook.sh
 !scripts/monitor.sh
 !scripts/semantic_search.py
+!scripts/cmd_helper.py
 
 
 # SayTask (sample template only, not actual data)

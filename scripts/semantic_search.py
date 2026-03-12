@@ -750,13 +750,15 @@ def cmd_query(args):
     query = args.query
     top_k = args.top
     source_filter = args.source
+    output_json = getattr(args, "json", False)
 
     index, metadata = load_index_and_meta()
     if index is None:
         print("ERROR: インデックスが未構築です。先に `build` を実行してください。")
         sys.exit(1)
 
-    print(f"クエリ: {query}")
+    if not output_json:
+        print(f"クエリ: {query}")
     client = get_client()
     q_embed = embed_texts(client, [query], "RETRIEVAL_QUERY")
     faiss.normalize_L2(q_embed)
@@ -765,7 +767,10 @@ def cmd_query(args):
     if source_filter:
         target_indices = [i for i, m in enumerate(metadata) if m.get("source") == source_filter]
         if not target_indices:
-            print(f"ERROR: source='{source_filter}' のチャンクが見つかりません")
+            if not output_json:
+                print(f"ERROR: source='{source_filter}' のチャンクが見つかりません")
+            else:
+                print("[]")
             sys.exit(1)
         # サブインデックス構築
         sub_embeds = np.zeros((len(target_indices), EMBED_DIM), dtype=np.float32)
@@ -781,6 +786,20 @@ def cmd_query(args):
         distances, ids = index.search(q_embed, top_k)
         result_indices = [i for i in ids[0] if i >= 0]
         result_scores = distances[0]
+
+    if output_json:
+        results = []
+        for idx, score in zip(result_indices, result_scores):
+            m = metadata[idx]
+            results.append({
+                "score": float(score),
+                "source": m.get("source"),
+                "file": m.get("source_file", ""),
+                "chunk_id": m.get("chunk_id", ""),
+                "text": m.get("text", "")[:500],
+            })
+        print(json.dumps(results, ensure_ascii=False, indent=2))
+        return
 
     print(f"\n=== 検索結果 (top {len(result_indices)}) ===")
     for rank, (idx, score) in enumerate(zip(result_indices, result_scores), 1):
@@ -807,6 +826,7 @@ def main():
     q_parser.add_argument("--top", type=int, default=10, help="表示件数 (default: 10)")
     q_parser.add_argument("--source", type=str, default=None,
                           help="絞り込み: shogun_to_karo / tasks / srt / memory / context / scripts / comments / git / logs")
+    q_parser.add_argument("--json", action="store_true", help="JSON形式で出力")
 
     args = parser.parse_args()
 
