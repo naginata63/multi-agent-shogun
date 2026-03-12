@@ -173,24 +173,36 @@ def validate_srt(srt_text: str) -> tuple[str, dict]:
 
         # タイムスタンプ重複チェック（前エントリのendと逆転）
         if start_sec < prev_end_sec - 0.001:
-            print(
-                f"[validate] 重複検出（start={start_sec:.3f} < prev_end={prev_end_sec:.3f}）: "
-                f"{start_raw} → startをprev_endに補正",
-                flush=True,
-            )
-            # startを前エントリのendに合わせる
-            prev_end_s = prev_end_sec
-            h = int(prev_end_s // 3600)
-            mi = int((prev_end_s % 3600) // 60)
-            s = int(prev_end_s % 60)
-            ms = int(round((prev_end_s % 1) * 1000))
-            start_raw = f"{h:02d}:{mi:02d}:{s:02d},{ms:03d}"
-            start_sec = prev_end_sec
-            stats["fixed_ts"] += 1
-            # 補正後もstart >= endなら除外
-            if start_sec >= end_sec:
-                stats["removed_overlap"] += 1
-                continue
+            # prev_end >= current_end の場合、前エントリのendが不正（大きすぎる）
+            # 例: 前エントリのendが誤った修正でジャンプした場合
+            # → 元のタイムスタンプを維持し、prev_endをcurrent_endにリセット
+            if prev_end_sec >= end_sec:
+                print(
+                    f"[validate] prev_end({prev_end_sec:.3f}) >= current_end({end_sec:.3f}): "
+                    f"前エントリのend不正とみなし元TS維持（{start_raw} --> {end_raw}）",
+                    flush=True,
+                )
+                prev_end_sec = end_sec
+                # fall through: このエントリを元のTSで追加
+            else:
+                print(
+                    f"[validate] 重複検出（start={start_sec:.3f} < prev_end={prev_end_sec:.3f}）: "
+                    f"{start_raw} → startをprev_endに補正",
+                    flush=True,
+                )
+                # startを前エントリのendに合わせる
+                prev_end_s = prev_end_sec
+                h = int(prev_end_s // 3600)
+                mi = int((prev_end_s % 3600) // 60)
+                s = int(prev_end_s % 60)
+                ms = int(round((prev_end_s % 1) * 1000))
+                start_raw = f"{h:02d}:{mi:02d}:{s:02d},{ms:03d}"
+                start_sec = prev_end_sec
+                stats["fixed_ts"] += 1
+                # 補正後もstart >= endなら除外
+                if start_sec >= end_sec:
+                    stats["removed_overlap"] += 1
+                    continue
 
         text = "\n".join(lines[2:]).strip()
         valid_entries.append(
