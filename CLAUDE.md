@@ -263,6 +263,25 @@ System manages ALL white-collar work, not just self-improvement. Project folders
 3. **E2Eテストは家老が担当**: 全エージェント操作権限を持つ家老がE2Eを実行。足軽はユニットテストのみ。
 4. **テスト計画レビュー**: 家老はテスト計画を事前レビューし、前提条件の実現可能性を確認してから実行に移す。
 
+# QC Rules (all agents)
+
+1. **QCテンプレート必須参照**: QCタスクYAMLには必ず `context/qc_template.md を参照してQCせよ` を含めよ。テンプレートなしのQCは形骸化する（cmd_597実証済み）。
+2. **実ファイルを読め**: grepカウント・数値報告だけでPASS/FAIL判定するな。冒頭・中盤・終盤の3箇所を目視確認せよ。
+3. **足軽の報告値を鵜呑みにするな**: 報告された数値と実ファイルが一致するか自分で検証せよ。
+4. **証跡報告**: 「問題なし」ではなく「Xを確認しYだった」と書け。
+5. **タスクYAMLの前提情報は古い可能性がある**: 実ファイルの状態が真実。YAMLの記述と乖離していたら実ファイルを信じろ。
+
+# Intermediate Artifact Rule (all agents)
+
+重い外部処理（WhisperX, Demucs, Gemini API, Claude CLI等）の中間成果物は**必ずファイルに保存**せよ。
+
+1. **保存必須**: 実行に1分以上かかる処理の出力は、変数に入れるだけでなくファイルに書き出すこと
+2. **保存先**: `/tmp`禁止（再起動で消える）。`work/`配下またはプロジェクトの出力ディレクトリに保存
+3. **キャッシュ再利用**: 2回目以降は保存済みファイルから読み込むオプション（`--cache`, `--wx-cache`等）を実装すること
+4. **命名規則**: `{処理名}_{動画ID}_{タイムスタンプ}.{拡張子}`（例: `wx_words_rDYmTp_20260312.json`）
+
+理由: cmd_597でWhisperX（5-10分/回）を3回再実行して合計15-30分浪費した。中間データを保存していれば2回目以降は一瞬で済んだ。
+
 # Batch Processing Protocol (all agents)
 
 When processing large datasets (30+ items requiring individual web search, API calls, or LLM generation), follow this protocol. Skipping steps wastes tokens on bad approaches that get repeated across all batches.
