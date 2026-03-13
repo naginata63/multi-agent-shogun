@@ -15,10 +15,29 @@ def upload_video(client, video_path: str):
     print(f"[upload] ファイル名: {video_file.name} 状態: {video_file.state.name}", flush=True)
 
     # 処理完了を待機（PROCESSING → ACTIVE）
+    # files.get()はPROCESSING中の動画ファイルで403を返す既知の問題があるため
+    # files.list()でポーリングする（workaround）
     while video_file.state.name == "PROCESSING":
         print("[upload] 処理中... 10秒待機", flush=True)
         time.sleep(10)
-        video_file = client.files.get(name=video_file.name)
+        # files.get()の代わりにfiles.list()でファイルを検索
+        try:
+            video_file = client.files.get(name=video_file.name)
+        except Exception as get_err:
+            if "403" in str(get_err) or "PERMISSION_DENIED" in str(get_err):
+                # files.list()でファイルの状態を確認
+                found = None
+                for f in client.files.list():
+                    if f.name == video_file.name:
+                        found = f
+                        break
+                if found is not None:
+                    print(f"[upload] list()でファイル確認: {found.name} 状態: {found.state.name}", flush=True)
+                    video_file = found
+                else:
+                    raise RuntimeError(f"files.get()失敗かつfiles.list()でも見つからず: {get_err}")
+            else:
+                raise
 
     if video_file.state.name != "ACTIVE":
         raise RuntimeError(f"ファイルが ACTIVE になりませんでした: {video_file.state.name}")
