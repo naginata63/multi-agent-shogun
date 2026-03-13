@@ -225,16 +225,20 @@ def main():
         if not audio_path.exists():
             extract_audio(video_path, audio_path)
     else:
-        print("[pipeline] Step1+Step2を並列実行中...", flush=True)
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            future_gemini = executor.submit(
-                run_gemini_transcribe, video_path, gemini_srt_path, args.model
-            )
-            future_audio = executor.submit(extract_audio, video_path, audio_path)
+        if audio_path.exists():
+            print(f"[pipeline] Step2スキップ（既存WAV使用）: {audio_path}", flush=True)
+            run_gemini_transcribe(video_path, gemini_srt_path, args.model)
+        else:
+            print("[pipeline] Step1+Step2を並列実行中...", flush=True)
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                future_gemini = executor.submit(
+                    run_gemini_transcribe, video_path, gemini_srt_path, args.model
+                )
+                future_audio = executor.submit(extract_audio, video_path, audio_path)
 
-            # 両方完了を待ち、例外があれば再発生
-            for future in as_completed([future_gemini, future_audio]):
-                future.result()
+                # 両方完了を待ち、例外があれば再発生
+                for future in as_completed([future_gemini, future_audio]):
+                    future.result()
 
     # Step3+4: Speaker IDで話者ラベル付与 → 最終SRT生成
     run_speaker_id(
