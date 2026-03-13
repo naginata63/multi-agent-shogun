@@ -902,6 +902,11 @@ def main():
         metavar="PROFILE_DIR",
         help="ECAPA-TDNN声紋照合用プロファイルディレクトリ（{member}_embeddings.pt格納先）",
     )
+    parser.add_argument(
+        "--file-uri",
+        default=None,
+        help="アップロード済みGemini File APIのURI。指定時はアップロードをスキップ",
+    )
     args = parser.parse_args()
 
     # --validate-only モード
@@ -970,8 +975,27 @@ def main():
 
     client = genai.Client()
 
-    # 動画アップロード
-    video_file = upload_video(client, args.video_path)
+    # 動画アップロード（--file-uri指定時はスキップ）
+    if args.file_uri:
+        file_name = args.file_uri.split("/")[-1]
+        try:
+            video_file = client.files.get(name=file_name)
+        except Exception as get_err:
+            if "PERMISSION_DENIED" in str(get_err) or "403" in str(get_err):
+                found = None
+                for f in client.files.list():
+                    if f.name == file_name:
+                        found = f
+                        break
+                if found is not None:
+                    video_file = found
+                else:
+                    raise RuntimeError(f"files.get()失敗かつfiles.list()でも見つからず: {get_err}")
+            else:
+                raise
+        print(f"[reuse] 既存ファイル使用: {video_file.name} 状態: {video_file.state.name}", flush=True)
+    else:
+        video_file = upload_video(client, args.video_path)
 
     # 字幕生成
     srt_text, response = generate_subtitles(client, video_file, args.model)

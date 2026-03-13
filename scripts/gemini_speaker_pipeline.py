@@ -55,7 +55,7 @@ def extract_audio(video_path: Path, audio_path: Path) -> Path:
     return audio_path
 
 
-def run_gemini_transcribe(video_path: Path, srt_path: Path, model: str) -> Path:
+def run_gemini_transcribe(video_path: Path, srt_path: Path, model: str, file_uri: str | None = None) -> Path:
     """Step1: gemini_transcribe.pyでGemini SRTを生成する"""
     print(f"[pipeline] Step1: Gemini字幕生成 (model={model})", flush=True)
     srt_path.parent.mkdir(parents=True, exist_ok=True)
@@ -66,6 +66,8 @@ def run_gemini_transcribe(video_path: Path, srt_path: Path, model: str) -> Path:
         "--output", str(srt_path),
         "--model", model,
     ]
+    if file_uri:
+        cmd.extend(["--file-uri", file_uri])
     result = subprocess.run(cmd, text=True)
     if result.returncode != 0:
         raise RuntimeError(f"gemini_transcribe.py失敗 (returncode={result.returncode})")
@@ -190,6 +192,11 @@ def main():
         metavar="JSON_FILE",
         help="WhisperXキャッシュJSONパス（将来拡張用）",
     )
+    parser.add_argument(
+        "--file-uri",
+        default=None,
+        help="アップロード済みGemini File APIのURI。gemini_transcribe.pyに--file-uriとして渡す（アップロードスキップ）",
+    )
     args = parser.parse_args()
 
     video_path = Path(args.video_path).resolve()
@@ -227,12 +234,12 @@ def main():
     else:
         if audio_path.exists():
             print(f"[pipeline] Step2スキップ（既存WAV使用）: {audio_path}", flush=True)
-            run_gemini_transcribe(video_path, gemini_srt_path, args.model)
+            run_gemini_transcribe(video_path, gemini_srt_path, args.model, args.file_uri)
         else:
             print("[pipeline] Step1+Step2を並列実行中...", flush=True)
             with ThreadPoolExecutor(max_workers=2) as executor:
                 future_gemini = executor.submit(
-                    run_gemini_transcribe, video_path, gemini_srt_path, args.model
+                    run_gemini_transcribe, video_path, gemini_srt_path, args.model, args.file_uri
                 )
                 future_audio = executor.submit(extract_audio, video_path, audio_path)
 
