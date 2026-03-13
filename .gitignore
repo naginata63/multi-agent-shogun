@@ -119,6 +119,7 @@
 !scripts/gemini_transcribe.py
 !scripts/gemini_speaker_pipeline.py
 !scripts/stt_merge.py
+!scripts/vocal_stt_pipeline.py
 !scripts/gemini_video_analysis.py
 !scripts/automation/
 !scripts/automation/cmd_rag_hook.sh
