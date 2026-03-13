@@ -22,24 +22,40 @@ import os
 from pathlib import Path
 
 
+def detect_timestamp_unit(raw_words: list[dict]) -> str:
+    """
+    Detect whether timestamps are in milliseconds or seconds.
+    Returns 'ms' or 's'.
+
+    Heuristic: if max(start) > 100000, already ms (no conversion needed).
+    Otherwise, values are seconds and must be multiplied by 1000.
+
+    Rationale: a 27-hour video in seconds has max_start ~= 100000s.
+    Any audio clip in ms with max_start <= 100000ms would be <= 100 seconds,
+    which is impractically short for this use-case.
+    """
+    if not raw_words:
+        return "s"
+    max_start = max(float(w.get("start", 0)) for w in raw_words)
+    return "ms" if max_start > 100000 else "s"
+
+
 def load_assemblyai(path: str) -> list[dict]:
     """Load AssemblyAI words JSON. Returns list of word dicts with start/end in ms."""
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
     # Support both raw list and wrapped {"words": [...]} format
     if isinstance(data, list):
-        words = data
+        raw_words = data
     else:
-        words = data.get("words", [])
+        raw_words = data.get("words", [])
+    unit = detect_timestamp_unit(raw_words)
     result = []
-    for w in words:
+    for w in raw_words:
         text = w.get("text") or w.get("word") or ""
-        # start/end: could be ms (int) or seconds (float)
-        # Heuristic: if start > 1000 (for typical audio), assume ms already
         start_raw = float(w.get("start", 0))
         end_raw = float(w.get("end", 0))
-        if start_raw < 1000:
-            # seconds → ms
+        if unit == "s":
             start_ms = int(start_raw * 1000)
             end_ms = int(end_raw * 1000)
         else:
@@ -61,15 +77,16 @@ def load_deepgram(path: str) -> list[dict]:
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
     if isinstance(data, list):
-        words = data
+        raw_words = data
     else:
-        words = data.get("words", [])
+        raw_words = data.get("words", [])
+    unit = detect_timestamp_unit(raw_words)
     result = []
-    for w in words:
+    for w in raw_words:
         text = w.get("word") or w.get("text") or ""
         start_raw = float(w.get("start", 0))
         end_raw = float(w.get("end", 0))
-        if start_raw < 1000:
+        if unit == "s":
             start_ms = int(start_raw * 1000)
             end_ms = int(end_raw * 1000)
         else:
