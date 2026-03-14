@@ -67,7 +67,7 @@ def load_assemblyai(path: str) -> list[dict]:
             "end": end_ms,
             "confidence": float(w.get("confidence", 0.0)),
             "source": "assemblyai",
-            "speaker": None,
+            "speaker": w.get("speaker") or None,
         })
     return result
 
@@ -205,6 +205,9 @@ def fill_gaps_with_deepgram(
                     if w["start"] >= gap_start and w["end"] <= gap_end
                 ]
                 if fill_words:
+                    # Propagate nearest AssemblyAI speaker to Deepgram gap-fill words
+                    inherited_speaker = merged[i].get("speaker")
+                    fill_words = [dict(w, speaker=inherited_speaker) for w in fill_words]
                     result.extend(fill_words)
                     filled_count += 1
                 else:
