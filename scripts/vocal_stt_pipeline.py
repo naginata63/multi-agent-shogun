@@ -184,6 +184,12 @@ def run_assemblyai(vocals_path: Path, output_path: Path) -> Path:
         # speech_model (singular) deprecated → speech_models list per AssemblyAI v2 API
     }
     r = requests.post("https://api.assemblyai.com/v2/transcript", headers=headers, json=payload, timeout=30)
+    if r.status_code == 400:
+        print(f"[pipeline]   AssemblyAI 400エラー (speaker_labels=True): {r.text}", flush=True)
+        print("[pipeline]   WARNING: speaker_labels=Falseで自動リトライ（話者分離はECAPA-TDNNで後付け）", flush=True)
+        payload_no_speaker = {k: v for k, v in payload.items() if k != "speaker_labels"}
+        payload_no_speaker["speaker_labels"] = False
+        r = requests.post("https://api.assemblyai.com/v2/transcript", headers=headers, json=payload_no_speaker, timeout=30)
     if not r.ok:
         print(f"[pipeline]   AssemblyAI エラーレスポンス: {r.status_code} {r.text}", flush=True)
     r.raise_for_status()
