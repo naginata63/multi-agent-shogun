@@ -5,7 +5,8 @@ vocal_stt_pipeline.py — Demucs vocal STT pipeline (1コマンド完結)
 MP4 → ffmpeg 10分チャンク分割 → Demucs vocals分離(順次) → ffmpeg結合
     → AssemblyAI Universal-2 (diarize有効) → word-level JSON
     → Deepgram Nova-3 → word-level JSON
-    → stt_merge.py → merged JSON (最終成果物)
+    → stt_merge.py → merged JSON
+    → ECAPA-TDNN声紋マッチング → 話者ラベル実名変換 (最終成果物)
 
 Usage:
     python3 scripts/vocal_stt_pipeline.py INPUT_VIDEO.mp4 \\
@@ -352,6 +353,184 @@ def run_stt_merge(
     return output_path
 
 
+def run_speaker_identification(
+    merged_json_path: Path,
+    vocals_full_path: Path,
+    report_path: Path,
+) -> None:
+    """ECAPA-TDNNでAssemblyAI話者ラベル(A/B/C...)を実名(dozle/bon/...)に変換する。
+
+    speaker_id.pyのロジック流用。声紋プロファイルは speaker_profiles/ を参照。
+    """
+    if not vocals_full_path.exists():
+        print(f"[pipeline] Step7スキップ: vocals_full.wavが見つかりません ({vocals_full_path})")
+        return
+
+    # speaker_id.pyの定数・閾値を流用
+    MEMBERS = ["dozle", "bon", "qnly", "orafu", "oo_men", "nekooji"]
+    THRESHOLD = 0.25
+    MIN_SEG_SEC = 1.0   # 声紋照合に使う最小セグメント長（秒）
+    GAP_MS = 500        # 同一話者の連続ワードをマージするギャップ閾値（ms）
+    profile_dir = PROJECT_DIR / "projects" / "dozle_kirinuki" / "speaker_profiles"
+
+    try:
+        import torch
+        import torchaudio
+        import torch.nn.functional as F
+        from speechbrain.inference.speaker import EncoderClassifier
+    except ImportError as e:
+        print(f"[pipeline] Step7スキップ: 依存ライブラリ不足 ({e})")
+        return
+
+    # merged JSON読み込み
+    with open(merged_json_path, encoding="utf-8") as f:
+        merged_data = json.load(f)
+
+    words = merged_data.get("words", [])
+    speaker_labels = sorted(set(w.get("speaker", "") for w in words if w.get("speaker")))
+    if not speaker_labels:
+        print("[pipeline] Step7スキップ: 話者ラベルなし")
+        return
+
+    print(f"[pipeline] Step7: ECAPA-TDNN声紋マッチング (話者: {speaker_labels})", flush=True)
+
+    # ECAPA-TDNNモデルロード（speaker_id.pyのロジック流用）
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    savedir = str(profile_dir / "pretrained_models" / "spkrec-ecapa-voxceleb")
+    classifier = EncoderClassifier.from_hparams(
+        source="speechbrain/spkrec-ecapa-voxceleb",
+        savedir=savedir,
+        run_opts={"device": device},
+    )
+    print(f"[pipeline]   モデルロード完了 (device: {device})")
+
+    # 声紋プロファイルロード（speaker_id.pyのロジック流用）
+    embeddings = {}
+    for member in MEMBERS:
+        multi_path = profile_dir / f"{member}_embeddings.pt"
+        single_path = profile_dir / f"{member}_embedding.pt"
+        if multi_path.exists():
+            embs = torch.load(str(multi_path), map_location=device)
+            if embs.dim() == 1:
+                embs = embs.unsqueeze(0)
+            embeddings[member] = embs
+            print(f"[pipeline]     {member}: _embeddings.pt ({embs.shape[0]}個)")
+        elif single_path.exists():
+            emb = torch.load(str(single_path), map_location=device).squeeze()
+            embeddings[member] = emb.unsqueeze(0)
+            print(f"[pipeline]     {member}: _embedding.pt (旧形式)")
+
+    if not embeddings:
+        print("[pipeline]   声紋プロファイルなし → Step7スキップ")
+        return
+
+    # vocals_full.wav読み込み・16kHzリサンプル
+    print(f"[pipeline]   vocals_full.wav読み込み: {vocals_full_path}", flush=True)
+    waveform, sr = torchaudio.load(str(vocals_full_path))
+    if sr != 16000:
+        waveform = torchaudio.transforms.Resample(sr, 16000)(waveform)
+        sr = 16000
+    if waveform.shape[0] > 1:
+        waveform = waveform.mean(dim=0, keepdim=True)
+
+    # 話者ラベルごとに声紋照合（多数決）
+    from collections import Counter
+    label_to_real_name = {}
+
+    for label in speaker_labels:
+        # 同ラベルのワードをソートして連続セグメントにマージ
+        label_words = sorted(
+            [w for w in words if w.get("speaker") == label],
+            key=lambda x: x["start"]
+        )
+        if not label_words:
+            label_to_real_name[label] = "unknown"
+            continue
+
+        # 連続ワードをセグメントにマージ（ギャップ < GAP_MS なら連結）
+        segments = []
+        cur_start = label_words[0]["start"]
+        cur_end = label_words[0]["end"]
+        for w in label_words[1:]:
+            if w["start"] - cur_end <= GAP_MS:
+                cur_end = w["end"]
+            else:
+                segments.append((cur_start, cur_end))
+                cur_start = w["start"]
+                cur_end = w["end"]
+        segments.append((cur_start, cur_end))
+
+        # 各セグメントでECAPA-TDNN照合（MIN_SEG_SEC以上のみ）
+        votes = []
+        for seg_start_ms, seg_end_ms in segments:
+            seg_start = seg_start_ms / 1000.0
+            seg_end = seg_end_ms / 1000.0
+            if seg_end - seg_start < MIN_SEG_SEC:
+                continue
+
+            s_sample = int(seg_start * sr)
+            e_sample = int(seg_end * sr)
+            seg_audio = waveform[:, s_sample:e_sample]
+            if seg_audio.shape[1] < int(MIN_SEG_SEC * sr):
+                continue
+
+            seg_signal = seg_audio.squeeze()
+            with torch.no_grad():
+                seg_emb = classifier.encode_batch(seg_signal.unsqueeze(0)).squeeze()
+
+            # cosine similarity照合（speaker_id.pyのロジック流用）
+            sims = {}
+            for member, embs in embeddings.items():
+                seg_exp = seg_emb.unsqueeze(0).expand(embs.shape[0], -1)
+                s = F.cosine_similarity(seg_exp, embs, dim=1)
+                sims[member] = s.max().item()
+
+            best_member = max(sims, key=sims.get)
+            if sims[best_member] >= THRESHOLD:
+                votes.append(best_member)
+
+        if votes:
+            real_name = Counter(votes).most_common(1)[0][0]
+        else:
+            real_name = "unknown"
+
+        print(f"[pipeline]   {label} → {real_name} (投票数: {len(votes)}/{len(segments)}セグメント)")
+        label_to_real_name[label] = real_name
+
+    print(f"[pipeline]   話者マッピング: {label_to_real_name}")
+
+    # merged JSONの全ワードのspeakerフィールドを実名に置換
+    for w in words:
+        orig = w.get("speaker", "")
+        if orig in label_to_real_name:
+            w["speaker"] = label_to_real_name[orig]
+
+    with open(merged_json_path, "w", encoding="utf-8") as f:
+        json.dump(merged_data, f, ensure_ascii=False, indent=2)
+    print(f"[pipeline]   merged JSON更新完了: {merged_json_path}")
+
+    # merge_report.yamlに話者マッピング結果を追記
+    try:
+        import yaml
+        report_data = {}
+        if report_path.exists():
+            with open(report_path, encoding="utf-8") as f:
+                report_data = yaml.safe_load(f) or {}
+        report_data["speaker_identification"] = {
+            "method": "ECAPA-TDNN",
+            "threshold": THRESHOLD,
+            "profiles_used": list(embeddings.keys()),
+            "label_mapping": label_to_real_name,
+        }
+        with open(report_path, "w", encoding="utf-8") as f:
+            yaml.dump(report_data, f, allow_unicode=True, default_flow_style=False)
+        print(f"[pipeline]   merge_report更新: {report_path}")
+    except Exception as e:
+        print(f"[pipeline]   merge_report更新失敗 (非致命的): {e}")
+
+    print(f"[pipeline] Step7完了")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Demucs vocal STT pipeline: MP4 → merged word-level JSON"
@@ -453,6 +632,13 @@ def main():
         output_path=output_path,
         report_path=report_path,
         video_id=video_id,
+    )
+
+    # Step 7: ECAPA-TDNN声紋マッチング（AssemblyAI話者ラベル→実名変換）
+    run_speaker_identification(
+        merged_json_path=output_path,
+        vocals_full_path=vocals_full,
+        report_path=report_path,
     )
 
     elapsed = time.time() - t_start
