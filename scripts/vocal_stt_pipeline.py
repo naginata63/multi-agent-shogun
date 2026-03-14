@@ -177,11 +177,14 @@ def run_assemblyai(vocals_path: Path, output_path: Path) -> Path:
 
     payload = {
         "audio_url": upload_url,
-        "speech_model": "universal",
+        "speech_models": ["universal-2"],
         "speaker_labels": True,
-        "language_code": "ja",
+        # language_code removed: not compatible with speaker_labels on Universal
+        # speech_model (singular) deprecated → speech_models list per AssemblyAI v2 API
     }
     r = requests.post("https://api.assemblyai.com/v2/transcript", headers=headers, json=payload, timeout=30)
+    if not r.ok:
+        print(f"[pipeline]   AssemblyAI エラーレスポンス: {r.status_code} {r.text}", flush=True)
     r.raise_for_status()
     job_id = r.json()["id"]
     print(f"[pipeline]   ジョブID: {job_id}")
