@@ -39,6 +39,11 @@ if [ -z "$AGENT_ID" ]; then
     exit 0
 fi
 
+# Shogun doesn't need inbox watching — Lord interacts directly
+if [ "$AGENT_ID" = "shogun" ]; then
+    exit 0
+fi
+
 # ─── Define inbox path early (used in multiple places below) ───
 INBOX="$SCRIPT_DIR/queue/inbox/${AGENT_ID}.yaml"
 
