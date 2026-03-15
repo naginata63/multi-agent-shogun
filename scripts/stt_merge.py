@@ -248,6 +248,99 @@ def assign_speakers(
     return words, speaker_match_count
 
 
+def ms_to_srt_time(ms: int) -> str:
+    """Convert milliseconds to SRT timestamp '00:00:01,234'."""
+    h = ms // 3600000
+    ms %= 3600000
+    m = ms // 60000
+    ms %= 60000
+    s = ms // 1000
+    ms %= 1000
+    return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
+
+
+def generate_srt(words: list[dict], max_duration_ms: int = 5000) -> str:
+    """
+    Generate SRT content from merged words.
+
+    Grouping rules:
+    - Consecutive words with the same speaker → one entry
+    - Speaker change → new entry
+    - Entry duration exceeds max_duration_ms → split at next punctuation or force-split
+
+    SRT format:
+        1
+        00:00:35,200 --> 00:00:38,100
+        [dozle]: みんな、ちょっと上を見てくれ、上を。
+    """
+    if not words:
+        return ""
+
+    SPLIT_CHARS = {"。", "！", "？", ".", "!", "?", "、"}
+
+    entries = []
+    # Group words into SRT entries
+    group_words: list[dict] = []
+    current_speaker = words[0].get("speaker")
+
+    def flush_group(gwords: list[dict]) -> None:
+        if not gwords:
+            return
+        speaker = gwords[0].get("speaker")
+        start_ms = gwords[0]["start"]
+        end_ms = gwords[-1]["end"]
+        text = " ".join(w["text"] for w in gwords if w.get("text"))
+        text = text.strip()
+        label = f"[{speaker}]: " if speaker else ""
+        entries.append((start_ms, end_ms, f"{label}{text}"))
+
+    for word in words:
+        sp = word.get("speaker")
+        if not group_words:
+            group_words = [word]
+            current_speaker = sp
+            continue
+
+        # Speaker change → flush current group
+        if sp != current_speaker:
+            flush_group(group_words)
+            group_words = [word]
+            current_speaker = sp
+            continue
+
+        # Duration check: would this word exceed max_duration_ms?
+        group_start = group_words[0]["start"]
+        if word["end"] - group_start > max_duration_ms:
+            # Try to split at punctuation in current group
+            split_idx = None
+            for i in range(len(group_words) - 1, -1, -1):
+                if any(group_words[i]["text"].endswith(c) for c in SPLIT_CHARS):
+                    split_idx = i
+                    break
+            if split_idx is not None and split_idx < len(group_words) - 1:
+                flush_group(group_words[:split_idx + 1])
+                group_words = group_words[split_idx + 1:] + [word]
+            else:
+                flush_group(group_words)
+                group_words = [word]
+            current_speaker = sp
+            continue
+
+        group_words.append(word)
+
+    flush_group(group_words)
+
+    # Render SRT
+    lines = []
+    for idx, (start_ms, end_ms, text) in enumerate(entries, 1):
+        lines.append(str(idx))
+        lines.append(f"{ms_to_srt_time(start_ms)} --> {ms_to_srt_time(end_ms)}")
+        lines.append(text)
+        lines.append("")
+
+    return "\n".join(lines)
+
+
 def estimate_total_duration(words: list[dict], given_ms: int = 0) -> int:
     if given_ms > 0:
         return given_ms
@@ -278,6 +371,8 @@ def main():
                         help="Total audio duration in ms (default: inferred from last word)")
     parser.add_argument("--gap-threshold", type=int, default=500,
                         help="Gap threshold in ms to trigger Deepgram fill (default: 500)")
+    parser.add_argument("--no-srt", action="store_true",
+                        help="Suppress SRT output (default: output SRT alongside JSON)")
     args = parser.parse_args()
 
     # Infer video_id from output path if not given
@@ -360,6 +455,14 @@ def main():
     with open(args.output, "w", encoding="utf-8") as f:
         json.dump(output_data, f, ensure_ascii=False, indent=2)
     print(f"[stt_merge] Output: {args.output}")
+
+    # Write SRT output (default: alongside JSON, same path with .srt extension)
+    if not args.no_srt:
+        srt_path = str(Path(args.output).with_suffix(".srt"))
+        srt_content = generate_srt(merged_words)
+        with open(srt_path, "w", encoding="utf-8") as f:
+            f.write(srt_content)
+        print(f"[stt_merge] SRT output: {srt_path}")
 
     # Build quality report YAML (manual serialization to avoid pyyaml dependency)
     source_ai = sum(1 for w in merged_words if w["source"] == "assemblyai")
