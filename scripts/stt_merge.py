@@ -363,7 +363,8 @@ def main():
     )
     parser.add_argument("--assemblyai", required=True, help="AssemblyAI words JSON path")
     parser.add_argument("--deepgram", required=True, help="Deepgram words JSON path")
-    parser.add_argument("--gemini", required=True, help="Gemini Speaker SRT path")
+    parser.add_argument("--gemini", required=False, default=None,
+                        help="Gemini Speaker SRT path（廃止済み・互換用に残存）")
     parser.add_argument("--output", required=True, help="Output merged JSON path")
     parser.add_argument("--report", required=True, help="Output quality report YAML path")
     parser.add_argument("--video-id", default="", help="Video ID (default: inferred from filename)")
@@ -393,10 +394,14 @@ def main():
     dg_words = load_deepgram(args.deepgram)
     print(f"  Deepgram: {len(dg_words)} words")
 
-    # Step 3: Load Gemini SRT for speaker IDs
-    print("[stt_merge] Loading Gemini SRT...")
-    gemini_entries = load_gemini_srt(args.gemini)
-    print(f"  Gemini: {len(gemini_entries)} entries")
+    # Step 3: Load Gemini SRT for speaker IDs (optional)
+    if args.gemini:
+        print("[stt_merge] Loading Gemini SRT...")
+        gemini_entries = load_gemini_srt(args.gemini)
+        print(f"  Gemini: {len(gemini_entries)} entries")
+    else:
+        print("[stt_merge] Gemini SRT未指定: 話者ラベルなしで実行")
+        gemini_entries = []
 
     # Detect gaps in AssemblyAI baseline
     gaps_before = detect_gaps(ai_words, args.gap_threshold)

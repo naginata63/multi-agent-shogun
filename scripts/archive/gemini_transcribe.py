@@ -1,3 +1,4 @@
+# ARCHIVED: Gemini SRT廃止のためアーカイブ (2026-03-15)
 #!/usr/bin/env python3
 """Gemini動画理解APIによる字幕生成PoC"""
 

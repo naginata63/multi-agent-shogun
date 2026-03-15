@@ -26,7 +26,6 @@ import json
 import os
 import subprocess
 import sys
-import tempfile
 import time
 from pathlib import Path
 
@@ -326,34 +325,22 @@ def run_stt_merge(
 
     print(f"[pipeline] Step6: stt_merge.py実行中...", flush=True)
 
-    # gemini SRTが未指定の場合は空のSRTファイルを一時作成
-    temp_srt = None
-    if gemini_srt_path is None:
-        tmp = tempfile.NamedTemporaryFile(
-            suffix=".srt", mode="w", encoding="utf-8", delete=False
-        )
-        tmp.write("")  # 空SRT = 話者ラベルなし
-        tmp.close()
-        gemini_srt_path = Path(tmp.name)
-        temp_srt = gemini_srt_path
+    cmd = [
+        sys.executable, str(STT_MERGE_SCRIPT),
+        "--assemblyai", str(assemblyai_path),
+        "--deepgram", str(deepgram_path),
+        "--output", str(output_path),
+        "--report", str(report_path),
+        "--video-id", video_id,
+    ]
+    if gemini_srt_path is not None:
+        cmd += ["--gemini", str(gemini_srt_path)]
+    else:
         print("[pipeline]   Gemini SRT未指定: 話者ラベルなしで実行")
 
-    try:
-        cmd = [
-            sys.executable, str(STT_MERGE_SCRIPT),
-            "--assemblyai", str(assemblyai_path),
-            "--deepgram", str(deepgram_path),
-            "--gemini", str(gemini_srt_path),
-            "--output", str(output_path),
-            "--report", str(report_path),
-            "--video-id", video_id,
-        ]
-        result = subprocess.run(cmd, text=True)
-        if result.returncode != 0:
-            raise RuntimeError(f"stt_merge.py失敗 (returncode={result.returncode})")
-    finally:
-        if temp_srt and temp_srt.exists():
-            temp_srt.unlink()
+    result = subprocess.run(cmd, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"stt_merge.py失敗 (returncode={result.returncode})")
 
     print(f"[pipeline] Step6完了: {output_path}")
     return output_path
@@ -545,7 +532,8 @@ def main():
     parser.add_argument("--output", "-o", required=True, help="出力merged JSONパス")
     parser.add_argument("--work-dir", required=True, help="中間成果物保存ディレクトリ")
     parser.add_argument("--cache", action="store_true", help="既存中間成果物をスキップ")
-    parser.add_argument("--gemini", metavar="SRT_FILE", help="Gemini SRTパス (話者ラベル付与用、省略可)")
+    parser.add_argument("--gemini", metavar="SRT_FILE",
+                        help="Gemini SRTパス（廃止済み・互換用に残存）話者IDはECAPA-TDNNで付与")
     args = parser.parse_args()
 
     # APIキーチェック（最初に実施）

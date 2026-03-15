@@ -1,3 +1,4 @@
+# ARCHIVED: Gemini SRT廃止のためアーカイブ (2026-03-15)
 #!/usr/bin/env python3
 """
 gemini_speaker_pipeline.py — Gemini Flash Lite + Speaker ID 統合パイプライン
