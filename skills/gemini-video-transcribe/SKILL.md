@@ -66,14 +66,14 @@ source ~/.bashrc && python3 skills/gemini-video-transcribe/transcribe.py \
   --no-speaker-diarize
 ```
 
-#### 既存Gemini SRTを再利用（API再呼出しをスキップ）
+#### 既存Gemini SRTを再利用（API再呼出しをスキップ）【非推奨: Gemini SRTは2026-03-15廃止。話者IDはECAPA-TDNNで付与】
 
 ```bash
 cd /home/murakami/multi-agent-shogun
 source ~/.bashrc && python3 skills/gemini-video-transcribe/transcribe.py \
   "$VIDEO_PATH" \
   --output "$OUTPUT_SRT" \
-  --gemini-srt work/pipeline_XXX/gemini_XXX.srt
+  --gemini-srt work/pipeline_XXX/gemini_XXX.srt  # DEPRECATED: 廃止済み・互換用に残存
 ```
 
 ### Step 3: 結果確認
@@ -101,7 +101,7 @@ grep -oP '^\[.*?\]: (.*)' "$OUTPUT_SRT" | sort | uniq -c | sort -rn | head -5
 | `--model` | gemini-3.1-flash-lite-preview | Geminiモデル |
 | `--no-speaker-diarize` | OFF | 話者分離をスキップ（GPU不要） |
 | `--dry-run` | OFF | コスト確認のみ（実行しない） |
-| `--gemini-srt` | なし | 既存Gemini SRTを再利用 |
+| `--gemini-srt` | なし | 既存Gemini SRTを再利用（DEPRECATED: 廃止済み・互換用に残存） |
 | `--profile-dir` | 自動検出 | 声紋プロファイルディレクトリ |
 | `--threshold` | 0.25 | Speaker ID類似度閾値 |
 
