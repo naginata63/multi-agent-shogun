@@ -14,7 +14,7 @@ tmux_sessions:
 files:
   config: config/projects.yaml          # Project list (summary)
   projects: "projects/<id>.yaml"        # Project details (git-ignored, contains secrets)
-  context: "context/{project}.md"       # Project-specific notes for ashigaru/gunshi
+  context: "shared_context/{project}.md"       # Project-specific notes for ashigaru/gunshi
   cmd_queue: queue/shogun_to_karo.yaml  # Shogun → Karo commands
   tasks: "queue/tasks/ashigaru{N}.yaml" # Karo → Ashigaru assignments (per-ashigaru)
   gunshi_task: queue/tasks/gunshi.yaml  # Karo → Gunshi strategic assignments
@@ -83,7 +83,7 @@ Step 1: tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}' → ashigaru{N} o
 Step 2: (gunshi only) mcp__memory__read_graph (skip on failure). Ashigaru skip — task YAML is sufficient.
 Step 3: Read queue/tasks/{your_id}.yaml → 末尾のstatus:assignedタスクを探す。なければidle
 Step 3.5: Read queue/inbox/{your_id}.yaml → unread messages があれば処理
-Step 4: If task has "project:" field → read context/{project}.md
+Step 4: If task has "project:" field → read shared_context/{project}.md
         If task has "target_path:" → read that file
 Step 5: Start work
 ```
@@ -275,7 +275,7 @@ System manages ALL white-collar work, not just self-improvement. Project folders
 
 # QC Rules (all agents)
 
-1. **QCテンプレート必須参照**: QCタスクYAMLには必ず `context/qc_template.md を参照してQCせよ` を含めよ。テンプレートなしのQCは形骸化する（cmd_597実証済み）。
+1. **QCテンプレート必須参照**: QCタスクYAMLには必ず `shared_context/qc_template.md を参照してQCせよ` を含めよ。テンプレートなしのQCは形骸化する（cmd_597実証済み）。
 2. **実ファイルを読め**: grepカウント・数値報告だけでPASS/FAIL判定するな。冒頭・中盤・終盤の3箇所を目視確認せよ。
 3. **足軽の報告値を鵜呑みにするな**: 報告された数値と実ファイルが一致するか自分で検証せよ。
 4. **証跡報告**: 「問題なし」ではなく「Xを確認しYだった」と書け。

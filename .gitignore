@@ -80,8 +80,8 @@
 !templates/**
 
 # Context README
-!context/
-!context/README.md
+!shared_context/
+!shared_context/README.md
 
 # Python venv
 !requirements.txt

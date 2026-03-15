@@ -14,7 +14,7 @@ tmux_sessions:
 files:
   config: config/projects.yaml          # Project list (summary)
   projects: "projects/<id>.yaml"        # Project details (git-ignored, contains secrets)
-  context: "context/{project}.md"       # Project-specific notes for ashigaru/gunshi
+  context: "shared_context/{project}.md"       # Project-specific notes for ashigaru/gunshi
   cmd_queue: queue/shogun_to_karo.yaml  # Shogun → Karo commands
   tasks: "queue/tasks/ashigaru{N}.yaml" # Karo → Ashigaru assignments (per-ashigaru)
   gunshi_task: queue/tasks/gunshi.yaml  # Karo → Gunshi strategic assignments
@@ -80,7 +80,7 @@ Lightweight recovery using only agents/default/system.md (auto-loaded). Do NOT r
 Step 1: tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}' → ashigaru{N} or gunshi
 Step 2: (gunshi only) mcp__memory__read_graph (skip on failure). Ashigaru skip — task YAML is sufficient.
 Step 3: Read queue/tasks/{your_id}.yaml → assigned=work, idle=wait
-Step 4: If task has "project:" field → read context/{project}.md
+Step 4: If task has "project:" field → read shared_context/{project}.md
         If task has "target_path:" → read that file
 Step 5: Start work
 ```
