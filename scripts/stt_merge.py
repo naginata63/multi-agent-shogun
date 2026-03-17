@@ -8,8 +8,11 @@ into a single merged JSON with word-level timestamps and speaker labels.
 
 Usage (new interface — directory-based auto-discovery):
     python3 scripts/stt_merge.py video.mp4 \
-        --output path/to/pipeline_dir/ \
-        [--youtube-subs path/to/subs.json]
+        --output path/to/pipeline_dir/
+
+    YouTube subtitles (subs.json) are auto-detected from the same directory
+    as the video file (e.g., input/{video_id}_subs.json).
+    The --youtube-subs option is kept for backward compatibility.
 
 Usage (legacy interface):
     python3 scripts/stt_merge.py \
@@ -597,6 +600,15 @@ def main():
 
     print(f"[stt_merge] Video: {video_id}")
 
+    # --- Auto-detect YouTube subs (subs.json) from input directory ---
+    youtube_subs_path = args.youtube_subs  # explicit --youtube-subs takes precedence
+    if auto_mode and not youtube_subs_path:
+        input_dir = Path(args.video_path).parent
+        candidate = input_dir / f"{video_id}_subs.json"
+        if candidate.exists():
+            youtube_subs_path = str(candidate)
+            print(f"[stt_merge] Auto-detected YouTube subs: {youtube_subs_path}")
+
     # --- Detect available data sources ---
     has_assemblyai = os.path.exists(assemblyai_path)
     has_deepgram = os.path.exists(deepgram_path)
@@ -682,9 +694,9 @@ def main():
     # --- Step: Apply YouTube subtitle quality improvement ---
     youtube_map: dict[int, str] = {}
     youtube_replaced_count = 0
-    if args.youtube_subs:
-        print(f"[stt_merge] Loading YouTube subs: {args.youtube_subs}")
-        yt_subs = load_youtube_subs(args.youtube_subs)
+    if youtube_subs_path:
+        print(f"[stt_merge] Loading YouTube subs: {youtube_subs_path}")
+        yt_subs = load_youtube_subs(youtube_subs_path)
         print(f"  YouTube subs: {len(yt_subs)} entries")
         merged_words, youtube_map = apply_youtube_quality(merged_words, yt_subs)
         youtube_replaced_count = sum(1 for w in merged_words if w.get("text_source") == "youtube")
@@ -717,7 +729,7 @@ def main():
             "speaker_distribution": speaker_dist,
         },
     }
-    if args.youtube_subs:
+    if youtube_subs_path:
         output_data["metadata"]["youtube_replaced_segments"] = len(youtube_map)
 
     os.makedirs(os.path.dirname(os.path.abspath(output_json)), exist_ok=True)
@@ -748,7 +760,7 @@ def main():
         unfilled_list_yaml = "          []\n"
 
     youtube_section = ""
-    if args.youtube_subs:
+    if youtube_subs_path:
         youtube_section = f"  youtube_quality:\n    replaced_segments: {len(youtube_map)}\n    replaced_words: {youtube_replaced_count}\n"
 
     report_yaml = f"""\
@@ -786,7 +798,7 @@ merge_report:
     print(f"  Total: {total_words} words")
     print(f"  Coverage: {coverage_before:.1f}% → {coverage_after:.1f}%")
     print(f"  Speaker ID: {speaker_id_pct:.1f}%")
-    if args.youtube_subs:
+    if youtube_subs_path:
         print(f"  YouTube replacements: {len(youtube_map)} segments")
 
 
