@@ -3,9 +3,15 @@
 stt_merge.py - Multi-STT auto merge pipeline
 
 Merges AssemblyAI (base) + Deepgram (gap fill) + Gemini SRT (speaker ID)
++ optional YouTube subtitles (text quality improvement)
 into a single merged JSON with word-level timestamps and speaker labels.
 
-Usage:
+Usage (new interface — directory-based auto-discovery):
+    python3 scripts/stt_merge.py video.mp4 \
+        --output path/to/pipeline_dir/ \
+        [--youtube-subs path/to/subs.json]
+
+Usage (legacy interface):
     python3 scripts/stt_merge.py \
         --assemblyai path/to/assemblyai_words.json \
         --deepgram path/to/deepgram_words.json \
@@ -259,7 +265,11 @@ def ms_to_srt_time(ms: int) -> str:
     return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
 
 
-def generate_srt(words: list[dict], max_duration_ms: int = 5000) -> str:
+def generate_srt(
+    words: list[dict],
+    max_duration_ms: int = 5000,
+    youtube_map: dict | None = None,
+) -> str:
     """
     Generate SRT content from merged words.
 
@@ -268,6 +278,9 @@ def generate_srt(words: list[dict], max_duration_ms: int = 5000) -> str:
     - Speaker change → new entry
     - Entry duration exceeds max_duration_ms → split at next punctuation or force-split
 
+    youtube_map: optional {segment_start_ms: youtube_text} — when present, replaces
+    the segment text with the YouTube subtitle text for improved quality.
+
     SRT format:
         1
         00:00:35,200 --> 00:00:38,100
@@ -275,6 +288,9 @@ def generate_srt(words: list[dict], max_duration_ms: int = 5000) -> str:
     """
     if not words:
         return ""
+
+    if youtube_map is None:
+        youtube_map = {}
 
     SPLIT_CHARS = {"。", "！", "？", ".", "!", "?", "、"}
 
@@ -289,8 +305,12 @@ def generate_srt(words: list[dict], max_duration_ms: int = 5000) -> str:
         speaker = gwords[0].get("speaker")
         start_ms = gwords[0]["start"]
         end_ms = gwords[-1]["end"]
-        text = " ".join(w["text"] for w in gwords if w.get("text"))
-        text = text.strip()
+        # Use YouTube text if available for this segment
+        if start_ms in youtube_map:
+            text = youtube_map[start_ms]
+        else:
+            text = " ".join(w["text"] for w in gwords if w.get("text"))
+            text = text.strip()
         label = f"[{speaker}]: " if speaker else ""
         entries.append((start_ms, end_ms, f"{label}{text}"))
 
@@ -341,6 +361,169 @@ def generate_srt(words: list[dict], max_duration_ms: int = 5000) -> str:
     return "\n".join(lines)
 
 
+def load_youtube_subs(path: str) -> list[dict]:
+    """Load YouTube subtitles JSON. Returns [{text, start_ms, end_ms}]."""
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    result = []
+    for item in data:
+        start_s = float(item.get("start", 0))
+        duration_s = float(item.get("duration", 0))
+        result.append({
+            "text": item.get("text", ""),
+            "start_ms": int(start_s * 1000),
+            "end_ms": int((start_s + duration_s) * 1000),
+        })
+    return result
+
+
+def is_garbage_text(text: str) -> bool:
+    """Detect garbage transcription: repeated patterns (3+), known garbage words."""
+    # Single character repeated 3+ times: ああああ
+    if re.search(r'(.)\1{2,}', text):
+        return True
+    # 2-4 character phrase repeated 3+ times: あったあったあった
+    for n in range(2, 5):
+        if re.search(r'(.{' + str(n) + r'})\1{2,}', text):
+            return True
+    # Known garbage keywords
+    for kw in ["ぺけたん"]:
+        if kw in text:
+            return True
+    return False
+
+
+def char_variety(text: str) -> int:
+    """Count unique non-whitespace characters."""
+    return len(set(text.replace(" ", "").replace("\u3000", "")))
+
+
+def apply_youtube_quality(
+    words: list[dict],
+    yt_subs: list[dict],
+    max_duration_ms: int = 5000,
+) -> tuple[list[dict], dict]:
+    """
+    Compare SRT segments with YouTube subs. Mark text_source on each word.
+    - is_garbage(srt) and not is_garbage(yt) → use YouTube
+    - char_variety(yt) > char_variety(srt) * 1.2 → use YouTube
+    - Otherwise → keep SRT
+
+    Returns (words_with_text_source, youtube_map {segment_start_ms: yt_text}).
+    """
+    if not words:
+        return words, {}
+
+    SPLIT_CHARS = {"。", "！", "？", ".", "!", "?", "、"}
+
+    # Group words into segments (same logic as generate_srt)
+    segments: list[list[dict]] = []
+    group: list[dict] = [words[0]]
+    current_speaker = words[0].get("speaker")
+
+    for word in words[1:]:
+        sp = word.get("speaker")
+        if sp != current_speaker:
+            segments.append(group)
+            group = [word]
+            current_speaker = sp
+            continue
+        if word["end"] - group[0]["start"] > max_duration_ms:
+            split_idx = None
+            for i in range(len(group) - 1, -1, -1):
+                if any(group[i]["text"].endswith(c) for c in SPLIT_CHARS):
+                    split_idx = i + 1
+                    break
+            if split_idx and split_idx < len(group):
+                segments.append(group[:split_idx])
+                group = group[split_idx:] + [word]
+            else:
+                segments.append(group)
+                group = [word]
+            current_speaker = sp
+            continue
+        group.append(word)
+    if group:
+        segments.append(group)
+
+    youtube_map: dict[int, str] = {}  # segment_start_ms → yt_text
+
+    for seg in segments:
+        seg_start_ms = seg[0]["start"]
+        seg_end_ms = seg[-1]["end"]
+        srt_text = " ".join(w["text"] for w in seg if w.get("text")).strip()
+
+        # Find best overlapping YouTube sub
+        best_sub = None
+        best_overlap = 0
+        for sub in yt_subs:
+            overlap = min(sub["end_ms"], seg_end_ms) - max(sub["start_ms"], seg_start_ms)
+            if overlap > best_overlap:
+                best_overlap = overlap
+                best_sub = sub
+
+        use_youtube = False
+        if best_sub and best_overlap > 0:
+            yt_text = best_sub["text"]
+            srt_is_garbage = is_garbage_text(srt_text)
+            yt_is_garbage = is_garbage_text(yt_text)
+            if srt_is_garbage and not yt_is_garbage:
+                use_youtube = True
+            elif not srt_is_garbage and not yt_is_garbage:
+                if char_variety(yt_text) > char_variety(srt_text) * 1.2:
+                    use_youtube = True
+
+        source = "youtube" if use_youtube else "srt"
+        for w in seg:
+            w["text_source"] = source
+
+        if use_youtube and best_sub:
+            youtube_map[seg_start_ms] = best_sub["text"]
+
+    return words, youtube_map
+
+
+def load_srt_as_words(path: str) -> list[dict]:
+    """
+    Load a speaker-labeled SRT file as segment-level pseudo-words.
+    Each SRT entry becomes one entry with full segment text.
+    Used as fallback when assemblyai/deepgram JSONs are not available.
+    """
+    with open(path, encoding="utf-8") as f:
+        content = f.read()
+
+    words = []
+    blocks = re.split(r"\n\n+", content.strip())
+    speaker_pattern = re.compile(r"^\[([^\]]+)\]:?\s*(.*)", re.DOTALL)
+
+    for block in blocks:
+        lines = block.strip().splitlines()
+        if len(lines) < 3:
+            continue
+        time_match = re.match(r"(.+?) --> (.+)", lines[1])
+        if not time_match:
+            continue
+        start_ms = srt_time_to_ms(time_match.group(1))
+        end_ms = srt_time_to_ms(time_match.group(2))
+        text_part = " ".join(lines[2:]).strip()
+        speaker = None
+        sm = speaker_pattern.match(text_part)
+        if sm:
+            speaker = sm.group(1).strip()
+            text_part = sm.group(2).strip()
+
+        words.append({
+            "text": text_part,
+            "start": start_ms,
+            "end": end_ms,
+            "confidence": 1.0,
+            "source": "whisperx",
+            "speaker": speaker,
+        })
+
+    return words
+
+
 def estimate_total_duration(words: list[dict], given_ms: int = 0) -> int:
     if given_ms > 0:
         return given_ms
@@ -361,12 +544,17 @@ def main():
     parser = argparse.ArgumentParser(
         description="Merge AssemblyAI + Deepgram + Gemini SRT into unified word-level JSON"
     )
-    parser.add_argument("--assemblyai", required=True, help="AssemblyAI words JSON path")
-    parser.add_argument("--deepgram", required=True, help="Deepgram words JSON path")
+    # New: optional positional video path (for directory-based auto-discovery)
+    parser.add_argument("video_path", nargs="?", default=None,
+                        help="Video file path (enables directory-based auto-discovery mode)")
+    # Legacy: explicit file paths
+    parser.add_argument("--assemblyai", default=None, help="AssemblyAI words JSON path")
+    parser.add_argument("--deepgram", default=None, help="Deepgram words JSON path")
     parser.add_argument("--gemini", required=False, default=None,
                         help="Gemini Speaker SRT path（廃止済み・互換用に残存）")
-    parser.add_argument("--output", required=True, help="Output merged JSON path")
-    parser.add_argument("--report", required=True, help="Output quality report YAML path")
+    parser.add_argument("--output", required=True,
+                        help="Output merged JSON path, or pipeline directory (auto-discovery mode)")
+    parser.add_argument("--report", default=None, help="Output quality report YAML path")
     parser.add_argument("--video-id", default="", help="Video ID (default: inferred from filename)")
     parser.add_argument("--total-duration", type=int, default=0,
                         help="Total audio duration in ms (default: inferred from last word)")
@@ -374,71 +562,146 @@ def main():
                         help="Gap threshold in ms to trigger Deepgram fill (default: 500)")
     parser.add_argument("--no-srt", action="store_true",
                         help="Suppress SRT output (default: output SRT alongside JSON)")
+    # New: YouTube subtitles for text quality improvement
+    parser.add_argument("--youtube-subs", default=None,
+                        help="YouTube subtitles JSON path (subs.json) for text quality improvement")
     args = parser.parse_args()
 
-    # Infer video_id from output path if not given
-    video_id = args.video_id
-    if not video_id:
-        stem = Path(args.output).stem
-        video_id = stem.split("_")[-1] if "_" in stem else stem
+    # --- Auto-discovery mode: video_path given and --output is a directory ---
+    output_is_dir = os.path.isdir(args.output)
+    auto_mode = args.video_path is not None and (output_is_dir or args.output.endswith("/"))
+
+    if auto_mode:
+        video_id = args.video_id or Path(args.video_path).stem
+        out_dir = args.output.rstrip("/")
+        assemblyai_path = args.assemblyai or os.path.join(out_dir, "assemblyai_vocals.json")
+        deepgram_path = args.deepgram or os.path.join(out_dir, "deepgram_vocals.json")
+        output_json = os.path.join(out_dir, f"merged_{video_id}.json")
+        report_path = args.report or os.path.join(out_dir, f"merge_report_{video_id}.yaml")
+    else:
+        # Legacy mode: explicit paths required
+        if not args.assemblyai:
+            parser.error("--assemblyai is required in legacy mode (no video_path given)")
+        if not args.deepgram:
+            parser.error("--deepgram is required in legacy mode (no video_path given)")
+        if not args.report:
+            parser.error("--report is required in legacy mode (no video_path given)")
+        assemblyai_path = args.assemblyai
+        deepgram_path = args.deepgram
+        output_json = args.output
+        report_path = args.report
+        video_id = args.video_id
+        if not video_id:
+            stem = Path(output_json).stem
+            video_id = stem.split("_")[-1] if "_" in stem else stem
 
     print(f"[stt_merge] Video: {video_id}")
 
-    # Step 1: Load AssemblyAI as base
-    print("[stt_merge] Loading AssemblyAI words...")
-    ai_words = load_assemblyai(args.assemblyai)
-    print(f"  AssemblyAI: {len(ai_words)} words")
+    # --- Detect available data sources ---
+    has_assemblyai = os.path.exists(assemblyai_path)
+    has_deepgram = os.path.exists(deepgram_path)
 
-    # Step 2: Load Deepgram for gap filling
-    print("[stt_merge] Loading Deepgram words...")
-    dg_words = load_deepgram(args.deepgram)
-    print(f"  Deepgram: {len(dg_words)} words")
+    if has_assemblyai and has_deepgram:
+        # --- Full merge mode: AssemblyAI + Deepgram ---
+        print("[stt_merge] Loading AssemblyAI words...")
+        ai_words = load_assemblyai(assemblyai_path)
+        print(f"  AssemblyAI: {len(ai_words)} words")
 
-    # Step 3: Load Gemini SRT for speaker IDs (optional)
-    if args.gemini:
-        print("[stt_merge] Loading Gemini SRT...")
-        gemini_entries = load_gemini_srt(args.gemini)
-        print(f"  Gemini: {len(gemini_entries)} entries")
+        print("[stt_merge] Loading Deepgram words...")
+        dg_words = load_deepgram(deepgram_path)
+        print(f"  Deepgram: {len(dg_words)} words")
+
+        # Load Gemini SRT for speaker IDs (optional, deprecated)
+        if args.gemini:
+            print("[stt_merge] Loading Gemini SRT...")
+            gemini_entries = load_gemini_srt(args.gemini)
+            print(f"  Gemini: {len(gemini_entries)} entries")
+        else:
+            print("[stt_merge] Gemini SRT未指定: 話者ラベルなしで実行")
+            gemini_entries = []
+
+        gaps_before = detect_gaps(ai_words, args.gap_threshold)
+        print(f"[stt_merge] Gaps >= {args.gap_threshold}ms before fill: {len(gaps_before)}")
+
+        total_duration_ms = estimate_total_duration(ai_words, args.total_duration)
+        coverage_before = compute_coverage_pct(ai_words, total_duration_ms)
+
+        print("[stt_merge] Filling gaps with Deepgram...")
+        merged_words, filled_count, unfilled_gaps = fill_gaps_with_deepgram(
+            ai_words, dg_words, args.gap_threshold
+        )
+        deepgram_fill_count = len(merged_words) - len(ai_words)
+        print(f"  Filled {filled_count} gap(s), added {deepgram_fill_count} Deepgram words")
+
+        coverage_after = compute_coverage_pct(merged_words, total_duration_ms)
+
+        print("[stt_merge] Assigning speaker IDs from Gemini SRT...")
+        merged_words, speaker_match_count = assign_speakers(merged_words, gemini_entries)
+
+        mode = "assemblyai+deepgram"
     else:
-        print("[stt_merge] Gemini SRT未指定: 話者ラベルなしで実行")
-        gemini_entries = []
+        # --- Fallback mode: WhisperX SRT ---
+        # Look for srt_named.srt or merged_whisperx.srt in the output dir
+        fallback_srt = None
+        if auto_mode:
+            for candidate in [
+                os.path.join(args.output.rstrip("/"), "srt_named.srt"),
+                os.path.join(args.output.rstrip("/"), f"merged_{video_id}.srt"),
+                os.path.join(args.output.rstrip("/"), "merged_whisperx.srt"),
+            ]:
+                if os.path.exists(candidate):
+                    fallback_srt = candidate
+                    break
 
-    # Detect gaps in AssemblyAI baseline
-    gaps_before = detect_gaps(ai_words, args.gap_threshold)
-    print(f"[stt_merge] Gaps >= {args.gap_threshold}ms before fill: {len(gaps_before)}")
+        if not fallback_srt:
+            missing = []
+            if not has_assemblyai:
+                missing.append(assemblyai_path)
+            if not has_deepgram:
+                missing.append(deepgram_path)
+            print(f"[stt_merge] ERROR: Required files not found: {missing}", file=sys.stderr)
+            sys.exit(1)
 
-    # Compute baseline coverage
-    total_duration_ms = estimate_total_duration(ai_words, args.total_duration)
-    coverage_before = compute_coverage_pct(ai_words, total_duration_ms)
+        print(f"[stt_merge] Fallback mode: loading SRT from {fallback_srt}")
+        merged_words = load_srt_as_words(fallback_srt)
+        ai_words = merged_words
+        deepgram_fill_count = 0
+        filled_count = 0
+        unfilled_gaps = []
+        gaps_before = []
+        total_duration_ms = estimate_total_duration(merged_words, args.total_duration)
+        coverage_before = compute_coverage_pct(merged_words, total_duration_ms)
+        coverage_after = coverage_before
+        mode = "whisperx-fallback"
 
-    # Step 4: Fill gaps with Deepgram
-    print("[stt_merge] Filling gaps with Deepgram...")
-    merged_words, filled_count, unfilled_gaps = fill_gaps_with_deepgram(
-        ai_words, dg_words, args.gap_threshold
-    )
-    deepgram_fill_count = len(merged_words) - len(ai_words)
-    print(f"  Filled {filled_count} gap(s), added {deepgram_fill_count} Deepgram words")
-    print(f"  Unfilled gaps: {len(unfilled_gaps)}")
+    # --- Add text_source field (default: "srt") ---
+    for w in merged_words:
+        if "text_source" not in w:
+            w["text_source"] = "srt"
 
-    # Compute post-merge coverage
-    coverage_after = compute_coverage_pct(merged_words, total_duration_ms)
+    # --- Step: Apply YouTube subtitle quality improvement ---
+    youtube_map: dict[int, str] = {}
+    youtube_replaced_count = 0
+    if args.youtube_subs:
+        print(f"[stt_merge] Loading YouTube subs: {args.youtube_subs}")
+        yt_subs = load_youtube_subs(args.youtube_subs)
+        print(f"  YouTube subs: {len(yt_subs)} entries")
+        merged_words, youtube_map = apply_youtube_quality(merged_words, yt_subs)
+        youtube_replaced_count = sum(1 for w in merged_words if w.get("text_source") == "youtube")
+        print(f"  YouTube text replacement: {youtube_replaced_count} words in {len(youtube_map)} segments")
 
-    # Step 5: Assign speaker IDs from Gemini
-    print("[stt_merge] Assigning speaker IDs from Gemini SRT...")
-    merged_words, speaker_match_count = assign_speakers(merged_words, gemini_entries)
+    # --- Compute statistics ---
     total_words = len(merged_words)
     without_speaker = sum(1 for w in merged_words if w.get("speaker") is None)
     with_speaker = total_words - without_speaker
     speaker_id_pct = with_speaker / total_words * 100 if total_words > 0 else 0
-    print(f"  Speaker assigned: {with_speaker}/{total_words} ({speaker_id_pct:.1f}%)")
 
-    # Build speaker distribution
     speaker_dist: dict[str, int] = {}
     for w in merged_words:
         sp = w.get("speaker") or "null"
         speaker_dist[sp] = speaker_dist.get(sp, 0) + 1
 
-    # Build output JSON
+    # --- Build output JSON ---
     output_data = {
         "words": merged_words,
         "metadata": {
@@ -454,24 +717,25 @@ def main():
             "speaker_distribution": speaker_dist,
         },
     }
+    if args.youtube_subs:
+        output_data["metadata"]["youtube_replaced_segments"] = len(youtube_map)
 
-    # Write output JSON
-    os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
-    with open(args.output, "w", encoding="utf-8") as f:
+    os.makedirs(os.path.dirname(os.path.abspath(output_json)), exist_ok=True)
+    with open(output_json, "w", encoding="utf-8") as f:
         json.dump(output_data, f, ensure_ascii=False, indent=2)
-    print(f"[stt_merge] Output: {args.output}")
+    print(f"[stt_merge] Output: {output_json}")
 
-    # Write SRT output (default: alongside JSON, same path with .srt extension)
+    # --- Write SRT ---
     if not args.no_srt:
-        srt_path = str(Path(args.output).with_suffix(".srt"))
-        srt_content = generate_srt(merged_words)
+        srt_path = str(Path(output_json).with_suffix(".srt"))
+        srt_content = generate_srt(merged_words, youtube_map=youtube_map)
         with open(srt_path, "w", encoding="utf-8") as f:
             f.write(srt_content)
         print(f"[stt_merge] SRT output: {srt_path}")
 
-    # Build quality report YAML (manual serialization to avoid pyyaml dependency)
-    source_ai = sum(1 for w in merged_words if w["source"] == "assemblyai")
-    source_dg = sum(1 for w in merged_words if w["source"] == "deepgram")
+    # --- Write quality report YAML ---
+    source_ai = sum(1 for w in merged_words if w.get("source") == "assemblyai")
+    source_dg = sum(1 for w in merged_words if w.get("source") == "deepgram")
 
     unfilled_list_yaml = ""
     for g in unfilled_gaps:
@@ -483,9 +747,14 @@ def main():
     if not unfilled_list_yaml:
         unfilled_list_yaml = "          []\n"
 
+    youtube_section = ""
+    if args.youtube_subs:
+        youtube_section = f"  youtube_quality:\n    replaced_segments: {len(youtube_map)}\n    replaced_words: {youtube_replaced_count}\n"
+
     report_yaml = f"""\
 merge_report:
   video_id: {video_id}
+  mode: {mode}
   total_duration_ms: {total_duration_ms}
   coverage:
     before_merge_pct: {coverage_before:.2f}
@@ -505,19 +774,20 @@ merge_report:
   source_breakdown:
     assemblyai: {source_ai}
     deepgram: {source_dg}
-"""
+{youtube_section}"""
 
-    os.makedirs(os.path.dirname(os.path.abspath(args.report)), exist_ok=True)
-    with open(args.report, "w", encoding="utf-8") as f:
+    os.makedirs(os.path.dirname(os.path.abspath(report_path)), exist_ok=True)
+    with open(report_path, "w", encoding="utf-8") as f:
         f.write(report_yaml)
-    print(f"[stt_merge] Report: {args.report}")
+    print(f"[stt_merge] Report: {report_path}")
 
     print("[stt_merge] Done.")
-    print(f"  AssemblyAI: {len(ai_words)} words")
-    print(f"  Deepgram fill: {deepgram_fill_count} words")
+    print(f"  Mode: {mode}")
     print(f"  Total: {total_words} words")
     print(f"  Coverage: {coverage_before:.1f}% → {coverage_after:.1f}%")
     print(f"  Speaker ID: {speaker_id_pct:.1f}%")
+    if args.youtube_subs:
+        print(f"  YouTube replacements: {len(youtube_map)} segments")
 
 
 if __name__ == "__main__":
