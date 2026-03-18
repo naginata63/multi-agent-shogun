@@ -331,7 +331,7 @@ def run_stt_merge(
         "--deepgram", str(deepgram_path),
         "--output", str(output_path),
         "--report", str(report_path),
-        "--video-id", video_id,
+        f"--video-id={video_id}",
     ]
     if gemini_srt_path is not None:
         cmd += ["--gemini", str(gemini_srt_path)]
