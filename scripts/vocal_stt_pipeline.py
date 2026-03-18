@@ -33,6 +33,21 @@ PROJECT_DIR = Path(__file__).parent.parent
 STT_MERGE_SCRIPT = PROJECT_DIR / "scripts" / "stt_merge.py"
 
 CHUNK_DURATION_SEC = 600  # 10分チャンク
+
+
+def load_members_from_yaml(profiles_path: Path | None = None) -> list[str]:
+    """member_profiles.yamlからメンバーキー一覧を読み込む。失敗時はデフォルト値を返す。"""
+    if profiles_path is None:
+        profiles_path = PROJECT_DIR / "projects" / "dozle_kirinuki" / "context" / "member_profiles.yaml"
+    try:
+        import yaml
+        with open(profiles_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+        return list(data.get("members", {}).keys())
+    except Exception:
+        return ["dozle", "bon", "qnly", "orafu", "oo_men", "nekooji"]
+
+
 DEMUCS_TIMEOUT_SEC = 600  # 1チャンクあたり最大10分
 ASSEMBLYAI_POLL_INTERVAL_SEC = 10
 
@@ -318,6 +333,7 @@ def run_stt_merge(
     output_path: Path,
     report_path: Path,
     video_id: str,
+    youtube_subs_path: Path | None = None,
 ) -> Path:
     """stt_merge.pyを呼び出してmerged JSONを生成する"""
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -337,6 +353,9 @@ def run_stt_merge(
         cmd += ["--gemini", str(gemini_srt_path)]
     else:
         print("[pipeline]   Gemini SRT未指定: 話者ラベルなしで実行")
+    if youtube_subs_path is not None:
+        cmd += ["--youtube-subs", str(youtube_subs_path)]
+        print(f"[pipeline]   YouTube字幕: {youtube_subs_path.name}")
 
     result = subprocess.run(cmd, text=True)
     if result.returncode != 0:
@@ -360,7 +379,7 @@ def run_speaker_identification(
         return
 
     # speaker_id.pyの定数・閾値を流用
-    MEMBERS = ["dozle", "bon", "qnly", "orafu", "oo_men", "nekooji"]
+    MEMBERS = load_members_from_yaml()
     THRESHOLD = 0.25
     MIN_SEG_SEC = 1.0   # 声紋照合に使う最小セグメント長（秒）
     GAP_MS = 500        # 同一話者の連続ワードをマージするギャップ閾値（ms）
@@ -498,6 +517,16 @@ def run_speaker_identification(
         if orig in label_to_real_name:
             w["speaker"] = label_to_real_name[orig]
 
+    # metadata.speaker_distributionを実名で更新
+    metadata = merged_data.get("metadata", {})
+    old_dist = metadata.get("speaker_distribution", {})
+    new_dist: dict[str, int] = {}
+    for old_label, count in old_dist.items():
+        real_name = label_to_real_name.get(old_label, old_label)
+        new_dist[real_name] = new_dist.get(real_name, 0) + count
+    metadata["speaker_distribution"] = new_dist
+    merged_data["metadata"] = metadata
+
     with open(merged_json_path, "w", encoding="utf-8") as f:
         json.dump(merged_data, f, ensure_ascii=False, indent=2)
     print(f"[pipeline]   merged JSON更新完了: {merged_json_path}")
@@ -545,7 +574,7 @@ def run_direct_speaker_identification(
         print(f"[pipeline] DirectSpeakerID スキップ: vocals_full.wavが見つかりません ({vocals_full_path})")
         return
 
-    MEMBERS = ["dozle", "bon", "qnly", "orafu", "oo_men", "nekooji"]
+    MEMBERS = load_members_from_yaml()
     THRESHOLD = 0.25
     MIN_WIN_SEC = 0.30    # ウィンドウ最小長（秒）; 未満はゼロパディング
     TARGET_WIN_MS = 1000  # ウィンドウ目標長（ms）
@@ -689,6 +718,11 @@ def run_direct_speaker_identification(
     for idx, w in enumerate(words):
         w["speaker"] = speaker_assignments[idx]
 
+    # metadata.speaker_distributionを実名（speaker_counts）で更新
+    metadata = merged_data.get("metadata", {})
+    metadata["speaker_distribution"] = dict(speaker_counts)
+    merged_data["metadata"] = metadata
+
     with open(merged_json_path, "w", encoding="utf-8") as f:
         json.dump(merged_data, f, ensure_ascii=False, indent=2)
     print(f"[pipeline]   merged JSON更新完了: {merged_json_path}")
@@ -698,13 +732,15 @@ def run_direct_speaker_identification(
     regenerate_srt_from_merged(words, srt_path)
     print(f"[pipeline]   SRT再生成完了: {srt_path}")
 
-    # merge_report更新
+    # merge_report更新（古いspeaker_identificationセクションを削除してから書き込み）
     try:
         import yaml
         report_data = {}
         if report_path.exists():
             with open(report_path, encoding="utf-8") as f:
                 report_data = yaml.safe_load(f) or {}
+        # C003: direct方式実行時は古いspeaker_identificationを削除
+        report_data.pop("speaker_identification", None)
         report_data["direct_speaker_identification"] = {
             "method": "ECAPA-TDNN-direct",
             "threshold": THRESHOLD,
@@ -875,6 +911,16 @@ def main():
         run_deepgram(vocals_full, deepgram_json)
 
     # Step 6: stt_merge.py
+    # YouTube字幕を自動検出（work_dir内の {video_id}_subs.json または {video_id}.ja.vtt）
+    youtube_subs: Path | None = None
+    for subs_candidate in [
+        work_dir / f"{video_id}_subs.json",
+        work_dir / f"{video_id}.ja.vtt",
+    ]:
+        if subs_candidate.exists():
+            youtube_subs = subs_candidate
+            print(f"[pipeline] YouTube字幕自動検出: {subs_candidate.name}")
+            break
     run_stt_merge(
         assemblyai_path=assemblyai_json,
         deepgram_path=deepgram_json,
@@ -882,6 +928,7 @@ def main():
         output_path=output_path,
         report_path=report_path,
         video_id=video_id,
+        youtube_subs_path=youtube_subs,
     )
 
     # Step 7: ECAPA-TDNN声紋マッチング
@@ -891,8 +938,11 @@ def main():
         try:
             with open(assemblyai_json, encoding="utf-8") as f:
                 aai_data = json.load(f)
-            if aai_data.get("speakers_detected", 2) <= 1:
-                print(f"[pipeline] AssemblyAI話者数={aai_data.get('speakers_detected')} → direct話者特定方式にフォールバック")
+            words = aai_data.get("words", [])
+            speakers_from_words = len(set(w.get("speaker", "") for w in words if w.get("speaker")))
+            speakers_detected = aai_data.get("speakers_detected", speakers_from_words or 2)
+            if speakers_detected <= 1:
+                print(f"[pipeline] AssemblyAI話者数={speakers_detected} → direct話者特定方式にフォールバック")
                 use_direct = True
         except Exception:
             pass

@@ -364,8 +364,60 @@ def generate_srt(
     return "\n".join(lines)
 
 
+def load_youtube_vtt(path: str) -> list[dict]:
+    """Load YouTube VTT subtitle file. Returns [{text, start_ms, end_ms}]."""
+    def vtt_time_to_ms(t: str) -> int:
+        """Convert VTT time (HH:MM:SS.mmm or MM:SS.mmm) to milliseconds."""
+        t = t.strip()
+        parts = t.split(":")
+        if len(parts) == 3:
+            h, m, s = parts
+        else:
+            h, m, s = "0", parts[0], parts[1]
+        sec, ms_str = (s.split(".") + ["0"])[:2]
+        return int(h) * 3600000 + int(m) * 60000 + int(sec) * 1000 + int(ms_str[:3].ljust(3, "0"))
+
+    with open(path, encoding="utf-8") as f:
+        content = f.read()
+
+    result = []
+    blocks = re.split(r"\n\n+", content.strip())
+    for block in blocks:
+        lines = block.strip().splitlines()
+        # Find timestamp line (contains "-->")
+        ts_idx = None
+        for i, line in enumerate(lines):
+            if "-->" in line:
+                ts_idx = i
+                break
+        if ts_idx is None:
+            continue
+        ts_line = lines[ts_idx]
+        # Strip positioning attributes (e.g., " align:start position:0%")
+        ts_parts = ts_line.split("-->")
+        if len(ts_parts) < 2:
+            continue
+        start_str = ts_parts[0].strip().split()[0]
+        end_str = ts_parts[1].strip().split()[0]
+        text_lines = lines[ts_idx + 1:]
+        text = " ".join(line.strip() for line in text_lines if line.strip())
+        # Remove VTT tags (<c>, </c>, etc.)
+        text = re.sub(r"<[^>]+>", "", text).strip()
+        if not text:
+            continue
+        result.append({
+            "text": text,
+            "start_ms": vtt_time_to_ms(start_str),
+            "end_ms": vtt_time_to_ms(end_str),
+        })
+    return result
+
+
 def load_youtube_subs(path: str) -> list[dict]:
-    """Load YouTube subtitles JSON. Returns [{text, start_ms, end_ms}]."""
+    """Load YouTube subtitles. Accepts JSON (_subs.json) or VTT (.vtt) format.
+    Returns [{text, start_ms, end_ms}]."""
+    if path.lower().endswith(".vtt"):
+        return load_youtube_vtt(path)
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
     result = []
@@ -600,14 +652,18 @@ def main():
 
     print(f"[stt_merge] Video: {video_id}")
 
-    # --- Auto-detect YouTube subs (subs.json) from input directory ---
+    # --- Auto-detect YouTube subs (subs.json or .ja.vtt) from input directory ---
     youtube_subs_path = args.youtube_subs  # explicit --youtube-subs takes precedence
     if auto_mode and not youtube_subs_path:
         input_dir = Path(args.video_path).parent
-        candidate = input_dir / f"{video_id}_subs.json"
-        if candidate.exists():
-            youtube_subs_path = str(candidate)
-            print(f"[stt_merge] Auto-detected YouTube subs: {youtube_subs_path}")
+        for subs_candidate in [
+            input_dir / f"{video_id}_subs.json",
+            input_dir / f"{video_id}.ja.vtt",
+        ]:
+            if subs_candidate.exists():
+                youtube_subs_path = str(subs_candidate)
+                print(f"[stt_merge] Auto-detected YouTube subs: {youtube_subs_path}")
+                break
 
     # --- Detect available data sources ---
     has_assemblyai = os.path.exists(assemblyai_path)
@@ -706,7 +762,14 @@ def main():
     total_words = len(merged_words)
     without_speaker = sum(1 for w in merged_words if w.get("speaker") is None)
     with_speaker = total_words - without_speaker
-    speaker_id_pct = with_speaker / total_words * 100 if total_words > 0 else 0
+    # speaker_id_pct: ECAPA-TDNN実名化済みワードの割合（stt_merge実行時点では0が正常）
+    # AssemblyAIラベル(A/B/C)は実名ではないため旧ロジック(100%)は廃止
+    _KNOWN_MEMBERS = {"dozle", "bon", "qnly", "orafu", "oo_men", "nekooji"}
+    speaker_id_pct = (
+        sum(1 for w in merged_words if w.get("speaker") in _KNOWN_MEMBERS)
+        / total_words * 100
+        if total_words > 0 else 0
+    )
 
     speaker_dist: dict[str, int] = {}
     for w in merged_words:
