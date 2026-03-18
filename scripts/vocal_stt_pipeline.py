@@ -524,6 +524,260 @@ def run_speaker_identification(
     print(f"[pipeline] Step7完了")
 
 
+def run_direct_speaker_identification(
+    merged_json_path: Path,
+    vocals_full_path: Path,
+    report_path: Path,
+) -> None:
+    """ECAPA-TDNNでワード単位の直接話者特定を行う。
+
+    AssemblyAIの話者ラベルに依存せず、音声波形から直接各ワードの話者を特定する。
+    AssemblyAIが全ワードを同一話者（speakers_detected=1）にまとめた場合のフォールバック。
+
+    アルゴリズム:
+    1. vocals_full.wavをロード
+    2. merged JSONの各ワードをウィンドウ（~1s）単位にまとめる
+    3. 各ウィンドウでECAPA-TDNN embeddingを計算
+    4. 全声紋プロファイルとcosine類似度を比較し最高スコアの話者を割り当て
+    5. merged JSON更新 + SRT再生成
+    """
+    if not vocals_full_path.exists():
+        print(f"[pipeline] DirectSpeakerID スキップ: vocals_full.wavが見つかりません ({vocals_full_path})")
+        return
+
+    MEMBERS = ["dozle", "bon", "qnly", "orafu", "oo_men", "nekooji"]
+    THRESHOLD = 0.25
+    MIN_WIN_SEC = 0.30    # ウィンドウ最小長（秒）; 未満はゼロパディング
+    TARGET_WIN_MS = 1000  # ウィンドウ目標長（ms）
+    MAX_WIN_MS = 2000     # ウィンドウ最大長（ms）
+    MAX_GAP_MS = 500      # ウィンドウを区切る無音ギャップ閾値（ms）
+    profile_dir = PROJECT_DIR / "projects" / "dozle_kirinuki" / "speaker_profiles"
+
+    try:
+        import torch
+        import torchaudio
+        import torch.nn.functional as F
+        from speechbrain.inference.speaker import EncoderClassifier
+    except ImportError as e:
+        print(f"[pipeline] DirectSpeakerID スキップ: 依存ライブラリ不足 ({e})")
+        return
+
+    # merged JSON読み込み
+    with open(merged_json_path, encoding="utf-8") as f:
+        merged_data = json.load(f)
+
+    words = merged_data.get("words", [])
+    if not words:
+        print("[pipeline] DirectSpeakerID スキップ: wordsが空")
+        return
+
+    print(f"[pipeline] Step7(Direct): ECAPA-TDNN直接話者特定 ({len(words)}ワード)", flush=True)
+
+    # ECAPA-TDNNモデルロード
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    savedir = str(profile_dir / "pretrained_models" / "spkrec-ecapa-voxceleb")
+    classifier = EncoderClassifier.from_hparams(
+        source="speechbrain/spkrec-ecapa-voxceleb",
+        savedir=savedir,
+        run_opts={"device": device},
+    )
+    print(f"[pipeline]   モデルロード完了 (device: {device})")
+
+    # 声紋プロファイルロード
+    embeddings = {}
+    for member in MEMBERS:
+        multi_path = profile_dir / f"{member}_embeddings.pt"
+        single_path = profile_dir / f"{member}_embedding.pt"
+        if multi_path.exists():
+            embs = torch.load(str(multi_path), map_location=device)
+            if embs.dim() == 1:
+                embs = embs.unsqueeze(0)
+            embeddings[member] = embs
+        elif single_path.exists():
+            emb = torch.load(str(single_path), map_location=device).squeeze()
+            embeddings[member] = emb.unsqueeze(0)
+
+    if not embeddings:
+        print("[pipeline]   声紋プロファイルなし → DirectSpeakerID スキップ")
+        return
+    print(f"[pipeline]   プロファイルロード: {list(embeddings.keys())}")
+
+    # vocals_full.wav読み込み・16kHzリサンプル
+    print(f"[pipeline]   vocals_full.wav読み込み中 ({vocals_full_path.stat().st_size // 1024 // 1024}MB)...", flush=True)
+    waveform, sr = torchaudio.load(str(vocals_full_path))
+    if sr != 16000:
+        waveform = torchaudio.transforms.Resample(sr, 16000)(waveform)
+        sr = 16000
+    if waveform.shape[0] > 1:
+        waveform = waveform.mean(dim=0, keepdim=True)
+    total_samples = waveform.shape[1]
+    print(f"[pipeline]   音声ロード完了: {total_samples/sr:.1f}秒")
+
+    def extract_window(start_ms: int, end_ms: int) -> torch.Tensor | None:
+        """音声ウィンドウを切り出す。短すぎる場合はゼロパディング。"""
+        s = max(0, int(start_ms / 1000.0 * sr))
+        e = min(total_samples, int(end_ms / 1000.0 * sr))
+        min_samples = int(MIN_WIN_SEC * sr)
+        seg = waveform[:, s:e]
+        if seg.shape[1] < min_samples:
+            # ゼロパディングで最小長を確保
+            pad = torch.zeros(1, min_samples - seg.shape[1], dtype=seg.dtype)
+            seg = torch.cat([seg, pad], dim=1)
+        if seg.shape[1] < 10:
+            return None
+        return seg.squeeze(0)
+
+    def get_speaker(audio_seg: torch.Tensor) -> str:
+        """ECAPA-TDNNで話者を特定。閾値未満は'unknown'。"""
+        with torch.no_grad():
+            emb = classifier.encode_batch(audio_seg.unsqueeze(0)).squeeze()
+        sims = {}
+        for member, embs in embeddings.items():
+            seg_exp = emb.unsqueeze(0).expand(embs.shape[0], -1)
+            s = F.cosine_similarity(seg_exp, embs, dim=1)
+            sims[member] = s.max().item()
+        best = max(sims, key=sims.get)
+        return best if sims[best] >= THRESHOLD else "unknown"
+
+    # ワードをウィンドウ単位に区切って処理
+    speaker_assignments = ["unknown"] * len(words)
+    i = 0
+    window_count = 0
+    speaker_counts: dict[str, int] = {}
+
+    while i < len(words):
+        win_start = words[i]["start"]
+        win_end = words[i]["end"]
+        win_indices = [i]
+        j = i + 1
+
+        while j < len(words):
+            gap = words[j]["start"] - words[j - 1]["end"]
+            new_end = words[j]["end"]
+            # ギャップ超過またはウィンドウ最大長超過で区切る
+            if gap > MAX_GAP_MS:
+                break
+            if new_end - win_start > MAX_WIN_MS:
+                # ウィンドウが既にTARGET_WIN_MSを超えていれば終了
+                if win_end - win_start >= TARGET_WIN_MS:
+                    break
+            win_end = new_end
+            win_indices.append(j)
+            j += 1
+
+        # ウィンドウ音声を切り出してECAPA-TDNN
+        audio_seg = extract_window(win_start, win_end)
+        if audio_seg is not None:
+            speaker = get_speaker(audio_seg)
+        else:
+            speaker = "unknown"
+
+        for idx in win_indices:
+            speaker_assignments[idx] = speaker
+
+        speaker_counts[speaker] = speaker_counts.get(speaker, 0) + len(win_indices)
+        window_count += 1
+        if window_count % 100 == 0:
+            print(f"[pipeline]   処理中: {window_count}ウィンドウ完了 (word {i}/{len(words)})", flush=True)
+
+        i = j
+
+    print(f"[pipeline]   完了: {window_count}ウィンドウ処理")
+    print(f"[pipeline]   話者分布: {speaker_counts}")
+
+    # merged JSON更新
+    for idx, w in enumerate(words):
+        w["speaker"] = speaker_assignments[idx]
+
+    with open(merged_json_path, "w", encoding="utf-8") as f:
+        json.dump(merged_data, f, ensure_ascii=False, indent=2)
+    print(f"[pipeline]   merged JSON更新完了: {merged_json_path}")
+
+    # SRT再生成
+    srt_path = merged_json_path.parent / merged_json_path.name.replace(".json", ".srt")
+    regenerate_srt_from_merged(words, srt_path)
+    print(f"[pipeline]   SRT再生成完了: {srt_path}")
+
+    # merge_report更新
+    try:
+        import yaml
+        report_data = {}
+        if report_path.exists():
+            with open(report_path, encoding="utf-8") as f:
+                report_data = yaml.safe_load(f) or {}
+        report_data["direct_speaker_identification"] = {
+            "method": "ECAPA-TDNN-direct",
+            "threshold": THRESHOLD,
+            "profiles_used": list(embeddings.keys()),
+            "windows_processed": window_count,
+            "speaker_distribution": speaker_counts,
+        }
+        with open(report_path, "w", encoding="utf-8") as f:
+            yaml.dump(report_data, f, allow_unicode=True, default_flow_style=False)
+    except Exception as e:
+        print(f"[pipeline]   merge_report更新失敗 (非致命的): {e}")
+
+    print(f"[pipeline] Step7(Direct)完了")
+
+
+def regenerate_srt_from_merged(words: list[dict], srt_path: Path) -> None:
+    """merged JSONのwordsリストからSRTファイルを再生成する。
+
+    連続する同一話者のワードを1セグメントにまとめる（最大5秒、ギャップ2秒で区切り）。
+    """
+    MAX_SEG_MS = 5000
+    MAX_GAP_MS = 2000
+
+    def ms_to_srt_time(ms: int) -> str:
+        h = ms // 3600000
+        m = (ms % 3600000) // 60000
+        s = (ms % 60000) // 1000
+        cs = (ms % 1000) // 10
+        return f"{h:02d}:{m:02d}:{s:02d},{cs:02d}0"
+
+    segments = []
+    if not words:
+        srt_path.write_text("", encoding="utf-8")
+        return
+
+    seg_words = [words[0]]
+    seg_start = words[0]["start"]
+    seg_end = words[0]["end"]
+    seg_speaker = words[0].get("speaker", "")
+
+    def flush_segment():
+        text = " ".join(w["text"] for w in seg_words if w.get("text")).strip()
+        if text:
+            segments.append((seg_start, seg_end, seg_speaker, text))
+
+    for w in words[1:]:
+        gap = w["start"] - seg_end
+        duration = seg_end - seg_start
+        speaker = w.get("speaker", "")
+
+        if speaker != seg_speaker or gap > MAX_GAP_MS or duration >= MAX_SEG_MS:
+            flush_segment()
+            seg_words = [w]
+            seg_start = w["start"]
+            seg_end = w["end"]
+            seg_speaker = speaker
+        else:
+            seg_words.append(w)
+            seg_end = w["end"]
+
+    flush_segment()
+
+    lines = []
+    for idx, (start, end, speaker, text) in enumerate(segments, 1):
+        label = f"[{speaker}]" if speaker else "[?]"
+        lines.append(str(idx))
+        lines.append(f"{ms_to_srt_time(start)} --> {ms_to_srt_time(end)}")
+        lines.append(f"{label}: {text}")
+        lines.append("")
+
+    srt_path.write_text("\n".join(lines), encoding="utf-8")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Demucs vocal STT pipeline: MP4 → merged word-level JSON"
@@ -534,6 +788,8 @@ def main():
     parser.add_argument("--cache", action="store_true", help="既存中間成果物をスキップ")
     parser.add_argument("--gemini", metavar="SRT_FILE",
                         help="Gemini SRTパス（廃止済み・互換用に残存）話者IDはECAPA-TDNNで付与")
+    parser.add_argument("--direct-speaker-id", action="store_true",
+                        help="AssemblyAI話者ラベルを無視してECAPA-TDNN直接話者特定を強制実行")
     args = parser.parse_args()
 
     # APIキーチェック（最初に実施）
@@ -628,12 +884,31 @@ def main():
         video_id=video_id,
     )
 
-    # Step 7: ECAPA-TDNN声紋マッチング（AssemblyAI話者ラベル→実名変換）
-    run_speaker_identification(
-        merged_json_path=output_path,
-        vocals_full_path=vocals_full,
-        report_path=report_path,
-    )
+    # Step 7: ECAPA-TDNN声紋マッチング
+    # AssemblyAI話者検出数=1または--direct-speaker-idフラグ時はdirect方式を使用
+    use_direct = args.direct_speaker_id
+    if not use_direct and assemblyai_json.exists():
+        try:
+            with open(assemblyai_json, encoding="utf-8") as f:
+                aai_data = json.load(f)
+            if aai_data.get("speakers_detected", 2) <= 1:
+                print(f"[pipeline] AssemblyAI話者数={aai_data.get('speakers_detected')} → direct話者特定方式にフォールバック")
+                use_direct = True
+        except Exception:
+            pass
+
+    if use_direct:
+        run_direct_speaker_identification(
+            merged_json_path=output_path,
+            vocals_full_path=vocals_full,
+            report_path=report_path,
+        )
+    else:
+        run_speaker_identification(
+            merged_json_path=output_path,
+            vocals_full_path=vocals_full,
+            report_path=report_path,
+        )
 
     elapsed = time.time() - t_start
     print(f"\n[pipeline] ===== 完了 =====")
