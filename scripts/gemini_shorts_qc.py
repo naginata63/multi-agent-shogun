@@ -4,7 +4,7 @@
 使用法:
   python3 scripts/gemini_shorts_qc.py <shorts_video_path> [--output-yaml <path>]
 
-コスト目標: $0.02/本以下 (gemini-2.0-flash-lite使用)
+コスト目標: $0.02/本以下 (gemini-2.5-flash使用)
 """
 
 import argparse
@@ -17,7 +17,7 @@ from pathlib import Path
 
 import yaml
 
-MODEL = "gemini-3.1-flash-lite-preview"
+MODEL = "gemini-2.5-flash"
 
 QC_PROMPT = """これはYouTube Shortsの縦型動画（1080x1920）のフレームです。
 以下のQCチェック項目を評価してください。
