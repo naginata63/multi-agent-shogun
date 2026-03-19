@@ -107,6 +107,7 @@
 !scripts/genai_daily_fetch.py
 !scripts/genai_daily_report.sh
 !scripts/qc_prompt_execution.py
+!scripts/youtube_analytics_snapshot.py
 !scripts/dashboard_rotate.sh
 !scripts/cmd_rotate.sh
 !scripts/capture_setup_screenshots.js
