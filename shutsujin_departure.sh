@@ -660,7 +660,7 @@ if [ "$SETUP_ONLY" = false ]; then
 
     # 将軍: CLI Adapter経由でコマンド構築
     _shogun_cli_type="claude"
-    _shogun_cmd="claude --model opus --dangerously-skip-permissions"
+    _shogun_cmd="claude --model 'opus[1m]' --dangerously-skip-permissions"
     if [ "$CLI_ADAPTER_LOADED" = true ]; then
         _shogun_cli_type=$(get_cli_type "shogun")
         _shogun_cmd=$(build_cli_command "shogun")
@@ -690,7 +690,7 @@ with open(f,'w') as fh: yaml.safe_dump(d, fh, default_flow_style=False, allow_un
     # 家老（pane 0）: CLI Adapter経由でコマンド構築（デフォルト: Opus）
     p=$((PANE_BASE + 0))
     _karo_cli_type="claude"
-    _karo_cmd="claude --model opus --dangerously-skip-permissions"
+    _karo_cmd="claude --model 'opus[1m]' --dangerously-skip-permissions"
     if [ "$CLI_ADAPTER_LOADED" = true ]; then
         _karo_cli_type=$(get_cli_type "karo")
         _karo_cmd=$(build_cli_command "karo")
@@ -712,11 +712,11 @@ with open(f,'w') as fh: yaml.safe_dump(d, fh, default_flow_style=False, allow_un
         for i in $(seq 1 "$_ASHIGARU_COUNT"); do
             p=$((PANE_BASE + i))
             _ashi_cli_type="claude"
-            _ashi_cmd="claude --model opus --dangerously-skip-permissions"
+            _ashi_cmd="claude --model 'opus[1m]' --dangerously-skip-permissions"
             if [ "$CLI_ADAPTER_LOADED" = true ]; then
                 _ashi_cli_type=$(get_cli_type "ashigaru${i}")
                 if [ "$_ashi_cli_type" = "claude" ]; then
-                    _ashi_cmd="claude --model opus --dangerously-skip-permissions"
+                    _ashi_cmd="claude --model 'opus[1m]' --dangerously-skip-permissions"
                 else
                     _ashi_cmd=$(build_cli_command "ashigaru${i}")
                 fi
@@ -756,7 +756,7 @@ with open(f,'w') as fh: yaml.safe_dump(d, fh, default_flow_style=False, allow_un
     # 軍師（pane _ASHIGARU_COUNT+1）: Opus Thinking — 戦略立案・設計判断専任
     p=$((PANE_BASE + _ASHIGARU_COUNT + 1))
     _gunshi_cli_type="claude"
-    _gunshi_cmd="claude --model opus --dangerously-skip-permissions"
+    _gunshi_cmd="claude --model 'opus[1m]' --dangerously-skip-permissions"
     if [ "$CLI_ADAPTER_LOADED" = true ]; then
         _gunshi_cli_type=$(get_cli_type "gunshi")
         _gunshi_cmd=$(build_cli_command "gunshi")

@@ -16,7 +16,7 @@ CLI_ADAPTER_PROJECT_ROOT="$(cd "${CLI_ADAPTER_DIR}/.." && pwd)"
 CLI_ADAPTER_SETTINGS="${CLI_ADAPTER_SETTINGS:-${CLI_ADAPTER_PROJECT_ROOT}/config/settings.yaml}"
 
 # 許可されたCLI種別
-CLI_ADAPTER_ALLOWED_CLIS="claude codex copilot kimi"
+CLI_ADAPTER_ALLOWED_CLIS="claude codex copilot kimi gemini"
 
 # --- 内部ヘルパー ---
 
@@ -98,7 +98,7 @@ try:
         if agent_cfg in ('claude', 'codex', 'copilot', 'kimi'):
             print(agent_cfg); sys.exit(0)
     default = cli.get('default', 'claude')
-    if default in ('claude', 'codex', 'copilot', 'kimi'):
+    if default in ('claude', 'codex', 'copilot', 'kimi', 'gemini'):
         print(default)
     else:
         print('claude', file=sys.stderr)
@@ -162,6 +162,13 @@ build_cli_command() {
             ;;
         kimi)
             local cmd="kimi --yolo"
+            if [[ -n "$model" ]]; then
+                cmd="$cmd --model $model"
+            fi
+            echo "$cmd"
+            ;;
+        gemini)
+            local cmd="gemini --sandbox=false"
             if [[ -n "$model" ]]; then
                 cmd="$cmd --model $model"
             fi

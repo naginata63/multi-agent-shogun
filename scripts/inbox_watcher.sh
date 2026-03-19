@@ -230,7 +230,7 @@ should_throttle_nudge() {
 
 is_valid_cli_type() {
     case "${1:-}" in
-        claude|codex|copilot|kimi) return 0 ;;
+        claude|codex|copilot|kimi|gemini) return 0 ;;
         *) return 1 ;;
     esac
 }
@@ -274,6 +274,17 @@ normalize_special_command() {
         model_switch)
             if [[ "$raw_content" =~ ^/model[[:space:]]+[^[:space:]].* ]]; then
                 echo "$raw_content"
+            elif [[ "$raw_content" == "default" || -z "$raw_content" ]]; then
+                # Restore to default model from settings.yaml
+                local default_model
+                default_model=$(python3 -c "
+import yaml
+with open('${SCRIPT_DIR}/config/settings.yaml') as f:
+    cfg = yaml.safe_load(f)
+agent_cfg = cfg.get('cli',{}).get('agents',{}).get('${AGENT_ID}',{})
+print(agent_cfg.get('model','sonnet'))
+" 2>/dev/null)
+                echo "/model ${default_model:-sonnet}"
             else
                 echo "[$(date)] [SKIP] Invalid model_switch payload for $AGENT_ID: ${raw_content:-<empty>}" >&2
             fi
