@@ -528,6 +528,12 @@ def run_speaker_identification(
     metadata["speaker_distribution"] = new_dist
     merged_data["metadata"] = metadata
 
+    # speaker_id_pctを実名変換後に再計算
+    known_members_set = set(load_members_from_yaml())
+    total = len(words)
+    known_count = sum(1 for w in words if w.get("speaker") in known_members_set)
+    metadata["speaker_id_pct"] = round(known_count / total * 100, 2) if total > 0 else 0
+
     with open(merged_json_path, "w", encoding="utf-8") as f:
         json.dump(merged_data, f, ensure_ascii=False, indent=2)
     print(f"[pipeline]   merged JSON更新完了: {merged_json_path}")
@@ -723,6 +729,12 @@ def run_direct_speaker_identification(
     metadata = merged_data.get("metadata", {})
     metadata["speaker_distribution"] = dict(speaker_counts)
     merged_data["metadata"] = metadata
+
+    # speaker_id_pctを実名変換後に再計算
+    known_members_set = set(load_members_from_yaml())
+    total = len(words)
+    known_count = sum(1 for w in words if w.get("speaker") in known_members_set)
+    metadata["speaker_id_pct"] = round(known_count / total * 100, 2) if total > 0 else 0
 
     with open(merged_json_path, "w", encoding="utf-8") as f:
         json.dump(merged_data, f, ensure_ascii=False, indent=2)

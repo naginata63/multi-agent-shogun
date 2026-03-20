@@ -30,6 +30,22 @@ import sys
 import os
 from pathlib import Path
 
+_SCRIPT_DIR = Path(__file__).resolve().parent
+_DEFAULT_PROFILES_PATH = _SCRIPT_DIR.parent / "projects" / "dozle_kirinuki" / "context" / "member_profiles.yaml"
+
+
+def load_members_from_yaml(profiles_path: Path | None = None) -> list[str]:
+    """member_profiles.yamlからメンバーキー一覧を読み込む。失敗時はデフォルト値を返す。"""
+    if profiles_path is None:
+        profiles_path = _DEFAULT_PROFILES_PATH
+    try:
+        import yaml
+        with open(profiles_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+        return list(data.get("members", {}).keys())
+    except Exception:
+        return ["dozle", "bon", "qnly", "orafu", "oo_men", "nekooji"]
+
 
 def detect_timestamp_unit(raw_words: list[dict]) -> str:
     """
@@ -764,9 +780,9 @@ def main():
     with_speaker = total_words - without_speaker
     # speaker_id_pct: ECAPA-TDNN実名化済みワードの割合（stt_merge実行時点では0が正常）
     # AssemblyAIラベル(A/B/C)は実名ではないため旧ロジック(100%)は廃止
-    _KNOWN_MEMBERS = {"dozle", "bon", "qnly", "orafu", "oo_men", "nekooji"}
+    _known_members_set = set(load_members_from_yaml())
     speaker_id_pct = (
-        sum(1 for w in merged_words if w.get("speaker") in _KNOWN_MEMBERS)
+        sum(1 for w in merged_words if w.get("speaker") in _known_members_set)
         / total_words * 100
         if total_words > 0 else 0
     )
