@@ -372,7 +372,7 @@ def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, vid
 
     try:
         result = subprocess.run(
-            ["claude", "-p", prompt, "--model", "claude-opus-4-6"],
+            ["/home/murakami/.local/bin/claude", "-p", prompt, "--model", "claude-opus-4-6"],
             capture_output=True, text=True, timeout=120
         )
         if result.returncode == 0:

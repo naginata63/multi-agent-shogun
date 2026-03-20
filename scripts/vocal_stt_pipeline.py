@@ -194,6 +194,7 @@ def run_assemblyai(vocals_path: Path, output_path: Path) -> Path:
         "audio_url": upload_url,
         "speech_models": ["universal-2"],
         "speaker_labels": True,
+        "speakers_expected": 6,  # ドズル社メンバー6名
         # language_code removed: not compatible with speaker_labels on Universal
         # speech_model (singular) deprecated → speech_models list per AssemblyAI v2 API
     }
