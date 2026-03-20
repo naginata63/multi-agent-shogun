@@ -202,6 +202,8 @@
 !skills/gemini-video-transcribe/
 !skills/gemini-video-transcribe/SKILL.md
 !skills/gemini-video-transcribe/transcribe.py
+!skills/collective-select/
+!skills/collective-select/SKILL.md
 
 # Python venv (explicit deny — whitelist patterns like LICENSE leak through !*/)
 .venv/
