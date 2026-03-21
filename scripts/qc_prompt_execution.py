@@ -22,14 +22,14 @@ from pathlib import Path
 
 # --- 依存パッケージチェック ---
 try:
-    import google.generativeai as genai
+    from google import genai
 except ImportError:
     print(
-        "ERROR: google-generativeai パッケージが未インストールです。",
+        "ERROR: google-genai パッケージが未インストールです。",
         file=sys.stderr,
     )
     print("インストール方法:", file=sys.stderr)
-    print("    pip install google-generativeai", file=sys.stderr)
+    print("    pip install google-genai", file=sys.stderr)
     sys.exit(1)
 
 try:
@@ -379,11 +379,11 @@ def extract_prompt(text: str) -> str | None:
 
 def run_prompt(api_key: str, prompt_text: str, model_name: str = "gemini-2.0-flash") -> str:
     """Gemini APIでプロンプトを実行し、生成テキストを返す。"""
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(model_name)
-    response = model.generate_content(
-        prompt_text,
-        generation_config=genai.GenerationConfig(
+    client = genai.Client(api_key=api_key)
+    response = client.models.generate_content(
+        model=model_name,
+        contents=prompt_text,
+        config=genai.types.GenerateContentConfig(
             max_output_tokens=8192,
         ),
     )
@@ -392,8 +392,7 @@ def run_prompt(api_key: str, prompt_text: str, model_name: str = "gemini-2.0-fla
 
 def score_output(api_key: str, original_prompt: str, output: str, category_type: str = "business") -> dict:
     """LLM-as-Judge: Geminiで出力品質を採点し、スコア辞書を返す。"""
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-2.0-flash")
+    client = genai.Client(api_key=api_key)
 
     if category_type == "business":
         scoring_criteria = (
@@ -431,7 +430,7 @@ def score_output(api_key: str, original_prompt: str, output: str, category_type:
 必ずJSON形式のみで返してください（説明不要）:
 {json_format}"""
 
-    response = model.generate_content(judge_prompt)
+    response = client.models.generate_content(model="gemini-2.0-flash", contents=judge_prompt)
     text = response.text.strip()
 
     # ```json...``` ブロックのケア

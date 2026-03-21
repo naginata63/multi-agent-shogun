@@ -196,7 +196,9 @@ def run_assemblyai(vocals_path: Path, output_path: Path) -> Path:
         print(f"[pipeline] Step4スキップ (既存): {output_path.name}")
         return output_path
 
-    api_key = os.environ["ASSEMBLYAI_API_KEY"]
+    api_key = os.environ.get("ASSEMBLYAI_API_KEY")
+    if not api_key:
+        raise KeyError("環境変数 ASSEMBLYAI_API_KEY が設定されていません。source ~/.bashrc を実行してください。")
     headers = {"authorization": api_key}
 
     print(f"[pipeline] Step4: AssemblyAI Universal-2 アップロード中 ({vocals_path.stat().st_size // 1024 // 1024}MB)...", flush=True)
@@ -204,7 +206,10 @@ def run_assemblyai(vocals_path: Path, output_path: Path) -> Path:
     with open(vocals_path, "rb") as f:
         r = requests.post("https://api.assemblyai.com/v2/upload", headers=headers, data=f, timeout=300)
     r.raise_for_status()
-    upload_url = r.json()["upload_url"]
+    try:
+        upload_url = r.json()["upload_url"]
+    except (ValueError, KeyError) as e:
+        raise RuntimeError(f"AssemblyAI アップロードレスポンス解析失敗: {e} / body={r.text[:200]}") from e
     print(f"[pipeline]   アップロード完了 ({time.time()-t0:.0f}秒): {upload_url[:60]}...")
 
     payload = {
@@ -225,14 +230,21 @@ def run_assemblyai(vocals_path: Path, output_path: Path) -> Path:
     if not r.ok:
         print(f"[pipeline]   AssemblyAI エラーレスポンス: {r.status_code} {r.text}", flush=True)
     r.raise_for_status()
-    job_id = r.json()["id"]
+    try:
+        job_id = r.json()["id"]
+    except (ValueError, KeyError) as e:
+        raise RuntimeError(f"AssemblyAI ジョブ投入レスポンス解析失敗: {e} / body={r.text[:200]}") from e
     print(f"[pipeline]   ジョブID: {job_id}")
 
     print("[pipeline]   ポーリング中...", flush=True)
-    while True:
+    max_iterations = 60  # 5分上限 (5s間隔 × 60 = 300s)
+    for _poll_iter in range(max_iterations):
         r = requests.get(f"https://api.assemblyai.com/v2/transcript/{job_id}", headers=headers, timeout=30)
         r.raise_for_status()
-        data = r.json()
+        try:
+            data = r.json()
+        except ValueError as e:
+            raise RuntimeError(f"AssemblyAI ポーリングレスポンス解析失敗: {e} / body={r.text[:200]}") from e
         status = data["status"]
         print(f"[pipeline]   status: {status}", flush=True)
         if status == "completed":
@@ -240,6 +252,8 @@ def run_assemblyai(vocals_path: Path, output_path: Path) -> Path:
         elif status == "error":
             raise RuntimeError(f"AssemblyAI エラー: {data.get('error')}")
         time.sleep(ASSEMBLYAI_POLL_INTERVAL_SEC)
+    else:
+        raise RuntimeError(f"AssemblyAI ポーリングタイムアウト: {max_iterations}回 ({max_iterations * ASSEMBLYAI_POLL_INTERVAL_SEC}秒) 経過")
 
     elapsed = time.time() - t0
     print(f"[pipeline] Step4完了: {elapsed:.0f}秒")
@@ -288,7 +302,9 @@ def run_deepgram(vocals_path: Path, output_path: Path) -> Path:
         print(f"[pipeline] Step5スキップ (既存): {output_path.name}")
         return output_path
 
-    api_key = os.environ["DEEPGRAM_API_KEY"]
+    api_key = os.environ.get("DEEPGRAM_API_KEY")
+    if not api_key:
+        raise KeyError("環境変数 DEEPGRAM_API_KEY が設定されていません。source ~/.bashrc を実行してください。")
     print(f"[pipeline] Step5: Deepgram Nova-3 投入中...", flush=True)
     t0 = time.time()
 
