@@ -124,6 +124,7 @@
 !scripts/regen_srt_from_merged.py
 !scripts/gemini_video_analysis.py
 !scripts/gemini_shorts_qc.py
+!scripts/kill_orphan_chrome.sh
 !scripts/automation/
 !scripts/automation/cmd_rag_hook.sh
 !scripts/automation/post_fetch_recommend.sh
