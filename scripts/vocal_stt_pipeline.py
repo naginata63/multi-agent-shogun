@@ -67,34 +67,51 @@ def check_api_keys():
 
 def split_into_chunks(video_path: Path, chunks_dir: Path) -> list[Path]:
     """
-    ffmpegで10分チャンクに分割する。
+    音声先行抽出方式でffmpegを使い10分チャンクに分割する。
+    Step1a: 音声をWAV抽出（AAC境界問題を回避）
+    Step1b: WAVを正確な600秒チャンクに分割
     既存チャンクがあればスキップ。
     戻り値: チャンクパスのリスト (ソート済み)
     """
     chunks_dir.mkdir(parents=True, exist_ok=True)
-    existing = sorted(chunks_dir.glob("chunk_*.mp4"))
+    existing = sorted(chunks_dir.glob("chunk_*.wav"))
     if existing:
         print(f"[pipeline] Step1スキップ: チャンク{len(existing)}本が既存 ({chunks_dir})")
         return existing
 
-    print(f"[pipeline] Step1: ffmpegでチャンク分割 (600秒/チャンク) ...")
-    out_pattern = str(chunks_dir / "chunk_%03d.mp4")
-    cmd = [
-        "ffmpeg", "-y", "-i", str(video_path),
-        "-c", "copy",
+    # Step1a: 音声をWAVとして抽出（AAC境界損失を排除）
+    full_audio_path = chunks_dir / "full_audio.wav"
+    if not full_audio_path.exists():
+        print(f"[pipeline] Step1a: 音声WAV抽出 (48kHz PCM) ...")
+        cmd_extract = [
+            "ffmpeg", "-y", "-i", str(video_path),
+            "-vn", "-ar", "48000", "-c:a", "pcm_s16le",
+            str(full_audio_path),
+        ]
+        result = subprocess.run(cmd_extract, capture_output=True, text=True)
+        if result.returncode != 0:
+            raise RuntimeError(f"ffmpeg音声抽出失敗:\n{result.stderr[-3000:]}")
+        print(f"[pipeline] Step1a完了: {full_audio_path.name}")
+    else:
+        print(f"[pipeline] Step1aスキップ: {full_audio_path.name} が既存")
+
+    # Step1b: WAVを正確な600秒チャンクに分割
+    print(f"[pipeline] Step1b: WAVチャンク分割 ({CHUNK_DURATION_SEC}秒/チャンク) ...")
+    out_pattern = str(chunks_dir / "chunk_%03d.wav")
+    cmd_split = [
+        "ffmpeg", "-y", "-i", str(full_audio_path),
         "-f", "segment",
         "-segment_time", str(CHUNK_DURATION_SEC),
-        "-reset_timestamps", "1",
         out_pattern,
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd_split, capture_output=True, text=True)
     if result.returncode != 0:
-        raise RuntimeError(f"ffmpegチャンク分割失敗:\n{result.stderr[-3000:]}")
+        raise RuntimeError(f"ffmpegWAVチャンク分割失敗:\n{result.stderr[-3000:]}")
 
-    chunks = sorted(chunks_dir.glob("chunk_*.mp4"))
+    chunks = sorted(chunks_dir.glob("chunk_*.wav"))
     if not chunks:
         raise RuntimeError(f"チャンクが生成されませんでした: {chunks_dir}")
-    print(f"[pipeline] Step1完了: {len(chunks)}チャンク生成")
+    print(f"[pipeline] Step1完了: {len(chunks)}チャンク生成 (WAV形式, ドリフトゼロ)")
     return chunks
 
 
