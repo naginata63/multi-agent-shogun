@@ -204,6 +204,12 @@ if parse_error and os.path.exists(path):
 items = data.get("inbox")
 if not isinstance(items, list):
     items = []
+
+# 重複チェック: 同一msg_idが既に存在する場合はスキップ
+msg_id = os.environ.get("MSG_ID", "")
+if msg_id and any(item.get("id", "") == msg_id for item in items):
+    sys.exit(0)  # 既存エントリ — スキップ
+
 items.append(entry)
 data["inbox"] = items
 
@@ -233,7 +239,9 @@ echo "[$(date)] ntfy listener started — topic: $TOPIC (auth: ${NTFY_TOKEN:+tok
 
 while true; do
     # Stream new messages (long-lived connection, blocks until message arrives)
-    curl -s --no-buffer "${AUTH_ARGS[@]}" "https://ntfy.sh/$TOPIC/json" 2>/dev/null | while IFS= read -r line; do
+    # since=<unix_ts>: 接続開始時刻以降のメッセージのみ受信（再接続時の過去メッセージ重複を防止）
+    SINCE_TS=$(date +%s)
+    curl -s --no-buffer "${AUTH_ARGS[@]}" "https://ntfy.sh/$TOPIC/json?since=${SINCE_TS}" 2>/dev/null | while IFS= read -r line; do
         # Skip keepalive pings and non-message events
         EVENT=$(echo "$line" | parse_json event)
         [ "$EVENT" != "message" ] && continue
