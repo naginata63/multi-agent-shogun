@@ -2,6 +2,7 @@
 """
 merged JSONのwordsから実名ラベル付きSRTを再生成するスクリプト
 """
+import argparse
 import json
 import sys
 import os
@@ -80,17 +81,43 @@ def regen_srt(target: dict) -> dict:
 
 
 if __name__ == "__main__":
-    results = []
-    for t in TARGETS:
-        r = regen_srt(t)
-        results.append(r)
+    parser = argparse.ArgumentParser(description="merged JSONのwordsから実名ラベル付きSRTを再生成")
+    parser.add_argument("--input", help="merged JSONパス（指定時は単一ファイル処理）")
+    parser.add_argument("--output", help="SRT出力パス（--inputと一緒に使用）")
+    args = parser.parse_args()
 
-    print("\n=== SUMMARY ===")
-    all_ok = True
-    for r in results:
+    if args.input:
+        # 単一ファイルモード
+        if not args.output:
+            print("ERROR: --input を指定する場合は --output も必要です", file=sys.stderr)
+            sys.exit(1)
+        video_id = os.path.splitext(os.path.basename(args.input))[0]
+        if video_id.startswith("merged_"):
+            video_id = video_id[len("merged_"):]
+        target = {
+            "video_id": video_id,
+            "merged_json": args.input,
+            "output_srt": args.output,
+            "orig_dir": "",
+            "orig_srt": "",
+        }
+        r = regen_srt(target)
         status = "OK" if r["ok"] else "FAIL"
-        print(f"  [{status}] {r['video_id']}: speakers={r['speakers']}, named_count={r['named_count']}")
-        if not r["ok"]:
-            all_ok = False
+        print(f"\n[{status}] {r['video_id']}: speakers={r['speakers']}, named_count={r['named_count']}")
+        sys.exit(0 if r["ok"] else 1)
+    else:
+        # デフォルト: TARGETSリスト全処理
+        results = []
+        for t in TARGETS:
+            r = regen_srt(t)
+            results.append(r)
 
-    sys.exit(0 if all_ok else 1)
+        print("\n=== SUMMARY ===")
+        all_ok = True
+        for r in results:
+            status = "OK" if r["ok"] else "FAIL"
+            print(f"  [{status}] {r['video_id']}: speakers={r['speakers']}, named_count={r['named_count']}")
+            if not r["ok"]:
+                all_ok = False
+
+        sys.exit(0 if all_ok else 1)
