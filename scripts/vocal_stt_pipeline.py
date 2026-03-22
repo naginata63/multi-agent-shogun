@@ -456,13 +456,13 @@ def run_speaker_identification(
         multi_path = profile_dir / f"{member}_embeddings.pt"
         single_path = profile_dir / f"{member}_embedding.pt"
         if multi_path.exists():
-            embs = torch.load(str(multi_path), map_location=device)
+            embs = torch.load(str(multi_path), map_location=device, weights_only=True)
             if embs.dim() == 1:
                 embs = embs.unsqueeze(0)
             embeddings[member] = embs
             print(f"[pipeline]     {member}: _embeddings.pt ({embs.shape[0]}個)")
         elif single_path.exists():
-            emb = torch.load(str(single_path), map_location=device).squeeze()
+            emb = torch.load(str(single_path), map_location=device, weights_only=True).squeeze()
             embeddings[member] = emb.unsqueeze(0)
             print(f"[pipeline]     {member}: _embedding.pt (旧形式)")
 
@@ -658,12 +658,12 @@ def run_direct_speaker_identification(
         multi_path = profile_dir / f"{member}_embeddings.pt"
         single_path = profile_dir / f"{member}_embedding.pt"
         if multi_path.exists():
-            embs = torch.load(str(multi_path), map_location=device)
+            embs = torch.load(str(multi_path), map_location=device, weights_only=True)
             if embs.dim() == 1:
                 embs = embs.unsqueeze(0)
             embeddings[member] = embs
         elif single_path.exists():
-            emb = torch.load(str(single_path), map_location=device).squeeze()
+            emb = torch.load(str(single_path), map_location=device, weights_only=True).squeeze()
             embeddings[member] = emb.unsqueeze(0)
 
     if not embeddings:
@@ -803,61 +803,10 @@ def run_direct_speaker_identification(
 
 
 def regenerate_srt_from_merged(words: list[dict], srt_path: Path) -> None:
-    """merged JSONのwordsリストからSRTファイルを再生成する。
-
-    連続する同一話者のワードを1セグメントにまとめる（最大5秒、ギャップ2秒で区切り）。
-    """
-    MAX_SEG_MS = 5000
-    MAX_GAP_MS = 2000
-
-    def ms_to_srt_time(ms: int) -> str:
-        h = ms // 3600000
-        m = (ms % 3600000) // 60000
-        s = (ms % 60000) // 1000
-        cs = (ms % 1000) // 10
-        return f"{h:02d}:{m:02d}:{s:02d},{cs:02d}0"
-
-    segments = []
-    if not words:
-        srt_path.write_text("", encoding="utf-8")
-        return
-
-    seg_words = [words[0]]
-    seg_start = words[0]["start"]
-    seg_end = words[0]["end"]
-    seg_speaker = words[0].get("speaker", "")
-
-    def flush_segment():
-        text = " ".join(w["text"] for w in seg_words if w.get("text")).strip()
-        if text:
-            segments.append((seg_start, seg_end, seg_speaker, text))
-
-    for w in words[1:]:
-        gap = w["start"] - seg_end
-        duration = seg_end - seg_start
-        speaker = w.get("speaker", "")
-
-        if speaker != seg_speaker or gap > MAX_GAP_MS or duration >= MAX_SEG_MS:
-            flush_segment()
-            seg_words = [w]
-            seg_start = w["start"]
-            seg_end = w["end"]
-            seg_speaker = speaker
-        else:
-            seg_words.append(w)
-            seg_end = w["end"]
-
-    flush_segment()
-
-    lines = []
-    for idx, (start, end, speaker, text) in enumerate(segments, 1):
-        label = f"[{speaker}]" if speaker else "[?]"
-        lines.append(str(idx))
-        lines.append(f"{ms_to_srt_time(start)} --> {ms_to_srt_time(end)}")
-        lines.append(f"{label}: {text}")
-        lines.append("")
-
-    srt_path.write_text("\n".join(lines), encoding="utf-8")
+    """merged JSONのwordsリストからSRTファイルを再生成する。stt_merge.generate_srt()に委譲。"""
+    sys.path.insert(0, str(Path(__file__).parent))
+    from stt_merge import generate_srt
+    srt_path.write_text(generate_srt(words), encoding="utf-8")
 
 
 def main():
@@ -873,6 +822,9 @@ def main():
     parser.add_argument("--direct-speaker-id", action="store_true",
                         help="AssemblyAI話者ラベルを無視してECAPA-TDNN直接話者特定を強制実行")
     args = parser.parse_args()
+
+    if args.gemini:
+        print("[pipeline] WARNING: --gemini オプションは廃止済みです。vocal_stt_pipeline.pyを直接使用してください。", file=sys.stderr)
 
     # APIキーチェック（最初に実施）
     check_api_keys()
@@ -988,7 +940,7 @@ def main():
             speakers_from_words = len(set(w.get("speaker", "") for w in words if w.get("speaker")))
             speakers_detected = aai_data.get("speakers_detected", speakers_from_words or 2)
             if speakers_detected <= 1:
-                print(f"[pipeline] AssemblyAI話者数={speakers_detected} → direct話者特定方式にフォールバック")
+                print(f"[pipeline] AssemblyAI話者数={speakers_detected} → 直接処理モードで実行")
                 use_direct = True
         except Exception:
             pass
