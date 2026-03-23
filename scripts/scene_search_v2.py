@@ -296,7 +296,7 @@ def search(query_embedding, embeddings, metadata, top_k=10, video_id=None, speak
         mask = np.array([m.get("speaker") == speaker for m in metadata], dtype=bool)
         scores = np.where(mask, scores, -2.0)
 
-    top_indices = np.argsort(scores)[::-1][:top_k * 5]  # 余分に取得してdedup後top_k
+    top_indices = np.argsort(scores)[::-1][:top_k * 10]  # 余分に取得してdedup後top_k（10倍で候補プール確保）
     results = []
     for idx in top_indices:
         if scores[idx] <= 0:
