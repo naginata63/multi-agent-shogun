@@ -226,6 +226,7 @@ def run_assemblyai(vocals_path: Path, output_path: Path) -> Path:
         print("[pipeline]   WARNING: speaker_labels=Falseで自動リトライ（話者分離はECAPA-TDNNで後付け）", flush=True)
         payload_no_speaker = {k: v for k, v in payload.items() if k != "speaker_labels"}
         payload_no_speaker["speaker_labels"] = False
+        time.sleep(2)  # exponential backoffの初回待機（レートリミット考慮）
         r = requests.post("https://api.assemblyai.com/v2/transcript", headers=headers, json=payload_no_speaker, timeout=30)
     if not r.ok:
         print(f"[pipeline]   AssemblyAI エラーレスポンス: {r.status_code} {r.text}", flush=True)

@@ -42,6 +42,8 @@ SCOPES = [
     "https://www.googleapis.com/auth/yt-analytics.readonly",
 ]
 
+# 注意: TODAY/DATE_STR/ANALYTICS_END/ANALYTICS_STARTはmain()内で再計算される。
+# 長時間プロセスで日付を跨いだ場合の不整合を防ぐため、main()先頭でglobal宣言し再代入する。
 TODAY = datetime.date.today()
 DATE_STR = TODAY.strftime("%Y-%m-%d")
 # Analytics APIは1-2日遅延あり。直近14日分（2日前まで）
@@ -155,7 +157,7 @@ def get_video_details(youtube, video_ids):
                 "published_at": snippet["publishedAt"],
                 "views": int(stats.get("viewCount", 0)),
                 "likes": int(stats.get("likeCount", 0)),
-                "dislikes": int(stats.get("dislikeCount", 0)),
+                # dislikeCountはYouTube APIが2021年以降非公開のため常に0（削除済み）
                 "comments": int(stats.get("commentCount", 0)),
             })
 
@@ -463,7 +465,7 @@ def generate_report(channel_stats, videos, daily_stats, traffic_sources,
     lines.append("|------|-----|")
     lines.append(f"| チャンネル名 | {channel_stats.get('name', '—')} |")
     lines.append(f"| 登録者数 | {channel_stats.get('subscribers', 0)}{sub_diff_str} |")
-    lines.append(f"| 総再生回数 | {channel_stats.get('total_views', 0):,}（※ショートの再生はData APIカウントと差異あり） |")
+    lines.append(f"| 総再生回数 | {channel_stats.get('total_views', 0):,}（※ショート動画は実際の再生数と差異が生じる場合あり） |")
     lines.append(f"| 動画数 | {channel_stats.get('video_count', 0)} |")
     lines.append("")
     lines.append("---")
@@ -517,8 +519,8 @@ def generate_report(channel_stats, videos, daily_stats, traffic_sources,
 
     lines.append("### ショート（再生数順）")
     lines.append("")
-    lines.append("| タイトル | ID | 再生 | 前日比 | いいね | 低評価 | コメ | 尺 |")
-    lines.append("|----------|-----|------|--------|--------|--------|------|-----|")
+    lines.append("| タイトル | ID | 再生 | 前日比 | いいね | コメ | 尺 |")
+    lines.append("|----------|-----|------|--------|--------|------|-----|")
     for v in shorts:
         diff = video_diffs.get(v["id"], {})
         diff_views = diff.get("views", None)
@@ -528,7 +530,7 @@ def generate_report(channel_stats, videos, daily_stats, traffic_sources,
             diff_str = "—"
         lines.append(
             f"| {v['title']} | {v['id']} | {v['views']:,} | {diff_str} | "
-            f"{v['likes']} | {v['dislikes']} | {v['comments']} | {v['duration_str']} |"
+            f"{v['likes']} | {v['comments']} | {v['duration_str']} |"
         )
 
     lines.append("")
@@ -574,6 +576,8 @@ def generate_report(channel_stats, videos, daily_stats, traffic_sources,
     # AI分析
     lines.append("## AI分析")
     lines.append("")
+    lines.append("> **注意**: 以下はLLMによる自動生成分析です。数値の正確性は保証されません。判断の際は上記の実データと照合してください。")
+    lines.append("")
     lines.append(llm_analysis)
     lines.append("")
 
@@ -607,6 +611,12 @@ def setup_crontab():
 
 
 def main():
+    global TODAY, DATE_STR, ANALYTICS_END, ANALYTICS_START
+    TODAY = datetime.date.today()
+    DATE_STR = TODAY.strftime("%Y-%m-%d")
+    ANALYTICS_END = (TODAY - datetime.timedelta(days=2)).strftime("%Y-%m-%d")
+    ANALYTICS_START = (TODAY - datetime.timedelta(days=16)).strftime("%Y-%m-%d")
+
     print(f"[analytics] YouTube Analytics Snapshot — {DATE_STR}")
     print(f"[analytics] Analytics範囲: {ANALYTICS_START}〜{ANALYTICS_END}")
     print("[analytics] 認証中...")
