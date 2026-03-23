@@ -104,11 +104,19 @@ def build_video_table(latest_raw: dict, prev_raw: dict | None) -> list[dict]:
         if pub and len(pub) >= 10:
             pub = pub[:10]  # YYYY-MM-DD
 
+        prev_views = prev_map.get(v["id"], views) if prev_raw else None
+        view_diff_1d = views - prev_views if prev_raw else None
+        view_growth_rate = (
+            round(view_diff_1d / prev_views * 100, 2)
+            if prev_raw and prev_views and prev_views > 0 and view_diff_1d is not None
+            else None
+        )
         entry = {
             "id": v["id"],
             "title": v.get("title", ""),
             "views": views,
             "likes": likes,
+            "comments": v.get("comments", 0),
             "like_rate": round(likes / views * 100, 2) if views > 0 else 0,
             "duration_sec": duration_sec,
             "duration_str": v.get("duration_str", ""),
@@ -116,7 +124,8 @@ def build_video_table(latest_raw: dict, prev_raw: dict | None) -> list[dict]:
             "published_at": pub,
             "loop_rate": pva.get("loop_rate"),
             "avg_view_pct": pva.get("avg_view_pct"),
-            "view_diff_1d": views - prev_map.get(v["id"], views) if prev_raw else None,
+            "view_diff_1d": view_diff_1d,
+            "view_growth_rate": view_growth_rate,
         }
         result.append(entry)
 
@@ -185,6 +194,23 @@ def build_similar_videos(videos: list[dict]) -> dict:
         scores.sort(reverse=True)
         result[target["id"]] = [vid for _, vid in scores[:5]]
     return result
+
+
+def build_rankings(videos: list[dict]) -> dict:
+    """6ランキングをTOP10で構築"""
+    def top10(key: str) -> list[dict]:
+        valid = [v for v in videos if v.get(key) is not None]
+        sorted_v = sorted(valid, key=lambda v: v[key] or 0, reverse=True)[:10]
+        return [{"id": v["id"], "title": v["title"], "value": v[key]} for v in sorted_v]
+
+    return {
+        "views": top10("views"),
+        "like_rate": top10("like_rate"),
+        "avg_view_pct": top10("avg_view_pct"),
+        "loop_rate": top10("loop_rate"),
+        "comments": top10("comments"),
+        "view_growth_rate": top10("view_growth_rate"),
+    }
 
 
 def load_video_analysis() -> dict:
@@ -302,6 +328,7 @@ def generate_data_json(raw_list: list[dict], analysis: list[dict]) -> dict:
     video_history = build_video_history(raw_list)
     similar_videos = build_similar_videos(videos)
     video_analysis = load_video_analysis()
+    rankings = build_rankings(videos)
 
     jst = timezone(timedelta(hours=9))
     generated_at = datetime.now(jst).strftime("%Y-%m-%dT%H:%M:%S")
@@ -321,6 +348,7 @@ def generate_data_json(raw_list: list[dict], analysis: list[dict]) -> dict:
         "video_history": video_history,
         "similar_videos": similar_videos,
         "video_analysis": video_analysis,
+        "rankings": rankings,
     }
 
 
@@ -380,6 +408,17 @@ def generate_html() -> str:
     .detail-title { font-size: 1.3em; font-weight: bold; color: var(--text); margin-bottom: 6px; word-break: break-all; white-space: normal; }
     .similar-row { cursor: pointer; }
     .similar-row:hover td { background: #1f2f4f; }
+    /* ランキング */
+    .ranking-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    @media (max-width: 900px) { .ranking-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .ranking-grid { grid-template-columns: 1fr; } }
+    .ranking-card { background: #0f1a2e; border-radius: 6px; padding: 12px; }
+    .ranking-title { font-weight: bold; color: var(--accent); margin-bottom: 8px; font-size: 0.9em; }
+    .ranking-item { display: flex; align-items: center; padding: 4px 0; border-bottom: 1px solid #2a2a4a; font-size: 0.82em; cursor: pointer; }
+    .ranking-item:hover { background: #1a2a4a; border-radius: 3px; }
+    .ranking-num { color: #888; width: 22px; flex-shrink: 0; text-align: right; margin-right: 6px; }
+    .ranking-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #ccc; margin-right: 6px; }
+    .ranking-val { color: var(--accent); font-weight: bold; flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -431,6 +470,36 @@ def generate_html() -> str:
           </thead>
           <tbody id="video-tbody"></tbody>
         </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>ランキング TOP10</h2>
+      <div class="ranking-grid">
+        <div class="ranking-card">
+          <div class="ranking-title">&#x1F441; 再生数</div>
+          <div id="rank-views"></div>
+        </div>
+        <div class="ranking-card">
+          <div class="ranking-title">&#x1F44D; Like率%</div>
+          <div id="rank-like-rate"></div>
+        </div>
+        <div class="ranking-card">
+          <div class="ranking-title">&#x1F4FA; 視聴率%</div>
+          <div id="rank-avg-view-pct"></div>
+        </div>
+        <div class="ranking-card">
+          <div class="ranking-title">&#x1F501; 周回率</div>
+          <div id="rank-loop-rate"></div>
+        </div>
+        <div class="ranking-card">
+          <div class="ranking-title">&#x1F4AC; コメント数</div>
+          <div id="rank-comments"></div>
+        </div>
+        <div class="ranking-card">
+          <div class="ranking-title">&#x1F4C8; 伸び率%</div>
+          <div id="rank-growth-rate"></div>
+        </div>
       </div>
     </div>
 
@@ -685,6 +754,36 @@ function escHtml(str) {
   return str.replace(/&/g,\'&amp;\').replace(/</g,\'&lt;\').replace(/>/g,\'&gt;\').replace(/"/g,\'&quot;\');
 }
 
+function renderRankings() {
+  if (!data || !data.rankings) return;
+  const r = data.rankings;
+  const fmtRankVal = (key, val) => {
+    if (val == null) return \'-\';
+    if (key === \'views\' || key === \'comments\') return val.toLocaleString();
+    if (key === \'like_rate\' || key === \'avg_view_pct\' || key === \'view_growth_rate\') return val.toFixed(1) + \'%\';
+    return val.toFixed(3);
+  };
+  const renderRank = (id, key, items) => {
+    const el = document.getElementById(id);
+    if (!el || !items) return;
+    el.innerHTML = items.map((item, i) => {
+      const medal = i === 0 ? \'&#x1F947;\' : i === 1 ? \'&#x1F948;\' : i === 2 ? \'&#x1F949;\' : (i + 1) + \'\';
+      const short = escHtml(item.title.replace(/\\u300a.*?\\u300b/g, \'\').replace(/【.*?】/g, \'\').replace(/@.*$/, \'\').trim().slice(0, 18));
+      return \'<div class="ranking-item" onclick="location.hash=\\\'#video=\' + item.id + \'\\\'">\' +
+        \'<span class="ranking-num">\' + medal + \'</span>\' +
+        \'<span class="ranking-name">\' + short + \'</span>\' +
+        \'<span class="ranking-val">\' + fmtRankVal(key, item.value) + \'</span>\' +
+        \'</div>\';
+    }).join(\'\');
+  };
+  renderRank(\'rank-views\', \'views\', r.views);
+  renderRank(\'rank-like-rate\', \'like_rate\', r.like_rate);
+  renderRank(\'rank-avg-view-pct\', \'avg_view_pct\', r.avg_view_pct);
+  renderRank(\'rank-loop-rate\', \'loop_rate\', r.loop_rate);
+  renderRank(\'rank-comments\', \'comments\', r.comments);
+  renderRank(\'rank-growth-rate\', \'view_growth_rate\', r.view_growth_rate);
+}
+
 // ── ダッシュボード（既存機能） ─────────────────────────
 const metricConfig = {
   views:  { label: \'日別再生数\', key: \'views\',       type: \'bar\' },
@@ -859,6 +958,7 @@ fetch(\'data.json\')
     renderTraffic();
     renderTable([...d.videos].sort((a, b) => (b.views || 0) - (a.views || 0)));
     renderAnalysis();
+    renderRankings();
     // ロード後にハッシュが既にあればルーティング
     route();
   })
