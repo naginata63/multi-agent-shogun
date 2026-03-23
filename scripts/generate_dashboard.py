@@ -3,7 +3,7 @@
 generate_dashboard.py — YouTube解析HTMLダッシュボード生成
 
 Usage:
-    python3 scripts/generate_dashboard.py
+    python3 scripts/generate_dashboard.py [--skip-video-analysis]
 
 出力:
     projects/dozle_kirinuki/analytics/dashboard/data.json
@@ -16,6 +16,8 @@ Usage:
 """
 
 import json
+import math
+import subprocess
 import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -25,6 +27,7 @@ PROJECT_DIR = BASE_DIR / "projects" / "dozle_kirinuki"
 ANALYTICS_DIR = PROJECT_DIR / "analytics"
 DASHBOARD_DIR = ANALYTICS_DIR / "dashboard"
 ANALYSIS_HISTORY_PATH = ANALYTICS_DIR / "analysis_history.json"
+VIDEO_ANALYSIS_PATH = ANALYTICS_DIR / "video_analysis.json"
 
 
 def load_all_raw_jsons() -> list[dict]:
@@ -120,6 +123,155 @@ def build_video_table(latest_raw: dict, prev_raw: dict | None) -> list[dict]:
     return result
 
 
+def build_video_history(raw_list: list[dict]) -> dict:
+    """全raw.jsonから動画別時系列データを構築"""
+    history: dict[str, dict] = {}
+
+    for raw in raw_list:
+        raw_date = raw.get("date", "")
+        if not raw_date:
+            continue
+
+        video_map = {v["id"]: v for v in raw.get("videos", [])}
+        pva_map = {v["id"]: v for v in raw.get("per_video_analytics", [])}
+
+        for vid, v in video_map.items():
+            if vid not in history:
+                history[vid] = {
+                    "dates": [], "views": [], "likes": [],
+                    "view_diffs": [], "like_rates": [],
+                    "loop_rates": [], "avg_view_pcts": [],
+                }
+            h = history[vid]
+            views = v.get("views", 0)
+            likes = v.get("likes", 0)
+
+            prev_views = h["views"][-1] if h["views"] else None
+            view_diff = views - prev_views if prev_views is not None else None
+
+            pva = pva_map.get(vid, {})
+
+            h["dates"].append(raw_date)
+            h["views"].append(views)
+            h["likes"].append(likes)
+            h["view_diffs"].append(view_diff)
+            h["like_rates"].append(round(likes / views * 100, 2) if views > 0 else 0)
+            h["loop_rates"].append(pva.get("loop_rate"))
+            h["avg_view_pcts"].append(pva.get("avg_view_pct"))
+
+    return history
+
+
+def build_similar_videos(videos: list[dict]) -> dict:
+    """動画別類似動画マッピングを事前計算（上位5本）"""
+    result = {}
+    for target in videos:
+        candidates = [v for v in videos if v["id"] != target["id"]]
+        scores = []
+        for c in candidates:
+            score = 0.0
+            if target["views"] > 0 and c["views"] > 0:
+                log_ratio = abs(math.log10(c["views"]) - math.log10(target["views"]))
+                score += max(0.0, 1.0 - log_ratio)
+            tr = target.get("like_rate", 0) or 0
+            cr = c.get("like_rate", 0) or 0
+            score += max(0.0, 1.0 - abs(tr - cr) / 5)
+            td = target.get("duration_sec", 30) or 30
+            cd = c.get("duration_sec", 30) or 30
+            score += max(0.0, 1.0 - abs(td - cd) / 60)
+            if target.get("is_short") == c.get("is_short"):
+                score += 0.5
+            scores.append((score, c["id"]))
+        scores.sort(reverse=True)
+        result[target["id"]] = [vid for _, vid in scores[:5]]
+    return result
+
+
+def load_video_analysis() -> dict:
+    """動画別LLM分析読み込み"""
+    if not VIDEO_ANALYSIS_PATH.exists():
+        return {}
+    try:
+        with open(VIDEO_ANALYSIS_PATH, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"[warn] video_analysis.json 読み込み失敗: {e}", file=sys.stderr)
+        return {}
+
+
+def save_video_analysis(analysis: dict) -> None:
+    """動画別LLM分析保存"""
+    try:
+        with open(VIDEO_ANALYSIS_PATH, "w", encoding="utf-8") as f:
+            json.dump(analysis, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"[warn] video_analysis.json 保存失敗: {e}", file=sys.stderr)
+
+
+def analyze_top_videos(videos: list[dict], n: int = 5) -> None:
+    """再生数上位N本 + 前日比上位3本をClaude CLIで個別分析し保存"""
+    targets: set[str] = set()
+    by_views = sorted(videos, key=lambda v: v["views"], reverse=True)
+    for v in by_views[:n]:
+        targets.add(v["id"])
+    by_growth = sorted(videos, key=lambda v: v.get("view_diff_1d") or 0, reverse=True)
+    for v in by_growth[:3]:
+        if v.get("view_diff_1d", 0) and v["view_diff_1d"] > 0:
+            targets.add(v["id"])
+
+    existing = load_video_analysis()
+    today = datetime.now().strftime("%Y-%m-%d")
+    for vid in list(targets):
+        if vid in existing:
+            if any(a["date"] == today for a in existing[vid].get("analyses", [])):
+                targets.discard(vid)
+
+    video_map = {v["id"]: v for v in videos}
+    for vid in targets:
+        v = video_map.get(vid)
+        if not v:
+            continue
+        prompt = (
+            f"以下のYouTubeショート動画のパフォーマンスを分析してください。\n\n"
+            f"タイトル: {v['title']}\n"
+            f"再生数: {v['views']:,}\n"
+            f"いいね: {v['likes']}\n"
+            f"Like率: {v.get('like_rate', 0):.1f}%\n"
+            f"周回率: {v.get('loop_rate', 'N/A')}\n"
+            f"視聴率: {v.get('avg_view_pct', 'N/A')}%\n"
+            f"公開日: {v['published_at']}\n"
+            f"尺: {v['duration_str']}\n\n"
+            f"分析観点:\n"
+            f"1. なぜこの動画は伸びた/伸びなかったか\n"
+            f"2. タイトル・サムネイル（タイトルから推測）の効果\n"
+            f"3. 改善すべき点\n"
+        )
+        print(f"[analyze] {vid}: {v['title'][:30]}...", file=sys.stderr)
+        try:
+            result = subprocess.run(
+                ["claude", "-p", prompt, "--model", "claude-opus-4-6"],
+                capture_output=True, text=True, timeout=60
+            )
+            content = result.stdout.strip()
+            if not content:
+                print(f"[warn] {vid}: 分析結果なし", file=sys.stderr)
+                continue
+        except Exception as e:
+            print(f"[warn] {vid}: 分析失敗: {e}", file=sys.stderr)
+            continue
+
+        if vid not in existing:
+            existing[vid] = {"title": v["title"], "analyses": []}
+        existing[vid]["analyses"].append({
+            "date": today,
+            "model": "claude-opus-4-6",
+            "content": content,
+        })
+
+    if targets:
+        save_video_analysis(existing)
+
+
 def load_analysis_history() -> list[dict]:
     """LLM分析履歴読み込み"""
     if not ANALYSIS_HISTORY_PATH.exists():
@@ -146,6 +298,11 @@ def generate_data_json(raw_list: list[dict], analysis: list[dict]) -> dict:
     videos = build_video_table(latest_raw, prev_raw)
     traffic = latest_raw.get("traffic_sources", [])
 
+    # 動画個別分析ページ用データ
+    video_history = build_video_history(raw_list)
+    similar_videos = build_similar_videos(videos)
+    video_analysis = load_video_analysis()
+
     jst = timezone(timedelta(hours=9))
     generated_at = datetime.now(jst).strftime("%Y-%m-%dT%H:%M:%S")
 
@@ -161,6 +318,9 @@ def generate_data_json(raw_list: list[dict], analysis: list[dict]) -> dict:
         "traffic_sources": traffic,
         "videos": videos,
         "analysis_history": analysis,
+        "video_history": video_history,
+        "similar_videos": similar_videos,
+        "video_analysis": video_analysis,
     }
 
 
@@ -209,71 +369,323 @@ def generate_html() -> str:
     .neg { color: #e94560; }
     .loop-badge { color: #f9a825; font-size: 0.85em; }
     #no-data { color: #888; padding: 20px; text-align: center; }
+    /* 個別ページ */
+    #detail-view { display: none; }
+    .back-btn { background: #333; color: var(--text); border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.95em; margin-bottom: 16px; }
+    .back-btn:hover { background: #444; }
+    .detail-meta { color: #888; font-size: 0.9em; margin-bottom: 16px; }
+    .detail-meta a { color: #aaa; }
+    .detail-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    @media (max-width: 800px) { .detail-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    .detail-title { font-size: 1.3em; font-weight: bold; color: var(--text); margin-bottom: 6px; word-break: break-all; white-space: normal; }
+    .similar-row { cursor: pointer; }
+    .similar-row:hover td { background: #1f2f4f; }
   </style>
 </head>
 <body>
-  <h1>毎日ドズル社切り抜き Analytics</h1>
-  <p id="last-updated">読み込み中...</p>
 
-  <div class="kpi-grid" id="kpi-cards">
-    <div class="kpi-card"><div class="kpi-label">登録者</div><div class="kpi-value" id="kpi-subs">-</div></div>
-    <div class="kpi-card"><div class="kpi-label">総再生数</div><div class="kpi-value" id="kpi-views">-</div></div>
-    <div class="kpi-card"><div class="kpi-label">動画数</div><div class="kpi-value" id="kpi-vcount">-</div></div>
-    <div class="kpi-card"><div class="kpi-label">前日再生増</div><div class="kpi-value" id="kpi-growth">-</div><div class="kpi-sub" id="kpi-growth-date"></div></div>
-  </div>
+  <!-- ダッシュボード一覧ビュー -->
+  <div id="dashboard-view">
+    <h1>毎日ドズル社切り抜き Analytics</h1>
+    <p id="last-updated">読み込み中...</p>
 
-  <div class="card">
-    <h2>日次推移</h2>
-    <div class="tab-btns">
-      <button class="tab-btn active" onclick="showChart(\'views\', this)">再生数</button>
-      <button class="tab-btn" onclick="showChart(\'subs\', this)">登録者</button>
-      <button class="tab-btn" onclick="showChart(\'likes\', this)">いいね</button>
-      <button class="tab-btn" onclick="showChart(\'growth\', this)">登録増</button>
+    <div class="kpi-grid" id="kpi-cards">
+      <div class="kpi-card"><div class="kpi-label">登録者</div><div class="kpi-value" id="kpi-subs">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">総再生数</div><div class="kpi-value" id="kpi-views">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">動画数</div><div class="kpi-value" id="kpi-vcount">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">前日再生増</div><div class="kpi-value" id="kpi-growth">-</div><div class="kpi-sub" id="kpi-growth-date"></div></div>
     </div>
-    <canvas id="dailyChart"></canvas>
-  </div>
 
-  <div class="card">
-    <h2>トラフィックソース（直近14日）</h2>
-    <canvas id="trafficChart" style="max-height:280px; max-width:500px;"></canvas>
-  </div>
+    <div class="card">
+      <h2>日次推移</h2>
+      <div class="tab-btns">
+        <button class="tab-btn active" onclick="showChart(\'views\', this)">再生数</button>
+        <button class="tab-btn" onclick="showChart(\'subs\', this)">登録者</button>
+        <button class="tab-btn" onclick="showChart(\'likes\', this)">いいね</button>
+        <button class="tab-btn" onclick="showChart(\'growth\', this)">登録増</button>
+      </div>
+      <canvas id="dailyChart"></canvas>
+    </div>
 
-  <div class="card">
-    <h2>動画別パフォーマンス</h2>
-    <div class="table-wrap">
-      <table id="video-table">
-        <thead>
-          <tr>
-            <th onclick="sortTable(\'title\')">タイトル</th>
-            <th onclick="sortTable(\'views\')">再生数 <span class="sort-arrow" id="sort-arrow-views">↓</span></th>
-            <th onclick="sortTable(\'likes\')">いいね</th>
-            <th onclick="sortTable(\'like_rate\')">Like率%</th>
-            <th onclick="sortTable(\'loop_rate\')">周回率</th>
-            <th onclick="sortTable(\'avg_view_pct\')">視聴率%</th>
-            <th onclick="sortTable(\'view_diff_1d\')">前日比</th>
-            <th>尺</th>
-            <th onclick="sortTable(\'published_at\')">公開日</th>
-          </tr>
-        </thead>
-        <tbody id="video-tbody"></tbody>
-      </table>
+    <div class="card">
+      <h2>トラフィックソース（直近14日）</h2>
+      <canvas id="trafficChart" style="max-height:280px; max-width:500px;"></canvas>
+    </div>
+
+    <div class="card">
+      <h2>動画別パフォーマンス</h2>
+      <div class="table-wrap">
+        <table id="video-table">
+          <thead>
+            <tr>
+              <th onclick="sortTable(\'title\')">タイトル</th>
+              <th onclick="sortTable(\'views\')">再生数 <span class="sort-arrow" id="sort-arrow-views">↓</span></th>
+              <th onclick="sortTable(\'likes\')">いいね</th>
+              <th onclick="sortTable(\'like_rate\')">Like率%</th>
+              <th onclick="sortTable(\'loop_rate\')">周回率</th>
+              <th onclick="sortTable(\'avg_view_pct\')">視聴率%</th>
+              <th onclick="sortTable(\'view_diff_1d\')">前日比</th>
+              <th>尺</th>
+              <th onclick="sortTable(\'published_at\')">公開日</th>
+            </tr>
+          </thead>
+          <tbody id="video-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>AI分析コメント</h2>
+      <div id="analysis-list"><p id="no-data" style="display:none">分析コメントなし</p></div>
     </div>
   </div>
 
-  <div class="card">
-    <h2>AI分析コメント</h2>
-    <div id="analysis-list"><p id="no-data" style="display:none">分析コメントなし</p></div>
+  <!-- 動画個別詳細ビュー -->
+  <div id="detail-view">
+    <button class="back-btn" onclick="location.hash=\'\'">← 一覧に戻る</button>
+    <div id="detail-content"></div>
   </div>
 
 <script>
 let data = null;
 let currentSort = { key: \'views\', dir: -1 };
 let dailyChartInstance = null;
+let detailChartInstances = [];
 
 const fmt = n => n == null ? \'-\' : n.toLocaleString();
 const fmtPct = n => n == null ? \'-\' : n.toFixed(1) + \'%\';
 const fmtRate = n => n == null ? \'-\' : n.toFixed(3);
 
+// ── ルーティング ──────────────────────────────────────
+window.addEventListener(\'hashchange\', route);
+window.addEventListener(\'load\', route);
+
+function route() {
+  const hash = location.hash;
+  const match = hash.match(/^#video=(.+)$/);
+  if (match) {
+    showVideoDetail(decodeURIComponent(match[1]));
+  } else {
+    showDashboard();
+  }
+}
+
+function showDashboard() {
+  document.getElementById(\'dashboard-view\').style.display = \'block\';
+  document.getElementById(\'detail-view\').style.display = \'none\';
+  // チャートを再描画（非表示中に破棄される場合がある）
+  if (data && !dailyChartInstance) {
+    showChart(\'views\', document.querySelector(\'.tab-btn.active\'));
+  }
+}
+
+function showVideoDetail(videoId) {
+  document.getElementById(\'dashboard-view\').style.display = \'none\';
+  document.getElementById(\'detail-view\').style.display = \'block\';
+  if (data) renderVideoDetail(videoId);
+}
+
+// ── 個別ページレンダリング ────────────────────────────
+function renderVideoDetail(videoId) {
+  // 既存チャート破棄
+  detailChartInstances.forEach(c => c.destroy());
+  detailChartInstances = [];
+
+  const v = data.videos.find(x => x.id === videoId);
+  if (!v) {
+    document.getElementById(\'detail-content\').innerHTML = \'<p style="color:#888">動画が見つかりません: \' + videoId + \'</p>\';
+    return;
+  }
+
+  const badge = v.is_short ? \'<span class="badge-short">SHORT</span>\' : \'<span class="badge-hl">HL</span>\';
+  const loopBadge = (v.loop_rate != null && v.loop_rate >= 1.0) ? \' <span class="loop-badge">🔁</span>\' : \'\';
+  const ytUrl = \'https://youtube.com/watch?v=\' + videoId;
+
+  const html = `
+    <div class="detail-title">${escHtml(v.title)}${badge}</div>
+    <div class="detail-meta">
+      公開日: ${v.published_at || \'-\'} &nbsp;|&nbsp; 尺: ${v.duration_str || \'-\'}
+      &nbsp;|&nbsp; <a href="${ytUrl}" target="_blank">YouTubeで見る ↗</a>
+    </div>
+
+    <div class="detail-kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">再生数</div><div class="kpi-value">${fmt(v.views)}</div></div>
+      <div class="kpi-card"><div class="kpi-label">いいね</div><div class="kpi-value">${fmt(v.likes)}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Like率</div><div class="kpi-value">${fmtPct(v.like_rate)}</div></div>
+      <div class="kpi-card"><div class="kpi-label">周回率${loopBadge}</div><div class="kpi-value">${fmtRate(v.loop_rate)}</div></div>
+    </div>
+
+    <div class="card">
+      <h2>日次再生数推移</h2>
+      <canvas id="detail-views-chart"></canvas>
+    </div>
+
+    <div class="card">
+      <h2>メトリクス推移（Like率 / 視聴率% / 周回率）</h2>
+      <canvas id="detail-metrics-chart"></canvas>
+    </div>
+
+    <div class="card">
+      <h2>類似動画</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>タイトル</th>
+            <th>再生数</th>
+            <th>Like率%</th>
+            <th>周回率</th>
+            <th>尺</th>
+            <th>公開日</th>
+          </tr></thead>
+          <tbody id="similar-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>AI動画分析</h2>
+      <div id="video-analysis-list"></div>
+    </div>
+  `;
+  document.getElementById(\'detail-content\').innerHTML = html;
+
+  // 日次再生数グラフ
+  const hist = (data.video_history || {})[videoId];
+  if (hist && hist.dates.length > 0) {
+    const labels = hist.dates.map(d => d.slice(5));
+    const ctx1 = document.getElementById(\'detail-views-chart\');
+    detailChartInstances.push(new Chart(ctx1, {
+      type: \'bar\',
+      data: {
+        labels,
+        datasets: [{
+          label: \'累計再生数\',
+          data: hist.views,
+          backgroundColor: \'rgba(233,69,96,0.6)\',
+          borderColor: \'#e94560\',
+          borderWidth: 1,
+        }, {
+          label: \'日次増加\',
+          data: hist.view_diffs,
+          type: \'line\',
+          borderColor: \'#f9a825\',
+          backgroundColor: \'transparent\',
+          yAxisID: \'y2\',
+          tension: 0.3,
+          pointRadius: 3,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: \'#ccc\' } } },
+        scales: {
+          x: { ticks: { color: \'#888\' }, grid: { color: \'#2a2a4a\' } },
+          y: { ticks: { color: \'#888\' }, grid: { color: \'#2a2a4a\' }, title: { display: true, text: \'累計\', color: \'#888\' } },
+          y2: { position: \'right\', ticks: { color: \'#888\' }, grid: { drawOnChartArea: false }, title: { display: true, text: \'日次増加\', color: \'#888\' } }
+        }
+      }
+    }));
+
+    // メトリクス推移グラフ
+    const ctx2 = document.getElementById(\'detail-metrics-chart\');
+    detailChartInstances.push(new Chart(ctx2, {
+      type: \'line\',
+      data: {
+        labels,
+        datasets: [{
+          label: \'Like率%\',
+          data: hist.like_rates,
+          borderColor: \'#e94560\',
+          backgroundColor: \'transparent\',
+          tension: 0.3,
+          yAxisID: \'yL\',
+        }, {
+          label: \'視聴率%\',
+          data: hist.avg_view_pcts,
+          borderColor: \'#2196f3\',
+          backgroundColor: \'transparent\',
+          tension: 0.3,
+          yAxisID: \'yL\',
+        }, {
+          label: \'周回率\',
+          data: hist.loop_rates,
+          borderColor: \'#f9a825\',
+          backgroundColor: \'transparent\',
+          tension: 0.3,
+          yAxisID: \'yR\',
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: \'#ccc\' } } },
+        scales: {
+          x: { ticks: { color: \'#888\' }, grid: { color: \'#2a2a4a\' } },
+          yL: { ticks: { color: \'#888\' }, grid: { color: \'#2a2a4a\' }, title: { display: true, text: \'%\', color: \'#888\' } },
+          yR: { position: \'right\', ticks: { color: \'#888\' }, grid: { drawOnChartArea: false }, title: { display: true, text: \'周回率\', color: \'#888\' } }
+        }
+      }
+    }));
+  } else {
+    document.getElementById(\'detail-views-chart\').parentElement.innerHTML += \'<p style="color:#888;font-size:0.85em">時系列データなし（raw.json蓄積待ち）</p>\';
+  }
+
+  // 類似動画テーブル
+  const similarIds = (data.similar_videos || {})[videoId] || [];
+  const videoMap = {};
+  data.videos.forEach(x => { videoMap[x.id] = x; });
+  const similarTbody = document.getElementById(\'similar-tbody\');
+  if (similarIds.length) {
+    similarTbody.innerHTML = similarIds.map(sid => {
+      const sv = videoMap[sid];
+      if (!sv) return \'\';
+      const sb = sv.is_short ? \'<span class="badge-short">SHORT</span>\' : \'<span class="badge-hl">HL</span>\';
+      const st = sv.title.replace(/【.*?】/g, \'\').replace(/@.*$/,\'\').trim();
+      return `<tr class="similar-row" onclick="location.hash=\'#video=${sv.id}\'">
+        <td><span style="color:#aaa">${escHtml(st)}</span>${sb}</td>
+        <td>${fmt(sv.views)}</td>
+        <td>${fmtPct(sv.like_rate)}</td>
+        <td>${fmtRate(sv.loop_rate)}</td>
+        <td>${sv.duration_str || \'-\'}</td>
+        <td>${sv.published_at || \'-\'}</td>
+      </tr>`;
+    }).join(\'\');
+  } else {
+    similarTbody.innerHTML = \'<tr><td colspan="6" style="color:#888">類似動画なし</td></tr>\';
+  }
+
+  // AI動画個別分析
+  const analysisList = document.getElementById(\'video-analysis-list\');
+  const vaEntry = (data.video_analysis || {})[videoId];
+  if (vaEntry && vaEntry.analyses && vaEntry.analyses.length) {
+    analysisList.innerHTML = vaEntry.analyses.slice().reverse().map((a, i) => {
+      const isFirst = i === 0;
+      return `<div class="analysis-entry">
+        <div class="analysis-header" onclick="toggleVA(\'va_\'+${i})">
+          <span>${a.date} ${a.model ? \'(\' + a.model + \')\' : \'\'}</span>
+          <span id="va_arrow_${i}">${isFirst ? \'▼\' : \'▶\'}</span>
+        </div>
+        <div class="analysis-body ${isFirst ? \'open\' : \'\'}" id="va_${i}">${escHtml(a.content)}</div>
+      </div>`;
+    }).join(\'\');
+  } else {
+    analysisList.innerHTML = \'<p style="color:#888">この動画のAI分析なし（--skip-video-analysisを外して再実行すると上位動画が分析されます）</p>\';
+  }
+}
+
+function toggleVA(id) {
+  const body = document.getElementById(id);
+  const i = id.replace(\'va_\', \'\');
+  const arrow = document.getElementById(\'va_arrow_\' + i);
+  if (!body || !arrow) return;
+  body.classList.toggle(\'open\');
+  arrow.textContent = body.classList.contains(\'open\') ? \'▼\' : \'▶\';
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,\'&amp;\').replace(/</g,\'&lt;\').replace(/>/g,\'&gt;\').replace(/"/g,\'&quot;\');
+}
+
+// ── ダッシュボード（既存機能） ─────────────────────────
 const metricConfig = {
   views:  { label: \'日別再生数\', key: \'views\',       type: \'bar\' },
   subs:   { label: \'累計登録者\', key: \'subscribers_cumulative\', type: \'line\' },
@@ -282,7 +694,7 @@ const metricConfig = {
 };
 
 function showChart(metric, btn) {
-  document.querySelectorAll(\'.tab-btn\').forEach(b => b.classList.remove(\'active\'));
+  document.querySelectorAll(\'#dashboard-view .tab-btn\').forEach(b => b.classList.remove(\'active\'));
   if (btn) btn.classList.add(\'active\');
   if (!data) return;
 
@@ -290,7 +702,7 @@ function showChart(metric, btn) {
   const labels = data.daily_series.dates.map(d => d.slice(5));
   const values = data.daily_series[cfg.key];
 
-  if (dailyChartInstance) dailyChartInstance.destroy();
+  if (dailyChartInstance) { dailyChartInstance.destroy(); dailyChartInstance = null; }
 
   const datasets = [{
     label: cfg.label,
@@ -302,7 +714,6 @@ function showChart(metric, btn) {
     tension: 0.3,
   }];
 
-  // 再生数タブは7日移動平均を追加
   if (metric === \'views\') {
     const ma7 = values.map((_, i) => {
       const slice = values.slice(Math.max(0, i-6), i+1);
@@ -361,7 +772,10 @@ function renderTable(videos) {
     const shortTitle = v.title.replace(/【.*?】/g, \'\').replace(/@.*$/,\'\').trim();
     const ytUrl = \'https://youtube.com/watch?v=\' + v.id;
     return `<tr>
-      <td><a href="${ytUrl}" target="_blank" style="color:#aaa;text-decoration:none">${shortTitle}</a>${badge}</td>
+      <td>
+        <a href="#video=${v.id}" style="color:#aaa;text-decoration:none">${escHtml(shortTitle)}</a>${badge}
+        <a href="${ytUrl}" target="_blank" style="color:#555;font-size:0.8em;margin-left:4px">↗YT</a>
+      </td>
       <td>${fmt(v.views)}</td>
       <td>${fmt(v.likes)}</td>
       <td>${fmtPct(v.like_rate)}</td>
@@ -422,7 +836,6 @@ function renderKPI() {
   document.getElementById(\'kpi-views\').textContent = fmt(ch.total_views);
   document.getElementById(\'kpi-vcount\').textContent = fmt(ch.video_count);
 
-  // 前日再生増: daily_seriesの最終2日の差
   const ds = data.daily_series;
   if (ds.views.length >= 2) {
     const last = ds.views[ds.views.length - 1] || 0;
@@ -446,6 +859,8 @@ fetch(\'data.json\')
     renderTraffic();
     renderTable([...d.videos].sort((a, b) => (b.views || 0) - (a.views || 0)));
     renderAnalysis();
+    // ロード後にハッシュが既にあればルーティング
+    route();
   })
   .catch(e => {
     document.getElementById(\'last-updated\').textContent = \'data.json 読み込み失敗。http.serverで起動してください。\';
@@ -458,6 +873,8 @@ fetch(\'data.json\')
 
 
 def main():
+    skip_video_analysis = "--skip-video-analysis" in sys.argv
+
     raw_list = load_all_raw_jsons()
     if not raw_list:
         print("[error] analytics/*.raw.json が見つかりません", file=sys.stderr)
@@ -465,6 +882,12 @@ def main():
 
     analysis = load_analysis_history()
     data = generate_data_json(raw_list, analysis)
+
+    # 動画個別LLM分析（上位5本 + 前日比上位3本）
+    if not skip_video_analysis and data.get("videos"):
+        analyze_top_videos(data["videos"])
+        # 分析後に再読み込みしてdata.jsonに反映
+        data["video_analysis"] = load_video_analysis()
 
     DASHBOARD_DIR.mkdir(parents=True, exist_ok=True)
 
