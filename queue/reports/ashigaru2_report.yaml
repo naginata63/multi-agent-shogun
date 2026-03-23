@@ -1,0 +1,69 @@
+task_id: subtask_894a
+parent_cmd: cmd_894
+assigned_to: ashigaru2
+status: done
+completed_at: '2026-03-23T19:21:00'
+report_to: karo
+
+summary: |
+  a9rkN9zYwTc 13:12〜13:48 MEN仕事断り拡張版クリップ切り出し完了。
+  詳細タイムスタンプをSRTから確認し、36秒クリップを生成。
+
+detailed_timestamps:
+  - speaker: dozle
+    line: "メン これ大切なやつあっちに入れとこうぜ。ここ怖くない? なんかクリーパーとか。"
+    start_sec: 796.223
+    end_sec: 800.237
+    srt_time: "00:13:16,223 --> 00:13:20,237"
+  - speaker: oo_men
+    line: "それがですね。"
+    start_sec: 800.237
+    end_sec: 801.478
+    srt_time: "00:13:20,237 --> 00:13:21,478"
+  - speaker: oo_men
+    line: "あっちの真ん中に入れといたんですけど、アップグレード実際に消えました。"
+    start_sec: 802.899
+    end_sec: 807.673
+    srt_time: "00:13:22,899 --> 00:13:27,673"
+  - speaker: dozle
+    line: "ヤバ! マジかよ。それに見かれた。"
+    start_sec: 807.673
+    end_sec: 810.355
+    srt_time: "00:13:27,673 --> 00:13:30,355"
+  - speaker: dozle
+    line: "メン 一つ仕事を頼んでいいか。"
+    start_sec: 810.355
+    end_sec: 812.880
+    srt_time: "00:13:30,355 --> 00:13:32,880"
+  - speaker: oo_men
+    line: "まあ内容によりますが聞きましょう。"
+    start_sec: 812.890
+    end_sec: 815.182
+    srt_time: "00:13:32,890 --> 00:13:35,182"
+  - speaker: dozle
+    line: "モンスターが現れた時に、安全なところにチェストを作ってほしい。"
+    start_sec: 815.182
+    end_sec: 819.716
+    srt_time: "00:13:35,182 --> 00:13:39,716"
+  - speaker: oo_men
+    line: "それは大事な仕事ですね。断ります。"
+    start_sec: 819.716
+    end_sec: 822.718
+    srt_time: "00:13:39,716 --> 00:13:42,718"
+  - speaker: dozle
+    line: "なんでだよ。やれよ。ブロックください。"
+    start_sec: 822.718
+    end_sec: 826.311
+    srt_time: "00:13:42,718 --> 00:13:46,311"
+
+clip:
+  path: projects/dozle_kirinuki/work/20260322_100万ブロックのお城を作れるまで終われません！【マイクラ】/output/cmd_894/clip_men_shigoto_extended.mp4
+  start_sec: 792
+  end_sec: 828
+  duration_sec: 36
+  method: "-c copy (無劣化)"
+
+notes: |
+  - 殿の「なんでだよ やれよ まで」= dozle 13:42.718〜13:46.311
+  - クリップは前後2秒余白: 792s〜828s
+  - SRTから詳細TSを取得。WhisperX JSONは未使用（SRTで十分）
