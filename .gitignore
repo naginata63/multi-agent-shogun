@@ -92,6 +92,8 @@
 !scripts/inbox_watcher.sh
 !scripts/watcher_supervisor.sh
 !scripts/ntfy.sh
+!scripts/ntfy_voice.sh
+!scripts/setup_voicevox_docker.sh
 !scripts/ntfy_listener.sh
 !scripts/build_instructions.sh
 !scripts/slim_yaml.sh

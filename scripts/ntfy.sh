@@ -23,3 +23,9 @@ done < <(ntfy_get_auth_args "$SCRIPT_DIR/config/ntfy_auth.env")
 
 # shellcheck disable=SC2086
 curl -s "${AUTH_ARGS[@]}" -H "Tags: outbound" -d "$1" "https://ntfy.sh/$TOPIC" > /dev/null
+
+# VOICEVOX音声通知（voicevox_enabled: true の場合のみ）
+VOICEVOX_ENABLED=$(grep 'voicevox_enabled:' "$SETTINGS" | awk '{print $2}' | tr -d '"')
+if [ "$VOICEVOX_ENABLED" = "true" ]; then
+  bash "$SCRIPT_DIR/scripts/ntfy_voice.sh" "$1" &
+fi
