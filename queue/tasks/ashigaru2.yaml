@@ -13928,3 +13928,227 @@ tasks:
   status: done
   timestamp: '2026-03-23T19:18:50'
   completed_at: '2026-03-23T19:22:00'
+- task_id: subtask_898a
+  parent_cmd: cmd_898
+  assigned_to: ashigaru2
+  bloom_level: L4
+  description: |
+    render_mc.pyを拡張して2キャラ同時レンダリング動画を作成し、YouTubeに非公開アップする。
+
+    ## 概要
+    殿の原文: 「二人登場させた動画作ってみて」
+    Blenderのシーンに2体のマイクラキャラを配置し、モーション付きで同時レンダリングする。
+
+    ## キャラ
+    - dozle + oo_men（チャンネルで一番バズってる組み合わせ）
+    - 左右に適切な間隔で配置（重ならないように）
+
+    ## 技術的アプローチ
+    - render_mc.py（projects/dozle_kirinuki/scripts/3d/render_mc.py）を拡張
+    - --skin2 オプション追加、または別スクリプトで2体配置
+    - Blenderのシーンに2体のリグを配置する方式
+    - 同じモーション（walk並走）でも別モーション（dozle: idle, oo_men: wave等）でもよい
+    - カメラは2体が収まるように引く
+
+    ## motions.json修正反映
+    walkのroot_speedが0.027→0.04に修正される（足軽1号が別タスクで対応中）。
+    足軽1号のcommit後にpullすれば反映される。先にスクリプト開発を進めてよい。
+
+    ## 出力
+    - 出力先: projects/dozle_kirinuki/work/3d_mvp/two_characters/
+    - h264_nvenc必須（libx264禁止）
+    - YouTube非公開アップまでやること
+    - video_idを報告YAMLに記載
+
+    ## 参考ファイル
+    - render_mc.py: projects/dozle_kirinuki/scripts/3d/render_mc.py
+    - motions.json: projects/dozle_kirinuki/scripts/3d/motions.json
+    - スキン: projects/dozle_kirinuki/assets/dozle_jp/skins/ 配下
+    - git commit すること
+  acceptance_criteria:
+    - "2キャラが同じシーンに同時に表示されていること"
+    - "両キャラが別々のモーションまたは同じモーションで動いていること"
+    - "キャラ同士が重ならず適切に配置されていること"
+    - "YouTubeに非公開アップロード済み（video_id報告）"
+    - "git commit済み"
+  project: dozle_kirinuki
+  report_to: karo
+  status: done
+  timestamp: '2026-03-23T20:42:00'
+  completed_at: '2026-03-23T21:10:00'
+- task_id: subtask_905a
+  parent_cmd: cmd_905
+  assigned_to: ashigaru2
+  bloom_level: L4
+  description: |
+    会話・リアクション系モーション8種追加 + 悪だくみ冒頭3セリフデモ動画生成。
+
+    ## Step 1: motions.json に8モーション追加
+    対象: projects/dozle_kirinuki/scripts/3d/motions.json
+
+    | ID | 名前 | 動き | 用途 |
+    |----|------|------|------|
+    | laugh | 大笑い | 体を前後に揺らす+腕を広げる | ツッコミ・爆笑 |
+    | nod | うなずき | 頭を上下+軽く体を前傾 | 相槌・同意 |
+    | arms_crossed | 腕組み | 両腕を胸の前で交差+微動 | ドヤ・威圧・自信 |
+    | surprise | のけぞり驚き | 体を後ろに仰け反らせる+腕上げ | リアクション |
+    | point | 指さし | 右腕を前に伸ばす+体を前傾 | 提案・指示 |
+    | shrug | 肩すくめ | 両肩を上げて手のひらを上に | 開き直り・呆れ |
+    | think | 顎に手 | 右手を顎に当てて首かしげ | 考え中・冷静 |
+    | fist_pump | ガッツポーズ | 右拳を突き上げる+軽くジャンプ | 歓喜・勝利 |
+
+    既存motions.jsonのフォーマット（sine_wave/keyframe_sequence）で定義。
+    MCprepリグのボーン構造（upper_arm.L/R, lower_arm.L/R, upper_leg.L/R, head等）を使う。
+
+    ## Step 2: 単体レンダリングテスト
+    各モーションをrender_mc.pyで1つずつ動作確認。
+
+    ## Step 3: デモ動画生成
+    render_mc_two.pyで悪だくみショートの冒頭3セリフをデモ再現:
+    - P1: ドズル(arms_crossed) 「もう積む時代じゃない」
+    - P2: ドズル(laugh) + MEN(arms_crossed) 背中合わせ風
+    - P3: MEN(shrug) 「邪悪なことし始める」
+    3セリフ分を繋いで1本のデモ動画にする。
+
+    ## Step 4: YouTube非公開アップ
+    h264_nvenc必須。video_idを報告に含めよ。git commit。
+
+    ## 参照
+    - motions.json: projects/dozle_kirinuki/scripts/3d/motions.json
+    - render_mc.py: projects/dozle_kirinuki/scripts/3d/render_mc.py
+    - render_mc_two.py: projects/dozle_kirinuki/scripts/3d/render_mc_two.py
+  acceptance_criteria:
+    - "motions.jsonに8モーション全て追加されていること"
+    - "各モーションが単体レンダリングできること"
+    - "2キャラデモ動画が生成されていること"
+    - "YouTube非公開アップ済み（video_id報告）"
+    - "git commit済み"
+  project: dozle_kirinuki
+  report_to: karo
+  status: done
+  timestamp: '2026-03-23T21:58:00'
+  completed_at: '2026-03-23T22:15:00'
+- task_id: subtask_908a
+  parent_cmd: cmd_908
+  assignee: ashigaru2
+  bloom_level: L2
+  description: |
+    【cmd_908】漫画ショート10セット全てをYouTube非公開アップロード
+
+    ## 目的
+    殿がMEN仕事断り漫画ショート10セットを比較して最終版を選ぶ。全10本を非公開アップ。
+
+    ## 手順
+    以下の10本のmp4をYouTube非公開アップロードせよ。
+
+    ベースパス: projects/dozle_kirinuki/work/20260322_100万ブロックのお城を作れるまで終われません！【マイクラ】/output/cmd_904/
+
+    | # | ファイル | タイトル |
+    |---|---------|---------|
+    | 1 | set_01/sh895_manga_proto.mp4 | MEN仕事断り set_01【比較用】 |
+    | 2 | set_02/sh895_manga_proto.mp4 | MEN仕事断り set_02【比較用】 |
+    | 3 | set_03/sh895_manga_proto.mp4 | MEN仕事断り set_03【比較用】 |
+    | 4 | set_04/sh895_manga_proto.mp4 | MEN仕事断り set_04【比較用】 |
+    | 5 | set_05/sh895_manga_proto.mp4 | MEN仕事断り set_05【比較用】 |
+    | 6 | set_06/sh895_manga_proto.mp4 | MEN仕事断り set_06【比較用】 |
+    | 7 | set_07/sh895_manga_proto.mp4 | MEN仕事断り set_07【比較用】 |
+    | 8 | set_08/sh895_manga_proto.mp4 | MEN仕事断り set_08【比較用】 |
+    | 9 | set_09/sh895_manga_proto.mp4 | MEN仕事断り set_09【比較用】 |
+    | 10 | set_10/sh895_manga_proto.mp4 | MEN仕事断り set_10【比較用】 |
+
+    アップロードコマンド（各セットについて実行）:
+    ```bash
+    python3 projects/dozle_kirinuki/scripts/youtube_upload.py \
+      --file "projects/dozle_kirinuki/work/20260322_100万ブロックのお城を作れるまで終われません！【マイクラ】/output/cmd_904/set_XX/sh895_manga_proto.mp4" \
+      --title "MEN仕事断り set_XX【比較用】" \
+      --privacy unlisted
+    ```
+    ※youtube_upload.pyが無い場合は scripts/upload_youtube.sh や既存のアップロード手段を確認して使え。
+
+    ## 報告
+    10本全てのvideo_idとURLを報告に含めよ。
+
+    完了後 bash scripts/inbox_write.sh karo "cmd_908完了。10本アップロード完了。URL一覧報告。" report_received ashigaru2
+  acceptance_criteria:
+    - "10本全てYouTube非公開（またはunlisted）アップロード済み"
+    - "各動画のvideo_idとURLを報告に記載"
+    - "動画タイトルにセット番号が明記されている"
+  project: dozle_kirinuki
+  report_to: karo
+  status: done
+  timestamp: '2026-03-24T06:12:00'
+  completed_at: '2026-03-24T06:20:00'
+- task_id: subtask_912a_phase1
+  parent_cmd: cmd_912
+  assignee: ashigaru2
+  bloom_level: L3
+  description: |
+    【cmd_912 Phase1】QAs605ZXCKI 360pダウンロード+字幕生成
+
+    ## 動画情報
+    - video_id: QAs605ZXCKI
+    - タイトル: 猫の気持ちになって7つの謎を解け！【マイクラ】
+    - URL: https://www.youtube.com/watch?v=QAs605ZXCKI
+    - 再生数: 325,174
+
+    ## 手順
+
+    ### Step 1: workフォルダ作成
+    ```bash
+    mkdir -p "projects/dozle_kirinuki/work/20260324_猫の気持ちになって7つの謎を解け！【マイクラ】"
+    ```
+
+    ### Step 2: 360pダウンロード
+    ```bash
+    cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
+    yt-dlp -f "bestvideo[height<=360]+bestaudio/best[height<=360]" \
+      -o "work/20260324_猫の気持ちになって7つの謎を解け！【マイクラ】/QAs605ZXCKI_360p.%(ext)s" \
+      "https://www.youtube.com/watch?v=QAs605ZXCKI"
+    ```
+    ※360pは音声解析用。1080pはHL/SH制作時に再DL。
+
+    ### Step 3: YouTube自動字幕取得
+    ```bash
+    yt-dlp --write-auto-sub --sub-lang ja --skip-download \
+      -o "work/20260324_猫の気持ちになって7つの謎を解け！【マイクラ】/QAs605ZXCKI" \
+      "https://www.youtube.com/watch?v=QAs605ZXCKI"
+    ```
+
+    ### Step 4: YouTubeコメント取得
+    ```bash
+    yt-dlp --write-comments --skip-download \
+      -o "work/20260324_猫の気持ちになって7つの謎を解け！【マイクラ】/QAs605ZXCKI_comments" \
+      "https://www.youtube.com/watch?v=QAs605ZXCKI"
+    ```
+
+    ### Step 5: Gemini字幕生成パイプライン
+    ```bash
+    source ~/.bashrc && source /home/murakami/multi-agent-shogun/venv/bin/activate
+    python3 scripts/gemini_speaker_pipeline.py \
+      --video "work/20260324_猫の気持ちになって7つの謎を解け！【マイクラ】/QAs605ZXCKI_360p.mp4" \
+      --output "work/20260324_猫の気持ちになって7つの謎を解け！【マイクラ】/"
+    ```
+    ※mp4でなくwebmの場合はファイル名を合わせよ。
+    ※パイプライン完了後、merged_QAs605ZXCKI.json が生成されることを確認。
+
+    ### Step 6: 確認
+    - merged JSONの存在とサイズ確認
+    - セグメント数の報告
+
+    完了後 bash scripts/inbox_write.sh karo "cmd_912 Phase1完了。360p DL+字幕生成。merged JSON生成済み。セグメント数報告。" report_received ashigaru2
+
+    ## 注意
+    - GEMINI_API_KEY: source ~/.bashrc で読み込むこと
+    - gemini_speaker_pipeline.pyの実行にはGemini APIクォータが必要
+    - タイムアウト余裕: パイプライン実行は10分以上かかる可能性あり
+  acceptance_criteria:
+    - "360p動画がwork/配下にダウンロード済み"
+    - "YouTube自動字幕が取得済み"
+    - "YouTubeコメントが取得済み"
+    - "merged_QAs605ZXCKI.json が生成されていること"
+    - "セグメント数が報告されていること"
+  project: dozle_kirinuki
+  report_to: karo
+  status: done
+  timestamp: '2026-03-24T07:18:00'
+  completed_at: '2026-03-24T07:40:00'
