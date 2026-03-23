@@ -239,7 +239,7 @@ def get_per_video_analytics(analytics, videos):
                 ids=f"channel=={CHANNEL_ID}",
                 startDate=ANALYTICS_START,
                 endDate=ANALYTICS_END,
-                metrics="views,estimatedMinutesWatched,averageViewDuration",
+                metrics="views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage",
                 dimensions="video",
                 filters=filters,
                 sort="-views"
@@ -255,6 +255,7 @@ def get_per_video_analytics(analytics, videos):
         views = int(row[1])
         estimated_minutes = int(row[2])
         avg_view_sec = int(row[3])
+        avg_view_pct = round(float(row[4]), 1) if len(row) > 4 and row[4] is not None else None
         duration_sec = duration_map.get(vid_id, 0)
         loop_rate = round(avg_view_sec / duration_sec, 3) if duration_sec > 0 else None
         results.append({
@@ -262,6 +263,7 @@ def get_per_video_analytics(analytics, videos):
             "title": title_map.get(vid_id, ""),
             "duration_sec": duration_sec,
             "avg_view_sec": avg_view_sec,
+            "avg_view_pct": avg_view_pct,
             "loop_rate": loop_rate,
             "views": views,
             "estimated_minutes": estimated_minutes,
@@ -560,14 +562,15 @@ def generate_report(channel_stats, videos, daily_stats, traffic_sources,
         lines.append("")
         lines.append("※ loop_rate = 平均視聴秒 / 動画尺。1.0以上でループ再生あり")
         lines.append("")
-        lines.append("| タイトル | ID | 尺 | 平均視聴秒 | 周回率 | 再生 | 視聴分 |")
-        lines.append("|----------|-----|-----|-----------|--------|------|--------|")
+        lines.append("| タイトル | ID | 尺 | 平均視聴秒 | 周回率 | 視聴率% | 再生 | 視聴分 |")
+        lines.append("|----------|-----|-----|-----------|--------|---------|------|--------|")
         for v in per_video_analytics:
             loop_str = f"{v['loop_rate']:.2f}x" if v["loop_rate"] is not None else "—"
             loop_flag = " 🔁" if v["loop_rate"] is not None and v["loop_rate"] >= 1.0 else ""
+            pct_str = f"{v['avg_view_pct']}%" if v.get("avg_view_pct") is not None else "—"
             lines.append(
                 f"| {v['title'][:20]} | {v['id']} | {v['duration_sec']}s | "
-                f"{v['avg_view_sec']}s | {loop_str}{loop_flag} | {v['views']:,} | {v['estimated_minutes']:,} |"
+                f"{v['avg_view_sec']}s | {loop_str}{loop_flag} | {pct_str} | {v['views']:,} | {v['estimated_minutes']:,} |"
             )
         lines.append("")
         lines.append("---")
