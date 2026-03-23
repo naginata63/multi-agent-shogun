@@ -602,7 +602,7 @@ def run_direct_speaker_identification(
     """ECAPA-TDNNでワード単位の直接話者特定を行う。
 
     AssemblyAIの話者ラベルに依存せず、音声波形から直接各ワードの話者を特定する。
-    AssemblyAIが全ワードを同一話者（speakers_detected=1）にまとめた場合のフォールバック。
+    AssemblyAI話者検出数=1の場合も含む正常処理分岐として実行される。
 
     アルゴリズム:
     1. vocals_full.wavをロード

@@ -84,6 +84,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="merged JSONのwordsから実名ラベル付きSRTを再生成")
     parser.add_argument("--input", help="merged JSONパス（指定時は単一ファイル処理）")
     parser.add_argument("--output", help="SRT出力パス（--inputと一緒に使用）")
+    parser.add_argument("--targets", nargs="+", metavar="VIDEO_ID",
+                        help="処理対象のvideo_idを指定（未指定時はTARGETSリスト全件）")
     args = parser.parse_args()
 
     if args.input:
@@ -106,9 +108,15 @@ if __name__ == "__main__":
         print(f"\n[{status}] {r['video_id']}: speakers={r['speakers']}, named_count={r['named_count']}")
         sys.exit(0 if r["ok"] else 1)
     else:
-        # デフォルト: TARGETSリスト全処理
+        # デフォルト: TARGETSリスト全処理（--targetsで絞り込み可能）
+        selected = TARGETS
+        if args.targets:
+            selected = [t for t in TARGETS if t["video_id"] in args.targets]
+            if not selected:
+                print(f"ERROR: 指定されたvideo_idがTARGETSに見つかりません: {args.targets}", file=sys.stderr)
+                sys.exit(1)
         results = []
-        for t in TARGETS:
+        for t in selected:
             r = regen_srt(t)
             results.append(r)
 
