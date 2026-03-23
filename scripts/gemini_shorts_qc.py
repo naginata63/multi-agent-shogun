@@ -78,10 +78,14 @@ def extract_frames(video_path: str, output_dir: str) -> list[str]:
     frame_paths = []
     for i, ts in enumerate(timestamps):
         out_path = os.path.join(output_dir, f"frame_{i:02d}.jpg")
+        # 2段階シーク: キーフレーム精度→フレーム精度 (cmd_901)
+        _ts_pre = max(0.0, ts - 30.0)
+        _ts_fine = ts - _ts_pre
         subprocess.run(
             [
-                "ffmpeg", "-y", "-ss", str(ts),
+                "ffmpeg", "-y", "-ss", str(_ts_pre),
                 "-i", video_path,
+                "-ss", str(_ts_fine),
                 "-vframes", "1",
                 "-q:v", "3",
                 out_path
