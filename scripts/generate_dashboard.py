@@ -319,13 +319,31 @@ def generate_data_json(raw_list: list[dict], analysis: list[dict]) -> dict:
     latest_raw = raw_list[-1]
     prev_raw = raw_list[-2] if len(raw_list) >= 2 else None
 
+    # 非公開動画を除外（privacy_status=private）
+    def _filter_private(raw: dict) -> dict:
+        """raw.jsonのvideos/per_video_analyticsから非公開動画を除外したコピーを返す"""
+        import copy
+        r = copy.copy(raw)
+        r["videos"] = [v for v in raw.get("videos", []) if v.get("privacy_status", "public") != "private"]
+        private_ids = {v["id"] for v in raw.get("videos", []) if v.get("privacy_status", "public") == "private"}
+        r["per_video_analytics"] = [p for p in raw.get("per_video_analytics", []) if p.get("id") not in private_ids]
+        return r
+
+    latest_raw_filtered = _filter_private(latest_raw)
+    prev_raw_filtered = _filter_private(prev_raw) if prev_raw else None
+    raw_list_filtered = [_filter_private(r) for r in raw_list]
+
+    private_count = len(latest_raw.get("videos", [])) - len(latest_raw_filtered["videos"])
+    if private_count > 0:
+        print(f"[info] 非公開動画を除外: {private_count}本", file=sys.stderr)
+
     ch = latest_raw.get("channel", {})
-    daily_series = build_daily_series(raw_list)
-    videos = build_video_table(latest_raw, prev_raw)
-    traffic = latest_raw.get("traffic_sources", [])
+    daily_series = build_daily_series(raw_list_filtered)
+    videos = build_video_table(latest_raw_filtered, prev_raw_filtered)
+    traffic = latest_raw_filtered.get("traffic_sources", [])
 
     # 動画個別分析ページ用データ
-    video_history = build_video_history(raw_list)
+    video_history = build_video_history(raw_list_filtered)
     similar_videos = build_similar_videos(videos)
     video_analysis = load_video_analysis()
     rankings = build_rankings(videos)

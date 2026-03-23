@@ -141,7 +141,7 @@ def get_video_details(youtube, video_ids):
     for i in range(0, len(video_ids), 50):
         batch = video_ids[i:i+50]
         res = youtube.videos().list(
-            part="snippet,contentDetails,statistics",
+            part="snippet,contentDetails,statistics,status",
             id=",".join(batch)
         ).execute()
 
@@ -159,6 +159,7 @@ def get_video_details(youtube, video_ids):
                 "likes": int(stats.get("likeCount", 0)),
                 # dislikeCountはYouTube APIが2021年以降非公開のため常に0（削除済み）
                 "comments": int(stats.get("commentCount", 0)),
+                "privacy_status": item.get("status", {}).get("privacyStatus", "public"),
             })
 
     return sorted(videos, key=lambda x: x["views"], reverse=True)
