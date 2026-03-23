@@ -145,46 +145,65 @@ data['cli']['agents'][agent_id] = agent_cfg
 # 完全性のためyaml.dumpを使用。コメントは失われる。
 # → 代わりにsed的なアプローチ: 対象ブロックだけ書き換える
 
-# Simple approach: read lines, find agent block, replace
+# Simple approach: read lines, find agent line, replace
+import re
 lines = content.split('\n')
 new_lines = []
-in_agent_block = False
-agent_indent = None
-skip_until_next = False
 
 i = 0
 while i < len(lines):
     line = lines[i]
     stripped = line.lstrip()
 
-    # Detect our agent's block start
+    # Detect our agent's line
     if stripped.startswith(f'{agent_id}:'):
-        in_agent_block = True
         agent_indent = len(line) - len(stripped)
-        new_lines.append(line)
-        # Write the updated fields
-        inner_indent = ' ' * (agent_indent + 2)
-        if new_type:
-            new_lines.append(f'{inner_indent}type: {new_type}')
-        if new_model:
-            new_lines.append(f'{inner_indent}model: {new_model}  {comment}')
-        # Skip old sub-fields
-        i += 1
-        while i < len(lines):
-            next_line = lines[i]
-            next_stripped = next_line.lstrip()
-            if next_stripped == '' or next_stripped.startswith('#'):
-                # Keep blank lines and comments between blocks
-                if next_stripped.startswith('#') and len(next_line) - len(next_stripped) > agent_indent:
-                    i += 1
-                    continue
-                break
-            next_indent = len(next_line) - len(next_stripped)
-            if next_indent <= agent_indent:
-                break  # Next agent or section
+        prefix = ' ' * agent_indent
+
+        # Check if flow style: "ashigaru4: { model: sonnet }"
+        after_key = stripped[len(f'{agent_id}:'):].strip()
+        if after_key.startswith('{') and after_key.endswith('}'):
+            # Parse the flow-style dict
+            inner = after_key[1:-1].strip()
+            pairs = {}
+            for pair in inner.split(','):
+                pair = pair.strip()
+                if ':' in pair:
+                    k, v = pair.split(':', 1)
+                    pairs[k.strip()] = v.strip()
+            # Apply updates
+            if new_type:
+                pairs['type'] = new_type
+            if new_model:
+                pairs['model'] = new_model
+            # Rebuild flow-style line
+            pair_strs = [f'{k}: {v}' for k, v in pairs.items()]
+            new_lines.append(f'{prefix}{agent_id}: {{ {", ".join(pair_strs)} }}')
             i += 1
-        in_agent_block = False
-        continue
+            continue
+        else:
+            # Block style: keep the agent key line, replace sub-fields
+            new_lines.append(line)
+            inner_indent = ' ' * (agent_indent + 2)
+            if new_type:
+                new_lines.append(f'{inner_indent}type: {new_type}')
+            if new_model:
+                new_lines.append(f'{inner_indent}model: {new_model}')
+            # Skip old sub-fields
+            i += 1
+            while i < len(lines):
+                next_line = lines[i]
+                next_stripped = next_line.lstrip()
+                if next_stripped == '' or next_stripped.startswith('#'):
+                    if next_stripped.startswith('#') and len(next_line) - len(next_stripped) > agent_indent:
+                        i += 1
+                        continue
+                    break
+                next_indent = len(next_line) - len(next_stripped)
+                if next_indent <= agent_indent:
+                    break  # Next agent or section
+                i += 1
+            continue
     else:
         new_lines.append(line)
     i += 1

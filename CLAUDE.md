@@ -351,7 +351,7 @@ When processing large datasets (30+ items requiring individual web search, API c
 | D003 | `git push --force`, `git push -f` (without `--force-with-lease`) | Destroys remote history for all collaborators |
 | D004 | `git reset --hard`, `git checkout -- .`, `git restore .`, `git clean -f` | Destroys all uncommitted work in the repo |
 | D005 | `sudo`, `su`, `chmod -R`, `chown -R` on system paths | Privilege escalation / system modification |
-| D006 | `kill`, `killall`, `pkill`, `tmux kill-server`, `tmux kill-session` | Terminates other agents or infrastructure |
+| D006 | `tmux kill-server`, `tmux kill-session` | Destroys agent infrastructure (kill/pkill is allowed for non-agent processes with Lord's explicit permission) |
 | D007 | `mkfs`, `dd if=`, `fdisk`, `mount`, `umount` | Disk/partition destruction |
 | D008 | `curl|bash`, `wget -O-|sh`, `curl|sh` (pipe-to-shell patterns) | Remote code execution |
 
