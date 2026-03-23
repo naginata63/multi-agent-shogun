@@ -117,6 +117,7 @@
 !scripts/precompact_hook.sh
 !scripts/monitor.sh
 !scripts/semantic_search.py
+!scripts/scene_search_v2.py
 !scripts/cmd_helper.py
 !scripts/gemini_transcribe.py
 !scripts/gemini_speaker_pipeline.py
