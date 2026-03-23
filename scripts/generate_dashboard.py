@@ -22,12 +22,93 @@ import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
+try:
+    from google.oauth2.credentials import Credentials
+    from google.auth.transport.requests import Request
+    from googleapiclient.discovery import build as gapi_build
+    _GOOGLE_API_AVAILABLE = True
+except ImportError:
+    _GOOGLE_API_AVAILABLE = False
+
 BASE_DIR = Path(__file__).parent.parent
 PROJECT_DIR = BASE_DIR / "projects" / "dozle_kirinuki"
 ANALYTICS_DIR = PROJECT_DIR / "analytics"
 DASHBOARD_DIR = ANALYTICS_DIR / "dashboard"
 ANALYSIS_HISTORY_PATH = ANALYTICS_DIR / "analysis_history.json"
 VIDEO_ANALYSIS_PATH = ANALYTICS_DIR / "video_analysis.json"
+TOKEN_PATH = PROJECT_DIR / "token.json"
+_YOUTUBE_SCOPES = [
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/youtube",
+    "https://www.googleapis.com/auth/yt-analytics.readonly",
+]
+
+
+def _get_youtube_client():
+    """YouTube Data API クライアント取得（token.jsonが存在する場合のみ）"""
+    if not _GOOGLE_API_AVAILABLE or not TOKEN_PATH.exists():
+        return None
+    try:
+        creds = Credentials.from_authorized_user_file(str(TOKEN_PATH), _YOUTUBE_SCOPES)
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        if creds and creds.valid:
+            return gapi_build("youtube", "v3", credentials=creds)
+    except Exception as e:
+        print(f"[privacy] YouTube API初期化失敗: {e}", file=sys.stderr)
+    return None
+
+
+def patch_privacy_status_in_raw_jsons() -> None:
+    """raw.jsonにprivacy_statusがない動画をYouTube APIで取得して保存"""
+    raw_files = sorted(ANALYTICS_DIR.glob("*_raw.json"))
+    needs_patch: set[str] = set()
+    for f in raw_files:
+        try:
+            with open(f, encoding="utf-8") as fp:
+                data = json.load(fp)
+            for v in data.get("videos", []):
+                if "privacy_status" not in v:
+                    needs_patch.add(v["id"])
+        except Exception:
+            pass
+
+    if not needs_patch:
+        return
+
+    print(f"[privacy] {len(needs_patch)}本にprivacy_status未設定。YouTube APIで取得中...")
+    youtube = _get_youtube_client()
+    if not youtube:
+        print("[privacy] YouTube API利用不可。スキップ。", file=sys.stderr)
+        return
+
+    privacy_map: dict[str, str] = {}
+    ids_list = list(needs_patch)
+    for i in range(0, len(ids_list), 50):
+        batch = ids_list[i:i+50]
+        try:
+            res = youtube.videos().list(part="status", id=",".join(batch)).execute()
+            for item in res.get("items", []):
+                privacy_map[item["id"]] = item["status"]["privacyStatus"]
+        except Exception as e:
+            print(f"[warn] privacy_status取得失敗 batch{i//50+1}: {e}", file=sys.stderr)
+    print(f"[privacy] 取得完了: {len(privacy_map)}本")
+
+    for f in raw_files:
+        try:
+            with open(f, encoding="utf-8") as fp:
+                data = json.load(fp)
+            modified = False
+            for v in data.get("videos", []):
+                if "privacy_status" not in v and v["id"] in privacy_map:
+                    v["privacy_status"] = privacy_map[v["id"]]
+                    modified = True
+            if modified:
+                with open(f, "w", encoding="utf-8") as fp:
+                    json.dump(data, fp, ensure_ascii=False, indent=2)
+                print(f"[privacy] {f.name} 更新済み")
+        except Exception as e:
+            print(f"[warn] {f.name} パッチ失敗: {e}", file=sys.stderr)
 
 
 def load_all_raw_jsons() -> list[dict]:
@@ -319,14 +400,16 @@ def generate_data_json(raw_list: list[dict], analysis: list[dict]) -> dict:
     latest_raw = raw_list[-1]
     prev_raw = raw_list[-2] if len(raw_list) >= 2 else None
 
-    # 非公開動画を除外（privacy_status=private）
+    # 非公開・限定公開動画を除外（privacy_status=private or unlisted）
+    _EXCLUDED_STATUSES = {"private", "unlisted"}
+
     def _filter_private(raw: dict) -> dict:
-        """raw.jsonのvideos/per_video_analyticsから非公開動画を除外したコピーを返す"""
+        """raw.jsonのvideos/per_video_analyticsから非公開/限定公開動画を除外したコピーを返す"""
         import copy
         r = copy.copy(raw)
-        r["videos"] = [v for v in raw.get("videos", []) if v.get("privacy_status", "public") != "private"]
-        private_ids = {v["id"] for v in raw.get("videos", []) if v.get("privacy_status", "public") == "private"}
-        r["per_video_analytics"] = [p for p in raw.get("per_video_analytics", []) if p.get("id") not in private_ids]
+        r["videos"] = [v for v in raw.get("videos", []) if v.get("privacy_status", "public") not in _EXCLUDED_STATUSES]
+        excluded_ids = {v["id"] for v in raw.get("videos", []) if v.get("privacy_status", "public") in _EXCLUDED_STATUSES}
+        r["per_video_analytics"] = [p for p in raw.get("per_video_analytics", []) if p.get("id") not in excluded_ids]
         return r
 
     latest_raw_filtered = _filter_private(latest_raw)
@@ -993,6 +1076,7 @@ fetch(\'data.json\')
 def main():
     skip_video_analysis = "--skip-video-analysis" in sys.argv
 
+    patch_privacy_status_in_raw_jsons()
     raw_list = load_all_raw_jsons()
     if not raw_list:
         print("[error] analytics/*.raw.json が見つかりません", file=sys.stderr)
