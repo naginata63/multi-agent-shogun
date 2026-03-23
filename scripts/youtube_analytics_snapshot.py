@@ -75,7 +75,7 @@ def get_credentials():
             flow = InstalledAppFlow.from_client_secrets_file(str(CLIENT_SECRET_PATH), SCOPES)
             auth_url, _ = flow.authorization_url(prompt="select_account")
             print(f"  {auth_url}")
-            creds = flow.run_local_server(port=0, prompt="select_account")
+            creds = flow.run_local_server(port=0, prompt="select_account", open_browser=False)
             with open(TOKEN_PATH, "w") as f:
                 f.write(creds.to_json())
             print(f"[analytics] 認証トークン保存: {TOKEN_PATH}")
@@ -581,7 +581,11 @@ def generate_report(channel_stats, videos, daily_stats, traffic_sources,
 
 
 def setup_crontab():
-    """crontabに5:57登録（既に登録済みならスキップ）"""
+    """crontabに5:57登録（初回のみ実行。フラグファイルで制御）"""
+    flag_file = Path.home() / '.config' / 'multi-agent-shogun' / 'crontab_setup.done'
+    if flag_file.exists():
+        return
+
     cron_entry = (
         "57 5 * * * cd /home/murakami/multi-agent-shogun && "
         "venv/bin/python3 scripts/youtube_analytics_snapshot.py >> "
@@ -597,6 +601,8 @@ def setup_crontab():
 
     new_crontab = current.rstrip("\n") + "\n" + cron_entry + "\n"
     subprocess.run(["crontab", "-"], input=new_crontab, text=True, check=True)
+    flag_file.parent.mkdir(parents=True, exist_ok=True)
+    flag_file.touch()
     print(f"[analytics] crontab登録完了: {cron_entry}")
 
 
