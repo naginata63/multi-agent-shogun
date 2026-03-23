@@ -323,6 +323,28 @@ def calc_video_diff(videos, prev_raw):
     return diffs
 
 
+def save_analysis(date_str: str, content: str):
+    """LLM分析結果をanalysis_history.jsonに蓄積（同日は上書き）"""
+    history_path = ANALYTICS_DIR / "analysis_history.json"
+    history = []
+    if history_path.exists():
+        try:
+            with open(history_path, encoding="utf-8") as f:
+                history = json.load(f)
+        except Exception:
+            history = []
+    history = [h for h in history if h.get("date") != date_str]
+    history.append({
+        "date": date_str,
+        "model": "claude-opus-4-6",
+        "content": content,
+    })
+    history.sort(key=lambda x: x["date"], reverse=True)
+    with open(history_path, "w", encoding="utf-8") as f:
+        json.dump(history, f, ensure_ascii=False, indent=2)
+    print(f"[analytics] analysis_history.json 更新: {date_str}")
+
+
 def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, video_diffs):
     """Claude CLI Opus 4.6でLLM分析"""
     top_videos = videos[:5]
@@ -722,11 +744,25 @@ def main():
         f.write(report)
     print(f"[analytics] レポート保存: {report_path}")
 
+    # LLM分析をanalysis_history.jsonに蓄積
+    save_analysis(DATE_STR, llm_analysis)
+
     # ntfy通知
     send_ntfy_if_needed(channel_stats, video_diffs, prev_raw, videos)
 
     # crontab登録
     setup_crontab()
+
+    # ダッシュボード生成
+    print("[analytics] ダッシュボード生成中...")
+    try:
+        subprocess.run(
+            [sys.executable, str(BASE_DIR / "scripts" / "generate_dashboard.py")],
+            timeout=60,
+            check=True,
+        )
+    except Exception as e:
+        print(f"[analytics] ダッシュボード生成失敗（スキップ）: {e}", file=sys.stderr)
 
     print("[analytics] 完了!")
     print(f"  レポート: {report_path}")
