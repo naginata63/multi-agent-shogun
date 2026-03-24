@@ -121,6 +121,8 @@
 !scripts/monitor.sh
 !scripts/semantic_search.py
 !scripts/scene_search_v2.py
+!scripts/3d/
+!scripts/3d/3d_frame_qc.py
 !scripts/cmd_helper.py
 !scripts/setup_youtube_dashboard_autostart.sh
 !scripts/gemini_transcribe.py
