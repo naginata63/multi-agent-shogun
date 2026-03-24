@@ -25,6 +25,18 @@ if ! curl -sf --max-time 2 "${VOICEVOX_BASE}/version" > /dev/null 2>&1; then
   exit 0
 fi
 
+# 読み替え辞書を適用（config/voicevox_dict.txt）
+DICT_FILE="$(cd "$(dirname "$0")/.." && pwd)/config/voicevox_dict.txt"
+if [ -f "$DICT_FILE" ]; then
+  while IFS= read -r line; do
+    # コメント行・空行をスキップ
+    [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue
+    word="${line%%=*}"
+    reading="${line#*=}"
+    TEXT="${TEXT//$word/$reading}"
+  done < "$DICT_FILE"
+fi
+
 # 日本語テキストをURLエンコード
 ENCODED_TEXT=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "$TEXT")
 
