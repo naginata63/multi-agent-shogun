@@ -14321,5 +14321,46 @@ tasks:
     - "git commit済み"
   project: dozle_kirinuki
   report_to: karo
-  status: assigned
+  status: done
   timestamp: '2026-03-24T21:58:00'
+  completed_at: '2026-03-24T22:15:00'
+  youtube_video_id: s-_Dt5SP8iQ
+- task_id: subtask_931b_10sets
+  parent_cmd: cmd_931
+  bloom_level: L3
+  assignee: ashigaru2
+  title: "cmd_931修正: セリフ修正+10セット生成→YouTube非公開アップ"
+  description: |
+    ## 修正内容
+    1. panels_931a.json P1のline: 「おもれ」→「おもれえ」に修正
+    2. P1のtitleも同様に修正
+    3. 修正後、10セット生成（set_01〜set_10）
+    4. 全セットYouTube非公開アップ
+
+    殿が比較して最終版を選ぶ（cmd_904と同じ方式）。
+
+    ## 実行
+    panels JSONを修正→generate_manga_short.pyで10セット生成→各セットYouTubeアップ
+
+    ## 完了報告
+    bash scripts/inbox_write.sh karo "cmd_931修正+10セット完了。video_id一覧: set_01=XXX, ..." report_received ashigaru2
+  acceptance_criteria:
+    - "P1のセリフがおもれえに修正"
+    - "10セット生成"
+    - "全セットYouTube非公開アップ・video_id報告"
+  project: dozle_kirinuki
+  report_to: karo
+  status: done
+  timestamp: '2026-03-25T02:32:00'
+  completed_at: '2026-03-25T04:01:27'
+  youtube_video_ids:
+    set_01: pI4U08sjJGg
+    set_02: N-uq95hcL4Q
+    set_03: HFIBmgjJDmM
+    set_04: tyOSSGS3Koc
+    set_05: D6IG4PE6lLc
+    set_06: Z7v-M3nClHM
+    set_07: X8ZnXP2pwbI
+    set_08: oCZO0e8bE0I
+    set_09: n-ULpgN5Ako
+    set_10: 5lAPigdToIc
