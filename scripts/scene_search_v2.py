@@ -16,6 +16,11 @@ scene_search_v2.py — セマンティックシーン検索 (merged JSON + numpy
     python3 scripts/scene_search_v2.py interactions --speaker oo_men --top 10
     python3 scripts/scene_search_v2.py hotspots --top 30
     python3 scripts/scene_search_v2.py hotspots --sort tension_shift --top 10
+    python3 scripts/scene_search_v2.py hotspots --sort comment_density --top 10
+    python3 scripts/scene_search_v2.py build-comments
+    python3 scripts/scene_search_v2.py build-comments --update
+    python3 scripts/scene_search_v2.py query "ドズボン てぇてぇ" --source comments
+    python3 scripts/scene_search_v2.py query "ドズボン てぇてぇ" --source all
     python3 scripts/scene_search_v2.py info
 """
 
@@ -36,6 +41,7 @@ KIRINUKI_DIR = PROJECT_ROOT / "projects" / "dozle_kirinuki"
 SRT_CANDIDATES_DIR = KIRINUKI_DIR / "work" / "srt_and_candidates"
 WORK_DIR = KIRINUKI_DIR / "work"
 INDEX_DIR = PROJECT_ROOT / "data" / "scene_index_v2"
+COMMENTS_DIR = WORK_DIR / "comments"
 
 # words インデックス（既存）
 EMBEDDINGS_FILE = INDEX_DIR / "embeddings.npy"
@@ -45,6 +51,10 @@ BUILD_INFO_FILE = INDEX_DIR / "build_info.json"
 # chunks インデックス（新規）
 CHUNKS_EMBEDDINGS_FILE = INDEX_DIR / "chunks_embeddings.npy"
 CHUNKS_METADATA_FILE = INDEX_DIR / "chunks_metadata.json"
+
+# comments インデックス（コメント）
+COMMENTS_EMBEDDINGS_FILE = INDEX_DIR / "comments_embeddings.npy"
+COMMENTS_METADATA_FILE = INDEX_DIR / "comments_metadata.json"
 
 EMBED_MODEL = "gemini-embedding-2-preview"
 EMBED_DIM = 3072
@@ -65,14 +75,15 @@ REACTION_WORDS = [
     "は？", "え？", "えぇ", "うそっ", "まじ", "やば",
 ]
 
-# hotspot_score 重み
+# hotspot_score 重み（7基軸）
 HOTSPOT_WEIGHTS = {
-    "interaction_score": 0.20,
-    "tension_shift":     0.20,
-    "reaction_density":  0.15,
-    "silence_burst":     0.15,
-    "unique_phrase":     0.15,
-    "boke_tsukkomi":     0.15,
+    "interaction_score": 0.18,
+    "tension_shift":     0.18,
+    "reaction_density":  0.13,
+    "silence_burst":     0.13,
+    "unique_phrase":     0.13,
+    "boke_tsukkomi":     0.13,
+    "comment_density":   0.12,  # 7つ目: タイムスタンプ付きコメント密度
 }
 
 # ===== ストップワードフィルタ =====
@@ -103,6 +114,99 @@ try:
 except ImportError:
     HAS_GENAI = False
     print("WARNING: google-genai not installed. build subcommand unavailable.")
+
+
+# ===== コメント処理 =====
+import re as _re
+
+_TS_PATTERN = _re.compile(r'(?:(?P<h>\d{1,2}):)?(?P<m>\d{1,2}):(?P<s>\d{2})')
+
+
+def parse_timestamps_from_text(text: str) -> list:
+    """テキストからタイムスタンプ（HH:MM:SS or MM:SS）を全て抽出し、ミリ秒リストを返す。"""
+    results = []
+    for m in _TS_PATTERN.finditer(text):
+        h = int(m.group("h") or 0)
+        mi = int(m.group("m"))
+        s = int(m.group("s"))
+        ms = (h * 3600 + mi * 60 + s) * 1000
+        results.append(ms)
+    return results
+
+
+def extract_ts_comments(video_id: str) -> list:
+    """info.jsonからタイムスタンプ付きコメントを抽出。
+    返り値: [{video_id, ts_ms, text, author, like_count}, ...]
+    """
+    info_path = COMMENTS_DIR / f"{video_id}.info.json"
+    if not info_path.exists():
+        return []
+
+    with open(info_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    comments = data.get("comments", [])
+    ts_comments = []
+    for c in comments:
+        text = c.get("text", "")
+        timestamps = parse_timestamps_from_text(text)
+        for ts_ms in timestamps:
+            ts_comments.append({
+                "video_id": video_id,
+                "ts_ms": ts_ms,
+                "text": text,
+                "author": c.get("author", ""),
+                "like_count": c.get("like_count", 0),
+            })
+
+    return ts_comments
+
+
+def create_comment_chunks(ts_comments: list, video_id: str) -> list:
+    """タイムスタンプ付きコメントを30秒チャンク単位で集約。
+
+    各チャンク:
+    - start_ms: 30秒グリッドの境界
+    - end_ms: start_ms + 30000
+    - text: そのウィンドウ内コメントの連結テキスト
+    - comment_density: コメント数（生数値、後でスコア正規化）
+    - source: "comment"
+    """
+    if not ts_comments:
+        return []
+
+    # 30秒グリッドでバケツ分け
+    bucket: dict = {}
+    for c in ts_comments:
+        bucket_key = (c["ts_ms"] // CHUNK_DURATION_MS) * CHUNK_DURATION_MS
+        if bucket_key not in bucket:
+            bucket[bucket_key] = []
+        bucket[bucket_key].append(c)
+
+    chunks = []
+    for start_ms, comments in sorted(bucket.items()):
+        end_ms = start_ms + CHUNK_DURATION_MS
+        # コメントテキストを連結（重複排除）
+        seen_texts = set()
+        unique_texts = []
+        for c in sorted(comments, key=lambda x: -x["like_count"]):
+            if c["text"] not in seen_texts:
+                seen_texts.add(c["text"])
+                unique_texts.append(c["text"])
+
+        chunk_text = " | ".join(unique_texts[:10])  # 最大10件
+        chunks.append({
+            "video_id": video_id,
+            "start_ms": start_ms,
+            "end_ms": end_ms,
+            "text": chunk_text,
+            "comment_density": len(comments),
+            "source": "comment",
+            "index_mode": "comments",
+            "word_count": len(chunk_text.split()),
+        })
+
+    return chunks
 
 
 # ===== 動画タイトルマップ =====
@@ -517,10 +621,12 @@ def embed_texts(client, texts, task_type="RETRIEVAL_DOCUMENT"):
 # ===== インデックス I/O =====
 def load_index(mode="chunks"):
     """インデックスを読み込む。存在しない場合は (None, []) を返す。
-    mode: "words" → word-level, "chunks" → 30秒チャンク
+    mode: "words" → word-level, "chunks" → 30秒チャンク, "comments" → コメント
     """
     if mode == "words":
         emb_file, meta_file = EMBEDDINGS_FILE, METADATA_FILE
+    elif mode == "comments":
+        emb_file, meta_file = COMMENTS_EMBEDDINGS_FILE, COMMENTS_METADATA_FILE
     else:
         emb_file, meta_file = CHUNKS_EMBEDDINGS_FILE, CHUNKS_METADATA_FILE
 
@@ -537,6 +643,8 @@ def save_index(embeddings, metadata, mode="chunks"):
     INDEX_DIR.mkdir(parents=True, exist_ok=True)
     if mode == "words":
         emb_file, meta_file = EMBEDDINGS_FILE, METADATA_FILE
+    elif mode == "comments":
+        emb_file, meta_file = COMMENTS_EMBEDDINGS_FILE, COMMENTS_METADATA_FILE
     else:
         emb_file, meta_file = CHUNKS_EMBEDDINGS_FILE, CHUNKS_METADATA_FILE
 
@@ -748,25 +856,112 @@ def cmd_build(args):
     print(f"\n完了: words={len(w_meta) if w_meta else 0}, chunks={len(c_meta) if c_meta else 0}, 動画数={len(all_vids)}")
 
 
-def cmd_query(args):
-    """セマンティック検索。デフォルトはchunksインデックス。--mode words で旧式。"""
-    mode = getattr(args, "mode", "chunks")
-    embeddings, metadata = load_index(mode)
-    if embeddings is None:
-        print(f"ERROR: {mode}インデックスが存在しません。先に build を実行してください。")
+def cmd_build_comments(args):
+    """コメントインデックスを構築。COMMENTS_DIR配下の*.info.jsonを処理。"""
+    update = getattr(args, "update", False)
+    print(f"=== scene_search_v2: build-comments (update={update}) ===")
+
+    if not COMMENTS_DIR.exists():
+        print(f"ERROR: comments dir not found: {COMMENTS_DIR}")
         sys.exit(1)
+
+    # 既存インデックス読み込み
+    existing_emb, existing_meta = load_index("comments")
+    existing_vids = set()
+    if existing_emb is not None and update:
+        existing_vids = {m["video_id"] for m in existing_meta}
+        print(f"  既存: {len(existing_meta)} chunks, {len(existing_vids)} 動画")
+
+    # 対象ファイル収集
+    info_files = sorted(COMMENTS_DIR.glob("*.info.json"))
+    print(f"info.json数: {len(info_files)}")
+
+    all_comment_chunks = []
+    processed_vids = []
+    for info_file in info_files:
+        vid = info_file.stem.replace(".info", "")
+        if update and vid in existing_vids:
+            print(f"  SKIP {vid} (既存)")
+            continue
+
+        ts_comments = extract_ts_comments(vid)
+        if not ts_comments:
+            print(f"  {vid}: TSコメント0件 → スキップ")
+            continue
+
+        chunks = create_comment_chunks(ts_comments, vid)
+        print(f"  {vid}: TSコメント{len(ts_comments)}件 → {len(chunks)} チャンク")
+        all_comment_chunks.extend(chunks)
+        processed_vids.append(vid)
+
+    if not all_comment_chunks:
+        print("追加対象なし。")
+        return
+
+    print(f"\n新規コメントチャンク: {len(all_comment_chunks)}")
+    client = get_client()
+    texts = [c["text"] for c in all_comment_chunks]
+    print("Comment Embedding 処理開始...")
+    new_emb = embed_texts(client, texts, task_type="RETRIEVAL_DOCUMENT")
+
+    if existing_emb is not None and update and len(existing_meta) > 0:
+        merged_emb = np.concatenate([existing_emb, new_emb], axis=0)
+        merged_meta = existing_meta + all_comment_chunks
+    else:
+        merged_emb = new_emb
+        merged_meta = all_comment_chunks
+
+    print(f"Comments インデックス保存: {len(merged_meta)} チャンク")
+    save_index(merged_emb, merged_meta, mode="comments")
+    print(f"完了: {COMMENTS_METADATA_FILE}")
+
+
+def cmd_query(args):
+    """セマンティック検索。デフォルトはchunksインデックス。--mode words で旧式。--source comments/all も可。"""
+    source = getattr(args, "source", "srt")
+    mode = getattr(args, "mode", "chunks")
 
     title_map = build_title_map()
     client = get_client()
-    print(f'検索中 (mode={mode}): "{args.query}"')
+    print(f'検索中 (source={source}, mode={mode}): "{args.query}"')
     query_emb = embed_texts(client, [args.query], task_type="RETRIEVAL_QUERY")[0]
 
-    results = search(
-        query_emb, embeddings, metadata,
-        top_k=args.top,
-        video_id=getattr(args, "video", None),
-        speaker=getattr(args, "speaker", None),
-    )
+    top_k = args.top
+
+    if source == "comments":
+        # コメントインデックスのみ
+        embeddings, metadata = load_index("comments")
+        if embeddings is None:
+            print("ERROR: commentsインデックスが存在しません。先に build-comments を実行してください。")
+            sys.exit(1)
+        results = search(query_emb, embeddings, metadata, top_k=top_k,
+                         video_id=getattr(args, "video", None))
+    elif source == "all":
+        # SRT chunks + comments の両方から検索してマージ
+        srt_emb, srt_meta = load_index(mode)
+        com_emb, com_meta = load_index("comments")
+        results = []
+        if srt_emb is not None:
+            results += search(query_emb, srt_emb, srt_meta, top_k=top_k,
+                              video_id=getattr(args, "video", None),
+                              speaker=getattr(args, "speaker", None))
+        if com_emb is not None:
+            results += search(query_emb, com_emb, com_meta, top_k=top_k,
+                              video_id=getattr(args, "video", None))
+        # 統合後スコア降順でtop_k件に絞る
+        results = sorted(results, key=lambda r: r["score"], reverse=True)[:top_k]
+    else:
+        # デフォルト: SRT chunks（既存動作）
+        embeddings, metadata = load_index(mode)
+        if embeddings is None:
+            print(f"ERROR: {mode}インデックスが存在しません。先に build を実行してください。")
+            sys.exit(1)
+        results = search(
+            query_emb, embeddings, metadata,
+            top_k=args.top,
+            video_id=getattr(args, "video", None),
+            speaker=getattr(args, "speaker", None),
+        )
 
     if args.json:
         output = {
@@ -993,17 +1188,28 @@ def cmd_recompute_scores(args):
 
 def cmd_hotspots(args):
     """複合ホットスポットスコアが高いシーン一覧。
-    使い方: hotspots [--top N] [--sort AXIS] [--video VIDEO_ID]
+    使い方: hotspots [--top N] [--sort AXIS] [--video VIDEO_ID] [--source srt|comments]
     ソート可能軸: hotspot_score, interaction_score, tension_shift,
-                 reaction_density, silence_burst, unique_phrase, boke_tsukkomi
+                 reaction_density, silence_burst, unique_phrase, boke_tsukkomi, comment_density
     """
-    _, metadata = load_index("chunks")
-    if not metadata:
-        print("ERROR: chunksインデックスが存在しません。先に build を実行してください。")
-        sys.exit(1)
+    source = getattr(args, "source", "srt")
+    sort_key = getattr(args, "sort", "hotspot_score")
 
-    # hotspot_scoreが未計算の場合はon-the-flyで計算
-    if "hotspot_score" not in metadata[0] or metadata[0].get("hotspot_score", 0) == 0:
+    # comment_density ソートはcomments インデックスを使用
+    if sort_key == "comment_density" or source == "comments":
+        _, metadata = load_index("comments")
+        if not metadata:
+            print("ERROR: commentsインデックスが存在しません。先に build-comments を実行してください。")
+            sys.exit(1)
+    else:
+        _, metadata = load_index("chunks")
+        if not metadata:
+            print("ERROR: chunksインデックスが存在しません。先に build を実行してください。")
+            sys.exit(1)
+
+    # hotspot_scoreが未計算の場合はon-the-flyで計算（chunksのみ）
+    if source != "comments" and sort_key != "comment_density":
+      if "hotspot_score" not in metadata[0] or metadata[0].get("hotspot_score", 0) == 0:
         print("NOTE: hotspot_scoreが未計算です。on-the-flyで計算中...")
         compute_unique_phrase_scores(metadata)
         compute_hotspot_scores(metadata)
@@ -1017,6 +1223,7 @@ def cmd_hotspots(args):
     valid_sorts = [
         "hotspot_score", "interaction_score", "tension_shift",
         "reaction_density", "silence_burst", "unique_phrase", "boke_tsukkomi",
+        "comment_density",
     ]
     sort_key = getattr(args, "sort", "hotspot_score")
     if sort_key not in valid_sorts:
@@ -1031,10 +1238,10 @@ def cmd_hotspots(args):
     print()
     header = (
         f"{'Rank':<4} {'Hot':<6} {'Int':<6} {'Ten':<6} {'Rea':<6} "
-        f"{'Sil':<6} {'Uni':<6} {'Bok':<4} {'Video':<14} {'Time':<11} Text"
+        f"{'Sil':<6} {'Uni':<6} {'Bok':<4} {'Com':<5} {'Video':<14} {'Time':<11} Text"
     )
     print(header)
-    print("-" * 130)
+    print("-" * 140)
     for i, r in enumerate(results):
         time_str = f"{ms_to_timestr(r['start_ms'])}-{ms_to_timestr(r['end_ms'])}"
         hot = r.get("hotspot_score", 0)
@@ -1044,10 +1251,11 @@ def cmd_hotspots(args):
         sil = r.get("silence_burst", 0)
         uni = r.get("unique_phrase", 0)
         bok = r.get("boke_tsukkomi", 0)
+        com = r.get("comment_density", 0)
         text = r["text"][:40] + "..." if len(r["text"]) > 40 else r["text"]
         print(
             f"{i + 1:<4} {hot:<6.3f} {isc:<6.2f} {ten:<6.2f} {rea:<6.2f} "
-            f"{sil:<6.2f} {uni:<6.2f} {bok:<4} {r['video_id']:<14} {time_str:<11} {text}"
+            f"{sil:<6.2f} {uni:<6.2f} {bok:<4} {com:<5} {r['video_id']:<14} {time_str:<11} {text}"
         )
 
 
@@ -1100,6 +1308,21 @@ def cmd_info(args):
             if scores:
                 print(f"  掛け合いスコア: max={max(scores):.3f}, avg={sum(scores)/len(scores):.3f}")
 
+    # comments インデックス
+    if COMMENTS_EMBEDDINGS_FILE.exists():
+        emb = np.load(str(COMMENTS_EMBEDDINGS_FILE))
+        print(f"\n[comments インデックス]")
+        print(f"  shape: {emb.shape}")
+        print(f"  ファイルサイズ: {COMMENTS_EMBEDDINGS_FILE.stat().st_size / 1024 / 1024:.1f} MB")
+        if COMMENTS_METADATA_FILE.exists():
+            with open(COMMENTS_METADATA_FILE, "r", encoding="utf-8") as f:
+                meta = json.load(f)
+            videos = set(m["video_id"] for m in meta)
+            print(f"  動画数: {len(videos)}")
+            densities = [m.get("comment_density", 0) for m in meta]
+            if densities:
+                print(f"  comment_density: max={max(densities)}, avg={sum(densities)/len(densities):.1f}")
+
 
 # ===== エントリポイント =====
 def main():
@@ -1114,6 +1337,10 @@ def main():
                    help="インデックスモード (default: both)")
     b.add_argument("--update", action="store_true", help="新規JSONのみEmbedding化して既存インデックスに追加")
 
+    # build-comments
+    bc = sub.add_parser("build-comments", help="コメントインデックス構築（yt-dlpで取得したinfo.json使用）")
+    bc.add_argument("--update", action="store_true", help="新規動画のみ追加")
+
     # query
     q = sub.add_parser("query", help="セマンティック検索")
     q.add_argument("query", help="検索クエリ")
@@ -1123,6 +1350,8 @@ def main():
     q.add_argument("--json", action="store_true", help="JSON形式で出力")
     q.add_argument("--mode", choices=["words", "chunks"], default="chunks",
                    help="検索モード (default: chunks)")
+    q.add_argument("--source", choices=["srt", "comments", "all"], default="srt",
+                   help="検索対象 (default: srt, comments: コメントのみ, all: 両方)")
 
     # find-similar
     fs = sub.add_parser("find-similar", help="指定時刻に近いシーンと類似するシーンを検索")
@@ -1145,9 +1374,12 @@ def main():
                     choices=[
                         "hotspot_score", "interaction_score", "tension_shift",
                         "reaction_density", "silence_burst", "unique_phrase", "boke_tsukkomi",
+                        "comment_density",
                     ],
                     help="ソートキー (default: hotspot_score)")
     hs.add_argument("--video", help="動画IDでフィルタ")
+    hs.add_argument("--source", choices=["srt", "comments"], default="srt",
+                    help="インデックスソース (default: srt, comments: コメントインデックス)")
 
     # recompute-scores
     sub.add_parser("recompute-scores",
@@ -1160,6 +1392,8 @@ def main():
 
     if args.subcommand == "build":
         cmd_build(args)
+    elif args.subcommand == "build-comments":
+        cmd_build_comments(args)
     elif args.subcommand == "query":
         cmd_query(args)
     elif args.subcommand == "find-similar":
