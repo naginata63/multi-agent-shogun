@@ -14152,3 +14152,107 @@ tasks:
   status: done
   timestamp: '2026-03-24T07:18:00'
   completed_at: '2026-03-24T07:40:00'
+- task_id: subtask_916a
+  parent_cmd: cmd_916
+  bloom_level: L3
+  assignee: ashigaru2
+  title: "未解析動画7本のSTTマージ字幕を順次取得"
+  description: |
+    gemini_speaker_pipeline.py で未解析動画7本のSTTマージ字幕を順次取得する。
+    **並行禁止。1本ずつ順に処理。**
+
+    ## 対象動画（この順番で処理せよ）
+    1. DCxJ6DnDx5A — 時間が止まった世界から探索と閃きで脱出する男たち（2026-03-01）
+    2. y-qxrXenOqY — 新MOBオウムガイの頭の中に入ってみた！（2026-02-27）
+    3. DJ_NmrIiB78 — 魔女の家にある謎を解き明かせ（2026-02-26）
+    4. erSyK15GFNQ — ニンジンしかない世界で進捗10個クリア（2026-02-24）
+    5. 5M5zp9TpbeA — 学校にあった祠を壊してしまいました…（2026-02-21）
+    6. wf49a7kUU2A — おんりーに挑戦！マイクラ操作力勝負（2026-02-20）
+    7. 1-wNVCanUr0 — NGワード後編（2026-02-18）
+
+    ## 各動画の処理手順
+    1. work/ディレクトリを作成: projects/dozle_kirinuki/work/YYYYMMDD_タイトル/
+    2. yt-dlp で360p MP4をダウンロード（音声解析用。既存があればスキップ）
+       ```bash
+       yt-dlp -f "bestvideo[height<=360]+bestaudio/best[height<=360]" \
+         -o "projects/dozle_kirinuki/work/YYYYMMDD_タイトル/input/%(id)s.mp4" \
+         "https://www.youtube.com/watch?v={video_id}"
+       ```
+    3. gemini_speaker_pipeline.py でSTTマージ実行
+       ```bash
+       source ~/.bashrc && python3 scripts/gemini_speaker_pipeline.py \
+         "projects/dozle_kirinuki/work/YYYYMMDD_タイトル/input/{video_id}.mp4" \
+         --output "projects/dozle_kirinuki/work/YYYYMMDD_タイトル/merged_{video_id}.srt"
+       ```
+       タイムアウト: 600000ms（10分）
+    4. 品質検証（各動画ごとに確認）:
+       - エントリ数が動画尺に応じた妥当な数（目安: 10分あたり80-150エントリ）
+       - 最終タイムスタンプが動画尺の90%以上をカバー
+       - 同一フレーズの繰り返し（ハルシネーション）がないこと（最頻出テキストが全体の5%以下）
+       - 話者ラベル付きであること
+    5. OK → projects/dozle_kirinuki/data/dozle_video_list.json の当該動画を analyzed: true に更新
+    6. NG（ハルシネーション等）→ 即報告。再実行は1回まで。2回NGなら殿判断を仰ぐ
+    7. 次の動画へ
+
+    ## 注意
+    - GEMINI_API_KEY: source ~/.bashrc で読み込むこと
+    - Gemini APIクォータに注意。429エラーが出たら5分待って再実行
+    - 全7本完了後にまとめて git add projects/dozle_kirinuki/ && git commit
+    - 進捗は3本完了時に中間報告を入れよ（inbox_write karo）
+
+    ## 完了報告
+    bash scripts/inbox_write.sh karo "cmd_916完了。7本のSTTマージ字幕取得済み。各エントリ数・カバレッジ報告。" report_received ashigaru2
+  acceptance_criteria:
+    - "7本全てのmerged SRTが生成されていること"
+    - "各SRTのエントリ数が動画尺に応じた妥当な数"
+    - "各SRTの最終タイムスタンプが動画尺の90%以上をカバー"
+    - "ハルシネーションがないこと（最頻出テキストが全体の5%以下）"
+    - "話者ラベル付きであること"
+    - "dozle_video_list.json の analyzed フラグが各完了時に true に更新"
+    - "git commit済み"
+  project: dozle_kirinuki
+  report_to: karo
+  status: cancelled
+  note: "家老指示により別足軽に再割当。動画1(DCxJ6DnDx5A)・動画2(y-qxrXenOqY)はvocal_stt_pipeline.pyで処理完了・srt_and_candidates/コピー済み・analyzed:true更新済み。"
+  timestamp: '2026-03-24T08:56:00'
+- task_id: subtask_yt_desc_8Cl
+  parent_cmd: cmd_914
+  bloom_level: L2
+  assignee: ashigaru2
+  title: "MEN仕事断り漫画ショート(8Cl_dL-Wmlg)のYouTube説明欄更新"
+  description: |
+    youtube_uploader.py または YouTube Data API で説明欄を更新せよ。
+    video_id: 8Cl_dL-Wmlg
+
+    ## 説明欄内容（この通りに設定）
+    ```
+    大事な仕事を頼まれたMENの返答が潔すぎるwww
+
+    📌 元動画
+    100万ブロックのお城を作れるまで終われません！【マイクラ】
+    https://youtu.be/a9rkN9zYwTc
+
+    🎮 ドズル社本家チャンネル
+    https://www.youtube.com/@dozle
+
+    ※ドズル社公式ガイドラインに基づいて運営しています
+    https://www.dozle.jp/rule/
+
+    ※漫画パネルはAI画像生成で制作しています
+
+    #ドズル社 #切り抜き #マイクラ #shorts #おおはらMEN #ドズル #仕事断る #漫画動画 #AI漫画
+    ```
+
+    ## 実行方法
+    youtube_uploader.py update コマンドまたは YouTube Data API で更新。
+    scripts/youtube_uploader.py を確認してupdate機能があるか確認すること。
+    なければ google-api-python-client で直接API呼び出し。
+
+    ## 完了報告
+    bash scripts/inbox_write.sh karo "8Cl_dL-Wmlg説明欄更新完了" report_received ashigaru2
+  acceptance_criteria:
+    - "video_id 8Cl_dL-Wmlg の説明欄が指定内容に更新済み"
+  project: dozle_kirinuki
+  report_to: karo
+  status: done
+  timestamp: '2026-03-24T12:27:00'
