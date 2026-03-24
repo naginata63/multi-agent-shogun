@@ -14256,3 +14256,70 @@ tasks:
   report_to: karo
   status: done
   timestamp: '2026-03-24T12:27:00'
+- task_id: subtask_925_r5
+  parent_cmd: cmd_925
+  bloom_level: L5
+  assignee: ashigaru2
+  title: "cmd_925 R5: _sVuKf5Zu4A SH候補選定（Gemini枠）"
+  description: |
+    第5ラウンド（Gemini枠・3社混合の2）。R1-R4と独立視点で選定。
+    入力: projects/dozle_kirinuki/work/srt_and_candidates/merged__sVuKf5Zu4A.json
+    参照: context/expression_design_v5.md
+    **面白ければ本数関係ない。数合わせ禁止**
+    出力: queue/reports/ashigaru2_cs__sVuKf5Zu4A_r5.yaml
+    完了報告: bash scripts/inbox_write.sh karo "cmd_925 R5完了。SH候補N件。" report_received ashigaru2
+  acceptance_criteria:
+    - "独立視点で選定"
+    - "報告YAML出力"
+  project: dozle_kirinuki
+  report_to: karo
+  status: done
+  timestamp: '2026-03-24T20:10:00'
+  completed_at: '2026-03-24T20:18:00'
+- task_id: subtask_931a
+  parent_cmd: cmd_931
+  bloom_level: L4
+  assignee: ashigaru2
+  title: "竹取物語ネタバレ漫画ショート制作（11パネル・38.5秒）"
+  description: |
+    殿指示「クリップok 漫画生成はいれ」
+
+    ## クリップ
+    殿承認済み: Oj1ec1DyFVw（38.5秒）。元動画: _sVuKf5Zu4A
+
+    ## 漫画パネル構成（11枚・殿確定済み）
+    1. 0-4s MEN「超かぐや姫って作品がおもれらしいですよ」得意顔
+    2. 4-8s ドズル「僕情報入れたくないからちょっと」真剣顔・拒否
+    3. 8-11s MEN「竹取物語って知ってます？」不穏なニヤリ
+    4. 11-13s ドズル「いや、やめて！」焦り
+    5. 13-15s おんりー「喋り始めた。」呆れ
+    6. 15-19s MEN「今は昔、翁というものありけり。」ドヤ顔朗読
+    7. 19-23s ドズル「え、でもスタート今は昔だったよ。」驚愕
+    8. 23-25s おらふ「ちょっとネタバレやめてよ。」焦り
+    9. 25-28s 全員パニック
+    10. 28-34s MEN「私はネタバレの魔人。」邪悪ドヤ顔（オチ）
+    11. 34-37s ドズル「ネタバレの魔人最悪だろ。」呆れ締め
+
+    ## 文脈
+    超かぐや姫（Netflix）冒頭が「今は昔」。MENは竹取物語ネタバレに見せかけて超かぐや姫冒頭をネタバレする二重構造。
+
+    ## 制作手順
+    context/shorts_command_template.md 参照。
+    - selected.jsonをshorts形式で作成
+    - main.py --mode shorts --skip-download --skip-analyze --skip-select
+    - 出演: oo_men(main_speaker), dozle(secondary_speaker)
+    - テロップ: 中央〜上部。下部・右下禁止
+    - context/expression_design_v5.md 参照（キャラ外見）
+
+    ## 完了報告
+    bash scripts/inbox_write.sh karo "cmd_931完了。竹取物語漫画ショート。video_id: XXX" report_received ashigaru2
+  acceptance_criteria:
+    - "11パネル正しいキャラ・表情で生成"
+    - "音声: Oj1ec1DyFVwクリップ使用"
+    - "テロップ中央〜上部"
+    - "YouTube非公開アップ済み"
+    - "git commit済み"
+  project: dozle_kirinuki
+  report_to: karo
+  status: assigned
+  timestamp: '2026-03-24T21:58:00'
