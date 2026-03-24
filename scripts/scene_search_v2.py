@@ -14,6 +14,8 @@ scene_search_v2.py — セマンティックシーン検索 (merged JSON + numpy
     python3 scripts/scene_search_v2.py find-similar a9rkN9zYwTc 13:30 --top 10
     python3 scripts/scene_search_v2.py interactions --top 20
     python3 scripts/scene_search_v2.py interactions --speaker oo_men --top 10
+    python3 scripts/scene_search_v2.py hotspots --top 30
+    python3 scripts/scene_search_v2.py hotspots --sort tension_shift --top 10
     python3 scripts/scene_search_v2.py info
 """
 
@@ -56,6 +58,22 @@ MAX_GAP_MS = 2000    # 無音ギャップ閾値 2秒
 CHUNK_DURATION_MS = 30000   # チャンク長 30秒
 CHUNK_OVERLAP_MS = 15000    # オーバーラップ 15秒
 CHUNK_STEP_MS = CHUNK_DURATION_MS - CHUNK_OVERLAP_MS  # ステップ = 15秒
+
+# リアクションワード（驚き・衝撃）
+REACTION_WORDS = [
+    "えっ", "マジ", "やばい", "うそ", "すごい", "うわ", "えー", "ヤバ", "やべ",
+    "は？", "え？", "えぇ", "うそっ", "まじ", "やば",
+]
+
+# hotspot_score 重み
+HOTSPOT_WEIGHTS = {
+    "interaction_score": 0.20,
+    "tension_shift":     0.20,
+    "reaction_density":  0.15,
+    "silence_burst":     0.15,
+    "unique_phrase":     0.15,
+    "boke_tsukkomi":     0.15,
+}
 
 # ===== ストップワードフィルタ =====
 STOP_WORDS = [
@@ -316,6 +334,44 @@ def create_chunks_from_words(words, video_id, source_file):
 
         interaction_score = (speaker_changes / duration_sec) * tempo_bonus
 
+        # ===== tension_shift: 前半15秒 vs 後半15秒の発話密度差 =====
+        half_ms = actual_start + duration_ms / 2
+        first_half_words = [w for w in window_words if int(w.get("start", 0)) < half_ms]
+        second_half_words = [w for w in window_words if int(w.get("start", 0)) >= half_ms]
+        half_sec = duration_sec / 2 if duration_sec > 0 else 1.0
+        first_density = len(first_half_words) / half_sec
+        second_density = len(second_half_words) / half_sec
+        tension_shift = max(0.0, second_density - first_density)
+
+        # ===== reaction_density: リアクションワード密度 =====
+        reaction_count = sum(
+            1 for w in window_words
+            if any(rw in (w.get("text") or "") for rw in REACTION_WORDS)
+        )
+        reaction_density = reaction_count / duration_sec if duration_sec > 0 else 0.0
+
+        # ===== silence_burst: 最長無音直後3秒の発話密度 =====
+        max_gap_ms = 0
+        max_gap_end_ms = actual_start
+        for si in range(1, len(window_words)):
+            gap = int(window_words[si].get("start", 0)) - int(window_words[si - 1].get("end", 0))
+            if gap > max_gap_ms:
+                max_gap_ms = gap
+                max_gap_end_ms = int(window_words[si].get("start", 0))
+        burst_end_ms = max_gap_end_ms + 3000
+        burst_words = [
+            w for w in window_words
+            if int(w.get("start", 0)) >= max_gap_end_ms and int(w.get("start", 0)) < burst_end_ms
+        ]
+        burst_density = len(burst_words) / 3.0
+        silence_burst = burst_density * (max_gap_ms / duration_ms) if duration_ms > 0 else 0.0
+
+        # ===== boke_tsukkomi: 長台詞(3s+)→短返し(1s以内)パターン回数 =====
+        boke_tsukkomi = sum(
+            1 for si in range(len(segments_in_chunk) - 1)
+            if segments_in_chunk[si] >= 3000 and segments_in_chunk[si + 1] <= 1000
+        )
+
         chunks.append({
             "video_id": video_id,
             "start_ms": actual_start,
@@ -330,11 +386,82 @@ def create_chunks_from_words(words, video_id, source_file):
             "avg_line_duration_ms": avg_line_duration_ms,
             "interaction_score": round(interaction_score, 4),
             "duration_ms": duration_ms,
+            # 5基軸スコア（unique_phraseはpost-processingで計算）
+            "tension_shift": round(tension_shift, 4),
+            "reaction_density": round(reaction_density, 4),
+            "silence_burst": round(silence_burst, 4),
+            "boke_tsukkomi": boke_tsukkomi,
+            "unique_phrase": 0.0,  # compute_unique_phrase_scores()で後から計算
+            "hotspot_score": 0.0,  # compute_hotspot_scores()で後から計算
         })
 
         window_start += CHUNK_STEP_MS
 
     return chunks
+
+
+# ===== スコアリング後処理 =====
+def compute_unique_phrase_scores(chunks):
+    """全チャンクにunique_phraseスコアを付与（2-gram TF-IDF的レア表現スコア）。
+
+    同じコーパス全体でDF(document frequency)を計算し、
+    各チャンク内のレアN-gramが多いほど高スコアになる。
+    """
+    import math
+    from collections import Counter
+
+    def tokenize(text):
+        clean = text.replace("[", "").replace("]:", " ").strip()
+        return [clean[i:i + 2] for i in range(len(clean) - 1) if clean[i:i + 2].strip()]
+
+    # Document frequency
+    n_docs = len(chunks)
+    if n_docs == 0:
+        return
+
+    df: Counter = Counter()
+    for c in chunks:
+        tokens = set(tokenize(c.get("text", "")))
+        df.update(tokens)
+
+    # TF-IDF合算スコアを各チャンクに付与
+    for c in chunks:
+        tokens = tokenize(c.get("text", ""))
+        if not tokens:
+            c["unique_phrase"] = 0.0
+            continue
+        tf = Counter(tokens)
+        total = len(tokens)
+        score = 0.0
+        for tok, cnt in tf.items():
+            if df[tok] == 0:
+                continue
+            idf = math.log(n_docs / df[tok])
+            score += (cnt / total) * idf
+        c["unique_phrase"] = round(score, 4)
+
+
+def compute_hotspot_scores(chunks):
+    """全チャンクに hotspot_score（6軸重み付き正規化合算）を付与。
+
+    各軸を最大値で正規化(0-1)した後、HOTSPOT_WEIGHTSで重み付け合算。
+    """
+    axes = list(HOTSPOT_WEIGHTS.keys())
+
+    # 最大値算出（ゼロ除算防止）
+    max_vals = {}
+    for ax in axes:
+        vals = [c.get(ax, 0) for c in chunks]
+        max_vals[ax] = max(vals) if vals else 1.0
+        if max_vals[ax] == 0:
+            max_vals[ax] = 1.0
+
+    for c in chunks:
+        score = 0.0
+        for ax, weight in HOTSPOT_WEIGHTS.items():
+            norm = c.get(ax, 0) / max_vals[ax]
+            score += norm * weight
+        c["hotspot_score"] = round(score, 4)
 
 
 # ===== Embedding =====
@@ -600,6 +727,12 @@ def cmd_build(args):
             merged_emb = new_emb
             merged_meta = all_chunks
 
+        # unique_phrase & hotspot_score を全チャンクに付与（マージ後の全量で計算）
+        print("  unique_phraseスコア計算中...")
+        compute_unique_phrase_scores(merged_meta)
+        print("  hotspot_scoreスコア計算中...")
+        compute_hotspot_scores(merged_meta)
+
         print(f"Chunks インデックス保存: {len(merged_meta)} チャンク")
         save_index(merged_emb, merged_meta, mode="chunks")
 
@@ -788,6 +921,136 @@ def cmd_interactions(args):
         print(f"{i+1:<4} {iscore:<8.3f} {chg:<5} {r['video_id']:<14} {time_str:<11} {spk:<24} {text}")
 
 
+def cmd_recompute_scores(args):
+    """既存chunksインデックスのメタデータに5基軸+hotspot_scoreを再計算して保存。
+
+    Embeddingは再計算しない（高速）。
+    使い方: recompute-scores
+    """
+    embeddings, metadata = load_index("chunks")
+    if embeddings is None or not metadata:
+        print("ERROR: chunksインデックスが存在しません。先に build を実行してください。")
+        sys.exit(1)
+
+    print(f"既存チャンク数: {len(metadata)}")
+
+    # 動画IDごとにmerged JSONを再読み込みしてスコアを再計算
+    video_ids = sorted(set(m["video_id"] for m in metadata))
+    print(f"対象動画数: {len(video_ids)}")
+
+    # video_id → 新チャンクのスコアマップ (start_ms → scores_dict)
+    score_maps: dict = {}
+
+    all_files = collect_merged_jsons()
+    file_map = {vid: f for vid, f in all_files}
+
+    for vid in video_ids:
+        if vid not in file_map:
+            print(f"  WARNING: {vid} のmerged JSONが見つかりません。スコアは0のままです。")
+            continue
+
+        path = file_map[vid]
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        words = data.get("words", [])
+        new_chunks = create_chunks_from_words(words, vid, str(path.relative_to(PROJECT_ROOT)))
+        score_maps[vid] = {
+            c["start_ms"]: {
+                "tension_shift": c["tension_shift"],
+                "reaction_density": c["reaction_density"],
+                "silence_burst": c["silence_burst"],
+                "boke_tsukkomi": c["boke_tsukkomi"],
+            }
+            for c in new_chunks
+        }
+        print(f"  {vid}: {len(new_chunks)} チャンク再計算")
+
+    # メタデータにスコアを付与
+    updated = 0
+    for m in metadata:
+        vid = m["video_id"]
+        start = m["start_ms"]
+        if vid in score_maps and start in score_maps[vid]:
+            m.update(score_maps[vid][start])
+            updated += 1
+        else:
+            # 見つからない場合はゼロで初期化
+            for key in ("tension_shift", "reaction_density", "silence_burst", "boke_tsukkomi"):
+                m.setdefault(key, 0.0)
+
+    print(f"スコア更新: {updated}/{len(metadata)} チャンク")
+
+    # unique_phrase & hotspot_score を全量で計算
+    print("unique_phraseスコア計算中...")
+    compute_unique_phrase_scores(metadata)
+    print("hotspot_scoreスコア計算中...")
+    compute_hotspot_scores(metadata)
+
+    # 保存（embeddings は変更しない）
+    save_index(embeddings, metadata, mode="chunks")
+    print(f"完了: {CHUNKS_METADATA_FILE}")
+
+
+def cmd_hotspots(args):
+    """複合ホットスポットスコアが高いシーン一覧。
+    使い方: hotspots [--top N] [--sort AXIS] [--video VIDEO_ID]
+    ソート可能軸: hotspot_score, interaction_score, tension_shift,
+                 reaction_density, silence_burst, unique_phrase, boke_tsukkomi
+    """
+    _, metadata = load_index("chunks")
+    if not metadata:
+        print("ERROR: chunksインデックスが存在しません。先に build を実行してください。")
+        sys.exit(1)
+
+    # hotspot_scoreが未計算の場合はon-the-flyで計算
+    if "hotspot_score" not in metadata[0] or metadata[0].get("hotspot_score", 0) == 0:
+        print("NOTE: hotspot_scoreが未計算です。on-the-flyで計算中...")
+        compute_unique_phrase_scores(metadata)
+        compute_hotspot_scores(metadata)
+
+    # フィルタリング
+    filtered = list(metadata)
+    if getattr(args, "video", None):
+        filtered = [m for m in filtered if m["video_id"] == args.video]
+
+    # ソートキー
+    valid_sorts = [
+        "hotspot_score", "interaction_score", "tension_shift",
+        "reaction_density", "silence_burst", "unique_phrase", "boke_tsukkomi",
+    ]
+    sort_key = getattr(args, "sort", "hotspot_score")
+    if sort_key not in valid_sorts:
+        print(f"WARNING: 不正なソートキー '{sort_key}'。hotspot_scoreを使用します。")
+        sort_key = "hotspot_score"
+
+    sorted_chunks = sorted(filtered, key=lambda m: m.get(sort_key, 0), reverse=True)
+    results = sorted_chunks[: args.top]
+
+    title_map = build_title_map()
+    print(f"ホットスポット Top {len(results)} (ソート: {sort_key}, 全{len(filtered)}件中):")
+    print()
+    header = (
+        f"{'Rank':<4} {'Hot':<6} {'Int':<6} {'Ten':<6} {'Rea':<6} "
+        f"{'Sil':<6} {'Uni':<6} {'Bok':<4} {'Video':<14} {'Time':<11} Text"
+    )
+    print(header)
+    print("-" * 130)
+    for i, r in enumerate(results):
+        time_str = f"{ms_to_timestr(r['start_ms'])}-{ms_to_timestr(r['end_ms'])}"
+        hot = r.get("hotspot_score", 0)
+        isc = r.get("interaction_score", 0)
+        ten = r.get("tension_shift", 0)
+        rea = r.get("reaction_density", 0)
+        sil = r.get("silence_burst", 0)
+        uni = r.get("unique_phrase", 0)
+        bok = r.get("boke_tsukkomi", 0)
+        text = r["text"][:40] + "..." if len(r["text"]) > 40 else r["text"]
+        print(
+            f"{i + 1:<4} {hot:<6.3f} {isc:<6.2f} {ten:<6.2f} {rea:<6.2f} "
+            f"{sil:<6.2f} {uni:<6.2f} {bok:<4} {r['video_id']:<14} {time_str:<11} {text}"
+        )
+
+
 def cmd_info(args):
     """インデックス情報表示。"""
     if not INDEX_DIR.exists():
@@ -875,6 +1138,21 @@ def main():
     ia.add_argument("--min-score", type=float, default=0.0, dest="min_score",
                     help="最小掛け合いスコア (default: 0.0)")
 
+    # hotspots
+    hs = sub.add_parser("hotspots", help="複合ホットスポットスコアが高いシーン一覧")
+    hs.add_argument("--top", type=int, default=30, help="上位N件 (default: 30)")
+    hs.add_argument("--sort", default="hotspot_score",
+                    choices=[
+                        "hotspot_score", "interaction_score", "tension_shift",
+                        "reaction_density", "silence_burst", "unique_phrase", "boke_tsukkomi",
+                    ],
+                    help="ソートキー (default: hotspot_score)")
+    hs.add_argument("--video", help="動画IDでフィルタ")
+
+    # recompute-scores
+    sub.add_parser("recompute-scores",
+                   help="既存chunksメタデータに5基軸+hotspot_scoreを再計算（embedding不要）")
+
     # info
     sub.add_parser("info", help="インデックス情報表示")
 
@@ -888,6 +1166,10 @@ def main():
         cmd_find_similar(args)
     elif args.subcommand == "interactions":
         cmd_interactions(args)
+    elif args.subcommand == "hotspots":
+        cmd_hotspots(args)
+    elif args.subcommand == "recompute-scores":
+        cmd_recompute_scores(args)
     elif args.subcommand == "info":
         cmd_info(args)
     else:
