@@ -231,9 +231,17 @@ def fill_gaps_with_deepgram(
                     if w["start"] >= gap_start and w["end"] <= gap_end
                 ]
                 if fill_words:
-                    # Propagate nearest AssemblyAI speaker to Deepgram gap-fill words
-                    inherited_speaker = merged[i].get("speaker")
-                    fill_words = [dict(w, speaker=inherited_speaker) for w in fill_words]
+                    # STT-M001: ギャップ前後の話者が異なる場合、中央で分割して継承
+                    prev_speaker = merged[i].get("speaker")
+                    next_speaker = merged[i + 1].get("speaker")
+                    if prev_speaker != next_speaker:
+                        gap_mid = (gap_start + gap_end) / 2
+                        fill_words = [
+                            dict(w, speaker=(prev_speaker if w["start"] < gap_mid else next_speaker))
+                            for w in fill_words
+                        ]
+                    else:
+                        fill_words = [dict(w, speaker=prev_speaker) for w in fill_words]
                     result.extend(fill_words)
                     filled_count += 1
                 else:
@@ -285,6 +293,56 @@ def ms_to_srt_time(ms: int) -> str:
     return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
 
 
+_SPLIT_CHARS = {"。", "！", "？", ".", "!", "?", "、"}
+
+
+def _group_words_into_segments(
+    words: list[dict],
+    max_duration_ms: int = 5000,
+) -> list[list[dict]]:
+    """STT-M005: 共通グルーピング関数。話者変化・最大長でワードをセグメントに分割する。
+
+    generate_srt と apply_youtube_quality の重複ロジックをここに集約。
+    Returns: list of word-groups (各グループは同一話者の連続ワードリスト)
+    """
+    if not words:
+        return []
+
+    segments: list[list[dict]] = []
+    group: list[dict] = [words[0]]
+    current_speaker = words[0].get("speaker")
+
+    for word in words[1:]:
+        sp = word.get("speaker")
+        if sp != current_speaker:
+            segments.append(group)
+            group = [word]
+            current_speaker = sp
+            continue
+
+        if word["end"] - group[0]["start"] > max_duration_ms:
+            # 句読点でsplitを試みる
+            split_idx = None
+            for i in range(len(group) - 1, -1, -1):
+                if any(group[i]["text"].endswith(c) for c in _SPLIT_CHARS):
+                    split_idx = i
+                    break
+            if split_idx is not None and split_idx < len(group) - 1:
+                segments.append(group[:split_idx + 1])
+                group = group[split_idx + 1:] + [word]
+            else:
+                segments.append(group)
+                group = [word]
+            current_speaker = sp
+            continue
+
+        group.append(word)
+
+    if group:
+        segments.append(group)
+    return segments
+
+
 def generate_srt(
     words: list[dict],
     max_duration_ms: int = 5000,
@@ -312,16 +370,13 @@ def generate_srt(
     if youtube_map is None:
         youtube_map = {}
 
-    SPLIT_CHARS = {"。", "！", "？", ".", "!", "?", "、"}
+    # STT-M005: 共通グルーピング関数を使用
+    segments = _group_words_into_segments(words, max_duration_ms)
 
     entries = []
-    # Group words into SRT entries
-    group_words: list[dict] = []
-    current_speaker = words[0].get("speaker")
-
-    def flush_group(gwords: list[dict]) -> None:
+    for gwords in segments:
         if not gwords:
-            return
+            continue
         speaker = gwords[0].get("speaker")
         start_ms = gwords[0]["start"]
         end_ms = gwords[-1]["end"]
@@ -333,42 +388,6 @@ def generate_srt(
             text = text.strip()
         label = f"[{speaker}]: " if speaker else ""
         entries.append((start_ms, end_ms, f"{label}{text}"))
-
-    for word in words:
-        sp = word.get("speaker")
-        if not group_words:
-            group_words = [word]
-            current_speaker = sp
-            continue
-
-        # Speaker change → flush current group
-        if sp != current_speaker:
-            flush_group(group_words)
-            group_words = [word]
-            current_speaker = sp
-            continue
-
-        # Duration check: would this word exceed max_duration_ms?
-        group_start = group_words[0]["start"]
-        if word["end"] - group_start > max_duration_ms:
-            # Try to split at punctuation in current group
-            split_idx = None
-            for i in range(len(group_words) - 1, -1, -1):
-                if any(group_words[i]["text"].endswith(c) for c in SPLIT_CHARS):
-                    split_idx = i
-                    break
-            if split_idx is not None and split_idx < len(group_words) - 1:
-                flush_group(group_words[:split_idx + 1])
-                group_words = group_words[split_idx + 1:] + [word]
-            else:
-                flush_group(group_words)
-                group_words = [word]
-            current_speaker = sp
-            continue
-
-        group_words.append(word)
-
-    flush_group(group_words)
 
     # Render SRT
     lines = []
@@ -486,37 +505,8 @@ def apply_youtube_quality(
     if not words:
         return words, {}
 
-    SPLIT_CHARS = {"。", "！", "？", ".", "!", "?", "、"}
-
-    # Group words into segments (same logic as generate_srt)
-    segments: list[list[dict]] = []
-    group: list[dict] = [words[0]]
-    current_speaker = words[0].get("speaker")
-
-    for word in words[1:]:
-        sp = word.get("speaker")
-        if sp != current_speaker:
-            segments.append(group)
-            group = [word]
-            current_speaker = sp
-            continue
-        if word["end"] - group[0]["start"] > max_duration_ms:
-            split_idx = None
-            for i in range(len(group) - 1, -1, -1):
-                if any(group[i]["text"].endswith(c) for c in SPLIT_CHARS):
-                    split_idx = i + 1
-                    break
-            if split_idx and split_idx < len(group):
-                segments.append(group[:split_idx])
-                group = group[split_idx:] + [word]
-            else:
-                segments.append(group)
-                group = [word]
-            current_speaker = sp
-            continue
-        group.append(word)
-    if group:
-        segments.append(group)
+    # STT-M005: 共通グルーピング関数を使用
+    segments = _group_words_into_segments(words, max_duration_ms)
 
     youtube_map: dict[int, str] = {}  # segment_start_ms → yt_text
 
@@ -639,6 +629,17 @@ def main():
                         help="YouTube subtitles JSON path (subs.json) for text quality improvement")
     args = parser.parse_args()
 
+    # STT-L002: --gemini は廃止済み。使用時に警告を出す
+    if args.gemini:
+        import warnings
+        warnings.warn(
+            "--gemini オプションは廃止済みです。話者IDはECAPA-TDNNで付与されます。"
+            "このオプションは将来削除されます。",
+            DeprecationWarning,
+            stacklevel=1,
+        )
+        print("[stt_merge] WARNING: --gemini は廃止済みです（DeprecationWarning）。", file=sys.stderr)
+
     # --- Auto-discovery mode: video_path given and --output is a directory ---
     output_is_dir = os.path.isdir(args.output)
     auto_mode = args.video_path is not None and (output_is_dir or args.output.endswith("/"))
@@ -669,17 +670,26 @@ def main():
 
     print(f"[stt_merge] Video: {video_id}")
 
-    # --- Auto-detect YouTube subs (subs.json or .ja.vtt) from input directory ---
+    # --- Auto-detect YouTube subs (subs.json or .ja.vtt) from input/output directory ---
+    # STT-M004: pipelineはwork_dir(output_dir)に字幕を置く。standalone実行はvideo_path.parentを探す。
+    # 両方検索して統一挙動にする。
     youtube_subs_path = args.youtube_subs  # explicit --youtube-subs takes precedence
     if auto_mode and not youtube_subs_path:
         input_dir = Path(args.video_path).parent
-        for subs_candidate in [
-            input_dir / f"{video_id}_subs.json",
-            input_dir / f"{video_id}.ja.vtt",
-        ]:
-            if subs_candidate.exists():
-                youtube_subs_path = str(subs_candidate)
-                print(f"[stt_merge] Auto-detected YouTube subs: {youtube_subs_path}")
+        output_dir = Path(args.output).parent
+        search_dirs = list(dict.fromkeys([output_dir, input_dir]))  # output_dir優先、重複除去
+        found = False
+        for search_dir in search_dirs:
+            for subs_candidate in [
+                search_dir / f"{video_id}_subs.json",
+                search_dir / f"{video_id}.ja.vtt",
+            ]:
+                if subs_candidate.exists():
+                    youtube_subs_path = str(subs_candidate)
+                    print(f"[stt_merge] Auto-detected YouTube subs: {youtube_subs_path}")
+                    found = True
+                    break
+            if found:
                 break
 
     # --- Detect available data sources ---

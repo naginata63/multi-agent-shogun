@@ -238,7 +238,7 @@ def run_assemblyai(vocals_path: Path, output_path: Path) -> Path:
     print(f"[pipeline]   ジョブID: {job_id}")
 
     print("[pipeline]   ポーリング中...", flush=True)
-    max_iterations = 60  # 5分上限 (5s間隔 × 60 = 300s)
+    max_iterations = 60  # 10分上限 (10s間隔 × 60 = 600s)
     for _poll_iter in range(max_iterations):
         r = requests.get(f"https://api.assemblyai.com/v2/transcript/{job_id}", headers=headers, timeout=30)
         r.raise_for_status()
