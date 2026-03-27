@@ -106,7 +106,7 @@ if [ -n "$LAST_MSG" ]; then
 fi
 
 # ─── Check inbox for unread messages ───
-INBOX="$SCRIPT_DIR/queue/inbox/${AGENT_ID}.yaml"
+# INBOX is already defined at L48 (stop_hook_inbox.sh INBOX二重定義修正)
 
 if [ ! -f "$INBOX" ]; then
     exit 0

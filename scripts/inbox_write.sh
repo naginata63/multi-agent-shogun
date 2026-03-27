@@ -62,12 +62,25 @@ max_attempts=3
 
 while [ $attempt -lt $max_attempts ]; do
     if _acquire_lock; then
+        INBOX_PATH="$INBOX" \
+        INBOX_MSG_ID="$MSG_ID" \
+        INBOX_FROM="$FROM" \
+        INBOX_TIMESTAMP="$TIMESTAMP" \
+        INBOX_TYPE="$TYPE" \
+        INBOX_CONTENT="$CONTENT" \
         "$SCRIPT_DIR/.venv/bin/python3" -c "
-import yaml, sys
+import yaml, sys, os
 
 try:
+    inbox_path = os.environ['INBOX_PATH']
+    msg_id     = os.environ['INBOX_MSG_ID']
+    from_      = os.environ['INBOX_FROM']
+    timestamp  = os.environ['INBOX_TIMESTAMP']
+    type_      = os.environ['INBOX_TYPE']
+    content    = os.environ['INBOX_CONTENT']
+
     # Load existing inbox
-    with open('$INBOX') as f:
+    with open(inbox_path) as f:
         data = yaml.safe_load(f)
 
     # Initialize if needed
@@ -78,11 +91,11 @@ try:
 
     # Add new message
     new_msg = {
-        'id': '$MSG_ID',
-        'from': '$FROM',
-        'timestamp': '$TIMESTAMP',
-        'type': '$TYPE',
-        'content': '''$CONTENT''',
+        'id': msg_id,
+        'from': from_,
+        'timestamp': timestamp,
+        'type': type_,
+        'content': content,
         'read': False
     }
     data['messages'].append(new_msg)
@@ -96,12 +109,12 @@ try:
         data['messages'] = unread + read[-30:]
 
     # Atomic write: tmp file + rename (prevents partial reads)
-    import tempfile, os
-    tmp_fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname('$INBOX'), suffix='.tmp')
+    import tempfile
+    tmp_fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(inbox_path), suffix='.tmp')
     try:
         with os.fdopen(tmp_fd, 'w') as f:
             yaml.dump(data, f, default_flow_style=False, allow_unicode=True, indent=2)
-        os.replace(tmp_path, '$INBOX')
+        os.replace(tmp_path, inbox_path)
     except:
         os.unlink(tmp_path)
         raise
