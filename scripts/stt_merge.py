@@ -55,14 +55,15 @@ def detect_timestamp_unit(raw_words: list[dict]) -> str:
     Heuristic: if max(start) > 100000, already ms (no conversion needed).
     Otherwise, values are seconds and must be multiplied by 1000.
 
-    Rationale: a 27-hour video in seconds has max_start ~= 100000s.
-    Any audio clip in ms with max_start <= 100000ms would be <= 100 seconds,
+    Rationale: a 2.7-hour video in seconds has max_start ~= 10000s.
+    Any audio clip in ms with max_start <= 10000ms would be <= 10 seconds,
     which is impractically short for this use-case.
+    (Changed from 100000 to 10000 to correctly handle 100-second clips: STT-H003)
     """
     if not raw_words:
         return "s"
     max_start = max(float(w.get("start", 0)) for w in raw_words)
-    return "ms" if max_start > 100000 else "s"
+    return "ms" if max_start > 10000 else "s"
 
 
 def load_assemblyai(path: str) -> list[dict]:

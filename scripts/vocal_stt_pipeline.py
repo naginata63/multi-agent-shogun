@@ -411,6 +411,14 @@ def run_speaker_identification(
     """
     if not vocals_full_path.exists():
         print(f"[pipeline] Step7スキップ: vocals_full.wavが見つかりません ({vocals_full_path})")
+        try:
+            with open(merged_json_path, encoding="utf-8") as f:
+                _d = json.load(f)
+            _d.setdefault("metadata", {})["ecapa_status"] = "skipped"
+            with open(merged_json_path, "w", encoding="utf-8") as f:
+                json.dump(_d, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
         return
 
     # speaker_id.pyの定数・閾値を流用
@@ -427,6 +435,14 @@ def run_speaker_identification(
         from speechbrain.inference.speaker import EncoderClassifier
     except ImportError as e:
         print(f"[pipeline] Step7スキップ: 依存ライブラリ不足 ({e})")
+        try:
+            with open(merged_json_path, encoding="utf-8") as f:
+                _d = json.load(f)
+            _d.setdefault("metadata", {})["ecapa_status"] = "skipped"
+            with open(merged_json_path, "w", encoding="utf-8") as f:
+                json.dump(_d, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
         return
 
     # merged JSON読み込み
@@ -437,6 +453,9 @@ def run_speaker_identification(
     speaker_labels = sorted(set(w.get("speaker", "") for w in words if w.get("speaker")))
     if not speaker_labels:
         print("[pipeline] Step7スキップ: 話者ラベルなし")
+        merged_data.setdefault("metadata", {})["ecapa_status"] = "skipped"
+        with open(merged_json_path, "w", encoding="utf-8") as f:
+            json.dump(merged_data, f, ensure_ascii=False, indent=2)
         return
 
     print(f"[pipeline] Step7: ECAPA-TDNN声紋マッチング (話者: {speaker_labels})", flush=True)
@@ -469,6 +488,9 @@ def run_speaker_identification(
 
     if not embeddings:
         print("[pipeline]   声紋プロファイルなし → Step7スキップ")
+        merged_data.setdefault("metadata", {})["ecapa_status"] = "skipped"
+        with open(merged_json_path, "w", encoding="utf-8") as f:
+            json.dump(merged_data, f, ensure_ascii=False, indent=2)
         return
 
     # vocals_full.wav読み込み・16kHzリサンプル
@@ -613,6 +635,14 @@ def run_direct_speaker_identification(
     """
     if not vocals_full_path.exists():
         print(f"[pipeline] DirectSpeakerID スキップ: vocals_full.wavが見つかりません ({vocals_full_path})")
+        try:
+            with open(merged_json_path, encoding="utf-8") as f:
+                _d = json.load(f)
+            _d.setdefault("metadata", {})["ecapa_status"] = "skipped"
+            with open(merged_json_path, "w", encoding="utf-8") as f:
+                json.dump(_d, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
         return
 
     MEMBERS = load_members_from_yaml()
@@ -630,6 +660,14 @@ def run_direct_speaker_identification(
         from speechbrain.inference.speaker import EncoderClassifier
     except ImportError as e:
         print(f"[pipeline] DirectSpeakerID スキップ: 依存ライブラリ不足 ({e})")
+        try:
+            with open(merged_json_path, encoding="utf-8") as f:
+                _d = json.load(f)
+            _d.setdefault("metadata", {})["ecapa_status"] = "skipped"
+            with open(merged_json_path, "w", encoding="utf-8") as f:
+                json.dump(_d, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
         return
 
     # merged JSON読み込み
@@ -639,6 +677,9 @@ def run_direct_speaker_identification(
     words = merged_data.get("words", [])
     if not words:
         print("[pipeline] DirectSpeakerID スキップ: wordsが空")
+        merged_data.setdefault("metadata", {})["ecapa_status"] = "skipped"
+        with open(merged_json_path, "w", encoding="utf-8") as f:
+            json.dump(merged_data, f, ensure_ascii=False, indent=2)
         return
 
     print(f"[pipeline] Step7(Direct): ECAPA-TDNN直接話者特定 ({len(words)}ワード)", flush=True)
@@ -669,6 +710,9 @@ def run_direct_speaker_identification(
 
     if not embeddings:
         print("[pipeline]   声紋プロファイルなし → DirectSpeakerID スキップ")
+        merged_data.setdefault("metadata", {})["ecapa_status"] = "skipped"
+        with open(merged_json_path, "w", encoding="utf-8") as f:
+            json.dump(merged_data, f, ensure_ascii=False, indent=2)
         return
     print(f"[pipeline]   プロファイルロード: {list(embeddings.keys())}")
 
