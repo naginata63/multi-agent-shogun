@@ -7,11 +7,11 @@ exec 200>"$LOCK_FILE"
 flock -n 200 || { echo "already running"; exit 0; }
 
 cd /home/murakami/multi-agent-shogun
-source venv/bin/activate
+PYTHON=".venv/bin/python3"
 source ~/.bashrc
 
 # shogun_to_karo.yamlの末尾のcmdを取得
-LAST_CMD_ID=$(python3 -c "
+LAST_CMD_ID=$($PYTHON -c "
 import yaml
 with open('queue/shogun_to_karo.yaml') as f:
     data = yaml.safe_load(f)
@@ -33,7 +33,7 @@ if [ -f "$LAST_PROCESSED" ] && [ "$(cat $LAST_PROCESSED)" = "$LAST_CMD_ID" ]; th
 fi
 
 # cmdのpurpose+commandを取得してRAG実行
-QUERY=$(python3 -c "
+QUERY=$($PYTHON -c "
 import yaml
 with open('queue/shogun_to_karo.yaml') as f:
     data = yaml.safe_load(f)
@@ -46,7 +46,7 @@ if cmds:
 ")
 
 echo "$(date) Running RAG for $LAST_CMD_ID: $QUERY" >> logs/cmd_rag.log
-python3 scripts/cmd_helper.py rag "$QUERY" --json > queue/reports/rag_suggestions.yaml 2>&1
+$PYTHON scripts/cmd_helper.py rag "$QUERY" --json > queue/reports/rag_suggestions.json 2>&1
 
 echo "$LAST_CMD_ID" > "$LAST_PROCESSED"
 echo "$(date) RAG complete for $LAST_CMD_ID" >> logs/cmd_rag.log

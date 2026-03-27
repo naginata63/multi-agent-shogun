@@ -1,13 +1,14 @@
 #!/bin/bash
 # kill_orphan_chrome.sh
-# ppid=1 (init) or ppid=2421 (systemd) のchrome-headless-shellをkill
+# ppid=1 (init) or ppid name=systemd のchrome-headless-shellをkill
 # 起動後5分以内のプロセスは除外（レンダリング中の誤killを防止）
 
 THRESHOLD_SEC=300  # 5分
 
 for pid in $(pgrep -f chrome-headless-shell); do
     ppid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
-    if [ "$ppid" = "1" ] || [ "$ppid" = "2421" ]; then
+    ppid_name=$(ps -o comm= -p "$ppid" 2>/dev/null || echo "")
+    if [ "$ppid" = "1" ] || [ "$ppid_name" = "systemd" ]; then
         elapsed=$(ps -o etimes= -p "$pid" 2>/dev/null | tr -d ' ')
         if [ -n "$elapsed" ] && [ "$elapsed" -gt "$THRESHOLD_SEC" ]; then
             kill "$pid" 2>/dev/null

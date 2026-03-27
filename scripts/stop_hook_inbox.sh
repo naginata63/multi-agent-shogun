@@ -56,7 +56,7 @@ if [ "$STOP_HOOK_ACTIVE" = "True" ]; then
     # ALWAYS create the idle flag so inbox_watcher knows the agent is idle
     # and can send nudges. Previously, removing the flag here when unread > 0
     # caused a deadlock: agent idle but watcher thinks busy → no nudge → stuck.
-    FLAG="${IDLE_FLAG_DIR:-/tmp}/shogun_idle_${AGENT_ID}"
+    FLAG="${IDLE_FLAG_DIR:-/tmp}/agent_idle_${AGENT_ID}"
     touch "$FLAG"
     # stop_hook_active=True 時も inotifywait 待機（連続処理ループ対応）
     # タイムアウト(55秒)でexit 0 → ループは有限回で終了
@@ -115,7 +115,7 @@ fi
 # Count unread messages using grep (fast, no python dependency)
 UNREAD_COUNT=$(grep -c 'read: false' "$INBOX" 2>/dev/null || true)
 
-FLAG="${IDLE_FLAG_DIR:-/tmp}/shogun_idle_${AGENT_ID}"
+FLAG="${IDLE_FLAG_DIR:-/tmp}/agent_idle_${AGENT_ID}"
 if [ "${UNREAD_COUNT:-0}" -eq 0 ]; then
     touch "$FLAG"
     # inotifywait で inbox 変更を最大55秒待機

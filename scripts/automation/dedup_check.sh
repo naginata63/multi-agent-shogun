@@ -6,7 +6,7 @@ exec 200>"$LOCK_FILE"
 flock -n 200 || exit 0
 
 cd /home/murakami/multi-agent-shogun
-source venv/bin/activate
+PYTHON=".venv/bin/python3"
 source ~/.bashrc
 
 LAST_CHECK="/tmp/dedup_last_check"
@@ -15,10 +15,10 @@ REPORT_FILE="queue/reports/dedup_warnings.yaml"
 # 前回チェック以降に変更があったファイルを検出
 CHANGED_FILES=""
 if [ -f "$LAST_CHECK" ]; then
-  CHANGED_FILES=$(find memory/ context/ -name "*.md" -newer "$LAST_CHECK" 2>/dev/null)
+  CHANGED_FILES=$(find memory/ shared_context/ projects/*/context/ -name "*.md" -newer "$LAST_CHECK" 2>/dev/null)
 else
   # 初回は全ファイル対象
-  CHANGED_FILES=$(find memory/ context/ -name "*.md" 2>/dev/null | head -5)
+  CHANGED_FILES=$(find memory/ shared_context/ projects/*/context/ -name "*.md" 2>/dev/null | head -5)
 fi
 
 if [ -z "$CHANGED_FILES" ]; then
@@ -30,7 +30,7 @@ echo "$(date) Checking dedup for: $CHANGED_FILES" >> logs/dedup.log
 # 各変更ファイルに対してdedup実行
 for f in $CHANGED_FILES; do
   CONTENT=$(head -5 "$f" | tr '\n' ' ')
-  python3 scripts/cmd_helper.py dedup "$CONTENT" >> "$REPORT_FILE" 2>> logs/dedup.log
+  $PYTHON scripts/cmd_helper.py dedup "$CONTENT" >> "$REPORT_FILE" 2>> logs/dedup.log
 done
 
 touch "$LAST_CHECK"
