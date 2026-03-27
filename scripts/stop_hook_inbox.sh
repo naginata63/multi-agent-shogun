@@ -151,10 +151,10 @@ fi
 # (Claude Code removes it via the busy detection mechanism).
 
 # ─── Extract unread message summaries ───
-SUMMARY=$(python3 -c "
-import yaml, sys, json
+SUMMARY=$(INBOX_PATH="$INBOX" python3 -c "
+import yaml, sys, json, os
 try:
-    with open('$INBOX', 'r') as f:
+    with open(os.environ['INBOX_PATH'], 'r') as f:
         data = yaml.safe_load(f)
     msgs = data.get('messages', []) if data else []
     unread = [m for m in msgs if not m.get('read', True)]
@@ -170,10 +170,11 @@ except Exception as e:
 " 2>/dev/null || echo "inbox未読${UNREAD_COUNT}件あり")
 
 # ─── Block the stop — feed inbox info back to agent ───
-python3 -c "
-import json
-count = $UNREAD_COUNT
-summary = '''$SUMMARY'''
-reason = f'inbox未読{count}件あり。queue/inbox/${AGENT_ID}.yamlを読んで処理せよ。内容: {summary}'
+INBOX_SUMMARY="$SUMMARY" INBOX_AGENT_ID="$AGENT_ID" INBOX_UNREAD_COUNT="$UNREAD_COUNT" python3 -c "
+import json, os
+count = int(os.environ['INBOX_UNREAD_COUNT'])
+summary = os.environ['INBOX_SUMMARY']
+agent_id = os.environ['INBOX_AGENT_ID']
+reason = f'inbox未読{count}件あり。queue/inbox/{agent_id}.yamlを読んで処理せよ。内容: {summary}'
 print(json.dumps({'decision': 'block', 'reason': reason}, ensure_ascii=False))
 " 2>/dev/null || echo "{\"decision\":\"block\",\"reason\":\"inbox未読${UNREAD_COUNT}件あり。queue/inbox/${AGENT_ID}.yamlを読んで処理せよ。\"}"

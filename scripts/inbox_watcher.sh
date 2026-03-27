@@ -46,20 +46,26 @@ if [ "${__INBOX_WATCHER_TESTING__:-}" != "1" ]; then
         echo "messages: []" > "$INBOX"
     fi
 
-    echo "[$(date)] inbox_watcher started — agent: $AGENT_ID, pane: $PANE_TARGET, cli: $CLI_TYPE" >&2
-
-    # Fix: CLI starts at welcome screen = idle. Create idle flag so watcher
-    # doesn't false-busy deadlock waiting for a stop_hook that never fires.
-    if [[ "$CLI_TYPE" == "claude" ]]; then
-        touch "${IDLE_FLAG_DIR:-/tmp}/shogun_idle_${AGENT_ID}"
-        echo "[$(date)] Created initial idle flag for $AGENT_ID (CLI starts idle)" >&2
-    fi
-
-    # Source cli_adapter for get_startup_prompt() (Codex needs startup prompt after /new)
+    # Source cli_adapter first so get_cli_type() is available for idle flag creation
     _cli_adapter="${SCRIPT_DIR}/lib/cli_adapter.sh"
     if [ -f "$_cli_adapter" ]; then
         source "$_cli_adapter"
         echo "[$(date)] cli_adapter.sh loaded (get_startup_prompt available)" >&2
+    fi
+
+    # Determine effective CLI type (prefer settings.yaml over argument)
+    _EFFECTIVE_CLI="${CLI_TYPE}"
+    if command -v get_cli_type &>/dev/null; then
+        _EFFECTIVE_CLI="$(get_cli_type "$AGENT_ID" 2>/dev/null || echo "$CLI_TYPE")"
+    fi
+
+    echo "[$(date)] inbox_watcher started — agent: $AGENT_ID, pane: $PANE_TARGET, cli: $_EFFECTIVE_CLI" >&2
+
+    # Fix: CLI starts at welcome screen = idle. Create idle flag so watcher
+    # doesn't false-busy deadlock waiting for a stop_hook that never fires.
+    if [[ "$_EFFECTIVE_CLI" == "claude" ]]; then
+        touch "${IDLE_FLAG_DIR:-/tmp}/shogun_idle_${AGENT_ID}"
+        echo "[$(date)] Created initial idle flag for $AGENT_ID (CLI starts idle)" >&2
     fi
 
     # Source shared agent status library (busy/idle detection)
@@ -137,10 +143,13 @@ NEW_CONTEXT_SENT=${NEW_CONTEXT_SENT:-0}
 STARTUP_PROMPT_SENT=${STARTUP_PROMPT_SENT:-0}
 
 # ─── Phase feature flags (cmd_107 Phase 1/2/3) ───
+# Current stable: ASW_PHASE=2 (self-watch + disable normal nudge + use escalation).
+# Phase 1/3 code paths are preserved for rollback but not used in production.
+# Active config: ASW_PHASE=2, ASW_DISABLE_NORMAL_NUDGE=1, ASW_FINAL_ESCALATION_ONLY=0
 # ASW_PHASE:
-#   1 = self-watch base (compatible)
-#   2 = disable normal nudge by default
-#   3 = FINAL_ESCALATION_ONLY (send-keys is fallback only)
+#   1 = self-watch base (compatible, legacy)
+#   2 = disable normal nudge by default [CURRENT]
+#   3 = FINAL_ESCALATION_ONLY (send-keys is fallback only, not yet stable)
 ASW_PHASE=${ASW_PHASE:-2}
 ASW_DISABLE_NORMAL_NUDGE=${ASW_DISABLE_NORMAL_NUDGE:-$([ "${ASW_PHASE}" -ge 2 ] && echo 1 || echo 0)}
 ASW_FINAL_ESCALATION_ONLY=${ASW_FINAL_ESCALATION_ONLY:-$([ "${ASW_PHASE}" -ge 3 ] && echo 1 || echo 0)}
