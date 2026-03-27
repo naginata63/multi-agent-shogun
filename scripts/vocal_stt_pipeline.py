@@ -594,6 +594,11 @@ def run_speaker_identification(
         json.dump(merged_data, f, ensure_ascii=False, indent=2)
     print(f"[pipeline]   merged JSON更新完了: {merged_json_path}")
 
+    # SRT再生成（実名ラベル反映）
+    srt_path = merged_json_path.parent / merged_json_path.name.replace(".json", ".srt")
+    regenerate_srt_from_merged(words, srt_path)
+    print(f"[pipeline]   SRT再生成完了: {srt_path}")
+
     # merge_report.yamlに話者マッピング結果を追記
     try:
         import yaml
