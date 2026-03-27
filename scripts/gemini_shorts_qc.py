@@ -8,6 +8,7 @@
 """
 
 import argparse
+import json  # LOW-L2: トップレベルに移動（元は関数内でimport）
 import os
 import subprocess
 import sys
@@ -53,14 +54,13 @@ def extract_frames(video_path: str, output_dir: str) -> list[str]:
         ],
         capture_output=True, text=True, check=True
     )
-    import json
     probe = json.loads(result.stdout)
     duration = None
     for stream in probe.get("streams", []):
         if stream.get("codec_type") == "video":
             duration = float(stream.get("duration", 0))
             break
-    if not duration:
+    if duration is None or duration <= 0:  # MEDIUM-M1: 0.0(falsy)の誤捕捉を防ぐ
         # フォールバック: format から取得
         result2 = subprocess.run(
             ["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", video_path],
@@ -68,6 +68,8 @@ def extract_frames(video_path: str, output_dir: str) -> list[str]:
         )
         fmt = json.loads(result2.stdout)
         duration = float(fmt.get("format", {}).get("duration", 10))
+    if duration <= 0:
+        raise ValueError(f"動画の長さが取得できません: {video_path}")
 
     timestamps = [
         min(1.0, duration * 0.05),           # 冒頭（5%地点 or 1秒）
@@ -95,17 +97,21 @@ def extract_frames(video_path: str, output_dir: str) -> list[str]:
         frame_paths.append(out_path)
         print(f"[frame] ts={ts:.1f}s → {out_path}", flush=True)
 
+    if not frame_paths:  # LOW-L4: フレーム抽出失敗時のガード
+        raise RuntimeError(f"フレーム抽出に失敗しました: {video_path}")
+
     return frame_paths
 
 
 def calc_cost(usage_metadata) -> dict:
     """usage_metadata からコスト情報を返す"""
     try:
-        input_tokens = getattr(usage_metadata, "prompt_token_count", 0) or 0
-        output_tokens = getattr(usage_metadata, "candidates_token_count", 0) or 0
-        # gemini-2.0-flash-lite 料金（2026-03時点）
-        input_cost = input_tokens / 1_000_000 * 0.075
-        output_cost = output_tokens / 1_000_000 * 0.30
+        input_tokens = getattr(usage_metadata, "prompt_token_count", None) or 0  # LOW-L3: Noneセーフ
+        output_tokens = getattr(usage_metadata, "candidates_token_count", None) or 0
+        # MEDIUM-M2: gemini-2.5-flash 料金（2026-03時点）
+        # 入力: $0.15/1M tokens、出力: $0.60/1M tokens（画像は別途加算されるが概算）
+        input_cost = input_tokens / 1_000_000 * 0.15
+        output_cost = output_tokens / 1_000_000 * 0.60
         total_cost = input_cost + output_cost
         return {
             "input_tokens": input_tokens,
@@ -136,8 +142,10 @@ def parse_qc_response(text: str) -> dict:
             result["verdict"] = "PASS" if "PASS" in verdict else "FAIL"
         elif line.startswith("SCORE:"):
             try:
-                result["score"] = int(line.split(":", 1)[1].strip().split("/")[0].strip())
-            except ValueError:
+                # LOW-L3: "8/10" "8 (優良)" など複数フォーマットに対応
+                score_raw = line.split(":", 1)[1].strip().split("/")[0].split()[0]
+                result["score"] = int(score_raw)
+            except (ValueError, IndexError):
                 pass
         elif line.startswith("ISSUES:"):
             current_section = "issues"
