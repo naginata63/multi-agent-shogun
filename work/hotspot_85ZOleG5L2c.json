@@ -1,0 +1,35 @@
+{
+  "video_id": "85ZOleG5L2c",
+  "total_comments": 35,
+  "timestamp_comments": 2,
+  "hotspots": [
+    {
+      "rank": 1,
+      "start_time": "8:00",
+      "end_time": "8:30",
+      "start_sec": 480,
+      "end_sec": 510,
+      "comment_count": 1,
+      "emotion": "感動",
+      "score": 3,
+      "summary": "おじいちゃんの優しさが良い",
+      "top_comments": [
+        "8:00 のおじいちゃんの優しさが良きでした(^^♪"
+      ]
+    },
+    {
+      "rank": 2,
+      "start_time": "9:30",
+      "end_time": "10:00",
+      "start_sec": 570,
+      "end_sec": 600,
+      "comment_count": 1,
+      "emotion": "感動",
+      "score": 3,
+      "summary": "実績がネザーの頑張りを物語る",
+      "top_comments": [
+        "9:56 実績がおじいちゃんのネザーでの頑張りを物語ってますね✨"
+      ]
+    }
+  ]
+}

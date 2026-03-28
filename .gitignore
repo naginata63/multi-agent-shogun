@@ -127,6 +127,7 @@
 !scripts/cmd_helper.py
 !scripts/setup_youtube_dashboard_autostart.sh
 !scripts/comment_hotspot.py
+!scripts/create_hotspot_summary.py
 !scripts/gemini_transcribe.py
 !scripts/gemini_speaker_pipeline.py
 !scripts/stt_merge.py

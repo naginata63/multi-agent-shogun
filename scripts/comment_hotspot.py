@@ -41,7 +41,7 @@ TOKEN_PATH = PROJECT_DIR / "token.json"
 CLIENT_SECRET_PATH = PROJECT_DIR / "client_secret.json"
 
 SCOPES = [
-    "https://www.googleapis.com/auth/youtube.readonly",
+    "https://www.googleapis.com/auth/youtube",
     "https://www.googleapis.com/auth/youtube.force-ssl",
 ]
 
