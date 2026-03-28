@@ -1,74 +1,19 @@
-task_id: subtask_908a
-parent_cmd: cmd_908
-agent: ashigaru2
+task_id: subtask_990b
+parent_cmd: cmd_990
+reported_by: ashigaru2
+timestamp: '2026-03-28T20:00:00'
 status: done
-timestamp: '2026-03-24T06:20:00'
-
+title: "note下書き再投稿: Gemini API課金体験談"
 summary: |
-  MEN仕事断り漫画ショート10セット全てYouTube非公開アップロード完了。
-
-uploads:
-  - set: set_01
-    video_id: joc-HOG1rLE
-    url: https://www.youtube.com/watch?v=joc-HOG1rLE
-    title: MEN仕事断り set_01【比較用】
-  - set: set_02
-    video_id: UFW8yGL0BxU
-    url: https://www.youtube.com/watch?v=UFW8yGL0BxU
-    title: MEN仕事断り set_02【比較用】
-  - set: set_03
-    video_id: O0ZvnG0zdvU
-    url: https://www.youtube.com/watch?v=O0ZvnG0zdvU
-    title: MEN仕事断り set_03【比較用】
-  - set: set_04
-    video_id: Ghdyb83tOKU
-    url: https://www.youtube.com/watch?v=Ghdyb83tOKU
-    title: MEN仕事断り set_04【比較用】
-  - set: set_05
-    video_id: _GPbEyBnzgc
-    url: https://www.youtube.com/watch?v=_GPbEyBnzgc
-    title: MEN仕事断り set_05【比較用】
-  - set: set_06
-    video_id: 7g-c08RXmA8
-    url: https://www.youtube.com/watch?v=7g-c08RXmA8
-    title: MEN仕事断り set_06【比較用】
-  - set: set_07
-    video_id: b7RcDbrDPQA
-    url: https://www.youtube.com/watch?v=b7RcDbrDPQA
-    title: MEN仕事断り set_07【比較用】
-  - set: set_08
-    video_id: n7dJlp1-JYk
-    url: https://www.youtube.com/watch?v=n7dJlp1-JYk
-    title: MEN仕事断り set_08【比較用】
-  - set: set_09
-    video_id: Qx8BpJBCvu8
-    url: https://www.youtube.com/watch?v=Qx8BpJBCvu8
-    title: MEN仕事断り set_09【比較用】
-  - set: set_10
-    video_id: bc2EXUvfyoo
-    url: https://www.youtube.com/watch?v=bc2EXUvfyoo
-    title: MEN仕事断り set_10【比較用】
----
-task_id: subtask_912a_phase1
-parent_cmd: cmd_912
-agent: ashigaru2
-status: done
-timestamp: '2026-03-24T07:40:00'
-
-summary: |
-  cmd_912 Phase1完了。QAs605ZXCKI（猫の気持ちで謎解き）360p DL + 字幕生成完了。
-
-results:
-  video_file: work/20260324_猫の気持ちになって7つの謎を解け！【マイクラ】/QAs605ZXCKI_360p.webm
-  subtitles: work/20260324_猫の気持ちになって7つの謎を解け！【マイクラ】/QAs605ZXCKI.ja.vtt
-  comments: work/20260324_猫の気持ちになって7つの謎を解け！【マイクラ】/QAs605ZXCKI_comments.info.json
-  merged_json: work/20260324_猫の気持ちになって7つの謎を解け！【マイクラ】/merged_QAs605ZXCKI.json
-  word_count: 12942
-  pipeline: "AssemblyAI Universal-2 (12521words) + Deepgram Nova-3 (12575words) → merged 12942words"
-  coverage: "91.9% → 94.5%"
-  speaker_id: "0.0% (SpeechBrain torchaudio互換エラーで話者ID付与スキップ。merged JSON自体は正常生成済み)"
-
-notes:
-  - "task YAMLのgemini_speaker_pipeline.pyは廃止済み(memory: feedback_no_gemini_srt.md)のため、vocal_stt_pipeline.pyで実行"
-  - "動画はwebm形式でダウンロード（360p）"
-  - "SpeechBrainのtorchaudio互換性エラーは既知問題。コア成果物は全て揃っている"
+  殿が前の記事を削除したため、noteに新規下書き投稿を実施。
+  記事本文・カバー画像・記事内画像3枚（billing_breakdown, paid_tier_badge, rate_limits）を全て挿入。
+  有料設定は変更せず。公開禁止状態を維持。
+result:
+  note_url: "https://note.com/n/n74ee5dc0fc41"
+  editor_url: "https://editor.note.com/notes/n74ee5dc0fc41/edit/"
+  status: draft
+  cover_image: done
+  article_images: done (3枚)
+  hashtags: "設定失敗—手動設定が必要"
+issues:
+  - "[MINOR] ハッシュタグ自動設定失敗: note-edit.jsがタグ入力フィールドを発見できず。手動設定推奨。"

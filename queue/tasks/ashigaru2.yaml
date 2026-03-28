@@ -15671,3 +15671,23 @@ tasks:
     editor_url: "https://editor.note.com/notes/nbbb28074c02c/edit/"
     status: draft
     hashtags: "AI,GCP,体験談,API課金,生成AI"
+- task_id: subtask_990b
+  parent_cmd: cmd_990
+  assigned_to: ashigaru2
+  bloom_level: L2
+  status: done
+  title: "note下書き再投稿: Gemini API課金体験談（殿削除後再作成）"
+  description: |
+    殿が前の記事を削除したため新規で下書き投稿。
+    記事・カバー画像・記事内画像3枚を全て含む。
+    公開禁止。有料設定は触らず。
+  project: note
+  report_to: karo
+  timestamp: '2026-03-28T19:54:26'
+  result:
+    note_url: "https://note.com/n/n74ee5dc0fc41"
+    editor_url: "https://editor.note.com/notes/n74ee5dc0fc41/edit/"
+    status: draft
+    cover_image: "articles/gemini_22000yen_images/cover.png"
+    article_images: "billing_breakdown.png, paid_tier_badge.png, rate_limits.png（全3枚挿入済み）"
+    hashtags: "設定失敗（フィールド未発見）—手動設定要"
