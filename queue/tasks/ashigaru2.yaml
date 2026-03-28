@@ -15691,3 +15691,40 @@ tasks:
     cover_image: "articles/gemini_22000yen_images/cover.png"
     article_images: "billing_breakdown.png, paid_tier_badge.png, rate_limits.png（全3枚挿入済み）"
     hashtags: "設定失敗（フィールド未発見）—手動設定要"
+- task_id: subtask_993a
+  parent_cmd: cmd_993
+  assigned_to: ashigaru2
+  status: done
+  title: "全動画comment_hotspot一括実行"
+  description: "56本の元動画に対してcomment_hotspot.pyを実行し、hotspot JSON生成+集約レポート作成"
+  project: dozle_kirinuki
+  report_to: karo
+  timestamp: '2026-03-28T22:01:00'
+  result:
+    total_videos: 56
+    success: 54
+    skipped_no_timestamps: 2
+    skipped_existing: 1
+    hotspot_files: "work/hotspot_{vid}.json (54ファイル)"
+    summary: "work/hotspot_summary.json"
+    commit: "cafec76"
+    bugfix: "comment_hotspot.py SCOPESバグ修正（youtube.readonly→youtube）"
+- task_id: subtask_995b
+  parent_cmd: cmd_995
+  assigned_to: ashigaru2
+  status: done
+  title: "クリップB切り出し+YouTube非公開アップ（おらふ慰め流行語）"
+  description: "g3NK2i_CLkg 23:10-25:24 切り出し→YouTube非公開アップ"
+  project: dozle_kirinuki
+  report_to: karo
+  timestamp: '2026-03-29T07:47:41'
+  result:
+    source_video: "g3NK2i_CLkg"
+    segment: "23:10-25:24"
+    clip_file: "work/g3NK2i_CLkg/clips/clip_b.mp4"
+    encoding: "h264_nvenc -preset p4"
+    youtube_video_id: "ovN5QaIv3w4"
+    youtube_url: "https://www.youtube.com/watch?v=ovN5QaIv3w4"
+    title: "おらふくんの慰めが流行語級【ドズル社切り抜き】"
+    privacy: "private"
+    note: "1080p再DL完了（元は360p）。work/は.gitignoreのためgit commit対象外"
