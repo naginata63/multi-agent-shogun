@@ -14364,3 +14364,1310 @@ tasks:
     set_08: oCZO0e8bE0I
     set_09: n-ULpgN5Ako
     set_10: 5lAPigdToIc
+- task_id: subtask_942b_llm
+  parent_cmd: cmd_942
+  bloom_level: L5
+  assignee: ashigaru2
+  title: "音声RMS上位20件 LLM面白さ判定（Phase 2+3）"
+  description: |
+    Phase 1で生成されたRMSランキング上位20件について、
+    該当区間の字幕テキストをClaude CLI Opusで面白さ判定（0-10採点）。
+    最終的にTop10候補リストを生成しntfyで殿に送信。
+  project: dozle_kirinuki
+  report_to: karo
+  status: assigned
+  timestamp: '2026-03-25T21:56:00'
+  input_files:
+    - projects/dozle_kirinuki/work/audio_hotspots/rms_ranking.json
+    - "projects/dozle_kirinuki/work/*/merged_*.srt"
+    - projects/dozle_kirinuki/work/srt_and_candidates/hotspot_rejected.md
+  output_files:
+    - projects/dozle_kirinuki/work/audio_hotspots/llm_scored.json
+    - projects/dozle_kirinuki/work/audio_hotspots/top10_candidates.json
+  steps:
+    - step: 1
+      action: |
+        rms_ranking.jsonを読み込み、上位20件を取得。
+        hotspot_rejected.mdを読み、却下済みの動画ID+タイムスタンプを除外。
+        除外された場合は21位以降から補充して20件確保。
+    - step: 2
+      action: |
+        各エントリについて、該当区間の字幕テキストを取得:
+        - work/{video_id}/merged_*.srtから該当タイムスタンプの字幕を抽出
+        - 前後30秒の文脈も含めて計90秒分
+    - step: 3
+      action: |
+        Claude CLI Opus（claude -m claude-opus-4-6 -p）で各区間を面白さ判定。
+        プロンプト:
+        「以下はYouTubeゲーム実況（マイクラ・5人グループ「ドズル社」）の字幕テキストです。
+        この区間をYouTubeショート（30-60秒）として切り出した場合、視聴者にとって面白いかを判定してください。
+
+        判定基準:
+        - 起承転結がある（オチがある）か？
+        - ツッコミ・ボケの掛け合いがあるか？
+        - 予想外の展開や裏切りがあるか？
+        - 感情の振れ幅が大きいか？
+        - 前提知識なしで楽しめるか？（ショートは初見の人も見る）
+
+        0-10で採点し、理由を簡潔に述べてください。
+        7以上 = ショート候補として有望」
+
+        出力はJSON形式で: {"score": 8, "reason": "..."}
+    - step: 4
+      action: |
+        結果をllm_scored.jsonに保存。
+        LLMスコア7以上をフィルタしてtop10_candidates.jsonを生成。
+        YouTubeタイムスタンプ付きリンク含む。
+    - step: 5
+      action: |
+        ntfyでTop10を殿に送信:
+        bash scripts/ntfy.sh "🎯 ショート候補Top10: 1位 https://youtu.be/xxx?t=123 (8/10) ..."
+    - step: 6
+      action: "git commit。完了報告。"
+  important_notes:
+    - "テキスト→テキスト処理はClaude CLI Opus必須（Gemini使うな）"
+    - "claude -m claude-opus-4-6 -p 'プロンプト' でCLI呼び出し"
+    - "上位20件中14件がkoeM_jz4CdM。同一動画の異なる区間は個別に判定"
+    - "却下リスト(hotspot_rejected.md)に該当するものは候補から除外"
+    - "SRTファイルがない動画はスキップして次の候補を補充"
+    - "各Claude CLI呼び出しはタイムアウト120秒"
+- task_id: subtask_943_a
+  parent_cmd: cmd_943
+  bloom_level: L4
+  assignee: ashigaru2
+  title: "声紋マッチング実名変換 バッチa（10本）"
+  description: |
+    アルファベットラベルのSRTに声紋マッチングを実行し実名変換。
+    バッチリスト: projects/dozle_kirinuki/work/audio_hotspots/batch_ashigaru2.txt
+  project: dozle_kirinuki
+  report_to: karo
+  status: done
+  timestamp: '2026-03-25T22:16:00'
+  steps:
+    - step: 1
+      action: "projects/dozle_kirinuki/work/audio_hotspots/batch_ashigaru2.txtを読み、対象動画IDを確認"
+    - step: 2
+      action: |
+        各動画について speaker_id_srt_based.py を使って声紋マッチング実行:
+        python3 projects/dozle_kirinuki/scripts/speaker_id_srt_based.py --video_dir projects/dozle_kirinuki/work/{video_id}/
+        スクリプトが存在しない/使えない場合は speaker_id.py を試す。
+        どちらも使えない場合はスクリプトの使い方をREADして実行方法を確認。
+    - step: 3
+      action: "変換前にmerged_*.srtのバックアップを取る（.bak）"
+    - step: 4
+      action: "変換後のSRTに実名ラベル（dozle/bon/qnly/orafu/oo_men/nekooji）が含まれることを確認"
+    - step: 5
+      action: "全動画完了後、変換済み本数と失敗本数を報告"
+  important_notes:
+    - "話者ラベルは実名必須（A/B/C不可）"
+    - "変換前に.bakバックアップ必須"
+    - "ゲスト等変換不能な話者はアルファベットのまま残してよい"
+    - "koeM_jz4CdMはスキップ（ドズル社メンバー不参加）"
+    - "タイムアウト10分(600000ms)でbashコマンド実行"
+- task_id: subtask_946b_candidates
+  parent_cmd: cmd_946
+  bloom_level: L5
+  assignee: ashigaru2
+  title: "GPexZtn-IA8 HL/SH候補選定（Claude CLI Opus）"
+  description: |
+    Phase1完了済みSRT（2583行/25分11秒）をClaude CLI Opusに読ませてHL/SH候補を選定。
+    最低5本の候補にタイムスタンプ・セリフ要約・面白さの理由を付ける。
+  project: dozle_kirinuki
+  report_to: karo
+  status: done
+  timestamp: '2026-03-26T04:56:00'
+  completed_at: '2026-03-26T05:20:00'
+  input_files:
+    - projects/dozle_kirinuki/work/GPexZtn-IA8/merged_GPexZtn-IA8.srt
+    - projects/dozle_kirinuki/context/highlight_command_template.md
+    - projects/dozle_kirinuki/context/shorts_command_template.md
+    - projects/dozle_kirinuki/context/expression_design_v5.md
+  output_files:
+    - projects/dozle_kirinuki/work/GPexZtn-IA8/output/
+  steps:
+    - step: 1
+      action: |
+        テンプレート参照（必須）:
+        - context/highlight_command_template.md
+        - context/shorts_command_template.md
+        - context/expression_design_v5.md
+    - step: 2
+      action: |
+        merged SRTをClaude CLI Opusに渡して候補選定:
+        claude -m claude-opus-4-6 -p 'プロンプト'
+
+        プロンプト（SRT全文を含める）:
+        「以下はYouTubeゲーム実況（マイクラ・5人グループ「ドズル社」）の字幕テキスト（25分）です。
+        この動画からYouTubeショート（30-60秒）の候補を5本以上選定してください。
+
+        選定基準:
+        - ドズルのツッコミが効いている区間
+        - 起承転結がある（オチがある）
+        - 感情の振れ幅が大きい
+        - 前提知識なしで楽しめる
+        - 漫画パネルで表現しやすい（特殊装備・複雑なゲーム画面に依存しない）
+
+        各候補に以下を含めてください:
+        - タイムスタンプ（開始〜終了）
+        - セリフ要約（主要な掛け合い）
+        - 面白さの理由（なぜショートとして映えるか）
+        - 0-10のスコア
+
+        JSON形式で出力。」
+
+        SRTが長い場合は分割して渡す（前半/後半）。
+    - step: 3
+      action: |
+        候補リストをwork/GPexZtn-IA8/output/sh_candidates.jsonに保存。
+        YouTubeタイムスタンプ付きリンク生成: https://youtu.be/GPexZtn-IA8?t={秒}
+    - step: 4
+      action: |
+        ntfyでTop5を殿に送信:
+        bash scripts/ntfy.sh '🎯 GPexZtn-IA8 SH候補Top5: ...'
+    - step: 5
+      action: "git commit。完了報告。"
+  important_notes:
+    - "テキスト→テキスト処理はClaude CLI Opus必須（Gemini使うな）"
+    - "claude -m claude-opus-4-6 -p 'プロンプト'"
+    - "SRTが2583行と長いので分割して渡す場合あり"
+    - "タイムアウト120秒でClaude CLI呼び出し"
+    - "候補は最低5本"
+- task_id: subtask_953a_prompt_design
+  parent_cmd: cmd_953
+  bloom_level: L4
+  assignee: ashigaru2
+  title: "cccorp受託案件 Phase1: プロンプト設計（シーン分割+キャラ定義+Gemini/Kling用プロンプト）"
+  description: |
+    @ai.genelスタイルの実写風AIショートドラマ（縦型9:16、60-90秒）のサンプル動画用プロンプトを設計する。
+    殿確認ポイント: プロンプト設計完了後にntfyで通知し、殿の承認を待つ。
+  project: narration_sample
+  report_to: karo
+  status: assigned
+  timestamp: '2026-03-26T12:55:00'
+  steps:
+    - step: 1
+      action: |
+        作業ディレクトリを作成:
+        mkdir -p projects/dozle_kirinuki/work/narration_sample/output/cmd_953/
+    - step: 2
+      action: |
+        ## キャラクター外見統一定義を作成
+
+        以下の3キャラの外見を詳細に定義し、全シーンで統一して使うプロンプトベースを作成:
+
+        ### 佐藤（主人公、20代後半日本人男性）
+        - 外見を具体的に定義（髪型、顔立ち、体型、服装等）
+        - 複数シーンで一貫して使えるプロンプト文を作成
+        - 例: "A 28-year-old Japanese man with short black hair, gentle face, wearing a dark grey hoodie and jeans, slim build, slightly tired eyes"
+
+        ### 高木（コンサルタント、40代日本人男性）
+        - スーツ姿、自信に満ちた笑顔、営業マン風
+        - 例: "A 42-year-old Japanese businessman in a sharp navy suit, confident smile, slicked-back hair, gold watch"
+
+        ### 美月（佐藤の彼女、20代日本人女性）
+        - 写真でのみ登場（スマホの画面等）
+        - 例: "A beautiful 26-year-old Japanese woman with long black hair, gentle smile, white blouse"
+
+        出力: projects/dozle_kirinuki/work/narration_sample/output/cmd_953/character_definitions.json
+    - step: 3
+      action: |
+        ## シーンごとのGemini画像生成プロンプトを作成
+
+        ナレーション原稿9文に対応する画像プロンプトを設計:
+
+        | # | ナレーション | 映像イメージ | カメラワーク |
+        |---|-------------|-------------|-------------|
+        | 1 | 暗闇の中で「黄金の卵」… | 暗い部屋でPCに向かう佐藤、画面の光 | Slow zoom in on face |
+        | 2 | AIが生成する完璧な美少女… | PC画面にAI生成画像、佐藤の横顔 | Pan from screen to face |
+        | 3 | コンサルタントの高木は… | スーツ姿の高木が握手を求める、カフェ | Slow dolly back |
+        | 4 | 「最新技術」という言葉の麻薬… | セミナー会場、スライド「最新AI技術」 | Slow zoom in on slide |
+        | 5 | 美月、君を幸せにするためなら… | スマホの写真（美月）を見つめる手元 | Close-up, slow tilt up |
+        | 6 | 生成ボタンを押すごとに… | PCモニター、クリックする指 | Zoom in on screen |
+        | 7 | だが、佐藤はまだ気づいていない。 | 佐藤の背中越し、暗い部屋全体 | Slow pull back |
+        | 8 | 画面の隅で赤く点滅する… | PC画面に赤い警告表示 | Dramatic zoom to warning |
+        | 9 | 次回、絶望の収益化。 | 黒背景にタイトルテキスト | Static, fade to black |
+
+        各シーンのプロンプトは:
+        - Gemini用: フォトリアル、シネマティック、縦型9:16構図を意識
+        - character_definitions.jsonのキャラ定義を毎回含める
+        - Kling用カメラワーク指示も各シーンに付記
+
+        出力: projects/dozle_kirinuki/work/narration_sample/output/cmd_953/scene_prompts.json
+        フォーマット:
+        ```json
+        {
+          "scenes": [
+            {
+              "scene_id": 1,
+              "narration": "佐藤は、暗闇の中で...",
+              "gemini_prompt": "...",
+              "kling_motion_prompt": "slow zoom in on character's face, cinematic lighting",
+              "characters_in_scene": ["sato"],
+              "duration_sec": 7,
+              "aspect_ratio": "9:16"
+            }
+          ]
+        }
+        ```
+    - step: 4
+      action: |
+        ntfyで殿に通知:
+        bash scripts/ntfy.sh "📋 cmd_953 Phase1完了。プロンプト設計（キャラ定義+9シーン）確認お願いします。work/narration_sample/output/cmd_953/"
+    - step: 5
+      action: |
+        bash scripts/inbox_write.sh karo "足軽2号、subtask_953a完了。プロンプト設計済み。character_definitions.json + scene_prompts.json作成。殿確認待ち。" report_done ashigaru2
+  important_notes:
+    - "テキスト→テキスト処理（プロンプト設計）はClaude CLI Opus 4.6を活用可"
+    - "フォトリアル＝実写のような画像。アニメ風ではない"
+    - "縦型9:16（1080x1920）構図を常に意識"
+    - "キャ��定義は全シーンで統一して使う（一貫性のため）"
+    - "Gemini無料枠は慎重に。プロンプトを事前に完璧に仕上げてからPhase2で生成"
+    - "出力先: projects/dozle_kirinuki/work/narration_sample/output/cmd_953/"
+- task_id: subtask_953b_gemini_images
+  parent_cmd: cmd_953
+  bloom_level: L4
+  assignee: ashigaru2
+  title: "cccorp受託案件 Phase2: Gemini画像生成（9シーン、フォトリアル縦型）"
+  description: |
+    Phase1で作成したプロンプト（scene_prompts.json + character_definitions.json）を使い、
+    Gemini Image Generationで各シーンの画像を生成する。
+    縦型9:16（1080x1920）、フォトリアルスタイル。
+  project: narration_sample
+  report_to: karo
+  status: assigned
+  timestamp: '2026-03-26T14:33:00'
+  steps:
+    - step: 1
+      action: |
+        Phase1の成果物を読む:
+        - projects/dozle_kirinuki/work/narration_sample/output/cmd_953/character_definitions.json
+        - projects/dozle_kirinuki/work/narration_sample/output/cmd_953/scene_prompts.json
+        - context/gemini_api_registry.json（Gemini APIの正しい使い方）
+    - step: 2
+      action: |
+        Gemini Image Generationで9シーンの画像を生成。
+        出力先: projects/dozle_kirinuki/work/narration_sample/output/cmd_953/images/
+
+        各シーンにつき1-2枚生成（ベストを選ぶ）。合計12-18枚。
+        scene_prompts.jsonのgemini_promptをそのまま使用。
+
+        Gemini APIの使い方:
+        - source ~/.bashrc でGEMINI_API_KEY読み込み
+        - google.genaiライブラリ使用（gemini_api_registry.json参照）
+        - 画像生成モデル: gemini-3.1-flash-image-preview または gemini-2.0-flash-exp-image-generation
+        - レスポンスのimageデータをPNGで保存
+        - ファイル名: scene_{01-09}.png
+
+        ## 重要: Gemini無料枠は慎重に
+        - リテイクは最小限に
+        - プロンプトはPhase1で設計済みなのでそのまま使え
+        - 1枚ずつ確認しながら進める
+    - step: 3
+      action: |
+        生成画像のサイズ統一:
+        全画像を1080x1920（縦型9:16）にリサイズ/クロップ。
+        Geminiが異なるサイズで出力した場合はffmpegかPillowで調整。
+    - step: 4
+      action: |
+        HTML比較ページ作成（殿確認用）:
+        出力先: projects/dozle_kirinuki/work/narration_sample/output/cmd_953/index.html
+        - 9シーンの画像を縦に並べる
+        - 各シーンのナレーション文も表示
+        - HTTP配信: cd .../cmd_953/ && python3 -m http.server 8889（8888はcmd_949で使用中）
+    - step: 5
+      action: |
+        ntfyで殿に通知:
+        bash scripts/ntfy.sh "🎬 cmd_953 Phase2完了。9シーンの画像生成完了。確認: http://100.66.15.93:8889/index.html"
+    - step: 6
+      action: |
+        bash scripts/inbox_write.sh karo "足軽2号、subtask_953b完了。9シーンの画像生成済み。HTTP配信: http://100.66.15.93:8889/index.html。殿確認待ち。" report_done ashigaru2
+  important_notes:
+    - "source ~/.bashrc でGEMINI_API_KEY読み込み必須"
+    - "context/gemini_api_registry.json参照（正しいライブラリ・モデル使用）"
+    - "フォトリアル＝実写風。アニメ・イラスト風は禁止"
+    - "縦型9:16（1080x1920）"
+    - "Gemini無料枠は慎重に。リテイク最小限"
+    - "HTTP配信はport 8889（8888はcmd_949で使用中）"
+    - "出力先: work/narration_sample/output/cmd_953/images/"
+- task_id: subtask_953a2_narration_fix
+  parent_cmd: cmd_953
+  bloom_level: L1
+  assignee: ashigaru2
+  title: "【緊急・先にやれ】scene_prompts.jsonのnarrationを依頼主原文に差し替え"
+  description: |
+    【殿指摘・重大問題】Phase1で依頼主の原稿が9文中7文書き換えられている。
+    依頼主のナレーション原稿は一字一句そのまま使え。勝手にアレンジするな。
+    ★subtask_953b（画像生成）より先にこのタスクを実行せよ。
+  project: narration_sample
+  report_to: karo
+  status: assigned
+  timestamp: '2026-03-26T14:36:00'
+  steps:
+    - step: 1
+      action: |
+        scene_prompts.jsonを読む:
+        projects/dozle_kirinuki/work/narration_sample/output/cmd_953/scene_prompts.json
+    - step: 2
+      action: |
+        全9シーンのnarrationフィールドを以下の依頼主原文（一字一句そのまま）に差し替え:
+
+        scene_id 1: "佐藤は、暗闘の中で「黄金の卵」を産む鶏を手に入れたと確信している"
+        scene_id 2: "AIが生成する完璧な美少女、それは佐藤にとって美月との結婚資金そのものだ"
+        scene_id 3: "コンサルタントの高木は、佐藤の「真面目さ」を100万円で買い取った"
+        scene_id 4: "「最新技術」という言葉の麻薬が、佐藤の判断力を奪い去る"
+        scene_id 5: "美月、君を幸せにするためなら、この指先一つで稼げる世界に賭けてもいい"
+        scene_id 6: "生成ボタンを押すごとに、画面の中の美女は美月に似てくる"
+        scene_id 7: "だが、佐藤はまだ気づいていない。"
+        scene_id 8: "画面の隅で赤く点滅する「警告」の二文字が、破滅へのカウントダウンであることを。"
+        scene_id 9: "次回、絶望の収益化。"
+
+        ★一字一句変えるな。句読点も原文のまま。
+    - step: 3
+      action: |
+        修正後、すぐにsubtask_953b（画像生成）に着手せよ。
+        inbox_writeでkaroに完了報告:
+        bash scripts/inbox_write.sh karo "足軽2号、subtask_953a2完了。narration原文差し替え済み。続けてsubtask_953b（画像生成）に着手する。" report_done ashigaru2
+  important_notes:
+    - "【最重要】依頼主の原稿を一字一句変えるな"
+    - "narrationフィールドのみ修正。gemini_prompt等は変更不要"
+    - "修正後、続けてsubtask_953b（Gemini画像生成）に即着手"
+- task_id: subtask_953c_ring_fix
+  parent_cmd: cmd_953
+  bloom_level: L2
+  assignee: ashigaru2
+  title: "佐藤の指輪削除 — キャラ定義+プロンプト修正+Scene2再生成"
+  description: |
+    【殿指摘】佐藤は結婚資金を貯めている段階＝まだ結婚していない。左手に指輪があるのはおかしい。
+  project: narration_sample
+  report_to: karo
+  status: assigned
+  timestamp: '2026-03-26T14:49:00'
+  steps:
+    - step: 1
+      action: |
+        character_definitions.jsonを修正:
+        projects/dozle_kirinuki/work/narration_sample/output/cmd_953/character_definitions.json
+
+        佐藤のappearanceに追加: "accessories": "no rings, no jewelry on hands"
+        佐藤のgemini_prompt_baseに追加: ", no rings, no jewelry on hands"
+        佐藤のconsistency_notesに追加: "指輪・アクセサリーなし（未婚）"
+    - step: 2
+      action: |
+        scene_prompts.jsonの佐藤が登場する全シーンのgemini_promptに
+        "no rings, no jewelry on hands" を追加。
+        特にScene2（結婚資金のシーン）とScene5（美月の写真を見る手元アップ）は必須。
+    - step: 3
+      action: |
+        修正したプロンプトでScene2を再生成（Gemini API）:
+        出力先: work/narration_sample/output/cmd_953/images/scene_02.png（上書き）
+
+        他のシーン（特にScene5の手元アップ）も指輪がないか確認。
+        指輪が写っていたら再生成。
+    - step: 4
+      action: |
+        HTML確認ページを更新（index.html）。
+        HTTP配信はport 8889で継続。
+        ntfy: bash scripts/ntfy.sh "🎬 cmd_953 指輪修正完了。Scene2再生成済み: http://100.66.15.93:8889/index.html"
+    - step: 5
+      action: |
+        bash scripts/inbox_write.sh karo "足軽2号、subtask_953c完了。佐藤の指輪削除。character_definitions+scene_prompts修正、Scene2再生成済み。" report_done ashigaru2
+  important_notes:
+    - "佐藤は未婚。指輪・アクセサリー一切なし"
+    - "Gemini無料枠は慎重に。必要なシーンだけ再生成"
+    - "source ~/.bashrc でGEMINI_API_KEY"
+    - "【追加指摘】佐藤の手がおじさんくさい。gemini_promptに 'young smooth hands of a 28-year-old, no wrinkles, no veins showing' を追加。特にScene5（スマホ手元）とScene6（マウスクリック）は手元クローズアップなので必ず修正＋再生成"
+    - "指輪修正と手の若返り修正を同時に行い、Scene2/5/6を再生成せよ"
+    - "【追加指摘Scene8】殿の原稿は「画面の隅で赤く点滅する警告」。画面全体が警告で埋まっているのは違う。修正: 画面にはぼやけたニュースサイトか何かが表示されている。その右上の隅にだけ赤い警告表示がはっきり見える。画面全体ではなく隅だけが警告。Scene8のgemini_promptを書き直して再生成。"
+    - "【追加指摘Scene4】セミナー会場の絵は違和感。正しい場面: コンサルタントの高木が佐藤に対面で、ディスプレイ（ノートPCまたはタブレット）を見せている。画面にはうさんくさい「最新AI技術で稼げる」的な内容。カフェまたはオフィスの対面シーン。セミナー会場ではない。Scene4のgemini_promptを書き直して再生成。"
+    - "【追加指摘PC画面全般】佐藤がPCに向かうシーン（Scene1,2,6,7等）全般: PC画面には美月に似たAI生成美女の画像が表示されているべき。原稿の文脈=佐藤はAI美女画像を生成している＋「画面の中の美女は美月に似てくる」。PC画面が映るシーンではモニターに美月似の美女画像を表示。再生成対象: Scene1/2/4/5/6/7/8（ほぼ全シーン。Scene3=高木カフェとScene9=黒背景タイトル以外）"
+- task_id: subtask_953d_char_ref_regen
+  parent_cmd: cmd_953
+  bloom_level: L4
+  assignee: ashigaru2
+  title: "キャラ一貫性強化 — リファレンス画像生成→ref_image付き全シーン再生成"
+  description: |
+    【殿指示】キャラ一貫性が弱い。リファレンス画像を先に生成し、
+    各シーンのGeminiプロンプトにref_imageとして含めて再生成する。
+    先ほどの指摘も全部反映。backup_v1は取得済み、images/に上書き可。
+  project: narration_sample
+  report_to: karo
+  status: done
+  timestamp: '2026-03-26T15:12:00'
+  steps:
+    - step: 1
+      action: |
+        character_definitions.jsonを読む:
+        projects/dozle_kirinuki/work/narration_sample/output/cmd_953/character_definitions.json
+    - step: 2
+      action: |
+        ## リファレンス画像を生成（Gemini）
+        出力先: projects/dozle_kirinuki/work/narration_sample/output/cmd_953/ref/
+
+        ### 佐藤（2枚）
+        - ref_sato_front.png: 正面。character_definitions.jsonの外見定義に忠実に。
+          プロンプト例: "Portrait photo of a 28-year-old Japanese man with short messy black hair, gentle tired eyes with faint dark circles, slim build, wearing a dark grey hoodie. Front-facing, neutral background, photorealistic, studio lighting, no rings, no jewelry on hands, young smooth hands. Vertical 9:16."
+        - ref_sato_side.png: 横顔。同じ外見定義。
+
+        ### 高木（1枚）
+        - ref_takagi_front.png: 正面。ネイビースーツ・金時計・オールバック。
+          プロンプト例: "Portrait photo of a 42-year-old Japanese businessman with slicked-back black hair, confident charismatic smile, sharp eyes, wearing a sharp navy blue suit with white shirt and a gold watch. Front-facing, neutral background, photorealistic. Vertical 9:16."
+
+        ### 美月（1枚）
+        - ref_mitsuki_front.png: 正面。スマホ写真として表示される想定。暖かいトーン。
+
+        ### AI美女（1枚）※美月とは若干違う顔
+        - ref_ai_beauty.png: 美月に「似ているが同一人物ではない」。微妙に違うがどこか美月を思わせる。
+          プロンプト: 美月のプロンプトをベースに、髪型や化粧を少し変える。
+
+        ★注意: AI美女と美月は同一人物ではない。「似てくる」という表現。
+    - step: 3
+      action: |
+        ## カラーグレーディング統一
+        リファレンス画像の色味を確認。全体的にダーク・デサチュレートなトーン（佐藤の暗い部屋シーン）と
+        暖かいトーン（高木のカフェシーン）の2系統で統一。
+        scene_prompts.jsonの各シーンのcolor_toneを参考に。
+    - step: 4
+      action: |
+        ## 全シーン再生成（ref_image付き）
+        scene_prompts.jsonの各シーンのgemini_promptにリファレンス画像をref_imageとして含めて再生成。
+
+        Gemini APIでref_imageを渡す方法:
+        - google.genaiのcontentsにPIL Imageオブジェクトとして含める
+        - プロンプト冒頭に「以下のリファレンス画像のキャラクターの外見・色・服装を正確に再現して」と追加
+
+        各シーンで使うref_image:
+        - 佐藤登場シーン: ref_sato_front.png (+ ref_sato_side.png)
+        - 高木登場シーン(Scene3,4): ref_takagi_front.png
+        - 美月写真シーン(Scene5): ref_mitsuki_front.png
+        - PC画面のAI美女: ref_ai_beauty.png
+
+        過去の全指摘を反映:
+        - 指輪なし、若い手
+        - Scene4: カフェ対面（セミナーではない）
+        - Scene8: 右上隅のみ赤い警告
+        - PC画面に美月似AI美女画像
+    - step: 5
+      action: |
+        HTML確認ページ更新。HTTP配信port 8889。
+        ntfy: bash scripts/ntfy.sh "🎬 cmd_953 キャラ一貫性強化版完成。ref_image付き全シーン再生成: http://100.66.15.93:8889/index.html"
+    - step: 6
+      action: |
+        bash scripts/inbox_write.sh karo "足軽2号、subtask_953d完了。リファレンス画像5枚生成+ref_image付き全9シーン再生成。キャラ一貫性強化版。HTTP: http://100.66.15.93:8889/index.html" report_done ashigaru2
+  important_notes:
+    - "リファレンス画像を先に生成してからシーン再生成"
+    - "AI美女と美月は別人。似ているが同一ではない"
+    - "カラーグレーディング（色味統一）も重要"
+    - "過去の全指摘を反映（指輪なし、若い手、Scene4対面、Scene8隅警告、PC画面美女）"
+    - "backup_v1取得済み。images/に上書きしてよい"
+    - "source ~/.bashrc でGEMINI_API_KEY"
+    - "Gemini無料枠は慎重に。リファレンス5枚+シーン9枚=14枚程度"
+- task_id: subtask_953e_scene8_10_fix
+  parent_cmd: cmd_953
+  bloom_level: L4
+  assignee: ashigaru2
+  title: "Scene8修正（違反コンテンツぼかし+警告）＋Scene10追加（引き文テロップ）"
+  description: |
+    【殿追加指摘2点】Scene8の雰囲気修正＋Scene10の新規追加。
+  project: narration_sample
+  report_to: karo
+  status: done
+  timestamp: '2026-03-26T16:47:00'
+  steps:
+    - step: 1
+      action: |
+        scene_prompts.jsonを読む:
+        projects/dozle_kirinuki/work/narration_sample/output/cmd_953/scene_prompts.json
+    - step: 2
+      action: |
+        ## Scene8 修正
+        gemini_promptを書き直す。コンセプト:
+        - 画面にはアダルト系AI美女画像等の違反コンテンツが表示されている
+        - ただし**強いぼかし（ガウスブラー）**を入れた状態。直接的な表現は避ける
+        - 「著作権侵害によるアカウント凍結」「規約違反」の雰囲気
+        - 右上に赤い警告表示がはっきり見える
+        - 全体的に「やばいことをしていた」雰囲気を出す
+        - 殿の原稿:「画面の隅で赤く点滅する「警告」の二文字が、破滅へのカウントダウンであることを。」
+
+        プロンプト例: "Close-up of a computer monitor in a dark room. The screen displays heavily blurred, pixelated content (implied adult/inappropriate AI-generated images). A prominent red warning notification appears in the top-right corner of the screen with Japanese text. The blurred screen content creates an ominous, 'caught doing something wrong' atmosphere. Photorealistic, cinematic, dark moody lighting, vertical 9:16."
+    - step: 3
+      action: |
+        ## Scene10 新規追加
+        scene_prompts.jsonのscenesリスト末尾にScene10を追加:
+
+        scene_id: 10
+        narration: "あなたの代わりに働いているのはAIじゃない。あなたのお金でバカンスに行っている詐欺師だ。"
+        visual_concept: 黒背景に白文字の引き文テロップ。インパクトのある締め。
+        gemini_prompt: "Pure black background with bold white Japanese text centered on screen: 'あなたの代わりに働いているのはAIじゃない。あなたのお金でバカンスに行っている詐欺師だ。' The text is large, impactful, clean sans-serif font. Dramatic, cinematic title card style. Vertical 9:16 frame, 1080x1920."
+        kling_motion_prompt: "Static shot, text fade in with dramatic pause, subtle light flicker"
+        duration_sec: 6
+        characters_in_scene: []
+
+        ★metaのtotal_scenesも9→10に更新、panel_countも更新
+    - step: 4
+      action: |
+        Scene8とScene10を再生成（Gemini API）。
+        ref_imageは前回生成したものを使用（ref/ディレクトリ）。
+        Scene8は佐藤のref画像不要（PC画面のみ）。Scene10は画像生成不要の可能性もある（テロップはffmpegで作る方が品質高い場合）。
+        Geminiで生成してみて、テキスト品質が悪ければffmpegのdrawtextで代替可。
+    - step: 5
+      action: |
+        HTML確認ページ更新（10シーンに拡張）。HTTP配信port 8889。
+        ntfy: bash scripts/ntfy.sh "🎬 cmd_953 Scene8修正+Scene10追加完了: http://100.66.15.93:8889/index.html"
+    - step: 6
+      action: |
+        bash scripts/inbox_write.sh karo "足軽2号、subtask_953e完了。Scene8(違反コンテンツぼかし+警告)+Scene10(引き文テロップ)。HTTP: http://100.66.15.93:8889/index.html" report_done ashigaru2
+  important_notes:
+    - "Scene8: ぼかし重要。直接的な表現は避けつつ「やばいことをしていた」雰囲気"
+    - "Scene10の引き文は依頼主原稿の一部。一字一句変えるな"
+    - "source ~/.bashrc でGEMINI_API_KEY"
+    - "ref/ディレクトリのリファレンス画像を使用"
+    - "【順番訂正】Scene8=警告画面、Scene9=引き文「あなたの代わりに〜詐欺師だ」、Scene10=次回予告「次回、絶望の収益化。」。元のScene9(次回予告)をScene10に移動し、新Scene9に引き文を入れる"
+- task_id: subtask_953f_scene9_split
+  parent_cmd: cmd_953
+  bloom_level: L4
+  assignee: ashigaru2
+  title: "Scene9 映像付き引き文 — 上下分割（佐藤絶望 vs 高木バカンス）"
+  description: |
+    【殿承認済み映像指示】Scene9を文字だけでなく映像付きに変更。
+    上下分割で佐藤の絶望と高木のバカンスを残酷に対比させる。
+  project: narration_sample
+  report_to: karo
+  status: done
+  timestamp: '2026-03-26T17:02:00'
+  steps:
+    - step: 1
+      action: |
+        scene_prompts.jsonのScene9を修正:
+
+        gemini_prompt: "Split screen composition, vertical 9:16 frame. TOP HALF: A 28-year-old Japanese man with short messy black hair in a dark grey hoodie, sitting alone in a dark room, head in his hands in despair, dramatic shadow lighting. BOTTOM HALF: A 42-year-old Japanese man with slicked-back hair wearing sunglasses and a colorful Hawaiian shirt, laughing confidently on a tropical resort beach with two young women in swimsuits on either side of him, bright sunny paradise lighting. The cruel contrast between the two halves is the key visual. Photorealistic, cinematic, high detail, vertical 9:16."
+
+        kling_motion_prompt: "Static split screen, subtle motion in both halves - top: man slowly lowers head, bottom: beach waves and laughter"
+
+        visual_concept: "画面上下分割。上=暗い部屋で頭を抱える佐藤（絶望）。下=南国リゾートで水着の女性2人を侍らせて笑う高木（サングラス+アロハシャツ、佐藤の100万円でバカンス中）。同じ時間の残酷な対比。"
+
+        ★佐藤と高木のref画像を両方含めて生成（ref/ディレクトリ）
+        ★高木の服装はこのシーンのみアロハシャツ+サングラスに変更（通常はスーツ）
+    - step: 2
+      action: |
+        Scene9を再生成（Gemini API）。ref画像付き。
+        出力: images/scene_09.png（上書き）
+    - step: 3
+      action: |
+        HTML更新。HTTP配信port 8889。
+        ntfy: bash scripts/ntfy.sh "🎬 cmd_953 Scene9（佐藤絶望 vs 高木バカンス分割画面）完成: http://100.66.15.93:8889/index.html"
+    - step: 4
+      action: |
+        bash scripts/inbox_write.sh karo "足軽2号、subtask_953f完了。Scene9を上下分割映像（佐藤絶望vs高木バカンス）に更新。HTTP: http://100.66.15.93:8889/index.html" report_done ashigaru2
+  important_notes:
+    - "上下分割がポイント。同じ時間の残酷な対比"
+    - "高木はこのシーンのみアロハシャツ+サングラス（バカンス中）"
+    - "ref画像（佐藤+高木）を両方含めて一貫性維持"
+    - "source ~/.bashrc でGEMINI_API_KEY"
+- task_id: subtask_953i_voicevox_audio
+  parent_cmd: cmd_953
+  bloom_level: L3
+  assignee: ashigaru2
+  title: "cccorp受託案件 Phase4: VOICEVOXナレーション音声生成"
+  description: |
+    VOICEVOXでナレーション原稿10文の音声を生成する。
+    シリアスなトーン。ずんだもんは不可。
+  project: narration_sample
+  report_to: karo
+  status: done
+  timestamp: '2026-03-26T18:28:00'
+  steps:
+    - step: 1
+      action: |
+        scripts/ntfy_voice.shを読んでVOICEVOX Docker使い方を確認。
+        VOICEVOXコンテナ起動: docker start voicevox
+        APIエンドポイント: http://localhost:50021
+    - step: 2
+      action: |
+        利用可能な話者を確認:
+        curl -s http://localhost:50021/speakers | python3 -m json.tool | grep -E '"name"|"id"'
+        シリアスなナレーション向きの話者を選択。ずんだもんは不可。
+    - step: 3
+      action: |
+        10文の音声を生成。出力先: projects/dozle_kirinuki/work/narration_sample/output/cmd_953/audio/
+
+        原稿（一字一句そのまま）:
+        1. 佐藤は、暗闘の中で「黄金の卵」を産む鶏を手に入れたと確信している
+        2. AIが生成する完璧な美少女、それは佐藤にとって美月との結婚資金そのものだ
+        3. コンサルタントの高木は、佐藤の「真面目さ」を100万円で買い取った
+        4. 「最新技術」という言葉の麻薬が、佐藤の判断力を奪い去る
+        5. 美月、君を幸せにするためなら、この指先一つで稼げる世界に賭けてもいい
+        6. 生成ボタンを押すごとに、画面の中の美女は美月に似てくる
+        7. だが、佐藤はまだ気づいていない。
+        8. 画面の隅で赤く点滅する「警告」の二文字が、破滅へのカウントダウンであることを。
+        9. あなたの代わりに働いているのはAIじゃない。あなたのお金でバカンスに行っている詐欺師だ。
+        10. 次回、絶望の収益化。
+
+        VOICEVOX API:
+        curl -s -X POST "http://localhost:50021/audio_query?text=TEXT&speaker=ID" -o query.json
+        # speedScale: 0.85-0.95, pitchScale: -0.02〜0
+        curl -s -X POST -H "Content-Type: application/json" -d @query.json "http://localhost:50021/synthesis?speaker=ID" -o narration_01.wav
+    - step: 4
+      action: "docker stop voicevox（GPU占有防止）"
+    - step: 5
+      action: |
+        ntfy: bash scripts/ntfy.sh "🎙 cmd_953 Phase4完了。VOICEVOXナレーション10文: http://100.66.15.93:8889/"
+    - step: 6
+      action: |
+        bash scripts/inbox_write.sh karo "足軽2号、subtask_953i完了。VOICEVOXナレーション10文WAV生成済み。HTTP: http://100.66.15.93:8889/" report_done ashigaru2
+  important_notes:
+    - "ずんだもん不可。シリアスなトーンの話者を選べ"
+    - "原稿は一字一句変えるな"
+    - "speedScale 0.85-0.95でゆっくりめ"
+    - "VOICEVOXコンテナは使用後にdocker stop（GPU占有防止）"
+    - "出力先: work/narration_sample/output/cmd_953/audio/"
+- task_id: subtask_958a
+  parent_cmd: cmd_958
+  assigned_to: ashigaru2
+  bloom_level: L4
+  status: assigned
+  description: "ネコおじ参照画像6枚を料理人おじいちゃんデザインでGemini画像生成"
+  project: dozle_kirinuki
+  acceptance_criteria:
+    - 6枚のネコおじ参照画像が新デザイン（白衣・黄色エプロン・短めコック帽・おじいちゃん）で生成されていること
+    - ファイル名: nekooji_v1_front.png, v2_surprised, v3_angry, v4_scared, v5_smug, v6_crying
+    - キャラの一貫性（6枚で同一人物に見える）
+    - 出力先: work/ub2kRKlpZqg/output/cmd_949/nekooji_refs/ に上書き
+    - HTTP配信で殿に確認画像を提示
+  steps:
+    - step: 1
+      action: |
+        以下を確認:
+        - projects/dozle_kirinuki/context/expression_design_v5.md（ネコおじの性格・表情指針）
+        - projects/dozle_kirinuki/context/gemini_api_registry.json（画像生成モデル: gemini-3.1-flash-image-preview）
+        - projects/dozle_kirinuki/work/ub2kRKlpZqg/output/cmd_949/nekooji_refs_backup/（旧デザイン参考）
+    - step: 2
+      action: |
+        Pythonスクリプトを書いてGemini 3.1 Flash Image Preview (gemini-3.1-flash-image-preview) で6枚生成。
+        ライブラリ: google.genai（google-genaiパッケージ）。google.generativeaiは非推奨。
+        
+        キャラデザイン仕様（殿の原文）:
+        「ネコおじ扮する料理人おじいちゃん　白衣に黄色いエプロン短めのコック帽」
+        
+        詳細:
+        - ベース: ネコおじ（穏やかなおじいちゃんキャラ・白いヒゲ・のんびり感）
+        - 衣装: 白衣（料理人の白い調理服）
+        - エプロン: 黄色いエプロン
+        - 帽子: 短めのコック帽（トック・ブランシュの短いタイプ）
+        - 猫キグルミは着ていない（料理人スタイル）
+        - Minecraftスタイル・マンガ調・透過背景
+        
+        6枚:
+        1. nekooji_v1_front.png — 正面・穏やか
+        2. nekooji_v2_surprised.png — 驚き
+        3. nekooji_v3_angry.png — 怒り（穏やかな怒り）
+        4. nekooji_v4_scared.png — 怯え
+        5. nekooji_v5_smug.png — ドヤ顔
+        6. nekooji_v6_crying.png — 泣き
+        
+        expression_design_v5.md のネコおじ性格に合わせた表情プロンプトにすること。
+        各画像のプロンプトに前画像をref_imageとして含め、一貫性を高めること。
+        
+        実行: source ~/.bashrc && python3 script.py
+    - step: 3
+      action: |
+        出力先: projects/dozle_kirinuki/work/ub2kRKlpZqg/output/cmd_949/nekooji_refs/ に上書き保存
+        HTTP配信開始して殿に確認用URL提供
+    - step: 4
+      action: |
+        bash scripts/inbox_write.sh karo "足軽2号、subtask_958a完了。ネコおじ料理人おじいちゃん6枚生成完了。HTTP: {URL}" report_done ashigaru2
+  important_notes:
+    - "モデルはgemini-3.1-flash-image-preview（画像生成用）"
+    - "ライブラリはgoogle.genai。google.generativeaiは非推奨"
+    - "expression_design_v5.mdを必ず読んでからプロンプトを書け"
+    - "旧デザイン(nekooji_refs_backup/)を参考にキャラの顔立ち・雰囲気を維持"
+    - "スクリプト実行時: source ~/.bashrc && python3 script.py"
+    - "頭に食べ物を乗せるな"
+- task_id: subtask_958b
+  parent_cmd: cmd_958
+  assigned_to: ashigaru2
+  bloom_level: L4
+  status: assigned
+  description: "ネコおじ料理人おじいちゃん6枚再生成 — 殿のマイクラスクショ＋元イラストをref_imageとして入力し忠実にイラスト化"
+  project: dozle_kirinuki
+  acceptance_criteria:
+    - 6枚のネコおじ参照画像が殿のスクショの衣装（白衣・黄色エプロン・短めコック帽）で生成されていること
+    - 顔立ち・体型は元イラスト(assets/dozle_jp/character/selected/nekooji_*.png)を踏襲
+    - 衣装・色味はスクショ(nekooji_chef_screenshot.png)を忠実に再現
+    - キャラの一貫性（6枚で同一人物）
+    - 出力先: work/ub2kRKlpZqg/output/cmd_949/nekooji_refs/ に上書き
+    - HTTP配信で殿に確認画像を提示
+  steps:
+    - step: 1
+      action: |
+        以下の参照ファイルを全て確認:
+        
+        【最重要: 衣装基準】
+        - projects/dozle_kirinuki/work/ub2kRKlpZqg/output/cmd_949/nekooji_chef_screenshot.png
+          （殿撮影マイクラスクショ。白衣・黄色エプロン・短めコック帽の色味・シルエットを忠実に再現）
+        
+        【顔・体型基準: 元イラスト群】
+        - projects/dozle_kirinuki/assets/dozle_jp/character/selected/nekooji_default_r1_rgba.png（デフォルト表情）
+        - projects/dozle_kirinuki/assets/dozle_jp/character/selected/nekooji_joy_scream_rgba.png
+        - projects/dozle_kirinuki/assets/dozle_jp/character/selected/nekooji_battle_shout_rgba.png
+        - projects/dozle_kirinuki/assets/dozle_jp/character/selected/nekooji_panic_scream_rgba.png
+        - projects/dozle_kirinuki/assets/dozle_jp/character/selected/nekooji_crying_scream_rgba.png
+        ※顔立ち・体型・おじいちゃん感はこれらを踏襲。衣装だけスクショの料理人スタイルに変更。
+        
+        【性格・表情指針】
+        - projects/dozle_kirinuki/context/expression_design_v5.md
+        
+        【画像生成モデル】
+        - projects/dozle_kirinuki/context/gemini_api_registry.json → gemini-3.1-flash-image-preview
+    - step: 2
+      action: |
+        Pythonスクリプトで6枚生成。各画像のプロンプトに以下を必ず含める:
+        - ref_imageとしてnekooji_chef_screenshot.png（衣装基準）を入力
+        - ref_imageとしてnekooji_default_r1_rgba.png（顔・体型基準）を入力
+        - 「このマイクラスクショの衣装（白衣・黄色エプロン・短めコック帽）を忠実にイラスト化。顔立ち・体型は元イラストを踏襲」
+        
+        6枚:
+        1. nekooji_v1_front.png — 正面・穏やか
+        2. nekooji_v2_surprised.png — 驚き
+        3. nekooji_v3_angry.png — 穏やかな怒り
+        4. nekooji_v4_scared.png — 怯え
+        5. nekooji_v5_smug.png — ドヤ顔
+        6. nekooji_v6_crying.png — 泣き
+        
+        一貫性向上: v1を生成後、v1もref_imageに追加して残り5枚を生成
+        
+        実行: source ~/.bashrc && python3 script.py
+    - step: 3
+      action: |
+        出力: projects/dozle_kirinuki/work/ub2kRKlpZqg/output/cmd_949/nekooji_refs/ に上書き
+        HTTP配信開始して殿に確認用URL提供
+    - step: 4
+      action: |
+        bash scripts/inbox_write.sh karo "足軽2号、subtask_958b完了。ネコおじ料理人6枚再生成（スクショ+元イラスト参照）。HTTP: {URL}" report_done ashigaru2
+  important_notes:
+    - "殿のスクショ(nekooji_chef_screenshot.png)の衣装を忠実に再現すること"
+    - "元イラスト(nekooji_*.png)の顔・体型を踏襲すること"
+    - "expression_design_v5.mdを必ず読んでから表情プロンプトを書け"
+    - "モデルはgemini-3.1-flash-image-preview"
+    - "ライブラリはgoogle.genai"
+    - "頭に食べ物を乗せるな"
+- task_id: subtask_958c
+  parent_cmd: cmd_958
+  assigned_to: ashigaru2
+  bloom_level: L4
+  status: assigned
+  description: "ネコおじ料理人おじいちゃん6枚再々生成 — 殿の顔スクショ(nekooji_face_reference.png)を最重要リファレンスとして入力"
+  project: dozle_kirinuki
+  acceptance_criteria:
+    - 6枚のネコおジ参照画像が殿の顔スクショの顔立ちを忠実に再現していること
+    - 衣装はnekooji_chef_screenshot.pngに準拠（白衣・黄色エプロン・短めコック帽）
+    - 顔はnekooji_face_reference.pngに準拠（帽子・ヒゲ・目・雰囲気）
+    - 出力先: work/ub2kRKlpZqg/output/cmd_949/nekooji_refs/ に上書き
+    - HTTP配信で殿に確認画像を提示
+  steps:
+    - step: 1
+      action: |
+        以下の参照ファイルを全て確認:
+        
+        【最重要: 顔基準】
+        - projects/dozle_kirinuki/work/ub2kRKlpZqg/output/cmd_949/nekooji_face_reference.png
+          （殿撮影。帽子・ヒゲ・顔立ち・雰囲気をこの顔に合わせる）
+        
+        【衣装基準】
+        - projects/dozle_kirinuki/work/ub2kRKlpZqg/output/cmd_949/nekooji_chef_screenshot.png
+          （白衣・黄色エプロン・短めコック帽）
+        
+        【性格・表情指針】
+        - projects/dozle_kirinuki/context/expression_design_v5.md
+        
+        【画像生成モデル】
+        - projects/dozle_kirinuki/context/gemini_api_registry.json → gemini-3.1-flash-image-preview
+    - step: 2
+      action: |
+        Pythonスクリプトで6枚生成。各画像のプロンプトに以下を必ず含める:
+        - ref_imageとしてnekooji_face_reference.png（顔の最重要基準）
+        - ref_imageとしてnekooji_chef_screenshot.png（衣装基準）
+        - 「この顔リファレンスの顔立ち（帽子・白ヒゲ・目・雰囲気）を忠実にイラスト化。衣装は白衣・黄色エプロン・短めコック帽」
+        
+        6枚:
+        1. nekooji_v1_front.png — 正面・穏やか
+        2. nekooji_v2_surprised.png — 驚き
+        3. nekooji_v3_angry.png — 穏やかな怒り
+        4. nekooji_v4_scared.png — 怯え
+        5. nekooji_v5_smug.png — ドヤ顔
+        6. nekooji_v6_crying.png — 泣き
+        
+        一貫性向上: v1を生成後、v1もref_imageに追加して残り5枚を生成
+        
+        実行: source ~/.bashrc && python3 script.py
+    - step: 3
+      action: |
+        出力: projects/dozle_kirinuki/work/ub2kRKlpZqg/output/cmd_949/nekooji_refs/ に上書き
+        HTTP配信開始して殿に確認用URL提供
+    - step: 4
+      action: |
+        bash scripts/inbox_write.sh karo "足軽2号、subtask_958c完了。ネコおじ料理人6枚再々生成（顔スクショ最重要参照）。HTTP: {URL}" report_done ashigaru2
+  important_notes:
+    - "nekooji_face_reference.pngの顔が最重要。この顔を忠実に再現せよ"
+    - "モデルはgemini-3.1-flash-image-preview"
+    - "ライブラリはgoogle.genai"
+    - "頭に食べ物を乗せるな"
+- task_id: subtask_959b
+  parent_cmd: cmd_959
+  assigned_to: ashigaru2
+  bloom_level: L3
+  status: assigned
+  description: "HvpVBlzwQiw クリップC切り出し: 45:13〜45:54 おんりーエンダーパールTジャン"
+  project: dozle_kirinuki
+  acceptance_criteria:
+    - クリップC（45:13〜45:54）clip_c_qnly_tjaump.mp4 が切り出されていること
+    - work/HvpVBlzwQiw/output/cmd_959/に保存されていること
+  steps:
+    - step: 1
+      action: |
+        出力ディレクトリ確認（なければ作成）:
+        mkdir -p projects/dozle_kirinuki/work/HvpVBlzwQiw/output/cmd_959/
+    - step: 2
+      action: |
+        クリップC切り出し（おんりーエンダーパール持ちながらTジャン成功 45:13〜45:54）:
+        ffmpeg -i projects/dozle_kirinuki/work/HvpVBlzwQiw/input/HvpVBlzwQiw.mp4 \
+          -ss 45:13 -to 45:54 -c:v h264_nvenc -preset p4 -c:a aac -b:a 192k \
+          projects/dozle_kirinuki/work/HvpVBlzwQiw/output/cmd_959/clip_c_qnly_tjump.mp4
+    - step: 3
+      action: |
+        bash scripts/inbox_write.sh karo "足軽2号、subtask_959b完了。クリップC切り出し完了。clip_c_qnly_tjump.mp4(45:13-45:54)" report_done ashigaru2
+  important_notes:
+    - "ffmpegはh264_nvenc（GPU）を使え。libx264禁止"
+    - "work/はgitignore対象のためgit commitは不要"
+- task_id: subtask_958d
+  parent_cmd: cmd_958
+  assigned_to: ashigaru2
+  bloom_level: L4
+  status: assigned
+  description: "ネコおじ料理人v4: 顔リファレンスv2+シワなし+凛々しい+猫耳コック帽+ドズル等身+モノクルなし"
+  project: dozle_kirinuki
+  acceptance_criteria:
+    - 6枚が新仕様（シワなし・凛々しい・猫耳コック帽・ドズル等身・モノクルなし）で生成
+    - 顔はnekooji_face_reference_v2.pngに準拠
+    - 等身・顔比率はドズルイラスト(dozle_*.png)と同等
+    - 出力先: work/ub2kRKlpZqg/output/cmd_949/nekooji_refs/ に上書き
+    - HTTP配信で殿に確認画像を提示
+  steps:
+    - step: 1
+      action: |
+        以下の参照ファイルを全て確認:
+        
+        【最重要: 顔基準v2】
+        - projects/dozle_kirinuki/work/ub2kRKlpZqg/output/cmd_949/nekooji_face_reference_v2.png
+          （殿最新スクショ。この顔が基準）
+        
+        【衣装基準】
+        - projects/dozle_kirinuki/work/ub2kRKlpZqg/output/cmd_949/nekooji_chef_screenshot.png
+        
+        【等身基準: ドズルイラスト】
+        - projects/dozle_kirinuki/assets/dozle_jp/character/selected/dozle_angry_r1_rgba.png
+          （ドズルと同じ等身・顔の比率にする）
+        
+        【性格・表情指針】
+        - projects/dozle_kirinuki/context/expression_design_v5.md
+        
+        【画像生成モデル】
+        - projects/dozle_kirinuki/context/gemini_api_registry.json → gemini-3.1-flash-image-preview
+    - step: 2
+      action: |
+        殿の指示（原文）:
+        「シワはかかない 凛々しい感じ コック帽からも猫耳状に 身長（顔の比率はどずるとおなじような等身に）モノクルははずす」
+        
+        Pythonスクリプトで6枚生成。プロンプトに以下を必ず含める:
+        - ref_imageとしてnekooji_face_reference_v2.png（最重要顔基準）
+        - ref_imageとしてnekooji_chef_screenshot.png（衣装基準）
+        - ref_imageとしてdozle_angry_r1_rgba.png（等身基準）
+        
+        キャラデザイン仕様:
+        - シワなし（おじいちゃんだがシワを描かない）
+        - 凛々しい顔立ち（穏やかだが芯がある）
+        - コック帽の上部に猫耳シルエット（ネコおジの象徴）
+        - ドズルと同じ等身・顔比率
+        - モノクル（片眼鏡）なし
+        - 白衣・黄色エプロン・短めコック帽（猫耳付き）
+        - 白いヒゲ（リファレンスv2準拠）
+        - アニメ漫画風・透過背景
+        
+        6枚:
+        1. nekooji_v1_front.png — 正面・穏やか
+        2. nekooji_v2_surprised.png — 驚き
+        3. nekooji_v3_angry.png — 穏やかな怒り
+        4. nekooji_v4_scared.png — 怯え
+        5. nekooji_v5_smug.png — ドヤ顔
+        6. nekooji_v6_crying.png — 泣き
+        
+        一貫性: v1生成後、v1もref_imageに追加して残り5枚生成
+        
+        実行: source ~/.bashrc && python3 script.py
+    - step: 3
+      action: |
+        出力: projects/dozle_kirinuki/work/ub2kRKlpZqg/output/cmd_949/nekooji_refs/ に上書き
+        HTTP配信開始
+    - step: 4
+      action: |
+        bash scripts/inbox_write.sh karo "足軽2号、subtask_958d完了。ネコおじ料理人v4（シワなし/凛々しい/猫耳帽/ドズル等身/モノクルなし）6枚生成。HTTP: {URL}" report_done ashigaru2
+  important_notes:
+    - "nekooji_face_reference_v2.pngが最重要（v1ではない）"
+    - "シワを描くな・モノクルを描くな"
+    - "コック帽に猫耳シルエットを付けよ"
+    - "等身はドズルと同じにせよ（dozle_*.pngを参照）"
+    - "モデルはgemini-3.1-flash-image-preview"
+    - "ライブラリはgoogle.genai"
+    - "頭に食べ物を乗せるな"
+- task_id: subtask_958e
+  parent_cmd: cmd_958
+  assigned_to: ashigaru2
+  bloom_level: L4
+  status: assigned
+  description: "ネコおじ料理人v6: 猫耳灰色+あごひげなし(口ひげのみ)+凛々しく+シワ絶対なし+6枚デザイン完全統一"
+  project: dozle_kirinuki
+  acceptance_criteria:
+    - 6枚が殿の追加指示を全て反映していること
+    - 猫耳が灰色であること
+    - あごひげなし・口ひげのみ
+    - シワが一切描かれていないこと
+    - 6枚で表情以外のデザイン（衣装・帽子・体型・色味）が完全統一
+    - 出力先: work/ub2kRKlpZqg/output/cmd_949/nekooji_refs/ に上書き
+    - HTTP配信で殿に確認画像を提示
+  steps:
+    - step: 1
+      action: |
+        参照ファイル確認:
+        - projects/dozle_kirinuki/work/ub2kRKlpZqg/output/cmd_949/nekooji_face_reference_v2.png（顔基準）
+        - projects/dozle_kirinuki/work/ub2kRKlpZqg/output/cmd_949/nekooji_chef_screenshot.png（衣装基準）
+        - projects/dozle_kirinuki/assets/dozle_jp/character/selected/dozle_angry_r1_rgba.png（等身基準）
+        - projects/dozle_kirinuki/context/expression_design_v5.md
+        - projects/dozle_kirinuki/context/gemini_api_registry.json → gemini-3.1-flash-image-preview
+    - step: 2
+      action: |
+        殿の指示（原文）:
+        「猫耳は灰色」「あごひげなし(口ひげのみ)」「凛々しく」「シワ絶対描くな」「全6枚で表情以外のデザインを完全統一」
+
+        Pythonスクリプトで6枚生成。プロンプトに以下を【全枚共通で】必ず含める:
+        - ref_imageとしてnekooji_face_reference_v2.png + nekooji_chef_screenshot.png + dozle_angry_r1_rgba.png
+        - 「猫耳は灰色（gray cat ears on top of chef hat）」
+        - 「あごひげなし、口ひげのみ（no beard, only mustache）」
+        - 「凛々しい表情（dignified, no wrinkles, absolutely no wrinkles on face）」
+        - 「シワは絶対に描かない（ABSOLUTELY NO WRINKLES anywhere on the face or skin）」
+        - 「白衣・黄色エプロン・短めコック帽（猫耳付き）・ドズルと同じ等身」
+        - 「モノクルなし」
+        
+        【デザイン統一のため】:
+        1. v1(front/穏やか)を最初に生成
+        2. v1をref_imageに追加して残り5枚を生成（表情のみ変更、デザイン統一を明示的にプロンプトに記載）
+        3. 各枚のプロンプトに「same character design as the reference image, only change the facial expression」を含める
+        
+        6枚:
+        1. nekooji_v1_front.png — 正面・穏やか
+        2. nekooji_v2_surprised.png — 驚き
+        3. nekooji_v3_angry.png — 穏やかな怒り
+        4. nekooji_v4_scared.png — 怯え
+        5. nekooji_v5_smug.png — ドヤ顔
+        6. nekooji_v6_crying.png — 泣き
+        
+        実行: source ~/.bashrc && python3 script.py
+    - step: 3
+      action: |
+        出力: projects/dozle_kirinuki/work/ub2kRKlpZqg/output/cmd_949/nekooji_refs/ に上書き
+        HTTP配信開始
+    - step: 4
+      action: |
+        bash scripts/inbox_write.sh karo "足軽2号、subtask_958e完了。ネコおじ料理人v6（灰色猫耳/口ひげのみ/シワなし/デザイン統一）6枚生成。HTTP: {URL}" report_done ashigaru2
+  important_notes:
+    - "猫耳は灰色！白ではない"
+    - "あごひげは描くな。口ひげのみ"
+    - "シワは絶対に描くな（プロンプトに強調して入れよ）"
+    - "6枚でデザイン完全統一（表情のみ変更）"
+    - "v1を先に生成→v1をref_imageにして残り5枚"
+    - "モデルはgemini-3.1-flash-image-preview"
+    - "ライブラリはgoogle.genai"
+- task_id: subtask_958f
+  parent_cmd: cmd_958
+  assigned_to: ashigaru2
+  bloom_level: L3
+  status: assigned
+  description: "ネコおじ nekooji_v5_smug.png のみ白ズボンで再生成（他5枚は触るな）"
+  project: dozle_kirinuki
+  acceptance_criteria:
+    - nekooji_v5_smug.pngのみが白ズボンで再生成されていること
+    - 他5枚(v1,v2,v3,v4,v6)は変更なし
+    - 出力先: work/ub2kRKlpZqg/output/cmd_949/nekooji_refs/nekooji_v5_smug.png に上書き
+  steps:
+    - step: 1
+      action: |
+        参照:
+        - 他5枚のうち白ズボンの1枚（例: nekooji_v1_front.png）をref_imageとして使い、ズボンの色を合わせる
+        - projects/dozle_kirinuki/work/ub2kRKlpZqg/output/cmd_949/nekooji_face_reference_v2.png（顔基準）
+        - projects/dozle_kirinuki/context/gemini_api_registry.json → gemini-3.1-flash-image-preview
+    - step: 2
+      action: |
+        v5(smug/ドヤ顔)のみ再生成。プロンプトに:
+        - ref_imageとしてnekooji_v1_front.png（デザイン・白ズボン基準）
+        - ref_imageとしてnekooji_face_reference_v2.png（顔基準）
+        - 「same character design as reference, white pants (NOT black), smug/proud expression, gray cat ears, white chef hat, yellow apron, no wrinkles, no monocle, no beard only mustache」
+        - 「ズボンは白（黒ではない）。他の全デザインはv1と完全一致。表情のみドヤ顔に変更」
+        
+        実行: source ~/.bashrc && python3 script.py
+    - step: 3
+      action: |
+        v5のみ上書き: projects/dozle_kirinuki/work/ub2kRKlpZqg/output/cmd_949/nekooji_refs/nekooji_v5_smug.png
+        HTTP配信更新
+    - step: 4
+      action: |
+        bash scripts/inbox_write.sh karo "足軽2号、subtask_958f完了。nekooji_v5_smug.pngのみ白ズボンで再生成。他5枚は変更なし。HTTP: {URL}" report_done ashigaru2
+  important_notes:
+    - "v5_smugのみ再生成。他5枚は絶対に触るな"
+    - "ズボンは白。黒ではない"
+    - "モデルはgemini-3.1-flash-image-preview"
+    - "ライブラリはgoogle.genai"
+- task_id: subtask_968a
+  parent_cmd: cmd_968
+  assigned_to: ashigaru2
+  bloom_level: L3
+  status: assigned
+  title: "vocal_stt_pipeline.py SRT再生成バグ修正"
+  description: |
+    run_speaker_identification()でECAPA-TDNN実名変換後にSRTを再生成していないバグを修正。
+    run_direct_speaker_identification()のL823にはある処理が通常パスにない。1箇所追加。
+  project: dozle_kirinuki
+  report_to: karo
+  timestamp: '2026-03-27T18:00:00'
+  acceptance_criteria:
+    - run_speaker_identification()のJSON保存後にregenerate_srt_from_merged()呼び出しが追加
+    - run_direct_speaker_identification()のL823と同等の処理
+    - git commit済み
+  steps:
+    - step: 1
+      action: |
+        対象ファイルを読む:
+        projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py
+        特にrun_speaker_identification()（L403-616付近）とrun_direct_speaker_identification()（L619+, L823付近）を確認。
+    - step: 2
+      action: |
+        run_speaker_identification()のJSON保存の後、Step7完了printの前に以下を追加:
+
+        ```python
+        # SRT再生成（実名ラベル反映）
+        srt_path = Path(str(merged_json_path).replace('.json', '.srt'))
+        regenerate_srt_from_merged(words, srt_path)
+        print(f"[pipeline]   SRT再生成完了: {srt_path}")
+        ```
+
+        ※ regenerate_srt_from_merged()は既に定義済み（L850-854付近）。
+        ※ run_direct_speaker_identification()のL823付近の実装を参考にせよ。
+    - step: 3
+      action: |
+        修正後、構文チェック:
+        python3 -c "import ast; ast.parse(open('projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py').read())"
+    - step: 4
+      action: |
+        git add projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py && git commit -m "fix(cmd_968): run_speaker_identification SRT再生成追加（ECAPA実名変換後）"
+    - step: 5
+      action: |
+        bash scripts/inbox_write.sh karo "足軽2号、subtask_968a完了。run_speaker_identification()にSRT再生成処理追加。git commit済み。" report_done ashigaru2
+  important_notes:
+    - "1箇所のみの修正。余計なリファクタリングはするな"
+    - "run_direct_speaker_identification()のL823付近を参考にせよ"
+    - "行番号は目安。実際のファイルを読んで正確な位置を確認"
+- task_id: subtask_971c
+  parent_cmd: cmd_971
+  assigned_to: ashigaru2
+  bloom_level: L4
+  status: assigned
+  title: "ちらし寿司漫画ショート 音声切り出し＋動画合成"
+  description: |
+    12パネルPNG（P1-P12）が揃った。tono_cut.mp4から音声を切り出し、
+    パネルPNG＋音声＋テロップ＋BGMを結合して漫画ショートMP4を生成する。
+  project: dozle_kirinuki
+  report_to: karo
+  timestamp: '2026-03-27T18:34:00'
+  acceptance_criteria:
+    - 全12パネルを結合した漫画ショートMP4が生成されていること
+    - P1-P10の音声はtono_cut.mp4から各パネルのstart_sec/duration_secに従い切り出し
+    - P11の音声はtono_cut.mp4を使わず、assets/bgm/sfx/のSEを使用
+    - P12の音声はtono_cut.mp4の44.5秒以降を使用
+    - セリフテロップが各パネルに表示されていること
+    - 出力先: work/ub2kRKlpZqg/output/cmd_971/
+  steps:
+    - step: 1
+      action: |
+        必須参照を読む:
+        - projects/dozle_kirinuki/context/shorts_command_template.md（漫画制作ナレッジ・動画合成手順）
+        - projects/dozle_kirinuki/work/ub2kRKlpZqg/output/cmd_957/panels_957_chirashi.json（パネル構成）
+    - step: 2
+      action: |
+        パネルPNGの確認:
+        ls projects/dozle_kirinuki/work/ub2kRKlpZqg/output/cmd_971/panels/
+        panel_01.png 〜 panel_12.png が全て存在することを確認。
+    - step: 3
+      action: |
+        音声切り出し（ffmpeg）:
+        - tono_cut.mp4: projects/dozle_kirinuki/work/20260303_超巨大ちらし寿司から異物を100個見つけるまで終われません！！【マイクラ】/tono_cut.mp4
+
+        P1-P10: panels JSONのstart_sec/duration_secに従い各パネルの音声を切り出し
+        P11: 音声なし。assets/bgm/sfx/sfx_jajan.mp3 をSEとして使用
+        P12: tono_cut.mp4の44.5秒以降（末尾まで）を使用
+
+        各音声セグメント: work/ub2kRKlpZqg/output/cmd_971/audio/seg_01.aac 〜 seg_12.aac
+    - step: 4
+      action: |
+        動画合成（ffmpeg）:
+        各パネルPNG + 対応音声 → 個別セグメントMP4 → 全セグメント結合
+
+        セリフテロップ: panels JSONのspeaker_textを drawtext で各パネルに表示
+        テロップ位置: 中央〜上部（下部・右下禁止。YouTube UIに隠れる）
+
+        エンコード: -c:v h264_nvenc -preset p4（GPU必須。libx264禁止）
+        音声: -c:a aac -b:a 192k
+
+        BGM: panels JSONにBGM指定があれば重ねる
+
+        最終出力: chirashi_manga_short.mp4
+    - step: 5
+      action: |
+        HTTPサーバーで配信:
+        cd projects/dozle_kirinuki/work/ub2kRKlpZqg/output/cmd_971/ && nohup python3 -m http.server 8894 &
+    - step: 6
+      action: |
+        bash scripts/inbox_write.sh karo "足軽2号、subtask_971c完了。漫画ショートMP4生成完了。HTTP: http://100.66.15.93:8894/chirashi_manga_short.mp4" report_done ashigaru2
+  important_notes:
+    - "P11はtono_cut音声使わない。SFXのみ（sfx_jajan.mp3推奨）"
+    - "P12はtono_cut 44.5秒以降を使用"
+    - "テロップは中央〜上部配置（下部・右下禁止）"
+    - "エンコードはh264_nvenc必須（libx264禁止）"
+    - "パネルサイズが768x1376と1080x1920で混在する可能性あり。ffmpegでscale統一せよ"
+    - "shorts_command_template.mdの動画合成手順を必ず参照"
+- task_id: subtask_979a
+  parent_cmd: cmd_979
+  assigned_to: ashigaru2
+  bloom_level: L4
+  status: assigned
+  title: "アスレ漫画ショート clip_a 3案制作＋YouTube非公開アップ"
+  description: |
+    cmd_974の構成案からclip_a（MENぼん落とし）の3案のpanels JSONを作成し、
+    generate_manga_short.pyで各案の漫画ショートMP4を制作→YouTube非公開アップ。
+  project: dozle_kirinuki
+  report_to: karo
+  timestamp: '2026-03-27T19:08:00'
+  acceptance_criteria:
+    - clip_a_proposal1/2/3.mp4 の3本が生成されていること
+    - 3本ともYouTube非公開アップ完了
+    - URLをkaro宛に報告
+  steps:
+    - step: 1
+      action: |
+        【必読】以下を全て読んでから作業開始:
+        1. skills/manga-short/SKILL.md
+        2. skills/manga-short-workflow/SKILL.md
+        3. projects/dozle_kirinuki/context/shorts_command_template.md
+        4. projects/dozle_kirinuki/context/expression_design_v5.md
+        5. projects/dozle_kirinuki/context/member_profiles.yaml
+    - step: 2
+      action: |
+        構成案を読む:
+        projects/dozle_kirinuki/work/20260326_アスレしかない世界でエンドラ討伐/output/cmd_974/all_proposals_v2.html
+        clip_aの3案の構成（パネル・話者・セリフ・タイムスタンプ）を確認。
+    - step: 3
+      action: |
+        各案のpanels JSONを作成:
+        mkdir -p projects/dozle_kirinuki/work/20260326_アスレしかない世界でエンドラ討伐/output/cmd_979/clip_a/
+        panels_979_clip_a_p1.json, panels_979_clip_a_p2.json, panels_979_clip_a_p3.json
+
+        音声ソース: output/cmd_959/clip_a_men_bon_fall.mp4 から切り出し
+        （クリップのタイムスタンプはクリップ内の相対時間で指定）
+
+        キャラref: assets/dozle_jp/character/selected/ のみ
+    - step: 4
+      action: |
+        各案について generate_manga_short.py で制作:
+        cd /home/murakami/multi-agent-shogun && source ~/.bashrc
+        python3 projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py \
+          --panels "{panels_json}" --output "{output_dir}"
+        → ffmpeg(h264_nvenc)で動画合成
+    - step: 5
+      action: |
+        3本をYouTube非公開アップ:
+        cd projects/dozle_kirinuki && source venv/bin/activate
+        python3 scripts/youtube_uploader.py upload "clip_a_proposal{N}.mp4" \
+          --title "【構成案確認】clip_a 案{N} MENぼん落とし" --privacy private
+    - step: 6
+      action: |
+        bash scripts/inbox_write.sh karo "足軽2号、subtask_979a完了。clip_a 3案YouTube非公開アップ完了。URL: {各URL}" report_done ashigaru2
+  important_notes:
+    - "skills/manga-short/SKILL.md必読"
+    - "新規スクリプト禁止。generate_manga_short.py使え"
+    - "h264_nvenc必須。libx264禁止"
+    - "ドズル不在。参加メンバー: bon, oo_men, orafu, qnly"
+    - "キャラrefはselected/のみ"
+- task_id: subtask_983a
+  parent_cmd: cmd_983
+  assigned_to: ashigaru2
+  bloom_level: L3
+  status: done
+  safety: batch_modify
+  title: "深夜監査9件修正（HIGH2/MED4/LOW3）"
+  description: |
+    queue/reports/gunshi_nightly_audit_20260328.yamlの全9件を修正。
+    レポートに各件のfile/line/recommendationが書いてある。
+  project: dozle_kirinuki
+  report_to: karo
+  timestamp: '2026-03-28T05:47:00'
+  acceptance_criteria:
+    - HIGH2件（venvパス統一）修正済み
+    - MEDIUM4件修正済み
+    - LOW3件修正済み
+    - git commit済み
+  steps:
+    - step: 1
+      action: |
+        instructions/git_safety.md を読む（safety: batch_modify）
+    - step: 2
+      action: |
+        監査レポートを読む:
+        queue/reports/gunshi_nightly_audit_20260328.yaml
+        全9件のfile/line/problem/recommendationを確認。
+    - step: 3
+      action: |
+        HIGH2件を最優先で修正:
+        - INF-H001: cmd_rag_hook.shのvenvパスを.venvに統一
+        - INF-H002: dedup_check.shのvenvパスを.venvに統一
+    - step: 4
+      action: |
+        MEDIUM4件を修正:
+        - INF-M001: rag_suggestions.yaml拡張子/フラグ修正
+        - INF-M002: kill_orphan_chrome.shのppid判定修正
+        - INF-M003: genai_daily_report.sh（現状維持でもOK）
+        - INF-M004: shogun_idle→agent_idleリネーム
+    - step: 5
+      action: "LOW3件を修正"
+    - step: 6
+      action: |
+        git add 修正ファイル && git commit -m "fix(cmd_983): 深夜監査20260328 インフラ9件修正"
+    - step: 7
+      action: |
+        bash scripts/inbox_write.sh karo "足軽2号、subtask_983a完了。深夜監査9件修正完了。git commit済み。" report_done ashigaru2
+  important_notes:
+    - "HIGH2件（venvパス）最優先"
+    - "レポートのrecommendationに従って修正"
+    - "git safety protocol遵守"
+- task_id: subtask_990a
+  parent_cmd: cmd_990
+  assigned_to: ashigaru2
+  bloom_level: L2
+  status: done
+  title: "note下書き投稿: Gemini API課金体験談"
+  description: |
+    projects/note_mcp_server/articles/gemini_22000yen.mdをnoteに下書き投稿。
+    公開禁止。下書き状態のまま。
+  project: note
+  report_to: karo
+  timestamp: '2026-03-28T17:23:20'
+  result:
+    note_url: "https://note.com/n/nbbb28074c02c"
+    editor_url: "https://editor.note.com/notes/nbbb28074c02c/edit/"
+    status: draft
+    hashtags: "AI,GCP,体験談,API課金,生成AI"
