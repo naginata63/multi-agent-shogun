@@ -28,23 +28,12 @@ import json
 import re
 import sys
 import os
+import yaml
 from pathlib import Path
 
 _SCRIPT_DIR = Path(__file__).resolve().parent
-_DEFAULT_PROFILES_PATH = _SCRIPT_DIR.parent / "projects" / "dozle_kirinuki" / "context" / "member_profiles.yaml"
 
-
-def load_members_from_yaml(profiles_path: Path | None = None) -> list[str]:
-    """member_profiles.yamlからメンバーキー一覧を読み込む。失敗時はデフォルト値を返す。"""
-    if profiles_path is None:
-        profiles_path = _DEFAULT_PROFILES_PATH
-    try:
-        import yaml
-        with open(profiles_path, encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-        return list(data.get("members", {}).keys())
-    except Exception:
-        return ["dozle", "bon", "qnly", "orafu", "oo_men", "nekooji"]
+from members import load_members_from_yaml  # noqa: E402 — scripts/ 配下の共通モジュール
 
 
 def detect_timestamp_unit(raw_words: list[dict]) -> str:
@@ -52,18 +41,19 @@ def detect_timestamp_unit(raw_words: list[dict]) -> str:
     Detect whether timestamps are in milliseconds or seconds.
     Returns 'ms' or 's'.
 
-    Heuristic: if max(start) > 100000, already ms (no conversion needed).
+    Heuristic: if max(start) >= 10000, already ms (no conversion needed).
     Otherwise, values are seconds and must be multiplied by 1000.
 
     Rationale: a 2.7-hour video in seconds has max_start ~= 10000s.
-    Any audio clip in ms with max_start <= 10000ms would be <= 10 seconds,
+    Any audio clip in ms with max_start < 10000ms would be < 10 seconds,
     which is impractically short for this use-case.
-    (Changed from 100000 to 10000 to correctly handle 100-second clips: STT-H003)
+    Threshold lowered from 100000 to 10000 to correctly handle 100-second clips.
+    Using >= (not >) to avoid off-by-one: exactly 10000ms == 10s boundary is treated as ms.
     """
     if not raw_words:
         return "s"
     max_start = max(float(w.get("start", 0)) for w in raw_words)
-    return "ms" if max_start > 10000 else "s"
+    return "ms" if max_start >= 10000 else "s"
 
 
 def load_assemblyai(path: str) -> list[dict]:
@@ -839,48 +829,46 @@ def main():
     source_ai = sum(1 for w in merged_words if w.get("source") == "assemblyai")
     source_dg = sum(1 for w in merged_words if w.get("source") == "deepgram")
 
-    unfilled_list_yaml = ""
-    for g in unfilled_gaps:
-        unfilled_list_yaml += (
-            f"          - {{start_ms: {g['start_ms']}, "
-            f"end_ms: {g['end_ms']}, "
-            f"duration_ms: {g['duration_ms']}}}\n"
-        )
-    if not unfilled_list_yaml:
-        unfilled_list_yaml = "          []\n"
-
-    youtube_section = ""
+    report_data: dict = {
+        "merge_report": {
+            "video_id": video_id,
+            "mode": mode,
+            "total_duration_ms": total_duration_ms,
+            "coverage": {
+                "before_merge_pct": round(coverage_before, 2),
+                "after_merge_pct": round(coverage_after, 2),
+                "improvement_pct": round(coverage_after - coverage_before, 2),
+            },
+            "gaps": {
+                "total_before": len(gaps_before),
+                "filled_by_deepgram": filled_count,
+                "remaining_unfilled": len(unfilled_gaps),
+                "unfilled_list": [
+                    {"start_ms": g["start_ms"], "end_ms": g["end_ms"], "duration_ms": g["duration_ms"]}
+                    for g in unfilled_gaps
+                ],
+            },
+            "speaker_id": {
+                "total_words": total_words,
+                "with_speaker": with_speaker,
+                "without_speaker": without_speaker,
+                "coverage_pct": round(speaker_id_pct, 2),
+            },
+            "source_breakdown": {
+                "assemblyai": source_ai,
+                "deepgram": source_dg,
+            },
+        }
+    }
     if youtube_subs_path:
-        youtube_section = f"  youtube_quality:\n    replaced_segments: {len(youtube_map)}\n    replaced_words: {youtube_replaced_count}\n"
-
-    report_yaml = f"""\
-merge_report:
-  video_id: {video_id}
-  mode: {mode}
-  total_duration_ms: {total_duration_ms}
-  coverage:
-    before_merge_pct: {coverage_before:.2f}
-    after_merge_pct: {coverage_after:.2f}
-    improvement_pct: {coverage_after - coverage_before:.2f}
-  gaps:
-    total_before: {len(gaps_before)}
-    filled_by_deepgram: {filled_count}
-    remaining_unfilled: {len(unfilled_gaps)}
-    unfilled_list:
-{unfilled_list_yaml}\
-  speaker_id:
-    total_words: {total_words}
-    with_speaker: {with_speaker}
-    without_speaker: {without_speaker}
-    coverage_pct: {speaker_id_pct:.2f}
-  source_breakdown:
-    assemblyai: {source_ai}
-    deepgram: {source_dg}
-{youtube_section}"""
+        report_data["merge_report"]["youtube_quality"] = {
+            "replaced_segments": len(youtube_map),
+            "replaced_words": youtube_replaced_count,
+        }
 
     os.makedirs(os.path.dirname(os.path.abspath(report_path)), exist_ok=True)
     with open(report_path, "w", encoding="utf-8") as f:
-        f.write(report_yaml)
+        yaml.dump(report_data, f, allow_unicode=True, default_flow_style=False)
     print(f"[stt_merge] Report: {report_path}")
 
     print("[stt_merge] Done.")

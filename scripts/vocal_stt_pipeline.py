@@ -34,22 +34,16 @@ STT_MERGE_SCRIPT = PROJECT_DIR / "scripts" / "stt_merge.py"
 
 CHUNK_DURATION_SEC = 600  # 10分チャンク
 
-
-def load_members_from_yaml(profiles_path: Path | None = None) -> list[str]:
-    """member_profiles.yamlからメンバーキー一覧を読み込む。失敗時はデフォルト値を返す。"""
-    if profiles_path is None:
-        profiles_path = PROJECT_DIR / "projects" / "dozle_kirinuki" / "context" / "member_profiles.yaml"
-    try:
-        import yaml
-        with open(profiles_path, encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-        return list(data.get("members", {}).keys())
-    except Exception:
-        return ["dozle", "bon", "qnly", "orafu", "oo_men", "nekooji"]
+from members import load_members_from_yaml  # noqa: E402 — scripts/ 配下の共通モジュール
 
 
 DEMUCS_TIMEOUT_SEC = 600  # 1チャンクあたり最大10分
 ASSEMBLYAI_POLL_INTERVAL_SEC = 10
+
+# ECAPA-TDNN話者特定の共通閾値・パラメータ
+SPEAKER_ID_THRESHOLD = 0.25   # cosine similarity閾値。以下なら"unknown"
+SPEAKER_ID_MIN_SEG_SEC = 1.0  # 声紋照合に使う最小セグメント長（秒）
+SPEAKER_ID_GAP_MS = 500       # 同一話者の連続ワードをマージするギャップ閾値（ms）
 
 
 def check_api_keys():
@@ -224,9 +218,9 @@ def run_assemblyai(vocals_path: Path, output_path: Path) -> Path:
     if r.status_code == 400:
         print(f"[pipeline]   AssemblyAI 400エラー (speaker_labels=True): {r.text}", flush=True)
         print("[pipeline]   WARNING: speaker_labels=Falseで自動リトライ（話者分離はECAPA-TDNNで後付け）", flush=True)
-        payload_no_speaker = {k: v for k, v in payload.items() if k != "speaker_labels"}
+        payload_no_speaker = {k: v for k, v in payload.items() if k not in ("speaker_labels", "speakers_expected")}
         payload_no_speaker["speaker_labels"] = False
-        time.sleep(2)  # exponential backoffの初回待機（レートリミット考慮）
+        time.sleep(2)  # レートリミット考慮の待機
         r = requests.post("https://api.assemblyai.com/v2/transcript", headers=headers, json=payload_no_speaker, timeout=30)
     if not r.ok:
         print(f"[pipeline]   AssemblyAI エラーレスポンス: {r.status_code} {r.text}", flush=True)
@@ -423,9 +417,9 @@ def run_speaker_identification(
 
     # speaker_id.pyの定数・閾値を流用
     MEMBERS = load_members_from_yaml()
-    THRESHOLD = 0.25
-    MIN_SEG_SEC = 1.0   # 声紋照合に使う最小セグメント長（秒）
-    GAP_MS = 500        # 同一話者の連続ワードをマージするギャップ閾値（ms）
+    THRESHOLD = SPEAKER_ID_THRESHOLD
+    MIN_SEG_SEC = SPEAKER_ID_MIN_SEG_SEC
+    GAP_MS = SPEAKER_ID_GAP_MS
     profile_dir = PROJECT_DIR / "projects" / "dozle_kirinuki" / "speaker_profiles"
 
     try:
@@ -651,7 +645,7 @@ def run_direct_speaker_identification(
         return
 
     MEMBERS = load_members_from_yaml()
-    THRESHOLD = 0.25
+    THRESHOLD = SPEAKER_ID_THRESHOLD
     MIN_WIN_SEC = 0.30    # ウィンドウ最小長（秒）; 未満はゼロパディング
     TARGET_WIN_MS = 1000  # ウィンドウ目標長（ms）
     MAX_WIN_MS = 2000     # ウィンドウ最大長（ms）
@@ -854,7 +848,9 @@ def run_direct_speaker_identification(
 
 def regenerate_srt_from_merged(words: list[dict], srt_path: Path) -> None:
     """merged JSONのwordsリストからSRTファイルを再生成する。stt_merge.generate_srt()に委譲。"""
-    sys.path.insert(0, str(Path(__file__).parent))
+    scripts_dir = str(Path(__file__).parent)
+    if scripts_dir not in sys.path:
+        sys.path.insert(0, scripts_dir)
     from stt_merge import generate_srt
     srt_path.write_text(generate_srt(words), encoding="utf-8")
 

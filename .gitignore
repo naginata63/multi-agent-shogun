@@ -132,6 +132,7 @@
 !scripts/gemini_speaker_pipeline.py
 !scripts/stt_merge.py
 !scripts/vocal_stt_pipeline.py
+!scripts/members.py
 !scripts/regen_srt_from_merged.py
 !scripts/gemini_video_analysis.py
 !scripts/gemini_shorts_qc.py
