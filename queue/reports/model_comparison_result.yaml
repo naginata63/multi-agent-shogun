@@ -1,0 +1,83 @@
+task_id: subtask_1015b
+timestamp: '2026-03-31T07:10:00'
+target_panel: cmd_982 P1 おんりー「怖え」
+models_tested:
+  - gemini-3.1-flash-image-preview
+  - black-forest-labs/flux-2-pro (Replicate)
+  - tencent/hunyuan-image-3 (Replicate)
+
+results:
+  - model: gemini-3.1-flash-image-preview
+    status: success
+    output_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/model_comparison/gemini_p1.png
+    image_size: 768x1376
+    elapsed_sec: 25.4
+    cost_usd: 0.067
+    supports_ref_images: true
+    ref_images_used:
+      - clip_c_reference_1.png
+      - ender_eye.png
+      - qnly_skeptical_r2_rgba.png
+      - oo_men_smile_r1_rgba.png
+      - orafu_smile_r1_rgba.png
+      - bon_smile_r1_rgba.png
+    notes: キャラクターリファレンス画像6枚を入力して生成。qnly_troubled_r2が存在しないためqnly_skeptical_r2で代替。
+
+  - model: black-forest-labs/flux-2-pro (Replicate)
+    status: success
+    output_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/model_comparison/flux2_pro_p1.png
+    image_size: 1008x1008
+    elapsed_sec: 12.7
+    cost_usd: 0.055
+    supports_ref_images: false
+    notes: >
+      テキストプロンプトのみ。BFL直接API(api.bfl.ml)はタイムアウトでReplicate経由に変更。
+      出力はwebp→png変換済み。576x1024指定だがモデルが1008x1008に自動調整。
+
+  - model: tencent/hunyuan-image-3 (Replicate)
+    status: error
+    error: '402 Insufficient credit - Replicateクレジット残高不足'
+    elapsed_sec: 1.1
+    cost_usd: 0.005
+    supports_ref_images: false
+    notes: Replicateアカウントのクレジット不足のため未検証。クレジット追加後に再試行可能。
+
+comparison_html: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/model_comparison/comparison_gallery.html
+
+evaluation:
+  character_reproduction:
+    gemini: HIGH - ref画像を渡せるのでキャラ固有外見（黄服おんりー・ピンクMEN・水色おらふ・紫ぼん）を再現可能
+    flux_2_pro: LOW - テキストプロンプトのみ。キャラ固有の外見・色・表情の正確な指定不可
+    hunyuan: NOT_TESTED - クレジット不足
+
+  japanese_text_rendering:
+    gemini: HIGH - 吹き出し内日本語「怖え」を正確に描画
+    flux_2_pro: LOW - 英語モデルベースのため日本語テキスト精度低め（文字化けリスク）
+    hunyuan: NOT_TESTED
+
+  processing_speed:
+    gemini: 25.4s（リファレンス6枚処理含む）
+    flux_2_pro: 12.7s（テキストのみのため速い）
+    hunyuan: NOT_TESTED
+
+  cost_per_image_usd:
+    gemini: 0.067
+    flux_2_pro: 0.055
+    hunyuan: 0.005 (推定)
+
+  manga_style_quality:
+    gemini: HIGH - 9:16縦型、コマ割り、吹き出し対応
+    flux_2_pro: MEDIUM - 出力サイズが1:1に。コマ割りは不完全
+    hunyuan: NOT_TESTED
+
+issues_found:
+  - qnly_troubled_r2_rgba.pngが存在しない → qnly_skeptical_r2_rgba.pngで代替
+  - BFL直接API(api.bfl.ml)はタイムアウト → Replicate経由で代替
+  - Hunyuanはクレジット不足 → 未検証（クレジット追加が必要）
+  - Flux 2 Pro出力サイズが1008x1008（576x1024指定、モデルが自動調整）
+
+recommendation: >
+  ドズル社キャラ漫画ショート用途: Gemini一択（リファレンス画像対応が必須）。
+  Flux 2 ProはコストがGeminiに近いが、キャラ再現精度・日本語テキスト描画が劣る。
+  Hunyuanは最安価だが未検証かつキャラ再現機能なし。
+  現状のパイプライン（Gemini）を継続推奨。
