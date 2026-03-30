@@ -98,17 +98,24 @@ fi
 log "ntfy配信: $(echo "$TOP3_MSG" | head -1)"
 bash "$NTFY_SCRIPT" "$TOP3_MSG"
 
-# Discord Bot連携: queue/discord_pending.json に書き出す
+# Discord Bot連携: queue/discord_pending.json に書き出す（topics全件含む）
 DISCORD_PENDING="$PROJECT_ROOT/queue/discord_pending.json"
 QUEUE_DIR="$PROJECT_ROOT/queue"
 mkdir -p "$QUEUE_DIR"
-cat > "$DISCORD_PENDING" <<DISCORD_EOF
-{
-  "date": "${DATE_STR}",
-  "text": $(echo "$TOP3_MSG" | python3 -c "import json,sys; print(json.dumps(sys.stdin.read()))"),
-  "posted": false
+TOPICS_JSON="$(.venv/bin/python3 "$SCRIPT_DIR/genai_parse_report.py" "$DATE_STR" 2>>"$LOG_FILE" || echo "[]")"
+TOP3_JSON="$(echo "$TOP3_MSG" | .venv/bin/python3 -c "import json,sys; print(json.dumps(sys.stdin.read()))")"
+.venv/bin/python3 - <<PYEOF
+import json
+topics = $TOPICS_JSON
+pending = {
+    "date": "$DATE_STR",
+    "text": $TOP3_JSON,
+    "topics": topics,
+    "posted": False,
 }
-DISCORD_EOF
-log "Discord pending書き出し: $DISCORD_PENDING"
+with open("$DISCORD_PENDING", "w", encoding="utf-8") as f:
+    json.dump(pending, f, ensure_ascii=False, indent=2)
+PYEOF
+log "Discord pending書き出し: $DISCORD_PENDING (topics=$(echo "$TOPICS_JSON" | .venv/bin/python3 -c 'import json,sys; print(len(json.load(sys.stdin)))' 2>/dev/null || echo '?')件)"
 
 log "=== Top3配信完了 ==="
