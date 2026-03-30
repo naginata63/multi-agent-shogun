@@ -29,3 +29,35 @@ tail -f logs/genai_viewer.log
 
 ## 停止
 bash scripts/stop_viewer.sh --direct
+
+## フィードバック機能 (P5)
+
+### /api/feedback エンドポイント
+
+POST `/api/feedback` でフィードバックを記録する。
+
+```json
+{
+  "article_title": "記事タイトル",
+  "date": "2026-03-30",
+  "reaction": "up"
+}
+```
+
+`reaction` は `"up"` または `"down"`。記録先: `queue/genai_feedback.yaml`
+
+### ntfy アクションボタン連携
+
+`scripts/genai_ntfy_top3.sh` から ntfy 通知にフィードバックボタン（👍/👎）を追加する方法:
+
+```bash
+VIEWER_URL="http://<tailscale-ip>:8580"
+ARTICLE_TITLE="記事タイトル"
+DATE="2026-03-30"
+
+curl -s https://ntfy.sh/your-topic \
+  -d "📄 ${ARTICLE_TITLE}" \
+  -H "Actions: http, 👍, ${VIEWER_URL}/api/feedback, body={\"article_title\":\"${ARTICLE_TITLE}\",\"date\":\"${DATE}\",\"reaction\":\"up\"}, method=POST, headers.Content-Type=application/json; http, 👎, ${VIEWER_URL}/api/feedback, body={\"article_title\":\"${ARTICLE_TITLE}\",\"date\":\"${DATE}\",\"reaction\":\"down\"}, method=POST, headers.Content-Type=application/json"
+```
+
+ntfy Actionsのフォーマット詳細: https://docs.ntfy.sh/publish/#action-buttons

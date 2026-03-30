@@ -3,11 +3,13 @@
 import json
 import re
 import urllib.parse
+from datetime import datetime, timezone
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 
 STATIC_DIR = Path(__file__).parent / "static"
 REPORTS_DIR = Path(__file__).parent.parent / "reports" / "genai_daily"
+FEEDBACK_FILE = Path(__file__).parent.parent / "queue" / "genai_feedback.yaml"
 PORT = 8580
 
 CATEGORY_MAP = {
@@ -188,6 +190,48 @@ class Handler(BaseHTTPRequestHandler):
                         return
             self.send_json({"results": results})
 
+        else:
+            self.send_json({"error": "not found"}, 404)
+
+    def do_POST(self):
+        parsed = urllib.parse.urlparse(self.path)
+        path = parsed.path
+
+        if path == "/api/feedback":
+            length = int(self.headers.get("Content-Length", 0))
+            try:
+                body = json.loads(self.rfile.read(length).decode("utf-8"))
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                self.send_json({"error": "invalid JSON"}, 400)
+                return
+
+            article_title = body.get("article_title", "")
+            date = body.get("date", "")
+            reaction = body.get("reaction", "")
+
+            if reaction not in ("up", "down"):
+                self.send_json({"error": "reaction must be 'up' or 'down'"}, 400)
+                return
+            if not article_title or not date:
+                self.send_json({"error": "article_title and date are required"}, 400)
+                return
+            if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', date):
+                self.send_json({"error": "date must be YYYY-MM-DD"}, 400)
+                return
+
+            timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+            entry = (
+                f"- title: {json.dumps(article_title, ensure_ascii=False)}\n"
+                f"  date: \"{date}\"\n"
+                f"  reaction: \"{reaction}\"\n"
+                f"  timestamp: \"{timestamp}\"\n"
+            )
+
+            FEEDBACK_FILE.parent.mkdir(parents=True, exist_ok=True)
+            with FEEDBACK_FILE.open("a", encoding="utf-8") as f:
+                f.write(entry)
+
+            self.send_json({"status": "ok", "timestamp": timestamp})
         else:
             self.send_json({"error": "not found"}, 404)
 
