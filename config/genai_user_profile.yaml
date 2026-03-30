@@ -1,0 +1,29 @@
+# 殿プロフィール — genai_ntfy_top3.sh のTop3選定で参照
+# P2: パーソナライズスコアリング用
+
+interests:
+  high:
+    - Gemini API
+    - Claude API
+    - Claude Code
+    - ffmpeg
+    - 動画AI
+    - マルチエージェント
+  medium:
+    - LLM推論コスト
+    - OSS
+    - Whisper
+    - TTS
+  low:
+    - 政策
+    - 資金調達
+    - 買収
+
+role: "YouTubeチャンネル運営 + AI開発者"
+
+scoring_weights:
+  # 各軸の重み (合計100%)
+  practical_relevance: 40   # Gemini/Claude API変更、ffmpeg、動画AI等の実務直結度
+  technical_novelty: 25     # ブレークスルーか既存改善か
+  industry_impact: 20       # 市場全体への影響
+  cost_impact: 15           # API料金変更、無料ツール公開等のコスト影響

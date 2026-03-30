@@ -75,6 +75,7 @@
 !config/
 !config/ntfy_auth.env.sample
 !config/voicevox_dict.txt
+!config/genai_user_profile.yaml
 
 # Templates
 !templates/
@@ -144,6 +145,8 @@
 !scripts/automation/dedup_check.sh
 !scripts/cta_comment.py
 !scripts/cta_comment_cron.sh
+!scripts/genai_ntfy_top3.sh
+!scripts/genai_check_urls.py
 
 
 # SayTask (sample template only, not actual data)

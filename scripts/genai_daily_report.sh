@@ -36,6 +36,7 @@ GENAI_MODE="${GENAI_MODE:-claude}"
 
 OUTPUT_DIR="$PROJECT_ROOT/reports/genai_daily"
 OUTPUT_FILE="$OUTPUT_DIR/${DATE_STR}.md"
+CACHE_FILE="$OUTPUT_DIR/.title_cache.json"
 LOG_FILE="$PROJECT_ROOT/logs/genai_daily.log"
 FETCH_SCRIPT="$SCRIPT_DIR/genai_daily_fetch.py"
 
@@ -56,6 +57,27 @@ if [[ "$GENAI_MODE" == "claude" ]]; then
         GENAI_MODE="rss"
     else
         TIME_STR="$(date '+%H:%M JST')"
+
+        # 昨日のトピック一覧をキャッシュから取得（P3: 日跨ぎ重複排除）
+        YESTERDAY_STR="$(date -d 'yesterday' +%Y-%m-%d 2>/dev/null || date -v-1d +%Y-%m-%d 2>/dev/null || true)"
+        YESTERDAY_TOPICS=""
+        if [[ -f "$CACHE_FILE" ]] && [[ -n "$YESTERDAY_STR" ]]; then
+            YESTERDAY_TOPICS="$(python3 -c "
+import json, sys
+try:
+    with open('$CACHE_FILE') as f:
+        cache = json.load(f)
+    titles = cache.get('$YESTERDAY_STR', [])
+    if titles:
+        print('■ 重複排除（昨日のトピック — 以下と同一・類似のニュースは除外すること）:')
+        for t in titles[:20]:
+            print(f'  - {t}')
+except:
+    pass
+" 2>/dev/null || true)"
+        fi
+        [[ -n "$YESTERDAY_TOPICS" ]] && log "昨日のトピック${YESTERDAY_STR}を重複排除用にロード済み"
+
         PROMPT="今日(${DATE_STR})の生成AI技術トレンドを調査し、日本語で詳細レポートを作成してください。
 
 ■ 収集対象:
@@ -67,6 +89,8 @@ if [[ "$GENAI_MODE" == "claude" ]]; then
 - 日本語サイト優先（ITmedia AI+、GIGAZINE、Publickey、ASCII.jp等の記事があれば必ず含める）
 - 日本市場動向（NTT、ソフトバンク、サイバーエージェント、富士通、NEC、LINE等の国内企業の生成AI取り組み）
 - 国内規制・政策動向（内閣府AI戦略、総務省・経産省のガイドライン等）
+
+${YESTERDAY_TOPICS}
 
 ■ 選定基準（重要 — 必ず守ること）:
 0. 除外基準（最優先）: 以下は除外すること:
@@ -205,3 +229,7 @@ else
 fi
 
 log "=== 完了 ==="
+
+# ---- P1: Top3 ntfy配信 ----------------------------------------------
+log "Top3 ntfy配信を開始..."
+bash "$SCRIPT_DIR/genai_ntfy_top3.sh" "$DATE_STR" || log "WARN: Top3配信失敗（メインレポートは生成済み）"
