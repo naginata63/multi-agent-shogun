@@ -111,6 +111,7 @@
 !scripts/reset_shutsujin.sh
 !scripts/genai_daily_fetch.py
 !scripts/genai_daily_report.sh
+!scripts/genai_build_static.sh
 !scripts/qc_prompt_execution.py
 !scripts/youtube_analytics_snapshot.py
 !scripts/generate_dashboard.py
@@ -188,6 +189,13 @@
 # Docs
 !docs/
 !docs/philosophy.md
+!docs/cloudflare_setup.md
+
+# Static site build output (genai_viewer)
+!dist/
+!dist/index.html
+!dist/style.css
+!dist/app.js
 
 # Screenshots (masked — no secrets)
 !images/
