@@ -77,12 +77,14 @@ def _parse_report(md_text: str) -> list:
 
             heading = line[3:].strip()
             category, icon = _get_category(heading)
-            # スコア [XX] を heading から抽出（絵文字除去前に行う）
+            # スコア ★★★★☆ を heading から抽出（絵文字除去前に行う）
+            # 星の数を numeric score に変換: ★☆☆☆☆=1,★★=2,★★★=3,★★★★=4,★★★★★=5
             score = 0
-            score_m = re.search(r'\[(\d+)\]\s*', heading)
-            if score_m:
-                score = int(score_m.group(1))
-                heading = heading[:score_m.start()] + heading[score_m.end():]
+            star_m = re.search(r'(★[★☆]{4})\s*', heading)
+            if star_m:
+                stars = star_m.group(1)
+                score = stars.count('★') * 20  # 1→20, 2→40, 3→60, 4→80, 5→100
+                heading = heading[:star_m.start()] + heading[star_m.end():]
             # 先頭の絵文字ブロックを除去
             title = re.sub(r'^[^\w\d\u3000-\u9FFF\uF900-\uFAFF]+', '', heading)
 

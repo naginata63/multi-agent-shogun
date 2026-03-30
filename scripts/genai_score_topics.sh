@@ -34,8 +34,8 @@ if ! command -v claude &>/dev/null; then
     exit 1
 fi
 
-# スコア付き見出しが既にあれば（[数字] パターン）スキップ
-if grep -qP '^## .+\[\d+\]' "$REPORT_FILE" 2>/dev/null || grep -qE '^## .+\[[0-9]+\]' "$REPORT_FILE" 2>/dev/null; then
+# スコア付き見出しが既にあれば（★ パターン）スキップ
+if grep -qE '^## .+★' "$REPORT_FILE" 2>/dev/null; then
     log "INFO: スコア付き見出しが既に存在します。スキップ"
     exit 0
 fi
@@ -106,6 +106,19 @@ except json.JSONDecodeError as e:
     print(f"ERROR: JSON parse失敗: {e}", file=sys.stderr)
     sys.exit(1)
 
+def score_to_stars(score):
+    """スコア(0-100)を星5段階に変換"""
+    if score <= 20:
+        return "★☆☆☆☆"
+    elif score <= 40:
+        return "★★☆☆☆"
+    elif score <= 60:
+        return "★★★☆☆"
+    elif score <= 80:
+        return "★★★★☆"
+    else:
+        return "★★★★★"
+
 # heading → score マップ（正規化して照合）
 score_map = {}
 for item in scores:
@@ -125,8 +138,8 @@ for line in lines:
 
     heading = line[3:].strip()
 
-    # スコアが既にある場合はスキップ
-    if re.search(r'\[\d+\]', heading):
+    # スコアが既にある場合はスキップ（★ パターン）
+    if "★" in heading:
         new_lines.append(line)
         continue
 
@@ -142,15 +155,17 @@ for line in lines:
         new_lines.append(line)
         continue
 
-    # 絵文字プレフィックスと本文を分離して [score] を挿入
-    # 例: "🤖 Gemini 3.1..." → "🤖 [95] Gemini 3.1..."
+    stars = score_to_stars(score)
+
+    # 絵文字プレフィックスと本文を分離して ★★★★☆ を挿入
+    # 例: "🤖 Gemini 3.1..." → "🤖 ★★★★☆ Gemini 3.1..."
     m = re.match(r'^((?:[^\w\d\u3040-\u9FFF]+))(.*)', heading)
     if m:
         emoji_part = m.group(1)
         title_part = m.group(2).strip()
-        new_heading = f"{emoji_part}[{score}] {title_part}"
+        new_heading = f"{emoji_part}{stars} {title_part}"
     else:
-        new_heading = f"[{score}] {heading}"
+        new_heading = f"{stars} {heading}"
 
     new_lines.append(f"## {new_heading}")
     updated += 1
