@@ -142,6 +142,8 @@
 !scripts/automation/post_fetch_recommend.sh
 !scripts/automation/selected_check_hook.sh
 !scripts/automation/dedup_check.sh
+!scripts/cta_comment.py
+!scripts/cta_comment_cron.sh
 
 
 # SayTask (sample template only, not actual data)
