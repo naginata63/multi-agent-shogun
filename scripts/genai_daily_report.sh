@@ -299,3 +299,7 @@ bash "$SCRIPT_DIR/genai_ntfy_top3.sh" "$DATE_STR" || log "WARN: Top3配信失敗
 # ---- スコアリング: 各トピック見出しにスコアを追記 --------------------
 log "トピックスコアリングを開始..."
 bash "$SCRIPT_DIR/genai_score_topics.sh" "$DATE_STR" || log "WARN: スコアリング失敗（メインレポートは生成済み）"
+
+# ---- OGP事前取得（バックグラウンド）-----------------------------------
+log "OGP事前取得を開始（バックグラウンド）..."
+python3 "$SCRIPT_DIR/genai_ogp_prefetch.py" "$DATE_STR" >> "$LOG_FILE" 2>&1 &

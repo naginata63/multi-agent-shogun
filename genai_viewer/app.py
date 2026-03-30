@@ -31,45 +31,12 @@ def _load_ogp_cache() -> dict:
     return {}
 
 
-def _save_ogp_cache(cache: dict):
-    try:
-        OGP_CACHE_FILE.write_text(json.dumps(cache, ensure_ascii=False, indent=2), encoding="utf-8")
-    except OSError:
-        pass
-
-
-def _fetch_ogp_image(url: str):
-    if not url or not url.startswith("http"):
-        return None
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=5) as resp:
-            html = resp.read(65536).decode("utf-8", errors="ignore")
-        m = re.search(r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)["\']', html)
-        if not m:
-            m = re.search(r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image["\']', html)
-        return m.group(1) if m else None
-    except Exception:
-        return None
-
-
 def _enrich_topics_with_ogp(topics: list) -> list:
+    """キャッシュからOGP画像URLを付与する（取得はしない）。"""
     cache = _load_ogp_cache()
-    updated = False
     for topic in topics:
         url = topic.get("source_url", "")
-        if not url or url == "#":
-            topic["ogp_image"] = None
-            continue
-        if url in cache:
-            topic["ogp_image"] = cache[url]
-        else:
-            img = _fetch_ogp_image(url)
-            cache[url] = img
-            topic["ogp_image"] = img
-            updated = True
-    if updated:
-        _save_ogp_cache(cache)
+        topic["ogp_image"] = cache.get(url) if url and url != "#" else None
     return topics
 
 

@@ -148,6 +148,7 @@
 !scripts/genai_ntfy_top3.sh
 !scripts/genai_check_urls.py
 !scripts/genai_score_topics.sh
+!scripts/genai_ogp_prefetch.py
 
 
 # SayTask (sample template only, not actual data)
