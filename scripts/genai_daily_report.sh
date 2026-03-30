@@ -134,7 +134,9 @@ ${YESTERDAY_TOPICS}
 最低5件（できれば8件以上）。重要度・速報性の高い順。
 出力順序: 日本語ソースの記事を先に、英語ソースの記事（日本語翻訳済み）を後に配置すること。
 セクション見出し（【日本語ソース】【英語ソース】等）は付けないこと。区切りなく連続で並べよ。
-各トピックに必ず実在するソースURLを付けること。URLは推測しない。"
+各トピックに必ず実在するソースURLを付けること。URLは推測しない。
+ソースURLは必ず個別記事の直接URLを使え。一覧ページ・トップページのURLは禁止。
+例: itmedia.co.jp/aiplus/subtop/news/index.htmlはNG、itmedia.co.jp/aiplus/articles/XXXX/story.htmlはOK"
 
         log "claudeモード: Web検索+日本語レポート生成を開始..."
         if env -u CLAUDECODE claude -p "$PROMPT" --tools "WebSearch,WebFetch" --dangerously-skip-permissions > "$OUTPUT_FILE" 2>> "$LOG_FILE"; then
