@@ -11,6 +11,8 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="${__SESSION_START_HOOK_SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+
 INPUT=$(cat)
 
 # For tests, allow override. In production, resolve from tmux pane.
@@ -52,7 +54,6 @@ EOF
 )
 
 # Phase 2 PreCompact: Restore snapshot after compaction
-SCRIPT_DIR="${__STOP_HOOK_SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 PRECOMPACT_FILE="$SCRIPT_DIR/queue/precompact/${AGENT_ID}.yaml"
 if [ "$SOURCE" = "compact" ] && [ -f "$PRECOMPACT_FILE" ]; then
     SNAPSHOT=$(cat "$PRECOMPACT_FILE" 2>/dev/null || true)
@@ -61,6 +62,34 @@ if [ "$SOURCE" = "compact" ] && [ -f "$PRECOMPACT_FILE" ]; then
 PreCompact snapshot (saved before compaction):
 ${SNAPSHOT}
 Resume: Read queue/tasks/${AGENT_ID}.yaml and continue your task."
+    fi
+fi
+
+# Phase 2b Persona Restoration: Inject persona/speech_style after compaction
+# Compaction summaries lose persona and speech style. Re-inject from instructions file.
+if [ "$SOURCE" = "compact" ]; then
+    INSTRUCTIONS_FILE="$SCRIPT_DIR/instructions/${AGENT_ID}.md"
+    # For ashigaru variants (ashigaru1, ashigaru2, ...), use the base instructions/ashigaru.md
+    if [ ! -f "$INSTRUCTIONS_FILE" ]; then
+        BASE_ROLE=$(echo "$AGENT_ID" | sed 's/[0-9]*$//')
+        INSTRUCTIONS_FILE="$SCRIPT_DIR/instructions/${BASE_ROLE}.md"
+    fi
+    if [ -f "$INSTRUCTIONS_FILE" ]; then
+        # Extract ## Persona section (markdown style: ashigaru, gunshi)
+        PERSONA_SECTION=$(awk '/^## Persona/{p=1;next} p && /^## /{p=0} p{print}' "$INSTRUCTIONS_FILE" 2>/dev/null | head -20 || true)
+        # Fallback: extract persona: yaml block (shogun, karo)
+        if [ -z "$PERSONA_SECTION" ]; then
+            PERSONA_SECTION=$(awk '/^persona:/{p=1} p{print} p && /^[a-z_-]+:/ && !/^persona:/{exit}' "$INSTRUCTIONS_FILE" 2>/dev/null | head -10 || true)
+        fi
+        if [ -n "$PERSONA_SECTION" ]; then
+            CONTEXT="${CONTEXT}
+
+IMPORTANT — Post-Compaction Persona Restoration:
+Compaction erased your speech style. Re-read instructions/${AGENT_ID}.md to restore it.
+Persona reminder (from instructions file):
+${PERSONA_SECTION}
+Speak in 戦国風口調 immediately."
+        fi
     fi
 fi
 
