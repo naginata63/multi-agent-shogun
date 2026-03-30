@@ -149,6 +149,7 @@
 !scripts/genai_check_urls.py
 !scripts/genai_score_topics.sh
 !scripts/genai_ogp_prefetch.py
+!scripts/genai_dedup.py
 
 
 # SayTask (sample template only, not actual data)
