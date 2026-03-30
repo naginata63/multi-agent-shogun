@@ -150,6 +150,9 @@
 !scripts/genai_score_topics.sh
 !scripts/genai_ogp_prefetch.py
 !scripts/genai_dedup.py
+!scripts/discord_news_bot.py
+!discord-news-bot.service
+# config/discord_bot.env は * で除外済み（トークン含む、絶対コミット禁止）
 
 
 # SayTask (sample template only, not actual data)

@@ -98,4 +98,17 @@ fi
 log "ntfy配信: $(echo "$TOP3_MSG" | head -1)"
 bash "$NTFY_SCRIPT" "$TOP3_MSG"
 
+# Discord Bot連携: queue/discord_pending.json に書き出す
+DISCORD_PENDING="$PROJECT_ROOT/queue/discord_pending.json"
+QUEUE_DIR="$PROJECT_ROOT/queue"
+mkdir -p "$QUEUE_DIR"
+cat > "$DISCORD_PENDING" <<DISCORD_EOF
+{
+  "date": "${DATE_STR}",
+  "text": $(echo "$TOP3_MSG" | python3 -c "import json,sys; print(json.dumps(sys.stdin.read()))"),
+  "posted": false
+}
+DISCORD_EOF
+log "Discord pending書き出し: $DISCORD_PENDING"
+
 log "=== Top3配信完了 ==="
