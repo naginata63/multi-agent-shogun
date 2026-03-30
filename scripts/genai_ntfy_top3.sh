@@ -102,9 +102,10 @@ bash "$NTFY_SCRIPT" "$TOP3_MSG"
 DISCORD_PENDING="$PROJECT_ROOT/queue/discord_pending.json"
 QUEUE_DIR="$PROJECT_ROOT/queue"
 mkdir -p "$QUEUE_DIR"
-TOPICS_JSON="$(.venv/bin/python3 "$SCRIPT_DIR/genai_parse_report.py" "$DATE_STR" 2>>"$LOG_FILE" || echo "[]")"
-TOP3_JSON="$(echo "$TOP3_MSG" | .venv/bin/python3 -c "import json,sys; print(json.dumps(sys.stdin.read()))")"
-.venv/bin/python3 - <<PYEOF
+VENV_PYTHON="$PROJECT_ROOT/.venv/bin/python3"
+TOPICS_JSON="$("$VENV_PYTHON" "$SCRIPT_DIR/genai_parse_report.py" "$DATE_STR" 2>>"$LOG_FILE" || echo "[]")"
+TOP3_JSON="$(echo "$TOP3_MSG" | "$VENV_PYTHON" -c "import json,sys; print(json.dumps(sys.stdin.read()))")"
+"$VENV_PYTHON" - <<PYEOF
 import json
 topics = $TOPICS_JSON
 pending = {
@@ -116,6 +117,6 @@ pending = {
 with open("$DISCORD_PENDING", "w", encoding="utf-8") as f:
     json.dump(pending, f, ensure_ascii=False, indent=2)
 PYEOF
-log "Discord pending書き出し: $DISCORD_PENDING (topics=$(echo "$TOPICS_JSON" | .venv/bin/python3 -c 'import json,sys; print(len(json.load(sys.stdin)))' 2>/dev/null || echo '?')件)"
+log "Discord pending書き出し: $DISCORD_PENDING (topics=$(echo "$TOPICS_JSON" | "$VENV_PYTHON" -c 'import json,sys; print(len(json.load(sys.stdin)))' 2>/dev/null || echo '?')件)"
 
 log "=== Top3配信完了 ==="
