@@ -15,6 +15,7 @@ from email.utils import parsedate_to_datetime
 import os
 import html
 import re
+import json
 
 
 # JST timezone
@@ -125,6 +126,37 @@ NON_AI_EXCLUDE_PATTERNS = [
 ]
 
 
+def load_title_cache(cache_path: str, days: int = 3) -> dict:
+    """過去N日分のタイトルキャッシュを読み込む。ファイル未存在時は空dict。"""
+    if not os.path.exists(cache_path):
+        return {}
+    try:
+        with open(cache_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        # 保持期間外のエントリを除去
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
+        return {k: v for k, v in data.items() if k >= cutoff}
+    except Exception as e:
+        print(f"  [WARN] タイトルキャッシュ読み込み失敗: {e}", file=sys.stderr)
+        return {}
+
+
+def save_title_cache(cache_path: str, date_str: str, titles: list[str], days: int = 3) -> None:
+    """本日分のタイトルをキャッシュに追記・保存。古いエントリは自動削除。"""
+    try:
+        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+        cache = load_title_cache(cache_path, days)
+        cache[date_str] = titles
+        # 保持期間外のエントリを除去
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
+        cache = {k: v for k, v in cache.items() if k >= cutoff}
+        with open(cache_path, "w", encoding="utf-8") as f:
+            json.dump(cache, f, ensure_ascii=False, indent=2)
+        print(f"  [INFO] タイトルキャッシュ更新: {date_str} ({len(titles)}件)", file=sys.stderr)
+    except Exception as e:
+        print(f"  [WARN] タイトルキャッシュ保存失敗: {e}", file=sys.stderr)
+
+
 def is_ai_related(title: str, summary: str, source: str = "") -> bool:
     """タイトルと要約にAI関連キーワードが含まれるか判定"""
     # 除外パターンチェック（AI関連キーワードがあっても除外）
@@ -203,7 +235,7 @@ def fetch_feed(name: str, url: str) -> list[dict]:
     items = []
     try:
         req = urllib.request.Request(url, headers=HEADERS)
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=30) as resp:
             raw = resp.read()
         root = ET.fromstring(raw)
     except Exception as e:
@@ -327,8 +359,23 @@ def main():
     print(f"[INFO] 生成AI日報生成開始 — {date_str}", file=sys.stderr)
     print(f"[INFO] フィード数: {len(FEEDS)}サイト", file=sys.stderr)
 
+    # キャッシュパスの決定（output_pathが指定されていればその親ディレクトリ配下、なければスクリプト隣）
+    if output_path:
+        cache_dir = os.path.dirname(output_path)
+    else:
+        cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "reports", "genai_daily")
+    cache_path = os.path.join(cache_dir, ".title_cache.json")
+
+    # 過去3日分のタイトルを読み込み、seen_titlesの初期値として使用（日跨ぎ重複排除）
+    prev_cache = load_title_cache(cache_path, days=3)
     all_items: list[dict] = []
     seen_titles: list[str] = []
+    for day, titles in prev_cache.items():
+        if day != date_str:
+            seen_titles.extend(titles)
+    cross_day_count = len(seen_titles)
+    if cross_day_count > 0:
+        print(f"[INFO] 日跨ぎ重複排除: 過去{len(prev_cache)}日分・{cross_day_count}件のタイトルをロード", file=sys.stderr)
 
     filtered_out = 0
     for name, url in FEEDS:
@@ -355,6 +402,10 @@ def main():
 
     # 日本語ソース優先ソート（日本語記事を先頭に）
     all_items.sort(key=lambda x: 0 if x.get("source") in JAPANESE_SOURCES else 1)
+
+    # 本日分のタイトルをキャッシュに保存（日跨ぎ重複排除用）
+    today_titles = [item["title"] for item in all_items]
+    save_title_cache(cache_path, date_str, today_titles)
 
     report = build_report(date_str, all_items)
 

@@ -154,6 +154,17 @@ ${YESTERDAY_TOPICS}
             log "WARN: claude出力が空です。RSSモードにフォールバック"
             GENAI_MODE="rss"
         fi
+
+        # トピック数チェック（3件未満→RSSフォールバック）（P4）
+        if [[ "$GENAI_MODE" == "claude" ]] && [[ -s "$OUTPUT_FILE" ]]; then
+            TOPIC_COUNT="$(grep -c '^## ' "$OUTPUT_FILE" 2>/dev/null || echo 0)"
+            if [[ "$TOPIC_COUNT" -lt 3 ]]; then
+                log "WARN: claudeレポートのトピック数が少なすぎます（${TOPIC_COUNT}件 < 3件）。RSSモードにフォールバック"
+                GENAI_MODE="rss"
+            else
+                log "トピック数確認: ${TOPIC_COUNT}件（OK）"
+            fi
+        fi
     fi
 fi
 
@@ -216,15 +227,22 @@ fi
 # ---- 完了確認 -------------------------------------------------------
 if [[ -f "$OUTPUT_FILE" ]] && [[ -s "$OUTPUT_FILE" ]]; then
     LINES="$(wc -l < "$OUTPUT_FILE")"
+    FINAL_TOPIC_COUNT="$(grep -c '^## ' "$OUTPUT_FILE" 2>/dev/null || echo 0)"
     # URL死活確認（オプション、失敗しても続行）
     if [[ -f "$OUTPUT_FILE" ]]; then
         log "URL死活確認を開始..."
         python3 "$SCRIPT_DIR/genai_check_urls.py" "$OUTPUT_FILE" 2>> "$LOG_FILE" || true
         log "URL死活確認完了"
     fi
-    log "SUCCESS: レポート生成完了 — $OUTPUT_FILE ($LINES 行)"
+    # 最終的にトピックが空の場合はntfy通知（P4）
+    if [[ "$FINAL_TOPIC_COUNT" -eq 0 ]]; then
+        log "WARN: 最終レポートのトピック数が0件です"
+        bash "$SCRIPT_DIR/ntfy.sh" "⚠️ genai日報生成失敗: レポートが空です (${DATE_STR})" 2>/dev/null || true
+    fi
+    log "SUCCESS: レポート生成完了 — $OUTPUT_FILE ($LINES 行, トピック${FINAL_TOPIC_COUNT}件)"
 else
     log "ERROR: 出力ファイルが生成されませんでした: $OUTPUT_FILE"
+    bash "$SCRIPT_DIR/ntfy.sh" "⚠️ genai日報生成失敗: レポートが空です (${DATE_STR})" 2>/dev/null || true
     exit 1
 fi
 
