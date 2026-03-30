@@ -258,11 +258,23 @@ function buildCard(topic, showDateBadge) {
   const dateBadge = showDateBadge && topic._date
     ? `<span class="card-date-badge">${escapeHtml(topic._date)}</span>`
     : '';
+  const score = topic.score || 0;
+  const starCount = Math.round(score / 20);
+  const stars = '★'.repeat(starCount) + '☆'.repeat(5 - starCount);
+  const starHtml = score > 0
+    ? `<span class="card-stars" title="重要度: ${score}/100">${stars}</span>`
+    : '';
+  const ogpUrl = topic.ogp_image ? escapeAttr(topic.ogp_image) : '';
+  const thumbnailHtml = ogpUrl
+    ? `<div class="card-thumbnail"><img src="${ogpUrl}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'"></div>`
+    : '';
 
   card.innerHTML = `
+    ${thumbnailHtml}
     <div class="card-header">
       <span class="card-icon">${icon}</span>
       <h2 class="card-title">${title}</h2>
+      ${starHtml}
     </div>
     <p class="card-summary">${summary}</p>
     <div class="card-footer">
