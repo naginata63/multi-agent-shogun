@@ -8,7 +8,7 @@ Type=simple
 User=murakami
 WorkingDirectory=/home/murakami/multi-agent-shogun
 ExecStart=/home/murakami/multi-agent-shogun/.venv/bin/python3 scripts/discord_news_bot.py
-Restart=on-failure
+Restart=always
 RestartSec=10
 Environment=PYTHONUNBUFFERED=1
 
