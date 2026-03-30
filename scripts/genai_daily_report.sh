@@ -240,6 +240,48 @@ if [[ -f "$OUTPUT_FILE" ]] && [[ -s "$OUTPUT_FILE" ]]; then
         bash "$SCRIPT_DIR/ntfy.sh" "⚠️ genai日報生成失敗: レポートが空です (${DATE_STR})" 2>/dev/null || true
     fi
     log "SUCCESS: レポート生成完了 — $OUTPUT_FILE ($LINES 行, トピック${FINAL_TOPIC_COUNT}件)"
+
+    # タイトルキャッシュ保存（P3: 日跨ぎ重複排除用）
+    log "タイトルキャッシュを保存中..."
+    python3 -c "
+import json, re, sys
+from pathlib import Path
+
+cache_file = Path('$CACHE_FILE')
+output_file = Path('$OUTPUT_FILE')
+date_str = '$DATE_STR'
+
+titles = []
+try:
+    content = output_file.read_text(encoding='utf-8')
+    for line in content.splitlines():
+        if line.startswith('## '):
+            heading = line[3:].strip()
+            heading = re.sub(r'[★☆]{5}\s*', '', heading)
+            title = re.sub(r'^[^\w\d\u3000-\u9FFF\uF900-\uFAFF]+', '', heading).strip()
+            if title:
+                titles.append(title)
+except Exception as e:
+    print(f'WARN: タイトル抽出失敗: {e}', file=sys.stderr)
+    sys.exit(0)
+
+cache = {}
+if cache_file.exists():
+    try:
+        cache = json.loads(cache_file.read_text(encoding='utf-8'))
+    except Exception:
+        cache = {}
+
+cache[date_str] = titles
+
+all_dates = sorted(cache.keys(), reverse=True)
+for old_date in all_dates[3:]:
+    del cache[old_date]
+
+cache_file.parent.mkdir(parents=True, exist_ok=True)
+cache_file.write_text(json.dumps(cache, ensure_ascii=False, indent=2), encoding='utf-8')
+print(f'タイトルキャッシュ保存完了: {len(titles)}件 -> {cache_file}')
+" 2>> "$LOG_FILE" || log "WARN: タイトルキャッシュ保存失敗（メインレポートは生成済み）"
 else
     log "ERROR: 出力ファイルが生成されませんでした: $OUTPUT_FILE"
     bash "$SCRIPT_DIR/ntfy.sh" "⚠️ genai日報生成失敗: レポートが空です (${DATE_STR})" 2>/dev/null || true
