@@ -251,3 +251,7 @@ log "=== 完了 ==="
 # ---- P1: Top3 ntfy配信 ----------------------------------------------
 log "Top3 ntfy配信を開始..."
 bash "$SCRIPT_DIR/genai_ntfy_top3.sh" "$DATE_STR" || log "WARN: Top3配信失敗（メインレポートは生成済み）"
+
+# ---- スコアリング: 各トピック見出しにスコアを追記 --------------------
+log "トピックスコアリングを開始..."
+bash "$SCRIPT_DIR/genai_score_topics.sh" "$DATE_STR" || log "WARN: スコアリング失敗（メインレポートは生成済み）"

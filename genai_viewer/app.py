@@ -37,6 +37,7 @@ def _parse_report(md_text: str) -> list:
     current_title = None
     current_icon = ""
     current_category = ""
+    current_score = 0
     summary_lines = []
     in_topic = False
 
@@ -45,7 +46,7 @@ def _parse_report(md_text: str) -> list:
     )
 
     def flush_topic():
-        nonlocal summary_lines
+        nonlocal summary_lines, current_score
         if current_title is None:
             return
         source_name = ""
@@ -63,6 +64,7 @@ def _parse_report(md_text: str) -> list:
             "title": current_title,
             "category": current_category,
             "category_icon": current_icon,
+            "score": current_score,
             "summary": summary,
             "source_name": source_name,
             "source_url": source_url,
@@ -75,12 +77,19 @@ def _parse_report(md_text: str) -> list:
 
             heading = line[3:].strip()
             category, icon = _get_category(heading)
+            # スコア [XX] を heading から抽出（絵文字除去前に行う）
+            score = 0
+            score_m = re.search(r'\[(\d+)\]\s*', heading)
+            if score_m:
+                score = int(score_m.group(1))
+                heading = heading[:score_m.start()] + heading[score_m.end():]
             # 先頭の絵文字ブロックを除去
             title = re.sub(r'^[^\w\d\u3000-\u9FFF\uF900-\uFAFF]+', '', heading)
 
             current_title = title.strip()
             current_icon = icon
             current_category = category
+            current_score = score
             summary_lines = []
             in_topic = True
 
@@ -164,7 +173,11 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json({"error": "not found"}, 404)
                 return
             md_text = md_path.read_text(encoding="utf-8")
-            self.send_json({"date": date, "markdown": md_text, "topics": _parse_report(md_text)})
+            topics = _parse_report(md_text)
+            # スコアが付いている場合はスコア降順でソート
+            if any(t["score"] > 0 for t in topics):
+                topics = sorted(topics, key=lambda t: t["score"], reverse=True)
+            self.send_json({"date": date, "markdown": md_text, "topics": topics})
 
         elif path == "/api/search":
             qs = urllib.parse.parse_qs(parsed.query)

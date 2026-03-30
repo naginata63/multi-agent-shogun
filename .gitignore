@@ -147,6 +147,7 @@
 !scripts/cta_comment_cron.sh
 !scripts/genai_ntfy_top3.sh
 !scripts/genai_check_urls.py
+!scripts/genai_score_topics.sh
 
 
 # SayTask (sample template only, not actual data)
