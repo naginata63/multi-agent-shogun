@@ -5,6 +5,8 @@ merged_*.json からchunk化→Gemini Embedding→FAISS/JSON保存→検索
 
 使い方:
   python3 scripts/subtitle_semantic_index.py build           # 全merged JSONをインデックス化
+  python3 scripts/subtitle_semantic_index.py build --api-key KEY --start 0 --end 90 --output-json work/subtitle_index/embeddings_a.json
+  python3 scripts/subtitle_semantic_index.py merge work/subtitle_index/embeddings_a.json work/subtitle_index/embeddings_b.json
   python3 scripts/subtitle_semantic_index.py search "クエリ" # セマンティック検索
   python3 scripts/subtitle_semantic_index.py update          # 未登録merged JSONを追加
 """
@@ -43,16 +45,16 @@ CHUNK_SECONDS = 30     # チャンク幅（秒）
 RATE_LIMIT_SLEEP = 3.0 # バッチ間スリープ（秒）
 
 
-def get_api_key():
-    key = os.environ.get("GEMINI_API_KEY", "")
+def get_api_key(explicit_key=None):
+    key = explicit_key or os.environ.get("GEMINI_API_KEY", "")
     if not key:
         print("ERROR: GEMINI_API_KEY not set. Run: source ~/.bashrc")
         sys.exit(1)
     return key
 
 
-def get_client():
-    return genai.Client(api_key=get_api_key())
+def get_client(api_key=None):
+    return genai.Client(api_key=get_api_key(api_key))
 
 
 def load_registry():
@@ -180,22 +182,24 @@ def embed_texts(client, texts, task_type="RETRIEVAL_DOCUMENT"):
     return all_embeds
 
 
-def load_embeddings():
+def load_embeddings(path=None):
     """既存embeddings.jsonを読み込む"""
-    if not EMBED_JSON.exists():
+    target = Path(path) if path else EMBED_JSON
+    if not target.exists():
         return []
     try:
-        with open(EMBED_JSON, encoding="utf-8") as f:
+        with open(target, encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return []
 
 
-def save_embeddings(entries):
-    INDEX_DIR.mkdir(parents=True, exist_ok=True)
-    with open(EMBED_JSON, "w", encoding="utf-8") as f:
+def save_embeddings(entries, path=None):
+    target = Path(path) if path else EMBED_JSON
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with open(target, "w", encoding="utf-8") as f:
         json.dump(entries, f, ensure_ascii=False)
-    print(f"  saved {len(entries)} entries → {EMBED_JSON}")
+    print(f"  saved {len(entries)} entries → {target}")
 
 
 def build_faiss_index(entries):
@@ -220,6 +224,11 @@ def load_faiss_index():
 
 def cmd_build(args):
     """全merged JSONをインデックス化（既登録はスキップ）"""
+    api_key = getattr(args, "api_key", None)
+    start_idx = getattr(args, "start", None)
+    end_idx = getattr(args, "end", None)
+    output_json = getattr(args, "output_json", None)
+
     print("=== subtitle_semantic_index build ===")
     INDEX_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -230,28 +239,52 @@ def cmd_build(args):
     all_merged = find_all_merged_jsons()
     print(f"merged JSON総数: {len(all_merged)}本")
 
-    # 未登録を抽出
-    to_process = []
-    for p in all_merged:
-        meta_check = {}
-        try:
-            with open(p, encoding="utf-8") as f:
-                d = json.load(f)
-            meta_check = d.get("metadata", {})
-        except Exception:
-            pass
-        vid = meta_check.get("video_id", p.stem.replace("merged_", ""))
-        if vid not in already_indexed:
+    # --start/--end でスライス（動画リスト全体に対するインデックス）
+    if start_idx is not None or end_idx is not None:
+        s = start_idx if start_idx is not None else 0
+        e = end_idx if end_idx is not None else len(all_merged)
+        all_merged = all_merged[s:e]
+        print(f"範囲指定: [{s}:{e}] → {len(all_merged)}本を処理対象")
+
+    # output_json指定時は既登録チェックをスキップ（並列ビルド用）
+    if output_json:
+        to_process = []
+        for p in all_merged:
+            meta_check = {}
+            try:
+                with open(p, encoding="utf-8") as f:
+                    d = json.load(f)
+                meta_check = d.get("metadata", {})
+            except Exception:
+                pass
+            vid = meta_check.get("video_id", p.stem.replace("merged_", ""))
             to_process.append((vid, p))
+        print(f"処理対象: {len(to_process)}本 → 出力先: {output_json}")
+        existing = load_embeddings(output_json)
+        already_in_output = {e["video_id"] for e in existing}
+        to_process = [(vid, p) for vid, p in to_process if vid not in already_in_output]
+        print(f"未処理: {len(to_process)}本 (出力JSON既存: {len(already_in_output)}本)")
+    else:
+        # 未登録を抽出
+        to_process = []
+        for p in all_merged:
+            meta_check = {}
+            try:
+                with open(p, encoding="utf-8") as f:
+                    d = json.load(f)
+                meta_check = d.get("metadata", {})
+            except Exception:
+                pass
+            vid = meta_check.get("video_id", p.stem.replace("merged_", ""))
+            if vid not in already_indexed:
+                to_process.append((vid, p))
+        print(f"未登録: {len(to_process)}本 → 処理開始")
+        existing = load_embeddings()
+        print(f"既存チャンク数: {len(existing)}")
 
-    print(f"未登録: {len(to_process)}本 → 処理開始")
-
-    # 既存embeddings読み込み
-    existing = load_embeddings()
-    print(f"既存チャンク数: {len(existing)}")
-
-    client = get_client()
-    new_entries = []
+    client = get_client(api_key)
+    new_entries = list(existing) if output_json else []
+    base_existing = [] if output_json else existing
 
     for i, (video_id, merged_path) in enumerate(to_process):
         print(f"\n[{i+1}/{len(to_process)}] {video_id} ({merged_path.name})")
@@ -277,25 +310,81 @@ def cmd_build(args):
 
         new_entries.extend(video_entries)
 
-        # レジストリ更新
-        registry["videos"].append({
-            "video_id": video_id,
-            "merged_json": str(merged_path),
-            "indexed_at": datetime.now(timezone.utc).isoformat(),
-            "chunk_count": len(video_entries),
-        })
-        # 中間保存（中断対策）
-        all_entries = existing + new_entries
-        save_embeddings(all_entries)
-        save_registry(registry)
+        if not output_json:
+            # レジストリ更新（デフォルトモードのみ）
+            registry["videos"].append({
+                "video_id": video_id,
+                "merged_json": str(merged_path),
+                "indexed_at": datetime.now(timezone.utc).isoformat(),
+                "chunk_count": len(video_entries),
+            })
+            all_entries = base_existing + new_entries
+            save_embeddings(all_entries)
+            save_registry(registry)
+        else:
+            # 並列ビルドモード: output_jsonに中間保存
+            save_embeddings(new_entries, output_json)
 
-    all_entries = existing + new_entries
-    print(f"\n=== インデックス構築 ===")
-    print(f"合計チャンク数: {len(all_entries)}")
-    build_faiss_index(all_entries)
-    save_registry(registry)
-    print(f"登録動画数: {len(registry['videos'])}本")
+    if output_json:
+        print(f"\n=== 並列ビルド完了 ===")
+        print(f"出力チャンク数: {len(new_entries)}")
+        print(f"出力先: {output_json}")
+    else:
+        all_entries = base_existing + new_entries
+        print(f"\n=== インデックス構築 ===")
+        print(f"合計チャンク数: {len(all_entries)}")
+        build_faiss_index(all_entries)
+        save_registry(registry)
+        print(f"登録動画数: {len(registry['videos'])}本")
     print("=== 完了 ===")
+
+
+def cmd_merge(args):
+    """複数のembeddings JSONをマージしてFAISSインデックスを構築"""
+    input_jsons = args.input_jsons
+    print(f"=== subtitle_semantic_index merge ===")
+    print(f"入力ファイル: {input_jsons}")
+
+    all_entries = []
+    seen_video_ids = {}
+    for json_path in input_jsons:
+        entries = load_embeddings(json_path)
+        print(f"  {json_path}: {len(entries)}チャンク")
+        for e in entries:
+            vid = e["video_id"]
+            key = (vid, e["start_ms"])
+            if key not in seen_video_ids:
+                seen_video_ids[key] = True
+                all_entries.append(e)
+
+    print(f"マージ後チャンク数: {len(all_entries)} (重複除去済み)")
+
+    # メインembeddings.jsonに保存
+    save_embeddings(all_entries)
+
+    # レジストリ更新
+    registry = load_registry()
+    existing_ids = indexed_video_ids(registry)
+    added = 0
+    vid_counts = {}
+    for e in all_entries:
+        vid = e["video_id"]
+        vid_counts[vid] = vid_counts.get(vid, 0) + 1
+
+    for vid, count in vid_counts.items():
+        if vid not in existing_ids:
+            registry["videos"].append({
+                "video_id": vid,
+                "merged_json": "",
+                "indexed_at": datetime.now(timezone.utc).isoformat(),
+                "chunk_count": count,
+            })
+            added += 1
+    save_registry(registry)
+    print(f"レジストリ更新: {added}本追加 (合計: {len(registry['videos'])}本)")
+
+    build_faiss_index(all_entries)
+    print("=== マージ完了 ===")
 
 
 def cmd_update(args):
@@ -307,6 +396,7 @@ def cmd_search(args):
     """セマンティック検索"""
     query = args.query
     top_k = args.top
+    api_key = getattr(args, "api_key", None)
 
     entries = load_embeddings()
     if not entries:
@@ -316,7 +406,7 @@ def cmd_search(args):
     print(f"クエリ: {query}")
     print(f"インデックス: {len(entries)}チャンク")
 
-    client = get_client()
+    client = get_client(api_key)
     q_embs = embed_texts(client, [query], task_type="RETRIEVAL_QUERY")
     q_embed = np.array(q_embs, dtype=np.float32)
 
@@ -349,12 +439,25 @@ def main():
     parser = argparse.ArgumentParser(description="字幕セマンティック検索インデックス")
     sub = parser.add_subparsers(dest="command")
 
-    sub.add_parser("build", help="全merged JSONからインデックス構築（未登録のみ）")
-    sub.add_parser("update", help="新規merged JSONを追加（buildと同等）")
+    b_parser = sub.add_parser("build", help="全merged JSONからインデックス構築（未登録のみ）")
+    b_parser.add_argument("--api-key", dest="api_key", default=None, help="Gemini APIキー (デフォルト: GEMINI_API_KEY環境変数)")
+    b_parser.add_argument("--start", type=int, default=None, help="処理開始インデックス (0始まり)")
+    b_parser.add_argument("--end", type=int, default=None, help="処理終了インデックス (exclusive)")
+    b_parser.add_argument("--output-json", dest="output_json", default=None, help="出力JSONパス (並列ビルド用)")
+
+    u_parser = sub.add_parser("update", help="新規merged JSONを追加（buildと同等）")
+    u_parser.add_argument("--api-key", dest="api_key", default=None)
+    u_parser.add_argument("--start", type=int, default=None)
+    u_parser.add_argument("--end", type=int, default=None)
+    u_parser.add_argument("--output-json", dest="output_json", default=None)
+
+    m_parser = sub.add_parser("merge", help="複数のembeddings JSONをマージしてFAISSインデックス構築")
+    m_parser.add_argument("input_jsons", nargs="+", help="マージするJSONファイルパス")
 
     s_parser = sub.add_parser("search", help="セマンティック検索")
     s_parser.add_argument("query", help="検索クエリ")
     s_parser.add_argument("--top", type=int, default=10, help="表示件数 (default: 10)")
+    s_parser.add_argument("--api-key", dest="api_key", default=None)
 
     args = parser.parse_args()
 
@@ -362,6 +465,8 @@ def main():
         cmd_build(args)
     elif args.command == "update":
         cmd_update(args)
+    elif args.command == "merge":
+        cmd_merge(args)
     elif args.command == "search":
         cmd_search(args)
     else:
