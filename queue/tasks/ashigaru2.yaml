@@ -15728,3 +15728,734 @@ tasks:
     title: "おらふくんの慰めが流行語級【ドズル社切り抜き】"
     privacy: "private"
     note: "1080p再DL完了（元は360p）。work/は.gitignoreのためgit commit対象外"
+- task_id: subtask_997a
+  parent_cmd: cmd_997
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  status: assigned
+  title: "generate_manga_short.py CHAR_NAMES_JP外見テキスト削除"
+  description: |
+    generate_manga_short.pyのCHAR_NAMES_JP辞書から括弧内の外見説明を全て削除し、名前のみ残す。
+
+    ## 殿の指示（原文）
+    「消せ　矛盾アンドえにテキストが入る」
+
+    ## 修正箇所
+    projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py 458-465行
+
+    CHAR_NAMES_JP辞書の括弧内の外見説明を全て削除。名前のみ残す:
+    "ドズル（金髪短髪…）" → "ドズル"
+    "おんりー（緑髪…）" → "おんりー"
+    等、6名全て同様。
+
+    ## バックアップ
+    修正前に cp generate_manga_short.py generate_manga_short.py.bak_997 でバックアップ。
+
+    ## 影響範囲（確認済み）
+    - 1626, 1657, 1695行: .split("（")[0]で名前取得 → 問題なし（括弧なくなるのでそのまま名前返る）
+    - 1683行: 全文がプロンプトに入る → 名前のみになり改善
+
+    ## 完了後
+    git add projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py
+    git commit
+    bash scripts/inbox_write.sh karo "足軽2号、subtask_997a完了。CHAR_NAMES_JP外見テキスト削除済み。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-03-29T13:22:00'
+  acceptance_criteria:
+    - CHAR_NAMES_JP辞書の各値が名前のみになっていること
+    - バックアップファイルが存在すること
+    - git commit済み
+  important_notes:
+    - "Gemini APIは使うな"
+    - "バックアップ必須"
+- task_id: subtask_998a
+  parent_cmd: cmd_998
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  status: done
+  title: "H5XxSaT0HYQ Phase1素材準備（DL+STT+話者ID）"
+  description: |
+    新動画H5XxSaT0HYQのPhase1素材準備。context/hl_sh_workflow.md参照。
+
+    ## 殿の指示（原文）
+    「ハイライトショート候補選定　やって」
+
+    ## Step 1: 動画DL（360p）+字幕+ライブチャット
+    ```bash
+    cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
+    source ~/.bashrc
+    # タイトル取得
+    yt-dlp --get-title "https://youtu.be/H5XxSaT0HYQ"
+    # DL（360p）
+    python3 scripts/downloader.py "https://youtu.be/H5XxSaT0HYQ" --output-dir "work/{YYYYMMDD}_{タイトル}/input/"
+    # ライブチャット取得
+    yt-dlp --write-subs --sub-langs live_chat "https://youtu.be/H5XxSaT0HYQ" --skip-download -o "work/{dir}/input/H5XxSaT0HYQ"
+    # YouTube字幕
+    yt-dlp --write-subs --sub-langs ja "https://youtu.be/H5XxSaT0HYQ" --skip-download -o "work/{dir}/input/H5XxSaT0HYQ"
+    ```
+
+    ## Step 2: STTマージパイプライン
+    ```bash
+    source ~/.bashrc && python3 scripts/vocal_stt_pipeline.py \
+      "work/{dir}/input/H5XxSaT0HYQ.mp4" \
+      --output "work/{dir}/pipeline_H5XxSaT0HYQ/merged_H5XxSaT0HYQ.json" \
+      --work-dir "work/{dir}/pipeline_H5XxSaT0HYQ/" \
+      --cache
+    ```
+
+    ## Step 3: 話者ID実名変換
+    ```bash
+    source ~/.bashrc && python3 scripts/run_speaker_match_only.py \
+      --merged-json "work/{dir}/pipeline_H5XxSaT0HYQ/merged_H5XxSaT0HYQ.json" \
+      --vocals-full "work/{dir}/pipeline_H5XxSaT0HYQ/vocals_full.wav"
+    ```
+    A/B/Cアルファベットラベル不可。dozle/bon/qnly/orafu/oo_men/nekooji等の実名に変換。
+
+    ## 完了後
+    git add work/{dir}/ && git commit
+    bash scripts/inbox_write.sh karo "足軽2号、subtask_998a完了。H5XxSaT0HYQ Phase1完了。カバレッジ: X%、話者ID: X%。commit: XXX" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-03-29T23:25:00'
+  acceptance_criteria:
+    - 動画MP4（360p）がwork/{dir}/input/に存在
+    - YouTube字幕・ライブチャット取得済み
+    - merged JSONが生成されカバレッジ80%以上
+    - 話者ラベルが実名変換済み（A/B/C不可）
+    - git commit済み
+  important_notes:
+    - "Gemini APIは使うな"
+    - "360pでDL"
+    - "中間成果物はwork/配下に保存（/tmp禁止）"
+    - "{dir}はタイトル取得後に正しいパスに置き換えよ"
+- task_id: subtask_999a
+  parent_cmd: cmd_999
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  status: done
+  title: "H5XxSaT0HYQ コメントホットスポット分析"
+  description: |
+    H5XxSaT0HYQのコメントホットスポット分析を実行。
+
+    ```bash
+    cd /home/murakami/multi-agent-shogun
+    source ~/.bashrc && python3 scripts/comment_hotspot.py H5XxSaT0HYQ
+    ```
+
+    出力: projects/dozle_kirinuki/work/ 配下にhotspot JSONが生成される。
+
+    ## 完了後
+    git add projects/dozle_kirinuki/work/ && git commit -m "feat(cmd_999): hotspot analysis H5XxSaT0HYQ"
+    bash scripts/inbox_write.sh karo "足軽2号、subtask_999a完了。H5XxSaT0HYQホットスポット分析完了。Top hotspot: {内容}" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-03-29T23:52:00'
+  acceptance_criteria:
+    - hotspot JSONが生成されていること
+    - git commit済み
+  important_notes:
+    - "Gemini APIは使うな"
+- task_id: subtask_999b_round2
+  parent_cmd: cmd_999
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  status: assigned
+  title: "H5XxSaT0HYQ 集合知Round2 SH候補選定"
+  description: |
+    H5XxSaT0HYQ（MBTIの能力を使ってエンドラ討伐！）のSH（ショート）候補を独自に選定せよ。
+    他の足軽の結果を見るな。自分の判断で選べ。
+
+    ## 入力ファイル（全て読め）
+    1. merged JSON: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260329_MBTIの能力を使ってエンドラ討伐！【マイクラ】/pipeline_H5XxSaT0HYQ/merged_H5XxSaT0HYQ.json
+    2. ホットスポット: /home/murakami/multi-agent-shogun/work/hotspot_H5XxSaT0HYQ.json
+    3. ライブチャット: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260329_MBTIの能力を使ってエンドラ討伐！【マイクラ】/input/H5XxSaT0HYQ.live_chat.json
+
+    ## 参照ドキュメント（全て読め）
+    4. projects/dozle_kirinuki/context/expression_design_v5.md
+    5. projects/dozle_kirinuki/context/shorts_knowledge.md
+    6. projects/dozle_kirinuki/context/member_profiles.yaml
+
+    ## 選定基準
+    - 面白ければ本数関係ない。数合わせ禁止。つまらないのを入れるな
+    - MEN（おおはらMEN）主役のシーンは特に注目（チャンネルデータでMEN動画が圧倒的に伸びている）
+    - ホットスポットのスコアが高い区間を重点的に確認
+    - ライブチャットで盛り上がっている区間も確認
+    - ショートは15-60秒が理想
+    - フック（冒頭1秒で視聴者を引き込むセリフ/シーン）が強いか
+
+    ## 出力フォーマット
+    以下のJSON形式で出力ファイルに書け:
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260329_MBTIの能力を使ってエンドラ討伐！【マイクラ】/output/cmd_999/sh_candidates_round2.json
+
+    
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_999b_round2完了。SH候補X件選出。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-03-29T23:58:00'
+  acceptance_criteria:
+    - sh_candidates_round2.jsonが出力されていること
+    - 各候補にstart_time,end_time,hook_text,main_speaker,description,virality_scoreが含まれること
+  important_notes:
+    - "Gemini APIは使うな"
+    - "他の足軽の結果を見るな"
+    - "数合わせ禁止。面白くないものは入れるな"
+- task_id: subtask_1001a
+  parent_cmd: cmd_1001
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  status: assigned
+  title: "MEN総集編 — 元動画不明3本の特定+全8本シーンタイムスタンプ特定"
+  description: |
+    MEN面白シーン総集編の素材準備Phase1。
+    元動画IDが不明な3本を特定し、全8本のシーンタイムスタンプを特定せよ。
+
+    ## 元動画ID判明済み（5本）
+    1. ちゃかすMEN（21万再生）→ hVBDPBc4Ypg
+    2. 依頼を断るMEN（10万再生）→ a9rkN9zYwTc
+    3. ネタバレ魔人MEN（5.4万再生）→ _sVuKf5Zu4A
+    4. 極悪MENとぼん（5.4万再生）→ Pjoe8fJmF7M
+    5. おじいちゃん翻訳MEN（4.3万再生）→ xZTtk4pJcAs
+
+    ## 元動画ID不明（3本 — 特定せよ）
+    6. 極小MEN偽装死亡（9.4万再生）
+    7. 悪だくみMEN（4.5万再生）
+    8. おらリッシュ読解MEN（3.9万再生）
+
+    ## 特定方法
+    1. work/配下のディレクトリを ls で確認し、該当するクリップを探す
+    2. projects/dozle_kirinuki/work/ の各ディレクトリ名にヒントがある
+    3. ショートのYouTube説明欄に元動画リンクがある場合もある
+       - youtube_uploader.pyのアップ済みリストやgit logから確認
+    4. hotspot_summary.jsonにショートタイトルとvideo_idの対応がある場合もある
+
+    ## 全8本のシーンタイムスタンプ特定
+    各ショートの内容に対応する元動画の時刻（start-end）を特定。
+    - merged JSONがあればキーワード検索
+    - SRTがあれば字幕検索
+    - hotspot JSONがあればスコア高い区間と照合
+    - なければショートの説明欄のタイムスタンプから推定
+
+    ## 出力
+    projects/dozle_kirinuki/work/cmd_1001/scene_list.json に以下の形式で出力:
+    ```
+    mkdir -p projects/dozle_kirinuki/work/cmd_1001
+    ```
+    [
+      {"scene_num": 1, "title": "ちゃかすMEN", "video_id": "hVBDPBc4Ypg", "start_time": "MM:SS", "end_time": "MM:SS", "description": "シーン概要"},
+      ...
+    ]
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1001a完了。全8本のvideo_id+タイムスタンプ特定完了。scene_list.json出力済み。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-03-30T07:06:00'
+  acceptance_criteria:
+    - 元動画不明3本のvideo_idが特定されていること
+    - 全8本のstart_time/end_timeが特定されていること
+    - scene_list.jsonが出力されていること
+  important_notes:
+    - "Gemini APIは使うな"
+    - "元動画のDLはまだ不要。タイムスタンプ特定のみ"
+- task_id: subtask_1001f
+  parent_cmd: cmd_1001
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  status: assigned
+  title: "MEN総集編 — 追加3本のDL+シーン特定+切り出し"
+  description: |
+    MEN総集編に3本追加。DL+シーン特定+切り出しを全てやれ。
+
+    ## 追加3本
+    8. 悪だくみドズルとMEN（別シーン）: Ccc2eq0LUAg（既にwork/cmd_1001/input/にDL済み。scene_6(24:00-25:20)とは別のシーンを特定）
+    9. MENのひと言がドズル社を救う: BMrwN95dlGg（新規DL必要）
+    10. MENによるリアクション講座: ojQivRzcBzs（新規DL必要）
+
+    ## 手順
+    ```bash
+    cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
+    source ~/.bashrc
+    ```
+
+    ### Step 1: 新規2本を1080pでDL
+    ```bash
+    python3 scripts/downloader.py "https://youtu.be/BMrwN95dlGg" --output-dir "work/cmd_1001/input/" --hd
+    python3 scripts/downloader.py "https://youtu.be/ojQivRzcBzs" --output-dir "work/cmd_1001/input/" --hd
+    ```
+
+    ### Step 2: 各シーンのタイムスタンプ特定
+    元ショート動画の内容と照合して特定。方法:
+    - work/配下のmerged JSON、SRT、hotspot JSONでキーワード検索
+    - ショートのYouTube説明欄
+    - git logでショート関連コミットを探す
+
+    ### Step 3: 切り出し
+    ```bash
+    ffmpeg -ss {start} -to {end} -i "work/cmd_1001/input/{video_id}.mp4" \
+      -c:v h264_nvenc -preset p4 -c:a aac -b:a 192k -ar 48000 -ac 2 \
+      "work/cmd_1001/clips/scene_{N}_{video_id}.mp4"
+    ```
+    scene_8, scene_9, scene_10として出力。
+
+    ## 出力
+    work/cmd_1001/clips/ に scene_8_*.mp4, scene_9_*.mp4, scene_10_*.mp4
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1001f完了。追加3本切り出し完了。scene_8: {video_id} {start}-{end}、scene_9: {video_id} {start}-{end}、scene_10: {video_id} {start}-{end}" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-03-30T10:34:00'
+  acceptance_criteria:
+    - 3本のクリップがwork/cmd_1001/clips/に存在
+    - 音声48000Hz stereo aacで統一
+  important_notes:
+    - "h264_nvenc必須。libx264禁止"
+    - "音声は-ar 48000 -ac 2で統一（音ズレ防止）"
+    - "Gemini APIは使うな"
+    - "scene_8のCcc2eq0LUAgはscene_6(24:00-25:20)とは別のシーンにすること"
+- task_id: subtask_1014a
+  parent_cmd: cmd_1014
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  status: assigned
+  title: "btDo5e2_4fY Phase1素材準備（DL+STT+話者ID）"
+  description: |
+    新動画btDo5e2_4fYのPhase1素材準備。context/hl_sh_workflow.md参照。
+
+    ## Step 1: 動画DL（360p）+字幕+ライブチャット
+    ```bash
+    cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
+    source ~/.bashrc
+    yt-dlp --get-title "https://youtu.be/btDo5e2_4fY"
+    python3 scripts/downloader.py "https://youtu.be/btDo5e2_4fY" --output-dir "work/{YYYYMMDD}_{タイトル}/input/"
+    yt-dlp --write-subs --sub-langs live_chat "https://youtu.be/btDo5e2_4fY" --skip-download -o "work/{dir}/input/btDo5e2_4fY"
+    yt-dlp --write-subs --sub-langs ja "https://youtu.be/btDo5e2_4fY" --skip-download -o "work/{dir}/input/btDo5e2_4fY"
+    ```
+
+    ## Step 2: STTマージパイプライン
+    ```bash
+    source ~/.bashrc && python3 scripts/vocal_stt_pipeline.py \
+      "work/{dir}/input/btDo5e2_4fY.mp4" \
+      --output "work/{dir}/pipeline_btDo5e2_4fY/merged_btDo5e2_4fY.json" \
+      --work-dir "work/{dir}/pipeline_btDo5e2_4fY/" \
+      --cache
+    ```
+
+    ## Step 3: 話者ID実名変換
+    ```bash
+    source ~/.bashrc && python3 scripts/run_speaker_match_only.py \
+      --merged-json "work/{dir}/pipeline_btDo5e2_4fY/merged_btDo5e2_4fY.json" \
+      --vocals-full "work/{dir}/pipeline_btDo5e2_4fY/vocals_full.wav"
+    ```
+
+    ## 完了後
+    git add work/{dir}/ && git commit
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1014a完了。btDo5e2_4fY Phase1完了。カバレッジ: X%、話者ID: X%。commit: XXX" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-03-30T21:57:00'
+  acceptance_criteria:
+    - merged JSONが生成されカバレッジ80%以上
+    - 話者ラベル実名変換済み
+    - git commit済み
+  important_notes:
+    - "Gemini APIは使うな"
+    - "360pでDL"
+    - "{dir}はタイトル取得後に正しいパスに置き換えよ"
+- task_id: subtask_1014c_round2
+  parent_cmd: cmd_1014
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  status: assigned
+  title: "btDo5e2_4fY 集合知Round2 SH候補選定"
+  description: |
+    btDo5e2_4fY（海外の超鬼畜モードでネザーに入れるまで終われません）のSH候補を独自に選定せよ。
+
+    ## 入力ファイル（全て読め）
+    1. merged JSON: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260330_海外の超鬼畜モードでネザーに入れるまで終われません/pipeline_btDo5e2_4fY/merged_btDo5e2_4fY.json
+    2. ホットスポット: /home/murakami/multi-agent-shogun/work/hotspot_btDo5e2_4fY.json
+    3. ライブチャット: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260330_海外の超鬼畜モードでネザーに入れるまで終われません/input/btDo5e2_4fY.live_chat.json
+
+    ## 参照ドキュメント（全て読め）
+    4. projects/dozle_kirinuki/context/expression_design_v5.md
+    5. projects/dozle_kirinuki/context/shorts_knowledge.md
+    6. projects/dozle_kirinuki/context/member_profiles.yaml
+
+    ## 選定基準
+    - MEN×掛け合いシーンを特に注目（MEN単独より掛け合いが伸びる）
+    - 面白ければ本数関係ない。数合わせ禁止
+    - ホットスポットのスコアが高い区間を重点的に確認
+    - ライブチャットで盛り上がっている区間も確認
+    - ショートは15-60秒が理想
+    - フック（冒頭1秒で引き込むセリフ/シーン）が強いか
+
+    ## 出力
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260330_海外の超鬼畜モードでネザーに入れるまで終われません/output/cmd_1014/sh_candidates_round2.json
+    各候補: id, start_time, end_time, hook_text, main_speaker, description, virality_score
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1014c_round2完了。SH候補X件選出。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-03-30T22:17:00'
+  acceptance_criteria:
+    - sh_candidates_round2.jsonが出力されていること
+  important_notes:
+    - "Gemini APIは使うな"
+    - "他の足軽の結果を見るな"
+    - "MEN×掛け合いシーンに注目"
+- task_id: subtask_1016a
+  parent_cmd: cmd_1016
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  status: done
+  completed_at: '2026-03-31T10:00:00'
+  title: "鬼畜動画検索+未取得特定+Phase1+横断検索"
+  description: |
+    ドズル社の「鬼畜」系動画を検索し、未取得をDL+STT解析し、シーン横断検索せよ。
+
+    ## Step 1: チャンネル検索
+    YouTube Data API v3でドズル社チャンネル（UCGm5Q0bT-MWpNUpkTX-Uc5A）で「鬼畜」タイトル検索。
+    ```bash
+    cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
+    source ~/.bashrc
+    # yt-dlpでチャンネル検索
+    yt-dlp --flat-playlist "ytsearch50:鬼畜 ドズル社 マイクラ" --print "%(id)s %(title)s" 2>/dev/null | head -30
+    # またはYouTube Data API
+    ```
+
+    ## Step 2: 未取得動画のPhase1
+    work/配下のディレクトリ名にvideo_idが含まれているか確認。
+    未取得の動画のみ: 360p DL → vocal_stt_pipeline.py --cache → run_speaker_match_only.py
+
+    ## Step 3: 全鬼畜動画の横断検索
+    全merged JSONで以下を検索:
+    ```bash
+    for f in work/*/pipeline_*/merged_*.json; do
+      echo "=== $f ==="
+      python3 -c "
+    import json
+    data = json.load(open('$f'))
+    for seg in data:
+      text = seg.get('text','')
+      if any(kw in text for kw in ['ハードコア','ハード','埋め合わせ','余裕','討伐']):
+        print(f\"{seg.get('start',0):.1f}s: {text}\")
+    " 2>/dev/null
+    done
+    ```
+    STTの認識精度が低い場合「ハードコア」→「ハードコ」「ードコア」等の部分一致も試す。
+
+    ## 出力
+    queue/reports/scene_search_hardcore.yaml に該当シーン一覧
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1016a完了。鬼畜動画X本検索→未取得X本Phase1完了→横断検索結果: ハードコア該当X件。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-03-31T09:43:00'
+  acceptance_criteria:
+    - 鬼畜動画一覧が取得されていること
+    - 未取得動画のPhase1が完了していること
+    - 横断検索結果がqueue/reports/に出力されていること
+  important_notes:
+    - "Gemini APIは使うな"
+    - "360pでDL"
+    - "STT認識精度に注意。部分一致も試す"
+- task_id: subtask_1016b_batch2
+  parent_cmd: cmd_1016
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  status: assigned
+  title: "鬼畜動画Phase1 バッチ2（4本）"
+  description: |
+    鬼畜動画4本のPhase1処理（360p DL+STT+話者ID）を順次実行せよ。
+
+    ## 対象動画
+    EcFkDFn35SE Bg5pjaDu4jU Gh_sVe66im0 A15r7F2DV5Y
+
+    ## 手順（各動画について順次実行）
+    ```bash
+    cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
+    source ~/.bashrc
+    for vid in EcFkDFn35SE Bg5pjaDu4jU Gh_sVe66im0 A15r7F2DV5Y; do
+      TITLE=$(yt-dlp --get-title "https://youtu.be/$vid" 2>/dev/null)
+      DIR="work/$(date +%Y%m%d)_${TITLE}"
+      mkdir -p "$DIR/input"
+      # DL 360p
+      python3 scripts/downloader.py "https://youtu.be/$vid" --output-dir "$DIR/input/"
+      # STT
+      python3 scripts/vocal_stt_pipeline.py "$DIR/input/${vid}.mp4"         --output "$DIR/pipeline_${vid}/merged_${vid}.json"         --work-dir "$DIR/pipeline_${vid}/" --cache
+      # 話者ID
+      python3 scripts/run_speaker_match_only.py         --merged-json "$DIR/pipeline_${vid}/merged_${vid}.json"         --vocals-full "$DIR/pipeline_${vid}/vocals_full.wav"
+    done
+    ```
+
+    ## 完了後に横断検索
+    処理完了した4本のmerged JSONで以下を検索:
+    「ハードコア」「埋め合わせ」「余裕」「討伐」「ルール」「緩め」
+    該当あればタイムスタンプ+前後テキストを報告に含める。
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1016b_batch2完了。4本Phase1完了。横断検索結果: {該当件数}" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-03-31T10:45:00'
+  acceptance_criteria:
+    - 4本全てのmerged JSONが生成されていること
+    - 横断検索結果が報告に含まれていること
+  important_notes:
+    - "Gemini APIは使うな"
+    - "360pでDL"
+    - "YouTubeコメント返信禁止"
+    - "STTは順次実行（GPU VRAM制約）"
+- task_id: subtask_1016c
+  parent_cmd: cmd_1016
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  status: assigned
+  title: "全動画字幕セマンティック検索インデックス構築+シーン検索"
+  description: |
+    全動画のmerged JSON字幕をsemantic_search.pyのインデックスに登録し、セマンティック検索でシーンを探せ。
+
+    ## Step 1: 全merged JSONの字幕をembedding化
+    scripts/semantic_search.py の既存機能を確認し、全merged JSONをインデックスに登録。
+    ```bash
+    cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
+    source ~/.bashrc
+    # 全merged JSONを列挙
+    find work/ -name "merged_*.json" -type f | sort
+    ```
+
+    各merged JSONについて:
+    - 30秒単位でテキストをチャンク化（文脈を保持するため）
+    - 各チャンクをGemini Embeddingでベクトル化
+    - video_id + start_time + end_time + text + embedding をインデックスに保存
+    - GEMINI_API_KEY=AIzaSyBWlyApVA01J0DhfEDLojMajkWeARaB-d8（KEY_2）
+
+    インデックス保存先: projects/dozle_kirinuki/work/subtitle_index/embeddings.json
+    （またはsemantic_search.pyの既存インデックス形式に合わせる）
+
+    ## Step 2: セマンティック検索実行
+    クエリ: 「ぼんさんが埋め合わせにおんりーがハードコアでエンドラ討伐すると言い余裕よと返す」
+    
+    追加クエリも試す:
+    - 「ルールを緩めて埋め合わせにハードコアモードでエンドラ討伐する」
+    - 「余裕よとおんりーが返す」
+
+    Top10結果を報告。
+
+    ## Step 3: スクリプト化（恒久的仕組み）
+    scripts/subtitle_semantic_index.py を新規作成:
+    - build: 全merged JSONからインデックス構築
+    - search: クエリテキストでセマンティック検索
+    - update: 新しいmerged JSONを追加登録
+
+    使い方:
+    ```bash
+    python3 scripts/subtitle_semantic_index.py build
+    python3 scripts/subtitle_semantic_index.py search "検索クエリ"
+    ```
+
+    ## 完了後
+    git add scripts/subtitle_semantic_index.py && git commit
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1016c完了。全動画字幕インデックス構築完了（X本/Xチャンク）。検索結果: Top3={概要}。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-03-31T11:59:00'
+  acceptance_criteria:
+    - 全merged JSONがインデックスに登録されていること
+    - セマンティック検索でTop10結果が得られていること
+    - subtitle_semantic_index.pyが作成されていること
+    - git commit済み
+  important_notes:
+    - "GEMINI_API_KEY=AIzaSyBWlyApVA01J0DhfEDLojMajkWeARaB-d8（KEY_2）"
+    - "YouTubeコメント返信禁止"
+    - "Gemini Embedding APIのrate limitに注意（バッチで送信）"
+  status: done
+- task_id: subtask_1026a
+  parent_cmd: cmd_1026
+  assignee: ashigaru2
+  bloom_level: L3
+  project: dozle_kirinuki
+  description: |
+    視聴者コメントで依頼された特定シーンをSTT字幕から探せ。
+
+    ## 視聴者のコメント内容（原文）
+    「なんかの鬼畜だったかと思うんですが、あまりにも鬼畜すぎてルールをちょっと緩めて、
+    その時にぼんさんが『この埋め合わせはおんりーがあとでハードコアでエンドラ討伐します』
+    っていっておんりーちゃんは『そんなの余裕よ』って言ってたシーン」
+
+    ## 検索手順
+
+    ### Step 1: キーワードgrep（高速・確実）
+    以下のキーワードで全STT字幕を横断検索:
+    - 「ハードコア」「エンドラ」「埋め合わせ」「余裕」「緩め」「ルール」
+    ```bash
+    # SRT/JSON内をgrep
+    grep -rn "ハードコア\|エンドラ\|埋め合わせ\|余裕\|緩め" projects/dozle_kirinuki/work/*/output/*.srt projects/dozle_kirinuki/output/srt/*.srt 2>/dev/null | head -100
+    grep -rn "ハードコア\|エンドラ\|埋め合わせ\|余裕" projects/dozle_kirinuki/work/*/output/merged_*.json 2>/dev/null | head -100
+    ```
+    ヒットしたら前後の会話文脈（±30秒、±10エントリ）を読んで、ぼんじゅうる＋おんりーの会話かどうか確認。
+
+    ### Step 2: セマンティック検索（grep不発時）
+    ```bash
+    source ~/.bashrc && python3 scripts/subtitle_semantic_index.py search "ぼんさんが埋め合わせにおんりーがハードコアでエンドラ討伐すると言い余裕よと返す" --top 10
+    ```
+    ※ インデックスが49動画/3903チャンク分ある（embeddings_a.json + embeddings_b.json）。
+    もしスクリプトがエラーなら、既存のsemantic_search.pyも試せ:
+    ```bash
+    source ~/.bashrc && python3 scripts/semantic_search.py query "ハードコアでエンドラ討伐 埋め合わせ 余裕"
+    ```
+
+    ### Step 3: 結果報告
+    - 見つかった場合: 動画ID、タイムスタンプ（分:秒）、前後の会話テキストを報告
+    - 見つからなかった場合: 検索した範囲（何本、何チャンク）と結果を報告
+
+    ## テスト手順
+    - grepヒット時: 該当行のタイムスタンプと発話テキストを目視確認
+    - セマンティック検索結果: Top3のスコアとテキストを確認
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1026a完了。シーン検索結果: {概要}" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-03-31T21:45:00'
+  acceptance_criteria:
+    - 該当シーンの動画ID・タイムスタンプが特定されている、または検索範囲と結果が報告されている
+    - 前後の会話文脈が含まれていること
+  important_notes:
+    - "YouTubeコメント返信は絶対にするな（殿の許可なし）"
+    - "結果はinboxで報告。家老がntfyで殿に通知する"
+  status: cancelled
+- task_id: subtask_1028a
+  parent_cmd: cmd_1028
+  assignee: ashigaru2
+  bloom_level: L4
+  project: dozle_kirinuki
+  description: |
+    subtitle_semantic_index.pyのembedding APIをVertex AI APIキー経由に切り替えよ。
+
+    ## 背景
+    Gemini APIキー（KEY_2: AIzaSyBW...）が期限切れ。セマンティック検索のembedding取得が全件失敗中。
+    Vertex AI APIキーは画像生成で使用実績あり（config/vertex_api_key.env）。
+
+    ## 修正対象
+    scripts/subtitle_semantic_index.py — embedding取得部分
+
+    ## 修正方針
+    1. まず既存の画像生成スクリプトがVertex API keyをどう読んでいるか確認:
+       ```bash
+       grep -n "vertex_api_key" projects/dozle_kirinuki/scripts/gen_panels_*.py | head -10
+       ```
+    2. 同じ方法でconfig/vertex_api_key.envからキーを読み込む
+    3. genai.Client()でvertexai=True指定（軍師のcmd_1017a調査結果に準拠）
+    4. embedding取得部分を修正
+
+    ## テスト手順（必須）
+    ```bash
+    source ~/.bashrc && python3 scripts/subtitle_semantic_index.py search "ハードコアでエンドラ討伐" --top 5
+    ```
+    正常にスコア付き結果が返ればOK。スコアが全て0.0やエラーはNG。
+
+    ## 注意
+    - 既存インデックスデータ（embeddings_a.json, embeddings_b.json, 3903チャンク）を壊すな
+    - buildコマンドも同様にVertex AI経由に切り替えること
+
+    ## 完了後
+    ```bash
+    git add scripts/subtitle_semantic_index.py && git commit -m "fix(cmd_1028): embedding APIをVertex AI経由に切り替え"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1028a完了。Vertex AI embedding切り替え完了。検索テスト結果: Top3={概要}" report_done ashigaru2
+    ```
+  report_to: karo
+  timestamp: '2026-03-31T21:49:00'
+  acceptance_criteria:
+    - subtitle_semantic_index.pyがVertex AI APIキー経由でembedding取得できること
+    - 検索テストが正常にスコア付き結果を返すこと
+    - 既存インデックスがそのまま使えること
+    - git commit済み
+  important_notes:
+    - "既存インデックスデータを壊すな"
+    - "config/vertex_api_key.envの読み込み方法は既存画像生成スクリプトを参照"
+  status: done
+- task_id: subtask_1033bcd
+  parent_cmd: cmd_1033
+  assignee: ashigaru2
+  bloom_level: L4
+  project: dozle_kirinuki
+  description: |
+    scene_5+6のSTTマージ→タイムスタンプ補正→画像生成を一連で実行せよ。
+
+    ## 重要
+    generate_manga_short.pyのコード修正は将軍が適用済み。足軽がコードを変更する必要はない。
+    **skills/gemini-image-prompt/SKILL.md を必読** — contentsとsystem_instructionの使い分けルール。
+
+    ## タスクB: scene_5+6 STTマージ
+    クリップ:
+    - projects/dozle_kirinuki/work/20260329_MBTIの能力を使ってエンドラ討伐！【マイクラ】/output/cmd_1011/clips/scene_5.mp4 (35秒)
+    - projects/dozle_kirinuki/work/20260329_MBTIの能力を使ってエンドラ討伐！【マイクラ】/output/cmd_1011/clips/scene_6.mp4 (68秒)
+
+    両クリップを順番にSTT実行（GPU同時1本制限）:
+    ```bash
+    cd /home/murakami/multi-agent-shogun
+    WORKDIR="projects/dozle_kirinuki/work/20260329_MBTIの能力を使ってエンドラ討伐！【マイクラ】/output/cmd_1033"
+    mkdir -p "$WORKDIR"
+
+    # scene_5
+    source ~/.bashrc && python3 scripts/vocal_stt_pipeline.py \
+      "projects/dozle_kirinuki/work/20260329_MBTIの能力を使ってエンドラ討伐！【マイクラ】/output/cmd_1011/clips/scene_5.mp4" \
+      --output "$WORKDIR/scene_5_merged.json" \
+      --work-dir "$WORKDIR/pipeline_scene5/" \
+      --cache
+
+    # scene_6
+    source ~/.bashrc && python3 scripts/vocal_stt_pipeline.py \
+      "projects/dozle_kirinuki/work/20260329_MBTIの能力を使ってエンドラ討伐！【マイクラ】/output/cmd_1011/clips/scene_6.mp4" \
+      --output "$WORKDIR/scene_6_merged.json" \
+      --work-dir "$WORKDIR/pipeline_scene6/" \
+      --cache
+    ```
+    話者ラベル実名必須（A/B/C禁止）。member_profiles.yaml参照。
+    両JSONを結合して scene_56_merged.json を作成（scene_6のタイムスタンプはscene_5の尺分オフセット）。
+
+    ## タスクC: panels_scene56.json タイムスタンプ補正
+    panels JSON: projects/dozle_kirinuki/work/20260329_MBTIの能力を使ってエンドラ討伐！【マイクラ】/output/cmd_1029/panels_scene56.json
+    STTマージ結果を元に start_sec/duration_sec を実際の発話タイミングに補正。
+    **scene_descとsituationの内容は殿確認済み。変更するな。**
+
+    ### 殿確認済みの文脈
+    MENはおらふが自分のところにワープしてくるのを見て、わざと自分から炎に突っ込んだ。
+    おらふが強制ワープで炎の中に着地→「あちぃ」。
+    周りがMENの行動を見て「悪魔」と呼んだ（MBTIに悪魔タイプはない。MENの行動が悪魔的だというツッコミ）。
+    MENはノリノリでデビルマンコスプレして空を飛ぶ。
+
+    ## タスクD: scene_5+6 画像生成（6パネル）
+    ```bash
+    source ~/.bashrc && source projects/dozle_kirinuki/venv/bin/activate
+    python3 projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py \
+      --panels "projects/dozle_kirinuki/work/20260329_MBTIの能力を使ってエンドラ討伐！【マイクラ】/output/cmd_1029/panels_scene56.json" \
+      --output "projects/dozle_kirinuki/work/20260329_MBTIの能力を使ってエンドラ討伐！【マイクラ】/output/cmd_1033/"
+    ```
+
+    ## ルール
+    - 新規スクリプト作成禁止
+    - 各パネル1枚のみ（ガチャ禁止・1周のみ）
+    - Vertex API Express key使用（スクリプトが自動で読む）
+    - GPU STTは順番に実行（同時1本制限）
+
+    ## テスト手順
+    - scene_56_merged.json存在・話者実名確認
+    - panels_scene56.jsonのタイムスタンプが補正済み
+    - 6枚のPNG存在: `ls .../output/cmd_1033/panel_*.png | wc -l` → 6
+    - ファイルサイズ100KB以上
+
+    ## 完了後
+    ```bash
+    git add "projects/dozle_kirinuki/work/"
+    git commit -m "feat(cmd_1033): scene_5+6 STTマージ+6パネル画像生成"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1033bcd完了。scene_5+6 STT+補正+6パネル画像生成完了。" report_done ashigaru2
+    ```
+  report_to: karo
+  timestamp: '2026-03-31T23:20:00'
+  acceptance_criteria:
+    - scene_56_merged.json生成済み、話者実名
+    - panels_scene56.jsonタイムスタンプ補正済み
+    - 6枚のPNG生成済み
+    - git commit済み
+  important_notes:
+    - "新規スクリプト作成禁止"
+    - "ガチャ禁止。1周のみ"
+    - "scene_descとsituationは変更するな（殿確認済み）"
+    - "skills/gemini-image-prompt/SKILL.md 必読"
+    - "GPU STTは順番に実行（同時1本制限）"
+  status: done
