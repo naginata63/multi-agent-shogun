@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 字幕セマンティック検索インデックス
-merged_*.json からchunk化→Gemini Embedding→FAISS/JSON保存→検索
+merged_*.json からchunk化→Gemini Embedding (Vertex AI経由)→FAISS/JSON保存→検索
 
 使い方:
+  source config/vertex_api_key.env
   python3 scripts/subtitle_semantic_index.py build           # 全merged JSONをインデックス化
   python3 scripts/subtitle_semantic_index.py build --api-key KEY --start 0 --end 90 --output-json work/subtitle_index/embeddings_a.json
   python3 scripts/subtitle_semantic_index.py merge work/subtitle_index/embeddings_a.json work/subtitle_index/embeddings_b.json
@@ -46,14 +47,16 @@ RATE_LIMIT_SLEEP = 3.0 # バッチ間スリープ（秒）
 
 
 def get_api_key(explicit_key=None):
-    key = explicit_key or os.environ.get("GEMINI_API_KEY", "")
+    # VERTEX_API_KEY優先（Vertex AI ExpressキーはGemini Embedding APIでも使用可能）
+    key = explicit_key or os.environ.get("VERTEX_API_KEY", "") or os.environ.get("GEMINI_API_KEY", "")
     if not key:
-        print("ERROR: GEMINI_API_KEY not set. Run: source ~/.bashrc")
+        print("ERROR: VERTEX_API_KEY not set. Run: source config/vertex_api_key.env")
         sys.exit(1)
     return key
 
 
 def get_client(api_key=None):
+    # Vertex AI ExpressキーはvertexAI=Trueなしで使う（gemini-embedding-2-previewが3072次元で動作する）
     return genai.Client(api_key=get_api_key(api_key))
 
 
@@ -440,7 +443,7 @@ def main():
     sub = parser.add_subparsers(dest="command")
 
     b_parser = sub.add_parser("build", help="全merged JSONからインデックス構築（未登録のみ）")
-    b_parser.add_argument("--api-key", dest="api_key", default=None, help="Gemini APIキー (デフォルト: GEMINI_API_KEY環境変数)")
+    b_parser.add_argument("--api-key", dest="api_key", default=None, help="Vertex AI APIキー (デフォルト: VERTEX_API_KEY環境変数)")
     b_parser.add_argument("--start", type=int, default=None, help="処理開始インデックス (0始まり)")
     b_parser.add_argument("--end", type=int, default=None, help="処理終了インデックス (exclusive)")
     b_parser.add_argument("--output-json", dest="output_json", default=None, help="出力JSONパス (並列ビルド用)")
@@ -457,7 +460,7 @@ def main():
     s_parser = sub.add_parser("search", help="セマンティック検索")
     s_parser.add_argument("query", help="検索クエリ")
     s_parser.add_argument("--top", type=int, default=10, help="表示件数 (default: 10)")
-    s_parser.add_argument("--api-key", dest="api_key", default=None)
+    s_parser.add_argument("--api-key", dest="api_key", default=None, help="Vertex AI APIキー (デフォルト: VERTEX_API_KEY環境変数)")
 
     args = parser.parse_args()
 
