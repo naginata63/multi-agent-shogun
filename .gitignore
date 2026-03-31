@@ -123,6 +123,7 @@
 !scripts/precompact_hook.sh
 !scripts/monitor.sh
 !scripts/semantic_search.py
+!scripts/subtitle_semantic_index.py
 !scripts/scene_search_v2.py
 !scripts/3d/
 !scripts/3d/3d_frame_qc.py
