@@ -564,7 +564,7 @@ html = f"""<!DOCTYPE html>
 
   <!-- ビルド情報 -->
   <footer style="text-align:center;padding:8px;font-size:11px;color:var(--text-muted)">
-    静的版 | {len(static_data['dates'])}日分 {topic_count}件 | ビルド: {build_date}
+    静的版 | {len(static_data['dates'])}日分 {topic_count}件 | ビルド: {build_date} | <a href="https://genai-daily.pages.dev/" target="_blank" rel="noopener" style="color:inherit">genai-daily.pages.dev</a>
   </footer>
 
   <!-- 埋め込みデータ -->

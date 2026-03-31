@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """
 discord_news_bot.py — AI NEWS Discord Bot
-- Top3をEmbed形式で配信（queue/discord_pending.jsonを監視）
-- 続いて全記事を個別Embedで配信（OGPサムネイル+星スコア+カテゴリ色）
-- 👍👎⭐リアクション収集 → queue/genai_feedback.yaml に蓄積
+- 全記事を個別Embedで配信（queue/discord_pending.jsonを監視）
+- 👍👎リアクション収集 → queue/genai_feedback.yaml に蓄積
 - discord_bot.envがなければスキップ（graceful degradation）
 """
 
@@ -103,34 +102,6 @@ def save_feedback(message_id: int, user_id: int, emoji: str, action: str):
     log(f"feedback saved: msg={message_id} emoji={emoji} action={action}")
 
 
-# --- Top3 Embed構築 ---
-def build_top3_embed(text: str, date: str) -> discord.Embed:
-    """Top3テキストからDiscord Embedを構築。"""
-    lines = [l for l in text.strip().splitlines() if l.strip()]
-    title_line = lines[0] if lines else f"📰 AI Top3 ({date})"
-
-    embed = discord.Embed(
-        title=title_line,
-        color=0x3498DB,
-        timestamp=datetime.now(timezone.utc),
-    )
-
-    # 1⃣ 2⃣ 3⃣ で始まる行を各フィールドに
-    for line in lines[1:]:
-        stripped = line.strip()
-        if stripped.startswith(("1⃣", "2⃣", "3⃣")):
-            embed.add_field(name=stripped, value="", inline=False)
-
-    full_url = "http://localhost:8580/"
-    for line in lines:
-        if line.startswith("全文:"):
-            full_url = line.replace("全文:", "").strip()
-            break
-
-    embed.set_footer(text=f"👍有用 👎不要 ⭐最高 | フィードバック歓迎 | 全文: {full_url}")
-    return embed
-
-
 # --- 個別トピック Embed構築 ---
 def build_topic_embed(topic: dict, date: str) -> discord.Embed:
     """1記事分のDiscord Embedを構築。"""
@@ -142,7 +113,8 @@ def build_topic_embed(topic: dict, date: str) -> discord.Embed:
     ogp_image = topic.get("ogp_image")
 
     color = CATEGORY_COLORS.get(category, DEFAULT_COLOR)
-    stars = "★" * score + "☆" * (5 - score)
+    star_count = round(score / 20) if score > 0 else 0
+    stars = "★" * star_count + "☆" * (5 - star_count)
 
     embed = discord.Embed(
         title=f"{category} {title}",
@@ -152,39 +124,35 @@ def build_topic_embed(topic: dict, date: str) -> discord.Embed:
         timestamp=datetime.now(timezone.utc),
     )
 
+    embed.set_author(name="📰 GenAI Daily", url="https://genai-daily.pages.dev/")
     embed.set_footer(text=f"{stars}  |  {date}")
 
     if ogp_image:
-        embed.set_thumbnail(url=ogp_image)
+        embed.set_image(url=ogp_image)
 
     return embed
 
 
 # --- 全記事配信 ---
-async def send_daily_news(text: str, topics: list, date: str):
-    """Top3 Embed + 全トピック個別Embedを配信。"""
+async def send_daily_news(topics: list, date: str):
+    """全トピック個別Embedを配信。"""
     channel = bot.get_channel(CHANNEL_ID)
     if channel is None:
         log(f"ERROR: チャンネルID {CHANNEL_ID} が見つかりません")
         return
 
-    # 1. Top3まとめEmbed（リアクション付き）
-    top3_embed = build_top3_embed(text, date)
-    top3_msg = await channel.send(embed=top3_embed)
-    for emoji in ["👍", "👎", "⭐"]:
-        await top3_msg.add_reaction(emoji)
-        await asyncio.sleep(0.3)
-    log(f"Top3送信完了: message_id={top3_msg.id}")
-
     if not topics:
         log("topics空のため個別Embed送信スキップ")
         return
 
-    # 2. 全記事個別Embed（1秒間隔、rate limit対策）
+    # 全記事個別Embed（1秒間隔、rate limit対策）
     log(f"個別Embed配信開始: {len(topics)}件")
-    for i, topic in enumerate(topics):
+    for topic in topics:
         embed = build_topic_embed(topic, date)
-        await channel.send(embed=embed)
+        msg = await channel.send(embed=embed)
+        for emoji in ["👍", "👎"]:
+            await msg.add_reaction(emoji)
+            await asyncio.sleep(0.3)
         await asyncio.sleep(1.0)  # rate limit: 30msg/60s対策
 
     log(f"全記事配信完了: {len(topics)}件 date={date}")
@@ -210,16 +178,11 @@ async def check_pending():
     if pending.get("posted", True):
         return
 
-    text = pending.get("text", "")
     date = pending.get("date", datetime.now().strftime("%Y-%m-%d"))
     topics = pending.get("topics", [])
 
-    if not text:
-        log("WARN: discord_pending.json に text がありません")
-        return
-
     log(f"pending検知: date={date} topics={len(topics)}件 → 配信開始")
-    await send_daily_news(text, topics, date)
+    await send_daily_news(topics, date)
 
     # posted: true に更新
     pending["posted"] = True
