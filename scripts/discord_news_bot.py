@@ -127,7 +127,7 @@ def build_topic_embed(topic: dict, date: str) -> discord.Embed:
     embed.set_author(name="📰 GenAI Daily", url="https://genai-daily.pages.dev/")
     embed.set_footer(text=f"{stars}  |  {date}")
 
-    if ogp_image:
+    if ogp_image and len(ogp_image) <= 2048:
         embed.set_image(url=ogp_image)
 
     return embed
