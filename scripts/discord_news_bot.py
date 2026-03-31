@@ -21,6 +21,7 @@ PROJECT_ROOT = Path(__file__).parent.parent
 PENDING_FILE = PROJECT_ROOT / "queue" / "discord_pending.json"
 FEEDBACK_FILE = PROJECT_ROOT / "queue" / "genai_feedback.yaml"
 ENV_FILE = PROJECT_ROOT / "config" / "discord_bot.env"
+SENT_DIR = PROJECT_ROOT / "queue" / "discord_sent"
 
 # カテゴリ色マッピング
 CATEGORY_COLORS = {
@@ -113,7 +114,8 @@ def build_topic_embed(topic: dict, date: str) -> discord.Embed:
     ogp_image = topic.get("ogp_image")
 
     color = CATEGORY_COLORS.get(category, DEFAULT_COLOR)
-    star_count = round(score / 20) if score > 0 else 0
+    # score は ★ の数（1-5）なのでそのまま使う
+    star_count = max(0, min(5, score))
     stars = "★" * star_count + "☆" * (5 - star_count)
 
     embed = discord.Embed(
@@ -129,6 +131,9 @@ def build_topic_embed(topic: dict, date: str) -> discord.Embed:
 
     if ogp_image and len(ogp_image) <= 2048:
         embed.set_image(url=ogp_image)
+
+    if url:
+        embed.add_field(name="🔗 ソース", value=f"[記事を読む]({url})", inline=False)
 
     return embed
 
@@ -181,13 +186,25 @@ async def check_pending():
     date = pending.get("date", datetime.now().strftime("%Y-%m-%d"))
     topics = pending.get("topics", [])
 
+    # 日付ベースの重複送信防止（genai_ntfy_top3.shが複数回実行されても送信は1回のみ）
+    SENT_DIR.mkdir(parents=True, exist_ok=True)
+    sent_flag = SENT_DIR / f"{date}.flag"
+    if sent_flag.exists():
+        log(f"既送信済み date={date} → スキップ（重複投稿防止）")
+        pending["posted"] = True
+        with open(PENDING_FILE, "w") as f:
+            json.dump(pending, f, ensure_ascii=False, indent=2)
+        return
+
     log(f"pending検知: date={date} topics={len(topics)}件 → 配信開始")
     await send_daily_news(topics, date)
 
-    # posted: true に更新
+    # posted: true に更新 + 送信済みフラグ作成
     pending["posted"] = True
     with open(PENDING_FILE, "w") as f:
         json.dump(pending, f, ensure_ascii=False, indent=2)
+    sent_flag.touch()
+    log(f"送信済みフラグ作成: {sent_flag}")
 
 
 # --- イベントハンドラ ---
