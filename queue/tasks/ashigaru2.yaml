@@ -16223,7 +16223,7 @@ tasks:
     - 30秒単位でテキストをチャンク化（文脈を保持するため）
     - 各チャンクをGemini Embeddingでベクトル化
     - video_id + start_time + end_time + text + embedding をインデックスに保存
-    - GEMINI_API_KEY=AIzaSyBWlyApVA01J0DhfEDLojMajkWeARaB-d8（KEY_2）
+    - GEMINI_API_KEY=REDACTED_KEY_2（KEY_2）
 
     インデックス保存先: projects/dozle_kirinuki/work/subtitle_index/embeddings.json
     （またはsemantic_search.pyの既存インデックス形式に合わせる）
@@ -16260,7 +16260,7 @@ tasks:
     - subtitle_semantic_index.pyが作成されていること
     - git commit済み
   important_notes:
-    - "GEMINI_API_KEY=AIzaSyBWlyApVA01J0DhfEDLojMajkWeARaB-d8（KEY_2）"
+    - "GEMINI_API_KEY=REDACTED_KEY_2（KEY_2）"
     - "YouTubeコメント返信禁止"
     - "Gemini Embedding APIのrate limitに注意（バッチで送信）"
   status: done
@@ -16459,3 +16459,109 @@ tasks:
     - "skills/gemini-image-prompt/SKILL.md 必読"
     - "GPU STTは順番に実行（同時1本制限）"
   status: done
+- task_id: subtask_1033d
+  parent_cmd: cmd_1033
+  assignee: ashigaru2
+  bloom_level: L3
+  project: dozle_kirinuki
+  description: |
+    scene_5+6の6パネル画像生成のみ実行せよ（STTマージ・タイムスタンプ補正は完了済み）。
+
+    ## 重要: 実行前に必ず環境変数を読み込め
+    ```bash
+    cd /home/murakami/multi-agent-shogun
+    source config/vertex_api_key.env
+    ```
+
+    ## skills/gemini-image-prompt/SKILL.md を必読
+
+    ## 実行
+    ```bash
+    source config/vertex_api_key.env && source ~/.bashrc && source projects/dozle_kirinuki/venv/bin/activate
+    python3 projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py \
+      --panels "projects/dozle_kirinuki/work/20260329_MBTIの能力を使ってエンドラ討伐！【マイクラ】/output/cmd_1033/panels_scene56.json" \
+      --output "projects/dozle_kirinuki/work/20260329_MBTIの能力を使ってエンドラ討伐！【マイクラ】/output/cmd_1033/"
+    ```
+
+    ## ルール
+    - 新規スクリプト作成禁止
+    - 各パネル1枚のみ（ガチャ禁止・1周のみ）
+
+    ## テスト手順
+    - 6枚のPNG存在: `ls .../output/cmd_1033/panel_*.png | wc -l` → 6
+    - ファイルサイズ100KB以上
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1033d完了。scene_5+6 6パネル画像生成完了。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-03-31T23:55:00'
+  acceptance_criteria:
+    - 6枚のPNG生成済み
+    - ファイルサイズ100KB以上
+  important_notes:
+    - "実行前に必ず source config/vertex_api_key.env"
+    - "新規スクリプト作成禁止"
+    - "ガチャ禁止。1周のみ"
+    - "skills/gemini-image-prompt/SKILL.md 必読"
+  status: done
+- task_id: subtask_1036a
+  parent_cmd: cmd_1036
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  bloom_level: L3
+  status: done
+  completed_at: '2026-04-01T08:10:00'
+  title: "dozle_video_list.csvにセマンティックインデックス状況カラム追加"
+  description: |
+    dozle_video_list.csvにindexedカラム（True/False）とindex_skip_reasonカラムを追加。
+    embeddings.jsonと突合して各動画のインデックス作成状況を可視化する。
+
+    ## 手順
+    1. embeddings.json を読み込み、動画ID一覧を抽出（clip_* 除外）
+       パス: projects/dozle_kirinuki/work/subtitle_index/embeddings.json
+       ※ 巨大なので全件読まない。jq で video_id のユニーク一覧だけ取得:
+       ```bash
+       cat projects/dozle_kirinuki/work/subtitle_index/embeddings.json | python3 -c "
+       import json,sys
+       data=json.load(sys.stdin)
+       ids=set(e['video_id'] for e in data if not e['video_id'].startswith('clip_'))
+       print(len(ids))
+       for i in sorted(ids): print(i)
+       " > /tmp/indexed_ids.txt
+       ```
+    2. dozle_video_list.csv を読み込み（projects/dozle_kirinuki/data/dozle_video_list.csv）
+    3. 各行に `indexed` カラム追加:
+       - video_id が indexed_ids.txt にあれば True、なければ False
+    4. indexed=False の動画について `index_skip_reason` カラム追加:
+       - cmd_1034の調査結果（work/cmd_1034/subtitle_missing_analysis.md）を参照
+       - 分類: "no_srt", "shorts", "duplicate", "other"
+       - 1年以上前の動画（2025-04-01以前）→ "old_video"
+    5. CSV上書き保存
+    6. 集計サマリ出力: work/cmd_1036/index_status_summary.md
+
+    ## 注意
+    - 新規.py作成禁止。Python ワンライナー or 既存ツールで対応
+    - pandas使用可（venvにあれば）。なければ csv モジュール
+    - git commit必須
+
+    ## テスト手順
+    - CSVにindexedカラムが存在: `head -1 projects/dozle_kirinuki/data/dozle_video_list.csv` にindexedが含まれる
+    - indexed=True件数がembeddings内の動画数と一致: 上記1で出した件数と `grep -c 'True' ...` が一致
+    - サマリファイル存在: `cat work/cmd_1036/index_status_summary.md`
+
+    ## 完了後
+    ```bash
+    git add projects/dozle_kirinuki/data/dozle_video_list.csv work/cmd_1036/
+    git commit -m "feat(cmd_1036): CSVにセマンティックインデックス状況カラム追加"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1036a完了。CSVにindexedカラム追加。indexed=True:X本、False:Y本。サマリ: work/cmd_1036/index_status_summary.md" report_done ashigaru2
+    ```
+  report_to: karo
+  timestamp: '2026-04-01T07:50:00'
+  acceptance_criteria:
+    - CSVにindexedカラムとindex_skip_reasonカラムが追加されていること
+    - indexed=True件数がembeddings.json内の実動画数と一致
+    - サマリがwork/cmd_1036/に出力されていること
+    - git commit済み
+  important_notes:
+    - "新規.py作成禁止"
+    - "embeddings.jsonは巨大。全件メモリに載せると重い→video_idだけ抽出"
