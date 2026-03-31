@@ -63,6 +63,7 @@ tmux kill-session -t shogun 2>/dev/null || true
 
 log "Clearing stale runtime flags/locks..."
 rm -f /tmp/shogun_idle_*
+rm -f /tmp/agent_idle_*
 rm -f "$SCRIPT_DIR/queue/.slim_yaml.lock"
 
 if [[ "$RESTART" != true ]]; then

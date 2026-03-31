@@ -93,9 +93,9 @@ Speak in 戦国風口調 immediately."
     fi
 fi
 
-python3 -c "
-import json
-context = '''$CONTEXT'''
+CONTEXT="$CONTEXT" python3 -c "
+import json, os
+context = os.environ['CONTEXT']
 print(json.dumps({
     'hookSpecificOutput': {
         'hookEventName': 'SessionStart',

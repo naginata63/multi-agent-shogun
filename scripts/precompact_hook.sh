@@ -56,36 +56,24 @@ TASK_ID=""
 PARENT_CMD=""
 STATUS=""
 if [ -f "$TASK_FILE" ]; then
-    TASK_ID=$("$PYTHON" -c "
+    read -r TASK_ID PARENT_CMD STATUS <<< "$("$PYTHON" -c "
 import yaml, sys
 try:
     with open('$TASK_FILE') as f:
         d = yaml.safe_load(f) or {}
-    t = d.get('task', d)
-    print(t.get('task_id', ''))
+    tasks = d.get('tasks', [])
+    if isinstance(tasks, list) and tasks:
+        t = tasks[-1]
+        for item in reversed(tasks):
+            if item.get('status') in ('assigned', 'in_progress'):
+                t = item
+                break
+    else:
+        t = d.get('task', d)
+    print(t.get('task_id', ''), t.get('parent_cmd', ''), t.get('status', ''))
 except Exception:
-    print('')
-" 2>/dev/null || true)
-    PARENT_CMD=$("$PYTHON" -c "
-import yaml, sys
-try:
-    with open('$TASK_FILE') as f:
-        d = yaml.safe_load(f) or {}
-    t = d.get('task', d)
-    print(t.get('parent_cmd', ''))
-except Exception:
-    print('')
-" 2>/dev/null || true)
-    STATUS=$("$PYTHON" -c "
-import yaml, sys
-try:
-    with open('$TASK_FILE') as f:
-        d = yaml.safe_load(f) or {}
-    t = d.get('task', d)
-    print(t.get('status', ''))
-except Exception:
-    print('')
-" 2>/dev/null || true)
+    print('', '', '')
+" 2>/dev/null || echo "  ")"
 fi
 
 # ─── Role-specific summary ───
