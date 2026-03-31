@@ -398,7 +398,10 @@ function buildCard(topic, showDateBadge) {
   card.addEventListener('click', (e) => {
     if (e.target.tagName === 'A') return;
     const url = topic.source_url || '#';
-    if (url !== '#') window.open(url, '_blank', 'noopener');
+    if (url !== '#') {
+      trackClick(topic.title || '', url);
+      window.open(url, '_blank', 'noopener');
+    }
   });
 
   const icon = topic.category_icon || getCategoryIcon(topic.category);
@@ -438,6 +441,10 @@ function buildCard(topic, showDateBadge) {
       ${dateBadge}
     </div>
   `;
+  if (sourceUrl !== '#') {
+    const link = card.querySelector('.card-source-link');
+    if (link) link.addEventListener('click', () => trackClick(topic.title || '', sourceUrl));
+  }
   return card;
 }
 
@@ -466,6 +473,19 @@ function escapeAttr(str) {
   if (/^https?:\/\//i.test(s)) return s;
   if (s === '#') return '#';
   return '#';
+}
+
+// ── Click Tracking ─────────────────────────────────────────────────────────
+function trackClick(title, url) {
+  try {
+    const clicks = JSON.parse(localStorage.getItem('genai-clicks') || '[]');
+    clicks.push({ title, url, clicked_at: new Date().toISOString() });
+    if (clicks.length > 500) clicks.splice(0, clicks.length - 500);
+    localStorage.setItem('genai-clicks', JSON.stringify(clicks));
+    const counts = JSON.parse(localStorage.getItem('genai-click-counts') || '{}');
+    counts[url] = (counts[url] || 0) + 1;
+    localStorage.setItem('genai-click-counts', JSON.stringify(counts));
+  } catch (e) { /* localStorage unavailable */ }
 }
 
 function init() {
@@ -557,6 +577,93 @@ window.STATIC_DATA = {data_json};
 
 (DIST_DIR / "index.html").write_text(html, encoding="utf-8")
 print(f"[genai_build_static] index.html 生成完了 ({len(static_data['dates'])}日分, {topic_count}件)")
+
+# ── stats.html 生成（クリック統計ページ）──────────────────────────────────
+stats_html = """<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📊 GenAI Daily - クリック統計</title>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 16px; background: #1a1a2e; color: #e0e0e0; }
+    h1 { font-size: 1.4rem; margin-bottom: 8px; }
+    .back { color: #88aaff; text-decoration: none; font-size: 0.9rem; }
+    .back:hover { text-decoration: underline; }
+    .summary { font-size: 0.85rem; color: #aaa; margin: 8px 0 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th { text-align: left; padding: 8px; border-bottom: 2px solid #333; color: #aaa; }
+    td { padding: 8px; border-bottom: 1px solid #2a2a3e; vertical-align: top; }
+    td a { color: #88aaff; text-decoration: none; word-break: break-all; }
+    td a:hover { text-decoration: underline; }
+    .count { font-weight: bold; color: #ffd700; text-align: center; }
+    .empty { text-align: center; padding: 40px; color: #666; }
+    .clear-btn { margin-top: 24px; padding: 8px 16px; background: #3a1a1a; color: #ff8888; border: 1px solid #cc4444; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
+    .clear-btn:hover { background: #5a2a2a; }
+  </style>
+</head>
+<body>
+  <h1>📊 クリック統計</h1>
+  <a class="back" href="/">← GenAI Daily に戻る</a>
+  <div class="summary" id="summary"></div>
+  <div id="content"></div>
+  <button class="clear-btn" onclick="clearStats()">統計をリセット</button>
+  <script>
+    function loadStats() {
+      const clicks = JSON.parse(localStorage.getItem('genai-clicks') || '[]');
+      const counts = JSON.parse(localStorage.getItem('genai-click-counts') || '{}');
+      const summary = document.getElementById('summary');
+      const content = document.getElementById('content');
+
+      if (clicks.length === 0) {
+        summary.textContent = 'クリック履歴なし';
+        content.innerHTML = '<div class="empty">まだクリックデータがありません。<br><a href="/" style="color:#88aaff">記事を読んでみましょう →</a></div>';
+        return;
+      }
+
+      summary.textContent = `総クリック数: ${clicks.length}件 | ユニークURL: ${Object.keys(counts).length}件`;
+
+      // Sort by count desc
+      const sorted = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 50);
+
+      // Build title map from click history
+      const titleMap = {};
+      for (const c of clicks) {
+        if (c.url && c.title && !titleMap[c.url]) titleMap[c.url] = c.title;
+      }
+
+      let rows = sorted.map(([url, count]) => {
+        const title = titleMap[url] || url;
+        const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        return `<tr>
+          <td class="count">${count}</td>
+          <td><a href="${esc(url)}" target="_blank" rel="noopener">${esc(title)}</a></td>
+        </tr>`;
+      }).join('');
+
+      content.innerHTML = `<table>
+        <thead><tr><th style="width:60px">回数</th><th>記事</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+    }
+
+    function clearStats() {
+      if (confirm('クリック統計をリセットしますか？')) {
+        localStorage.removeItem('genai-clicks');
+        localStorage.removeItem('genai-click-counts');
+        loadStats();
+      }
+    }
+
+    loadStats();
+  </script>
+</body>
+</html>"""
+
+(DIST_DIR / "stats.html").write_text(stats_html, encoding="utf-8")
+print("[genai_build_static] stats.html 生成完了")
 print(f"[genai_build_static] 出力先: {DIST_DIR}")
 PYEOF
 

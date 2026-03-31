@@ -224,7 +224,10 @@ function buildCard(topic, showDateBadge) {
   card.addEventListener('click', (e) => {
     if (e.target.tagName === 'A') return;
     const url = topic.source_url || '#';
-    if (url !== '#') window.open(url, '_blank', 'noopener');
+    if (url !== '#') {
+      trackClick(topic.title || '', url);
+      window.open(url, '_blank', 'noopener');
+    }
   });
 
   const icon = topic.category_icon || getCategoryIcon(topic.category);
@@ -264,6 +267,10 @@ function buildCard(topic, showDateBadge) {
       ${dateBadge}
     </div>
   `;
+  if (sourceUrl !== '#') {
+    const link = card.querySelector('.card-source-link');
+    if (link) link.addEventListener('click', () => trackClick(topic.title || '', sourceUrl));
+  }
   return card;
 }
 
@@ -292,6 +299,19 @@ function escapeAttr(str) {
   if (/^https?:\/\//i.test(s)) return s;
   if (s === '#') return '#';
   return '#';
+}
+
+// ── Click Tracking ─────────────────────────────────────────────────────────
+function trackClick(title, url) {
+  try {
+    const clicks = JSON.parse(localStorage.getItem('genai-clicks') || '[]');
+    clicks.push({ title, url, clicked_at: new Date().toISOString() });
+    if (clicks.length > 500) clicks.splice(0, clicks.length - 500);
+    localStorage.setItem('genai-clicks', JSON.stringify(clicks));
+    const counts = JSON.parse(localStorage.getItem('genai-click-counts') || '{}');
+    counts[url] = (counts[url] || 0) + 1;
+    localStorage.setItem('genai-click-counts', JSON.stringify(counts));
+  } catch (e) { /* localStorage unavailable */ }
 }
 
 function init() {

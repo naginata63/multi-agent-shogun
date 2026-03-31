@@ -197,6 +197,7 @@
 !dist/index.html
 !dist/style.css
 !dist/app.js
+!dist/stats.html
 
 # Screenshots (masked — no secrets)
 !images/
