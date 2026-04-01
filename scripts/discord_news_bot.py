@@ -183,6 +183,9 @@ async def send_daily_news(topics: list, date: str):
         log("topics空のため個別Embed送信スキップ")
         return
 
+    # スコア降順ソート
+    topics = sorted(topics, key=lambda t: t.get('score', 0), reverse=True)
+
     # 全記事個別Embed（1秒間隔、rate limit対策）
     log(f"個別Embed配信開始: {len(topics)}件")
     for topic in topics:
