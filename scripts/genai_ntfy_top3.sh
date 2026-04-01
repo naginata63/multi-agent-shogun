@@ -143,8 +143,15 @@ pending = {
     "posted": False,
     "notify_discord": $([[ "$NOTIFY_DISCORD" == "true" ]] && echo "True" || echo "False"),
 }
-with open("$DISCORD_PENDING", "w", encoding="utf-8") as f:
-    json.dump(pending, f, ensure_ascii=False, indent=2)
+import tempfile, os
+tmpfd, tmppath = tempfile.mkstemp(suffix=".tmp", dir=os.path.dirname("$DISCORD_PENDING"))
+try:
+    with os.fdopen(tmpfd, "w", encoding="utf-8") as f:
+        json.dump(pending, f, ensure_ascii=False, indent=2)
+    os.rename(tmppath, "$DISCORD_PENDING")
+except:
+    os.unlink(tmppath) if os.path.exists(tmppath) else None
+    raise
 PYEOF
 log "Discord pending書き出し: $DISCORD_PENDING (topics=$(echo "$TOPICS_JSON" | "$VENV_PYTHON" -c 'import json,sys; print(len(json.load(sys.stdin)))' 2>/dev/null || echo '?')件)"
 
