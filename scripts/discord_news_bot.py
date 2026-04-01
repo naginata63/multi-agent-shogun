@@ -20,6 +20,7 @@ from discord.ext import tasks
 PROJECT_ROOT = Path(__file__).parent.parent
 PENDING_FILE = PROJECT_ROOT / "queue" / "discord_pending.json"
 FEEDBACK_FILE = PROJECT_ROOT / "queue" / "genai_feedback.yaml"
+MESSAGE_MAP_FILE = PROJECT_ROOT / "queue" / "discord_message_map.json"
 ENV_FILE = PROJECT_ROOT / "config" / "discord_bot.env"
 SENT_DIR = PROJECT_ROOT / "queue" / "discord_sent"
 
@@ -84,15 +85,47 @@ def log(msg: str):
     print(f"[{ts}] [discord_bot] {msg}", flush=True)
 
 
+# --- メッセージマップ操作 ---
+def load_message_map() -> dict:
+    """queue/discord_message_map.json を読み込む。"""
+    if MESSAGE_MAP_FILE.exists():
+        try:
+            return json.loads(MESSAGE_MAP_FILE.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            pass
+    return {}
+
+
+def save_message_map(mapping: dict):
+    """queue/discord_message_map.json を書き込む。"""
+    MESSAGE_MAP_FILE.parent.mkdir(parents=True, exist_ok=True)
+    MESSAGE_MAP_FILE.write_text(json.dumps(mapping, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def register_message(message_id: int, title: str, category: str, date: str):
+    """メッセージID→記事情報のマッピングを保存。"""
+    mapping = load_message_map()
+    mapping[str(message_id)] = {"title": title, "category": category, "date": date}
+    save_message_map(mapping)
+
+
 # --- フィードバック保存 ---
 def save_feedback(message_id: int, user_id: int, emoji: str, action: str):
     """リアクションをqueue/genai_feedback.yamlに追記。"""
+    # メッセージマップからタイトルを取得
+    mapping = load_message_map()
+    info = mapping.get(str(message_id), {})
+    title = info.get("title", "")
+    category = info.get("category", "")
+
     FEEDBACK_FILE.parent.mkdir(parents=True, exist_ok=True)
     entry = (
         f"- message_id: {message_id}\n"
         f"  user_id: {user_id}\n"
         f"  emoji: \"{emoji}\"\n"
         f"  action: \"{action}\"\n"
+        f"  title: {json.dumps(title, ensure_ascii=False)}\n"
+        f"  category: \"{category}\"\n"
         f"  timestamp: \"{datetime.now(timezone.utc).isoformat()}\"\n"
     )
     if not FEEDBACK_FILE.exists():
@@ -100,7 +133,7 @@ def save_feedback(message_id: int, user_id: int, emoji: str, action: str):
     else:
         with open(FEEDBACK_FILE, "a") as f:
             f.write(entry)
-    log(f"feedback saved: msg={message_id} emoji={emoji} action={action}")
+    log(f"feedback saved: msg={message_id} emoji={emoji} action={action} title={title[:30]}")
 
 
 # --- 個別トピック Embed構築 ---
@@ -155,9 +188,14 @@ async def send_daily_news(topics: list, date: str):
     for topic in topics:
         embed = build_topic_embed(topic, date)
         msg = await channel.send(embed=embed)
-        for emoji in ["👍", "👎"]:
+        # ⭐/👎リアクションを自動付与
+        for emoji in ["⭐", "👎"]:
             await msg.add_reaction(emoji)
             await asyncio.sleep(0.3)
+        # メッセージID→記事タイトルのマッピングを記録
+        title = topic.get("title", "")
+        category = topic.get("category", "")
+        register_message(msg.id, title, category, date)
         await asyncio.sleep(1.0)  # rate limit: 30msg/60s対策
 
     log(f"全記事配信完了: {len(topics)}件 date={date}")

@@ -155,6 +155,7 @@
 !scripts/genai_dedup.py
 !scripts/discord_news_bot.py
 !scripts/genai_parse_report.py
+!scripts/genai_monthly_profile_update.py
 !scripts/start_ashigaru_glm.sh
 !discord-news-bot.service
 # config/discord_bot.env は * で除外済み（トークン含む、絶対コミット禁止）
