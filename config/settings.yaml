@@ -1,0 +1,49 @@
+# multi-agent-shogun 設定ファイル
+
+# 言語設定
+# ja: 日本語（戦国風日本語のみ、併記なし）
+# en: 英語（戦国風日本語 + 英訳併記）
+# その他の言語コード（es, zh, ko, fr, de 等）も対応
+language: ja
+
+# シェル設定
+# bash: bash用プロンプト（デフォルト）
+# zsh: zsh用プロンプト
+shell: bash
+
+# スキル設定
+skill:
+  # スキル保存先（スキル名に shogun- プレフィックスを付けて保存）
+  save_path: "~/.claude/skills/"
+
+  # ローカルスキル保存先（このプロジェクト専用）
+  local_path: "/home/murakami/multi-agent-shogun/skills/"
+
+# CLI モデル設定（type未指定=claudeフォールバック。明示するにはtype: claudeを追加）
+cli:
+  default: claude
+  agents:
+    shogun: { type: claude, model: "opus[1m]" }
+    karo: { type: claude, model: "opus[1m]" }
+    gunshi: { type: claude, model: "opus[1m]" }
+    ashigaru1: { type: glm, model: sonnet }  # Z.AI GLM-5.1 (要: config/glm_api_key.env)
+    ashigaru2: { type: claude, model: sonnet }
+    ashigaru3: { type: claude, model: sonnet }
+    ashigaru4: { type: claude, model: sonnet }
+    ashigaru5: { type: claude, model: sonnet }
+    ashigaru6: { type: claude, model: sonnet }
+    ashigaru7: { type: claude, model: sonnet }
+
+# ntfy通知設定
+ntfy_topic: "shogun-962f817f20fadb36"
+ntfy_image_dir: "screenshots/ntfy"
+screenshot:
+  path: "screenshots/ntfy"
+
+# VOICEVOX音声通知設定（ずんだもん）
+voicevox_enabled: true  # trueにすると通知時にずんだもんが読み上げ
+
+# ログ設定
+logging:
+  level: info  # debug | info | warn | error
+  path: "/home/murakami/multi-agent-shogun/logs/"

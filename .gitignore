@@ -76,6 +76,7 @@
 !config/ntfy_auth.env.sample
 !config/voicevox_dict.txt
 !config/genai_user_profile.yaml
+!config/settings.yaml
 
 # Templates
 !templates/
@@ -154,6 +155,7 @@
 !scripts/genai_dedup.py
 !scripts/discord_news_bot.py
 !scripts/genai_parse_report.py
+!scripts/start_ashigaru_glm.sh
 !discord-news-bot.service
 # config/discord_bot.env は * で除外済み（トークン含む、絶対コミット禁止）
 

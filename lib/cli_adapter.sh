@@ -3,7 +3,7 @@
 # Multi-CLI統合設計書 (reports/design_multi_cli_support.md) §2.2 準拠
 #
 # 提供関数:
-#   get_cli_type(agent_id)                  → "claude" | "codex" | "copilot" | "kimi"
+#   get_cli_type(agent_id)                  → "claude" | "codex" | "copilot" | "kimi" | "glm"
 #   build_cli_command(agent_id)             → 完全なコマンド文字列
 #   get_instruction_file(agent_id [,cli_type]) → 指示書パス
 #   validate_cli_availability(cli_type)     → 0=OK, 1=NG
@@ -16,7 +16,7 @@ CLI_ADAPTER_PROJECT_ROOT="$(cd "${CLI_ADAPTER_DIR}/.." && pwd)"
 CLI_ADAPTER_SETTINGS="${CLI_ADAPTER_SETTINGS:-${CLI_ADAPTER_PROJECT_ROOT}/config/settings.yaml}"
 
 # 許可されたCLI種別
-CLI_ADAPTER_ALLOWED_CLIS="claude codex copilot kimi gemini"
+CLI_ADAPTER_ALLOWED_CLIS="claude codex copilot kimi gemini glm"
 
 # --- 内部ヘルパー ---
 
@@ -87,18 +87,18 @@ try:
         print('claude'); sys.exit(0)
     agents = cli.get('agents', {})
     if not isinstance(agents, dict):
-        print(cli.get('default', 'claude') if cli.get('default', 'claude') in ('claude','codex','copilot','kimi','gemini') else 'claude')
+        print(cli.get('default', 'claude') if cli.get('default', 'claude') in ('claude','codex','copilot','kimi','gemini','glm') else 'claude')
         sys.exit(0)
     agent_cfg = agents.get('${agent_id}')
     if isinstance(agent_cfg, dict):
         t = agent_cfg.get('type', '')
-        if t in ('claude', 'codex', 'copilot', 'kimi', 'gemini'):
+        if t in ('claude', 'codex', 'copilot', 'kimi', 'gemini', 'glm'):
             print(t); sys.exit(0)
     elif isinstance(agent_cfg, str):
-        if agent_cfg in ('claude', 'codex', 'copilot', 'kimi', 'gemini'):
+        if agent_cfg in ('claude', 'codex', 'copilot', 'kimi', 'gemini', 'glm'):
             print(agent_cfg); sys.exit(0)
     default = cli.get('default', 'claude')
-    if default in ('claude', 'codex', 'copilot', 'kimi', 'gemini'):
+    if default in ('claude', 'codex', 'copilot', 'kimi', 'gemini', 'glm'):
         print(default)
     else:
         print('claude', file=sys.stderr)
@@ -174,6 +174,10 @@ build_cli_command() {
             fi
             echo "$cmd"
             ;;
+        glm)
+            # Z.AI GLM-5.1: 別HOMEでOAuth衝突回避。start_ashigaru_glm.shが設定を注入
+            echo "bash ${CLI_ADAPTER_PROJECT_ROOT}/scripts/start_ashigaru_glm.sh"
+            ;;
         *)
             echo "claude --dangerously-skip-permissions"
             ;;
@@ -203,6 +207,7 @@ get_instruction_file() {
         codex)   echo "instructions/codex-${role}.md" ;;
         copilot) echo ".github/copilot-instructions-${role}.md" ;;
         kimi)    echo "instructions/generated/kimi-${role}.md" ;;
+        glm)     echo "instructions/${role}.md" ;;
         *)       echo "instructions/${role}.md" ;;
     esac
 }
@@ -236,6 +241,16 @@ validate_cli_availability() {
                 echo "[ERROR] Kimi CLI not found. Install from https://platform.moonshot.cn/" >&2
                 return 1
             fi
+            ;;
+        glm)
+            command -v claude &>/dev/null || {
+                echo "[ERROR] Claude Code CLI not found (required for GLM proxy mode)." >&2
+                return 1
+            }
+            [[ -f "${CLI_ADAPTER_PROJECT_ROOT}/config/glm_api_key.env" ]] || {
+                echo "[ERROR] config/glm_api_key.env not found. Z.AI API key required." >&2
+                return 1
+            }
             ;;
         *)
             echo "[ERROR] Unknown CLI type: '$cli_type'. Allowed: $CLI_ADAPTER_ALLOWED_CLIS" >&2
@@ -307,8 +322,11 @@ get_model_display_name() {
     local thinking
     thinking=$(_cli_adapter_read_yaml "cli.agents.${agent_id}.thinking" "")
 
-    # モデル名 → 短縮表示名
+    # GLMは cli_type優先（モデル名が "sonnet" でも Z.AI経由なのでGLM表示）
     local short=""
+    if [[ "$cli_type" == "glm" ]]; then
+        short="GLM"
+    else
     case "$model" in
         *spark*)                short="Spark" ;;
         gpt-5.3-codex)          short="Codex5.3" ;;
@@ -317,6 +335,7 @@ get_model_display_name() {
         *sonnet*)               short="Sonnet" ;;
         *haiku*)                short="Haiku" ;;
         *k2.5*|*kimi*)          short="Kimi" ;;
+        *glm*)                  short="GLM" ;;
         *)
             # CLI種別から推測
             case "$cli_type" in
@@ -327,11 +346,12 @@ get_model_display_name() {
             esac
             ;;
     esac
+    fi
 
     # Thinking表示: Claude系はデフォルトONなので、falseの時だけ非表示
     # Claude: thinking: false → なし, それ以外(true/未設定) → "+T"
     # Codex等: Thinkingなし → 常になし
-    if [[ "$cli_type" == "claude" ]]; then
+    if [[ "$cli_type" == "claude" || "$cli_type" == "glm" ]]; then
         if [[ "$thinking" == "false" || "$thinking" == "False" ]]; then
             echo "$short"
         else
