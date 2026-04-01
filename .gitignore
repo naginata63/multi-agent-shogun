@@ -297,3 +297,10 @@ tests/specs/osato_lms_*
 # GenAI Daily Report Viewer (汎用ローカルWebサーバー、秘密情報なし)
 !genai_viewer/
 !genai_viewer/**
+
+# sasuu stub refetch script (cmd_1069)
+!scripts/sasuu_stub_refetch.py
+
+# sasuu articles (md変換済み、PDFは除外)
+!work/cmd_1039/articles/
+!work/cmd_1039/articles/**
