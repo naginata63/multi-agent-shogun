@@ -1,0 +1,24 @@
+date: "2026-04-01"
+experiment: "mcp_minimal_scenario"
+duration_sec: 0
+overall: "PASS"
+summary: "9PASS / 0FAIL"
+results:
+  task_delivery: "PASS"
+  task_retrieval: "PASS"
+  status_update: "PASS"
+  message_send: "PASS"
+  message_receive: "PASS"
+  concurrent_write: "PASS"
+  report_delivery: "PASS"
+  latency_under_1sec: "PASS"
+  fallback_test: "PASS"
+latency:
+  max_ms: 1
+  create_ms: "0"
+  message_ms: "1"
+  report_ms: "0"
+errors:
+  []
+log_file: "/tmp/mcp_experiment_20260401_174909.log"
+conclusion: "全項目PASS。Phase 2検討可能"

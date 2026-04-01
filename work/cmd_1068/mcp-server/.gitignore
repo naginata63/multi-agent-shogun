@@ -1,0 +1,4 @@
+node_modules/
+experiment.db
+experiment.db-wal
+experiment.db-shm
