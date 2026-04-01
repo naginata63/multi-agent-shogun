@@ -1,19 +1,37 @@
-task_id: subtask_990b
-parent_cmd: cmd_990
-reported_by: ashigaru2
-timestamp: '2026-03-28T20:00:00'
+task_id: subtask_1076a
+agent: ashigaru2
 status: done
-title: "note下書き再投稿: Gemini API課金体験談"
+timestamp: '2026-04-02T06:30:00'
+title: "Gemini画像生成サムネイル3枚生成完了（cmd_1076）"
+
 summary: |
-  殿が前の記事を削除したため、noteに新規下書き投稿を実施。
-  記事本文・カバー画像・記事内画像3枚（billing_breakdown, paid_tier_badge, rate_limits）を全て挿入。
-  有料設定は変更せず。公開禁止状態を維持。
-result:
-  note_url: "https://note.com/n/n74ee5dc0fc41"
-  editor_url: "https://editor.note.com/notes/n74ee5dc0fc41/edit/"
-  status: draft
-  cover_image: done
-  article_images: done (3枚)
-  hashtags: "設定失敗—手動設定が必要"
-issues:
-  - "[MINOR] ハッシュタグ自動設定失敗: note-edit.jsがタグ入力フィールドを発見できず。手動設定推奨。"
+  Gemini API（gemini-3.1-flash-image-preview）でMEN3月総集編サムネイルを3枚生成。
+  競合サムネイル3枚（まとめ系）+バストアップ笑顔5キャラ（dozle/bon/qnly/oo_men/orafu）を
+  リファレンスとして入力。VERTEX_API_KEYを使用（GEMINI_API_KEYは期限切れ）。
+
+output:
+  thumbnails:
+    - path: work/cmd_1076/thumbnail_v1_energetic.png
+      size: "1376x768"
+      description: "v1: 5人横並び・マイクラ背景・爆発エフェクト"
+    - path: work/cmd_1076/thumbnail_v2_character_focus.png
+      size: "1376x768"
+      description: "v2: ドズル中央・グラデーション背景・光エフェクト"
+    - path: work/cmd_1076/thumbnail_v3_collage.png
+      size: "1376x768"
+      description: "v3: MENフォーカス（左大きく）・4人グリッド右側"
+  http_server: "http://192.168.2.7:8765/ (200 OK)"
+  viewer_updated: true
+
+notes: |
+  - GEMINI_API_KEY/GEMINI_API_KEY_2は共に期限切れ。VERTEX_API_KEYで代替成功。
+  - config/vertex_api_key.envに両キーが含まれる。
+  - work/cmd_1076/はgitignore対象（大容量バイナリ）のため画像はcommit対象外。
+  - HTTPサーバーはprojects/dozle_kirinuki/work/cmd_1070/から提供中。
+    thumb_gemini_v1/v2/v3.pngとして配置、index.html更新済み。
+  - ガチャ使用: 1セット（3枚）。残り上限: 2セット。
+
+knowledge:
+  - GEMINI_API_KEY期限切れ（2026-04-02確認）→ VERTEX_API_KEYで代替
+  - gemini-3.1-flash-image-previewはVERTEX_API_KEYで動作確認済み
+  - part.as_image()ではなくio.BytesIO(part.inline_data.data)でImage取得が正しい

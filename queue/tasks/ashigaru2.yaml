@@ -14375,7 +14375,7 @@ tasks:
     最終的にTop10候補リストを生成しntfyで殿に送信。
   project: dozle_kirinuki
   report_to: karo
-  status: assigned
+  status: done
   timestamp: '2026-03-25T21:56:00'
   input_files:
     - projects/dozle_kirinuki/work/audio_hotspots/rms_ranking.json
@@ -14542,7 +14542,7 @@ tasks:
     殿確認ポイント: プロンプト設計完了後にntfyで通知し、殿の承認を待つ。
   project: narration_sample
   report_to: karo
-  status: assigned
+  status: done
   timestamp: '2026-03-26T12:55:00'
   steps:
     - step: 1
@@ -14634,7 +14634,7 @@ tasks:
     縦型9:16（1080x1920）、フォトリアルスタイル。
   project: narration_sample
   report_to: karo
-  status: assigned
+  status: done
   timestamp: '2026-03-26T14:33:00'
   steps:
     - step: 1
@@ -14700,7 +14700,7 @@ tasks:
     ★subtask_953b（画像生成）より先にこのタスクを実行せよ。
   project: narration_sample
   report_to: karo
-  status: assigned
+  status: done
   timestamp: '2026-03-26T14:36:00'
   steps:
     - step: 1
@@ -14740,7 +14740,7 @@ tasks:
     【殿指摘】佐藤は結婚資金を貯めている段階＝まだ結婚していない。左手に指輪があるのはおかしい。
   project: narration_sample
   report_to: karo
-  status: assigned
+  status: done
   timestamp: '2026-03-26T14:49:00'
   steps:
     - step: 1
@@ -15024,7 +15024,7 @@ tasks:
   parent_cmd: cmd_958
   assigned_to: ashigaru2
   bloom_level: L4
-  status: assigned
+  status: done
   description: "ネコおじ参照画像6枚を料理人おじいちゃんデザインでGemini画像生成"
   project: dozle_kirinuki
   acceptance_criteria:
@@ -15086,7 +15086,7 @@ tasks:
   parent_cmd: cmd_958
   assigned_to: ashigaru2
   bloom_level: L4
-  status: assigned
+  status: done
   description: "ネコおじ料理人おじいちゃん6枚再生成 — 殿のマイクラスクショ＋元イラストをref_imageとして入力し忠実にイラスト化"
   project: dozle_kirinuki
   acceptance_criteria:
@@ -15154,7 +15154,7 @@ tasks:
   parent_cmd: cmd_958
   assigned_to: ashigaru2
   bloom_level: L4
-  status: assigned
+  status: done
   description: "ネコおじ料理人おじいちゃん6枚再々生成 — 殿の顔スクショ(nekooji_face_reference.png)を最重要リファレンスとして入力"
   project: dozle_kirinuki
   acceptance_criteria:
@@ -15215,7 +15215,7 @@ tasks:
   parent_cmd: cmd_959
   assigned_to: ashigaru2
   bloom_level: L3
-  status: assigned
+  status: done
   description: "HvpVBlzwQiw クリップC切り出し: 45:13〜45:54 おんりーエンダーパールTジャン"
   project: dozle_kirinuki
   acceptance_criteria:
@@ -15242,7 +15242,7 @@ tasks:
   parent_cmd: cmd_958
   assigned_to: ashigaru2
   bloom_level: L4
-  status: assigned
+  status: done
   description: "ネコおじ料理人v4: 顔リファレンスv2+シワなし+凛々しい+猫耳コック帽+ドズル等身+モノクルなし"
   project: dozle_kirinuki
   acceptance_criteria:
@@ -15322,7 +15322,7 @@ tasks:
   parent_cmd: cmd_958
   assigned_to: ashigaru2
   bloom_level: L4
-  status: assigned
+  status: done
   description: "ネコおじ料理人v6: 猫耳灰色+あごひげなし(口ひげのみ)+凛々しく+シワ絶対なし+6枚デザイン完全統一"
   project: dozle_kirinuki
   acceptance_criteria:
@@ -15389,7 +15389,7 @@ tasks:
   parent_cmd: cmd_958
   assigned_to: ashigaru2
   bloom_level: L3
-  status: assigned
+  status: done
   description: "ネコおじ nekooji_v5_smug.png のみ白ズボンで再生成（他5枚は触るな）"
   project: dozle_kirinuki
   acceptance_criteria:
@@ -15428,7 +15428,7 @@ tasks:
   parent_cmd: cmd_968
   assigned_to: ashigaru2
   bloom_level: L3
-  status: assigned
+  status: done
   title: "vocal_stt_pipeline.py SRT再生成バグ修正"
   description: |
     run_speaker_identification()でECAPA-TDNN実名変換後にSRTを再生成していないバグを修正。
@@ -15477,7 +15477,7 @@ tasks:
   parent_cmd: cmd_971
   assigned_to: ashigaru2
   bloom_level: L4
-  status: assigned
+  status: done
   title: "ちらし寿司漫画ショート 音声切り出し＋動画合成"
   description: |
     12パネルPNG（P1-P12）が揃った。tono_cut.mp4から音声を切り出し、
@@ -15545,7 +15545,7 @@ tasks:
   parent_cmd: cmd_979
   assigned_to: ashigaru2
   bloom_level: L4
-  status: assigned
+  status: done
   title: "アスレ漫画ショート clip_a 3案制作＋YouTube非公開アップ"
   description: |
     cmd_974の構成案からclip_a（MENぼん落とし）の3案のpanels JSONを作成し、
@@ -15732,7 +15732,7 @@ tasks:
   parent_cmd: cmd_997
   assignee: ashigaru2
   project: dozle_kirinuki
-  status: assigned
+  status: done
   title: "generate_manga_short.py CHAR_NAMES_JP外見テキスト削除"
   description: |
     generate_manga_short.pyのCHAR_NAMES_JP辞書から括弧内の外見説明を全て削除し、名前のみ残す。
@@ -15857,7 +15857,7 @@ tasks:
   parent_cmd: cmd_999
   assignee: ashigaru2
   project: dozle_kirinuki
-  status: assigned
+  status: done
   title: "H5XxSaT0HYQ 集合知Round2 SH候補選定"
   description: |
     H5XxSaT0HYQ（MBTIの能力を使ってエンドラ討伐！）のSH（ショート）候補を独自に選定せよ。
@@ -15902,7 +15902,7 @@ tasks:
   parent_cmd: cmd_1001
   assignee: ashigaru2
   project: dozle_kirinuki
-  status: assigned
+  status: done
   title: "MEN総集編 — 元動画不明3本の特定+全8本シーンタイムスタンプ特定"
   description: |
     MEN面白シーン総集編の素材準備Phase1。
@@ -15959,7 +15959,7 @@ tasks:
   parent_cmd: cmd_1001
   assignee: ashigaru2
   project: dozle_kirinuki
-  status: assigned
+  status: done
   title: "MEN総集編 — 追加3本のDL+シーン特定+切り出し"
   description: |
     MEN総集編に3本追加。DL+シーン特定+切り出しを全てやれ。
@@ -16014,7 +16014,7 @@ tasks:
   parent_cmd: cmd_1014
   assignee: ashigaru2
   project: dozle_kirinuki
-  status: assigned
+  status: done
   title: "btDo5e2_4fY Phase1素材準備（DL+STT+話者ID）"
   description: |
     新動画btDo5e2_4fYのPhase1素材準備。context/hl_sh_workflow.md参照。
@@ -16062,7 +16062,7 @@ tasks:
   parent_cmd: cmd_1014
   assignee: ashigaru2
   project: dozle_kirinuki
-  status: assigned
+  status: done
   title: "btDo5e2_4fY 集合知Round2 SH候補選定"
   description: |
     btDo5e2_4fY（海外の超鬼畜モードでネザーに入れるまで終われません）のSH候補を独自に選定せよ。
@@ -16159,7 +16159,7 @@ tasks:
   parent_cmd: cmd_1016
   assignee: ashigaru2
   project: dozle_kirinuki
-  status: assigned
+  status: done
   title: "鬼畜動画Phase1 バッチ2（4本）"
   description: |
     鬼畜動画4本のPhase1処理（360p DL+STT+話者ID）を順次実行せよ。
@@ -16205,7 +16205,7 @@ tasks:
   parent_cmd: cmd_1016
   assignee: ashigaru2
   project: dozle_kirinuki
-  status: assigned
+  status: done
   title: "全動画字幕セマンティック検索インデックス構築+シーン検索"
   description: |
     全動画のmerged JSON字幕をsemantic_search.pyのインデックスに登録し、セマンティック検索でシーンを探せ。
@@ -16565,3 +16565,706 @@ tasks:
   important_notes:
     - "新規.py作成禁止"
     - "embeddings.jsonは巨大。全件メモリに載せると重い→video_idだけ抽出"
+- task_id: subtask_1041a
+  parent_cmd: cmd_1041
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  bloom_level: L4
+  status: done
+  title: "OpenAI gpt-image-1.5 medium 漫画パネルテスト生成"
+  description: |
+    OpenAI gpt-image-1.5 mediumで漫画パネルのテスト生成。Geminiとの品質比較。
+
+    ## 前提
+    - OPENAI_API_KEY: 環境変数に設定済み（source ~/.bashrc で読み込み可）
+    - expression_design_v5.md必須参照: projects/dozle_kirinuki/context/expression_design_v5.md
+    - member_profiles.yaml参照: projects/dozle_kirinuki/context/member_profiles.yaml
+
+    ## テスト対象
+    cmd_1015と同じP1パネル: おんりー（qnly）が「怖え」と驚く場面
+
+    ## 手順
+    1. おんりーのリファレンス画像を確認:
+       `ls projects/dozle_kirinuki/assets/dozle_jp/character/selected/qnly*`
+       + 表情画像: `ls projects/dozle_kirinuki/assets/dozle_jp/character/expressions/gemini_v3/qnly*`
+    2. OpenAI Images APIでgpt-image-1.5 medium（1024x1024）でテスト生成
+       ```python
+       from openai import OpenAI
+       import base64
+       client = OpenAI()
+       # リファレンス画像をbase64で渡す（image input対応確認）
+       result = client.images.generate(
+           model="gpt-image-1",
+           prompt="漫画パネル: おんりー（金髪、黄色テーマカラー）が驚いた表情で「怖え」と言っている。吹き出しに「怖え」のテキスト。漫画風・4コマ風の画風。",
+           size="1024x1024",
+           quality="medium",
+           n=1
+       )
+       ```
+       ※ モデル名は "gpt-image-1" （API上の正式名）。quality="medium"で$0.034/枚
+       ※ リファレンス画像の渡し方: image inputパラメータ対応確認。非対応ならプロンプトのみ
+    3. 生成画像をwork/cmd_1041/openai_p1_qnly.pngに保存
+    4. Gemini版の既存画像と比較:
+       ```bash
+       ls projects/dozle_kirinuki/work/20260329_*/output/cmd_*/panel_01.png 2>/dev/null
+       ```
+       既存パネル画像をwork/cmd_1041/gemini_p1_qnly.pngにコピー
+    5. 品質評価レポート作成: work/cmd_1041/comparison_report.md
+       - キャラ再現度（おんりーに見えるか）
+       - 表情・感情表現
+       - テキスト描画品質
+       - 画風の一貫性
+       - コスト比較（$0.034 vs $0.067）
+
+    ## 注意
+    - 新規.py作成禁止。Pythonワンライナーor既存スクリプトで実施
+    - 1枚のみ生成（ガチャ禁止）
+    - APIエラーの場合はエラー内容を報告（モデル名・パラメータの問題の可能性）
+
+    ## テスト手順
+    - work/cmd_1041/openai_p1_qnly.png が存在しサイズ > 10KB
+    - work/cmd_1041/comparison_report.md が存在
+    - 画像をReadツールで確認（Claude Codeは画像を読める）
+
+    ## 完了後
+    ```bash
+    git add work/cmd_1041/
+    git commit -m "feat(cmd_1041): OpenAI gpt-image-1.5 medium テスト生成"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1041a完了。OpenAI gpt-image-1.5 medium テスト生成。結果: work/cmd_1041/comparison_report.md" report_done ashigaru2
+    ```
+  report_to: karo
+  timestamp: '2026-04-01T10:05:00'
+  acceptance_criteria:
+    - テスト画像がwork/cmd_1041/に保存
+    - 比較レポートが作成されていること
+    - git commit済み
+  important_notes:
+    - "新規.py作成禁止"
+    - "1枚のみ生成（ガチャ禁止）"
+    - "expression_design_v5.md必須参照"
+    - "OPENAI_API_KEYは環境変数にあり。source ~/.bashrc で読み込み"
+- task_id: subtask_1048a
+  parent_cmd: cmd_1048
+  assignee: ashigaru2
+  project: infra
+  bloom_level: L3
+  status: done
+  title: "sasuu PDF→md変換やり直し batch1（5本）"
+  description: |
+    最優先。PDF（有料部分込み）からmd変換をやり直す。batch1は5本で品質確認。
+
+    ## 手順
+    1. PDF読み込みツール確認: PyMuPDF(fitz)またはpdfplumber
+       ```bash
+       pip install pymupdf 2>/dev/null || pip install pdfplumber
+       ```
+    2. batch1対象: work/cmd_1039/pdfs/ の001〜005.pdf
+    3. 各PDFからテキスト抽出→md形式に整形
+       ```python
+       import fitz  # PyMuPDF
+       doc = fitz.open("path/to/file.pdf")
+       text = ""
+       for page in doc:
+           text += page.get_text()
+       ```
+    4. 既存mdからURL情報を取得（冒頭行のURL）して新mdの冒頭に追加
+    5. work/cmd_1039/articles/ に同名.mdで上書き保存
+    6. 品質確認: 変換後のmdが有料部分（コードブロック等）を含んでいることを確認
+       - 変換前の行数と変換後の行数を比較（増加していること）
+
+    ## テスト手順
+    - 5本のmd全てが上書き保存されていること
+    - 変換後の行数 > 変換前の行数（有料部分が追加された証拠）
+    - 1本以上のmdでコードブロック（```）が存在すること
+
+    ## 完了後
+    ```bash
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1048a完了。batch1: 5本PDF→md変換完了。変換前平均X行→変換後平均X行。有料部分含有確認済み。" report_done ashigaru2
+    ```
+  report_to: karo
+  timestamp: '2026-04-01T12:42:00'
+  acceptance_criteria:
+    - 5本のPDF→md変換完了
+    - 有料部分が含まれていること（行数増加）
+    - コードブロック等の構造維持
+  important_notes:
+    - "新規.py作成禁止。ワンライナーで実施"
+    - "batch1は5本のみ。品質確認後にbatch2"
+    - "既存mdのURL情報を引き継ぐこと"
+  status: done
+- task_id: subtask_1048b
+  parent_cmd: cmd_1048
+  assignee: ashigaru2
+  project: infra
+  bloom_level: L3
+  status: done
+  title: "sasuu PDF→md変換やり直し batch2（006〜096、91本）"
+  description: |
+    batch1 QC PASS。残り91本（006〜096）を同じ方法で一括変換。
+
+    ## 手順
+    batch1と同じPyMuPDFブロック方式で006〜096.pdfを変換。
+    - 既存mdからURL情報を取得して冒頭に追加
+    - work/cmd_1039/articles/ に上書き保存
+    - 30本ずつ処理（/clear不要、メモリに注意）
+
+    ## テスト手順
+    - 全96本のmdが存在: `ls work/cmd_1039/articles/*.md | wc -l` → 96
+    - 抜き打ち確認: 053_*.md（sasuuのfork記事）の行数が大幅に増えていること
+    - 089_*.md にコードブロックが含まれていること
+
+    ## 完了後
+    ```bash
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1048b完了。全96本PDF→md変換完了。抜き打ち確認: 053行数=X、089コードブロック=X個。" report_done ashigaru2
+    ```
+  report_to: karo
+  timestamp: '2026-04-01T12:52:00'
+  acceptance_criteria:
+    - 全96本のmd変換完了
+    - 有料部分含有（抜き打ち確認）
+  important_notes:
+    - "batch1と同じPyMuPDFブロック方式"
+    - "30本ずつ処理してメモリ節約"
+    - "work/はgitignoreなのでcommit不要"
+- task_id: subtask_1050a
+  parent_cmd: cmd_1050
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  bloom_level: L4
+  status: done
+  title: "GPT-image-1 リファレンス画像+カラーで再テスト"
+  description: |
+    GPT-image-1にリファレンス画像を入力し、カラーで漫画パネルを再生成。Geminiとフェアに比較。
+
+    ## 手順
+    1. GPT-image-1のAPIドキュメントでリファレンス画像入力方法を確認
+       - OpenAI Images API: image[]パラメータでリファレンス画像を渡せるか
+       - 渡せない場合はその旨を報告
+    2. リファレンス画像: `ls projects/dozle_kirinuki/assets/dozle_jp/character/selected/qnly*`
+    3. expression_design_v5.md参照: projects/dozle_kirinuki/context/expression_design_v5.md
+    4. カラーで「おんりー『怖え』」パネルを生成
+       プロンプト例: 「フルカラー漫画パネル。おんりー（金髪ポニーテール、黄色テーマカラー#FCC700、眼鏡、知的な印象）が驚いた表情で『怖え』と言っている。吹き出しに『怖え』テキスト。アニメ調カラー。」
+    5. work/cmd_1050/openai_p1_qnly_color.pngに保存
+    6. Gemini版パネルをwork/cmd_1050/gemini_p1_qnly.pngにコピー
+    7. 比較レポート: work/cmd_1050/comparison_report.md
+    8. HTTPサーバーで画像配信:
+       ```bash
+       cd /home/murakami/multi-agent-shogun/work/cmd_1050
+       python3 -m http.server 8888 &
+       ```
+    9. ntfyで通知:
+       ```bash
+       bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "🎨 cmd_1050: GPT-image-1カラー比較画像 http://$(hostname -I | awk '{print $1}'):8888/"
+       ```
+
+    ## テスト手順
+    - work/cmd_1050/openai_p1_qnly_color.png存在、サイズ>10KB
+    - comparison_report.md存在
+    - HTTPサーバーでアクセス可能
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1050a完了。GPT-image-1カラー+リファレンス再テスト。HTTPサーバー8888で配信中。比較レポート: work/cmd_1050/comparison_report.md" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-01T13:15:00'
+  acceptance_criteria:
+    - カラー画像生成（orリファレンス非対応の場合その報告）
+    - 比較レポート作成
+    - HTTPサーバー+ntfy通知
+  important_notes:
+    - "新規.py作成禁止"
+    - "1枚のみ生成（ガチャ禁止）"
+    - "expression_design_v5.md必須参照"
+    - "OPENAI_API_KEY: source ~/.bashrc"
+- task_id: subtask_1052a
+  parent_cmd: cmd_1052
+  assignee: ashigaru2
+  project: infra
+  bloom_level: L4
+  status: done
+  title: "sasuu スタブ38本のPDF再取得+md変換"
+  description: |
+    cmd_1048でスタブだった38本のPDFを再取得してmd変換。
+
+    ## 手順
+    1. スタブmdをリストアップ（10行以下）
+       ```bash
+       for f in work/cmd_1039/articles/*.md; do
+         lines=$(wc -l < "$f")
+         if [ "$lines" -le 10 ]; then echo "$lines $f"; fi
+       done | sort -n
+       ```
+    2. 各mdからURLを取得（2行目付近に`**URL**: https://...`）
+    3. Playwright+殿のChromeプロファイルでPDF再取得
+       ```python
+       from playwright.sync_api import sync_playwright
+       with sync_playwright() as p:
+           browser = p.chromium.launch_persistent_context(
+               user_data_dir="/home/murakami/.cache/ms-playwright/note-profile",
+               headless=True
+           )
+           page = browser.pages[0] if browser.pages else browser.new_page()
+           page.goto(url, wait_until="networkidle")
+           page.pdf(path=output_pdf_path)
+           browser.close()
+       ```
+    4. PyMuPDFでPDF→md変換（cmd_1048と同じ方式）
+    5. work/cmd_1039/articles/に上書き保存
+    6. 全96本のmd行数を確認、スタブ残なしを検証
+
+    ## テスト手順
+    - 38本全てが10行超に改善されていること
+    - 抜き打ち: Claude Code超初心者講座の1本にコードブロックが含まれること
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1052a完了。38本中X本再取得成功。スタブ残X本。全96本のmd行数確認済み。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-01T14:03:00'
+  acceptance_criteria:
+    - 38本の再取得+md変換完了
+    - スタブ残なし（全96本が10行超）
+  important_notes:
+    - "新規.py作成禁止"
+    - "Chromeプロファイル: ~/.cache/ms-playwright/note-profile"
+    - "headless=Trueで実行"
+- task_id: subtask_1054a
+  parent_cmd: cmd_1054
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  bloom_level: L4
+  status: assigned
+  title: "3月前半動画3本 speaker_id付与"
+  description: |
+    以下3本にvocal_stt_pipeline.pyでspeaker_id付与。1本ずつ順次（GPU VRAM制約）。
+
+    対象（6本全て）:
+    1. q_zn_p6QP88 (3/2) 3回目の入れ替わりドッキリ
+    2. ub2kRKlpZqg (3/3) 超巨大ちらし寿司
+    3. igG2Q_Nda34 (3/7) 地図1枚分の超広い雪原
+    4. d3bDsu_pFh8 (3/10) クセが強い発明家
+    5. rDYmTp-PlaQ (3/11) 伝説のファイヤーカジキマグロ
+    6. Bxl6QhjtH7s (3/13) 嘘つきだらけのポーカー
+
+    手順: find work/ で入力動画確認→vocal_stt_pipeline.py実行→merged JSON出力。1本ずつ順次。
+
+    ## 完了後
+    git add projects/dozle_kirinuki/work/ && git commit -m "feat(cmd_1054): 3月前半6本 speaker_id付与"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1054a完了。6本speaker_id付与完了。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-01T15:18:00'
+  acceptance_criteria:
+    - 6本全てでmerged JSON生成、speaker_id存在
+    - git commit済み
+  important_notes:
+    - "1本ずつ順次実行（GPU VRAM 8GB制約）"
+    - "ffmpegはh264_nvenc"
+- task_id: subtask_1058a
+  parent_cmd: cmd_1058
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  bloom_level: L4
+  status: done
+  title: "vast_lily PDF→md変換やり直し+添付資料DL"
+  description: |
+    1. PDF→md変換: work/cmd_1040/vast_lily_manga_system.pdf → PyMuPDFで変換 → work/cmd_1040/vast_lily_manga_system.md上書き
+    2. 変換後mdからダウンロードリンクを抽出
+    3. Playwright+Chromeプロファイル(~/.cache/ms-playwright/note-profile)でnoteにログインし添付6ファイルDL
+    4. work/cmd_1058/に保存+内容サマリー作成
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1058a完了。md変換X行、添付X/6ファイルDL。詳細: work/cmd_1058/" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-01T16:18:00'
+  acceptance_criteria:
+    - md変換完了（有料部分含有）
+    - 添付6ファイルDL
+  important_notes:
+    - "Chromeプロファイル: ~/.cache/ms-playwright/note-profile"
+    - "python3 -c禁止。scripts/に保存"
+  status: done
+- task_id: subtask_1060a
+  parent_cmd: cmd_1060
+  assignee: ashigaru2
+  project: infra
+  bloom_level: L3
+  status: done
+  title: "sasuu全96本md変換品質精査+再変換"
+  description: |
+    全96本のPDFテキスト文字数 vs md文字数を比較し、変換漏れを特定→再変換。
+    1. 全PDF→PyMuPDFテキスト抽出→文字数
+    2. 全md文字数
+    3. 比較表（比率=pdf_chars/md_chars）
+    4. 比率1.5以上→変換漏れ→PDF再変換
+    5. 再確認
+    出力: work/cmd_1060/quality_report.md
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1060a完了。変換漏れX本→再変換。全96本比率1.5以下確認。詳細: work/cmd_1060/" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-01T16:26:00'
+  acceptance_criteria:
+    - 全96本比較表
+    - 変換漏れ再変換完了
+  important_notes:
+    - "python3 -c禁止。scripts/に保存"
+  status: done
+- task_id: subtask_1061a
+  parent_cmd: cmd_1061
+  assignee: ashigaru2
+  project: infra
+  bloom_level: L4
+  status: assigned
+  title: "note API v3+gogcli活用検討"
+  description: |
+    記事095(note API v3)と087(gogcli)の完全版mdを精読し活用案作成。
+    1. work/cmd_1039/articles/095_*.md精読
+    2. work/cmd_1039/articles/087_*.md精読
+    3. 現状(Playwright)との比較
+    4. 具体的活用案リスト
+    出力: work/cmd_1061/note_api_gogcli_report.md
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1061a完了。活用案X件。詳細: work/cmd_1061/" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-01T16:32:00'
+  acceptance_criteria:
+    - 2記事精読、活用案リスト
+  important_notes:
+    - "コードを書くな。分析のみ"
+  status: done
+- task_id: subtask_1062a
+  parent_cmd: cmd_1062
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  bloom_level: L4
+  status: done
+  title: "おおはらMEN 3月総集編制作+YouTube非公開アップ"
+  description: |
+    12シーン構成の横長動画を制作しYouTube非公開アップ。
+
+    ## シーン構成（日付順）
+    1. scene7: おじいちゃん翻訳MEN (xZTtk4pJcAs 3/6 10:45-11:29)
+    2. scene1: ちゃかすMEN (hVBDPBc4Ypg 3/8 20:03-21:05)
+    3. scene5: 極悪パチンコMEN (Pjoe8fJmF7M 3/9 13:58-14:30)
+    4. NC-F01: 大根クーラー発明MEN (d3bDsu_pFh8 3/10 3:50-5:50)
+    5. scene6: 悪だくみMEN (Ccc2eq0LUAg 3/14 24:00-25:20)
+    6. scene10: ネザー全収集MEN (ojQivRzcBzs 3/17)
+    7. scene9: ジオラマ展MEN (BMrwN95dlGg 3/18)
+    8. scene2: 依頼を断るMEN (a9rkN9zYwTc 3/22 13:27-13:48)
+    9. NC-04: 落ち毒MEN (HvpVBlzwQiw 3/26 43:30-45:00)
+    10. NC-02: 雑談MEN vs 怒るぼん (SJ-kTnrShtk 3/28 9:00-10:30)
+    11. NC-01: 仲介者暗黒告白MEN (H5XxSaT0HYQ 3/29 18:00-19:30)
+    12. NC-03: 世界最強MEN (H5XxSaT0HYQ 3/29 35:00-37:00)
+
+    ## 仕様
+    - 1920x1080横長16:9
+    - 右上に元動画タイトル常時表示（ffmpeg drawtext）
+    - シーン切替SE（1種類統一）
+    - 10分以上
+    - h264_nvenc（GPU）
+
+    ## 手順
+    1. 各シーンの入力動画を確認（find work/ で探す）
+    2. ffmpegで各シーンをカット+右上タイトルオーバーレイ
+    3. シーン間にSEを挿入して結合
+    4. 概要欄テキスト生成（タイムスタンプ+元動画URL）
+    5. YouTube非公開アップ
+    6. ntfyでURL通知
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1062a完了。MEN3月総集編X分。YouTube非公開アップ済み。URL: ..." report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-01T16:42:00'
+  acceptance_criteria:
+    - 12シーン構成の横長動画
+    - 右上タイトル表示
+    - シーン切替SE
+    - 10分以上
+    - YouTube非公開アップ+ntfy通知
+  important_notes:
+    - "h264_nvenc必須。libx264禁止"
+    - "scene8おらリッシュは除外（殿指示）"
+    - "日付順で並べよ"
+    - "skills/と既存スクリプトを確認してから作業"
+  status: done
+  result: "YouTube非公開アップ完了。URL: https://www.youtube.com/watch?v=j46sysRvYa4 12シーン/15.2分"
+- task_id: subtask_1067a
+  parent_cmd: cmd_1067
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  bloom_level: L4
+  status: done
+  title: "漫画改善Phase1: セルフチェック9項目+左右5層制御"
+  description: |
+    generate_manga_short.pyに実装。設計: work/cmd_1064/manga_improvements_retake.md
+    本体: projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py
+
+    3-A: validate_panels_json() 9項目(必須フィールド/speaker∈chars/時系列/重複ID/2キャラpos/左右一貫/未定義警告/bg警告/3連続警告)
+    3-B: validate_text_styles()(スタイル割当/bottom禁止/3連続同一回避)
+    4-1: meta.character_positions JSON拡張
+    4-2: generate_panel()に配置指示注入
+    4-3: 全パネル横断位置一致検証
+
+    テスト: panels_pachinko.jsonにcharacter_positions追加→dry-run
+
+    ## 完了後
+    git add projects/dozle_kirinuki/scripts/ skills/manga-short/ && git commit -m "feat(cmd_1067): 漫画改善Phase1"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1067a完了。9項目チェック+左右制御実装。dry-runテストPASS。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-01T17:42:00'
+  acceptance_criteria:
+    - validate_panels_json 9項目+validate_text_styles+character_positions+配置注入
+    - dry-runテストPASS
+    - git commit済み
+  important_notes:
+    - "既存コードを壊すな"
+    - "画像生成不要。チェック機能のみテスト"
+  status: done
+- task_id: subtask_1069a
+  parent_cmd: cmd_1069
+  assignee: ashigaru2
+  project: infra
+  bloom_level: L4
+  status: done
+  title: "sasuu38本スタブPDF再取得+md変換"
+  description: |
+    38本スタブPDFを殿のChromeセッションで再取得→md変換。
+    対象: 029,031,033,035,038,041,044,045,046-049,051,052,054-061,063-067,069-071,073,075-077,079-082
+    手順: md冒頭URL→Playwright(~/.cache/ms-playwright/note-profile)→PDF→PyMuPDF→md上書き
+    品質: 全96本PDFテキスト200字未満=0。抜き打ち029/055/070目視。
+    shogun_to_karo.yaml cmd_1069の詳細参照。
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1069a完了。38本再取得X/38成功。スタブ残X本。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-01T18:02:00'
+  acceptance_criteria:
+    - 38本再取得+md変換、全96本200字以上
+  important_notes:
+    - "Chromeプロファイル: ~/.cache/ms-playwright/note-profile"
+    - "スタブ=PDFテキスト200字未満"
+  status: done
+  result: "38/38成功。全96本200字以上。スタブ残0本。git commit & push済み。"
+- task_id: subtask_1070a
+  parent_cmd: cmd_1070
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  bloom_level: L4
+  status: done
+  title: "MEN3月総集編リテイク（Remotionタイトル+SE+概要欄）"
+  description: |
+    cmd_1062ベースでリテイク。shogun_to_karo.yaml cmd_1070の詳細を必ず読め。
+    1. Remotion右上タイトル（48px+、フェードイン→切替まで表示）
+    2. SE(se_switch.wav)各シーン冒頭amix
+    3. 概要欄テキスト(タイムスタンプ+元動画URL)
+    参照: work/cmd_1062/build_1062.sh
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1070a完了。mp4: work/cmd_1070/" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-01T18:24:00'
+  acceptance_criteria:
+    - Remotionタイトル+SE+概要欄+結合mp4
+  important_notes:
+    - "h264_nvenc必須"
+    - "shogun_to_karo.yaml cmd_1070を必ず読め"
+  status: done
+  result: "men_march_compilation_v2.mp4 (15.2分/261MB)。タイトル56px+フェードイン(ffmpeg drawtext alpha式)。SE amix normalize=0で修正。youtube_description.txt生成済み。"
+- task_id: subtask_1070b
+  parent_cmd: cmd_1070
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  bloom_level: L3
+  status: done
+  title: "MEN3月総集編v2 YouTube非公開アップ"
+  description: |
+    work/cmd_1070/men_march_compilation_v2.mp4をYouTube非公開アップ。
+    タイトル: おおはらMENの面白すぎるシーンまとめ【2026年3月総集編】
+    概要欄: work/cmd_1070/youtube_description.txt の内容を使用。
+    アップ後URLをntfyで殿に送信。
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "🎬 MEN3月総集編v2 非公開アップ: URL"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1070b完了。YouTube非公開アップ。URL: ..." report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-01T18:40:00'
+  acceptance_criteria:
+    - YouTube非公開アップ+ntfy通知
+  important_notes:
+    - "概要欄はyoutube_description.txtを使え"
+  status: done
+- task_id: subtask_1070c
+  parent_cmd: cmd_1070
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  bloom_level: L4
+  status: done
+  title: "MEN3月総集編v3（13シーン大幅変更・1080p再DL）"
+  description: |
+    殿最終確定13シーン。shogun_to_karo.yaml cmd_1070を精読必須。
+    全クリップ1080p再DL、ショートIDからタイムスタンプ特定、Remotion/drawtextタイトル+SE+概要欄。
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1070c完了。v3: 13シーン/X分。1080p。mp4: work/cmd_1070/" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-01T19:33:00'
+  acceptance_criteria:
+    - 13シーン1080p結合mp4+タイトル+SE+概要欄
+  important_notes:
+    - "shogun_to_karo.yaml cmd_1070精読必須"
+    - "h264_nvenc -preset p4 -b:v 10M"
+    - "全クリップ1080p再DL"
+  status: done
+- task_id: subtask_1070d
+  parent_cmd: cmd_1070
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  bloom_level: L3
+  status: done
+  title: "MEN3月総集編v3 YouTube非公開アップ"
+  description: |
+    projects/dozle_kirinuki/work/cmd_1070/men_march_compilation_v3.mp4をYouTube非公開アップ。
+    タイトル: おおはらMENの面白すぎるシーンまとめ【2026年3月総集編】
+    概要欄: work/cmd_1070/youtube_description_v3.txt
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "🎬 MEN3月総集編v3 非公開アップ: URL"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1070d完了。v3 YouTube非公開アップ。URL: ..." report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-01T20:00:00'
+  acceptance_criteria:
+    - YouTube非公開アップ+ntfy通知
+  important_notes:
+    - "概要欄はyoutube_description_v3.txt"
+  status: done
+- task_id: subtask_1070e
+  parent_cmd: cmd_1070
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  bloom_level: L4
+  status: done
+  title: "MEN3月総集編v4（14シーン・テロップ黄色赤縁・SE+15dB）"
+  description: |
+    shogun_to_karo.yaml cmd_1070を再読み込み（v4大幅変更）。
+    14シーン確定、テロップ黄色+赤縁40px、SE+15dB、全1080p、ビルド前検証。
+    完了後YouTube非公開アップ+ntfy。
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "🎬 MEN v4: URL"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1070e完了。v4: 14シーン。URL: ..." report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-01T21:24:00'
+  acceptance_criteria:
+    - 14シーン1080p+テロップ+SE+概要欄+YouTube非公開アップ
+  important_notes:
+    - "shogun_to_karo.yaml cmd_1070再読み込み必須"
+    - "h264_nvenc"
+    - "ビルド前クリップ検証必須"
+  status: done
+- task_id: subtask_1070f
+  parent_cmd: cmd_1070
+  assignee: ashigaru2
+  project: dozle_kirinuki
+  bloom_level: L4
+  status: done
+  title: "MEN3月総集編v5（殿指摘4点修正）"
+  description: |
+    v4への殿指摘4点を修正。shogun_to_karo.yaml cmd_1070を再読み込み必須。
+    (1) scene13: btDo5e2_4fY→HvpVBlzwQiw 29:22に差し替え
+    (2) テロップ: fontsize=40 Bold 帯なし（v4の56pxは大きすぎ）
+    (3) SE: sceneswitch1.mp3に変更。scene1はSEなし
+    (4) 末尾にassets/outro.mp4追加
+    完了後YouTube非公開アップ+ntfy。
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "🎬 MEN v5: URL"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1070f完了。v5。URL: ..." report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-01T22:30:00'
+  acceptance_criteria:
+    - 4点修正+YouTube非公開アップ
+  important_notes:
+    - "shogun_to_karo.yaml cmd_1070再読み込み必須"
+    - "h264_nvenc"
+- task_id: subtask_1072a
+  parent_cmd: cmd_1072
+  assignee: ashigaru2
+  project: note_mcp_server
+  bloom_level: L3
+  status: done
+  title: "sasuu不完全記事2本（008, 094）Playwright再取得+md変換"
+  description: |
+    将軍QCで発見した不完全記事2本をPlaywrightで再取得しmd変換せよ。
+
+    ## 対象
+    1. **008**: Claude Codeの記憶喪失を防ぐ最適なCLAUDE.mdの仕組み
+       - URL: https://note.com/sasuu/n/naed86baae7a3
+       - 問題: 131行目で「ここから先は〜」ペイウォール。有料部分欠落
+       - 現在6,225bytes
+    2. **094**: 非エンジニア向けnote競合フォロワー推移監視ツールのつくり方
+       - URL: https://note.com/sasuu/n/n0c1f777e8561
+       - 問題: 目次+導入のみ。GASコード・具体手順が欠落。1,959bytes
+
+    ## 手順
+    1. cmd_1069で使ったPlaywright取得スクリプトを確認・再利用せよ（殿のChromeプロファイル使用）
+    2. 上記2URLにアクセス → ページ全体をPDF化 → work/cmd_1039/pdfs/ に上書き
+    3. PDF→md変換 → work/cmd_1039/articles/ に上書き
+    4. 品質確認:
+       - 008: 「ポインタ方式の具体的な設計パターン」「BRAIN.mdルーター」が含まれること。「ここから先は」「メンバーシップに参加すると」が残っていないこと
+       - 094: GASコード・スプレッドシート設定の具体手順が含まれること。3,000bytes以上であること
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1072a完了。sasuu記事008,094再取得+md変換。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-01T23:35:00'
+  acceptance_criteria:
+    - "008にポインタ方式設計パターン・BRAIN.mdルーターの具体手順が含まれること"
+    - "008にペイウォール文言が残っていないこと"
+    - "094にGASコード・具体手順が含まれ3,000bytes以上であること"
+    - "work/cmd_1039/articles/ に上書き保存済み"
+    - "git commit済み"
+  important_notes:
+    - "cmd_1069のPlaywrightスクリプトを再利用せよ"
+    - "殿のChromeプロファイルでログイン済みセッションを使う"
+- task_id: subtask_1076a
+  parent_cmd: cmd_1076
+  assignee: ashigaru2
+  bloom_level: L4
+  project: dozle_kirinuki
+  description: |
+    Gemini画像生成でYouTubeサムネイルを作成せよ。
+
+    ## 殿の指示（原文）
+    「サムネgeminiに投げてもっといい感じにできんか？競合のサムネはたくさんassetにある」
+
+    ## 手順
+    1. 競合サムネから「まとめ」「総集編」系を3-5枚選定
+       - パス: projects/dozle_kirinuki/assets/reference/competitor_thumbs/ 配下
+       - 各チャンネルフォルダのvideos/にwebpサムネあり
+       - 「まとめ」「総集編」「ベスト」等のファイル名を優先
+    2. Gemini画像生成（Vertex API経由）にプロンプト+参考画像+立ち絵を入力
+       - モデル: gemini-3.1-flash-image-preview（context/gemini_api_registry.json参照）
+       - 認証: source config/vertex_api_key.env
+       - プロンプト案: 「YouTubeサムネイル、1280x720、マイクラ切り抜き総集編、ドズル社の5人のキャラクターをバストアップで笑顔で配置、タイトル『3月のドズル社おもしろシーンまとめ』、派手で目を引くデザイン、参考画像のスタイルを踏襲」
+       - 参考画像（競合サムネ3-5枚）とリファレンス（立ち絵）を同時に渡す
+    3. ガチャ上限3セットまで（殿許可なく追加禁止）
+    4. 生成結果をwork/cmd_1076/に保存
+    5. http://192.168.2.7:8765/ で殿が確認できるようHTMLを更新
+
+    ## 素材パス
+    - 立ち絵（全身）: projects/dozle_kirinuki/assets/dozle_jp/character/{dozle,bonjour,qnly,oraf-kun,ooharamen}.png
+    - バストアップ笑顔: projects/dozle_kirinuki/assets/dozle_jp/character/selected/{dozle,bon,qnly,orafu,oo_men}_smile_r3_rgba.png
+    - 競合サムネ: projects/dozle_kirinuki/assets/reference/competitor_thumbs/
+    - キャラ設計書: projects/dozle_kirinuki/context/expression_design_v5.md（必読）
+    - メンバー情報: projects/dozle_kirinuki/context/member_profiles.yaml（必読）
+
+    ## テスト手順
+    - 生成画像がwork/cmd_1076/に保存されていること
+    - curl -s -o /dev/null -w "%{http_code}" http://192.168.2.7:8765/ で200が返ること
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "🖼️ Geminiサムネ確認: http://192.168.2.7:8765/"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1076a完了。Geminiサムネ生成。http://192.168.2.7:8765/" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-02T06:10:00'
+  status: done
+  acceptance_criteria:
+    - "Gemini画像生成でサムネが3枚以上work/cmd_1076/に保存"
+    - "競合サムネを参考画像として入力していること"
+    - "HTTPで殿が確認可能"
+    - "ntfy通知済み"
+    - "git commit済み"
+  important_notes:
+    - "ガチャ上限3セット。殿許可なく追加禁止"
+    - "expression_design_v5.md必読"
+    - "context/gemini_api_registry.json参照でモデル・ライブラリ確認"
+    - "VERTEX_API_KEY使用（source config/vertex_api_key.env）"
