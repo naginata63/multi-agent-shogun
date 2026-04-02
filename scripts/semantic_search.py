@@ -5,7 +5,8 @@
   python3 scripts/semantic_search.py build            # インデックス構築
   python3 scripts/semantic_search.py update           # 差分更新
   python3 scripts/semantic_search.py query "クエリ"   # 検索
-  python3 scripts/semantic_search.py query "クエリ" --source srt --top 5
+  python3 scripts/semantic_search.py query "クエリ" --source scripts --top 5
+注: SRT字幕検索はsubtitle_semantic_index.py (BigQuery) に統合済み。本スクリプトでは非対応。
 """
 
 import argparse
@@ -69,25 +70,19 @@ def get_data_sources():
         for f in tasks_dir.glob("*.yaml"):
             sources.append(("tasks", str(f)))
 
-    # 3. SRT files
-    work_dir = DOZLE_DIR / "work"
-    if work_dir.exists():
-        for srt in work_dir.rglob("fine_grained_with_speakers.srt"):
-            sources.append(("srt", str(srt)))
-
-    # 4. memory/*.md
+    # 3. memory/*.md
     mem_dir = BASE_DIR / ".claude" / "projects" / "-home-murakami-multi-agent-shogun" / "memory"
     if mem_dir.exists():
         for f in mem_dir.glob("*.md"):
             sources.append(("memory", str(f)))
 
-    # 5. dozle context/*.md
+    # 4. dozle context/*.md
     ctx_dir = DOZLE_DIR / "context"
     if ctx_dir.exists():
         for f in ctx_dir.glob("*.md"):
             sources.append(("context", str(f)))
 
-    # 6. scripts (py/sh/js)
+    # 5. scripts (py/sh/js)
     for script_dir in SCRIPT_DIRS:
         if not script_dir.exists():
             continue
@@ -179,63 +174,6 @@ def chunk_tasks_yaml(filepath: str):
                         "chunk_id": f"tasks::{task_id}",
                         "metadata": {"task_id": str(task_id), "file": Path(filepath).name},
                     })
-    except Exception as e:
-        print(f"  WARN: {filepath}: {e}")
-    return chunks
-
-
-def chunk_srt(filepath: str, window_seconds=30):
-    """30秒単位でSRTをチャンク化"""
-    chunks = []
-    try:
-        with open(filepath, "r", encoding="utf-8") as f:
-            content = f.read()
-
-        # SRTパース
-        pattern = re.compile(
-            r"(\d+)\s*\n(\d{2}:\d{2}:\d{2}[,\.]\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}[,\.]\d{3})\s*\n(.*?)(?=\n\n|\Z)",
-            re.DOTALL,
-        )
-        entries = []
-        for m in pattern.finditer(content):
-            start_str = m.group(2).replace(",", ".")
-            parts = start_str.split(":")
-            start_sec = int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
-            text = m.group(4).strip().replace("\n", " ")
-            entries.append((start_sec, text))
-
-        if not entries:
-            return chunks
-
-        # 30秒ウィンドウでグループ化
-        fname = Path(filepath).parent.parent.name  # work/XXX
-        window_start = entries[0][0]
-        window_texts = []
-
-        def flush_window(ws, we, texts):
-            if texts:
-                chunks.append({
-                    "text": " ".join(texts),
-                    "source": "srt",
-                    "source_file": filepath,
-                    "chunk_id": f"srt::{fname}::{int(ws)}-{int(we)}",
-                    "metadata": {
-                        "video": fname,
-                        "start_sec": ws,
-                        "end_sec": we,
-                    },
-                })
-
-        for sec, text in entries:
-            if sec - window_start >= window_seconds:
-                flush_window(window_start, sec, window_texts)
-                window_start = sec
-                window_texts = [text]
-            else:
-                window_texts.append(text)
-
-        flush_window(window_start, window_start + window_seconds, window_texts)
-
     except Exception as e:
         print(f"  WARN: {filepath}: {e}")
     return chunks
@@ -579,8 +517,6 @@ def collect_chunks(source_filter: Optional[str] = None):
             all_chunks.extend(chunk_shogun_to_karo(filepath))
         elif src_type == "tasks":
             all_chunks.extend(chunk_tasks_yaml(filepath))
-        elif src_type == "srt":
-            all_chunks.extend(chunk_srt(filepath))
         elif src_type in ("memory", "context"):
             all_chunks.extend(chunk_markdown(filepath, src_type))
         elif src_type == "scripts":
@@ -635,7 +571,7 @@ def embed_texts(client, texts: list[str], task_type: str = "RETRIEVAL_DOCUMENT")
 def load_index_and_meta():
     """既存インデックスとメタデータを読み込む"""
     if INDEX_FILE.exists() and META_FILE.exists():
-        index = faiss.read_index(str(INDEX_FILE))
+        index = faiss.read_index(str(INDEX_FILE), faiss.IO_FLAG_MMAP)
         with open(META_FILE, "r", encoding="utf-8") as f:
             metadata = json.load(f)
         return index, metadata
@@ -825,7 +761,7 @@ def main():
     q_parser.add_argument("query", help="検索クエリ")
     q_parser.add_argument("--top", type=int, default=10, help="表示件数 (default: 10)")
     q_parser.add_argument("--source", type=str, default=None,
-                          help="絞り込み: shogun_to_karo / tasks / srt / memory / context / scripts / comments / git / logs")
+                          help="絞り込み: shogun_to_karo / tasks / memory / context / scripts / comments / git / logs")
     q_parser.add_argument("--json", action="store_true", help="JSON形式で出力")
 
     args = parser.parse_args()
