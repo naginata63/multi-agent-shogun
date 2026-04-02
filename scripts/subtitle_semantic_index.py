@@ -66,11 +66,8 @@ def get_embedding_client(api_key=None):
 
 def bq_query(sql: str, timeout_ms: int = 60000) -> list[dict]:
     """bq CLIを使ってBigQueryクエリを実行し、結果をdictリストで返す"""
-    import subprocess, tempfile
-    # SQLをtempファイルに書いてbq queryで実行（長いSQLでもCLI引数制限を回避）
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".sql", delete=False, encoding="utf-8") as f:
-        f.write(sql)
-        sql_file = f.name
+    import subprocess
+    # SQLを標準入力でbq queryに渡す（CLI引数制限を回避）
     try:
         result = subprocess.run(
             [
@@ -99,12 +96,6 @@ def bq_query(sql: str, timeout_ms: int = 60000) -> list[dict]:
     except subprocess.TimeoutExpired:
         print(f"ERROR: bq query timeout ({timeout_ms}ms)")
         sys.exit(1)
-    finally:
-        import os as _os
-        try:
-            _os.unlink(sql_file)
-        except Exception:
-            pass
 
 
 def bq_check_table() -> bool:
@@ -246,7 +237,7 @@ def chunk_merged_json(merged_path: Path, chunk_sec=CHUNK_SECONDS):
 
 def bq_insert_rows(rows: list[dict]):
     """bq insert CLIを使ってBigQueryにrowsを挿入する"""
-    import subprocess, tempfile
+    import subprocess
     jsonl_data = "\n".join(json.dumps(r, ensure_ascii=False) for r in rows)
     result = subprocess.run(
         ["bq", "insert",
@@ -332,7 +323,7 @@ def cmd_build(args):
             "chunk_count": len(rows),
         })
         save_registry(registry)
-        print(f"  BigQery INSERT完了: {len(rows)} チャンク")
+        print(f"  BigQuery INSERT完了: {len(rows)} チャンク")
 
     print(f"\n=== ビルド完了 ===")
     print(f"処理動画数: {len(to_process)}本")
