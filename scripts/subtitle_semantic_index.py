@@ -43,7 +43,7 @@ BATCH_SIZE = 20
 CHUNK_SECONDS = 30
 RATE_LIMIT_SLEEP = 3.0
 
-GCP_PROJECT = "dozlesha-mainichi-kirinuki"
+GCP_PROJECT = "gen-lang-client-0119911773"
 BQ_DATASET = "dozle_subtitle_semantic"
 BQ_TABLE = "subtitle_chunks"
 BQ_LOCATION = "asia-northeast1"
@@ -155,6 +155,13 @@ def embed_texts(client, texts, task_type="RETRIEVAL_DOCUMENT"):
             for _ in batch:
                 all_embeds.append([0.0] * EMBED_DIM)
     return all_embeds
+
+
+# ===== ゼロベクトルチェック =====
+
+def is_zero_vector(emb: list) -> bool:
+    """全要素が0.0のゼロベクトルかどうか確認"""
+    return all(v == 0.0 for v in emb)
 
 
 # ===== チャンク化 =====
@@ -300,8 +307,20 @@ def cmd_build(args):
         texts = [c["text"] for c in chunks]
         embeds = embed_texts(client, texts)
 
+        # [チェック1] embedding生成後: ゼロベクトル検出・ログ記録
+        zero_chunk_ids = set()
+        for j, emb in enumerate(embeds):
+            if is_zero_vector(emb):
+                print(f"  WARN: zero vector detected: video_id={video_id} chunk_index={j} start_ms={chunks[j]['start_ms']}")
+                zero_chunk_ids.add(j)
+        if zero_chunk_ids:
+            print(f"  WARN: {len(zero_chunk_ids)} zero vectors will be skipped for {video_id}")
+
+        # [チェック2] BQ投入前: ゼロベクトルを除外してrowsを構築
         rows = []
         for j, (chunk, emb) in enumerate(zip(chunks, embeds)):
+            if j in zero_chunk_ids:
+                continue  # ゼロベクトルをスキップ
             rows.append({
                 "chunk_id": global_chunk_id + j,
                 "video_id": chunk["video_id"],
@@ -310,6 +329,10 @@ def cmd_build(args):
                 "text": chunk["text"],
                 "embedding": emb,
             })
+
+        if not rows:
+            print(f"  全チャンクがゼロベクトルのためスキップ: {video_id}")
+            continue
 
         # BigQueryにINSERT
         bq_insert_rows(rows)
@@ -401,6 +424,56 @@ def cmd_update(args):
     cmd_build(args)
 
 
+def cmd_health(args):
+    """[チェック3] BigQueryテーブルのゼロベクトルを検出するヘルスチェック"""
+    print("=== subtitle_semantic_index health check ===")
+
+    # テーブル存在確認
+    if not bq_check_table():
+        print(f"ERROR: BigQueryテーブルが空またはアクセス不可: {FULL_TABLE_ID}")
+        sys.exit(1)
+
+    # 総件数
+    count_rows = bq_query(f"SELECT COUNT(*) as cnt FROM {FULL_TABLE_ID}", timeout_ms=30000)
+    total = int(count_rows[0]["cnt"]) if count_rows else 0
+    print(f"総チャンク数: {total}")
+
+    # ゼロベクトル検出: embedding配列の全要素が0かチェック
+    # BigQueryではARRAY要素の全要素チェックに ARRAY_LENGTH と SUM を使う
+    zero_sql = f"""
+SELECT COUNT(*) as zero_cnt
+FROM {FULL_TABLE_ID}
+WHERE (
+  SELECT SUM(ABS(val))
+  FROM UNNEST(embedding) AS val
+) = 0
+"""
+    zero_rows = bq_query(zero_sql, timeout_ms=60000)
+    zero_cnt = int(zero_rows[0]["zero_cnt"]) if zero_rows else 0
+
+    if zero_cnt == 0:
+        print("ゼロベクトル: 0件 ✓ (正常)")
+    else:
+        print(f"WARN: ゼロベクトル検出: {zero_cnt}件 (総数の{zero_cnt/total*100:.2f}%)")
+        # ゼロベクトルのvideo_id一覧
+        detail_sql = f"""
+SELECT DISTINCT video_id, COUNT(*) as cnt
+FROM {FULL_TABLE_ID}
+WHERE (
+  SELECT SUM(ABS(val))
+  FROM UNNEST(embedding) AS val
+) = 0
+GROUP BY video_id
+ORDER BY cnt DESC
+LIMIT 20
+"""
+        detail_rows = bq_query(detail_sql, timeout_ms=60000)
+        for row in detail_rows:
+            print(f"  video_id={row['video_id']} zero_chunks={row['cnt']}")
+
+    print("=== ヘルスチェック完了 ===")
+
+
 def main():
     parser = argparse.ArgumentParser(description="字幕セマンティック検索インデックス（BigQuery版）")
     sub = parser.add_subparsers(dest="command")
@@ -418,6 +491,8 @@ def main():
     s_parser.add_argument("--top", type=int, default=10, help="表示件数 (default: 10)")
     s_parser.add_argument("--api-key", dest="api_key", default=None)
 
+    sub.add_parser("health", help="BigQueryのゼロベクトル検出ヘルスチェック")
+
     args = parser.parse_args()
 
     if args.command in ("build", None):
@@ -426,6 +501,8 @@ def main():
         cmd_update(args)
     elif args.command == "search":
         cmd_search(args)
+    elif args.command == "health":
+        cmd_health(args)
     else:
         parser.print_help()
 
