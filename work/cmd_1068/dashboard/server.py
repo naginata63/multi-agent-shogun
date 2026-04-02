@@ -175,7 +175,7 @@ def detect_action_required():
     for msg in recent_msgs:
         content = msg.get("content", "") or ""
         mtype = msg.get("type", "") or ""
-        if mtype in ("report_blocked", "report_error") or any(kw in content for kw in block_keywords):
+        if msg.get("from") != "shogun" and (mtype in ("report_blocked", "report_error") or any(kw in content for kw in block_keywords)):
             key = content[:60]
             if key in seen_r2:
                 continue
