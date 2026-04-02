@@ -8,8 +8,6 @@ import os
 import re
 import sqlite3
 import subprocess
-import threading
-import time
 import yaml
 from datetime import datetime, timezone, timedelta
 
@@ -382,115 +380,55 @@ def get_tmux_task(agent_id):
         return None
 
 
-# ─── Agent status polling via tmux capture-pane ────────────────────────────────
+# ─── Agent status detection via DB messages table ─────────────────────────────
 
-# Cache: agent_id -> {"status": str, "updated_at": float}
-_pane_status_cache: dict = {}
-_pane_status_lock = threading.Lock()
-
-# Agents to poll (exclude karo from auto-status since it's always managing)
+# Agents to track
 POLL_AGENTS = [
     "ashigaru1", "ashigaru2", "ashigaru3", "ashigaru4",
     "ashigaru5", "ashigaru6", "ashigaru7", "gunshi",
 ]
 
-
-def determine_status_from_pane(output: str) -> str:
-    """Determine agent status from tmux capture-pane output using pattern matching only."""
-    lines = output.splitlines()
-    recent = lines[-30:] if len(lines) > 30 else lines
-
-    # Scan from bottom to top
-    for line in reversed(recent):
-        stripped = line.strip()
-        if not stripped:
-            continue
-        # Skip lines that are just the ❯ prompt (input cursor, always present)
-        if stripped == '❯' or (stripped.startswith('❯') and len(stripped) <= 3):
-            continue
-
-        # ✻ = idle (Claude Code idle state indicator)
-        if stripped.startswith('✻'):
-            return 'idle'
-
-        # ✢ · ● = busy (Claude Code spinner characters during processing)
-        if any(stripped.startswith(c) for c in ('✢', '·', '●')):
-            return 'busy'
-
-        # Text patterns indicating busy
-        lower = stripped.lower()
-        if any(kw in lower for kw in ('running', 'thinking', 'thought for', 'running hooks')):
-            return 'busy'
-
-        # Error patterns
-        if any(kw in stripped for kw in ('ERROR', 'FAIL', 'Error:', 'Failed')):
-            return 'error'
-
-        # Blocked patterns
-        if any(kw in stripped for kw in ('ブロック', 'blocked', 'BLOCKED')):
-            return 'blocked'
-
-    return 'unknown'
+# Message types that indicate agent status (latest wins)
+_BUSY_TYPES = {"task_assigned"}
+_IDLE_TYPES = {"report_done", "report_completed", "report_received"}
+_BLOCKED_TYPES = {"report_blocked"}
+_ERROR_TYPES = {"report_error"}
 
 
-def capture_pane_status(agent_id: str) -> str:
-    """Run tmux capture-pane for the given agent and return detected status."""
-    pane = PANE_MAP.get(agent_id)
-    if not pane:
-        return 'unknown'
-    try:
-        result = subprocess.run(
-            ["tmux", "capture-pane", "-t", f"multiagent:{pane}", "-p", "-S", "-30"],
-            capture_output=True, text=True, timeout=5
-        )
-        if result.returncode != 0:
-            return 'unknown'
-        return determine_status_from_pane(result.stdout)
-    except Exception:
-        return 'unknown'
+def get_db_agent_status(agent_id: str, conn) -> str:
+    """Determine agent status from DB messages table.
 
-
-def poll_all_pane_statuses():
-    """Poll all agent panes and update the cache."""
-    new_cache = {}
-    for agent_id in POLL_AGENTS:
-        status = capture_pane_status(agent_id)
-        new_cache[agent_id] = {"status": status, "updated_at": time.time()}
-    with _pane_status_lock:
-        _pane_status_cache.update(new_cache)
-
-
-def _poller_loop():
-    """Background thread: poll every 10 seconds."""
-    while True:
-        try:
-            poll_all_pane_statuses()
-        except Exception:
-            pass
-        time.sleep(10)
-
-
-def start_status_poller():
-    """Start the background pane-status polling thread."""
-    # Initial poll so cache is populated immediately
-    try:
-        poll_all_pane_statuses()
-    except Exception:
-        pass
-    t = threading.Thread(target=_poller_loop, daemon=True)
-    t.start()
-
-
-def get_cached_pane_status(agent_id: str):
-    """Return cached pane status for agent, or None if not available."""
-    with _pane_status_lock:
-        entry = _pane_status_cache.get(agent_id)
-    if entry is None:
-        return None
-    # Expire cache after 30 seconds to avoid stale data
-    if time.time() - entry["updated_at"] > 30:
-        return None
-    return entry["status"]
+    Looks at messages involving the agent (as sender or recipient).
+    The most recent status-relevant message determines current state:
+      task_assigned (to agent)   → busy
+      report_done/completed (from agent) → idle
+      report_blocked (from agent)        → blocked
+      report_error (from agent)          → error
+    """
+    rows = query_db(
+        conn,
+        """
+        SELECT type, created_at,
+               CASE WHEN to_agent = ? THEN 'in' ELSE 'out' END AS direction
+        FROM messages
+        WHERE to_agent = ? OR from_agent = ?
+        ORDER BY created_at DESC
+        LIMIT 50
+        """,
+        (agent_id, agent_id, agent_id),
+    )
+    for row in rows:
+        mtype = row.get("type", "")
+        direction = row.get("direction", "")
+        if direction == "in" and mtype in _BUSY_TYPES:
+            return "busy"
+        if direction == "out" and mtype in _IDLE_TYPES:
+            return "idle"
+        if direction == "out" and mtype in _BLOCKED_TYPES:
+            return "blocked"
+        if direction == "out" and mtype in _ERROR_TYPES:
+            return "error"
+    return "unknown"
 
 
 # ─── Dashboard data aggregation ────────────────────────────────────────────────
@@ -503,8 +441,6 @@ def get_dashboard_data():
     db_msg_count = query_db(conn, "SELECT COUNT(*) as c FROM messages")
     msg_count_db = db_msg_count[0]["c"] if db_msg_count else 0
 
-    conn.close()
-
     # YAML data
     yaml_agents = read_yaml_tasks()
     yaml_messages = read_recent_messages(hours=24)
@@ -514,15 +450,17 @@ def get_dashboard_data():
     for aid, a in yaml_agents.items():
         agent_map[aid] = a
 
-    # Add tmux @current_task to agent info, and override status with pane-detected status
+    # Add tmux @current_task to agent info, and override status with DB-driven status
     for aid, a in agent_map.items():
         tmux_task = get_tmux_task(aid)
         if tmux_task:
             a["tmux_task"] = tmux_task
-        # Override status with real-time pane status (pattern matching, not YAML)
-        pane_status = get_cached_pane_status(aid)
-        if pane_status and pane_status != 'unknown':
-            a["status"] = pane_status
+        # Override status with DB messages-based detection
+        db_status = get_db_agent_status(aid, conn)
+        if db_status and db_status != 'unknown':
+            a["status"] = db_status
+
+    conn.close()
 
     # Active cmds
     active_cmds = get_active_cmds()
@@ -858,8 +796,7 @@ if __name__ == '__main__':
     print(f"DB: {os.path.abspath(DB_PATH)}")
     print(f"Tasks: {TASKS_DIR}")
     print(f"shogun_to_karo: {SHOGUN_TO_KARO}")
-    print("Starting agent status poller (10s interval, tmux capture-pane)...")
-    start_status_poller()
+    print("Agent status detection: DB-driven (messages table).")
     server = http.server.HTTPServer(('0.0.0.0', PORT), DashboardHandler)
     try:
         server.serve_forever()
