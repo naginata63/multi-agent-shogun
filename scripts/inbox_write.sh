@@ -128,6 +128,53 @@ except Exception as e:
         # (atomic rename alone doesn't trigger modify/close_write)
         [ $STATUS -eq 0 ] && touch "$INBOX" 2>/dev/null
         _release_lock
+
+        # === MCP Phase 3: Dual-write (副系) ===
+        # ファイル書き込み成功後、MCP SQLite DBにも書き込む
+        # 失敗はログに記録するだけで、主系に影響しない
+        if [ $STATUS -eq 0 ]; then
+            MCP_DB="$SCRIPT_DIR/work/cmd_1068/experiment.db"
+            MCP_LOG="$SCRIPT_DIR/logs/mcp_dual_write.log"
+            if [ -d "$(dirname "$MCP_DB")" ]; then
+                MCP_DB="$MCP_DB" \
+                MCP_TO="$TARGET" \
+                MCP_FROM="$FROM" \
+                MCP_TYPE="$TYPE" \
+                MCP_CONTENT="$CONTENT" \
+                MCP_TS="$TIMESTAMP" \
+                MCP_MSG_ID="$MSG_ID" \
+                python3 -c "
+import sqlite3, os, sys
+try:
+    db_path = os.environ['MCP_DB']
+    if not os.path.exists(os.path.dirname(db_path)):
+        sys.exit(0)
+    conn = sqlite3.connect(db_path, timeout=3)
+    conn.execute('PRAGMA journal_mode=WAL')
+    conn.execute('''CREATE TABLE IF NOT EXISTS messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        to_agent TEXT NOT NULL,
+        from_agent TEXT NOT NULL,
+        content TEXT NOT NULL,
+        type TEXT NOT NULL DEFAULT 'message',
+        file_msg_id TEXT,
+        file_timestamp TEXT,
+        read INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )''')
+    conn.execute('INSERT INTO messages (to_agent, from_agent, content, type, file_msg_id, file_timestamp) VALUES (?, ?, ?, ?, ?, ?)',
+        (os.environ['MCP_TO'], os.environ['MCP_FROM'], os.environ['MCP_CONTENT'],
+         os.environ['MCP_TYPE'], os.environ['MCP_MSG_ID'], os.environ['MCP_TS']))
+    conn.commit()
+    conn.close()
+except Exception as e:
+    print(f'[{os.environ.get(\"MCP_TS\",\"?\")}] MCP dual-write failed: {e}', file=sys.stderr)
+    sys.exit(1)
+" >>"$MCP_LOG" 2>&1 || true &
+            fi
+        fi
+        # === MCP Phase 3 end ===
+
         # cmd_new時にRAG自動実行（バックグラウンド、失敗してもinbox配信に影響しない）
         [ "$TYPE" = "cmd_new" ] && bash "$(dirname "$0")/automation/cmd_rag_hook.sh" >> "$SCRIPT_DIR/logs/cmd_rag.log" 2>&1 &
         [ $STATUS -eq 0 ] && exit 0
