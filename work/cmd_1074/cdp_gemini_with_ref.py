@@ -146,6 +146,24 @@ async def attach_reference_images(page, ref_images: list) -> bool:
     return ok
 
 
+async def _cleanup_cdp_session(cdp_session) -> None:
+    """CDP sessionのinterceptionを無効化し、detachする。
+    これを怠ると後続のpage操作（send等）がサイレントに失敗する。
+    """
+    if cdp_session is None:
+        return
+    try:
+        await cdp_session.send('Page.setInterceptFileChooserDialog', {'enabled': False})
+        print("[cdp] FileChooser interception無効化")
+    except Exception as e:
+        print(f"[cdp] interception無効化エラー（無視）: {e}")
+    try:
+        await cdp_session.detach()
+        print("[cdp] session detach完了")
+    except Exception as e:
+        print(f"[cdp] detachエラー（無視）: {e}")
+
+
 async def _attach_via_file_chooser(page, file_paths: list) -> bool:
     """CDP: Page.setInterceptFileChooserDialog → メニューボタン→メニュー内アップロード項目→ファイルチューザー傍受。
 
@@ -154,8 +172,10 @@ async def _attach_via_file_chooser(page, file_paths: list) -> bool:
     2. アップロードメニューボタン（アイコン）をクリック
     3. メニュー内の「ファイルをアップロード」をクリック
     4. ファイルチューザーを傍受してset_files
+    5. CDP sessionを正常切断（interception無効化→detach）
     """
     # Step 1: CDP file chooser interception有効化
+    cdp = None
     try:
         cdp = await page.context.new_cdp_session(page)
         await cdp.send('Page.setInterceptFileChooserDialog', {'enabled': True})
@@ -165,11 +185,11 @@ async def _attach_via_file_chooser(page, file_paths: list) -> bool:
         return False
 
     # Step 2: アップロードメニューボタンをクリック
+    # btn[45]: aria='[ファイルをアップロード] メニューを開く' (実測値)
     menu_btn_selectors = [
+        'button[aria-label="[ファイルをアップロード] メニューを開く"]',
         'button[aria-label*="ファイルをアップロード"]',
-        'button.upload-card-button',
         'button[aria-label*="Upload"]',
-        'button[aria-label*="アップロード"]',
     ]
 
     menu_opened = False
@@ -205,10 +225,14 @@ async def _attach_via_file_chooser(page, file_paths: list) -> bool:
         # 添付確認
         thumbs = await _count_attached_thumbnails(page)
         print(f"[filechooser] 添付サムネイル数: {thumbs}")
+
+        # Step 5: CDP session正常切断（重要: interception無効化→detachしないと後続操作が破壊される）
+        await _cleanup_cdp_session(cdp)
         return True
 
     except Exception as e:
         print(f"[filechooser] ファイルチューザー取得失敗: {e}")
+        await _cleanup_cdp_session(cdp)
         return False
 
 
@@ -303,7 +327,7 @@ async def _count_attached_thumbnails(page) -> int:
 # Gemini UI 操作 (リファレンス画像添付対応版)
 # ============================================================
 
-async def generate_image_with_ref(panel_key: str) -> dict:
+async def generate_image_with_ref(panel_key: str, no_ref: bool = False) -> dict:
     """connect_over_cdpで殿のChromeに接続し、リファレンス画像添付+縦型指定で画像生成。"""
     panel = PANELS[panel_key]
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -360,8 +384,16 @@ async def generate_image_with_ref(panel_key: str) -> dict:
 
             print("[gemini] ログイン確認OK")
 
-            # リファレンス画像添付（プロンプト入力前）
-            ref_ok = await attach_reference_images(page, panel["ref_images"])
+            # リファレンス画像添付（一時スキップ — FileChooser操作がページ状態を破壊する問題の切り分け）
+            ref_ok = False
+            if not no_ref:
+                valid_refs = [str(Path(r).absolute()) for r in panel["ref_images"] if Path(r).exists()]
+                if valid_refs:
+                    ref_ok = await _attach_via_file_chooser(page, valid_refs)
+                    if not ref_ok:
+                        print("[ref] FileChooser失敗、リファレンスなしで続行")
+            else:
+                print("[ref] --no-ref指定: リファレンス添付スキップ")
             result["ref_attached"] = ref_ok
 
             # プロンプト入力
@@ -396,7 +428,9 @@ async def generate_image_with_ref(panel_key: str) -> dict:
             await page.screenshot(path=str(snap_path))
             print(f"[snap] 送信前スナップ: {snap_path}")
 
-            # 送信
+            # 送信（Enterキー — minimal testで動作確認済み）
+            # 送信ボタンclickはCDP session残存時にサイレント失敗するため使用しない
+            print("[gemini] Enter送信...")
             await page.keyboard.press("Enter")
             print("[gemini] 送信完了")
 
@@ -520,6 +554,8 @@ def main():
     parser = argparse.ArgumentParser(description="CDP方式 Gemini UI 画像生成 (リファレンス画像+縦型対応)")
     parser.add_argument("--panel", choices=["p1", "p3", "both"], default="both",
                         help="生成するパネル (p1/p3/both)")
+    parser.add_argument("--no-ref", action="store_true",
+                        help="リファレンス画像添付をスキップ（テキストのみ生成）")
     args = parser.parse_args()
 
     panels_to_run = ["p1", "p3"] if args.panel == "both" else [args.panel]
@@ -530,7 +566,7 @@ def main():
         print(f"パネル生成開始: {PANELS[panel_key]['title']}")
         print(f"{'='*60}")
 
-        result = asyncio.run(generate_image_with_ref(panel_key))
+        result = asyncio.run(generate_image_with_ref(panel_key, no_ref=args.no_ref))
         all_results[panel_key] = result
 
         print(f"\n結果: {result['status']}")
