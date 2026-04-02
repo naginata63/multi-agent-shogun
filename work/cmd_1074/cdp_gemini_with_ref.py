@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 """
 CDP方式 Gemini UI 画像生成スクリプト (リファレンス画像添付 + 縦型9:16対応版)
-cmd_1057のPoC成果物をベースに改修。
-
-改修内容:
-  - ファイル添付ボタン操作 (Playwrightでinput[type="file"]にsetInputFiles)
-  - プロンプトに縦型指定 (9:16, 768×1376) を追加
-  - P1/P3の2枚を生成してwork/cmd_1074/に保存
+subtask_1074b: connect_over_cdpで殿の実Chromeに接続。Cookie injection不要。
 
 使い方:
   python3 cdp_gemini_with_ref.py --panel p1
@@ -15,27 +10,18 @@ cmd_1057のPoC成果物をベースに改修。
 """
 
 import asyncio
-import hashlib
 import json
-import os
-import shutil
-import sqlite3
 import sys
 import argparse
 from datetime import datetime
 from pathlib import Path
 
-from Crypto.Cipher import AES
 from playwright.async_api import async_playwright
 
 # ============================================================
 # 設定
 # ============================================================
-CHROME_PROFILE_DIR = Path("/home/murakami/.config/google-chrome/Default")
-TEMP_PROFILE_DIR = Path("/tmp/chrome_cdp_gemini_session")  # cmd_1057/cmd_1065と同じプロファイルを再利用
-COOKIE_CACHE = Path("/tmp/google_cookies_cache.json")
-COOKIE_CACHE_TTL = 4 * 3600  # 4時間
-DISPLAY_ENV = ":0"
+CDP_ENDPOINT = "http://localhost:9222"
 
 GEMINI_URL = "https://gemini.google.com/app"
 BROWSER_TIMEOUT = 30_000   # ms
@@ -92,122 +78,6 @@ PANELS = {
 
 
 # ============================================================
-# Cookie復号 (cmd_1057 PoC実装そのまま)
-# ============================================================
-
-def _try_decrypt_test(key: bytes) -> bool:
-    try:
-        cookie_src = CHROME_PROFILE_DIR / "Cookies"
-        cookie_tmp = Path("/tmp/chrome_cookies_keytest.db")
-        shutil.copy2(cookie_src, cookie_tmp)
-        derived = hashlib.pbkdf2_hmac("sha1", key, b"saltysalt", iterations=1, dklen=16)
-        conn = sqlite3.connect(cookie_tmp)
-        cursor = conn.cursor()
-        cursor.execute("SELECT encrypted_value FROM cookies WHERE encrypted_value != '' LIMIT 5")
-        rows = cursor.fetchall()
-        conn.close()
-        count = 0
-        for (enc,) in rows:
-            if enc[:3] in (b"v10", b"v11"):
-                iv = b" " * 16
-                cipher = AES.new(derived, AES.MODE_CBC, iv)
-                dec = cipher.decrypt(enc[3:])[32:]
-                pad = dec[-1] if dec else 0
-                if 0 < pad <= 16:
-                    try:
-                        dec[:-pad].decode("utf-8")
-                        count += 1
-                    except UnicodeDecodeError:
-                        pass
-        return count >= 2
-    except Exception:
-        return False
-
-
-def _get_chrome_key() -> bytes:
-    candidates = []
-    try:
-        import secretstorage
-        bus = secretstorage.dbus_init()
-        collection = secretstorage.get_default_collection(bus)
-        for item in collection.get_all_items():
-            if item.get_label() == "Chrome Safe Storage":
-                candidates.append(("keyring-secretstorage", item.get_secret()))
-    except Exception:
-        pass
-    candidates.append(("peanuts", b"peanuts"))
-    for name, key in candidates:
-        if _try_decrypt_test(key):
-            print(f"[cookies] 有効なキー: {name}")
-            return key
-    print("[cookies] 警告: キー検出失敗。peanuts を使用")
-    return b"peanuts"
-
-
-def _decrypt_cookie_value(encrypted: bytes, derived_key: bytes) -> str:
-    if not encrypted or encrypted[:3] not in (b"v10", b"v11"):
-        return encrypted.decode("utf-8", errors="replace") if encrypted else ""
-    payload = encrypted[3:]
-    iv = b" " * 16
-    cipher = AES.new(derived_key, AES.MODE_CBC, iv)
-    decrypted = cipher.decrypt(payload)
-    decrypted = decrypted[32:]
-    pad_len = decrypted[-1] if decrypted else 0
-    if 0 < pad_len <= 16:
-        decrypted = decrypted[:-pad_len]
-    try:
-        return decrypted.decode("utf-8")
-    except UnicodeDecodeError:
-        return ""
-
-
-def load_cookies(force_refresh: bool = False) -> list:
-    if not force_refresh and COOKIE_CACHE.exists():
-        age = datetime.now().timestamp() - COOKIE_CACHE.stat().st_mtime
-        if age < COOKIE_CACHE_TTL:
-            print(f"[cookies] キャッシュ使用 ({age:.0f}s前に更新)")
-            return json.loads(COOKIE_CACHE.read_text())
-
-    print("[cookies] Chrome プロファイルから読み込み中...")
-    chrome_key = _get_chrome_key()
-    derived_key = hashlib.pbkdf2_hmac("sha1", chrome_key, b"saltysalt", iterations=1, dklen=16)
-
-    cookie_src = CHROME_PROFILE_DIR / "Cookies"
-    cookie_tmp = Path("/tmp/chrome_cookies_read.db")
-    shutil.copy2(cookie_src, cookie_tmp)
-
-    conn = sqlite3.connect(cookie_tmp)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT host_key, name, encrypted_value, path, expires_utc, is_secure, is_httponly, samesite
-        FROM cookies
-        WHERE host_key LIKE '%google.com%' OR host_key LIKE '%gemini%'
-    """)
-    rows = cursor.fetchall()
-    conn.close()
-
-    samesite_map = {0: "None", 1: "Strict", 2: "Lax"}
-    cookies = []
-    for row in rows:
-        val = _decrypt_cookie_value(row["encrypted_value"], derived_key)
-        if val:
-            cookies.append({
-                "name": row["name"],
-                "value": val,
-                "domain": row["host_key"],
-                "path": row["path"],
-                "secure": bool(row["is_secure"]),
-                "httpOnly": bool(row["is_httponly"]),
-                "sameSite": samesite_map.get(row["samesite"], "None"),
-            })
-
-    print(f"[cookies] {len(cookies)}/{len(rows)} 件復号完了")
-    COOKIE_CACHE.write_text(json.dumps(cookies, ensure_ascii=False))
-    return cookies
-
-
-# ============================================================
 # リファレンス画像添付ヘルパー
 # ============================================================
 
@@ -238,17 +108,15 @@ async def attach_reference_images(page, ref_images: list) -> bool:
     # 方法1: ファイル添付ボタンを探してクリック
     # Gemini UI のファイル添付ボタン候補セレクタ
     attach_btn_selectors = [
+        'button.upload-card-button',
+        'button[aria-label*="ファイルをアップロード"]',
         'button[aria-label*="添付"]',
         'button[aria-label*="attach"]',
         'button[aria-label*="upload"]',
         'button[aria-label*="Upload"]',
-        'button[data-mat-icon-name*="attach"]',
         '[aria-label*="ファイルを追加"]',
         '[aria-label*="Add image"]',
         '[aria-label*="Add file"]',
-        'mat-icon[fonticon="attach_file"]',
-        '.add-image-button',
-        'button[jsname*="upload"]',
     ]
 
     for sel in attach_btn_selectors:
@@ -297,12 +165,9 @@ async def attach_reference_images(page, ref_images: list) -> bool:
 # ============================================================
 
 async def generate_image_with_ref(panel_key: str) -> dict:
-    """リファレンス画像添付 + 縦型指定でGemini UIから画像を生成する。"""
+    """connect_over_cdpで殿のChromeに接続し、リファレンス画像添付+縦型指定で画像生成。"""
     panel = PANELS[panel_key]
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-    cookies = load_cookies()
-    os.environ["DISPLAY"] = DISPLAY_ENV
 
     captured_image_urls = []
     result = {
@@ -316,18 +181,18 @@ async def generate_image_with_ref(panel_key: str) -> dict:
     }
 
     async with async_playwright() as p:
-        ctx = await p.chromium.launch_persistent_context(
-            user_data_dir=str(TEMP_PROFILE_DIR),
-            channel="chrome",
-            headless=True,
-            args=[
-                "--no-first-run",
-                "--no-default-browser-check",
-                "--password-store=basic",
-                "--disable-blink-features=AutomationControlled",
-            ],
-            timeout=BROWSER_TIMEOUT,
-        )
+        print(f"[cdp] connect_over_cdp({CDP_ENDPOINT}) ...")
+        browser = await p.chromium.connect_over_cdp(CDP_ENDPOINT)
+        print(f"[cdp] 接続成功: {browser.version}")
+
+        # 既存のコンテキストのページを使用
+        contexts = browser.contexts
+        if contexts:
+            ctx = contexts[0]
+            page = ctx.pages[0] if ctx.pages else await ctx.new_page()
+        else:
+            ctx = await browser.new_context()
+            page = await ctx.new_page()
 
         # 生成画像URLを監視
         async def on_response(resp):
@@ -341,9 +206,7 @@ async def generate_image_with_ref(panel_key: str) -> dict:
                 captured_image_urls.append(url)
                 print(f"[capture] 生成画像URL: {url[:80]}...")
 
-        ctx.on("response", on_response)
-        await ctx.add_cookies(cookies)
-        page = ctx.pages[0] if ctx.pages else await ctx.new_page()
+        page.on("response", on_response)
 
         try:
             await page.goto(GEMINI_URL, timeout=BROWSER_TIMEOUT, wait_until="domcontentloaded")
@@ -489,7 +352,15 @@ async def generate_image_with_ref(panel_key: str) -> dict:
             print(f"[error] {e}")
 
         finally:
-            await ctx.close()
+            # ブラウザは閉じない（殿のChrome）。切断のみ。
+            try:
+                await page.goto("about:blank", timeout=5000)
+            except Exception:
+                pass
+            try:
+                await browser.close()
+            except Exception:
+                pass
 
     return result
 
@@ -501,13 +372,7 @@ def main():
     parser = argparse.ArgumentParser(description="CDP方式 Gemini UI 画像生成 (リファレンス画像+縦型対応)")
     parser.add_argument("--panel", choices=["p1", "p3", "both"], default="both",
                         help="生成するパネル (p1/p3/both)")
-    parser.add_argument("--update-cookies", action="store_true", help="Cookieキャッシュ更新")
     args = parser.parse_args()
-
-    if args.update_cookies:
-        load_cookies(force_refresh=True)
-        print("Cookie更新完了")
-        return
 
     panels_to_run = ["p1", "p3"] if args.panel == "both" else [args.panel]
     all_results = {}
