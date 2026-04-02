@@ -660,7 +660,7 @@ if [ "$SETUP_ONLY" = false ]; then
 
     # 将軍: CLI Adapter経由でコマンド構築
     _shogun_cli_type="claude"
-    _shogun_cmd="claude --model 'opus[1m]' --effort max --dangerously-skip-permissions"
+    _shogun_cmd="claude --model 'opus[1m]' --effort high --dangerously-skip-permissions"
     if [ "$CLI_ADAPTER_LOADED" = true ]; then
         _shogun_cli_type=$(get_cli_type "shogun")
         _shogun_cmd=$(build_cli_command "shogun")
@@ -987,6 +987,21 @@ if [ -n "$NTFY_TOPIC" ]; then
     log_info "📱 ntfy入力リスナー起動 (topic: $NTFY_TOPIC)"
 else
     log_info "📱 ntfy未設定のためリスナーはスキップ"
+fi
+echo ""
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STEP 6.9: MCPダッシュボード起動（systemdサービス経由）
+# ═══════════════════════════════════════════════════════════════════════════════
+if systemctl --user is-enabled mcp-dashboard.service &>/dev/null; then
+    if ! systemctl --user is-active --quiet mcp-dashboard.service; then
+        systemctl --user start mcp-dashboard.service 2>/dev/null || true
+        log_info "📊 MCPダッシュボード起動: http://192.168.2.7:8770/"
+    else
+        log_info "📊 MCPダッシュボード稼働中: http://192.168.2.7:8770/"
+    fi
+else
+    log_info "📊 MCPダッシュボード: systemdサービス未登録のためスキップ"
 fi
 echo ""
 
