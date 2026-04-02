@@ -7,7 +7,6 @@ import json
 import os
 import re
 import sqlite3
-import subprocess
 import yaml
 from datetime import datetime, timezone, timedelta
 
@@ -21,14 +20,6 @@ SHOGUN_TO_KARO = os.path.join(BASE_DIR, "queue", "shogun_to_karo.yaml")
 # Status values that mean "done / no longer active"
 DONE_STATUSES = {"done", "cancelled", "superseded", "done_ng"}
 ACTIVE_STATUSES = {"pending", "assigned", "in_progress", "blocked"}
-
-# Pane map for tmux @current_task
-PANE_MAP = {
-    "karo": "0.0", "ashigaru1": "0.1", "ashigaru2": "0.2",
-    "ashigaru3": "0.3", "ashigaru4": "0.4", "ashigaru5": "0.5",
-    "ashigaru6": "0.6", "ashigaru7": "0.7", "gunshi": "0.8",
-}
-
 
 # ─── DB helpers ────────────────────────────────────────────────────────────────
 
@@ -116,24 +107,27 @@ def get_recent_done(n=5):
     return done[:n]
 
 
+_JST = timezone(timedelta(hours=9))
+
+
 def parse_ts(ts_str):
-    """Parse timestamp string to UTC datetime. Returns None on failure."""
+    """Parse timestamp string to UTC datetime. Returns None on failure.
+    Naive timestamps (no tz info) are assumed to be JST (UTC+9)."""
     if not ts_str:
         return None
     try:
-        # Handle +09:00 offset
         s = str(ts_str).strip()
-        # Try ISO format
-        if "+" in s[10:] or (s.endswith("Z")):
+        # Has explicit offset or Z
+        if "+" in s[10:] or s.endswith("Z"):
             dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
         elif "T" in s:
             dt = datetime.fromisoformat(s)
             if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
+                dt = dt.replace(tzinfo=_JST)
         else:
             dt = datetime.fromisoformat(s)
             if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
+                dt = dt.replace(tzinfo=_JST)
         return dt.astimezone(timezone.utc)
     except Exception:
         return None
@@ -168,22 +162,40 @@ def detect_action_required():
                 "cmd_id": cmd.get("id"),
             })
 
-    # R2: ブロック報告検出 (inbox YAML report_blocked / content keywords)
+    # R2: ブロック報告検出 (ashigaru*/gunshi messages only, not shogun/karo)
     block_keywords = ["ブロック", "blocked", "DBSC", "認証", "殿操作", "待ち", "失敗"]
+    _R2_ALLOWED_FROM_PREFIX = ("ashigaru", "gunshi")
+    _R2_UNBLOCK_TYPES = {"report_done", "report_completed", "unblock", "report_received"}
     recent_msgs = read_recent_messages(hours=48)
+
+    # First pass: find which agents have resolved their blocks
+    resolved_agents = set()
+    for msg in recent_msgs:
+        mfrom = msg.get("from", "") or ""
+        mtype = msg.get("type", "") or ""
+        if mfrom.startswith(_R2_ALLOWED_FROM_PREFIX) and mtype in _R2_UNBLOCK_TYPES:
+            resolved_agents.add(mfrom)
+
     seen_r2 = set()
     for msg in recent_msgs:
         content = msg.get("content", "") or ""
         mtype = msg.get("type", "") or ""
-        if msg.get("from") != "shogun" and (mtype in ("report_blocked", "report_error") or any(kw in content for kw in block_keywords)):
-            key = content[:60]
+        mfrom = msg.get("from", "") or ""
+        # Only ashigaru*/gunshi messages
+        if not mfrom.startswith(_R2_ALLOWED_FROM_PREFIX):
+            continue
+        # Skip if agent has resolved their block
+        if mfrom in resolved_agents:
+            continue
+        if mtype in ("report_blocked", "report_error") or any(kw in content for kw in block_keywords):
+            key = (mfrom, content[:60])
             if key in seen_r2:
                 continue
             seen_r2.add(key)
             items.append({
                 "rule": "R2",
                 "severity": "HIGH",
-                "title": f"ブロック報告: {msg.get('from', '?')} → {msg.get('to', '?')}",
+                "title": f"ブロック報告: {mfrom} → {msg.get('to', '?')}",
                 "detail": content[:120],
                 "age_hours": age_hours(msg.get("timestamp", "")),
                 "cmd_id": None,
@@ -217,12 +229,15 @@ def detect_action_required():
             # (This is a simplified check - idle agent with assigned task)
             pass  # Will check tasks YAML for assigned status
 
+    _EXCLUDED_AGENTS_R5 = {"pending", "archive"}
     # R5: 未読メッセージ滞留 (unread inbox messages > 30min)
     if os.path.isdir(INBOX_DIR):
         for fname in os.listdir(INBOX_DIR):
             if not fname.endswith(".yaml"):
                 continue
             agent_id = fname.replace(".yaml", "")
+            if agent_id in _EXCLUDED_AGENTS_R5:
+                continue
             filepath = os.path.join(INBOX_DIR, fname)
             try:
                 with open(filepath) as f:
@@ -250,6 +265,8 @@ def detect_action_required():
             if not fname.endswith(".yaml"):
                 continue
             agent_id = fname.replace(".yaml", "")
+            if agent_id in _EXCLUDED_AGENTS_R5:
+                continue
             filepath = os.path.join(TASKS_DIR, fname)
             try:
                 with open(filepath) as f:
@@ -296,8 +313,11 @@ def read_yaml_tasks():
     agents = {}
     if not os.path.isdir(TASKS_DIR):
         return agents
+    _EXCLUDED = {"pending.yaml", "archive"}
     for fname in os.listdir(TASKS_DIR):
         if not fname.endswith(".yaml"):
+            continue
+        if fname in _EXCLUDED:
             continue
         agent_id = fname.replace(".yaml", "")
         filepath = os.path.join(TASKS_DIR, fname)
@@ -343,6 +363,8 @@ def read_recent_messages(hours=48):
         if not fname.endswith(".yaml"):
             continue
         agent_id = fname.replace(".yaml", "")
+        if agent_id in _EXCLUDED_AGENTS_R5:
+            continue
         filepath = os.path.join(INBOX_DIR, fname)
         try:
             with open(filepath) as f:
@@ -364,20 +386,6 @@ def read_recent_messages(hours=48):
             pass
     msgs.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
     return msgs[:30]
-
-
-def get_tmux_task(agent_id):
-    pane = PANE_MAP.get(agent_id)
-    if not pane:
-        return None
-    try:
-        result = subprocess.run(
-            ["tmux", "display-message", "-t", f"multiagent:{pane}", "-p", "#{@current_task}"],
-            capture_output=True, text=True, timeout=3
-        )
-        return result.stdout.strip() or None
-    except Exception:
-        return None
 
 
 # ─── Agent status detection via DB messages table ─────────────────────────────
@@ -450,11 +458,8 @@ def get_dashboard_data():
     for aid, a in yaml_agents.items():
         agent_map[aid] = a
 
-    # Add tmux @current_task to agent info, and override status with DB-driven status
+    # Override status with DB-driven status
     for aid, a in agent_map.items():
-        tmux_task = get_tmux_task(aid)
-        if tmux_task:
-            a["tmux_task"] = tmux_task
         # Override status with DB messages-based detection
         db_status = get_db_agent_status(aid, conn)
         if db_status and db_status != 'unknown':
