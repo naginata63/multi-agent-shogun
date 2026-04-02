@@ -6,6 +6,9 @@
 
 set -euo pipefail
 
+# cron環境でnodeが見つかるようにnvmのPATHを追加
+export PATH="/home/murakami/.nvm/versions/node/v20.20.0/bin:$PATH"
+
 WORKTREE_DIR="/home/murakami/shogun-mcp-experiment"
 MCP_SERVER_DIR="${WORKTREE_DIR}/work/cmd_1068/mcp-server"
 NIGHTLY_DIR="${WORKTREE_DIR}/work/cmd_1068/nightly"
