@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """MCP Dashboard Web UI v2 - Port 8770
-DB-driven auto-detection: R1-R6 rules, no dashboard.md dependency."""
+DB-driven auto-detection: R1-R7 rules, R7 syncs dashboard.md 🚨要対応."""
 
 import http.server
 import json
@@ -16,10 +16,12 @@ BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", 
 TASKS_DIR = os.path.join(BASE_DIR, "queue", "tasks")
 INBOX_DIR = os.path.join(BASE_DIR, "queue", "inbox")
 SHOGUN_TO_KARO = os.path.join(BASE_DIR, "queue", "shogun_to_karo.yaml")
+DASHBOARD_MD = os.path.join(BASE_DIR, "dashboard.md")
 
 # Status values that mean "done / no longer active"
 DONE_STATUSES = {"done", "cancelled", "superseded", "done_ng"}
 ACTIVE_STATUSES = {"pending", "assigned", "in_progress", "blocked"}
+_EXCLUDED_AGENTS_R5 = {"pending", "archive"}
 
 # ─── DB helpers ────────────────────────────────────────────────────────────────
 
@@ -229,7 +231,6 @@ def detect_action_required():
             # (This is a simplified check - idle agent with assigned task)
             pass  # Will check tasks YAML for assigned status
 
-    _EXCLUDED_AGENTS_R5 = {"pending", "archive"}
     # R5: 未読メッセージ滞留 (unread inbox messages > 30min)
     if os.path.isdir(INBOX_DIR):
         for fname in os.listdir(INBOX_DIR):
@@ -284,6 +285,36 @@ def detect_action_required():
                         })
             except Exception:
                 pass
+
+    # R7: dashboard.md 🚨要対応同期
+    try:
+        if os.path.isfile(DASHBOARD_MD):
+            with open(DASHBOARD_MD, encoding="utf-8") as f:
+                md_text = f.read()
+            in_section = False
+            for line in md_text.splitlines():
+                stripped = line.strip()
+                if "要対応" in stripped and stripped.startswith("## "):
+                    in_section = True
+                    continue
+                if in_section and stripped.startswith("## ") and "要対応" not in stripped:
+                    break
+                if in_section and stripped.startswith("### ⚠️"):
+                    title = stripped.replace("### ⚠️", "").strip()
+                    cmd_match = None
+                    m = re.search(r'(cmd_\d+)', title)
+                    if m:
+                        cmd_match = m.group(1)
+                    items.append({
+                        "rule": "R7",
+                        "severity": "HIGH",
+                        "title": title[:100],
+                        "detail": "dashboard.md 🚨要対応より",
+                        "age_hours": 0,
+                        "cmd_id": cmd_match,
+                    })
+    except Exception:
+        pass
 
     # Dedup: R1 and R3 for same cmd_id, prefer R3
     seen_cmds = set()
@@ -464,6 +495,9 @@ def get_dashboard_data():
         db_status = get_db_agent_status(aid, conn)
         if db_status and db_status != 'unknown':
             a["status"] = db_status
+        else:
+            # DB不明時はYAMLの古いassignedを信用せずidleにする
+            a["status"] = "idle"
 
     conn.close()
 
