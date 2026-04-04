@@ -56,6 +56,45 @@ _release_lock() {
     fi
 }
 
+# === cmd status auto-update (task_assigned時) ===
+# type="task_assigned"の場合、メッセージからcmd_XXXを抽出し、
+# shogun_to_karo.yamlの該当cmd: pending → in_progress に更新
+_update_cmd_status() {
+    [ "$TYPE" != "task_assigned" ] && return 0
+
+    local cmd_id
+    cmd_id=$(echo "$CONTENT" | grep -oP 'cmd_\d+' | head -1)
+    [ -z "$cmd_id" ] && return 0
+
+    local yaml_file="$SCRIPT_DIR/queue/shogun_to_karo.yaml"
+    [ ! -f "$yaml_file" ] && return 0
+
+    local lock_file="${yaml_file}.lock"
+    local tmp_file="${yaml_file}.tmp.$$"
+
+    (
+        flock -w 5 200 || exit 0
+
+        # Find "- id: cmd_XXX" block, replace next "status: pending" → "status: in_progress"
+        if awk -v cmd="$cmd_id" '
+            /- id: / { in_block = ($0 ~ "- id: " cmd) }
+            in_block && /status: pending/ {
+                sub(/status: pending/, "status: in_progress")
+                in_block = 0
+                updated = 1
+            }
+            { print }
+            END { exit (updated ? 0 : 1) }
+        ' "$yaml_file" > "$tmp_file"; then
+            mv "$tmp_file" "$yaml_file"
+        else
+            rm -f "$tmp_file"
+        fi
+    ) 200>"$lock_file" 2>/dev/null
+
+    return 0  # Never fail — message delivery must succeed
+}
+
 # === MCP Phase 4: SQLite主系書き込み ===
 # MCP DBへの書き込みを主系として試みる（タイムアウト3秒）
 # 成功: YAMLへ互換同期 → exit 0
@@ -145,6 +184,7 @@ except Exception as e:
     fi
     # cmd_new時にRAG自動実行
     [ "$TYPE" = "cmd_new" ] && bash "$(dirname "$0")/automation/cmd_rag_hook.sh" >> "$SCRIPT_DIR/logs/cmd_rag.log" 2>&1 &
+    _update_cmd_status
     exit 0
 fi
 
@@ -228,7 +268,10 @@ except Exception as e:
 
         # cmd_new時にRAG自動実行（バックグラウンド、失敗してもinbox配信に影響しない）
         [ "$TYPE" = "cmd_new" ] && bash "$(dirname "$0")/automation/cmd_rag_hook.sh" >> "$SCRIPT_DIR/logs/cmd_rag.log" 2>&1 &
-        [ $STATUS -eq 0 ] && exit 0
+        if [ $STATUS -eq 0 ]; then
+            _update_cmd_status
+            exit 0
+        fi
         attempt=$((attempt + 1))
         [ $attempt -lt $max_attempts ] && sleep 1
     else
