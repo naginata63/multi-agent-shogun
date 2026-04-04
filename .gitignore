@@ -106,6 +106,7 @@
 !scripts/seo_qc.sh
 !scripts/stop_hook_inbox.sh
 !scripts/sessionstart_hook.sh
+!scripts/semantic_index_hook.sh
 !scripts/agent_status.sh
 !scripts/ratelimit_check.sh
 !scripts/switch_cli.sh
