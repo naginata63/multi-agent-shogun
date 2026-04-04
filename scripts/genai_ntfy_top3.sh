@@ -126,7 +126,7 @@ else
     NOTIFY_DISCORD=false
 fi
 
-# Discord Bot連携: queue/discord_pending.json に書き出す（topics全件含む）
+# Discord Bot連携: queue/discord_pending.json に書き出す（日付キー辞書追記形式）
 DISCORD_PENDING="$PROJECT_ROOT/queue/discord_pending.json"
 QUEUE_DIR="$PROJECT_ROOT/queue"
 mkdir -p "$QUEUE_DIR"
@@ -134,21 +134,44 @@ VENV_PYTHON="$PROJECT_ROOT/.venv/bin/python3"
 TOPICS_JSON="$("$VENV_PYTHON" "$SCRIPT_DIR/genai_parse_report.py" "$DATE_STR" 2>>"$LOG_FILE" || echo "[]")"
 TOP3_JSON="$(echo "$TOP3_MSG_CLEAN" | "$VENV_PYTHON" -c "import json,sys; print(json.dumps(sys.stdin.read()))")"
 "$VENV_PYTHON" - <<PYEOF
-import json
+import json, tempfile, os
+
+DISCORD_PENDING = "$DISCORD_PENDING"
+DATE_STR = "$DATE_STR"
+NOTIFY_DISCORD = $([[ "$NOTIFY_DISCORD" == "true" ]] && echo "True" || echo "False")
 topics = $TOPICS_JSON
-pending = {
-    "date": "$DATE_STR",
-    "text": $TOP3_JSON,
+top3_text = $TOP3_JSON
+
+# 既存ファイル読み込み → 日付キー辞書形式
+pending = {}
+if os.path.exists(DISCORD_PENDING):
+    try:
+        with open(DISCORD_PENDING, encoding="utf-8") as f:
+            old = json.load(f)
+        if isinstance(old, dict) and "date" in old and "topics" in old:
+            # 旧形式（単一オブジェクト）→ 変換
+            pending[old["date"]] = old
+        elif isinstance(old, dict) and "date" not in old:
+            # 新形式（日付キー辞書）
+            pending = old
+    except (json.JSONDecodeError, OSError):
+        pending = {}
+
+# 新エントリ追記（同日上書き）
+pending[DATE_STR] = {
+    "date": DATE_STR,
+    "text": top3_text,
     "topics": topics,
     "posted": False,
-    "notify_discord": $([[ "$NOTIFY_DISCORD" == "true" ]] && echo "True" || echo "False"),
+    "notify_discord": NOTIFY_DISCORD,
 }
-import tempfile, os
-tmpfd, tmppath = tempfile.mkstemp(suffix=".tmp", dir=os.path.dirname("$DISCORD_PENDING"))
+
+# atomic write
+tmpfd, tmppath = tempfile.mkstemp(suffix=".tmp", dir=os.path.dirname(DISCORD_PENDING))
 try:
     with os.fdopen(tmpfd, "w", encoding="utf-8") as f:
         json.dump(pending, f, ensure_ascii=False, indent=2)
-    os.rename(tmppath, "$DISCORD_PENDING")
+    os.rename(tmppath, DISCORD_PENDING)
 except:
     os.unlink(tmppath) if os.path.exists(tmppath) else None
     raise

@@ -207,12 +207,12 @@ async def send_daily_news(topics: list, date: str):
 # --- discord_pending.json 監視ループ ---
 @tasks.loop(seconds=60)
 async def check_pending():
-    """queue/discord_pending.json を監視して配信。"""
+    """queue/discord_pending.json を監視して配信。日付キー辞書形式対応。"""
     if not PENDING_FILE.exists():
         return
 
     try:
-        with open(PENDING_FILE) as f:
+        with open(PENDING_FILE, encoding="utf-8") as f:
             pending = json.load(f)
     except (json.JSONDecodeError, OSError) as e:
         log(f"WARN: discord_pending.json 読み込み失敗: {e}")
@@ -221,31 +221,44 @@ async def check_pending():
     if not isinstance(pending, dict):
         return
 
-    if pending.get("posted", True):
-        return
+    # 新形式（日付キー辞書）か旧形式（単一オブジェクト）か判定
+    if "date" in pending and "topics" in pending and not any(
+        isinstance(v, dict) and "topics" in v for v in pending.values() if isinstance(v, dict)
+    ):
+        # 旧形式: 単一オブジェクトをリスト化して処理
+        entries = [pending]
+    else:
+        # 新形式: 日付キー辞書
+        entries = [v for v in pending.values() if isinstance(v, dict) and "topics" in v]
 
-    date = pending.get("date", datetime.now().strftime("%Y-%m-%d"))
-    topics = pending.get("topics", [])
+    updated = False
+    for entry in entries:
+        if entry.get("posted", True):
+            continue
 
-    # 日付ベースの重複送信防止（genai_ntfy_top3.shが複数回実行されても送信は1回のみ）
-    SENT_DIR.mkdir(parents=True, exist_ok=True)
-    sent_flag = SENT_DIR / f"{date}.flag"
-    if sent_flag.exists():
-        log(f"既送信済み date={date} → スキップ（重複投稿防止）")
-        pending["posted"] = True
-        with open(PENDING_FILE, "w") as f:
+        date = entry.get("date", datetime.now().strftime("%Y-%m-%d"))
+        topics = entry.get("topics", [])
+
+        # 日付ベースの重複送信防止
+        SENT_DIR.mkdir(parents=True, exist_ok=True)
+        sent_flag = SENT_DIR / f"{date}.flag"
+        if sent_flag.exists():
+            log(f"既送信済み date={date} → スキップ（重複投稿防止）")
+            entry["posted"] = True
+            updated = True
+            continue
+
+        log(f"pending検知: date={date} topics={len(topics)}件 → 配信開始")
+        await send_daily_news(topics, date)
+
+        entry["posted"] = True
+        sent_flag.touch()
+        updated = True
+        log(f"送信済みフラグ作成: {sent_flag}")
+
+    if updated:
+        with open(PENDING_FILE, "w", encoding="utf-8") as f:
             json.dump(pending, f, ensure_ascii=False, indent=2)
-        return
-
-    log(f"pending検知: date={date} topics={len(topics)}件 → 配信開始")
-    await send_daily_news(topics, date)
-
-    # posted: true に更新 + 送信済みフラグ作成
-    pending["posted"] = True
-    with open(PENDING_FILE, "w") as f:
-        json.dump(pending, f, ensure_ascii=False, indent=2)
-    sent_flag.touch()
-    log(f"送信済みフラグ作成: {sent_flag}")
 
 
 # --- イベントハンドラ ---
