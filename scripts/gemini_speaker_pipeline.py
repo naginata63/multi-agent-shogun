@@ -1,0 +1,1 @@
+/home/murakami/multi-agent-shogun/scripts/archive/gemini_speaker_pipeline.py
