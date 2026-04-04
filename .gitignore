@@ -116,6 +116,8 @@
 !scripts/qc_prompt_execution.py
 !scripts/youtube_analytics_snapshot.py
 !scripts/generate_dashboard.py
+!scripts/dashboard/
+!scripts/dashboard/server.py
 !scripts/dashboard_rotate.sh
 !scripts/cmd_rotate.sh
 !scripts/capture_setup_screenshots.js
