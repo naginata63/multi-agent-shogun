@@ -1,15 +1,24 @@
 #!/usr/bin/env python3
 """
-cta_comment.py — チャンネル公開済み動画へのCTA自動コメント投稿
+cta_comment.py — チャンネル公開済み動画へのCTA自動コメント投稿・更新
 
 処理フロー:
-  1. YouTube Data APIでチャンネルの公開済み動画一覧を取得（最新50件）
+  1. YouTube Data APIでチャンネルの全公開動画一覧を取得
   2. 各動画で自チャンネルのトップレベルコメント有無を確認
   3. コメントがなければCTAコメントを投稿
+  4. コメントがあれば新文言に更新（--update指定時）
+
+Usage:
+  python3 cta_comment.py              # CTA未投稿動画にのみ投稿
+  python3 cta_comment.py --update     # 既存CTAコメントを新文言に一括更新
+  python3 cta_comment.py --dry-run    # 更新対象件数のみ確認（実際は更新しない）
+  python3 cta_comment.py --update --dry-run
 """
 
+import argparse
 import os
 import sys
+import time
 
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
@@ -32,8 +41,12 @@ SCOPES = [
 # 毎日ドズル社切り抜きチャンネル ID
 CHANNEL_ID = "UCiyY9PX64Nat6sd2vUhrTDQ"
 
-# CTAコメント定型文（youtube_uploader.py の CTA_COMMENT と同一）
-CTA_COMMENT = "明日も面白いシーン切り抜きます！見逃したくない人はチャンネル登録✂️"
+# CTAコメント最新版
+CTA_COMMENT = (
+    "明日も面白いシーン切り抜きます！見逃したくない人はチャンネル登録✂️\n"
+    "\n"
+    "切り抜いてほしいシーン大募集！コメントで教えてくれたらAIで見つけ出します🔍"
+)
 
 
 def get_service():
@@ -51,19 +64,18 @@ def get_service():
     return build("youtube", "v3", credentials=creds)
 
 
-def get_public_videos(youtube, max_results: int = 50) -> list[str]:
-    """チャンネルの公開済み動画 video_id 一覧を返す（最新順）"""
+def get_public_videos(youtube) -> list[str]:
+    """チャンネルの全公開済み動画 video_id 一覧を返す（最新順）"""
     video_ids = []
     page_token = None
-    remaining = max_results
 
-    while remaining > 0:
+    while True:
         res = youtube.search().list(
             part="id",
             channelId=CHANNEL_ID,
             type="video",
             order="date",
-            maxResults=min(remaining, 50),
+            maxResults=50,
             pageToken=page_token,
         ).execute()
 
@@ -71,15 +83,19 @@ def get_public_videos(youtube, max_results: int = 50) -> list[str]:
             video_ids.append(item["id"]["videoId"])
 
         page_token = res.get("nextPageToken")
-        remaining -= len(res.get("items", []))
         if not page_token:
             break
 
     return video_ids
 
 
-def has_own_comment(youtube, video_id: str, my_channel_id: str) -> bool:
-    """自チャンネルのトップレベルコメントが既にあれば True を返す"""
+def has_own_comment(youtube, video_id: str, my_channel_id: str) -> tuple:
+    """自チャンネルのトップレベルコメントを検索。
+
+    Returns:
+        (found, comment_id, comment_text) — found=Trueでコメント情報を返す
+        コメント取得エラー時は (True, None, None) を返しスキップ扱いにする
+    """
     page_token = None
     while True:
         try:
@@ -90,7 +106,7 @@ def has_own_comment(youtube, video_id: str, my_channel_id: str) -> bool:
         except Exception as e:
             # コメント無効化動画など → スキップ扱い（二重投稿防止）
             print(f"  [skip] コメント取得エラー ({video_id}): {e}")
-            return True
+            return True, None, None
 
         for thread in res.get("items", []):
             author_id = (
@@ -99,13 +115,15 @@ def has_own_comment(youtube, video_id: str, my_channel_id: str) -> bool:
                 .get("value", "")
             )
             if author_id == my_channel_id:
-                return True
+                comment_id = thread["snippet"]["topLevelComment"]["id"]
+                comment_text = thread["snippet"]["topLevelComment"]["snippet"]["textOriginal"]
+                return True, comment_id, comment_text
 
         page_token = res.get("nextPageToken")
         if not page_token:
             break
 
-    return False
+    return False, None, None
 
 
 def post_cta_comment(youtube, video_id: str) -> str:
@@ -124,7 +142,26 @@ def post_cta_comment(youtube, video_id: str) -> str:
     return res["id"]
 
 
+def update_cta_comment(youtube, comment_id: str) -> str:
+    """既存コメントを新CTA文言に更新し、comment_id を返す"""
+    res = youtube.comments().update(
+        part="snippet",
+        body={
+            "id": comment_id,
+            "snippet": {"textOriginal": CTA_COMMENT},
+        },
+    ).execute()
+    return res["id"]
+
+
 def main():
+    parser = argparse.ArgumentParser(description="CTAコメント投稿・更新")
+    parser.add_argument("--update", action="store_true",
+                        help="既存CTAコメントを新文言に一括更新")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="対象件数確認のみ（実際の投稿・更新はしない）")
+    args = parser.parse_args()
+
     youtube = get_service()
 
     # 自チャンネル確認
@@ -135,19 +172,71 @@ def main():
 
     videos = get_public_videos(youtube)
     print(f"[cta] 公開動画: {len(videos)} 件を確認")
+    if args.dry_run:
+        print("[cta] *** DRY-RUN モード（投稿・更新は行わない）***")
+    if args.update:
+        print("[cta] *** UPDATE モード（既存コメントを新文言に更新）***")
 
     posted = 0
+    updated = 0
+    already = 0
     skipped = 0
-    for video_id in videos:
-        if has_own_comment(youtube, video_id, my_channel_id):
-            print(f"  {video_id}: コメント済み（スキップ）")
-            skipped += 1
-        else:
-            comment_id = post_cta_comment(youtube, video_id)
-            print(f"  {video_id}: CTAコメント投稿完了 ({comment_id})")
-            posted += 1
+    errors = 0
 
-    print(f"[cta] 完了 — 投稿: {posted} 件 / スキップ: {skipped} 件")
+    for video_id in videos:
+        found, comment_id, comment_text = has_own_comment(youtube, video_id, my_channel_id)
+
+        if found and comment_id is None:
+            # コメント取得エラー → スキップ
+            skipped += 1
+            continue
+
+        if found:
+            # 既存コメントあり
+            if args.update:
+                if comment_text.strip() == CTA_COMMENT.strip():
+                    print(f"  {video_id}: 既に最新文言（スキップ）")
+                    already += 1
+                else:
+                    if args.dry_run:
+                        print(f"  {video_id}: 更新対象 [{comment_id}]")
+                        updated += 1
+                    else:
+                        try:
+                            update_cta_comment(youtube, comment_id)
+                            print(f"  {video_id}: コメント更新完了")
+                            updated += 1
+                            time.sleep(1)  # API rate limit対策
+                        except Exception as e:
+                            print(f"  {video_id}: 更新エラー: {e}")
+                            errors += 1
+            else:
+                print(f"  {video_id}: コメント済み（スキップ）")
+                already += 1
+        else:
+            # コメントなし → 新規投稿
+            if args.dry_run:
+                print(f"  {video_id}: 新規投稿対象")
+                posted += 1
+            else:
+                try:
+                    new_id = post_cta_comment(youtube, video_id)
+                    print(f"  {video_id}: CTAコメント投稿完了 ({new_id})")
+                    posted += 1
+                    time.sleep(1)  # API rate limit対策
+                except Exception as e:
+                    print(f"  {video_id}: 投稿エラー: {e}")
+                    errors += 1
+
+    mode_label = "[dry-run] " if args.dry_run else ""
+    print(f"\n[cta] {mode_label}完了")
+    print(f"  新規投稿: {posted} 件")
+    if args.update:
+        print(f"  更新: {updated} 件")
+    print(f"  最新文言済み: {already} 件")
+    print(f"  スキップ: {skipped} 件")
+    if errors:
+        print(f"  エラー: {errors} 件")
 
 
 if __name__ == "__main__":
