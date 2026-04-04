@@ -159,6 +159,7 @@
 !scripts/genai_monthly_profile_update.py
 !scripts/start_ashigaru_glm.sh
 !scripts/mcp_experiment.sh
+!scripts/script_semantic_index.py
 !discord-news-bot.service
 # config/discord_bot.env は * で除外済み（トークン含む、絶対コミット禁止）
 
