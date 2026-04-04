@@ -31,17 +31,19 @@ fi
 
 SOURCE=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('source', 'unknown'))" 2>/dev/null || echo "unknown")
 
-# Check GEMINI_API_KEY availability
+# Check API key availability (VERTEX_API_KEY優先)
 GEMINI_STATUS=""
-if [ -z "${GEMINI_API_KEY:-}" ]; then
+if [ -n "${VERTEX_API_KEY:-}" ]; then
+    GEMINI_STATUS="GEMINI_API_KEY: already set (via VERTEX_API_KEY)"
+elif [ -n "${GEMINI_API_KEY:-}" ]; then
+    GEMINI_STATUS="GEMINI_API_KEY: already set"
+else
     source ~/.bashrc 2>/dev/null || true
     if [ -n "${GEMINI_API_KEY:-}" ]; then
         GEMINI_STATUS="GEMINI_API_KEY: loaded from ~/.bashrc"
     else
-        GEMINI_STATUS="GEMINI_API_KEY: NOT SET (run: source ~/.bashrc)"
+        GEMINI_STATUS="GEMINI_API_KEY: NOT SET (run: source config/vertex_api_key.env)"
     fi
-else
-    GEMINI_STATUS="GEMINI_API_KEY: already set"
 fi
 
 CONTEXT=$(cat <<EOF

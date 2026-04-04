@@ -598,12 +598,12 @@ def process_category(api_key: str, category_dir: str, output_path: str):
 
 
 def main():
-    # GEMINI_API_KEY チェック
-    api_key = os.environ.get("GEMINI_API_KEY", "")
+    # APIキーチェック（VERTEX_API_KEY優先）
+    api_key = os.environ.get("VERTEX_API_KEY", "") or os.environ.get("GEMINI_API_KEY", "")
     if not api_key:
-        print("ERROR: GEMINI_API_KEY 環境変数が設定されていません。", file=sys.stderr)
+        print("ERROR: VERTEX_API_KEY / GEMINI_API_KEY 環境変数が設定されていません。", file=sys.stderr)
         print("設定方法:", file=sys.stderr)
-        print("    export GEMINI_API_KEY='your-api-key-here'", file=sys.stderr)
+        print("    source config/vertex_api_key.env", file=sys.stderr)
         sys.exit(1)
 
     # CLI引数チェック

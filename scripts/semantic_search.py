@@ -20,8 +20,8 @@ import time
 from pathlib import Path
 from typing import Optional
 
-# GEMINI_API_KEY読み込み（~/.bashrcから設定済み前提）
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+# APIキー読み込み（VERTEX_API_KEY優先、フォールバックでGEMINI_API_KEY）
+GEMINI_API_KEY = os.environ.get("VERTEX_API_KEY", "") or os.environ.get("GEMINI_API_KEY", "")
 
 import faiss
 import numpy as np

@@ -24,7 +24,7 @@ REPORTS_DIR = PROJECT_ROOT / "reports" / "genai_daily"
 CACHE_FILE = REPORTS_DIR / ".dedup_cache.json"
 CACHE_DAYS = 7
 
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_API_KEY = os.environ.get("VERTEX_API_KEY", "") or os.environ.get("GEMINI_API_KEY", "")
 EMBED_MODEL = "gemini-embedding-2-preview"
 SIMILARITY_THRESHOLD = 0.85
 TITLE_OVERLAP_THRESHOLD = 0.6

@@ -104,7 +104,7 @@ def is_stopword_segment(text: str) -> bool:
     return any(sw in text for sw in STOP_WORDS)
 
 
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_API_KEY = os.environ.get("VERTEX_API_KEY", "") or os.environ.get("GEMINI_API_KEY", "")
 
 # google-genai インポート
 try:

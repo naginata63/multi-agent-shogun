@@ -19,13 +19,15 @@ export PATH="$HOME/.local/bin:$PATH"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# cron環境でもGEMINI_API_KEYを取得（~/.bashrc → vertex_api_key.envの順）
+# cron環境でもAPIキーを取得（vertex_api_key.env → ~/.bashrcの順）
+VERTEX_ENV="$PROJECT_ROOT/config/vertex_api_key.env"
+if [[ -f "$VERTEX_ENV" ]]; then
+    source "$VERTEX_ENV"
+fi
+export VERTEX_API_KEY="${VERTEX_API_KEY:-}"
 GEMINI_API_KEY="${GEMINI_API_KEY:-$(grep -E '^export GEMINI_API_KEY=' ~/.bashrc 2>/dev/null | tail -1 | cut -d= -f2- | tr -d '"' || true)}"
 if [[ -z "$GEMINI_API_KEY" ]]; then
-    VERTEX_ENV="$PROJECT_ROOT/config/vertex_api_key.env"
-    if [[ -f "$VERTEX_ENV" ]]; then
-        GEMINI_API_KEY="$(grep -E '^export VERTEX_API_KEY=' "$VERTEX_ENV" 2>/dev/null | head -1 | sed 's/^export VERTEX_API_KEY=//' | tr -d '"')"
-    fi
+    GEMINI_API_KEY="$VERTEX_API_KEY"
 fi
 export GEMINI_API_KEY
 
