@@ -12,7 +12,7 @@ from datetime import datetime, timezone, timedelta
 
 PORT = 8770
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(_SCRIPT_DIR, "..", "..", "data", "dashboard.db")
+DB_PATH = os.path.join(_SCRIPT_DIR, "..", "..", "work", "cmd_1068", "experiment.db")
 BASE_DIR = os.path.join(_SCRIPT_DIR, "..", "..")
 TASKS_DIR = os.path.join(BASE_DIR, "queue", "tasks")
 INBOX_DIR = os.path.join(BASE_DIR, "queue", "inbox")
@@ -137,12 +137,13 @@ def parse_ts(ts_str):
 
 
 def age_hours(ts_str):
-    """Hours since timestamp. Returns large number if unparseable."""
+    """Hours since timestamp. Returns large number if unparseable.
+    Negative values (future timestamps) are clamped to 0."""
     dt = parse_ts(ts_str)
     if not dt:
         return 9999
     now = datetime.now(timezone.utc)
-    return (now - dt).total_seconds() / 3600
+    return max(0, (now - dt).total_seconds() / 3600)
 
 
 # ─── Auto-detection rules R1-R6 ────────────────────────────────────────────────
@@ -359,6 +360,41 @@ _yt_cache = {}
 _rm_cache = {}
 
 
+def _parse_tasks_regex(filepath):
+    """Fallback regex parser for task YAML when yaml.safe_load fails.
+    Extracts task list items with status, task_id, parent_cmd, timestamp, description."""
+    tasks = []
+    try:
+        with open(filepath) as f:
+            text = f.read()
+        # Split on "- task:" or "- task_id:" top-level items
+        blocks = re.split(r'\n(?=- (?:task:|task_id:))', text)
+        for block in blocks:
+            if not block.strip().startswith("- "):
+                continue
+            t = {}
+            m = re.search(r'task_id:\s*(\S+)', block)
+            if m:
+                t["task_id"] = m.group(1).strip()
+            m = re.search(r'parent_cmd:\s*(\S+)', block)
+            if m:
+                t["parent_cmd"] = m.group(1).strip()
+            m = re.search(r'^\s+status:\s*(\S+)', block, re.MULTILINE)
+            if m:
+                t["status"] = m.group(1).strip()
+            m = re.search(r'timestamp:\s*[\'"]?(\S+?)[\'"]?\s*$', block, re.MULTILINE)
+            if m:
+                t["timestamp"] = m.group(1).strip().strip("'\"")
+            desc_match = re.search(r'description:\s*\|(.*)', block, re.DOTALL)
+            if desc_match:
+                t["description"] = desc_match.group(1).strip()[:200]
+            if t.get("task_id"):
+                tasks.append(t)
+    except Exception:
+        pass
+    return tasks
+
+
 def read_yaml_tasks():
     agents = {}
     if not os.path.isdir(TASKS_DIR):
@@ -381,6 +417,12 @@ def read_yaml_tasks():
                     data = yaml.safe_load(f)
                 tasks = data.get("tasks", []) if data else []
                 _yt_cache[fname] = {"mtime": mt, "tasks": tasks}
+        except Exception:
+            # Fallback: regex-based parsing
+            tasks = _parse_tasks_regex(filepath)
+            _yt_cache[fname] = {"mtime": os.path.getmtime(filepath), "tasks": tasks}
+
+        try:
             latest_assigned = None
             total = len(tasks)
             done = sum(1 for t in tasks if t.get("status") == "done")
@@ -394,7 +436,7 @@ def read_yaml_tasks():
                 ts_str = latest_assigned.get("timestamp", "")
                 assigned_at = parse_ts(ts_str) if ts_str else None
                 if not assigned_at:
-                    assigned_at = datetime.fromtimestamp(mt, tz=timezone.utc)
+                    assigned_at = datetime.fromtimestamp(os.path.getmtime(filepath), tz=timezone.utc)
                 elapsed_min = (datetime.now(timezone.utc) - assigned_at).total_seconds() / 60
 
             agents[agent_id] = {
@@ -537,9 +579,7 @@ def get_dashboard_data():
         db_status = get_db_agent_status(aid, conn)
         if db_status and db_status != 'unknown':
             a["status"] = db_status
-        else:
-            # DB不明時はYAMLの古いassignedを信用せずidleにする
-            a["status"] = "idle"
+        # else: keep YAML-derived status (no forced idle)
         # idle agents should not show elapsed time from old assigned tasks
         if a["status"] != "busy":
             a["elapsed_min"] = None

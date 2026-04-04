@@ -72,25 +72,33 @@ with open(ntfy_log) as f:
     ntfy_text = f.read()
 
 with open(yaml_file) as f:
-    lines = f.readlines()
+    text = f.read()
+
+# Split into cmd blocks to avoid cross-block status contamination
+blocks = re.split(r'\n(?=- id: )', text)
 
 missing = []
 latest_cmd = None
-current_id = None
+found_watermark = False
 
-for line in reversed(lines):
-    s = line.strip()
-    m = re.match(r'- id: (cmd_\d+)', s)
-    if m:
-        current_id = m.group(1)
-        if current_id == last_checked:
-            break
-    if current_id and s == 'status: done':
-        if latest_cmd is None:
-            latest_cmd = current_id
-        if current_id not in ntfy_text:
-            missing.append(current_id)
-        current_id = None
+for block in blocks:
+    if not block.strip().startswith('- id:'):
+        continue
+    m = re.search(r'^- id: (cmd_\d+)', block, re.MULTILINE)
+    if not m:
+        continue
+    cmd_id = m.group(1)
+
+    if not found_watermark:
+        if cmd_id == last_checked:
+            found_watermark = True
+        continue  # Skip cmds before watermark
+
+    # Only check cmds with explicit 'status: done' in their own block
+    if re.search(r'^  status: done\s*$', block, re.MULTILINE):
+        latest_cmd = cmd_id
+        if cmd_id not in ntfy_text:
+            missing.append(cmd_id)
 
 if latest_cmd:
     print('WATERMARK:' + latest_cmd)
