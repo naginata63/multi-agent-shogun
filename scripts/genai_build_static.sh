@@ -517,6 +517,8 @@ html = f"""<!DOCTYPE html>
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://genai-daily.pages.dev/ogp.png">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AI NEWS - 最新AIニュース毎日配信">
+  <meta name="twitter:description" content="AI関連の最新ニュースを毎日お届け">
   <meta name="twitter:image" content="https://genai-daily.pages.dev/ogp.png">
   <link rel="stylesheet" href="style.css">
 </head>

@@ -207,6 +207,7 @@
 !dist/style.css
 !dist/app.js
 !dist/stats.html
+!dist/ogp.png
 
 # Screenshots (masked — no secrets)
 !images/
