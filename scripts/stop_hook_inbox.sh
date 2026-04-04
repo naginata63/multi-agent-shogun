@@ -44,6 +44,82 @@ if [ "$AGENT_ID" = "shogun" ]; then
     exit 0
 fi
 
+# ─── ntfy送信漏れ自動検出（家老のみ） ───
+_check_ntfy_missed() {
+    local WATERMARK_FILE="/tmp/ntfy_check_watermark_karo"
+    local NTFY_LOG="$SCRIPT_DIR/queue/ntfy_sent.log"
+    local YAML_FILE="$SCRIPT_DIR/queue/shogun_to_karo.yaml"
+
+    # 前提ファイルが無ければスキップ
+    [ ! -f "$NTFY_LOG" ] && return 0
+    [ ! -f "$YAML_FILE" ] && return 0
+
+    # ウォーターマーク読み込み（デフォルト: cmd_1100）
+    local LAST_CHECKED="cmd_1100"
+    [ -f "$WATERMARK_FILE" ] && LAST_CHECKED=$(cat "$WATERMARK_FILE")
+
+    # ウォーターマーク以降のdone cmd を抽出し、ntfy未送信を検出
+    local MISSING
+    MISSING=$(YAML_FILE="$YAML_FILE" NTFY_LOG="$NTFY_LOG" LAST_CHECKED="$LAST_CHECKED" \
+        python3 -c "
+import os, re
+
+yaml_file = os.environ['YAML_FILE']
+ntfy_log = os.environ['NTFY_LOG']
+last_checked = os.environ['LAST_CHECKED']
+
+with open(ntfy_log) as f:
+    ntfy_text = f.read()
+
+with open(yaml_file) as f:
+    lines = f.readlines()
+
+missing = []
+latest_cmd = None
+current_id = None
+
+for line in reversed(lines):
+    s = line.strip()
+    m = re.match(r'- id: (cmd_\d+)', s)
+    if m:
+        current_id = m.group(1)
+        if current_id == last_checked:
+            break
+    if current_id and s == 'status: done':
+        if latest_cmd is None:
+            latest_cmd = current_id
+        if current_id not in ntfy_text:
+            missing.append(current_id)
+        current_id = None
+
+if latest_cmd:
+    print('WATERMARK:' + latest_cmd)
+for cmd in missing:
+    print(cmd)
+" 2>/dev/null || true)
+
+    # 未送信cmdを自動送信 + ウォーターマーク更新
+    while IFS= read -r line; do
+        [ -z "$line" ] && continue
+        if [[ "$line" == WATERMARK:* ]]; then
+            echo "${line#WATERMARK:}" > "$WATERMARK_FILE"
+            continue
+        fi
+        bash "$SCRIPT_DIR/scripts/ntfy.sh" "✅ ${line}完了（自動検出）" &
+    done <<< "$MISSING"
+}
+
+# Karo: ntfy送信漏れチェックのみ → 即exit 0（inotifywait不要）
+if [ "$AGENT_ID" = "karo" ]; then
+    _check_ntfy_missed
+    exit 0
+fi
+
+# Gunshi: 即exit 0（inotifywait不要）
+if [ "$AGENT_ID" = "gunshi" ]; then
+    exit 0
+fi
+
 # ─── Define inbox path early (used in multiple places below) ───
 INBOX="$SCRIPT_DIR/queue/inbox/${AGENT_ID}.yaml"
 
