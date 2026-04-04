@@ -65,6 +65,82 @@ _update_cmd_done() {
 }
 _update_cmd_done "$1"
 
+# === done cmd自動アーカイブ（100件超で古いdone退避） ===
+_archive_old_done_cmds() {
+    local YAML="$SCRIPT_DIR/queue/shogun_to_karo.yaml"
+    local ARCHIVE_DIR="$SCRIPT_DIR/queue/archive"
+    local THRESHOLD=100
+    local KEEP_RECENT=50
+
+    [ ! -f "$YAML" ] && return 0
+
+    # done件数カウント
+    local DONE_COUNT
+    DONE_COUNT=$(grep -c "status: done" "$YAML" 2>/dev/null || echo 0)
+    if [ "$DONE_COUNT" -le "$THRESHOLD" ]; then
+        return 0
+    fi
+
+    local ARCHIVE_FILE="${ARCHIVE_DIR}/shogun_to_karo_$(date +%Y%m%d).yaml"
+    mkdir -p "$ARCHIVE_DIR"
+
+    # PythonでYAMLアーカイブ処理（flock排他制御）
+    (
+        flock -w 5 201 || exit 0
+
+        python3 -c "
+import sys
+THRESHOLD = $THRESHOLD
+KEEP_RECENT = $KEEP_RECENT
+yaml_file = '$YAML'
+archive_file = '$ARCHIVE_FILE'
+
+with open(yaml_file) as f:
+    lines = f.readlines()
+
+# done行の位置を特定
+done_indices = []
+cmd_start = None
+for i, line in enumerate(lines):
+    if line.strip().startswith('- id: cmd_'):
+        cmd_start = i
+    if cmd_start is not None and 'status: done' in line and line.strip().startswith('status:'):
+        done_indices.append(cmd_start)
+        cmd_start = None
+
+# 古いdone（直近KEEP_RECENT件以外）をアーカイブ
+to_archive = done_indices[:-KEEP_RECENT] if len(done_indices) > KEEP_RECENT else []
+if not to_archive:
+    sys.exit(0)
+
+# アーカイブファイルに書き込み
+with open(archive_file, 'w') as af:
+    af.write('# Archived done cmds - $(date)\\n')
+    for idx in to_archive:
+        end = idx + 1
+        while end < len(lines) and not lines[end].strip().startswith('- id:'):
+            end += 1
+        for line in lines[idx:end]:
+            af.write(line)
+
+# 元ファイルから削除（逆順で）
+for idx in reversed(to_archive):
+    end = idx + 1
+    while end < len(lines) and not lines[end].strip().startswith('- id:'):
+        end += 1
+    del lines[idx:end]
+
+with open(yaml_file, 'w') as f:
+    f.writelines(lines)
+
+print(f'Archived {len(to_archive)} done cmds. Kept {min(len(done_indices), KEEP_RECENT)} recent.')
+"
+    ) 201>"${YAML}.lock2" 2>/dev/null
+
+    return 0
+}
+_archive_old_done_cmds
+
 # 送信ログ記録
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$SCRIPT_DIR/queue/ntfy_sent.log"
 
