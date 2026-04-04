@@ -18055,3 +18055,47 @@ tasks:
     - "4/3と4/4のAI NEWSがDiscordに配信されている"
     - "genai_ntfy_top3.sh実行で既存エントリが消えない"
     - "git commit & push済み"
+- task_id: subtask_1112a
+  parent_cmd: cmd_1112
+  bloom_level: L3
+  assignee: ashigaru2
+  project: multi-agent-shogun
+  description: |
+    cmd_1112: inbox_write.shにcmd status自動更新機能を追加。
+
+    ## 殿の指示（原文）
+    「家老がin progressにしてくれない hookでなんとかならない？」
+
+    ## 変更対象
+    scripts/inbox_write.sh
+
+    ## 仕様
+    inbox_write.sh内で、type="task_assigned"の場合:
+    1. メッセージからcmd_XXXを抽出: `echo "$message" | grep -oP 'cmd_\d+' | head -1`
+    2. cmd_idが見つかった場合、shogun_to_karo.yamlの該当cmdのstatus: pending → status: in_progressに更新
+    3. YAMLの構造上、正しいcmdブロック内のstatusだけを変更（他cmdを壊すな）
+    4. flock排他制御必須（既存flock機構を流用）
+    5. cmdが見つからない/既にin_progress/doneなら何もしない（サイレント）
+    6. 失敗時もメッセージ送信自体は止めない
+
+    ## sedアプローチ
+    `id: cmd_XXX`の次に出現する`status: pending`を`status: in_progress`に置換。
+    awkベースの方が正確ならそちらでも可。
+
+    ## テスト手順
+    1. 現在のshogun_to_karo.yamlでpending状態のcmdを確認
+    2. `bash scripts/inbox_write.sh ashigaru1 "cmd_9999テスト" task_assigned karo`送信
+    3. cmd_9999がなければ何も起きないことを確認（安全確認）
+    4. 既存inbox機能（メッセージ書き込み・DB挿入）が正常動作すること
+    5. ※実際のpending cmdでのテストはNG（副作用回避）
+
+    ## 注意
+    - inbox_write.shの既存機能に影響しないこと
+    - 新規.py禁止。inbox_write.shの編集のみ
+
+    ## 完了後
+    1. git commit & push
+    2. bash scripts/inbox_write.sh karo "足軽2号、subtask_1112a完了。inbox_write.shにcmd status自動更新追加。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-04T12:55:00'
+  status: assigned

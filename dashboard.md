@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-04 12:16
+最終更新: 2026-04-04 15:45
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -8,21 +8,33 @@
 
 ### ⚠️ cmd_952 ナレーション動画受託案件 — 殿方針確認待ち
 
-### 🔧 bot再起動必要
-`sudo systemctl restart discord-news-bot` — cmd_1100修正反映用
-
 ## 🔄 進行中
 
 | cmd | 内容 | 担当 |
 |-----|------|------|
-| cmd_1105 | 漫画P1-P9×3枚再生成（ref修正版・再実行中） | 足軽3号 |
-| cmd_1106 | スクリプト10ファイル移動（Phase 1-5） | 足軽5号 |
-| cmd_1107 | 1月リプレイ×ホットスポットTop10 | 足軽6号 |
+| cmd_1121 | context全ナレッジファイルにスクリプト名+実行例追記 | 軍師 |
+| cmd_1122 | claude-mem日本語化設定調査 | 軍師 |
 
 ## ✅ 最近の完了
 
 | cmd | 内容 | 完了日 |
 |-----|------|--------|
+| cmd_1120 | セマンティック検索インデックス（119スクリプト、検索4件全PASS） | 4/4 |
+| cmd_1119 | ニンジン世界STT+字幕マージ（172words、話者100%） | 4/4 |
+| cmd_1118 | ニンジン世界再編集（落ち延長）非公開アップ https://youtu.be/qelMO3iQKTM | 4/4 |
+| cmd_1117 | ニンジン世界編集版非公開アップ https://youtu.be/DqiaiMPc8Jk | 4/4 |
+| cmd_1105 | 漫画P1-P9×3枚再生成（28枚新規）比較:http://100.66.15.93:8780/all_panels.html | 4/4 |
+| cmd_1116 | ニンジン世界間カット編集（4区間→37.2秒、h264_nvenc） | 4/4 |
+| cmd_1115 | 全53公開動画CTAコメント一括差し替え（エラー0件） | 4/4 |
+| cmd_1114 | ニンジン世界STT+話者ラベル（dozle/orafu、165語/93.1%） | 4/4 |
+| cmd_1107 | 1月リプレイTop10（33本分析/Top1:ぶらり鬼畜旅ビンゴ 16.30pts） | 4/4 |
+| cmd_1113 | ダッシュボード経過時間列追加（1h黄/2h赤）commit:29e2cb1 | 4/4 |
+| cmd_1112 | inbox_write.sh cmd status自動更新（task_assigned時pending→in_progress） | 4/4 |
+| cmd_1111 | ニンジン世界クリップ39:51-41:01非公開アップ https://youtu.be/ukCr9Ls4yZg | 4/4 |
+| cmd_1110 | スクリプトインデックス130ファイル（10カテゴリA-J分類） | 4/4 |
+| cmd_1109 | CTAコメント文言更新+リクエスト募集文追加（53件CTA済み） | 4/4 |
+| cmd_1108 | MCPダッシュボードAPI修正（mtimeキャッシュ 5s→0.67s） | 4/4 |
+| cmd_1106 | スクリプト10ファイル移動完了（Phase1-5） | 4/4 |
 | cmd_1104 | スクリプト移動計画設計（10ファイル5フェーズ・CRITICAL4件） | 4/4 |
 | cmd_1103 | レベル250漫画P2〜P9×3枚生成（計23枚/P4のみ2枚）比較:http://100.66.15.93:8780/all_panels.html | 4/4 |
 | cmd_1100 | Discord配信バグ修正（日付キー辞書形式）+4/4配信済み。⚠️bot再起動要 | 4/4 |
@@ -60,10 +72,10 @@
 |------|------|-----|------|---------|
 | 1号 | 0.1 | GLM-5.1 | idle | — |
 | 2号 | 0.2 | GLM-5.1 | idle | — |
-| 3号 | 0.3 | GLM-5.1 | 稼働 | subtask_1105a (cmd_1105) |
+| 3号 | 0.3 | GLM-5.1 | idle | — |
 | 4号 | 0.4 | GLM-5.1 | idle | — |
-| 5号 | 0.5 | GLM-5.1 | 稼働 | subtask_1106a (cmd_1106) |
-| 6号 | 0.6 | GLM-5.1 | 稼働 | subtask_1107a (cmd_1107) |
+| 5号 | 0.5 | GLM-5.1 | idle | — |
+| 6号 | 0.6 | GLM-5.1 | idle | — |
 | 7号 | 0.7 | GLM-5.1 | idle | — |
 | 軍師 | 0.8 | Opus | idle | — |
 
@@ -78,14 +90,6 @@
 - 視聴回数**98.4万回** / 総再生時間**5,925時間**
 - ちゃかすMEN **210,081再生**（チャンネル最多）
 - 極小MEN **131,804再生**（急伸中）
-
-## 🔍 夜間矛盾検出（4/4 インフラ）
-HIGH 2件 / MEDIUM 6件 / LOW 3件
-- HIGH: semantic_search.py FAISS cronがBQ移行後も毎時実行(キー期限切れで失敗)
-- HIGH: mcp_experiment.shがworktree古いDB使用で本番乖離
-- MEDIUM: context_monitor.sh/agent_status.sh pane名不一致
-- MEDIUM: agent_status.sh task YAML読み込みがflat構造前提で動かない
-詳細: queue/reports/gunshi_nightly_audit_20260404.yaml
 
 ## 🌐 外部公開サービス
 - AI NEWS: https://genai-daily.pages.dev
