@@ -387,6 +387,15 @@ def read_yaml_tasks():
                 if t.get("status") == "assigned":
                     latest_assigned = t
                     break
+            # Compute elapsed_min from task timestamp, fallback to file mtime
+            elapsed_min = None
+            if latest_assigned:
+                ts_str = latest_assigned.get("timestamp", "")
+                assigned_at = parse_ts(ts_str) if ts_str else None
+                if not assigned_at:
+                    assigned_at = datetime.fromtimestamp(mt, tz=timezone.utc)
+                elapsed_min = (datetime.now(timezone.utc) - assigned_at).total_seconds() / 60
+
             agents[agent_id] = {
                 "agent_id": agent_id,
                 "status": "busy" if latest_assigned else "idle",
@@ -395,6 +404,7 @@ def read_yaml_tasks():
                 "description": (latest_assigned.get("description", "")[:80] if latest_assigned else ""),
                 "total_tasks": total,
                 "done_tasks": done,
+                "elapsed_min": round(elapsed_min, 1) if elapsed_min is not None else None,
             }
         except Exception:
             agents[agent_id] = {
@@ -405,6 +415,7 @@ def read_yaml_tasks():
                 "description": "YAML parse error",
                 "total_tasks": 0,
                 "done_tasks": 0,
+                "elapsed_min": None,
             }
     return agents
 
@@ -553,6 +564,11 @@ def get_dashboard_data():
     busy_agents = sum(1 for a in agent_map.values() if a.get("status") == "busy")
     idle_agents = sum(1 for a in agent_map.values() if a.get("status") == "idle")
     total_done = sum(a.get("done_tasks", 0) for a in agent_map.values())
+
+    # Strip total_tasks/done_tasks from per-agent API response
+    for a in agent_map.values():
+        a.pop("total_tasks", None)
+        a.pop("done_tasks", None)
 
     return {
         "stats": {
@@ -737,7 +753,7 @@ function renderActionRequired(items) {
 
 function renderAgents(agents) {
   if (!agents || !agents.length) { $('agents').innerHTML = '<div class="empty">No agents</div>'; return; }
-  let html = '<table><tr><th>エージェント</th><th>状態</th><th>タスク</th><th>完/計</th></tr>';
+  let html = '<table><tr><th>エージェント</th><th>状態</th><th>タスク</th><th>経過</th></tr>';
   agents.sort((a,b) => {
     const order = ['karo','ashigaru1','ashigaru2','ashigaru3','ashigaru4','ashigaru5','ashigaru6','ashigaru7','gunshi'];
     return order.indexOf(a.agent_id) - order.indexOf(b.agent_id);
@@ -745,11 +761,25 @@ function renderAgents(agents) {
   for (const a of agents) {
     const badge = `badge-${a.status || 'offline'}`;
     const task = a.current_task || a.tmux_task || '—';
+    let elapsed = '—';
+    if (a.elapsed_min != null) {
+      const mins = a.elapsed_min;
+      if (mins < 60) {
+        elapsed = `${Math.round(mins)}m`;
+      } else {
+        elapsed = `${Math.floor(mins / 60)}h ${Math.round(mins % 60)}m`;
+      }
+      if (mins > 120) {
+        elapsed = `<span style="color:#f85149">${elapsed}</span>`;
+      } else if (mins > 60) {
+        elapsed = `<span style="color:#d29922">${elapsed}</span>`;
+      }
+    }
     html += `<tr>
       <td><strong>${esc(a.agent_id)}</strong></td>
       <td><span class="badge ${badge}">${esc(a.status || 'offline')}</span></td>
       <td class="truncate" title="${esc(a.description || a.current_task || '')}">${esc(task)}</td>
-      <td style="white-space:nowrap">${a.done_tasks || 0}/${a.total_tasks || 0}</td>
+      <td style="white-space:nowrap">${elapsed}</td>
     </tr>`;
   }
   html += '</table>';
