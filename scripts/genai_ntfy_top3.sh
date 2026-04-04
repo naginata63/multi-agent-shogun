@@ -132,15 +132,36 @@ QUEUE_DIR="$PROJECT_ROOT/queue"
 mkdir -p "$QUEUE_DIR"
 VENV_PYTHON="$PROJECT_ROOT/.venv/bin/python3"
 TOPICS_JSON="$("$VENV_PYTHON" "$SCRIPT_DIR/genai_parse_report.py" "$DATE_STR" 2>>"$LOG_FILE" || echo "[]")"
-TOP3_JSON="$(echo "$TOP3_MSG_CLEAN" | "$VENV_PYTHON" -c "import json,sys; print(json.dumps(sys.stdin.read()))")"
-"$VENV_PYTHON" - <<PYEOF
-import json, tempfile, os
+# TOP3 textを一時ファイル経由で渡す（サロゲート文字問題回避）
+TOP3_TMPFILE="$(mktemp)"
+printf '%s' "$TOP3_MSG_CLEAN" > "$TOP3_TMPFILE"
+export _NOTIFY_DISCORD="$NOTIFY_DISCORD"
+"$VENV_PYTHON" - "$DISCORD_PENDING" "$DATE_STR" "$TOP3_TMPFILE" "$TOPICS_JSON" <<'PYEOF'
+import json, tempfile, os, sys
 
-DISCORD_PENDING = "$DISCORD_PENDING"
-DATE_STR = "$DATE_STR"
-NOTIFY_DISCORD = $([[ "$NOTIFY_DISCORD" == "true" ]] && echo "True" || echo "False")
-topics = $TOPICS_JSON
-top3_text = $TOP3_JSON
+def sanitize_surrogates(obj):
+    """再帰的にstr内のサロゲート文字を除去"""
+    if isinstance(obj, str):
+        return obj.encode('utf-8', errors='replace').decode('utf-8')
+    elif isinstance(obj, dict):
+        return {k: sanitize_surrogates(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [sanitize_surrogates(v) for v in obj]
+    return obj
+
+DISCORD_PENDING = sys.argv[1]
+DATE_STR = sys.argv[2]
+TOP3_TMPFILE = sys.argv[3]
+TOPICS_JSON_STR = sys.argv[4]
+
+# 環境変数からnotify_discordを読む
+import os as _os
+NOTIFY_DISCORD = _os.environ.get("_NOTIFY_DISCORD", "false").lower() == "true"
+
+topics = json.loads(TOPICS_JSON_STR)
+with open(TOP3_TMPFILE, encoding='utf-8', errors='replace') as f:
+    top3_text = f.read()
+_os.unlink(TOP3_TMPFILE)
 
 # 既存ファイル読み込み → 日付キー辞書形式
 pending = {}
@@ -149,33 +170,35 @@ if os.path.exists(DISCORD_PENDING):
         with open(DISCORD_PENDING, encoding="utf-8") as f:
             old = json.load(f)
         if isinstance(old, dict) and "date" in old and "topics" in old:
-            # 旧形式（単一オブジェクト）→ 変換
             pending[old["date"]] = old
         elif isinstance(old, dict) and "date" not in old:
-            # 新形式（日付キー辞書）
             pending = old
     except (json.JSONDecodeError, OSError):
         pending = {}
 
 # 新エントリ追記（同日上書き）
-pending[DATE_STR] = {
+entry = {
     "date": DATE_STR,
-    "text": top3_text,
-    "topics": topics,
+    "text": sanitize_surrogates(top3_text),
+    "topics": sanitize_surrogates(topics),
     "posted": False,
     "notify_discord": NOTIFY_DISCORD,
 }
+pending[DATE_STR] = sanitize_surrogates(entry)
 
 # atomic write
 tmpfd, tmppath = tempfile.mkstemp(suffix=".tmp", dir=os.path.dirname(DISCORD_PENDING))
 try:
     with os.fdopen(tmpfd, "w", encoding="utf-8") as f:
-        json.dump(pending, f, ensure_ascii=False, indent=2)
+        json.dump(sanitize_surrogates(pending), f, ensure_ascii=False, indent=2)
     os.rename(tmppath, DISCORD_PENDING)
-except:
+except Exception:
     os.unlink(tmppath) if os.path.exists(tmppath) else None
     raise
+
+print(f"topics={len(topics)}件")
 PYEOF
-log "Discord pending書き出し: $DISCORD_PENDING (topics=$(echo "$TOPICS_JSON" | "$VENV_PYTHON" -c 'import json,sys; print(len(json.load(sys.stdin)))' 2>/dev/null || echo '?')件)"
+TOPIC_COUNT="$?"
+log "Discord pending書き出し: $DISCORD_PENDING (exit=$TOPIC_COUNT)"
 
 log "=== Top3配信完了 ==="

@@ -16,12 +16,18 @@ set -uo pipefail
 
 # cron環境でもclaudeが見つかるようにPATHを補完
 export PATH="$HOME/.local/bin:$PATH"
-# cron環境でもGEMINI_API_KEYを取得
-GEMINI_API_KEY="${GEMINI_API_KEY:-$(grep -E '^export GEMINI_API_KEY=' ~/.bashrc 2>/dev/null | tail -1 | cut -d= -f2- | tr -d '"' || true)}"
-export GEMINI_API_KEY
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# cron環境でもGEMINI_API_KEYを取得（~/.bashrc → vertex_api_key.envの順）
+GEMINI_API_KEY="${GEMINI_API_KEY:-$(grep -E '^export GEMINI_API_KEY=' ~/.bashrc 2>/dev/null | tail -1 | cut -d= -f2- | tr -d '"' || true)}"
+if [[ -z "$GEMINI_API_KEY" ]]; then
+    VERTEX_ENV="$PROJECT_ROOT/config/vertex_api_key.env"
+    if [[ -f "$VERTEX_ENV" ]]; then
+        GEMINI_API_KEY="$(grep -E '^export VERTEX_API_KEY=' "$VERTEX_ENV" 2>/dev/null | head -1 | sed 's/^export VERTEX_API_KEY=//' | tr -d '"')"
+    fi
+fi
+export GEMINI_API_KEY
 
 # 日付引数（省略時は今日）
 DATE_ARG="${1:-}"
@@ -320,6 +326,8 @@ python3 "$SCRIPT_DIR/genai_ogp_prefetch.py" "$DATE_STR" >> "$LOG_FILE" 2>&1 &
 log "静的サイトビルドを開始..."
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)" bash "$SCRIPT_DIR/genai_build_static.sh" >> "$LOG_FILE" 2>&1 && {
     log "静的サイトビルド完了"
+    # cron環境でnpxを見つけるためnvmをPATHに追加
+    export PATH="$HOME/.nvm/versions/node/$(ls "$HOME/.nvm/versions/node/" 2>/dev/null | tail -1):$PATH"
     npx wrangler pages deploy "$(cd "$SCRIPT_DIR/.." && pwd)/dist/" --project-name=genai-daily >> "$LOG_FILE" 2>&1 \
         && log "Cloudflare Pagesデプロイ完了" \
         || log "WARN: wrangler未設定 or デプロイ失敗（静的ビルドは完了済み）"
