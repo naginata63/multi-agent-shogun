@@ -24,6 +24,17 @@ done < <(ntfy_get_auth_args "$SCRIPT_DIR/config/ntfy_auth.env")
 # shellcheck disable=SC2086
 curl -s "${AUTH_ARGS[@]}" -H "Tags: outbound" -d "$1" "https://ntfy.sh/$TOPIC" > /dev/null
 
+# 送信ログ記録
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$SCRIPT_DIR/queue/ntfy_sent.log"
+
+# 日報自動追記
+DAILY_DIR="$SCRIPT_DIR/logs/daily"
+mkdir -p "$DAILY_DIR" 2>/dev/null
+echo "- [$(date '+%H:%M')] $1" >> "$DAILY_DIR/$(date '+%Y-%m-%d').md"
+
+# デスクトップ通知（PCの前にいる殿向け）
+notify-send -u normal -t 10000 "🤖 将軍システム" "$1" 2>/dev/null &
+
 # VOICEVOX音声通知（voicevox_enabled: true の場合のみ）
 VOICEVOX_ENABLED=$(grep 'voicevox_enabled:' "$SETTINGS" | awk '{print $2}' | tr -d '"')
 if [ "$VOICEVOX_ENABLED" = "true" ]; then

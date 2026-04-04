@@ -249,6 +249,13 @@ function buildCard(topic, showDateBadge) {
   const card = document.createElement('article');
   card.className = 'topic-card';
   card.dataset.category = topic.category || 'other';
+  card.style.cursor = 'pointer';
+  card.addEventListener('click', (e) => {
+    if (e.target.tagName === 'A') return;
+    if (e.target.closest('.fb-btn')) return;
+    const url = topic.source_url || '#';
+    if (url !== '#') window.open(url, '_blank', 'noopener');
+  });
 
   const icon = topic.category_icon || getCategoryIcon(topic.category);
   const title = escapeHtml(topic.title || '(タイトルなし)');
@@ -330,3 +337,30 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+// Feedback button handler (toggle)
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.fb-btn');
+  if (!btn) return;
+  e.stopPropagation();
+  const title = btn.dataset.title;
+  const vote = btn.dataset.vote;
+  const date = state.selectedDate || new Date().toISOString().slice(0,10);
+  const container = btn.parentElement;
+  const otherBtn = container.querySelector(vote === 'like' ? '.fb-dislike' : '.fb-like');
+  const isActive = btn.classList.contains('fb-voted');
+  const reaction = isActive ? 'none' : (vote === 'like' ? 'up' : 'down');
+
+  fetch('/api/feedback', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({article_title: title, reaction, date})
+  }).then(r => r.json()).then(d => {
+    if (isActive) {
+      btn.classList.remove('fb-voted');
+    } else {
+      btn.classList.add('fb-voted');
+      otherBtn.classList.remove('fb-voted');
+    }
+  }).catch(() => {});
+});

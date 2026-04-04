@@ -8,15 +8,30 @@ Usage: python3 scripts/genai_parse_report.py YYYY-MM-DD
 import json
 import re
 import sys
+import urllib.request
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).parent.parent
 REPORTS_DIR = PROJECT_ROOT / "reports" / "genai_daily"
 OGP_CACHE_FILE = REPORTS_DIR / ".ogp_cache.json"
 
-# ## 🤖 ★★★☆☆ タイトル
+
+def fetch_ogp_image(url: str) -> str | None:
+    """URLからOGP画像URLを取得。失敗時はNone。"""
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            html = resp.read(524288).decode("utf-8", errors="ignore")
+        m = re.search(r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)["\']', html)
+        if not m:
+            m = re.search(r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image["\']', html)
+        return m.group(1) if m else None
+    except Exception:
+        return None
+
+# ## 🤖 ★★★☆☆ タイトル  or  ## 📝 ［★★★☆☆ 個人ブログ］タイトル
 SECTION_RE = re.compile(
-    r'^## ([\U00010000-\U0010ffff\u2600-\u26FF\u2700-\u27BF🤖📢🛠️💰📄\U0001F300-\U0001F9FF]+)\s+([\★☆]+)\s+(.+)$'
+    r'^## ([\U00010000-\U0010ffff\u2600-\u26FF\u2700-\u27BF🤖📢🛠️💰📄\U0001F300-\U0001F9FF]+)\s+(?:［([\★☆]+)\s+[^］]+］|([\★☆]+))\s*(.+)$'
 )
 SOURCE_RE = re.compile(r'\[([^\]]+)\]\(([^)]+)\)')
 
@@ -54,6 +69,7 @@ def parse_report(date_str: str) -> list:
     topics = []
     current = None
     body_lines = []
+    cache_updated = False
 
     for line in lines:
         m = SECTION_RE.match(line)
@@ -64,8 +80,8 @@ def parse_report(date_str: str) -> list:
                 topics.append(current)
 
             category = m.group(1).strip()
-            stars_str = m.group(2)
-            title = m.group(3).strip()
+            stars_str = m.group(2) or m.group(3)  # group(2)=bracket form, group(3)=normal form
+            title = m.group(4).strip()
             current = {
                 'title': title,
                 'category': category,
@@ -85,7 +101,12 @@ def parse_report(date_str: str) -> list:
             url = extract_first_url(line)
             if url:
                 current['url'] = url
-                current['ogp_image'] = ogp_cache.get(url)
+                ogp = ogp_cache.get(url)
+                if ogp is None and url not in ogp_cache:
+                    ogp = fetch_ogp_image(url)
+                    ogp_cache[url] = ogp
+                    cache_updated = True
+                current['ogp_image'] = ogp
             continue
 
         # 区切り線
@@ -100,6 +121,15 @@ def parse_report(date_str: str) -> list:
     if current is not None:
         current['summary'] = ' '.join(body_lines).strip()
         topics.append(current)
+
+    # キャッシュ更新
+    if cache_updated:
+        try:
+            OGP_CACHE_FILE.write_text(
+                json.dumps(ogp_cache, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+        except OSError:
+            pass
 
     return topics
 

@@ -24,15 +24,15 @@ cli:
   default: claude
   agents:
     shogun: { type: claude, model: "opus[1m]" }
-    karo: { type: claude, model: "opus[1m]" }
+    karo: { type: glm, model: sonnet }  # Z.AI GLM-5.1（格下げ）
     gunshi: { type: claude, model: "opus[1m]" }
     ashigaru1: { type: glm, model: sonnet }  # Z.AI GLM-5.1 (要: config/glm_api_key.env)
-    ashigaru2: { type: claude, model: sonnet }
-    ashigaru3: { type: claude, model: sonnet }
-    ashigaru4: { type: claude, model: sonnet }
-    ashigaru5: { type: claude, model: sonnet }
-    ashigaru6: { type: claude, model: sonnet }
-    ashigaru7: { type: claude, model: sonnet }
+    ashigaru2: { type: glm, model: sonnet }  # Z.AI GLM-5.1
+    ashigaru3: { type: glm, model: sonnet }  # Z.AI GLM-5.1
+    ashigaru4: { type: glm, model: sonnet }  # Z.AI GLM-5.1
+    ashigaru5: { type: glm, model: sonnet }  # Z.AI GLM-5.1
+    ashigaru6: { type: glm, model: sonnet }  # Z.AI GLM-5.1
+    ashigaru7: { type: glm, model: sonnet }  # Z.AI GLM-5.1
 
 # ntfy通知設定
 ntfy_topic: "shogun-962f817f20fadb36"

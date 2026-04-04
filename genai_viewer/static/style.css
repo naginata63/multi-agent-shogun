@@ -447,7 +447,33 @@ body {
 
 .card-thumbnail img {
   width: 100%;
-  height: 140px;
+  aspect-ratio: 1.91 / 1;
   object-fit: cover;
   display: block;
+}
+
+.card-feedback {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.fb-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: 1.1em;
+  transition: background 0.2s;
+}
+.fb-btn:hover {
+  background: var(--sidebar-bg);
+}
+.fb-btn.fb-voted {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.fb-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
 }

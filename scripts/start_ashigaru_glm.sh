@@ -33,6 +33,9 @@ cat > "$SETTINGS_FILE" << EOF
 {
   "autoUpdates": false,
   "autoUpdaterStatus": "disabled",
+  "enabledPlugins": {
+    "claude-mem@thedotmack": true
+  },
   "env": {
     "ANTHROPIC_AUTH_TOKEN": "$ZAI_API_KEY",
     "ANTHROPIC_BASE_URL": "https://api.z.ai/api/anthropic",
@@ -45,4 +48,5 @@ cat > "$SETTINGS_FILE" << EOF
 EOF
 
 # 別HOMEでClaude Code起動（OAuth衝突回避）
-exec HOME="$GLM_HOME" claude --model sonnet --dangerously-skip-permissions
+export HOME="$GLM_HOME"
+exec claude --model sonnet --dangerously-skip-permissions

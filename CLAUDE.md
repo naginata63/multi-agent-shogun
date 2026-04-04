@@ -31,6 +31,14 @@ cmd_format:
   acceptance_criteria: "List of testable conditions. ALL must be true for cmd=done."
   validation: "Karo checks acceptance_criteria at Step 11.7. Ashigaru checks parent_cmd purpose on task completion."
 
+cmd_status_transitions:
+  - "pending → in_progress (karo assigns to ashigaru)"
+  - "in_progress → done (completed successfully)"
+  - "in_progress → done_ng (completed but failed)"
+  - "pending → cancelled (withdrawn by shogun)"
+  - "RULE: Shogun sets pending on creation. Shogun updates to in_progress when karo starts work."
+  - "RULE: Shogun updates to done/done_ng on completion."
+
 task_status_transitions:
   - "idle → assigned (karo assigns)"
   - "assigned → done (ashigaru completes)"
@@ -200,12 +208,14 @@ Race condition is eliminated: `/clear` wipes old context. Agent re-reads YAML wi
 
 家老がタスクYAMLを足軽/軍師に割り当てる際、以下を**必ず順番に**実行せよ:
 1. タスクYAML書き込み完了（queue/tasks/{agent}.yaml）
-2. `inbox_write.sh` でターゲットに通知 ← **これを絶対に忘れるな**
-3. 通知完了確認（inbox YAMLにメッセージが追加されたことを tail で確認）
+2. **テスト手順をstepsに含めたか確認** ← 成果物の動作確認方法を必ず明記（Webならブラウザアクセス確認、スクリプトなら実行テスト、API変更ならcurlテスト等）。コストがかかるテスト（画像生成API等）は除外を明記すること。テスト手順なしのタスクYAMLは不完全。
+3. `inbox_write.sh` でターゲットに通知 ← **これを絶対に忘れるな**
+4. 通知完了確認（inbox YAMLにメッセージが追加されたことを tail で確認）
 
 **タスクYAML書き込み後、inbox_writeせずに次の作業へ移ることは禁止。**
-1つのタスク割り当て = YAML書き込み + inbox_write の2アクションで1セット。
+1つのタスク割り当て = YAML書き込み + inbox_write + テスト手順明記 の3点で1セット。
 （2026-03-04 是正: subtask_206a3でYAML書き込み後inbox通知を忘れた事例から制定）
+（2026-03-30 追加: OGP機能でimport漏れ・サーバーブロックが未テストで本番投入された事例から制定）
 
 ## Report Flow (interrupt prevention)
 
@@ -229,6 +239,21 @@ Layer 2: Project files   — persistent per-project (config/, projects/, context
 Layer 3: YAML Queue      — persistent task data (queue/ — authoritative source of truth)
 Layer 4: Session context — volatile (CLAUDE.md auto-loaded, instructions/*.md, lost on /clear)
 ```
+
+## ファイル配置ルール
+
+| 種類 | 置き場所 | 例 |
+|------|---------|-----|
+| 殿の教訓・判断・指摘 | `memory/` (Claude Code memory) | feedback_*.md |
+| ドズル社切り抜き固有データ | `projects/dozle_kirinuki/context/` | member_profiles.yaml, minecraft_ids.md, hl_sh_workflow.md |
+| note記事関連 | `projects/note_mcp_server/context/` | note_neta.md, note_command_template.md |
+| 全エージェント共通ルール | `CLAUDE.md` | ffmpeg/Gemini/Git等のルール |
+| エージェント手順 | `instructions/*.md` | shogun.md, karo.md |
+| タスク・指示 | `queue/` | shogun_to_karo.yaml, tasks/*.yaml |
+| スキル（ワークフロー定義） | `skills/` | skill-creator, senkyou, manga-short等 |
+| スラッシュコマンド | `.claude/commands/` | handoff.md, rehydrate.md等 |
+
+**memoryにはコードから分かること・CLAUDE.mdに書いてあることを置くな。殿の判断・教訓のみ。**
 
 # Project Management
 
@@ -291,6 +316,16 @@ System manages ALL white-collar work, not just self-improvement. Project folders
 4. **命名規則**: `{処理名}_{動画ID}_{タイムスタンプ}.{拡張子}`（例: `wx_words_rDYmTp_20260312.json`）
 
 理由: cmd_597でWhisperX（5-10分/回）を3回再実行して合計15-30分浪費した。中間データを保存していれば2回目以降は一瞬で済んだ。
+
+# Gemini画像生成コスト管理 (all agents)
+
+1. **ガチャ上限3回**: 同一パネル構成の画像生成は最大3セットまで。殿の許可なく追加禁止
+2. **1パネル試し打ち**: 全パネル生成前にP1だけ生成→殿確認→OKなら残り生成。NG項目（ステーキ混入等）を全パネル生成前に発見する
+3. **問題パネルだけ再生成**: 全パネル再生成禁止。問題のあるパネルだけ`--skip-gen`+個別再生成
+4. **ref_image Vision分析キャッシュ**: `*_ref_vision.txt`が存在すれば再分析しない（`--skip-vision`）
+5. **バジェットアラート設定済み**: GCPで月額上限設定。超過時は自動停止
+
+理由: ガチャ無制限実行で3,409枚生成→Gemini API無料ティア超過→22,000円課金（2026-03-28）
 
 # ffmpeg Encoding Rule (all agents)
 

@@ -244,8 +244,8 @@ class Handler(BaseHTTPRequestHandler):
             date = body.get("date", "")
             reaction = body.get("reaction", "")
 
-            if reaction not in ("up", "down"):
-                self.send_json({"error": "reaction must be 'up' or 'down'"}, 400)
+            if reaction not in ("up", "down", "none"):
+                self.send_json({"error": "reaction must be 'up', 'down', or 'none'"}, 400)
                 return
             if not article_title or not date:
                 self.send_json({"error": "article_title and date are required"}, 400)

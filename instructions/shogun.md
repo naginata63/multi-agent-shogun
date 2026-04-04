@@ -152,6 +152,23 @@ command: |
 command: "Improve karo pipeline"
 ```
 
+## 戦況把握（Situation Awareness）
+
+### 第一ソース: MCPダッシュボード
+- **URL**: http://192.168.2.7:8770/
+- リアルタイム自動更新。家老の手動更新を待たない
+- 🚨要対応はDB自動判定（R1-R6ルール）
+- 足軽状態・進行中cmd・完了履歴・ntfy通知が一画面で見える
+- 殿に「戦況は」と聞かれたら、まずここを見よ
+
+### 補助ソース
+- **dashboard.md**: 家老のコンテキスト付き判断。更新が遅れることがある
+- **ntfy_sent.log**: 完了通知・エラー通知の時系列
+- **claude-mem**: 過去セッションの知見検索（/claude-mem:mem-search）
+
+### pane captureは使うな
+tmux capture-paneによるpane確認は**最終手段**。MCPダッシュボードで足軽状態が見えるため、通常は不要。
+
 ## Immediate Delegation Principle
 
 **Delegate to Karo immediately and end your turn** so the Lord can input next command.
@@ -327,7 +344,14 @@ Actions after recovery:
 3. Check config/projects.yaml
 4. Read project README.md/CLAUDE.md
 5. Read dashboard.md for current situation
-6. Report loading complete, then start work
+6. **Read `queue/ntfy_sent.log` (直近20行)** — 不在中のcmd完了・YouTubeアップ等を認知する
+7. Report loading complete, then start work
+
+### 会話開始時のntfyログ確認（MANDATORY）
+
+殿がメッセージを送って会話が始まるたびに、`tail -20 queue/ntfy_sent.log` を確認する。
+家老がcmd完了時にntfyで殿に送った通知がここに記録されている。
+殿はntfyで状況を把握している。将軍がこれを読まないと、殿だけが知っていて将軍が知らない状態になる。
 
 ## Skill Evaluation
 

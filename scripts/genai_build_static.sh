@@ -511,6 +511,13 @@ html = f"""<!DOCTYPE html>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🤖 GenAI Daily</title>
   <meta name="description" content="生成AI最新情報まとめ (静的版)">
+  <meta property="og:title" content="AI NEWS - 今日のAIニュース">
+  <meta property="og:description" content="AIの最新ニュースを毎日お届け">
+  <meta property="og:url" content="https://genai-daily.pages.dev/">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://genai-daily.pages.dev/ogp.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://genai-daily.pages.dev/ogp.png">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -668,3 +675,13 @@ print(f"[genai_build_static] 出力先: {DIST_DIR}")
 PYEOF
 
 echo "[genai_build_static] 完了"
+
+# ── Git commit & push（Cloudflare Pages自動デプロイ用）──────────────────
+cd "$REPO_ROOT"
+if git diff --quiet dist/index.html 2>/dev/null; then
+  echo "[genai_build_static] dist/index.html に変更なし。push不要"
+else
+  git add dist/index.html dist/style.css dist/app.js dist/stats.html 2>/dev/null || true
+  git commit -m "build(genai_daily): 静的サイト自動ビルド $(date +%Y-%m-%d)" --no-gpg-sign 2>/dev/null || true
+  git push 2>/dev/null && echo "[genai_build_static] git push完了" || echo "[genai_build_static] git push失敗（手動で実行してください）"
+fi

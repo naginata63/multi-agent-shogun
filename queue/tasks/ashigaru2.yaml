@@ -17268,3 +17268,790 @@ tasks:
     - "expression_design_v5.md必読"
     - "context/gemini_api_registry.json参照でモデル・ライブラリ確認"
     - "VERTEX_API_KEY使用（source config/vertex_api_key.env）"
+- task_id: subtask_1076b
+  parent_cmd: cmd_1076
+  assignee: ashigaru2
+  bloom_level: L3
+  project: dozle_kirinuki
+  description: |
+    YouTube動画にサムネイルを設定せよ。
+
+    ## 対象
+    - 動画: https://www.youtube.com/watch?v=emxH_2vX0HI (ドズル社3月まとめv6)
+    - サムネ画像: work/cmd_1076/thumbnail_resized_v1.png (1280x720)
+
+    ## 方法
+    YouTube Data API v3の thumbnails.set エンドポイントを使う。
+    ```
+    POST https://www.googleapis.com/upload/youtube/v3/thumbnails/set?videoId=emxH_2vX0HI
+    Authorization: Bearer {access_token}
+    Content-Type: image/png
+    ```
+
+    認証: scripts/youtube_uploader.py が既にOAuth認証を実装している。
+    同じトークンファイル（config/youtube_token.json等）を再利用せよ。
+
+    ## 手順
+    1. 既存のyoutube_uploader.pyの認証部分を確認し、トークン取得方法を把握
+    2. thumbnails.set APIでサムネアップロード
+    3. 成功確認（HTTPステータス200）
+
+    ## テスト手順
+    - APIレスポンスが200であること
+    - YouTube Studio等で確認可能（殿に報告）
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "🖼️ サムネ設定完了: emxH_2vX0HI にv1_energetic適用"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1076b完了。YouTubeサムネ設定完了(emxH_2vX0HI)。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-02T06:58:00'
+  status: assigned
+  acceptance_criteria:
+    - "YouTube動画emxH_2vX0HIにサムネが設定されていること"
+    - "ntfy通知済み"
+  important_notes:
+    - "既存youtube_uploader.pyの認証を再利用"
+    - "work/cmd_1076/thumbnail_resized_v1.png（1280x720リサイズ済み）を使え"
+    - "APIエラーの場合は即報告"
+- task_id: subtask_1076c
+  parent_cmd: cmd_1076
+  assignee: ashigaru2
+  bloom_level: L3
+  project: dozle_kirinuki
+  description: |
+    サムネ生成スクリプトを汎用化してscripts/に移動せよ。
+
+    ## 元スクリプト
+    work/cmd_1076/generate_thumbnails.py (178行)
+
+    ## 汎用化要件
+    - CLI引数で以下を指定可能にする:
+      - --title: タイトルテキスト（必須）
+      - --characters: 使用キャラ（カンマ区切り。デフォルト: dozle,bon,qnly,orafu,oo_men）
+      - --output: 出力ディレクトリ（デフォルト: カレントディレクトリ）
+      - --count: 生成枚数（デフォルト: 3）
+      - --style: 背景スタイル（energetic/dark/collage 等）
+    - キャラ画像パスはキー名から自動解決（selected/配下の笑顔表情）
+    - 競合サムネ参考画像のパスはconfig等で設定可能に
+
+    ## 出力先
+    projects/dozle_kirinuki/scripts/generate_thumbnail.py（単数形）
+
+    ## テスト手順
+    - python3 scripts/generate_thumbnail.py --title "テスト" --output /tmp/test_thumb/ --count 1
+    - 画像が生成されること
+
+    ## 完了後
+    git add projects/dozle_kirinuki/scripts/generate_thumbnail.py
+    git commit -m "feat(cmd_1076): サムネ生成スクリプト汎用化"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1076c完了。サムネスクリプト汎用化→scripts/generate_thumbnail.py。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-02T07:02:00'
+  status: assigned
+  acceptance_criteria:
+    - "scripts/generate_thumbnail.pyが作成されていること"
+    - "--title, --characters, --output, --count引数が動作すること"
+    - "git commit済み"
+  important_notes:
+    - "Gemini API呼び出し部分はVERTEX_API_KEY使用を維持"
+    - "context/gemini_api_registry.json参照"
+- task_id: subtask_1078b
+  parent_cmd: cmd_1078
+  assignee: ashigaru2
+  bloom_level: L3
+  project: multi-agent-shogun
+  description: |
+    dist/index.htmlにOGPタグを追加せよ。
+
+    ## 対象
+    dist/index.html の <head> セクション
+
+    ## 追加するタグ
+    ```html
+    <meta property="og:title" content="AI NEWS - 今日のAIニュース">
+    <meta property="og:description" content="AIの最新ニュースを毎日お届け">
+    <meta property="og:image" content="https://genai-daily.pages.dev/ogp.png">
+    <meta property="og:url" content="https://genai-daily.pages.dev/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    ```
+    ※og:imageのURLは仮。OGP画像がなければog:imageタグは省略でよい
+
+    ## テスト手順
+    - grep "og:title" dist/index.html で存在確認
+    - HTMLとして構文エラーがないこと
+
+    ## Cloudflare Pagesデプロイ
+    git commit & pushすれば自動デプロイされる
+
+    ## 完了後
+    git add dist/index.html
+    git commit -m "feat: genai-dailyにOGPタグ追加"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1078b完了。OGPタグ追加+commit済み。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-02T07:56:00'
+  status: assigned
+  acceptance_criteria:
+    - "dist/index.htmlにog:title, og:description, og:urlが含まれること"
+    - "git commit済み"
+  important_notes:
+    - "既存のheadタグ内に追加。他の内容は変更するな"
+- task_id: subtask_1078d
+  parent_cmd: cmd_1078
+  assignee: ashigaru2
+  bloom_level: L3
+  project: note_mcp_server
+  description: |
+    note記事のMarkdownテーブルをPNG画像に変換+カバー画像作成。
+
+    ## 対象記事
+    projects/note_mcp_server/articles/glm51_vs_opus_real_comparison.md（205行、テーブル6箇所）
+
+    ## タスク1: テーブル画像化（6枚）
+    - 記事内のMarkdownテーブル6箇所をそれぞれPNG画像に変換
+    - matplotlib or Pillow で描画（読みやすいフォント・配色）
+    - ダーク背景推奨（記事テーマに合わせる）
+    - 出力先: projects/note_mcp_server/articles/glm51_tables/table_1.png 〜 table_6.png
+
+    ## タスク2: カバー画像（1枚）
+    - サイズ: 1280x670px（note標準）
+    - テーマ: 3モデル比較、コスト削減、ダーク背景
+    - タイトルテキスト入り（例:「GLM-5.1 vs Claude Opus vs Sonnet 実戦比較」）
+    - 出力先: projects/note_mcp_server/articles/glm51_tables/cover.png
+    - フォント: assets/fonts/RanobePopB.otf（なければNotoSansCJK）
+
+    ## テスト手順
+    - 7枚のPNGが出力されていること
+    - 各テーブル画像の文字が読めること（目視確認）
+    - カバー画像が1280x670であること
+
+    ## 完了後
+    git add projects/note_mcp_server/articles/glm51_tables/
+    git commit -m "feat(cmd_1078): note記事テーブル画像化+カバー画像"
+    bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "✅ cmd_1078完了: テーブル画像6枚+カバー画像"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1078d完了。テーブル画像6枚+カバー画像。projects/note_mcp_server/articles/glm51_tables/" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-02T08:14:00'
+  status: done
+  acceptance_criteria:
+    - "テーブル画像6枚がPNGで出力されていること"
+    - "カバー画像1280x670が出力されていること"
+    - "git commit済み"
+    - "ntfy通知済み"
+  important_notes:
+    - "ダーク背景で統一"
+    - "テーブルの文字が小さすぎないこと"
+    - "フォントはNotoSansCJKかRanobePopB"
+- task_id: subtask_1078f
+  parent_cmd: cmd_1078
+  assignee: ashigaru2
+  bloom_level: L3
+  project: note_mcp_server
+  description: |
+    緊急。note記事のMarkdownテーブル6箇所を画像参照に置き換え+再投稿（下書き）。
+
+    ## 対象記事
+    - md: projects/note_mcp_server/articles/glm51_vs_opus_real_comparison.md
+    - note記事ID: n79767dc814d8
+
+    ## 作業内容
+    1. 記事md内のMarkdownテーブル6箇所を特定
+    2. 各テーブルを対応する画像参照に置き換え:
+       - テーブル1 → ![table1](画像URL) ※note上の画像URLはアップロード後に取得
+       - 同様にテーブル2〜6
+    3. レーダーチャート3枚も適切な箇所に挿入:
+       - radar_basic.png → 基礎問結果の後
+       - radar_hard.png → 難問結果の後
+       - radar_overall.png → 総合評価の箇所
+    4. note-edit.jsで下書き再投稿（公開にするな）
+    5. ハッシュタグ設定: #AI #LLM #Claude #GLM #コスト削減 #マルチエージェント
+
+    ## 画像ファイル
+    projects/note_mcp_server/articles/glm51_tables/
+    - table_1.png 〜 table_6.png
+    - radar_basic.png, radar_hard.png, radar_overall.png
+    - cover.png（カバー画像）
+
+    ## note-edit.js
+    projects/note_mcp_server/scripts/ 配下を確認して既存の投稿スクリプトを使え。
+    なければ projects/note_mcp_server/ 内のREADMEやスクリプトを確認。
+
+    ## 重要
+    - **下書きのまま**。公開禁止。殿レビュー後に公開。
+    - noteの画像アップロードはnote APIまたはPlaywrightで実施
+    - テーブルのMarkdown記法（|---|---|）を完全に削除し画像に置換
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "✅ note記事テーブル画像化+再投稿（下書き）完了"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1078f完了。note記事テーブル→画像置換+下書き再投稿。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-02T09:47:00'
+  status: done
+  acceptance_criteria:
+    - "記事md内のMarkdownテーブルが画像参照に置換されていること"
+    - "レーダーチャート3枚が記事内に挿入されていること"
+    - "noteに下書きとして再投稿済み（公開禁止）"
+    - "ハッシュタグ設定済み"
+    - "ntfy通知済み"
+  important_notes:
+    - "公開絶対禁止。下書きのみ"
+    - "既存のnote投稿スクリプトを確認して使え"
+    - "画像はnoteにアップロードしてURLを取得する必要あり"
+- task_id: subtask_1078g
+  parent_cmd: cmd_1078
+  assignee: ashigaru2
+  bloom_level: L3
+  project: note_mcp_server
+  description: |
+    緊急。テーブル画像+レーダーチャート修正再生成+note再投稿。
+
+    ## 修正3点
+    1. **テーブル画像6枚を修正再生成**:
+       - 全テーブルの背景を白にする（ダーク背景→白背景）
+       - 不要な余白・黒い部分をトリミング
+       - table_5（コスト比較テーブル）: Claude Max税込を10〜20に修正
+       - 出力先: projects/note_mcp_server/articles/glm51_tables/table_1.png〜table_6.png（上書き）
+
+    2. **レーダーチャート3枚も背景白に再生成**:
+       - ダーク背景→白背景に変更
+       - モデル色はそのまま（Opus紫、Sonnet青、GLM緑）
+       - 出力先: articles/glm51_tables/radar_basic.png, radar_hard.png, radar_overall.png（上書き）
+
+    3. **note下書き再投稿**:
+       - 記事mdは既に画像参照に書き換え済み。画像を差し替えるだけ
+       - note-edit.jsまたは既存の投稿スクリプトで下書き再投稿
+       - URL: https://note.com/n/n79767dc814d8
+       - **公開禁止。下書きのまま**
+
+    ## 生成スクリプト
+    articles/glm51_tables/gen_tables.py, gen_radar.py が既にある。これを修正して再実行。
+
+    ## テスト手順
+    - 全画像の背景が白であること（目視確認）
+    - table_5にClaude Max税込10〜20の記載があること
+    - 余白が適切であること
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "✅ テーブル+レーダー白背景再生成+note再投稿完了"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1078g完了。白背景再生成+note下書き再投稿。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-02T10:13:00'
+  status: done
+  acceptance_criteria:
+    - "全画像が白背景であること"
+    - "table_5のClaude Max税込が10〜20に修正されていること"
+    - "note下書き再投稿済み（公開禁止）"
+    - "ntfy通知済み"
+  important_notes:
+    - "公開絶対禁止"
+    - "既存gen_tables.py/gen_radar.pyを修正して再実行"
+    - "余白トリミングはmatplotlibのbbox_inches='tight'で対応"
+- task_id: subtask_1078h
+  parent_cmd: cmd_1078
+  assignee: ashigaru2
+  bloom_level: L3
+  project: note_mcp_server
+  description: |
+    note記事の画像にキャプション追加+note-edit.js改修+再投稿。
+
+    ## 作業1: 記事mdの画像参照にキャプション追加
+    projects/note_mcp_server/articles/glm51_vs_opus_real_comparison.md内の画像参照を以下に修正:
+    - ![基礎問5問のスコア比較（GLM-5.1がSonnetを上回った）](table_1のURL)
+    - ![難問5問のスコア比較（Opusが別格の正確性を示した）](table_2のURL)
+    - ![各モデル固有の弱点まとめ](table_3のURL)
+    - ![最終構成（役割別モデル配置）](table_4のURL)
+    - ![コスト比較（年間18万円削減）](table_5のURL)
+    - ![3モデルの性格一覧](table_6のURL)
+    - ![基礎問レーダーチャート](radar_basicのURL)
+    - ![難問レーダーチャート](radar_hardのURL)
+    - ![総合比較レーダーチャート](radar_overallのURL)
+
+    ## 作業2: note-edit.jsのfigcaption対応
+    note-edit.jsの画像挿入処理で、mdの![キャプション](path)のalt部分をfigcaptionに入力するよう改修。
+    898行目のControl+End後、キャプション文字列をtypeすればよい。
+
+    ## 作業3: note下書き再投稿
+    修正後、note-edit.jsで下書き再投稿。**公開禁止**。
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "✅ noteキャプション追加+再投稿完了"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1078h完了。キャプション追加+note-edit.js改修+下書き再投稿。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-02T10:22:00'
+  status: done
+  acceptance_criteria:
+    - "mdの各画像参照にキャプション文言が入っていること"
+    - "note-edit.jsがfigcaptionを入力するよう改修されていること"
+    - "note下書き再投稿済み（公開禁止）"
+  important_notes:
+    - "公開絶対禁止"
+    - "subtask_1078g完了後に着手すること"
+- task_id: subtask_1078i
+  parent_cmd: cmd_1078
+  assignee: ashigaru2
+  bloom_level: L2
+  project: note_mcp_server
+  description: |
+    table_5コスト比較修正+記事本文修正+note再投稿。
+
+    ## 修正内容
+    1. **table_5画像再生成**: gen_tables.pyのtable_5データを修正:
+       - Before: Claude Max $220/月（税込）→年間約40万円
+       - After: Claude Max $110/月（税込）+GLM Pro $252/年→年間約24万円
+       - 節約: ▲約16万円/年
+       - 白背景・余白トリミング（bbox_inches='tight'）
+       - 出力: articles/glm51_tables/table_5.png（上書き）
+
+    2. **記事本文修正**: glm51_vs_opus_real_comparison.md内の「年間18万円」→「年間16万円」に修正
+
+    3. **note下書き再投稿**: 修正後、下書き再投稿。**公開禁止**
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "✅ table_5コスト修正+note再投稿完了"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1078i完了。table_5コスト修正+記事本文16万円+note再投稿。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-02T10:36:00'
+  status: done
+  acceptance_criteria:
+    - "table_5に$110/月+$252/年→約24万円の記載"
+    - "記事本文の18万円→16万円修正"
+    - "note下書き再投稿済み（公開禁止）"
+  important_notes:
+    - "公開絶対禁止"
+- task_id: subtask_audit_stt001
+  parent_cmd: nightly_audit
+  assignee: ashigaru2
+  bloom_level: L3
+  project: multi-agent-shogun
+  description: |
+    夜間監査HIGH STT-001修正: subtitle_semantic_index.pyのデッドコード削除。
+
+    ## 修正内容
+    bq_query()関数から未使用のtempfile作成部分（3行）とtry/finallyのunlink(sql_file)を削除。
+    input=sqlの標準入力渡しだけで十分。
+
+    ## 追加: MEDIUM件も確認
+    queue/reports/gunshi_nightly_audit_20260402.yamlを読んで、
+    subtitle_semantic_index.pyに関するMEDIUM件があれば合わせて修正。
+
+    ## テスト手順
+    - python3 -c "import ast; ast.parse(open('scripts/subtitle_semantic_index.py').read())" で構文確認
+    - tempfile関連コードが残っていないこと: grep -n "tempfile\|sql_file\|unlink" scripts/subtitle_semantic_index.py
+
+    ## 完了後
+    git add scripts/subtitle_semantic_index.py
+    git commit -m "fix(audit): subtitle_semantic_index.py tempfileデッドコード削除(STT-001)"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_audit_stt001完了。STT-001+関連MEDIUM修正。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-02T10:54:00'
+  status: done
+  acceptance_criteria:
+    - "bq_query()からtempfile関連コードが削除されていること"
+    - "構文エラーなし"
+    - "git commit済み"
+  important_notes:
+    - "監査レポート: queue/reports/gunshi_nightly_audit_20260402.yaml を必ず読め"
+    - "動作を壊さないこと。bq_query()の本来の機能（BigQueryクエリ実行）は維持"
+- task_id: subtask_1080a
+  parent_cmd: cmd_1080
+  assignee: ashigaru2
+  bloom_level: L3
+  project: dozle_kirinuki
+  description: |
+    dozle_video_list.csv/jsonの更新+indexedフラグ修正+年別分布レポート。
+
+    ## 問題
+    - 現在10,363本のリストだがindexedフラグが80本しかTrue
+    - 実際はBigQuery登録済み777本+その他embeddings済み822本ある
+
+    ## 作業内容
+    1. YouTube Data APIで最新の動画リストを取得して更新
+       - 既存スクリプト確認: projects/dozle_kirinuki/scripts/ 配下にリスト取得スクリプトがあるか確認
+       - なければYouTube Data API v3のsearch/playlistItemsで全動画取得
+    2. indexedフラグ修正:
+       - BigQuery登録済み動画（scripts/subtitle_semantic_index.pyのBigQueryテーブルから取得）のvideo_idを照合
+       - 一致する動画のindexedをTrueに更新
+    3. 年別分布レポート出力:
+       - 年別の動画数、indexed数、indexed率を集計
+       - work/cmd_1080/video_distribution.md に保存
+
+    ## 対象ファイル
+    - projects/dozle_kirinuki/dozle_video_list.csv
+    - projects/dozle_kirinuki/dozle_video_list.json
+    両方存在する場合は両方更新
+
+    ## テスト手順
+    - indexed=Trueの件数が777以上であること
+    - 年別レポートが出力されていること
+
+    ## 完了後
+    git add projects/dozle_kirinuki/dozle_video_list.*
+    git commit -m "feat(cmd_1080): 動画リスト更新+indexedフラグ修正"
+    bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "✅ cmd_1080完了: 動画リスト更新+indexed修正"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1080a完了。動画リスト更新。indexed: X本→Y本。年別レポート: work/cmd_1080/" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-02T12:35:00'
+  status: done
+  acceptance_criteria:
+    - "indexedフラグが正しく更新されていること（777本以上）"
+    - "年別分布レポートがwork/cmd_1080/に出力"
+    - "git commit済み"
+    - "ntfy通知済み"
+  important_notes:
+    - "YouTube Data APIキーはconfig/配下を確認"
+    - "BigQueryのテーブルからindexed動画リストを取得"
+    - "中間成果物はwork/cmd_1080/に保存"
+- task_id: subtask_1071b
+  parent_cmd: cmd_1071
+  assignee: ashigaru2
+  bloom_level: L3
+  project: dozle_kirinuki
+  description: |
+    BigQuery Vector Searchのembedding修復+全体チェック。
+
+    ## 問題
+    pTJ88EmTF7kは508チャンク・テキスト正常だがVECTOR_SEARCHで出てこない。embeddingが壊れている。
+
+    ## 作業内容
+    1. pTJ88EmTF7kのembeddingを再生成（Gemini Embedding 2）
+       - scripts/subtitle_semantic_index.py を使用
+       - VERTEX_API_KEY: source config/vertex_api_key.env
+    2. BigQueryに再投入（既存レコードを削除→再挿入、またはUPDATE）
+    3. 全体チェック: ランダムサンプル10動画で検索テスト
+       - 各動画のvideo_idに関連するキーワードで検索し、結果に含まれるか確認
+       - 結果をwork/cmd_1071/embedding_health_check.mdに保存
+
+    ## テスト手順
+    - pTJ88EmTF7kのキーワードでVECTOR_SEARCH → 結果に含まれること
+    - ランダム10動画の検索テスト結果
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "✅ BigQuery embedding修復+全体チェック完了"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1071b完了。embedding修復+全体チェック10動画。結果: work/cmd_1071/embedding_health_check.md" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-02T14:20:00'
+  status: done
+  acceptance_criteria:
+    - "pTJ88EmTF7kがVECTOR_SEARCHで検出されること"
+    - "ランダム10動画の検索テスト結果が記録されていること"
+    - "ntfy通知済み"
+  important_notes:
+    - "VERTEX_API_KEY使用"
+    - "既存スクリプト（subtitle_semantic_index.py）を使え"
+    - "中間成果物はwork/cmd_1071/に保存"
+- task_id: subtask_1071c
+  parent_cmd: cmd_1071
+  assignee: ashigaru2
+  bloom_level: L3
+  project: dozle_kirinuki
+  safety: batch_modify
+  description: |
+    BigQuery全面作り直し。新プロジェクトに字幕セマンティック検索を移行。
+
+    ## アカウント・プロジェクト
+    - アカウント: seiji881121@gmail.com
+    - プロジェクト: gen-lang-client-0119911773
+    ```bash
+    gcloud config set account seiji881121@gmail.com
+    gcloud config set project gen-lang-client-0119911773
+    ```
+
+    ## 手順
+    ①新データセット+テーブル作成（dozle_subtitle_semantic.subtitle_chunks。スキーマは旧テーブルと同じ）
+    ②全チャンクのembeddingをVERTEX_API_KEYで再生成
+      - source config/vertex_api_key.env（他のキー使用禁止）
+      - 対象: projects/dozle_kirinuki/work/yt_subs/merged_*.json + work/*/merged_*.json
+    ③新テーブルに一括投入（bq load or Python load_table_from_file）
+    ④subtitle_semantic_index.pyのGCP_PROJECTをgen-lang-client-0119911773に変更
+    ⑤検索テスト: pTJ88EmTF7k含む10動画でVECTOR_SEARCH確認
+    ⑥旧テーブル（dozlesha-mainichi-kirinuki）は放置
+
+    ## Batch Processing Protocol（重要）
+    45,000チャンクあるため:
+    - **batch1**: 最初の1,000チャンクのみ生成+投入+検索テスト
+    - batch1完了後、inbox_writeで報告→家老QC
+    - QC OK後に残りバッチを実行
+    - 1セッション30件上限のため、適宜/clearして継続
+
+    ## テスト手順（batch1完了時）
+    - 「ハードコア エンドラ 余裕」で検索→関連結果が返ること
+    - 「自転車 発電」で検索→関連結果が返ること
+    - pTJ88EmTF7kの検索結果が含まれること
+
+    ## 完了後（batch1のみ）
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1071c batch1完了。新テーブル作成+1000チャンク投入+検索テスト結果。" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-02T15:37:00'
+  status: assigned
+  acceptance_criteria:
+    - "gen-lang-client-0119911773にdozle_subtitle_semantic.subtitle_chunksテーブルが作成されていること"
+    - "batch1(1000チャンク)のembedding生成+投入完了"
+    - "検索テストが動作すること"
+  important_notes:
+    - "VERTEX_API_KEY以外のキー使用禁止"
+    - "Batch Processing Protocol遵守。全量一括投入禁止"
+    - "中間成果物はwork/cmd_1071/に保存"
+    - "instructions/git_safety.md参照（safety: batch_modify）"
+- task_id: subtask_1081d
+  parent_cmd: cmd_1081
+  assignee: ashigaru2
+  bloom_level: L4
+  project: dozle_kirinuki
+  description: |
+    CDPスクリプトのプロンプトを標準パイプラインに合わせる+Clipboard添付。
+
+    ## 修正内容
+    1. **プロンプト標準化**: skills/gemini-image-prompt/SKILL.md必読
+       - system_instruction: キャラ性格+situation+禁止ルール+顔立ち維持
+       - contents: scene_descのみ（文字描画防止）
+    2. **キャラ表情設計**: context/expression_design_v5.md参照
+    3. **リファレンス画像Clipboard添付**:
+       ```javascript
+       const blob = new Blob([imageArrayBuffer], {type: 'image/png'});
+       const item = new ClipboardItem({'image/png': blob});
+       await navigator.clipboard.write([item]);
+       // チャット欄フォーカス→Ctrl+V
+       ```
+    4. P1/P3の2枚で動作確認
+
+    ## Chrome接続
+    connect_over_cdp("http://localhost:9222")
+
+    ## 参照（必読）
+    - skills/gemini-image-prompt/SKILL.md
+    - context/expression_design_v5.md
+    - context/member_profiles.yaml
+    - work/cmd_1074/cdp_gemini_with_ref.py（ベース）
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "✅ cmd_1081完了: CDPプロンプト標準化+Clipboard添付"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1081d完了。CDPプロンプト標準化+Clipboard添付。結果: work/cmd_1074/" report_done ashigaru2
+  report_to: karo
+  timestamp: '2026-04-03T06:35:00'
+  status: assigned
+  acceptance_criteria:
+    - "gemini-image-prompt SKILLのルールに従ったプロンプト構造"
+    - "Clipboard方式でリファレンス添付"
+    - "P1/P3で生成確認"
+    - "git commit済み"
+  important_notes:
+    - "skills/gemini-image-prompt/SKILL.md必読"
+    - "expression_design_v5.md必読"
+    - "connect_over_cdp('http://localhost:9222')"
+
+- task_id: subtask_1089a
+  parent_cmd: cmd_1089
+  bloom_level: L2
+  description: |
+    ## 目的
+    API版generate_manga_short.pyでP6を1回生成テスト。
+
+    ## 実行コマンド
+    ```bash
+    source ~/.bashrc && python3 projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py \
+      --panels work/cmd_1086/panels_test.json \
+      --skip-vision \
+      --skip-gen
+    ```
+    ※ --skip-vision と --skip-gen は Gemini API直接呼び出しなので事前確認。
+    ※ API版はGeminiコスト発生する。1回のみ実行
+
+    タイムアウト: 600000ms
+
+    ## 検証
+    1. 生成画像がwork/cmd_1089/に保存されていること（50KB以上）
+    2. おんりー+おらふの2人が描かれていること（目視確認）
+    3. git commit & push
+
+    4. HTTPサーバー起動:
+       ```bash
+       nohup python3 -m http.server 8775 --directory work/cmd_1089/ > /dev/null 2>&1 &
+       ```
+    5. ntfy通知:
+       ```bash
+       bash scripts/ntfy.sh "API版テスト結果: http://100.66.15.93:8775/"
+       ```
+    6. inbox通知:
+       ```bash
+       bash scripts/inbox_write.sh karo "足軽2号、subtask_1089a完了。API版テスト。 http://100.66.15.93:8775/" report_done ashigaru2
+       ```
+
+    ## 注意
+    - GEMINI_API_KEYが必要（source ~/.bashrc + で設定される）
+    - API版はGeminiコスト発生する。1回のみ実行
+    - 生成画像はwork/20260315_manga_short_proto/panel_*.pngに出力される
+      → work/cmd_1089/にコピーすること
+  report_to: karo
+  timestamp: '2026-04-03T20:55:00'
+  status: assigned
+  acceptance_criteria:
+    - "生成画像がwork/cmd_1089/に保存（50KB以上）"
+    - "HTTPサーバー(8775)で比較ページ公開"
+    - "ntfy通知済み"
+
+- task_id: subtask_1090a
+  parent_cmd: cmd_1090
+  bloom_level: L2
+  description: |
+    ## 目的
+    generate_manga_short.py（PromptBuilder統合済み）でP6を3回生成し、共通ルールが反映されているか確認する。
+
+    ## 実行コマンド（3回実行）
+    ```bash
+    # 1回目
+    source ~/.bashrc && python3 projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py \
+      --panels work/cmd_1086/panels_test.json \
+      --skip-vision
+    cp projects/dozle_kirinuki/work/20260315_manga_short_proto/panel_06.png work/cmd_1090/gen1.png
+
+    # 2回目
+    source ~/.bashrc && python3 projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py \
+      --panels work/cmd_1086/panels_test.json \
+      --skip-vision
+    cp projects/dozle_kirinuki/work/20260315_manga_short_proto/panel_06.png work/cmd_1090/gen2.png
+
+    # 3回目
+    source ~/.bashrc && python3 projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py \
+      --panels work/cmd_1086/panels_test.json \
+      --skip-vision
+    cp projects/dozle_kirinuki/work/20260315_manga_short_proto/panel_06.png work/cmd_1090/gen3.png
+    ```
+    タイムアウト: 各600秒（計1800秒）
+
+    ## 検証（必須）
+    1. 3枚の画像がwork/cmd_1090/に保存（各50KB以上）
+    2. md5sumで3枚全て異なること:
+       ```bash
+       md5sum work/cmd_1090/gen*.png
+       ```
+    3. 目視: キャラがアップ〜ミドルショットであること（遠景禁止ルール反映）
+    4. 目視: 白い余白がないこと
+    5. 目視: セリフが中央〜上部に配置されていること
+
+    ## 完了後
+    1. work/cmd_1090/index.htmlを作成（3枚横並び表示）
+    2. HTTPサーバー起動:
+       ```bash
+       nohup python3 -m http.server 8778 --directory work/cmd_1090/ > /dev/null 2>&1 &
+       ```
+    3. ntfy通知:
+       ```bash
+       bash scripts/ntfy.sh "API版3回テスト結果（PromptBuilder統合版）: http://100.66.15.93:8778/"
+       ```
+    4. inbox通知:
+       ```bash
+       bash scripts/inbox_write.sh karo "足軽2号、subtask_1090a完了。API版P6×3回（PromptBuilder統合版）。MD5全異常確認。 http://100.66.15.93:8778/" report_done ashigaru2
+       ```
+
+    ## 注意
+    - GEMINI_API_KEYが必要（source ~/.bashrc）
+    - 計3回のAPI呼び出し。追加ガチャ禁止
+  report_to: karo
+  timestamp: '2026-04-03T21:45:00'
+  status: assigned
+  acceptance_criteria:
+    - "3枚の画像がgen1/2/3.pngに保存（各50KB以上）"
+    - "md5sumで3枚全て異なること"
+    - "HTTPサーバー(8778)で比較ページ公開"
+    - "ntfy通知済み"
+
+- task_id: subtask_1090b
+  parent_cmd: cmd_1090
+  title: API版P6×3回テスト（VERTEX_API_KEY版・再実行）
+  description: |
+    cmd_1090再実行。GEMINI_API_KEYは期限切れなのでVERTEX_API_KEYを使う。
+    
+    ## 前提
+    - source config/vertex_api_key.env でVERTEX_API_KEYを設定
+    - GEMINI_API_KEYは期限切れ。使わないこと
+    
+    ## 実行手順
+    1. mkdir -p work/cmd_1090/
+    2. 以下を3回実行（gen1, gen2, gen3）:
+    ```bash
+    source config/vertex_api_key.env && \
+    python3 projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py \
+      --panels work/cmd_1086/panels_test.json \
+      --skip-vision
+    ```
+    各実行のタイムアウト: 600秒
+    生成された画像をgen1.png, gen2.png, gen3.pngにリネーム
+    
+    ## テスト手順
+    1. `ls -la work/cmd_1090/gen*.png` で3枚存在確認
+    2. `md5sum work/cmd_1090/gen*.png` で3枚が全て異なることを確認
+    3. 目視確認: キャラがアップ〜ミドルショット、白い余白なし、セリフ中央〜上部
+    
+    ## 完了後
+    1. work/cmd_1090/index.htmlを作成（3枚横並び）
+    2. HTTPサーバー: `nohup python3 -m http.server 8778 --directory work/cmd_1090/ > /dev/null 2>&1 &`
+    3. ntfy: `bash scripts/ntfy.sh "✅ cmd_1090完了: API版P6×3回（VERTEX_API_KEY）"`
+    4. inbox: `bash scripts/inbox_write.sh karo "足軽2号、subtask_1090b完了。API版P6×3回（VERTEX_API_KEY版）" report_done ashigaru2`
+    
+    ## 注意
+    - VERTEX_API_KEYを使用（source config/vertex_api_key.env）
+    - 計3回のAPI呼び出し。追加ガチャ禁止
+  report_to: karo
+  timestamp: '2026-04-03T21:52:00'
+  status: done
+  acceptance_criteria:
+    - "3枚の画像がgen1/2/3.pngに保存（各50KB以上）"
+    - "md5sumで3枚全て異なること"
+    - "HTTPサーバー(8778)で比較ページ公開"
+    - "ntfy通知済み"
+  result: |
+    gen1=1.6MB gen2=1.5MB gen3=1.5MB。MD5全異常確認。各25-27秒。
+    比較ページ: http://100.66.15.93:8778/
+  status: done
+
+- task_id: subtask_1100a
+  parent_cmd: cmd_1100
+  assignee: ashigaru2
+  bloom_level: L3
+  description: |
+    cmd_1100: Discord AI NEWS配信バグ修正+4/3・4/4手動配信。
+
+    ## バグ
+    genai_ntfy_top3.sh L130-145でdiscord_pending.jsonを毎回上書きしている。
+    日付辞書に追記するのではなく単一オブジェクトで上書き→4/2のsent flagを見て配信済みと判断→4/3・4/4をスキップ。
+
+    ## 修正1: genai_ntfy_top3.sh L130-145
+    discord_pending.jsonを日付キー辞書形式で追記するように修正:
+    ```python
+    import json, os
+    path = 'queue/discord_pending.json'
+    existing = json.load(open(path)) if os.path.exists(path) else {}
+    if not isinstance(existing, dict) or 'date' in existing:
+        existing = {}  # 旧形式→新形式に変換
+    existing[date_str] = {"topics": topics, "posted": False, ...}
+    json.dump(existing, open(path, 'w'), ensure_ascii=False, indent=2)
+    ```
+
+    ## 修正2: discord_news_bot.py
+    新形式（日付キー辞書）を読めるように修正。sent flagはqueue/discord_sent/{date}.flagで管理。
+
+    ## 修正3: 4/3・4/4の手動配信
+    修正後、4/3と4/4のAI NEWS記事をdiscord_pending.jsonに手動投入して配信。
+    記事データはdist/index.html or genai_viewer/のDBから取得可能。
+
+    ## 検証手順
+    1. discord_pending.jsonが辞書形式（日付キー）になっていることを確認
+    2. 4/3・4/4のAI NEWSがDiscordチャンネルに投稿されたことを確認
+    3. genai_ntfy_top3.shを実行して新エントリが追記されることを確認（既存エントリが消えないこと）
+
+    ## 注意
+    - 既存スクリプトを改修（新規スクリプト禁止）
+    - git commit & push済みであること
+
+    ## 完了後
+    ```bash
+    bash scripts/inbox_write.sh karo "足軽2号、subtask_1100a完了。Discord配信バグ修正+4/3・4/4配信完了" report_done ashigaru2
+    ```
+  timestamp: '2026-04-04T08:22:00'
+  status: assigned
+  acceptance_criteria:
+    - "discord_pending.jsonが日付キー辞書形式で追記される（上書き禁止）"
+    - "discord_news_bot.pyが新形式を正しく読める"
+    - "4/3と4/4のAI NEWSがDiscordに配信されている"
+    - "genai_ntfy_top3.sh実行で既存エントリが消えない"
+    - "git commit & push済み"
