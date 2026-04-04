@@ -106,7 +106,7 @@ def get_active_cmds():
 
 def get_recent_done(n=5):
     done = [c for c in parse_shogun_to_karo() if c.get("status") == "done"]
-    done.sort(key=lambda c: c.get("timestamp", ""), reverse=True)
+    done.sort(key=lambda c: c.get("timestamp") or "", reverse=True)
     return done[:n]
 
 
@@ -457,7 +457,7 @@ def read_recent_messages(hours=48):
                 })
         except Exception:
             pass
-    msgs.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+    msgs.sort(key=lambda x: x.get("timestamp") or "", reverse=True)
     return msgs[:30]
 
 
@@ -540,6 +540,9 @@ def get_dashboard_data():
         else:
             # DB不明時はYAMLの古いassignedを信用せずidleにする
             a["status"] = "idle"
+        # idle agents should not show elapsed time from old assigned tasks
+        if a["status"] != "busy":
+            a["elapsed_min"] = None
 
     conn.close()
 
@@ -558,7 +561,7 @@ def get_dashboard_data():
         if key not in seen:
             seen.add(key)
             all_messages.append(m)
-    all_messages.sort(key=lambda x: x.get("timestamp", "") or x.get("created_at", ""), reverse=True)
+    all_messages.sort(key=lambda x: x.get("timestamp") or x.get("created_at") or "", reverse=True)
     all_messages = all_messages[:30]
 
     # Stats
