@@ -231,7 +231,7 @@ def detect_action_required():
             # (This is a simplified check - idle agent with assigned task)
             pass  # Will check tasks YAML for assigned status
 
-    # R5: 未読メッセージ滞留 (unread inbox messages > 30min)
+    # R5: 未読メッセージ滞留 (unread inbox messages > 30min) — uses _rm_cache
     if os.path.isdir(INBOX_DIR):
         for fname in os.listdir(INBOX_DIR):
             if not fname.endswith(".yaml"):
@@ -241,9 +241,15 @@ def detect_action_required():
                 continue
             filepath = os.path.join(INBOX_DIR, fname)
             try:
-                with open(filepath) as f:
-                    data = yaml.safe_load(f)
-                messages = data.get("messages", []) if data else []
+                mt = os.path.getmtime(filepath)
+                cached = _rm_cache.get(fname)
+                if cached and cached["mtime"] == mt:
+                    messages = cached["messages"]
+                else:
+                    with open(filepath) as f:
+                        data = yaml.safe_load(f)
+                    messages = data.get("messages", []) if data else []
+                    _rm_cache[fname] = {"mtime": mt, "messages": messages}
                 for m in messages:
                     if m.get("read", True):
                         continue
@@ -260,7 +266,7 @@ def detect_action_required():
             except Exception:
                 pass
 
-    # R6: タスク失敗 (failed status in tasks YAML)
+    # R6: タスク失敗 (failed status in tasks YAML) — uses _yt_cache
     if os.path.isdir(TASKS_DIR):
         for fname in os.listdir(TASKS_DIR):
             if not fname.endswith(".yaml"):
@@ -270,9 +276,15 @@ def detect_action_required():
                 continue
             filepath = os.path.join(TASKS_DIR, fname)
             try:
-                with open(filepath) as f:
-                    data = yaml.safe_load(f)
-                tasks = data.get("tasks", []) if data else []
+                mt = os.path.getmtime(filepath)
+                cached = _yt_cache.get(fname)
+                if cached and cached["mtime"] == mt:
+                    tasks = cached["tasks"]
+                else:
+                    with open(filepath) as f:
+                        data = yaml.safe_load(f)
+                    tasks = data.get("tasks", []) if data else []
+                    _yt_cache[fname] = {"mtime": mt, "tasks": tasks}
                 for t in tasks:
                     if t.get("status") == "failed":
                         items.append({
@@ -338,7 +350,13 @@ def detect_action_required():
     return deduped[:20]  # Cap at 20 items
 
 
-# ─── YAML readers ───────────────────────────────────────────────────────────────
+# ─── YAML readers (mtime-cached to avoid re-parsing ~3MB YAMLs) ──────────────────
+
+# Per-file caches: {fname: {"mtime": float, "tasks": list}}
+_yt_cache = {}
+# Per-file caches for inbox: {fname: {"mtime": float, "messages": list, "agent_id": str}}
+_rm_cache = {}
+
 
 def read_yaml_tasks():
     agents = {}
@@ -353,9 +371,15 @@ def read_yaml_tasks():
         agent_id = fname.replace(".yaml", "")
         filepath = os.path.join(TASKS_DIR, fname)
         try:
-            with open(filepath) as f:
-                data = yaml.safe_load(f)
-            tasks = data.get("tasks", []) if data else []
+            mt = os.path.getmtime(filepath)
+            cached = _yt_cache.get(fname)
+            if cached and cached["mtime"] == mt:
+                tasks = cached["tasks"]
+            else:
+                with open(filepath) as f:
+                    data = yaml.safe_load(f)
+                tasks = data.get("tasks", []) if data else []
+                _yt_cache[fname] = {"mtime": mt, "tasks": tasks}
             latest_assigned = None
             total = len(tasks)
             done = sum(1 for t in tasks if t.get("status") == "done")
@@ -398,10 +422,16 @@ def read_recent_messages(hours=48):
             continue
         filepath = os.path.join(INBOX_DIR, fname)
         try:
-            with open(filepath) as f:
-                data = yaml.safe_load(f)
-            messages = data.get("messages", []) if data else []
-            for m in messages[-10:]:
+            mt = os.path.getmtime(filepath)
+            cached = _rm_cache.get(fname)
+            if cached and cached["mtime"] == mt:
+                raw_msgs = cached["messages"]
+            else:
+                with open(filepath) as f:
+                    data = yaml.safe_load(f)
+                raw_msgs = data.get("messages", []) if data else []
+                _rm_cache[fname] = {"mtime": mt, "messages": raw_msgs}
+            for m in raw_msgs[-10:]:
                 ts = parse_ts(m.get("timestamp", ""))
                 if ts and ts < cutoff:
                     continue
