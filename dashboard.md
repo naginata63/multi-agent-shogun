@@ -12,6 +12,14 @@
 - CRITICAL: OAuth token.jsonがリポジトリ内格納
 - HIGH: ハードコードパス15+ファイル
 
+### 🚨 cmd_1203 note本文4枚挿絵 — 手動挿入が必要
+自動挿入不可（toolbarタイムアウト・JPEG非対応）。カバー画像設定は完了済み。
+本文に以下4枚を手動挿入されたし:
+- `projects/note_mcp_server/assets/naginata_illustrations/naginata_agents_working.jpg`
+- `projects/note_mcp_server/assets/naginata_illustrations/naginata_48commands.jpg`
+- `projects/note_mcp_server/assets/naginata_illustrations/naginata_harness.jpg`
+- `projects/note_mcp_server/assets/naginata_illustrations/naginata_achievement.jpg`
+
 ### ⚠️ YAMLバリデーションフック/slim_yaml.sh cron タスク未収録
 殿が「cmd_1201を書いた。(1)PreToolUseフックにYAMLバリデーション追加 (2)slim_yaml.shのcron毎日3時自動実行。足軽に振れ」と言及したが、shogun_to_karo.yamlに対応エントリなし。
 実装するならcmdとして正式に追記されたし。または不要ならこの項目を削除されたし。
@@ -20,7 +28,8 @@
 
 | cmd | 内容 | 担当 | 開始 |
 |-----|------|------|------|
-| cmd_1203 | note記事カバー画像設定+本文挿入 | 足軽1号 | 21:45 |
+| cmd_1204 | note記事配布ファイルDL（Phase1）→ 軍師比較分析（Phase2） | 足軽2号→軍師 | 21:50 |
+| cmd_1205 | cdp_image_gen.py作成（CDP汎用画像生成・API課金回避） | 足軽3号 | 21:54 |
 
 ## ✅ 最近の完了
 | cmd | 内容 | 完了日 |
@@ -38,9 +47,9 @@
 
 | 足軽 | Pane | CLI | 状態 | 現タスク |
 |------|------|-----|------|---------|
-| 1号 | 0.1 | GLM-5.1 | busy | cmd_1203 note挿入 |
-| 2号 | 0.2 | GLM-5.1 | idle | — |
-| 3号 | 0.3 | GLM-5.1 | idle | — |
+| 1号 | 0.1 | GLM-5.1 | idle | — |
+| 2号 | 0.2 | GLM-5.1 | busy | cmd_1204 配布ファイルDL |
+| 3号 | 0.3 | GLM-5.1 | busy | cmd_1205 cdp_image_gen.py作成 |
 | 4号 | 0.4 | GLM-5.1 | idle | — |
 | 5号 | 0.5 | GLM-5.1 | stuck | cmd_1180（放置） |
 | 6号 | 0.6 | GLM-5.1 | idle | — |
