@@ -12,14 +12,6 @@
 - CRITICAL: OAuth token.jsonがリポジトリ内格納
 - HIGH: ハードコードパス15+ファイル
 
-### 🚨 cmd_1203 note本文4枚挿絵 — 手動挿入が必要
-自動挿入不可（toolbarタイムアウト・JPEG非対応）。カバー画像設定は完了済み。
-本文に以下4枚を手動挿入されたし:
-- `projects/note_mcp_server/assets/naginata_illustrations/naginata_agents_working.jpg`
-- `projects/note_mcp_server/assets/naginata_illustrations/naginata_48commands.jpg`
-- `projects/note_mcp_server/assets/naginata_illustrations/naginata_harness.jpg`
-- `projects/note_mcp_server/assets/naginata_illustrations/naginata_achievement.jpg`
-
 ### ⚠️ YAMLバリデーションフック/slim_yaml.sh cron タスク未収録
 殿が「cmd_1201を書いた。(1)PreToolUseフックにYAMLバリデーション追加 (2)slim_yaml.shのcron毎日3時自動実行。足軽に振れ」と言及したが、shogun_to_karo.yamlに対応エントリなし。
 実装するならcmdとして正式に追記されたし。または不要ならこの項目を削除されたし。
@@ -29,6 +21,7 @@
 | cmd | 内容 | 担当 | 開始 |
 |-----|------|------|------|
 | cmd_1206 | sasuu全記事PDF化 → work/sasuu_articles/ | 足軽1号 | 22:11 |
+| cmd_1207 | note記事挿絵4枚挿入（CDP・既存スクリプト改変） | 足軽2号 | 22:13 |
 
 ## ✅ 最近の完了
 | cmd | 内容 | 完了日 |
@@ -50,7 +43,7 @@
 | 足軽 | Pane | CLI | 状態 | 現タスク |
 |------|------|-----|------|---------|
 | 1号 | 0.1 | GLM-5.1 | busy | cmd_1206 sasuu記事PDF化 |
-| 2号 | 0.2 | GLM-5.1 | idle | — |
+| 2号 | 0.2 | GLM-5.1 | busy | cmd_1207 note挿絵挿入 |
 | 3号 | 0.3 | GLM-5.1 | idle | — |
 | 4号 | 0.4 | GLM-5.1 | idle | — |
 | 5号 | 0.5 | GLM-5.1 | stuck | cmd_1180（放置） |
