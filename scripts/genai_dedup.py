@@ -229,6 +229,118 @@ def check_duplicate(
     return False, ""
 
 
+# ===== 同日内トレンド検出 =====
+
+def _extract_key_terms(text: str) -> set[str]:
+    """タイトルから意味のある英数字キーワードを抽出（日本語混じりタイトル対応）。"""
+    terms = set(re.findall(r'[A-Za-z][A-Za-z0-9\-]{2,}', text))
+    stop = {"the", "for", "and", "new", "how", "can", "you", "not", "but", "are", "was", "has"}
+    return terms - stop
+
+
+def find_intra_day_trends(
+    topics: list[dict],
+    topic_embeddings: dict[str, list[float]],
+) -> list[dict]:
+    """
+    同日内の類似トピックをグループ化し、トレンド候補を抽出。
+    2件以上の類似トピック群 = トレンド。
+
+    Returns:
+        trends: [{"title": str, "count": int, "summary": str}, ...] (count降順)
+    """
+    n = len(topics)
+    if n < 2:
+        return []
+
+    # Union-Find
+    parent = list(range(n))
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(x, y):
+        rx, ry = find(x), find(y)
+        if rx != ry:
+            parent[rx] = ry
+
+    # 全ペア比較
+    for i in range(n):
+        for j in range(i + 1, n):
+            # Stage 1: タイトル単語一致
+            if is_title_overlap(topics[i]["title"], topics[j]["title"]):
+                union(i, j)
+                continue
+
+            # Stage 1.5: キーワード一致（日本語タイトル対応）
+            kw_i = _extract_key_terms(topics[i]["title"])
+            kw_j = _extract_key_terms(topics[j]["title"])
+            if kw_i and kw_j:
+                overlap = len(kw_i & kw_j) / min(len(kw_i), len(kw_j))
+                if overlap >= 0.5 and len(kw_i & kw_j) >= 2:
+                    union(i, j)
+                    continue
+
+            # Stage 2: Embedding類似度
+            emb_i = topic_embeddings.get(topics[i]["title"], [])
+            emb_j = topic_embeddings.get(topics[j]["title"], [])
+            if emb_i and emb_j:
+                sim = cosine_similarity(emb_i, emb_j)
+                if sim >= SIMILARITY_THRESHOLD:
+                    union(i, j)
+
+    # グループ構築
+    groups: dict[int, list[int]] = {}
+    for i in range(n):
+        root = find(i)
+        groups.setdefault(root, []).append(i)
+
+    # 2件以上のグループをトレンドとして抽出
+    trends = []
+    for indices in groups.values():
+        if len(indices) < 2:
+            continue
+        group_topics = [topics[i] for i in indices]
+        trends.append({
+            "title": group_topics[0]["title"],
+            "count": len(indices),
+            "summary": group_topics[0]["summary"][:120],
+        })
+
+    trends.sort(key=lambda x: x["count"], reverse=True)
+    return trends
+
+
+def insert_trend_section(report_file: Path, trends: list[dict]):
+    """レポートに🔥トレンドセクションを挿入（既存セクションがあれば置換）。"""
+    content = report_file.read_text(encoding="utf-8")
+
+    # 既存トレンドセクション除去
+    content = re.sub(
+        r'\n## 🔥 トレンド\n.*?(?=\n## |\n---\n|$)',
+        '', content, flags=re.DOTALL,
+    )
+
+    # トレンドセクション構築
+    lines = ["\n## 🔥 トレンド\n"]
+    for t in trends:
+        lines.append(f"- **{t['title']}**（{t['count']}ソース重複）: {t['summary']}")
+    trend_section = '\n'.join(lines) + '\n'
+
+    # 最初の ## トピックの直前に挿入
+    first_topic = re.search(r'\n## ', content)
+    if first_topic:
+        pos = first_topic.start()
+        content = content[:pos] + '\n' + trend_section + content[pos:]
+    else:
+        content += '\n' + trend_section
+
+    report_file.write_text(content, encoding="utf-8")
+
+
 # ===== メイン =====
 
 def main():
@@ -301,6 +413,18 @@ def main():
     cache[date_str] = today_entries
     save_cache(cache)
     log(f"キャッシュ保存完了: {len(today_entries)}件 → {CACHE_FILE}")
+
+    # 同日内トレンド検出
+    trends = find_intra_day_trends(remaining if remaining else topics, topic_embeddings)
+    if trends:
+        log(f"トレンド検出: {len(trends)}件")
+        for t in trends:
+            log(f"  🔥 {t['title'][:50]} ({t['count']}ソース)")
+        insert_trend_section(report_file, trends)
+        log("トレンドセクション挿入完了")
+    else:
+        log("トレンドなし（同日内に類似トピックなし）")
+
     log("=== 完了 ===")
 
 
