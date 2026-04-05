@@ -1,70 +1,35 @@
 # 📊 戦況報告
-最終更新: 2026-04-04 15:45
+最終更新: 2026-04-05 09:30
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
 
 ## 🚨 要対応 - 殿のご判断をお待ちしております
 
+### 🔧 夜間監査 2026-04-05（YouTube/外部連携）
+- CRITICAL: GEMINI_API_KEY参照10+ファイル未移行（VERTEX_API_KEY必須）
+- CRITICAL: deprecated google.generativeai使用（gemini_transcription_task.py→削除候補）
+- CRITICAL: OAuth token.jsonがリポジトリ内格納
+- HIGH: ハードコードパス15+ファイル
+- MEDIUM: generate_outro.py libx264使用（h264_nvenc違反）
+- → 優先1: VERTEX_API_KEY一括移行cmd発令必要
 ### ⚠️ cmd_952 ナレーション動画受託案件 — 殿方針確認待ち
 
 ## 🔄 進行中
 
 | cmd | 内容 | 担当 |
 |-----|------|------|
-| cmd_1121 | context全ナレッジファイルにスクリプト名+実行例追記 | 軍師 |
-| cmd_1122 | claude-mem日本語化設定調査 | 軍師 |
+| cmd_1165 | ニンジン世界漫画3周再生成（フルパス指定） | 足軽5号 |
 
 ## ✅ 最近の完了
 
 | cmd | 内容 | 完了日 |
 |-----|------|--------|
-| cmd_1120 | セマンティック検索インデックス（119スクリプト、検索4件全PASS） | 4/4 |
-| cmd_1119 | ニンジン世界STT+字幕マージ（172words、話者100%） | 4/4 |
-| cmd_1118 | ニンジン世界再編集（落ち延長）非公開アップ https://youtu.be/qelMO3iQKTM | 4/4 |
-| cmd_1117 | ニンジン世界編集版非公開アップ https://youtu.be/DqiaiMPc8Jk | 4/4 |
-| cmd_1105 | 漫画P1-P9×3枚再生成（28枚新規）比較:http://100.66.15.93:8780/all_panels.html | 4/4 |
-| cmd_1116 | ニンジン世界間カット編集（4区間→37.2秒、h264_nvenc） | 4/4 |
-| cmd_1115 | 全53公開動画CTAコメント一括差し替え（エラー0件） | 4/4 |
-| cmd_1114 | ニンジン世界STT+話者ラベル（dozle/orafu、165語/93.1%） | 4/4 |
-| cmd_1107 | 1月リプレイTop10（33本分析/Top1:ぶらり鬼畜旅ビンゴ 16.30pts） | 4/4 |
-| cmd_1113 | ダッシュボード経過時間列追加（1h黄/2h赤）commit:29e2cb1 | 4/4 |
-| cmd_1112 | inbox_write.sh cmd status自動更新（task_assigned時pending→in_progress） | 4/4 |
-| cmd_1111 | ニンジン世界クリップ39:51-41:01非公開アップ https://youtu.be/ukCr9Ls4yZg | 4/4 |
-| cmd_1110 | スクリプトインデックス130ファイル（10カテゴリA-J分類） | 4/4 |
-| cmd_1109 | CTAコメント文言更新+リクエスト募集文追加（53件CTA済み） | 4/4 |
-| cmd_1108 | MCPダッシュボードAPI修正（mtimeキャッシュ 5s→0.67s） | 4/4 |
-| cmd_1106 | スクリプト10ファイル移動完了（Phase1-5） | 4/4 |
-| cmd_1104 | スクリプト移動計画設計（10ファイル5フェーズ・CRITICAL4件） | 4/4 |
-| cmd_1103 | レベル250漫画P2〜P9×3枚生成（計23枚/P4のみ2枚）比較:http://100.66.15.93:8780/all_panels.html | 4/4 |
-| cmd_1100 | Discord配信バグ修正（日付キー辞書形式）+4/4配信済み。⚠️bot再起動要 | 4/4 |
-| cmd_1102 | API課金調査: Max≠API別勘定。Haiku $1/$5 per 1M tokens。claude-mem $53-95/月 | 4/4 |
-| cmd_1101 | claude-mem不動作原因=Worker AI処理がANTHROPIC_KEY要求（対策: ~/.bashrc設定） | 4/4 |
-| cmd_1099 | クリップフルSTT+実名話者ラベル(dozle/qnly) 376語/95.51% ⚠️push要手動 | 4/4 |
-| cmd_1098 | 全スクリプト棚卸し196ファイル（使用中130/要確認36/不要30） | 4/4 |
-| cmd_1097 | クリップSTT 388語/29セグメント（話者ラベルなし） | 4/4 |
-| cmd_1096 | レベル250クリップSTT+マージ字幕完了 | 4/4 |
-| cmd_1095 | レベル250クリップ非公開アップ https://www.youtube.com/watch?v=_cLsvqd23GQ | 4/4 |
-| cmd_1094 | 31本hotspot分析+replay_score統合（26成功/5本TSなし） | 4/4 |
-| cmd_1093 | replay_score統合(3/57本に反映) | 4/4 |
-| cmd_1092 | MCPダッシュボードstatus修正+🚨要対応7件反映 | 4/3 |
-| cmd_1091 | なぎなたキャラ生成完了 | 4/3 |
-| cmd_1090 | API版P6×3回(VERTEX_API_KEY) MD5全異常 | 4/3 |
-| cmd_1089 | API版P6成功(1.5MB高品質) | 4/3 |
-| cmd_1088 | CDP版P6×3回全成功 | 4/3 |
-| cmd_1087 | Gemini WM調査: API経由なら✦付かない | 4/3 |
-| cmd_1086 | cdp_manga_panel P6テスト（panels_test.json使用） | 4/3 |
-| cmd_1085 | ref×3回一貫性テスト: gen1/gen2成功 | 4/3 |
-| cmd_1084 | --ref-imageバグ3点修正成功（MD5不同確認） | 4/3 |
-| cmd_1083 | 画像比較ページ公開 | 4/3 |
-| cmd_1082 | CDP画像生成に--ref-image CLI引数追加 | 4/3 |
-| cmd_1081 | CDPリファレンス付き画像生成成功（P1/P3縦型） | 4/3 |
-| cmd_1080 | リプレイヒートマップ×ホットスポット3層統合Top10完了 | 4/3 |
-| cmd_1079 | MCPダッシュボード3点修正+JST統一 | 4/3 |
-| cmd_1078 | 2月動画34本リプレイヒートマップ取得完了 | 4/3 |
-| cmd_1077 | YouTube Studio関連動画設定CDP対応完了 | 4/3 |
-| cmd_1075 | サムネ3パターン完了。殿選定待ち | 4/2 |
-| cmd_1073 | ドズル社3月まとめv6完了。タイトル殿選定待ち | 4/1 |
+| cmd_1165b | PreToolUseフック4: 家老のtasks/*.yaml相対パス検出 commit d2bca86 | 4/5 |
+| cmd_1164 | AI NEWS OGP修正（og:title+description+ogp.png再生成）commit 6cdaac0 | 4/5 |
+| cmd_1163 | MCPダッシュボードP1-P6修正（DB統一+自動done誤発動修正）commit 987a284 | 4/5 |
+| cmd_1161 | ニンジン世界P1-P7 3周生成（21枚、$1.41） | 4/5 |
+| cmd_1158 | shogun_to_karo.yaml done自動アーカイブ（24192→2253行、91%削減）commit 33808a5 | 4/5 |
 
 ## 足軽・軍師 状態
 
@@ -74,7 +39,7 @@
 | 2号 | 0.2 | GLM-5.1 | idle | — |
 | 3号 | 0.3 | GLM-5.1 | idle | — |
 | 4号 | 0.4 | GLM-5.1 | idle | — |
-| 5号 | 0.5 | GLM-5.1 | idle | — |
+| 5号 | 0.5 | GLM-5.1 | busy | cmd_1165 |
 | 6号 | 0.6 | GLM-5.1 | idle | — |
 | 7号 | 0.7 | GLM-5.1 | idle | — |
 | 軍師 | 0.8 | Opus | idle | — |

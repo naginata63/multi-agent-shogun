@@ -12,7 +12,7 @@ from datetime import datetime, timezone, timedelta
 
 PORT = 8770
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(_SCRIPT_DIR, "..", "..", "work", "cmd_1068", "experiment.db")
+DB_PATH = os.path.join(_SCRIPT_DIR, "..", "..", "data", "dashboard.db")
 BASE_DIR = os.path.join(_SCRIPT_DIR, "..", "..")
 TASKS_DIR = os.path.join(BASE_DIR, "queue", "tasks")
 INBOX_DIR = os.path.join(BASE_DIR, "queue", "inbox")
@@ -588,7 +588,7 @@ def get_dashboard_data():
 
     # Active cmds
     active_cmds = get_active_cmds()
-    recent_done = get_recent_done(5)
+    recent_done = get_recent_done(20)
 
     # 🚨 Auto-detect action required
     action_required = detect_action_required()
