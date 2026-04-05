@@ -573,7 +573,7 @@ def get_client():
     if not HAS_GENAI:
         print("ERROR: google-genai not installed. Run: pip install google-genai")
         sys.exit(1)
-    return genai.Client(vertexai=True, project="gen-lang-client-0119911773", location="global")
+    return genai.Client(vertexai=True, project="gen-lang-client-0119911773", location="us-central1")
 
 
 def embed_texts(client, texts, task_type="RETRIEVAL_DOCUMENT"):

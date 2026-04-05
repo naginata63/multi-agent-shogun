@@ -45,7 +45,7 @@ FULL_TABLE_ID = f"`{GCP_PROJECT}.{BQ_DATASET}.{BQ_TABLE}`"
 
 def get_client():
     """Vertex AI ADC認証でGeminiクライアントを取得"""
-    return genai.Client(vertexai=True, project="gen-lang-client-0119911773", location="global")
+    return genai.Client(vertexai=True, project="gen-lang-client-0119911773", location="us-central1")
 
 
 def parse_script_index(index_path: Path) -> list[dict]:
