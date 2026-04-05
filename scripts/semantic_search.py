@@ -535,7 +535,7 @@ def collect_chunks(source_filter: Optional[str] = None):
 
 # ===== Embedding =====
 def get_client():
-    return genai.Client(vertexai=True, project="gen-lang-client-0119911773", location="global")
+    return genai.Client(vertexai=True, project="gen-lang-client-0119911773", location="us-central1")
 
 
 def embed_texts(client, texts: list[str], task_type: str = "RETRIEVAL_DOCUMENT") -> np.ndarray:

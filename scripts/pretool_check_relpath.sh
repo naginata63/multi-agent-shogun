@@ -95,11 +95,11 @@ if violations:
 " 2>/dev/null || true)
 
 if [[ -n "$RELATIVE_PATHS" ]]; then
-  echo "BLOCKED: queue/tasks/*.yaml 内に相対パスを検出。フルパス（/home/murakami/...）を使用せよ。"
-  echo "$RELATIVE_PATHS"
-  echo ""
-  echo "相対パスは足軽の作業ディレクトリに依存し、解決に失敗するバグの原因になります。"
-  echo "cmd_1165 で報告された根本原因: ref_images に相対パスを書いた結果、画像生成に失敗。"
+  echo "BLOCKED: queue/tasks/*.yaml 内に相対パスを検出。フルパス（/home/murakami/...）を使用せよ。" >&2
+  echo "$RELATIVE_PATHS" >&2
+  echo "" >&2
+  echo "相対パスは足軽の作業ディレクトリに依存し、解決に失敗するバグの原因になります。" >&2
+  echo "cmd_1165 で報告された根本原因: ref_images に相対パスを書いた結果、画像生成に失敗。" >&2
   exit 2
 fi
 

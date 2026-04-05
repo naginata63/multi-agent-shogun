@@ -28,11 +28,21 @@ fi
 # GLM HOME用.claudeディレクトリ作成
 mkdir -p "$GLM_HOME/.claude"
 
+# ADC認証ファイルを通常HOMEからコピー（Vertex AI用）
+MAIN_ADC="/home/murakami/.config/gcloud/application_default_credentials.json"
+GLM_ADC="$GLM_HOME/.config/gcloud/application_default_credentials.json"
+if [[ -f "$MAIN_ADC" ]]; then
+    mkdir -p "$GLM_HOME/.config/gcloud"
+    cp "$MAIN_ADC" "$GLM_ADC"
+fi
+
 # settings.jsonにAPIキーを書き込む（毎回更新して最新キーを反映）
 cat > "$SETTINGS_FILE" << EOF
 {
   "autoUpdates": false,
   "autoUpdaterStatus": "disabled",
+  "bypassPermissions": true,
+  "skipDangerousModePermissionPrompt": true,
   "enabledPlugins": {
     "claude-mem@thedotmack": true
   },
@@ -49,4 +59,5 @@ EOF
 
 # 別HOMEでClaude Code起動（OAuth衝突回避）
 export HOME="$GLM_HOME"
+# skipDangerousModePermissionPrompt in settings.json suppresses the interactive confirm dialog
 exec claude --model sonnet --dangerously-skip-permissions

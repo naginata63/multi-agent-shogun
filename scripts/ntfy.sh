@@ -26,7 +26,8 @@ curl -s "${AUTH_ARGS[@]}" -H "Tags: outbound" -d "$1" "https://ntfy.sh/$TOPIC" >
 
 # === cmd完了時: 自動done更新 ===
 # メッセージが「✅ cmd_XXXX完了」パターンの場合、
-# shogun_to_karo.yamlの該当cmd status: in_progress → done に更新
+# shogun_to_karo.yamlの該当cmd status → done に更新
+# pending/in_progress両方を対象（自動in_progressが効いていないケースに対応）
 _update_cmd_done() {
     local msg="$1"
     # Match "✅ cmd_XXXX完了" pattern
@@ -47,8 +48,8 @@ _update_cmd_done() {
 
         if awk -v cmd="$cmd_id" '
             /- id: / { in_block = ($0 ~ "- id: " cmd) }
-            in_block && /^  status: in_progress$/ {
-                sub(/status: in_progress/, "status: done")
+            in_block && /^  status: (pending|in_progress)$/ {
+                sub(/status: (pending|in_progress)/, "status: done")
                 in_block = 0
                 updated = 1
             }
@@ -142,7 +143,19 @@ print(f'Archived {len(to_archive)} done cmds. Kept {min(len(done_indices), KEEP_
 _archive_old_done_cmds
 
 # 送信ログ記録
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$SCRIPT_DIR/queue/ntfy_sent.log"
+NTFY_LOG="$SCRIPT_DIR/queue/ntfy_sent.log"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$NTFY_LOG"
+
+# ログローテーション（500行超で古い行を切り捨て、直近300行を残す）
+if [ -f "$NTFY_LOG" ]; then
+    LINE_COUNT=$(wc -l < "$NTFY_LOG")
+    if [ "$LINE_COUNT" -gt 500 ]; then
+        ARCHIVE_DIR="$SCRIPT_DIR/queue/archive"
+        mkdir -p "$ARCHIVE_DIR" 2>/dev/null
+        cp "$NTFY_LOG" "$ARCHIVE_DIR/ntfy_sent_$(date +%Y%m%d).log" 2>/dev/null
+        tail -300 "$NTFY_LOG" > "${NTFY_LOG}.tmp" && mv "${NTFY_LOG}.tmp" "$NTFY_LOG"
+    fi
+fi
 
 # 日報自動追記
 DAILY_DIR="$SCRIPT_DIR/logs/daily"

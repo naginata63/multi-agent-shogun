@@ -24,7 +24,7 @@ cli:
   default: claude
   agents:
     shogun: { type: claude, model: "opus[1m]" }
-    karo: { type: glm, model: sonnet }  # Z.AI GLM-5.1（格下げ）
+    karo: { type: claude, model: sonnet }  # Claude Sonnet 4.6
     gunshi: { type: claude, model: "opus[1m]" }
     ashigaru1: { type: glm, model: sonnet }  # Z.AI GLM-5.1 (要: config/glm_api_key.env)
     ashigaru2: { type: glm, model: sonnet }  # Z.AI GLM-5.1

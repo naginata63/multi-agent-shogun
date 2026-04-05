@@ -768,7 +768,6 @@ function renderStats(s) {
     <div class="stat-card"><div class="num num-ok">${s.idle_agents}</div><div class="label">💤 空き</div></div>
     <div class="stat-card"><div class="num num-warn">${s.active_cmds}</div><div class="label">📋 進行中cmd</div></div>
     <div class="stat-card"><div class="num num-ok">${s.total_done}</div><div class="label">✅ 完了タスク</div></div>
-    <div class="stat-card"><div class="num num-info">${s.db_messages}</div><div class="label">💬 DB通算</div></div>
   `;
 }
 

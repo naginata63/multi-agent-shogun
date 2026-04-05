@@ -46,12 +46,26 @@ else
     fi
 fi
 
+# Shogun: ntfy.log直近エントリを取得（セッション開始時に1回だけ）
+NTFY_CONTEXT=""
+if [[ "$AGENT_ID" == "shogun" ]]; then
+    NTFY_LOG="$SCRIPT_DIR/queue/ntfy_sent.log"
+    if [ -f "$NTFY_LOG" ]; then
+        NTFY_RECENT=$(tail -10 "$NTFY_LOG" 2>/dev/null || true)
+        if [ -n "$NTFY_RECENT" ]; then
+            NTFY_CONTEXT="
+Recent ntfy notifications (read these to stay in sync with Lord):
+${NTFY_RECENT}"
+        fi
+    fi
+fi
+
 CONTEXT=$(cat <<EOF
 SessionStart hook: current agent is '${AGENT_ID}' (source=${SOURCE}).
 Before any inbox/task handling, first run:
 tmux display-message -t "\$TMUX_PANE" -p '#{@agent_id}'
 If mismatch, stop and recover. Then execute CLAUDE.md Session Start / Recovery in order.
-Env: ${GEMINI_STATUS}. When running scripts that need GEMINI_API_KEY, prepend: source ~/.bashrc &&
+Env: ${GEMINI_STATUS}. When running scripts that need GEMINI_API_KEY, prepend: source ~/.bashrc &&${NTFY_CONTEXT}
 EOF
 )
 
