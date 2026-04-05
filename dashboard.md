@@ -20,12 +20,12 @@
 
 | cmd | 内容 | 担当 | 開始 |
 |-----|------|------|------|
-| cmd_1201 | 漫画構図汎用ナレッジ文書作成（15件パネルJSON分析）→ manga_composition_knowledge.md | 軍師 | 21:20 |
 | cmd_1203 | なぎなた挿絵リテイク（男性キャラ）5枚+note記事挿入 | 足軽3号 | 21:20 |
 
 ## ✅ 最近の完了
 | cmd | 内容 | 完了日 |
 |-----|------|--------|
+| cmd_1201 | 漫画構図汎用ナレッジ文書作成（15件JSON引用・339行）→ manga_composition_knowledge.md | 4/5 |
 | cmd_1200 | note下書き本文投入+カバー画像+ハッシュタグ設定済 → https://note.com/n/nedb886542772 | 4/5 |
 | cmd_1199 | GLM-5.1スペック調査（CTX 200K/出力131K/5h1600prompts/画像非対応）→gunshi_report_cmd1199.yaml | 4/5 |
 | cmd_1197 | TNTネザー漫画パネル構図分析（5改善点特定→gunshi_report_cmd1197.yaml） | 4/5 |
@@ -45,7 +45,7 @@
 | 5号 | 0.5 | GLM-5.1 | stuck | cmd_1180（放置） |
 | 6号 | 0.6 | GLM-5.1 | idle | — |
 | 7号 | 0.7 | GLM-5.1 | idle | — |
-| 軍師 | 0.8 | Opus | busy | cmd_1201 漫画ナレッジ |
+| 軍師 | 0.8 | Opus | idle | — |
 
 ## APIキー状況
 - **Vertex AI ADC**: ✅ 復旧済み（殿が通常HOME・GLM HOME両方で確認）
