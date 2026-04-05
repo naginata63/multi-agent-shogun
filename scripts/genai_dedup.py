@@ -144,6 +144,9 @@ def parse_report(content: str) -> tuple[str, list[dict]]:
         if block.lstrip().startswith('## '):
             block = block.lstrip('\n')
             title_line = block.split('\n')[0]
+            # 🔥トレンドセクションはトピックとして扱わない（冪等性）
+            if '🔥 トレンド' in title_line:
+                continue
             # アイコン・星評価を除去してタイトルを抽出
             title_clean = re.sub(r'^##\s+', '', title_line)
             title_clean = re.sub(r'[★☆]{1,5}\s*', '', title_clean).strip()
@@ -238,6 +241,31 @@ def _extract_key_terms(text: str) -> set[str]:
     return terms - stop
 
 
+# AI製品・モデル名の辞書（小文字）。トレンド検出用。
+# 汎用語（openai, hugging等）は除外。具体的なモデル・製品名のみ。
+AI_TREND_KEYWORDS = {
+    # Model families
+    "gemma", "gpt", "claude", "llama", "gemini", "deepseek", "qwen",
+    "phi", "mistral", "grok", "falcon", "yi", "mixtral", "starcoder",
+    "codestral", "mathstral",
+    # Products/Tools
+    "copilot", "midjourney", "ollama", "cursor", "chatgpt", "sora",
+    "dall-e", "whisper", "perplexity",
+}
+
+
+def _extract_ai_keywords(title: str) -> set[str]:
+    """タイトルから既知のAI製品・モデル名キーワードを抽出。
+    末尾数字を除去して正規化（"Gemma4" → "gemma"）。"""
+    text = title.lower()
+    found = set()
+    for term in re.findall(r'[a-z][a-z0-9\-]{2,}', text):
+        base = re.sub(r'\d+$', '', term).rstrip('-')
+        if base in AI_TREND_KEYWORDS or term in AI_TREND_KEYWORDS:
+            found.add(base or term)
+    return found
+
+
 def find_intra_day_trends(
     topics: list[dict],
     topic_embeddings: dict[str, list[float]],
@@ -252,6 +280,12 @@ def find_intra_day_trends(
     n = len(topics)
     if n < 2:
         return []
+
+    # Precompute AI keywords for all topics
+    ai_keywords = [
+        _extract_ai_keywords(t["title"])
+        for t in topics
+    ]
 
     # Union-Find
     parent = list(range(n))
@@ -283,6 +317,11 @@ def find_intra_day_trends(
                 if overlap >= 0.5 and len(kw_i & kw_j) >= 2:
                     union(i, j)
                     continue
+
+            # Stage 1.7: AI製品・モデル名キーワード共起
+            if ai_keywords[i] and ai_keywords[j] and (ai_keywords[i] & ai_keywords[j]):
+                union(i, j)
+                continue
 
             # Stage 2: Embedding類似度
             emb_i = topic_embeddings.get(topics[i]["title"], [])
