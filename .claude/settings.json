@@ -51,6 +51,15 @@
                         "timeout": 5
                     }
                 ]
+            },
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash /home/murakami/multi-agent-shogun/scripts/pretool_check_relpath.sh",
+                        "timeout": 5
+                    }
+                ]
             }
         ]
     },
