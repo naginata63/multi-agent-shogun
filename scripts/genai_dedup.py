@@ -7,7 +7,7 @@ genai_dedup.py — 3段階重複排除スクリプト
 
 Usage:
   python3 scripts/genai_dedup.py [YYYY-MM-DD]
-  source ~/.bashrc && GEMINI_API_KEY=<key> python3 scripts/genai_dedup.py
+  Vertex AI ADC認証使用（APIキー不要）
 """
 
 import json
@@ -24,7 +24,7 @@ REPORTS_DIR = PROJECT_ROOT / "reports" / "genai_daily"
 CACHE_FILE = REPORTS_DIR / ".dedup_cache.json"
 CACHE_DAYS = 7
 
-GEMINI_API_KEY = os.environ.get("VERTEX_API_KEY", "") or os.environ.get("GEMINI_API_KEY", "")
+GEMINI_API_KEY = ""  # unused — ADC auth
 EMBED_MODEL = "gemini-embedding-2-preview"
 SIMILARITY_THRESHOLD = 0.85
 TITLE_OVERLAP_THRESHOLD = 0.6
@@ -97,9 +97,6 @@ def get_embeddings(texts: list[str]) -> list[list[float]]:
     """Gemini APIでembeddingを取得。失敗時は空リストで代替"""
     if not texts:
         return []
-    if not GEMINI_API_KEY:
-        log("WARN: GEMINI_API_KEY未設定。Embeddingチェックをスキップ")
-        return [[] for _ in texts]
 
     try:
         from google import genai
@@ -107,7 +104,7 @@ def get_embeddings(texts: list[str]) -> list[list[float]]:
         log("WARN: google-genai未インストール。Embeddingチェックをスキップ")
         return [[] for _ in texts]
 
-    client = genai.Client(api_key=GEMINI_API_KEY)
+    client = genai.Client(vertexai=True, project="gen-lang-client-0119911773", location="global")
     results = []
     for i, text in enumerate(texts):
         try:

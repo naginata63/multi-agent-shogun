@@ -43,12 +43,9 @@ BQ_LOCATION = "asia-northeast1"
 FULL_TABLE_ID = f"`{GCP_PROJECT}.{BQ_DATASET}.{BQ_TABLE}`"
 
 
-def get_api_key():
-    key = os.environ.get("VERTEX_API_KEY", "") or os.environ.get("GEMINI_API_KEY", "")
-    if not key:
-        print("ERROR: VERTEX_API_KEY not set. Run: source config/vertex_api_key.env")
-        sys.exit(1)
-    return key
+def get_client():
+    """Vertex AI ADC認証でGeminiクライアントを取得"""
+    return genai.Client(vertexai=True, project="gen-lang-client-0119911773", location="global")
 
 
 def parse_script_index(index_path: Path) -> list[dict]:
@@ -174,7 +171,7 @@ def cmd_build(args):
         sys.exit(1)
 
     # Embedding生成
-    client = genai.Client(api_key=get_api_key())
+    client = get_client()
     texts = [e["text"] for e in entries]
     print("Embedding生成中...")
     embeds = embed_texts(client, texts)
@@ -255,7 +252,7 @@ def cmd_search(args):
     print(f"クエリ: {query}")
 
     # クエリembedding
-    client = genai.Client(api_key=get_api_key())
+    client = get_client()
     print("クエリembedding生成中...")
     response = client.models.embed_content(
         model=EMBED_MODEL,

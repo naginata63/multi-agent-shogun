@@ -379,7 +379,7 @@ def extract_prompt(text: str) -> str | None:
 
 def run_prompt(api_key: str, prompt_text: str, model_name: str = "gemini-2.0-flash") -> str:
     """Gemini APIでプロンプトを実行し、生成テキストを返す。"""
-    client = genai.Client(api_key=api_key)
+    client = genai.Client(vertexai=True, project="gen-lang-client-0119911773", location="global")
     response = client.models.generate_content(
         model=model_name,
         contents=prompt_text,
@@ -392,7 +392,7 @@ def run_prompt(api_key: str, prompt_text: str, model_name: str = "gemini-2.0-fla
 
 def score_output(api_key: str, original_prompt: str, output: str, category_type: str = "business") -> dict:
     """LLM-as-Judge: Geminiで出力品質を採点し、スコア辞書を返す。"""
-    client = genai.Client(api_key=api_key)
+    client = genai.Client(vertexai=True, project="gen-lang-client-0119911773", location="global")
 
     if category_type == "business":
         scoring_criteria = (
@@ -598,13 +598,8 @@ def process_category(api_key: str, category_dir: str, output_path: str):
 
 
 def main():
-    # APIキーチェック（VERTEX_API_KEY優先）
-    api_key = os.environ.get("VERTEX_API_KEY", "") or os.environ.get("GEMINI_API_KEY", "")
-    if not api_key:
-        print("ERROR: VERTEX_API_KEY / GEMINI_API_KEY 環境変数が設定されていません。", file=sys.stderr)
-        print("設定方法:", file=sys.stderr)
-        print("    source config/vertex_api_key.env", file=sys.stderr)
-        sys.exit(1)
+    # APIキーチェック（ADC認証使用、キー不要）
+    api_key = ""  # unused — ADC auth
 
     # CLI引数チェック
     if len(sys.argv) != 3:

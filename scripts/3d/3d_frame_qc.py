@@ -384,11 +384,7 @@ def run_qc(args):
 
     # Geminiクライアント
     if not args.skip_vision:
-        api_key = os.environ.get("GEMINI_API_KEY")
-        if not api_key:
-            print("ERROR: GEMINI_API_KEY not set", file=sys.stderr)
-            sys.exit(1)
-        client = genai.Client(api_key=api_key)
+        client = genai.Client(vertexai=True, project="gen-lang-client-0119911773", location="global")
     else:
         client = None
         print("[3d_frame_qc] --skip-vision: Vision分析をスキップ")

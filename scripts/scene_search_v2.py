@@ -104,7 +104,7 @@ def is_stopword_segment(text: str) -> bool:
     return any(sw in text for sw in STOP_WORDS)
 
 
-GEMINI_API_KEY = os.environ.get("VERTEX_API_KEY", "") or os.environ.get("GEMINI_API_KEY", "")
+GEMINI_API_KEY = ""  # unused — ADC auth
 
 # google-genai インポート
 try:
@@ -573,10 +573,7 @@ def get_client():
     if not HAS_GENAI:
         print("ERROR: google-genai not installed. Run: pip install google-genai")
         sys.exit(1)
-    if not GEMINI_API_KEY:
-        print("ERROR: GEMINI_API_KEY not set. Run: source ~/.bashrc")
-        sys.exit(1)
-    return genai.Client(api_key=GEMINI_API_KEY)
+    return genai.Client(vertexai=True, project="gen-lang-client-0119911773", location="global")
 
 
 def embed_texts(client, texts, task_type="RETRIEVAL_DOCUMENT"):

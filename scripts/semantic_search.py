@@ -20,8 +20,8 @@ import time
 from pathlib import Path
 from typing import Optional
 
-# APIキー読み込み（VERTEX_API_KEY優先、フォールバックでGEMINI_API_KEY）
-GEMINI_API_KEY = os.environ.get("VERTEX_API_KEY", "") or os.environ.get("GEMINI_API_KEY", "")
+# APIキー読み込み（ADC認証使用、環境変数不要）
+GEMINI_API_KEY = ""  # unused — ADC auth
 
 import faiss
 import numpy as np
@@ -535,10 +535,7 @@ def collect_chunks(source_filter: Optional[str] = None):
 
 # ===== Embedding =====
 def get_client():
-    if not GEMINI_API_KEY:
-        print("ERROR: GEMINI_API_KEY not set. Run: source ~/.bashrc")
-        sys.exit(1)
-    return genai.Client(api_key=GEMINI_API_KEY)
+    return genai.Client(vertexai=True, project="gen-lang-client-0119911773", location="global")
 
 
 def embed_texts(client, texts: list[str], task_type: str = "RETRIEVAL_DOCUMENT") -> np.ndarray:
