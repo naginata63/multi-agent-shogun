@@ -28,11 +28,13 @@
 
 | cmd | 内容 | 担当 | 開始 |
 |-----|------|------|------|
+| cmd_1206 | sasuu全記事PDF化 → work/sasuu_articles/ | 足軽1号 | 22:11 |
 
 ## ✅ 最近の完了
 | cmd | 内容 | 完了日 |
 |-----|------|--------|
 | cmd_1205 | cdp_image_gen.py作成（CDP汎用・--prompt/--output/--ref-image/--size対応・テスト確認済） | 4/5 |
+
 | cmd_1204 | 漫画システム比較分析（斉川ニア記事）→ 高優先3件（セルフチェック2段階・構図パターン・キメゴマ）→ gunshi_report_cmd1204.yaml | 4/5 |
 | cmd_1201 | 漫画構図汎用ナレッジ文書作成（15件JSON引用・339行）→ manga_composition_knowledge.md | 4/5 |
 | cmd_1200 | note下書き本文投入+カバー画像+ハッシュタグ設定済 → https://note.com/n/nedb886542772 | 4/5 |
@@ -47,7 +49,7 @@
 
 | 足軽 | Pane | CLI | 状態 | 現タスク |
 |------|------|-----|------|---------|
-| 1号 | 0.1 | GLM-5.1 | idle | — |
+| 1号 | 0.1 | GLM-5.1 | busy | cmd_1206 sasuu記事PDF化 |
 | 2号 | 0.2 | GLM-5.1 | idle | — |
 | 3号 | 0.3 | GLM-5.1 | idle | — |
 | 4号 | 0.4 | GLM-5.1 | idle | — |
