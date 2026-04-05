@@ -76,20 +76,83 @@ _update_cmd_status() {
         flock -w 5 200 || exit 0
 
         # Find "- id: cmd_XXX" block, replace next "status: pending" → "status: in_progress"
+        # If no status line exists, insert "  status: in_progress" after the id line
         if awk -v cmd="$cmd_id" '
-            /- id: / { in_block = ($0 ~ "- id: " cmd) }
-            in_block && /status: pending/ {
+            /- id: / {
+                if (in_block && !found_status) {
+                    print "  status: in_progress"
+                    updated = 1
+                }
+                in_block = ($0 ~ "- id: " cmd)
+                found_status = 0
+            }
+            in_block && /status:/ {
                 sub(/status: pending/, "status: in_progress")
+                sub(/status: assigned/, "status: in_progress")
+                found_status = 1
                 in_block = 0
                 updated = 1
             }
+            in_block && /^[^ ]/ && !/^-/ {
+                # Hit next top-level key without finding status — insert before it
+                print "  status: in_progress"
+                updated = 1
+                found_status = 1
+                in_block = 0
+            }
             { print }
-            END { exit (updated ? 0 : 1) }
+            END {
+                if (in_block && !found_status) {
+                    print "  status: in_progress"
+                    updated = 1
+                }
+                exit (updated ? 0 : 1)
+            }
         ' "$yaml_file" > "$tmp_file"; then
             mv "$tmp_file" "$yaml_file"
         else
             rm -f "$tmp_file"
         fi
+    ) 200>"$lock_file" 2>/dev/null
+
+    return 0  # Never fail — message delivery must succeed
+}
+
+# === task done auto-update (report_done時) ===
+# type="report_done"/"report_completed"の場合、送信元のtasks YAMLの
+# 該当タスク status: assigned → done に更新
+_update_task_done() {
+    [ "$TYPE" != "report_done" ] && [ "$TYPE" != "report_completed" ] && return 0
+
+    local task_file="$SCRIPT_DIR/queue/tasks/${FROM}.yaml"
+    [ ! -f "$task_file" ] && return 0
+    [ "$FROM" = "unknown" ] && return 0
+
+    local cmd_id
+    cmd_id=$(echo "$CONTENT" | grep -oP 'cmd_\d+' | head -1)
+
+    local lock_file="${task_file}.lock"
+    (
+        flock -w 5 200 || exit 0
+
+        local target_line=""
+
+        if [ -n "$cmd_id" ]; then
+            # Find last task with matching parent_cmd and status: assigned
+            target_line=$(awk -v cmd="$cmd_id" '
+                /^- task_id:/ { found_parent = 0 }
+                /parent_cmd:/ && $0 ~ cmd { found_parent = 1 }
+                /status: assigned/ && found_parent { target = NR }
+                END { if (target > 0) print target }
+            ' "$task_file")
+        fi
+
+        # Fallback: last "status: assigned" in file
+        [ -z "$target_line" ] && target_line=$(grep -n "status: assigned" "$task_file" | tail -1 | cut -d: -f1)
+
+        [ -z "$target_line" ] && exit 0
+
+        sed -i "${target_line}s/status: assigned/status: done/" "$task_file"
     ) 200>"$lock_file" 2>/dev/null
 
     return 0  # Never fail — message delivery must succeed
@@ -185,6 +248,7 @@ except Exception as e:
     # cmd_new時にRAG自動実行
     [ "$TYPE" = "cmd_new" ] && bash "$(dirname "$0")/automation/cmd_rag_hook.sh" >> "$SCRIPT_DIR/logs/cmd_rag.log" 2>&1 &
     _update_cmd_status
+    _update_task_done
     exit 0
 fi
 
@@ -270,6 +334,7 @@ except Exception as e:
         [ "$TYPE" = "cmd_new" ] && bash "$(dirname "$0")/automation/cmd_rag_hook.sh" >> "$SCRIPT_DIR/logs/cmd_rag.log" 2>&1 &
         if [ $STATUS -eq 0 ]; then
             _update_cmd_status
+            _update_task_done
             exit 0
         fi
         attempt=$((attempt + 1))
