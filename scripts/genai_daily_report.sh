@@ -310,8 +310,14 @@ log "静的サイトビルドを開始..."
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)" bash "$SCRIPT_DIR/genai_build_static.sh" >> "$LOG_FILE" 2>&1 && {
     log "静的サイトビルド完了"
     # cron環境でnpxを見つけるためnvmをPATHに追加
-    export PATH="$HOME/.nvm/versions/node/$(ls "$HOME/.nvm/versions/node/" 2>/dev/null | tail -1):$PATH"
+    export PATH="$HOME/.nvm/versions/node/$(ls "$HOME/.nvm/versions/node/" 2>/dev/null | tail -1)/bin:$PATH"
     npx wrangler pages deploy "$(cd "$SCRIPT_DIR/.." && pwd)/dist/" --project-name=genai-daily >> "$LOG_FILE" 2>&1 \
         && log "Cloudflare Pagesデプロイ完了" \
         || log "WARN: wrangler未設定 or デプロイ失敗（静的ビルドは完了済み）"
 } || log "WARN: 静的サイトビルド失敗"
+
+# ---- Discord配信（pending.jsonの未送信を配信）-------------------------
+log "Discord配信を開始（--flushモード）..."
+python3 "$SCRIPT_DIR/discord_news_bot.py" --flush >> "$LOG_FILE" 2>&1 \
+    && log "Discord配信完了" \
+    || log "WARN: Discord配信失敗"

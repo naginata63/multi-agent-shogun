@@ -52,6 +52,8 @@ def load_env_file(env_path: Path) -> bool:
     return True
 
 
+FLUSH_MODE = False  # --flush で True に設定
+
 if not load_env_file(ENV_FILE):
     print("[discord_news_bot] config/discord_bot.env が見つかりません。Bot起動をスキップします。", file=sys.stderr)
     print("[discord_news_bot] 手順: config/discord_bot.env を作成してトークンとチャンネルIDを設定してください。", file=sys.stderr)
@@ -204,10 +206,9 @@ async def send_daily_news(topics: list, date: str):
     log(f"全記事配信完了: {len(topics)}件 date={date}")
 
 
-# --- discord_pending.json 監視ループ ---
-@tasks.loop(seconds=60)
-async def check_pending():
-    """queue/discord_pending.json を監視して配信。日付キー辞書形式対応。"""
+# --- discord_pending.json 処理 ---
+async def process_pending():
+    """queue/discord_pending.json を処理して配信。日付キー辞書形式対応。"""
     if not PENDING_FILE.exists():
         return
 
@@ -261,6 +262,13 @@ async def check_pending():
             json.dump(pending, f, ensure_ascii=False, indent=2)
 
 
+# --- discord_pending.json 監視ループ ---
+@tasks.loop(seconds=60)
+async def check_pending():
+    """queue/discord_pending.json を60秒間隔で監視。"""
+    await process_pending()
+
+
 # --- イベントハンドラ ---
 @bot.event
 async def on_ready():
@@ -270,7 +278,12 @@ async def on_ready():
         log(f"配信チャンネル確認: #{channel.name}")
     else:
         log(f"WARN: チャンネルID {CHANNEL_ID} が見つかりません（招待済みか確認してください）")
-    check_pending.start()
+    if FLUSH_MODE:
+        await process_pending()
+        log("--flushモード: 処理完了、終了します")
+        await bot.close()
+    else:
+        check_pending.start()
 
 
 @bot.event
@@ -292,5 +305,14 @@ async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent):
 
 
 if __name__ == "__main__":
-    log("Discord AI NEWS Bot 起動中...")
+    import argparse
+    parser = argparse.ArgumentParser(description="AI NEWS Discord Bot")
+    parser.add_argument('--flush', action='store_true', help='pending配信後に終了')
+    args = parser.parse_args()
+    FLUSH_MODE = args.flush
+
+    if FLUSH_MODE:
+        log("--flushモード: 未送信記事を配信して終了します")
+    else:
+        log("Discord AI NEWS Bot 起動中...")
     bot.run(TOKEN)
