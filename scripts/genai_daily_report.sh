@@ -293,17 +293,20 @@ DEDUP_API_KEY="${GEMINI_API_KEY:-AIzaSyBWlyApVA01J0DhfEDLojMajkWeARaB-d8}"
 source ~/.bashrc 2>/dev/null || true
 GEMINI_API_KEY="$DEDUP_API_KEY" python3 "$SCRIPT_DIR/genai_dedup.py" "$DATE_STR" 2>> "$LOG_FILE" || log "WARN: 重複排除失敗（メインレポートは生成済み）"
 
+# ---- スコアリング: 各トピック見出しにスコアを追記 --------------------
+# ※ スコアリングをntfy_top3より先に実行する（ntfy_top3がtopicsを読むため）
+log "トピックスコアリングを開始..."
+bash "$SCRIPT_DIR/genai_score_topics.sh" "$DATE_STR" || log "WARN: スコアリング失敗（メインレポートは生成済み）"
+
 # ---- P1: Top3 ntfy配信 ----------------------------------------------
 log "Top3 ntfy配信を開始..."
 bash "$SCRIPT_DIR/genai_ntfy_top3.sh" "$DATE_STR" || log "WARN: Top3配信失敗（メインレポートは生成済み）"
 
-# ---- スコアリング: 各トピック見出しにスコアを追記 --------------------
-log "トピックスコアリングを開始..."
-bash "$SCRIPT_DIR/genai_score_topics.sh" "$DATE_STR" || log "WARN: スコアリング失敗（メインレポートは生成済み）"
-
-# ---- OGP事前取得（バックグラウンド）-----------------------------------
-log "OGP事前取得を開始（バックグラウンド）..."
-python3 "$SCRIPT_DIR/genai_ogp_prefetch.py" "$DATE_STR" >> "$LOG_FILE" 2>&1 &
+# ---- OGP事前取得（ビルド前に完了させる）-------------------------------
+log "OGP事前取得を開始..."
+python3 "$SCRIPT_DIR/genai_ogp_prefetch.py" "$DATE_STR" >> "$LOG_FILE" 2>&1 \
+    && log "OGP事前取得完了" \
+    || log "WARN: OGP事前取得失敗（ビルドは続行）"
 
 # ---- 静的サイトビルド + Cloudflare Pagesデプロイ -------------------
 log "静的サイトビルドを開始..."

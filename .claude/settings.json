@@ -72,6 +72,17 @@
                     }
                 ]
             }
+        ],
+        "UserPromptSubmit": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash /home/murakami/multi-agent-shogun/scripts/userprompt_ntfy_check.sh",
+                        "timeout": 5
+                    }
+                ]
+            }
         ]
     },
     "permissions": {
