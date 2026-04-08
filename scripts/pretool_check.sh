@@ -8,6 +8,9 @@
 
 set -uo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(dirname "$SCRIPT_DIR")"
+
 INPUT=$(cat 2>/dev/null || true)
 
 # ツール名とコマンドを抽出
@@ -48,7 +51,7 @@ if [[ "$TOOL_NAME" == "Write" ]] || [[ "$TOOL_NAME" == "Edit" ]]; then
   if [[ "$AGENT_ID" == ashigaru* ]]; then
     # Phase 2: タスクYAMLからtarget_pathを読み取り、一致するパスは許可
     AGENT_NUM="${AGENT_ID#ashigaru}"
-    TASK_YAML="/home/murakami/multi-agent-shogun/queue/tasks/ashigaru${AGENT_NUM}.yaml"
+    TASK_YAML="${REPO_DIR}/queue/tasks/ashigaru${AGENT_NUM}.yaml"
     if [ -f "$TASK_YAML" ]; then
       TARGET_PATH=$(grep -A5 'status: assigned' "$TASK_YAML" | grep 'target_path:' | head -1 | sed 's/.*target_path: *//' | tr -d '"' | tr -d "'" || true)
       if [ -n "$TARGET_PATH" ] && echo "$FILE_PATH" | grep -qF "$TARGET_PATH"; then
