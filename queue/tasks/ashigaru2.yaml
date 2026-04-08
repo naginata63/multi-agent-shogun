@@ -1,4 +1,143 @@
 tasks:
+- task_id: subtask_1265b2
+  parent_cmd: cmd_1265
+  redo_of: subtask_1265b
+  status: done
+  assigned_to: ashigaru2
+  bloom_level: L4
+  priority: high
+  title: "MEN迷言候補18件 クリップ連結→YouTube非公開アップ（タイムスタンプ付き）"
+  project: dozle_kirinuki
+  steps: |
+    ## 目的
+    おおはらMEN迷言候補18件を全てクリップ化し、1本の試聴動画に連結してYouTube非公開アップ。
+
+    ## 入力
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/cmd_1261_men_meigen_candidates.md
+
+    ## 手順
+
+    ### Step1: 候補リストから動画IDと時間を抽出
+    candidates.md の18件を読み、各候補の動画ID・開始時間・終了時間を整理。
+    動画IDはファイル名やURL（括弧内の英数字）から取得。
+
+    ### Step2: 動画DL（既存スキップ）
+    ```bash
+    # work/ 配下に既存DL済みか確認
+    ls /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/ | grep {VIDEO_ID}
+    # なければ yt-dlp でDL
+    yt-dlp -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" \
+      --merge-output-format mp4 \
+      -o "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/{VIDEO_ID}/{VIDEO_ID}.mp4" \
+      "https://www.youtube.com/watch?v={VIDEO_ID}"
+    ```
+
+    ### Step3: クリップ切り出し（前後5秒追加）
+    ```bash
+    ffmpeg -ss {start-5s} -to {end+5s} -i {INPUT}.mp4 \
+      -c:v h264_nvenc -preset p4 -c:a aac -b:a 192k \
+      /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/clips_1265b/clip_{N:02d}.mp4
+    ```
+
+    ### Step4: 全クリップ連結
+    ```bash
+    for f in /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/clips_1265b/clip_*.mp4; do echo "file '$f'"; done > /tmp/concat_1265b.txt
+    ffmpeg -f concat -safe 0 -i /tmp/concat_1265b.txt \
+      -c:v h264_nvenc -preset p4 -c:a aac -b:a 192k \
+      /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/clips_1265b/men_meigen_all_candidates.mp4
+    ```
+
+    ### Step5: YouTube非公開アップ（private）
+    ※GLMレート制限問題は解消済み（Claude Sonnet切替済み）。アップ可能。
+    ```bash
+    python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/youtube_uploader.py upload \
+      /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/clips_1265b/men_meigen_all_candidates.mp4 \
+      --title "おおはらMEN迷言全候補（選定用）" \
+      --privacy private
+    ```
+
+    ### Step6: 概要欄タイムスタンプ設定
+    各クリップの開始時間でタイムスタンプ生成し概要欄に設定。
+
+    ### Step7: 家老に報告
+    ```bash
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+      "足軽2号、subtask_1265b2完了。MEN迷言全候補クリップ連結+YouTube非公開アップ完了。URL: {URL}" \
+      report_completed ashigaru2
+    ```
+
+    ## 注意
+    - ffmpegは必ずh264_nvenc（libx264禁止）
+    - YouTubeはprivateのみ（unlistedにするな）
+    - クリップ保存先: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/clips_1265b/
+
+- task_id: subtask_1261a
+  parent_cmd: cmd_1261
+  status: done
+  assigned_to: ashigaru2
+  bloom_level: L4
+  priority: high
+  title: "おおはらMEN 迷言 候補リスト作成"
+  project: dozle_kirinuki
+  steps: |
+    ## 目的
+    おおはらMENの「迷言」だけを集めた総集編の候補リストを作成し、家老に報告する。
+    ※ selected.json作成・動画生成・アップロードは殿選定後のフェーズ。今回は候補リスト作成のみ。
+
+    ## 迷言とは
+    - おかしな発言・意味不明な発言・ツッコまれる発言
+    - 名言（かっこいい・正しい）ではなく「迷言」（おかしい・ズレてる）
+    - MENのキャラ: おっちょこちょい、ボケ担当、ツッコまれやすい
+    - 各シーン5〜15秒のピンポイント（迷言の瞬間+直後のリアクションまで）
+
+    ## 作業ディレクトリ
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
+
+    ## 手順
+
+    ### Step1: MENの発言をSRTから抽出
+    SRTファイルでスピーカーラベル「MEN」「おおはらMEN」「oo_men」を検索:
+    ```bash
+    grep -rn "MEN:\|oo_men:\|おおはらMEN:" /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/*/merged*.srt 2>/dev/null | head -500
+    ```
+    スピーカーラベルがない場合はSRTを直接読んで発言を確認する。
+
+    ### Step2: 迷言候補を選定
+    以下のパターンを「迷言」として優先:
+    - 他のメンバーにツッコまれている発言
+    - 「え？」「何言ってるの？」等のリアクションを引き出す発言
+    - ルール・方向を間違えている発言
+    - 突然意味不明なことを言い出す発言
+    - 自滅・やらかしの瞬間
+
+    NG: 普通のゲームプレイ発言、説明的な発言
+
+    ### Step3: 候補リストをファイルに保存
+    保存先: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/cmd_1261_men_meigen_candidates.md
+    フォーマット（各候補に時間・発言・ツッコミ・理由を明記）:
+    ```
+    # おおはらMEN 迷言 候補リスト
+
+    ## 候補1: ★★★
+    - 動画: 20XXXXXX_タイトル
+    - 時間: 00:05:23,000 〜 00:05:35,000（約12秒）
+    - 迷言: 「〇〇〇〇〇」（MEN発言）
+    - リアクション: 「え、何で？」（dozle）
+    - 理由: ズレた発言+即ツッコミでテンポよく面白い
+    ```
+
+    ### Step4: 家老に報告
+    ```bash
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+      "足軽2号、subtask_1261a完了。MEN迷言候補リスト完成。ファイル: work/cmd_1261_men_meigen_candidates.md 候補数: {N}件。殿の選定待ち。" \
+      report_completed ashigaru2
+    ```
+
+    ## 注意
+    - 候補は5〜20件程度
+    - SRTファイルが多い場合は新しい動画（2026年）を優先
+    - 複数の動画から分散して選ぶとよい
+
 - bloom_level: L2
   description: '## 購入済みnote記事の配布ファイルをCDP Chromeでダウンロード
 
@@ -677,3 +816,405 @@ tasks:
   status: done
   task_id: subtask_1244a
   timestamp: '2026-04-07T12:44:00'
+- bloom_level: L3
+  description: "## cmd_1249-B: おらふ名場面集 クリップ作成【急ぎ】\n\n### 概要\n5シーンのYouTube URLから該当区間をDL→クリップ切り出し→テロップ追加→結合→YouTube非公開アップ。\n\
+    殿の確認用なのでクオリティは仮でOK。\n\n### 作業ディレクトリ\n```bash\nmkdir -p projects/dozle_kirinuki/work/orafu_meibamen_clips\n\
+    cd projects/dozle_kirinuki/work/orafu_meibamen_clips\n```\n\n### 5シーン一覧\n| No\
+    \ | URL | 開始秒 | シーン名 |\n|----|-----|--------|---------|\n| 1 | https://youtu.be/YXxLXD6oUDE\
+    \ | 1522 | 鍾乳洞きれいにする |\n| 2 | https://youtu.be/yDlQ9rIPjFg | 988 | 録音音声のみエンドラ討伐\
+    \ |\n| 3 | https://youtu.be/WeF0Onmox7E | 3333 | ダイヤ納品 |\n| 4 | https://youtu.be/-UOjFo56QlQ\
+    \ | 580 | キッズ下水道サバイバル |\n| 5 | https://youtu.be/-7JeegM8Lfs | 2608 | 裏切り者サバイバル#2\
+    \ |\n\n### Step 1: 各動画をDL（タイムスタンプから3分間）\n```bash\n# 例（各シーンで繰り返す）\nyt-dlp -f \"\
+    bestvideo[height<=1080]+bestaudio/best\" --merge-output-format mp4 \\\n  --download-sections\
+    \ \"*1522-1702\" \\\n  -o \"01_shonyudo.mp4\" \\\n  \"https://youtu.be/YXxLXD6oUDE\"\
+    \n```\n※ 各シーンのend秒 = start秒 + 120〜180（2〜3分）\n\n### Step 2: 各クリップにシーン名テロップ追加\n\
+    ```bash\n# 例（先頭3秒にテロップ）\nffmpeg -i 01_shonyudo.mp4 \\\n  -vf \"drawtext=text='鍾乳洞きれいにする':fontsize=52:fontcolor=white:x=40:y=40:box=1:boxcolor=black@0.6:boxborderw=8:enable='between(t,0,3)'\"\
+    \ \\\n  -c:v h264_nvenc -preset p4 -c:a aac -b:a 192k \\\n  01_shonyudo_title.mp4\n\
+    ```\n\n### Step 3: 5クリップを結合\n```bash\ncat > concat_list.txt << 'EOF'\nfile '01_shonyudo_title.mp4'\n\
+    file '02_rokuon_title.mp4'\nfile '03_dia_title.mp4'\nfile '04_kids_title.mp4'\n\
+    file '05_uragiri_title.mp4'\nEOF\n\nffmpeg -f concat -safe 0 -i concat_list.txt\
+    \ \\\n  -c:v h264_nvenc -preset p4 -c:a aac -b:a 192k \\\n  orafu_meibamen_all.mp4\n\
+    ```\n\n### Step 4: YouTube非公開アップ\n```bash\ncd /home/murakami/multi-agent-shogun\n\
+    python3 projects/dozle_kirinuki/scripts/youtube_uploader.py upload \\\n  projects/dozle_kirinuki/work/orafu_meibamen_clips/orafu_meibamen_all.mp4\
+    \ \\\n  --title \"おらふ名場面集 確認用クリップ集【ドズル社】\" \\\n  --privacy unlisted\n```\n\n###\
+    \ Step 5: ntfy通知（URL含む）\n```bash\nbash /home/murakami/multi-agent-shogun/scripts/ntfy.sh\
+    \ \"\U0001F3AC おらふ名場面集アップ完了 cmd_1249 {YouTube_URL}\"\n```\n\n### 完了後\n```bash\n\
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \\\n  \"足軽2号、subtask_1249b完了。おらふ名場面集5シーン結合+YouTube非公開アップ完了。URL:\
+    \ {YouTube_URL}\" \\\n  report_completed ashigaru2\n```\n\n### 注意\n- ffmpegはh264_nvenc必須（libx264禁止）\n\
+    - YouTube非公開は --privacy unlisted（privateではなくunlisted）\n- ntfyはTailscale IP 100.66.15.93\
+    \ 使用（192.168.2.7禁止）\n- クリップは確認用なので仮品質でOK（2〜3分/シーン）\n"
+  parent_cmd: cmd_1249
+  project: dozle_kirinuki
+  purpose: おらふ名場面集5シーンのクリップ切り出し→結合→YouTube非公開アップ
+  report_to: karo
+  status: done
+  task_id: subtask_1249b
+  timestamp: '2026-04-07T18:52:00'
+- task_id: subtask_1251a
+  parent_cmd: cmd_1251
+  timestamp: '2026-04-07T19:55:00'
+  project: dozle_kirinuki
+  purpose: 新着動画ZJuP6zxDnTMのSTTパイプライン完走（DL→Demucs→AssemblyAI→話者実名変換→SRTマージ）
+  status: done
+  report_to: karo
+  steps: |
+    ## 前提確認
+    ```bash
+    ls projects/dozle_kirinuki/work/ | grep ZJuP6zxDnTM  # 既存中間成果物確認
+    cat skills/video-pipeline/README.md 2>/dev/null || ls skills/video-pipeline/
+    ```
+
+    ## Step 1: video-pipelineスキルを確認して実行
+    ```bash
+    # スキル確認
+    ls skills/video-pipeline/
+    # パイプライン実行（vocal_stt_pipeline.py）
+    cd /home/murakami/multi-agent-shogun
+    python3 scripts/vocal_stt_pipeline.py \
+      --video-id ZJuP6zxDnTM \
+      --url "https://youtu.be/ZJuP6zxDnTM" \
+      --work-dir projects/dozle_kirinuki/work/ \
+      --skip-existing  # 中間成果物があればスキップ
+    ```
+    ※スクリプトの引数はREADMEや既存コードを確認して合わせること
+
+    ## Step 2: STTマージ
+    ```bash
+    python3 scripts/stt_merge.py \
+      --video-id ZJuP6zxDnTM \
+      --work-dir projects/dozle_kirinuki/work/
+    # → merged_ZJuP6zxDnTM.srt 生成
+    ```
+
+    ## Step 3: 話者ラベル確認
+    ```bash
+    grep "^[A-Z]:" projects/dozle_kirinuki/work/*/merged_ZJuP6zxDnTM.srt | head -20
+    # A/B/C等アルファベット残存がないことを確認
+    ```
+
+    ## Step 4: git commit
+    ```bash
+    git add projects/dozle_kirinuki/work/
+    git commit -m "feat(cmd_1251): ZJuP6zxDnTM STTパイプライン完了"
+    ```
+
+    ## Step 5: ntfy + karo報告
+    ```bash
+    bash scripts/ntfy.sh "🎤 STT完了 ZJuP6zxDnTM 体力と手持ちが共有の地下世界 cmd_1251"
+    bash scripts/inbox_write.sh karo \
+      "足軽2号、subtask_1251a完了。merged_ZJuP6zxDnTM.srt生成済み。話者実名変換OK。git commit済み。" \
+      report_completed ashigaru2
+    ```
+
+    ## 注意事項
+    - STTはAssemblyAI（Gemini STT禁止）
+    - 話者IDは実名必須（A/B/Cアルファベット不可）— projects/dozle_kirinuki/context/member_profiles.yaml参照
+    - 中間成果物はwork/{動画ディレクトリ}/配下に保存（/tmp禁止）
+    - ffmpegはh264_nvenc（libx264禁止）
+    - 既存scripts/vocal_stt_pipeline.py + stt_merge.py を使え（新規スクリプト作成禁止）
+    - スクリプトが見つからない場合はscripts/配下を確認してから報告
+    - ntfyはTailscale IP 100.66.15.93 を使え（192.168.2.7禁止）
+- task_id: subtask_1256b
+  parent_cmd: cmd_1256
+  timestamp: '2026-04-07T22:35:00'
+  project: crowdworks_china_shorts
+  purpose: 動画②ドバイ高級店パン(x_1991109320361038018) を構成テーブル通りにffmpeg編集→38秒縦長MP4出力
+  status: done
+  report_to: karo
+  steps: |
+    ## 素材
+    - 元動画: projects/crowdworks_china_shorts/work/x_1991109320361038018/source.mp4（48秒・縦長13MB）
+    - narration_1.wav: .../narration_1.wav
+    - narration_2.wav: .../narration_2.wav
+    - narration_3.wav: .../narration_3.wav
+    - 出力: projects/crowdworks_china_shorts/work/x_1991109320361038018/output.mp4
+    - フォント: /home/murakami/.local/share/fonts/GenEiAntiqueNv6-M.ttf
+
+    ## 解像度確認（先に実行）
+    ```bash
+    ffprobe -v quiet -show_streams -of json \
+      projects/crowdworks_china_shorts/work/x_1991109320361038018/source.mp4 | \
+      python3 -c "import json,sys; d=json.load(sys.stdin); [print(s['width'],'x',s['height']) for s in d['streams'] if s['codec_type']=='video']"
+    ```
+
+    ## 構成（38秒）
+    | 出力秒 | 元タイムスタンプ | 音声 |
+    |--------|----------------|------|
+    | 0-2    | 元0:42-0:44    | 元音声「アリガトウ」（フック） |
+    | 2-5    | 元0:00-0:05    | ナレ1（元音声-12dB） |
+    | 5-11   | 元0:07-0:13    | 元音声+字幕 |
+    | 11-17  | 元0:15-0:21    | 元音声+字幕 |
+    | 17-20  | 元0:22-0:26    | ナレ2（元音声-12dB） |
+    | 20-27  | 元0:28-0:35    | 元音声+字幕 |
+    | 27-30  | 元0:38-0:39    | ナレ3（元音声-12dB） |
+    | 30-37  | 元0:39-0:44    | 元音声（リフレイン） |
+    | 37-38  | ブラックアウト  | 無音 |
+
+    ## 字幕テキスト
+    - 0:00 「アリガトウ」
+    - 0:05-0:11:「お金持ちは豪華なご飯を食べに来るけど」「お金がない人は無料のパンをもらいに来るの」「このパンは無料なの」
+    - 0:11-0:17:「ありえないくらい硬い」「噛みすぎて顎が痛い」
+    - 0:20-0:27:「このパスタ、320元もするの」「高すぎてとても手が出ない」
+    - 0:33 「アリガトウ」
+
+    ## 実装方針
+    ```bash
+    WD="projects/crowdworks_china_shorts/work/x_1991109320361038018"
+    SRC="$WD/source.mp4"
+    FONT="/home/murakami/.local/share/fonts/GenEiAntiqueNv6-M.ttf"
+
+    # Step 1: セグメント切り出し（元が縦長なのでcrop不要の可能性）
+    ffmpeg -ss 42 -t 2  -i "$SRC" -c copy "$WD/seg1.mp4" -y
+    ffmpeg -ss 0  -t 5  -i "$SRC" -c copy "$WD/seg2.mp4" -y
+    # ... 以下同様
+    ```
+
+    ## 注意
+    - 元動画が縦長の場合はクロップ不要（解像度確認を先に行うこと）
+    - 横長の場合のみ crop=1080:1920:420:0 を適用
+    - ffmpegはh264_nvenc（libx264禁止）
+    - ナレ部分: 元音声を volume=0.25（-12dB相当）に下げてミックス
+    - 字幕: drawtext（源暎アンチック・下部中央・白+黒縁取り）
+    - ブラックアウト1秒: color=c=black+anullsrc
+    - 各セグメントを r=25 / ar=44100 / ac=2 で統一してからconcat
+
+    ## 完了後
+    ```bash
+    ffprobe -v quiet -show_entries format=duration \
+      projects/crowdworks_china_shorts/work/x_1991109320361038018/output.mp4
+    bash scripts/inbox_write.sh karo \
+      "足軽2号、subtask_1256b完了。動画②ドバイ output.mp4 生成済み。尺: {秒}秒。" \
+      report_completed ashigaru2
+    ```
+- task_id: subtask_1257b
+  parent_cmd: cmd_1257
+  timestamp: '2026-04-07T22:55:00'
+  project: crowdworks_china_shorts
+  purpose: 動画①スウェーデン output.mp4をYouTube非公開（unlisted）アップ
+  status: done
+  report_to: karo
+  steps: |
+    ## 実行
+    ```bash
+    cd /home/murakami/multi-agent-shogun
+    python3 projects/dozle_kirinuki/scripts/youtube_uploader.py upload \
+      projects/crowdworks_china_shorts/work/4pPGM62Rb18/output.mp4 \
+      --title "【衝撃】スウェーデンで中国人が路上で崩れ落ちた（確認用）" \
+      --privacy unlisted
+    ```
+
+    ## 完了後
+    ```bash
+    bash scripts/ntfy.sh "🎬 中国系ショート①スウェーデン 非公開アップ完了 cmd_1257 {URL}"
+    bash scripts/inbox_write.sh karo \
+      "足軽2号、subtask_1257b完了。スウェーデン動画 非公開アップ完了。URL: {URL}" \
+      report_completed ashigaru2
+    ```
+- task_id: subtask_1259c
+  parent_cmd: cmd_1259
+  timestamp: '2026-04-07T23:13:00'
+  project: crowdworks_china_shorts
+  purpose: test_layers5.mp4をYouTube非公開（unlisted）アップ
+  status: done
+  report_to: karo
+  steps: |
+    ## 実行
+    ```bash
+    cd /home/murakami/multi-agent-shogun
+    python3 projects/dozle_kirinuki/scripts/youtube_uploader.py upload \
+      projects/crowdworks_china_shorts/work/x_1991109320361038018/test_layers5.mp4 \
+      --title "レイヤーテストv5（ドバイ10秒）" \
+      --privacy unlisted
+    # アップ後、VIDEO_IDを取得してunlisted修正（既知バグ対策）
+    python3 projects/dozle_kirinuki/scripts/youtube_uploader.py publish \
+      {VIDEO_ID} --visibility unlisted
+    ```
+    ## 完了後
+    ```bash
+    bash scripts/ntfy.sh "🎬 レイヤーテストv5 非公開アップ完了 {URL}"
+    bash scripts/inbox_write.sh karo \
+      "足軽2号、subtask_1259c完了。test_layers5.mp4 unlisted アップ完了。URL: {URL}" \
+      report_completed ashigaru2
+    ```
+- task_id: subtask_1259d
+  parent_cmd: cmd_1259
+  timestamp: '2026-04-07T23:20:00'
+  project: crowdworks_china_shorts
+  purpose: test_layers6.mp4をYouTube非公開（unlisted）アップ
+  status: done
+  report_to: karo
+  steps: |
+    ## 実行
+    ```bash
+    cd /home/murakami/multi-agent-shogun
+    python3 projects/dozle_kirinuki/scripts/youtube_uploader.py upload \
+      projects/crowdworks_china_shorts/work/x_1991109320361038018/test_layers6.mp4 \
+      --title "レイヤーテストv6（ドバイ10秒）" \
+      --privacy unlisted
+    python3 projects/dozle_kirinuki/scripts/youtube_uploader.py publish \
+      {VIDEO_ID} --visibility unlisted
+    ```
+    ## 完了後
+    ```bash
+    bash scripts/ntfy.sh "🎬 レイヤーテストv6 非公開アップ完了 {URL}"
+    bash scripts/inbox_write.sh karo \
+      "足軽2号、subtask_1259d完了。test_layers6.mp4 unlisted アップ完了。URL: {URL}" \
+      report_completed ashigaru2
+    ```
+- task_id: subtask_1259f
+  parent_cmd: cmd_1259
+  timestamp: '2026-04-08T05:12:00'
+  project: crowdworks_china_shorts
+  purpose: final_output.mp4をYouTube非公開（unlisted）アップ
+  status: done
+  report_to: karo
+  steps: |
+    ## 実行
+    ```bash
+    cd /home/murakami/multi-agent-shogun
+    python3 projects/dozle_kirinuki/scripts/youtube_uploader.py upload \
+      projects/crowdworks_china_shorts/work/x_1991109320361038018/final_output.mp4 \
+      --title "ドバイ高級店パン 将軍編集版" \
+      --privacy unlisted
+    python3 projects/dozle_kirinuki/scripts/youtube_uploader.py publish \
+      {VIDEO_ID} --visibility unlisted
+    ```
+    ## 完了後
+    ```bash
+    bash scripts/ntfy.sh "🎬 ドバイ高級店パン 将軍編集版 非公開アップ完了 {URL}"
+    bash scripts/inbox_write.sh karo \
+      "足軽2号、subtask_1259f完了。final_output.mp4 unlisted アップ完了。URL: {URL}" \
+      report_completed ashigaru2
+    ```
+
+- task_id: subtask_1269a
+  parent_cmd: cmd_1269
+  status: done
+  assigned_to: ashigaru2
+  bloom_level: L2
+  priority: medium
+  title: "OAuth token.json をリポジトリから除外（.gitignore + git rm --cached）"
+  project: multi-agent-shogun
+  timestamp: '2026-04-09T00:14:33'
+  steps: |
+    ## 目的
+    token.jsonがリポジトリに追跡されている。.gitignoreに追加しgit rm --cachedで除外する。
+    ファイル自体は削除しない。
+
+    ## 作業ディレクトリ
+    /home/murakami/multi-agent-shogun
+
+    ## 手順
+
+    ### Step1: token.jsonの場所確認
+    ```bash
+    cd /home/murakami/multi-agent-shogun
+    git ls-files | grep token.json
+    ```
+
+    ### Step2: .gitignoreに追加
+    ```bash
+    # .gitignoreにtoken.jsonのパスを追加（既にある場合はスキップ）
+    grep -n "token.json" /home/murakami/multi-agent-shogun/.gitignore || \
+      echo "token.json" >> /home/murakami/multi-agent-shogun/.gitignore
+    ```
+    もしサブディレクトリ内のtoken.jsonであれば、そのパターンも追加。
+
+    ### Step3: git rm --cached
+    ```bash
+    cd /home/murakami/multi-agent-shogun
+    git rm --cached <token.jsonのパス>
+    ```
+
+    ### Step4: 動作確認
+    ```bash
+    git status  # token.jsonが「deleted from index」で表示されること
+    git ls-files | grep token.json  # 0件であること
+    ```
+
+    ### Step5: git commit
+    ```bash
+    cd /home/murakami/multi-agent-shogun
+    git add .gitignore
+    git commit -m "security: OAuth token.jsonをgit追跡から除外"
+    ```
+    ※ git pushは家老が実施。足軽はpush禁止。
+
+    ### Step6: 完了報告
+    ```bash
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+      "足軽2号、subtask_1269a完了。token.json .gitignore追加+git rm --cached完了。commit: {HASH}" \
+      report_completed ashigaru2
+    ```
+
+    ## テスト確認
+    - git ls-files | grep token.json → 0件
+    - token.jsonファイルがディスクに存在すること（削除されていないこと）
+    - git status がcleanであること
+
+- task_id: subtask_1270a
+  parent_cmd: cmd_1270
+  status: assigned
+  assigned_to: ashigaru2
+  bloom_level: L4
+  priority: high
+  title: "お題漫画「私のために争わないで」6枚新規生成"
+  project: dozle_kirinuki
+  timestamp: '2026-04-09T06:19:00'
+  steps: |
+    ## 目的
+    お題2「私のために争わないで」の漫画パネル6枚をVertex AIで新規生成する。
+    panels_odai_arasowanaide.jsonを使い、1枚ずつ順番に生成。
+
+    ## 入力
+    WORK="/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai"
+    - panels JSON: $WORK/panels_odai_arasowanaide.json（最新版を必ず読むこと）
+    - 出力先: $WORK/manga_odai_arasowanaide/（新規ディレクトリ作成が必要）
+    - 生成スクリプト参考: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py
+
+    ## 手順
+
+    ### Step1: 出力ディレクトリ作成
+    mkdir -p "$WORK/manga_odai_arasowanaide"
+
+    ### Step2: panels_odai_arasowanaide.jsonを読む
+    全6パネルのid・director_notes・ref_images・charactersを確認する。
+
+    ### Step3: Vertex AI APIで6枚を順番に生成
+    - APIキー: source /home/murakami/multi-agent-shogun/config/vertex_api_key.env（VERTEX_API_KEY）
+    - モデル: gemini-2.0-flash-preview-image-generation
+    - 画像サイズ: 768x1376（縦長）
+    - ref_imagesが使える場合は使う。クォータ制限エラー時はテキストプロンプトのみで継続
+    - --skip-visionオプション活用で高速化可
+
+    出力ファイル名はpanel idと同名:
+    - $WORK/manga_odai_arasowanaide/p1_nanda_omae.png
+    - $WORK/manga_odai_arasowanaide/p2_nandayo_oi.png
+    - $WORK/manga_odai_arasowanaide/p3_hii.png
+    - $WORK/manga_odai_arasowanaide/p4_watashi_zo.png
+    - $WORK/manga_odai_arasowanaide/p5_ore_dayo.png
+    - $WORK/manga_odai_arasowanaide/p6_arasowanaide.png
+
+    ### Step4: ギャラリーHTML作成/更新
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/gallery_cmd1270.html を作成して
+    arasowanaide の全パネルPNGが表示されるようにする。
+    gallery_cmd1263.html を参考に新規作成すること。
+    HTMLのimg srcにキャッシュ回避クエリ（?t=タイムスタンプ）を追加。
+    ポート8785でアクセス可能か確認（http://192.168.2.7:8785/ で提供中）。
+
+    ### Step5: 家老に報告
+    ```bash
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+      "足軽2号、subtask_1270a完了。お題2「私のために争わないで」6枚生成完了。ギャラリー: work/gallery_cmd1270.html" \
+      report_completed ashigaru2
+    ```
+
+    ## テスト確認
+    - 6枚のPNGが出力先に存在すること（ls $WORK/manga_odai_arasowanaide/*.png で確認）
+    - ギャラリーHTMLが作成されていること
+
+    ## 注意
+    - git commitは不要（work/はgit-ignored）
+    - ntfyは不要（karoが通知する）
+    - 生成は1枚ずつ（並列禁止・APIレート制限回避）
+    - ガチャ上限: 全パネル1回まで。個別NGパネルの再生成は殿の指示が必要

@@ -30,8 +30,8 @@ curl -s "${AUTH_ARGS[@]}" -H "Tags: outbound" -d "$1" "https://ntfy.sh/$TOPIC" >
 # pending/in_progress両方を対象（自動in_progressが効いていないケースに対応）
 _update_cmd_done() {
     local msg="$1"
-    # Match "✅ cmd_XXXX完了" pattern
-    echo "$msg" | grep -qP '✅ cmd_\d+完了' || return 0
+    # Match "cmd_XXXX完了" pattern (any emoji prefix)
+    echo "$msg" | grep -qP 'cmd_\d+完了' || return 0
 
     local cmd_id
     cmd_id=$(echo "$msg" | grep -oP 'cmd_\d+' | head -1)

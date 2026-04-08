@@ -81,8 +81,8 @@ validate_attachment() {
     local ext="${name##*.}"
     ext=$(echo "$ext" | tr '[:upper:]' '[:lower:]')
     case "$ext" in
-        jpg|jpeg|png|gif|webp|heic|heif) ;;
-        *) echo "[ntfy] 拒否: 非画像拡張子 .$ext" >&2; return 1 ;;
+        jpg|jpeg|png|gif|webp|heic|heif|pdf) ;;
+        *) echo "[ntfy] 拒否: 非許可拡張子 .$ext" >&2; return 1 ;;
     esac
 
     # サイズチェック（15MB上限 = ntfyの制限に合わせる）
@@ -286,10 +286,17 @@ while true; do
 
         # Auto-reply removed — shogun replies directly after processing.
 
-        # Wake shogun via inbox (ntfy処理は将軍が直接受信)
-        bash "$SCRIPT_DIR/scripts/inbox_write.sh" shogun \
-            "ntfyから新しいメッセージ受信。queue/ntfy_inbox.yaml を確認し処理せよ。" \
-            ntfy_received ntfy_listener
+        # shogunへのinbox: 殿のスマホからのメッセージのみ起こす
+        # 家老のntfy通知（絵文字で始まる）は起こさない（Session Startで読む）
+        IS_AGENT_MSG=false
+        case "$MSG" in
+            ✅*|🎬*|🐑*|🌟*|🎤*|📊*|🚨*|📰*|🖼️*|🔍*|❌*|🌐*|📋*) IS_AGENT_MSG=true ;;
+        esac
+        if [ "$IS_AGENT_MSG" = false ]; then
+            bash "$SCRIPT_DIR/scripts/inbox_write.sh" shogun \
+                "ntfyから新しいメッセージ受信。queue/ntfy_inbox.yaml を確認し処理せよ。" \
+                ntfy_received ntfy_listener
+        fi
     done
 
     # Connection dropped — reconnect after brief pause
