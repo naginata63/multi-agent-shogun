@@ -1116,6 +1116,89 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path == '/api/suggest_director_notes':
+            try:
+                import anthropic
+                length = int(self.headers.get('Content-Length', 0))
+                body = self.rfile.read(length)
+                payload = json.loads(body.decode('utf-8'))
+
+                scene_desc = payload.get('scene_desc', '')
+                situation = payload.get('situation', '')
+                lines = payload.get('lines', [])
+                char_name = payload.get('char_name', '')
+                new_expression_file = payload.get('new_expression_file', '')
+                director_notes = payload.get('director_notes', '')
+
+                # expression_design_v5.md を読み込む（キャラクター性格情報）
+                expr_design_path = os.path.join(BASE_DIR, 'projects/dozle_kirinuki/context/expression_design_v5.md')
+                expr_design_text = ''
+                if os.path.exists(expr_design_path):
+                    with open(expr_design_path, 'r', encoding='utf-8') as f:
+                        expr_design_text = f.read()[:3000]  # 最初の3000文字のみ（コスト節約）
+
+                # 演技指示部分を抽出（「添付画像の説明:」より前）
+                marker = '添付画像の説明:'
+                marker_idx = director_notes.find(marker)
+                if marker_idx != -1:
+                    current_acting = director_notes[:marker_idx].strip()
+                    attachment_section = director_notes[marker_idx:]
+                else:
+                    current_acting = director_notes.strip()
+                    attachment_section = ''
+
+                lines_text = '\n'.join(lines) if lines else '（セリフなし）'
+
+                prompt = f"""あなたはドズル社マイクラ漫画の演出家です。
+キャラクターの表情が変わったので、画像生成プロンプト（director_notes）の演技指示部分を書き直してください。
+
+## キャラクター設定（参考）
+{expr_design_text}
+
+## パネル情報
+- シーン概要: {scene_desc}
+- 状況: {situation}
+- セリフ: {lines_text}
+
+## 表情変更
+- キャラクター: {char_name}
+- 新しい表情ファイル: {new_expression_file}
+
+## 現在の演技指示（変更前）
+{current_acting}
+
+## 指示
+上記の表情変更に合わせて、演技指示部分を書き直してください。
+- 「添付画像の説明:」セクションは変更しないでください（そちらは別で管理します）
+- 演技指示のみ（表情・姿勢・感情・シーン描写など）を出力してください
+- 日本語で、簡潔かつ具体的に（200字以内が望ましい）
+- 余計な説明や前置きは不要。演技指示テキストのみ出力してください"""
+
+                client = anthropic.Anthropic()
+                message = client.messages.create(
+                    model='claude-sonnet-4-6',
+                    max_tokens=512,
+                    messages=[{'role': 'user', 'content': prompt}]
+                )
+                suggested_acting = message.content[0].text.strip()
+
+                # 元の「添付画像の説明:」セクションを保持
+                if attachment_section:
+                    suggested = suggested_acting + '\n' + attachment_section
+                else:
+                    suggested = suggested_acting
+
+                resp = json.dumps({'status': 'ok', 'suggested': suggested}, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp)))
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         else:
             self.send_response(404)
             self.end_headers()
