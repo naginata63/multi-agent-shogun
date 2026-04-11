@@ -556,6 +556,48 @@ def get_db_agent_status(agent_id: str, conn) -> str:
 
 # ─── Dashboard data aggregation ────────────────────────────────────────────────
 
+def _get_dingtalk_qc_stats():
+    """DingTalk音声QCのリアルタイム統計"""
+    log_path = os.path.join(BASE_DIR, "work", "dingtalk_qc", "qc_log.jsonl")
+    if not os.path.isfile(log_path):
+        return None
+    try:
+        total = confirmed = skipped = error = 0
+        sims = []
+        vols = []
+        with open(log_path) as f:
+            for line in f:
+                try:
+                    d = json.loads(line)
+                    total += 1
+                    action = d.get("action", "")
+                    if "確認済み" in action: confirmed += 1
+                    elif "スキップ" in action: skipped += 1
+                    elif "エラー" in action: error += 1
+                    sim = d.get("similarity", -1)
+                    if sim >= 0: sims.append(sim)
+                    vol = d.get("mean_volume_db")
+                    if vol is not None: vols.append(vol)
+                except: pass
+        import subprocess
+        running = subprocess.run(["pgrep", "-f", "dingtalk_qc_loop"],
+                                 capture_output=True).returncode == 0
+        return {
+            "total": total,
+            "target": 10000,
+            "confirmed": confirmed,
+            "skipped": skipped,
+            "error": error,
+            "avg_similarity": round(sum(sims)/len(sims), 1) if sims else 0,
+            "min_similarity": round(min(sims), 1) if sims else 0,
+            "avg_volume": round(sum(vols)/len(vols), 1) if vols else 0,
+            "earned": total * 9,
+            "running": running,
+        }
+    except:
+        return None
+
+
 def get_dashboard_data():
     conn = get_db()
 
@@ -614,6 +656,9 @@ def get_dashboard_data():
         a.pop("total_tasks", None)
         a.pop("done_tasks", None)
 
+    # DingTalk QC stats
+    dingtalk_qc = _get_dingtalk_qc_stats()
+
     return {
         "stats": {
             "action_required_count": len(action_required),
@@ -623,6 +668,7 @@ def get_dashboard_data():
             "db_messages": msg_count_db,
             "total_done": total_done,
         },
+        "dingtalk_qc": dingtalk_qc,
         "action_required": action_required,
         "agents": list(agent_map.values()),
         "active_cmds": [
@@ -739,6 +785,7 @@ tr:hover td { background: #1c2128; }
 </div>
 
 <div class="grid2">
+  <div class="panel" id="dingtalk-panel"><h2>💰 DingTalk音声QC</h2><div id="dingtalk-qc"></div></div>
   <div class="panel"><h2>🏯 足軽・軍師 状態</h2><div id="agents"></div></div>
   <div class="panel"><h2>📋 進行中 cmd</h2><div id="active-cmds"></div></div>
   <div class="panel full"><h2>✅ 最近の完了 + 📨 最新メッセージ</h2>
@@ -792,6 +839,26 @@ function renderActionRequired(items) {
     </div>`;
   }
   $('action-items').innerHTML = html;
+}
+
+function renderDingtalkQC(qc) {
+  const el = $('dingtalk-qc');
+  if (!qc) { el.innerHTML = '<div class="empty">データなし</div>'; return; }
+  const pct = (qc.total / qc.target * 100).toFixed(1);
+  const status = qc.running ? '<span class="badge badge-busy">稼働中</span>' : '<span class="badge badge-idle">停止中</span>';
+  el.innerHTML = `
+    <div style="margin-bottom:8px">${status} <strong>¥${qc.earned.toLocaleString()}</strong> / ¥90,000</div>
+    <div style="background:#21262d;border-radius:4px;height:20px;margin-bottom:8px">
+      <div style="background:#238636;height:100%;border-radius:4px;width:${pct}%;min-width:2px;text-align:center;color:#fff;font-size:0.7em;line-height:20px">${qc.total}/${qc.target} (${pct}%)</div>
+    </div>
+    <table>
+      <tr><td>✅ 確認済み</td><td>${qc.confirmed}</td></tr>
+      <tr><td>🟡 スキップ</td><td>${qc.skipped}</td></tr>
+      <tr><td>🔴 エラー</td><td>${qc.error}</td></tr>
+      <tr><td>📊 平均類似度</td><td>${qc.avg_similarity}%</td></tr>
+      <tr><td>📉 最低類似度</td><td>${qc.min_similarity}%</td></tr>
+      <tr><td>🔊 平均音量</td><td>${qc.avg_volume} dB</td></tr>
+    </table>`;
 }
 
 function renderAgents(agents) {
@@ -884,6 +951,7 @@ async function refresh() {
     $('ts').textContent = '最終更新: ' + now.toLocaleTimeString('ja-JP');
     renderStats(d.stats);
     renderActionRequired(d.action_required);
+    renderDingtalkQC(d.dingtalk_qc);
     renderAgents(d.agents);
     renderActiveCmds(d.active_cmds);
     renderRecentDone(d.recent_done);
@@ -925,6 +993,92 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             self.send_header('Content-Length', str(len(body)))
             self.end_headers()
             self.wfile.write(body)
+        elif self.path.startswith('/work/'):
+            # 静的ファイル配信: /work/ → projects/dozle_kirinuki/work/
+            import mimetypes
+            from urllib.parse import unquote, urlparse
+            parsed = urlparse(self.path)
+            rel = unquote(parsed.path[len('/work/'):])
+            # パストラバーサル防止
+            if '..' in rel:
+                self.send_response(403)
+                self.end_headers()
+                return
+            filepath = os.path.join(BASE_DIR, 'projects', 'dozle_kirinuki', 'work', rel)
+            if os.path.isfile(filepath):
+                body = open(filepath, 'rb').read()
+                mime, _ = mimetypes.guess_type(filepath)
+                self.send_response(200)
+                self.send_header('Content-Type', mime or 'application/octet-stream')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            else:
+                self.send_response(404)
+                self.end_headers()
+        elif self.path.startswith('/assets/'):
+            # 静的ファイル配信: /assets/ → projects/dozle_kirinuki/assets/
+            import mimetypes
+            from urllib.parse import unquote, urlparse
+            parsed = urlparse(self.path)
+            rel = unquote(parsed.path[len('/assets/'):])
+            if '..' in rel:
+                self.send_response(403)
+                self.end_headers()
+                return
+            filepath = os.path.join(BASE_DIR, 'projects', 'dozle_kirinuki', 'assets', rel)
+            if os.path.isfile(filepath):
+                body = open(filepath, 'rb').read()
+                mime, _ = mimetypes.guess_type(filepath)
+                self.send_response(200)
+                self.send_header('Content-Type', mime or 'application/octet-stream')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            else:
+                self.send_response(404)
+                self.end_headers()
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def do_POST(self):
+        import mimetypes
+        from urllib.parse import unquote, urlparse
+        if self.path == '/api/save_panels_json':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = self.rfile.read(length)
+                payload = json.loads(body.decode('utf-8'))
+                rel_path = payload.get('path', '')
+                data = payload.get('data')
+                if not rel_path or data is None:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(b'{"error": "path and data are required"}')
+                    return
+                # セキュリティ: プロジェクトディレクトリ外へのアクセス禁止
+                abs_path = os.path.realpath(os.path.join(BASE_DIR, rel_path))
+                if not abs_path.startswith(os.path.realpath(BASE_DIR) + os.sep):
+                    self.send_response(403)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(b'{"error": "path outside project directory"}')
+                    return
+                with open(abs_path, 'w', encoding='utf-8') as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                resp = json.dumps({'status': 'ok', 'path': abs_path}).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(resp)))
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         else:
             self.send_response(404)
             self.end_headers()
