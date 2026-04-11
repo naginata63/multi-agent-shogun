@@ -63,18 +63,11 @@ for i in $(seq 0 $((TOTAL - 1))); do
   fi
 done
 
-# Step 4.5: 新規起動したpaneに /clear → /advisor opus を自動送信
+# Step 4.5: 新規起動したpaneに /advisor opus を自動送信
 if [ "${#NEW_PANES[@]}" -gt 0 ]; then
-  echo "新規起動paneに /clear → /advisor opus を送信..."
+  echo "新規起動paneに /advisor opus を送信..."
   echo "CLI起動完了を待機中（10秒）..."
   sleep 10
-  for i in "${NEW_PANES[@]}"; do
-    echo "  0.${i}: /clear 送信"
-    tmux send-keys -t "${SESSION}:${WINDOW}.${i}" "/clear" Enter
-    sleep 0.3
-  done
-  echo "  /clear送信完了。5秒後に /advisor opus を送信..."
-  sleep 5
   for i in "${NEW_PANES[@]}"; do
     echo "  0.${i}: /advisor opus 送信"
     tmux send-keys -t "${SESSION}:${WINDOW}.${i}" "/advisor opus" Enter
