@@ -105,6 +105,7 @@
 
 | cmd | 内容 | 状態 |
 |-----|------|------|
+| cmd_1342 | お待たせしましたパネルv3全枚生成（oo_menキャッシュ削除済み・2分タイムアウト追加）| 足軽3実行中 |
 | cmd_1334 | FINAL_COMPOSED.mp4 Bロール合成版再生成（compose_final.py作成済み・15:40更新・Bロール確認未完了）| ⚠️ 足軽1確認中 |
 | cmd_1327 | cut_edited_v5.mp4完成（480p軽量版）31.6s/4.5MB → **殿確認待ち** ⛔ |
 | cmd_1320 Phase2 | cut_edited_v4.mp4完成 352.7s/660MB → **殿確認待ち** ⛔ |
@@ -254,7 +255,7 @@
 |------|-----|------|---------|
 | 1号 | Sonnet | ⚠️ 確認中 | subtask_1334a検証（FINAL_COMPOSED.mp4 Bロール確認）|
 | 2号 | Sonnet | idle | — |
-| 3号 | Sonnet | idle | — |
+| 3号 | Sonnet | 実行中 | subtask_1342a（お待たせしましたパネルv3生成）|
 | 4号 | Sonnet | idle | — |
 | 5号 | Sonnet | idle | — |
 | 6号 | Sonnet | idle | — |
