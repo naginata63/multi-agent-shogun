@@ -14,6 +14,7 @@ youtube_analytics_snapshot.py — YouTube日次レポート自動取得スクリ
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import datetime
@@ -39,6 +40,7 @@ CHANNEL_ID = "UCiyY9PX64Nat6sd2vUhrTDQ"
 SCOPES = [
     "https://www.googleapis.com/auth/youtube.upload",
     "https://www.googleapis.com/auth/youtube",
+    "https://www.googleapis.com/auth/youtube.force-ssl",
     "https://www.googleapis.com/auth/yt-analytics.readonly",
 ]
 
@@ -397,9 +399,13 @@ def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, vid
 1. (番号付きリスト、具体的なアクション)
 """
 
+    claude_path = shutil.which("claude")
+    if not claude_path:
+        return "[Claude CLI が見つかりません: `which claude` で確認してください]"
+
     try:
         result = subprocess.run(
-            ["/home/murakami/.local/bin/claude", "-p", prompt, "--model", "claude-opus-4-6"],
+            [claude_path, "-p", prompt, "--model", "claude-opus-4-6"],
             capture_output=True, text=True, timeout=120
         )
         if result.returncode == 0:
@@ -408,8 +414,6 @@ def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, vid
             return f"[Claude CLI エラー (return code {result.returncode})]\n{result.stderr[:500]}"
     except subprocess.TimeoutExpired:
         return "[Claude CLI タイムアウト（120秒）]"
-    except FileNotFoundError:
-        return "[Claude CLI が見つかりません: `which claude` で確認してください]"
     except Exception as e:
         return f"[Claude CLI 実行失敗: {e}]"
 
