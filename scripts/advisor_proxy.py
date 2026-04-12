@@ -1,0 +1,442 @@
+#!/usr/bin/env python3
+"""Advisor Proxy for GLM Agents — Port 8780
+
+GLM (Z.AI) does not implement the Anthropic Advisor Tool server-side.
+This proxy intercepts advisor tool_use calls, gets advice via claude -p,
+injects the tool_result, and continues the conversation with Z.AI.
+
+Architecture:
+  Claude Code → localhost:8780 → api.z.ai/api/anthropic
+                     ↓ advisor tool_use detected
+               claude -p (subscription, no extra cost)
+                     ↓
+               tool_result → Z.AI → continuation → Claude Code
+"""
+
+import asyncio
+import copy
+import json
+import logging
+import os
+import signal
+import subprocess
+import sys
+import time
+from logging.handlers import RotatingFileHandler
+
+from aiohttp import web, ClientSession, ClientTimeout
+
+# ─── Constants ────────────────────────────────────────────────────────────────
+
+PROXY_PORT = 8780
+UPSTREAM_URL = "https://api.z.ai/api/anthropic"
+CLAUDE_CLI = "/home/murakami/.local/bin/claude"
+ADVISOR_TIMEOUT = 90  # seconds for claude -p
+UPSTREAM_TIMEOUT = 300  # seconds for Z.AI responses
+MAX_ADVISOR_LOOPS = 3
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+LOG_DIR = os.path.join(PROJECT_ROOT, "logs")
+PID_FILE = os.path.join(LOG_DIR, "advisor_proxy.pid")
+
+_START_TIME = time.time()
+
+# ─── Logging ──────────────────────────────────────────────────────────────────
+
+os.makedirs(LOG_DIR, exist_ok=True)
+
+logger = logging.getLogger("advisor_proxy")
+logger.setLevel(logging.INFO)
+
+handler = RotatingFileHandler(
+    os.path.join(LOG_DIR, "advisor_proxy.log"),
+    maxBytes=5 * 1024 * 1024,
+    backupCount=3,
+)
+handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+logger.addHandler(handler)
+
+# Also log to stderr for startup visibility
+stderr_handler = logging.StreamHandler(sys.stderr)
+stderr_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+logger.addHandler(stderr_handler)
+
+# ─── Advisor Detection ────────────────────────────────────────────────────────
+
+
+def detect_advisor_tool_use(response_body: dict) -> dict | None:
+    """Find advisor tool_use in response content blocks."""
+    for block in response_body.get("content", []):
+        if block.get("type") == "tool_use" and block.get("name") == "advisor":
+            return block
+    return None
+
+
+# ─── Context Extraction ──────────────────────────────────────────────────────
+
+
+def extract_context_for_advisor(request_body: dict) -> str:
+    """Build a concise context string from conversation for claude -p."""
+    parts = []
+
+    # System prompt (truncated)
+    system = request_body.get("system", "")
+    if isinstance(system, str) and system:
+        parts.append(f"[System prompt excerpt]: {system[:800]}")
+    elif isinstance(system, list):
+        text = " ".join(b.get("text", "") for b in system if b.get("type") == "text")
+        if text:
+            parts.append(f"[System prompt excerpt]: {text[:800]}")
+
+    # Recent messages (last 6 to keep context manageable)
+    messages = request_body.get("messages", [])
+    recent = messages[-6:] if len(messages) > 6 else messages
+    for msg in recent:
+        role = msg.get("role", "?")
+        content = msg.get("content", "")
+        if isinstance(content, str):
+            text = content[:1500]
+        elif isinstance(content, list):
+            text_parts = []
+            for block in content:
+                if isinstance(block, dict):
+                    if block.get("type") == "text":
+                        text_parts.append(block.get("text", "")[:500])
+                    elif block.get("type") == "tool_use":
+                        text_parts.append(f"[tool_use: {block.get('name', '?')}]")
+                    elif block.get("type") == "tool_result":
+                        result_text = block.get("content", "")
+                        if isinstance(result_text, str):
+                            text_parts.append(f"[tool_result: {result_text[:300]}]")
+                        elif isinstance(result_text, list):
+                            for rb in result_text:
+                                if rb.get("type") == "text":
+                                    text_parts.append(f"[tool_result: {rb.get('text', '')[:300]}]")
+            text = "\n".join(text_parts)[:1500]
+        else:
+            text = str(content)[:500]
+        parts.append(f"{role}: {text}")
+
+    return "\n\n".join(parts)
+
+
+# ─── Claude -p Advisor Call ───────────────────────────────────────────────────
+
+
+async def call_advisor_cli(context: str) -> str:
+    """Call claude -p to get advisor response. Runs in thread pool."""
+    prompt = (
+        "You are an advisor reviewing an agent's work. "
+        "Based on the conversation below, provide concise advice "
+        "in under 100 words using enumerated steps.\n\n"
+        f"{context}"
+    )
+
+    def _run():
+        try:
+            result = subprocess.run(
+                [CLAUDE_CLI, "-p", prompt, "--output-format", "text"],
+                capture_output=True,
+                text=True,
+                timeout=ADVISOR_TIMEOUT,
+                env={**os.environ, "HOME": "/home/murakami"},
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                return result.stdout.strip()
+            logger.warning("claude -p returned code %d: %s", result.returncode, result.stderr[:200])
+            return "Advisor unavailable. Proceed with your best judgment."
+        except subprocess.TimeoutExpired:
+            logger.warning("claude -p timed out after %ds", ADVISOR_TIMEOUT)
+            return "Advisor unavailable (timeout). Proceed with your best judgment."
+        except FileNotFoundError:
+            logger.error("claude CLI not found at %s", CLAUDE_CLI)
+            return "Advisor unavailable (CLI not found). Proceed with your best judgment."
+
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, _run)
+
+
+# ─── Continuation Request Builder ────────────────────────────────────────────
+
+
+def build_continuation(
+    original_body: dict,
+    response_body: dict,
+    advisor_block: dict,
+    advice: str,
+) -> dict:
+    """Build a new request with tool_result appended to messages."""
+    body = copy.deepcopy(original_body)
+    body["stream"] = False
+
+    # Append assistant response
+    body["messages"].append({
+        "role": "assistant",
+        "content": response_body["content"],
+    })
+
+    # Append tool_result
+    body["messages"].append({
+        "role": "user",
+        "content": [
+            {
+                "type": "tool_result",
+                "tool_use_id": advisor_block["id"],
+                "content": advice,
+            }
+        ],
+    })
+
+    return body
+
+
+# ─── SSE Synthesis ────────────────────────────────────────────────────────────
+
+
+def synthesize_sse(response_json: dict) -> list[bytes]:
+    """Convert a non-streaming JSON response to SSE events."""
+    events = []
+
+    def sse(event_type: str, data: dict) -> bytes:
+        return f"event: {event_type}\ndata: {json.dumps(data)}\n\n".encode()
+
+    # message_start
+    msg_start = {k: v for k, v in response_json.items() if k != "content"}
+    msg_start["content"] = []
+    events.append(sse("message_start", {"type": "message_start", "message": msg_start}))
+
+    # ping
+    events.append(sse("ping", {"type": "ping"}))
+
+    # Content blocks
+    for idx, block in enumerate(response_json.get("content", [])):
+        block_type = block.get("type", "text")
+
+        if block_type == "text":
+            # content_block_start
+            events.append(sse("content_block_start", {
+                "type": "content_block_start",
+                "index": idx,
+                "content_block": {"type": "text", "text": ""},
+            }))
+            # content_block_delta — send text in one chunk
+            text = block.get("text", "")
+            if text:
+                events.append(sse("content_block_delta", {
+                    "type": "content_block_delta",
+                    "index": idx,
+                    "delta": {"type": "text_delta", "text": text},
+                }))
+            # content_block_stop
+            events.append(sse("content_block_stop", {
+                "type": "content_block_stop",
+                "index": idx,
+            }))
+
+        elif block_type == "tool_use":
+            # For non-advisor tool_use, pass through
+            events.append(sse("content_block_start", {
+                "type": "content_block_start",
+                "index": idx,
+                "content_block": {"type": "tool_use", "id": block.get("id", ""), "name": block.get("name", ""), "input": {}},
+            }))
+            input_json = json.dumps(block.get("input", {}))
+            events.append(sse("content_block_delta", {
+                "type": "content_block_delta",
+                "index": idx,
+                "delta": {"type": "input_json_delta", "partial_json": input_json},
+            }))
+            events.append(sse("content_block_stop", {
+                "type": "content_block_stop",
+                "index": idx,
+            }))
+
+        elif block_type == "thinking":
+            events.append(sse("content_block_start", {
+                "type": "content_block_start",
+                "index": idx,
+                "content_block": {"type": "thinking", "thinking": ""},
+            }))
+            thinking_text = block.get("thinking", "")
+            if thinking_text:
+                events.append(sse("content_block_delta", {
+                    "type": "content_block_delta",
+                    "index": idx,
+                    "delta": {"type": "thinking_delta", "thinking": thinking_text},
+                }))
+            events.append(sse("content_block_stop", {
+                "type": "content_block_stop",
+                "index": idx,
+            }))
+
+    # message_delta
+    events.append(sse("message_delta", {
+        "type": "message_delta",
+        "delta": {"stop_reason": response_json.get("stop_reason", "end_turn")},
+        "usage": response_json.get("usage", {}),
+    }))
+
+    # message_stop
+    events.append(sse("message_stop", {"type": "message_stop"}))
+
+    return events
+
+
+# ─── Request Handler ──────────────────────────────────────────────────────────
+
+
+async def handle_request(request: web.Request) -> web.StreamResponse:
+    """Handle all incoming requests — proxy to Z.AI with advisor interception."""
+    path = request.path
+    body = await request.read()
+
+    # Forward headers (exclude hop-by-hop)
+    headers = {
+        k: v for k, v in request.headers.items()
+        if k.lower() not in ("host", "content-length", "transfer-encoding")
+    }
+
+    upstream_url = UPSTREAM_URL + path
+    method = request.method
+
+    # Only intercept POST /v1/messages
+    if method != "POST" or path != "/v1/messages":
+        logger.info("Passthrough %s %s", method, path)
+        timeout = ClientTimeout(total=UPSTREAM_TIMEOUT)
+        async with ClientSession(timeout=timeout) as session:
+            async with session.request(method, upstream_url, headers=headers, data=body) as resp:
+                resp_body = await resp.read()
+                return web.Response(
+                    status=resp.status,
+                    headers={k: v for k, v in resp.headers.items()
+                             if k.lower() not in ("content-encoding", "transfer-encoding", "content-length")},
+                    body=resp_body,
+                )
+
+    # Parse request body
+    try:
+        request_json = json.loads(body)
+    except json.JSONDecodeError:
+        logger.error("Invalid JSON in request body")
+        return web.Response(status=400, text="Invalid JSON")
+
+    wants_stream = request_json.get("stream", False)
+
+    # Send non-streaming to Z.AI
+    upstream_body = copy.deepcopy(request_json)
+    upstream_body["stream"] = False
+
+    logger.info("Messages request — model=%s stream=%s", request_json.get("model"), wants_stream)
+
+    timeout = ClientTimeout(total=UPSTREAM_TIMEOUT)
+    try:
+        async with ClientSession(timeout=timeout) as session:
+            async with session.post(upstream_url, json=upstream_body, headers=headers) as resp:
+                if resp.status != 200:
+                    resp_body = await resp.read()
+                    logger.warning("Upstream error %d", resp.status)
+                    return web.Response(status=resp.status, body=resp_body,
+                                        content_type=resp.content_type)
+                response_json = await resp.json()
+    except Exception as e:
+        logger.error("Upstream request failed: %s", e)
+        return web.Response(status=502, text=f"Upstream error: {e}")
+
+    # Advisor interception loop
+    current_request = request_json
+    for i in range(MAX_ADVISOR_LOOPS):
+        advisor_block = detect_advisor_tool_use(response_json)
+        if not advisor_block:
+            break
+
+        logger.info("Advisor tool_use detected (loop %d/%d), id=%s",
+                     i + 1, MAX_ADVISOR_LOOPS, advisor_block.get("id"))
+
+        # Get advice via claude -p
+        context = extract_context_for_advisor(current_request)
+        advice = await call_advisor_cli(context)
+        logger.info("Advisor response (%d chars): %s", len(advice), advice[:100])
+
+        # Build continuation request
+        current_request = build_continuation(current_request, response_json, advisor_block, advice)
+
+        # Send continuation to Z.AI
+        try:
+            async with ClientSession(timeout=timeout) as session:
+                async with session.post(upstream_url, json=current_request, headers=headers) as resp:
+                    if resp.status != 200:
+                        resp_body = await resp.read()
+                        logger.warning("Continuation upstream error %d", resp.status)
+                        return web.Response(status=resp.status, body=resp_body,
+                                            content_type=resp.content_type)
+                    response_json = await resp.json()
+        except Exception as e:
+            logger.error("Continuation request failed: %s", e)
+            return web.Response(status=502, text=f"Upstream error: {e}")
+
+    # Return response to Claude Code
+    if wants_stream:
+        resp = web.StreamResponse(
+            status=200,
+            headers={
+                "Content-Type": "text/event-stream",
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+            },
+        )
+        await resp.prepare(request)
+        for chunk in synthesize_sse(response_json):
+            await resp.write(chunk)
+        await resp.write_eof()
+        return resp
+    else:
+        return web.json_response(response_json)
+
+
+# ─── Health Check ─────────────────────────────────────────────────────────────
+
+
+async def handle_health(request: web.Request) -> web.Response:
+    return web.json_response({"status": "ok", "port": PROXY_PORT, "upstream": UPSTREAM_URL, "uptime_seconds": int(time.time() - _START_TIME)})
+
+
+# ─── Main ─────────────────────────────────────────────────────────────────────
+
+
+def write_pid():
+    with open(PID_FILE, "w") as f:
+        f.write(str(os.getpid()))
+
+
+def remove_pid():
+    try:
+        os.remove(PID_FILE)
+    except OSError:
+        pass
+
+
+async def on_shutdown(app):
+    remove_pid()
+
+
+def main():
+    write_pid()
+
+    app = web.Application()
+    app.on_shutdown.append(on_shutdown)
+    app.router.add_get("/health", handle_health)
+    app.router.add_route("*", "/{path:.*}", handle_request)
+
+    logger.info("Advisor Proxy starting on port %d → %s", PROXY_PORT, UPSTREAM_URL)
+    logger.info("Claude CLI: %s", CLAUDE_CLI)
+    logger.info("PID: %d", os.getpid())
+
+    # Graceful shutdown on signals
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        signal.signal(sig, lambda s, f: sys.exit(0))
+
+    web.run_app(app, host="127.0.0.1", port=PROXY_PORT, print=None)
+
+
+if __name__ == "__main__":
+    main()
