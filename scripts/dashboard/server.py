@@ -974,6 +974,23 @@ setInterval(refresh, 10000);
 # ─── HTTP Handler ───────────────────────────────────────────────────────────────
 
 class DashboardHandler(http.server.BaseHTTPRequestHandler):
+    @staticmethod
+    def _extract_scene_summary(gemini_text: str) -> str:
+        """Gemini生テキストから【シーン一覧】セクションだけ抽出。トークン節約。"""
+        lines = gemini_text.split('\n')
+        result = []
+        in_section = False
+        for line in lines:
+            if '【シーン一覧】' in line:
+                in_section = True
+                result.append(line)
+                continue
+            if in_section:
+                if line.startswith('## 【') or line.startswith('# '):
+                    break
+                result.append(line)
+        return '\n'.join(result) if result else gemini_text[:2000]
+
     def do_GET(self):
         if self.path == '/api/dashboard':
             try:
@@ -1045,9 +1062,11 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             work_dir = os.path.join(BASE_DIR, 'projects', 'dozle_kirinuki', 'work')
             results = []
             if os.path.isdir(work_dir):
-                panels_matches = sorted(_glob.glob(os.path.join(work_dir, '**', 'panels_*.json'), recursive=True))
+                edited_matches = sorted(_glob.glob(os.path.join(work_dir, '**', '*_edited.json'), recursive=True))
                 raw_matches = sorted(_glob.glob(os.path.join(work_dir, '**', '*_raw.json'), recursive=True))
-                for match in panels_matches + raw_matches:
+                all_panels = sorted(_glob.glob(os.path.join(work_dir, '**', 'panels_*.json'), recursive=True))
+                panels_matches = [m for m in all_panels if not m.endswith('_edited.json')]
+                for match in edited_matches + raw_matches + panels_matches:
                     rel = os.path.relpath(match, BASE_DIR)
                     parent = os.path.basename(os.path.dirname(match))
                     name = os.path.basename(match) + '  [' + parent + ']'
@@ -1132,6 +1151,91 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path.split('?')[0] == '/api/agent_health':
+            import subprocess as _sp
+            try:
+                agents = ['karo', 'ashigaru1', 'ashigaru2', 'ashigaru3',
+                          'ashigaru4', 'ashigaru5', 'ashigaru6', 'ashigaru7', 'gunshi']
+                # Single tmux call: collect all pane agent_ids
+                alive_agents = set()
+                try:
+                    r = _sp.run(
+                        ['tmux', 'list-panes', '-t', 'multiagent:0',
+                         '-F', '#{pane_index}:#{@agent_id}'],
+                        capture_output=True, text=True, timeout=5
+                    )
+                    if r.returncode == 0:
+                        for line in r.stdout.strip().splitlines():
+                            if ':' in line:
+                                aid = line.split(':', 1)[1].strip()
+                                if aid:
+                                    alive_agents.add(aid)
+                except Exception:
+                    pass  # tmux unavailable — all pane_alive will be None
+
+                agents_data = []
+                for agent_id in agents:
+                    info = {'agent_id': agent_id}
+
+                    # Pane alive
+                    if alive_agents:
+                        info['pane_alive'] = agent_id in alive_agents
+                    else:
+                        info['pane_alive'] = None
+                        info['reason'] = 'tmux_unavailable'
+
+                    # Inbox last update
+                    inbox_path = os.path.join(INBOX_DIR, f'{agent_id}.yaml')
+                    try:
+                        info['last_inbox_update'] = datetime.fromtimestamp(
+                            os.path.getmtime(inbox_path), tz=timezone.utc
+                        ).isoformat()
+                    except OSError:
+                        info['last_inbox_update'] = None
+
+                    # Task info from YAML
+                    tasks_path = os.path.join(TASKS_DIR, f'{agent_id}.yaml')
+                    info['last_task_status'] = None
+                    info['last_task_id'] = None
+                    info['current_task_summary'] = None
+                    try:
+                        with open(tasks_path, encoding='utf-8') as f:
+                            data = yaml.safe_load(f)
+                        tasks = data.get('tasks', []) if isinstance(data, dict) else []
+                        if tasks:
+                            last = tasks[-1]
+                            if isinstance(last, dict):
+                                info['last_task_status'] = last.get('status')
+                                info['last_task_id'] = last.get('task_id')
+                                if last.get('status') == 'assigned':
+                                    summary = last.get('purpose') or last.get('description') or ''
+                                    info['current_task_summary'] = str(summary)[:50]
+                    except Exception:
+                        pass  # keep nulls
+
+                    agents_data.append(info)
+
+                payload = {
+                    'collected_at': datetime.now(timezone.utc).isoformat(),
+                    'agents': agents_data
+                }
+                body = json.dumps(payload, ensure_ascii=False, default=str).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                # Graceful degradation: never 500
+                body = json.dumps({
+                    'collected_at': datetime.now(timezone.utc).isoformat(),
+                    'error': str(e), 'agents': []
+                }, default=str).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
         else:
             self.send_response(404)
             self.end_headers()
@@ -1334,14 +1438,40 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
 {rows_text}
 
 ## シーン情報（Gemini動画解析）
-{gemini_context if gemini_context else '（シーン情報なし）'}
+{self._extract_scene_summary(gemini_context) if gemini_context else '（シーン情報なし）'}
 
 ## タイトル・シーン名
 タイトル: {title}
 シーン: {scene_name}
 
 ## 出力形式（必須）
-panels JSONフォーマットで出力。```json で囲むこと。
+```json で囲んで以下の形式で出力せよ。全フィールド必須。省略するな。
+
+{{
+  "panels": [
+    {{
+      "id": "p1_xxx",
+      "title": "P1: 話者「セリフ冒頭」",
+      "characters": ["dozle"],
+      "lines": ["セリフ全文"],
+      "start_sec": 0,
+      "duration_sec": 5,
+      "shot_type": "S2",
+      "is_climax": false,
+      "scene_desc": "シーンの説明",
+      "situation": "状況の説明",
+      "director_notes": "表情コード+ポーズ+背景+禁止事項",
+      "ref_images": ["assets/dozle_jp/character/selected/dozle_smile_r1_rgba.png"]
+    }}
+  ]
+}}
+
+### フィールド説明
+- characters: メンバーキー（dozle/bon/qnly/orafu/oo_men/nekooji）。必須
+- lines: セリフ。書き起こしから該当セリフをそのまま入れよ。必須
+- shot_type: 1人→S2、2人→T2_B、climax→S1
+- ref_images: "assets/dozle_jp/character/selected/{{キャラ}}_{{表情}}_rgba.png" 形式。下記の使用可能ファイルから選べ
+- director_notes: 表情コード+ポーズ具体指示+背景+禁止事項。必須
 
 {prompt_knowledge}
 
@@ -1363,7 +1493,7 @@ panels JSONフォーマットで出力。```json で囲むこと。
                 claude_bin = '/home/murakami/.local/bin/claude'
                 result = subprocess.run(
                     [claude_bin, '-p', claude_prompt, '--model', 'claude-opus-4-6'],
-                    capture_output=True, text=True, timeout=180
+                    capture_output=True, text=True, timeout=300
                 )
                 if result.returncode != 0:
                     raise Exception(f'Claude CLI error: {result.stderr[:500]}')
@@ -1397,25 +1527,47 @@ panels JSONフォーマットで出力。```json で囲むこと。
                                 if speaker != '不明':
                                     panel['characters'] = [speaker]
 
-                # 8. ref_images 存在チェック＆フォールバック
+                # 8. ref_images 存在チェック＆フォールバック＆パス正規化
+                REF_PREFIX = 'projects/dozle_kirinuki/assets/dozle_jp/character/selected/'
                 if 'panels' in panels_data:
                     for panel in panels_data['panels']:
                         new_refs = []
                         for ref in panel.get('ref_images', []):
                             fname = os.path.basename(ref)
                             if fname in available_files:
-                                new_refs.append(ref)
+                                # パスを正規化（projects/dozle_kirinuki/...形式に統一）
+                                new_refs.append(REF_PREFIX + fname)
                             else:
                                 chars = panel.get('characters', [])
                                 fallback = None
                                 for char in chars:
                                     fb_fname = f'{char}_smile_r1_rgba.png'
                                     if fb_fname in available_files:
-                                        fallback = f'assets/dozle_jp/character/selected/{fb_fname}'
+                                        fallback = REF_PREFIX + fb_fname
                                         break
                                 if fallback:
                                     new_refs.append(fallback)
                         panel['ref_images'] = new_refs
+
+                # 8.5. meta自動補完
+                if 'meta' not in panels_data or not panels_data['meta']:
+                    panels_data['meta'] = {}
+                meta = panels_data['meta']
+                if not meta.get('scene'):
+                    meta['scene'] = scene_name or ''
+                if not meta.get('title'):
+                    meta['title'] = title or '（タイトル未設定）'
+                if not meta.get('panel_count'):
+                    meta['panel_count'] = len(panels_data.get('panels', []))
+                if not meta.get('common_rules'):
+                    meta['common_rules'] = (
+                        "全キャラクターの身長はだいたい同じくらいに描くこと。極端な身長差をつけるな。"
+                        "【最重要】おおはらMENは必ずゴーグルを目を覆うように装着（目が隠れる位置。額に上げるな）して描け。"
+                        "ゴーグルなしのMENは絶対に描くな。リファレンス画像のゴーグルをそのまま再現せよ。"
+                        "サングラスではなくゴーグルである。ぼんじゅうるはサングラス必須。おんりーは丸メガネ必須。"
+                        "デフォルメ・SD・ちびキャラ禁止。等身大のアニメ風キャラクターとして描くこと。武器・盾・バケツ禁止。"
+                    )
+                meta['generated_by'] = 'claude_opus_via_panel_review'
 
                 # 9. save_path に保存
                 if save_path:
