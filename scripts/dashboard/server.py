@@ -1045,7 +1045,9 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             work_dir = os.path.join(BASE_DIR, 'projects', 'dozle_kirinuki', 'work')
             results = []
             if os.path.isdir(work_dir):
-                for match in sorted(_glob.glob(os.path.join(work_dir, '**', 'panels_*.json'), recursive=True)):
+                panels_matches = sorted(_glob.glob(os.path.join(work_dir, '**', 'panels_*.json'), recursive=True))
+                raw_matches = sorted(_glob.glob(os.path.join(work_dir, '**', '*_raw.json'), recursive=True))
+                for match in panels_matches + raw_matches:
                     rel = os.path.relpath(match, BASE_DIR)
                     parent = os.path.basename(os.path.dirname(match))
                     name = os.path.basename(match) + '  [' + parent + ']'
