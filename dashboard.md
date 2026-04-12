@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-12 12:18
+最終更新: 2026-04-12 12:26
 
 ## 💰 DingTalk音声QC（9万円案件）
 🟢 稼働中 | 処理済み: **228件** / 10,000件 | 報酬見込み: **¥2,052**
@@ -59,6 +59,7 @@
   - ❌ NGなら → 再修正指示
 
 ### 📋 漫画レビュー待ち
+- **争わないでパネルv2（6枚）**: `manga_odai_arasowanaide/` P1〜P6 768x1376px 殿レビュー待ち
 - **qnly_death v4**: https://youtu.be/Y7tm26PLPb0（P3リテイク済み）
 - **お題漫画「あちらのお客様からです」v2**: https://www.youtube.com/watch?v=gSEJIglR_ME（音声同期版47秒・殿レビュー待ち）
 - **お題漫画「私のために争わないで」v2**: http://192.168.2.7:8785/gallery_cmd1270.html（ゴーグル目装着+NGワード修正版・殿レビュー待ち）
@@ -105,7 +106,7 @@
 |-----|------|------|
 | cmd_1336 | panels_check.html JSON読み込み機能追加完了（パス入力欄+/api/load_panels_json動的再描画）✅ |
 | cmd_1335 | panels_check.html生成完了（45KB・6パネル）✅ http://192.168.2.7:8770/work/output/manga_odai/panels_check.html |
-| cmd_1337 | 争わないでパネルv2全6枚一括生成中（Vertex API・--force）| 足軽3実行中 |
+| cmd_1337 | 争わないでパネルv2全6枚生成完了（6/6成功・768x1376px）✅ 殿レビュー待ち |
 | cmd_1334 | FINAL_COMPOSED.mp4 Bロール合成版再生成（compose_final.py作成・overlay確認必須）| 足軽1実行中 |
 | cmd_1329 | AI分析最新化完了 analysis_history:2026-04-11（04-06〜04-11の6日分追加・計20エントリー）✅ |
 | cmd_1328 | analytics data.json再構築完了 generated_at:2026-04-11 / dates:03-01〜04-08（39件）⚠️ API遅延で04-11未含 ✅ |
