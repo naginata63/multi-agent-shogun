@@ -106,7 +106,7 @@
 | cmd | 内容 | 状態 |
 |-----|------|------|
 | cmd_1342 | お待たせしましたパネルv3全枚生成（oo_menキャッシュ削除済み・2分タイムアウト追加）| 足軽3実行中 |
-| cmd_1334 | FINAL_COMPOSED.mp4 Bロール合成版再生成（compose_final.py作成済み・15:40更新・Bロール確認未完了）| ⚠️ 足軽1確認中 |
+| cmd_1334 | FINAL_COMPOSED.mp4 破損（moov atom not found）→ compose_final.py再実行中 | 足軽1実行中 |
 | cmd_1327 | cut_edited_v5.mp4完成（480p軽量版）31.6s/4.5MB → **殿確認待ち** ⛔ |
 | cmd_1320 Phase2 | cut_edited_v4.mp4完成 352.7s/660MB → **殿確認待ち** ⛔ |
 | cmd_1305d | CrowdWorks 最終合成+YouTube限定公開アップ | ⛔ 殿確認後に開始 |
