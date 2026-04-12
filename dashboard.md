@@ -108,7 +108,7 @@
 | cmd_1344 | panels_check.html JSON選択UI追加（ファイル一覧+クリック読み込み）| 足軽2実行中 |
 | cmd_1343 | お待たせしましたパネルv4全枚生成（ゴーグル強化+P7パスタ・殿JSON修正済み）| 足軽3実行中 |
 | cmd_1342 | お待たせしましたパネルv3全7枚生成完了（7/7・ガチャ1回・372s）✅ 殿レビュー待ち |
-| cmd_1334 | FINAL_COMPOSED.mp4 破損（moov atom not found）→ compose_final.py再実行中 | 足軽1実行中 |
+| cmd_1334 | FINAL_COMPOSED.mp4 破損（moov atom not found）⛔ 殿指示により中止 |
 | cmd_1327 | cut_edited_v5.mp4完成（480p軽量版）31.6s/4.5MB → **殿確認待ち** ⛔ |
 | cmd_1320 Phase2 | cut_edited_v4.mp4完成 352.7s/660MB → **殿確認待ち** ⛔ |
 | cmd_1305d | CrowdWorks 最終合成+YouTube限定公開アップ | ⛔ 殿確認後に開始 |
@@ -255,7 +255,7 @@
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | Sonnet | ⚠️ 確認中 | subtask_1334a検証（FINAL_COMPOSED.mp4 Bロール確認）|
+| 1号 | Sonnet | idle | — |
 | 2号 | Sonnet | 実行中 | subtask_1344a（panels_check JSON選択UI）|
 | 3号 | Sonnet | 実行中 | subtask_1343a（お待たせしましたパネルv4生成）|
 | 4号 | Sonnet | idle | — |
