@@ -729,3 +729,18 @@ tasks:
     テスト: python3 panels_check_gen.py {JSON} で再生成→HTML確認（パス入力欄があること）
     git add projects/dozle_kirinuki/scripts/panels_check_gen.py && git commit -m "feat(cmd_1336): panels_check.html JSON読み込み機能追加"
     報告: bash scripts/inbox_write.sh karo "足軽2号、subtask_1336a完了。JSON読み込み機能追加済み。テスト確認結果を報告。" report_completed ashigaru2
+- task_id: subtask_1338a
+  parent_cmd: cmd_1338
+  bloom_level: L4
+  description: panels_check_gen.pyのshot_type表示・編集・保存先連動バグ修正
+  status: done
+  timestamp: "2026-04-12T12:55:00"
+  steps: |
+    対象: projects/dozle_kirinuki/scripts/panels_check_gen.py（既存修正。新規.py作成禁止）
+    修正1: shot_type表示の正確化 → パネルカードにshot_type（S1=1コマ大/S2=標準/S5=2コマ分割等）を明確表示
+    修正2: shot_type編集UI → ドロップダウン等でshot_typeを変更可能にする
+    修正3: 保存先パス連動（重大バグ）→ JSON読み込み機能で別ファイルを開いた場合、保存先JSONパスもそのファイルに切り替えること。現状はJSON_REL_PATH固定で別ファイルを上書きする事故あり。
+    修正4: 保存時にshot_typeが正しくJSONに含まれること
+    テスト: python3 panels_check_gen.py {JSONパス} で再生成→HTML内でshot_type表示・読み込み時パス切替を確認
+    git add projects/dozle_kirinuki/scripts/panels_check_gen.py && git commit -m "fix(cmd_1338): panels_check shot_type表示・編集・保存先連動バグ修正"
+    報告: bash scripts/inbox_write.sh karo "足軽2号、subtask_1338a完了。修正4点の確認結果を報告。" report_completed ashigaru2
