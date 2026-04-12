@@ -99,6 +99,11 @@
 
 ## 🚨 要対応
 
+### 🚨 cmd_1347: panel_candidate_prompt.txt 未提供
+- generate_panel_candidates.py実装に必要な「構成表生成プロンプト」が未提供
+- **殿の対応**: 殿がGemini AI Studioで使っているプロンプト全文を `projects/dozle_kirinuki/context/panel_candidate_prompt.txt` に保存いただくか、将軍経由でお伝えください
+- （スクリプト本体の実装は足軽1号が並行して進行中）
+
 ### お題4「早く寝なさい」P7 武器混入
 - **cmd_1346**: P7にナイフ状の武器が混入。P7のみ再生成が推奨。
 - **殿の判断**: P7再生成するか否かをご指示ください。OKなら家老が足軽3号に再生成指示。
@@ -112,6 +117,7 @@
 
 | cmd | 内容 | 状態 |
 |-----|------|------|
+| cmd_1347 | generate_panel_candidates.py実装中（動画→panels JSON全自動化）⚠️プロンプトファイル未提供 | 足軽1実行中 |
 | cmd_1346 | お題4「早く寝なさい」v1全7枚生成完了（MENゴーグルOK・⚠️P7に武器混入）✅ 殿判断待ち |
 | cmd_1345 | お待たせしましたv5完成（P1/P6新規生成+P2-P5/P7はv4コピー）✅ 殿レビュー待ち |
 | cmd_1344 | panels_check.html JSON選択UI追加完了（/api/list_panels_json+ドロップダウン）✅ ⚠️サーバー再起動必要 |
@@ -264,7 +270,7 @@
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | Sonnet | idle | — |
+| 1号 | Sonnet | 実行中 | subtask_1347a（generate_panel_candidates.py実装）|
 | 2号 | Sonnet | idle | — |
 | 3号 | Sonnet | idle | — |
 | 4号 | Sonnet | idle | — |
