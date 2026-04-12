@@ -668,3 +668,64 @@ tasks:
 
     ## 報告
     bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1333b完了。修正内容: LLMバリデ追加（shorts/hook_text/description/virality_score/start_time）・境界チェック・_get_h264_encoder化。--helpテスト確認済み。" report_completed ashigaru2
+- task_id: subtask_1335a
+  parent_cmd: cmd_1335
+  bloom_level: L3
+  description: panels JSONからパネル構成確認用HTML生成（ref_images立ち絵サムネ付き）
+  status: done
+  timestamp: "2026-04-12T11:40:00"
+  steps: |
+    ## 入力確認
+    入力JSON: projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai/panels_odai_arasowanaide.json
+    参照テンプレ: projects/dozle_kirinuki/scripts/manga_poc/gacha_gallery_template.html
+    出力先: 入力JSONと同ディレクトリに panels_odai_arasowanaide.html
+
+    ## Step1: スクリプト作成
+    projects/dozle_kirinuki/scripts/generate_panels_html.py として保存
+    スクリプト要件:
+    ① panels JSON を読み込む
+    ② metaセクション（title, char_positions, common_rules）を上部に表示
+    ③ 各パネルのカードを表示:
+       - タイトル (is_climaxはハイライト表示)
+       - セリフ (dialog)
+       - shot_type / start_sec / duration_sec
+       - director_notes
+       - ref_images: 各立ち絵PNG をサムネイル表示（絶対パスを相対パスに変換。例: /home/murakami/...→相対パス）
+         ※ ref_imagesが存在するパスを確認して相対パスを設定すること
+    ④ CSSはインライン（外部依存なし）。カード形式でシンプルに
+
+    ## Step2: スクリプト実行
+    python3 projects/dozle_kirinuki/scripts/generate_panels_html.py \
+      --input "projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai/panels_odai_arasowanaide.json" \
+      --output "projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai/panels_odai_arasowanaide.html"
+
+    ## Step3: 確認
+    ls -la "projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai/panels_odai_arasowanaide.html"
+    python3 -c "open('projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai/panels_odai_arasowanaide.html').read(); print('HTML読み込みOK')"
+
+    ## Step4: コミット
+    ※ projects/dozle_kirinuki/ はgitignore対象のため、スクリプトのみコミット
+    git add projects/dozle_kirinuki/scripts/generate_panels_html.py
+    git commit -m "feat(cmd_1335): panels JSON→HTML生成スクリプト追加"
+
+    ## Step5: ダッシュボードURL確認
+    ギャラリーサーバーURL: http://192.168.2.7:8770/work/... でアクセス可能かパスを確認して報告
+
+    ## 報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1335a完了。panels_odai_arasowanaide.html生成済み。ギャラリーURL・全パネル数を報告。" report_completed ashigaru2
+- task_id: subtask_1336a
+  parent_cmd: cmd_1336
+  bloom_level: L4
+  description: panels_check_gen.pyにJSON読み込み機能追加（/api/load_panels_json活用）
+  status: done
+  timestamp: "2026-04-12T11:50:00"
+  steps: |
+    対象: projects/dozle_kirinuki/scripts/panels_check_gen.py を修正（新規.py作成禁止）
+    追加機能: 生成HTMLにJSONファイル読み込みUIを追加する
+    ①ファイルパス入力欄 + 読み込みボタン（GETリクエスト: /api/load_panels_json?path=...）
+    ②読み込み後、画面全体を新しいJSONの内容で再描画（JavaScriptで動的更新）
+    ③既存機能（パネルカード・立ち絵サムネ・director_notes）が壊れていないこと
+    実装方針: HTMLにJavaScript埋め込み。fetchで/api/load_panels_json?path=エンコードパスを呼ぶ。
+    テスト: python3 panels_check_gen.py {JSON} で再生成→HTML確認（パス入力欄があること）
+    git add projects/dozle_kirinuki/scripts/panels_check_gen.py && git commit -m "feat(cmd_1336): panels_check.html JSON読み込み機能追加"
+    報告: bash scripts/inbox_write.sh karo "足軽2号、subtask_1336a完了。JSON読み込み機能追加済み。テスト確認結果を報告。" report_completed ashigaru2
