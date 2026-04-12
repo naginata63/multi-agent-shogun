@@ -1,300 +1,4 @@
 tasks:
-- task_id: subtask_1265b2
-  parent_cmd: cmd_1265
-  redo_of: subtask_1265b
-  status: done
-  assigned_to: ashigaru2
-  bloom_level: L4
-  priority: high
-  title: "MEN迷言候補18件 クリップ連結→YouTube非公開アップ（タイムスタンプ付き）"
-  project: dozle_kirinuki
-  steps: |
-    ## 目的
-    おおはらMEN迷言候補18件を全てクリップ化し、1本の試聴動画に連結してYouTube非公開アップ。
-
-    ## 入力
-    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/cmd_1261_men_meigen_candidates.md
-
-    ## 手順
-
-    ### Step1: 候補リストから動画IDと時間を抽出
-    candidates.md の18件を読み、各候補の動画ID・開始時間・終了時間を整理。
-    動画IDはファイル名やURL（括弧内の英数字）から取得。
-
-    ### Step2: 動画DL（既存スキップ）
-    ```bash
-    # work/ 配下に既存DL済みか確認
-    ls /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/ | grep {VIDEO_ID}
-    # なければ yt-dlp でDL
-    yt-dlp -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" \
-      --merge-output-format mp4 \
-      -o "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/{VIDEO_ID}/{VIDEO_ID}.mp4" \
-      "https://www.youtube.com/watch?v={VIDEO_ID}"
-    ```
-
-    ### Step3: クリップ切り出し（前後5秒追加）
-    ```bash
-    ffmpeg -ss {start-5s} -to {end+5s} -i {INPUT}.mp4 \
-      -c:v h264_nvenc -preset p4 -c:a aac -b:a 192k \
-      /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/clips_1265b/clip_{N:02d}.mp4
-    ```
-
-    ### Step4: 全クリップ連結
-    ```bash
-    for f in /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/clips_1265b/clip_*.mp4; do echo "file '$f'"; done > /tmp/concat_1265b.txt
-    ffmpeg -f concat -safe 0 -i /tmp/concat_1265b.txt \
-      -c:v h264_nvenc -preset p4 -c:a aac -b:a 192k \
-      /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/clips_1265b/men_meigen_all_candidates.mp4
-    ```
-
-    ### Step5: YouTube非公開アップ（private）
-    ※GLMレート制限問題は解消済み（Claude Sonnet切替済み）。アップ可能。
-    ```bash
-    python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/youtube_uploader.py upload \
-      /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/clips_1265b/men_meigen_all_candidates.mp4 \
-      --title "おおはらMEN迷言全候補（選定用）" \
-      --privacy private
-    ```
-
-    ### Step6: 概要欄タイムスタンプ設定
-    各クリップの開始時間でタイムスタンプ生成し概要欄に設定。
-
-    ### Step7: 家老に報告
-    ```bash
-    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
-      "足軽2号、subtask_1265b2完了。MEN迷言全候補クリップ連結+YouTube非公開アップ完了。URL: {URL}" \
-      report_completed ashigaru2
-    ```
-
-    ## 注意
-    - ffmpegは必ずh264_nvenc（libx264禁止）
-    - YouTubeはprivateのみ（unlistedにするな）
-    - クリップ保存先: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/clips_1265b/
-
-- task_id: subtask_1261a
-  parent_cmd: cmd_1261
-  status: done
-  assigned_to: ashigaru2
-  bloom_level: L4
-  priority: high
-  title: "おおはらMEN 迷言 候補リスト作成"
-  project: dozle_kirinuki
-  steps: |
-    ## 目的
-    おおはらMENの「迷言」だけを集めた総集編の候補リストを作成し、家老に報告する。
-    ※ selected.json作成・動画生成・アップロードは殿選定後のフェーズ。今回は候補リスト作成のみ。
-
-    ## 迷言とは
-    - おかしな発言・意味不明な発言・ツッコまれる発言
-    - 名言（かっこいい・正しい）ではなく「迷言」（おかしい・ズレてる）
-    - MENのキャラ: おっちょこちょい、ボケ担当、ツッコまれやすい
-    - 各シーン5〜15秒のピンポイント（迷言の瞬間+直後のリアクションまで）
-
-    ## 作業ディレクトリ
-    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
-
-    ## 手順
-
-    ### Step1: MENの発言をSRTから抽出
-    SRTファイルでスピーカーラベル「MEN」「おおはらMEN」「oo_men」を検索:
-    ```bash
-    grep -rn "MEN:\|oo_men:\|おおはらMEN:" /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/*/merged*.srt 2>/dev/null | head -500
-    ```
-    スピーカーラベルがない場合はSRTを直接読んで発言を確認する。
-
-    ### Step2: 迷言候補を選定
-    以下のパターンを「迷言」として優先:
-    - 他のメンバーにツッコまれている発言
-    - 「え？」「何言ってるの？」等のリアクションを引き出す発言
-    - ルール・方向を間違えている発言
-    - 突然意味不明なことを言い出す発言
-    - 自滅・やらかしの瞬間
-
-    NG: 普通のゲームプレイ発言、説明的な発言
-
-    ### Step3: 候補リストをファイルに保存
-    保存先: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/cmd_1261_men_meigen_candidates.md
-    フォーマット（各候補に時間・発言・ツッコミ・理由を明記）:
-    ```
-    # おおはらMEN 迷言 候補リスト
-
-    ## 候補1: ★★★
-    - 動画: 20XXXXXX_タイトル
-    - 時間: 00:05:23,000 〜 00:05:35,000（約12秒）
-    - 迷言: 「〇〇〇〇〇」（MEN発言）
-    - リアクション: 「え、何で？」（dozle）
-    - 理由: ズレた発言+即ツッコミでテンポよく面白い
-    ```
-
-    ### Step4: 家老に報告
-    ```bash
-    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
-      "足軽2号、subtask_1261a完了。MEN迷言候補リスト完成。ファイル: work/cmd_1261_men_meigen_candidates.md 候補数: {N}件。殿の選定待ち。" \
-      report_completed ashigaru2
-    ```
-
-    ## 注意
-    - 候補は5〜20件程度
-    - SRTファイルが多い場合は新しい動画（2026年）を優先
-    - 複数の動画から分散して選ぶとよい
-
-- bloom_level: L2
-  description: '## 購入済みnote記事の配布ファイルをCDP Chromeでダウンロード
-
-
-    ### 背景
-
-    殿が購入済みのnote有料記事「会話漫画プロンプト自動生成システム」（斉川ニア）の
-
-    配布ファイルをダウンロードする。記事PDFは既に保存済み。
-
-
-    ### 事前確認
-
-    curl -s http://localhost:9222/json/version | python3 -m json.tool | head -3
-
-    Chrome CDP port 9222 が開通していることを確認。
-
-
-    ### ダウンロード手順
-
-    Playwright（Python）でnote記事ページを開き、添付ファイルのダウンロードリンクをクリック。
-
-    記事URL: https://note.com/vast_lily4547/n/n2bd1fee29e3f
-
-
-    保存先ディレクトリ: /home/murakami/multi-agent-shogun/work/vast_lily4547_downloads/
-
-
-    取得すべきファイル（7件）:
-
-    1. 会話漫画プロンプト自動生成システム.zip（基本セット・22.6KB版）
-
-    2. 会話漫画プロンプト自動生成システム（stationary版）.zip（14.1KB版）
-
-    3. 演出ナレッジ集.zip（21.3KB）
-
-    4. manual_v51_guide.html（30.3KB）
-
-    5. 演出ナレッジ_リネン白テーマ_v1.txt（12.3KB）
-
-    6. 演出ナレッジ_4色パーティー_v1-1.txt（9.35KB）
-
-    7. 正方形四コマメーカー二種.zip（5.45MB）
-
-    8. 統合自動漫画生成.zip（16.7KB）
-
-
-    ダウンロード後、zipは全て解凍せよ（unzip コマンド使用）。
-
-    解凍先も同ディレクトリ内。
-
-
-    ### 著作権注意
-
-    - 有料記事の中身をgit commitするな
-
-    - work/配下はgitignore済みなのでcommit不要・禁止
-
-
-    ### テスト手順
-
-    ls -la /home/murakami/multi-agent-shogun/work/vast_lily4547_downloads/ でファイル一覧確認
-
-
-    ### 完了後
-
-    /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1204a完了。DLファイル一覧:
-    {ファイル名リスト}" report_done ashigaru2
-
-    '
-  parent_cmd: cmd_1204
-  report_to: karo
-  status: done
-  target_path: /home/murakami/multi-agent-shogun/work/vast_lily4547_downloads/
-  task_id: subtask_1204a
-  timestamp: '2026-04-05T21:50:00'
-- bloom_level: L4
-  description: '## note記事への挿絵4枚挿入（CDP方式・既存スクリプト改変）
-
-
-    ### 実績のある既存スクリプトを必ず読め（これがベース）
-
-    /home/murakami/multi-agent-shogun/projects/note_mcp_server/scripts/insert_images_gemini_article.js
-
-    → gemini_22000yen記事に画像3枚+有料ライン+価格設定した実績あり
-
-
-    ### 作成するスクリプト
-
-    /home/murakami/multi-agent-shogun/projects/note_mcp_server/scripts/insert_images_shogun_article.js
-
-    （insert_images_gemini_article.jsのコピー改変）
-
-
-    ### 挿入対象
-
-    対象記事エディタURL: https://editor.note.com/notes/nedb886542772/edit/
-
-
-    挿入画像（/home/murakami/multi-agent-shogun/projects/note_mcp_server/assets/naginata_illustrations/配下）:
-
-    1. naginata_agents_working.jpg → 「8体のAIエージェント」関連見出しの後
-
-    2. naginata_48commands.jpg → 「48」「コマンド」関連見出しの後
-
-    3. naginata_harness.jpg → 「ハーネス」「エンジニアリング」関連見出しの後
-
-    4. naginata_achievement.jpg → 「1,000人」「成果」関連見出しの後
-
-
-    正確な挿入箇所テキストは記事本文を読んで特定せよ:
-
-    /home/murakami/multi-agent-shogun/projects/note_mcp_server/articles/multi_agent_shogun_system.md
-
-
-    カバー画像: naginata_cover.jpgは設定済みの見込み。エディタで確認のこと。
-
-
-    ### 仕組み（既存スクリプトで確認）
-
-    CDP Chrome（port 9222）でエディタを開き、
-
-    ProseMirrorエディタ内のテキストを検索→カーソル配置→画像ボタンクリック→fileChooser。
-
-
-    ### 絶対厳守
-
-    - 公開禁止。エディタの「公開」ボタンは絶対に押すな・スクリプトでも呼ぶな
-
-    - 下書き保存のみ
-
-
-    ### テスト手順
-
-    実行後、エディタで本文に画像が4枚挿入されていることを目視確認（スクリーンショット不要、実行ログで確認）
-
-
-    ### 完了後
-
-    cd /home/murakami/multi-agent-shogun
-
-    git add /home/murakami/multi-agent-shogun/projects/note_mcp_server/scripts/insert_images_shogun_article.js
-
-    git commit -m "feat(cmd_1207): note挿絵4枚挿入スクリプト作成"
-
-    /home/murakami/multi-agent-shogun/scripts/ntfy.sh "🖼️ note挿絵挿入完了 cmd_1207"
-
-    /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1207a完了。note挿絵4枚挿入済み。"
-    report_done ashigaru2
-
-    '
-  parent_cmd: cmd_1207
-  report_to: karo
-  status: done
-  target_path: /home/murakami/multi-agent-shogun/projects/note_mcp_server/scripts/insert_images_shogun_article.js
-  task_id: subtask_1207a
-  timestamp: '2026-04-05T22:13:00'
 - bloom_level: L3
   cancel_reason: 殿指示によりcmd_1209中断（00:21）
   description: 'note記事（nedb886542772）の本文完全再投入+カバー画像+挿絵4枚。
@@ -322,899 +26,645 @@ tasks:
   target_path: /home/murakami/multi-agent-shogun/projects/note_mcp_server/articles/multi_agent_shogun_system.md
   task_id: subtask_1209h
   timestamp: '2026-04-05T23:55:00'
-- bloom_level: L3
-  description: "## ref画像パス解決修正テスト（P1 1枚のみ）\n\n### 概要\ngenerate_manga_short.py の ref_images\
-    \ パス解決修正が足軽環境で正しく動作するか検証する。\n1パネル(P1)のみ生成してログを確認する。\n\n### 実行コマンド\ncd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/manga_poc\n\
-    source ~/.bashrc && python3 generate_manga_short.py \\\n  --panels /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_枯れ木に花を咲かせましょう/panels_sakura_p1_test.json\
-    \ \\\n  --skip-vision\n\n### 確認ポイント（ログを必ず報告せよ）\n1. [GCS] 行が3件出ていること（ref画像3枚のGCS\
-    \ URI解決）\n2. [ref-images] WARNING が0件であること\n3. [ref-images] Step2用: 3枚 と出ていること\n\
-    4. 生成されたPNG画像のパス\n5. result_log.json の prompt_tokens 値（3000+なら画像が渡っている）\n\n###\
-    \ テスト手順\n- 上記実行コマンドを実行してログ全文を保存\n- 確認ポイント5件を全て報告すること\n\n### 完了後\nbash /home/murakami/multi-agent-shogun/scripts/ntfy.sh\
-    \ \"\U0001F9EA ref画像テスト完了 cmd_1216\"\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
-    \ karo \"足軽2号、subtask_1216a完了。ログ確認結果を報告する。\" report_done ashigaru2\n"
-  parent_cmd: cmd_1216
-  report_to: karo
-  status: done
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_枯れ木に花を咲かせましょう/
-  task_id: subtask_1216a
-  timestamp: '2026-04-06T09:46:00'
-- bloom_level: L3
-  description: "## note記事（nedb886542772）挿絵4枚+カバー画像挿入\n\n### 注意: 公開禁止。下書き保存のみ。絶対に公開ボタンを押すな\n\
-    \n### 手順\n\n1. Chrome CDP起動確認（port 9222）\n   既にnote-profileでログイン済みのはず。開いていなければ:\n\
-    \   google-chrome --remote-debugging-port=9222 --user-data-dir=$HOME/.chrome-cdp\
-    \ &\n\n2. 挿絵4枚挿入:\n   cd /home/murakami/multi-agent-shogun/projects/note_mcp_server\n\
-    \   node scripts/insert_images_shogun_article.js\n   （4枚: naginata_agents_working.jpg\
-    \ / naginata_48commands.jpg / naginata_harness.jpg / naginata_achievement.jpg）\n\
-    \n3. カバー画像設定:\n   node scripts/note-edit.js \\\n     --action=edit \\\n     --url=\"\
-    https://note.com/n/nedb886542772\" \\\n     --cover-image=\"/home/murakami/multi-agent-shogun/projects/note_mcp_server/assets/naginata_illustrations/naginata_cover.jpg\"\
-    \n\n4. 自動QCチェック:\n   source ~/.bashrc && python3 /home/murakami/multi-agent-shogun/scripts/note_visual_qc.py\
-    \ \\\n     --url \"https://editor.note.com/notes/nedb886542772/edit/\"\n   → PASS/FAIL結果とreport\
-    \ YAMLパスを報告すること\n\n### テスト手順\n- node scripts/insert_images_shogun_article.js がエラーなく完了すること\n\
-    - note_visual_qc.py の実行結果（PASS/FAIL）を報告\n\n### 完了後\nbash /home/murakami/multi-agent-shogun/scripts/ntfy.sh\
-    \ \"\U0001F5BC️ note挿絵挿入完了 cmd_1219\"\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
-    \ karo \"足軽2号、subtask_1219a完了。挿絵4枚+カバー挿入済み。QC結果: PASS/FAIL。\" report_done ashigaru2\n"
-  parent_cmd: cmd_1219
-  report_to: karo
-  status: done
-  target_path: /home/murakami/multi-agent-shogun/projects/note_mcp_server/
-  task_id: subtask_1219a
-  timestamp: '2026-04-06T10:58:00'
-- bloom_level: L5
-  description: "## HL/SH候補選定（集合知 — 独立分析）\n\n### 概要\n動画 _whtyCALBBI「一粒の種から億万長者になるまで終われません！」の\n\
-    HL/SH候補を独立して分析・選定せよ。お前の分析は他の4人と統合される。\n\n### 手順\n1. インプットファイルを読め:\n   shared_context/collective__whtyCALBBI.md\n\
-    \   （merged JSONのパスと抽出スクリプトが記載されている）\n\n2. 以下コンテキストを熟読せよ:\n   - projects/dozle_kirinuki/context/member_profiles.yaml\n\
-    \   - projects/dozle_kirinuki/context/highlight_knowledge.md（§3.2・§3.3.1必読）\n\
-    \   - projects/dozle_kirinuki/context/shorts_knowledge.md\n   - projects/dozle_kirinuki/context/expression_design_v5.md\n\
-    \n3. merged JSONから発話テキストを抽出して内容を把握せよ\n   （shared_context内のPythonコード例を使え）\n\n4.\
-    \ HL候補（4〜6シーン）を選定。各シーンに以下を明記:\n   - シーン名（10文字以内）\n   - タイムスタンプ（MM:SS〜MM:SS）\n\
-    \   - メインスピーカー\n   - 選定理由（なぜ面白いか1行）\n   - フック適性（あり/なし）\n\n5. SH候補（面白いものだけ。数合わせ禁止）を選定。各候補に:\n\
-    \   - タイトル案（20文字以内）\n   - タイムスタンプ（MM:SS〜MM:SS）\n   - 選定理由1行\n\n### 出力先\n自分の番号に対応したファイルに保存せよ:\n\
-    projects/dozle_kirinuki/work/20260406_whtyCALBBI/collective_2.md\n（2は自分の番号: 1,\
-    \ 2, 3, 4, 6）\n\n### 注意\n- 他の足軽の選定結果を見るな（独立分析）\n- shared_contextは読んでよい\n- 数合わせ禁止。面白くないSHは0本でよい\n\
-    \n### 完了後\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo\
-    \ \\\n  \"足軽2号、subtask_1218b2完了。HL N件・SH N件選定。\" report_done ashigaru2\n"
-  parent_cmd: cmd_1218
+- assigned_to: ashigaru2
+  bloom_level: L4
+  parent_cmd: cmd_1274
+  priority: high
   project: dozle_kirinuki
-  report_to: karo
   status: done
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_whtyCALBBI/collective_2.md
-  task_id: subtask_1218b2
-  timestamp: '2026-04-06T11:10:00'
-- bloom_level: L3
-  description: "## note記事 Markdown表→role_table.png画像差替\n\n### 注意: 公開禁止。下書き保存のみ。絶対に公開ボタンを押すな\n\
-    \n### 手順\n\n1. Chrome CDP起動確認（port 9222）\n\n2. Playwright/CDPでnoteエディタを開く:\n \
-    \  https://editor.note.com/notes/nedb886542772/edit/\n\n3. 記事内のMarkdown表テキストを削除:\n\
-    \   以下のパイプ記号行5行を削除する:\n   | 役職 | 担当 | 人数 |\n   |------|------|------|\n   | **将軍（Shogun）**\
-    \ | 全体指揮・戦略判断 | 1体 |\n   | **家老（Karo）** | タスク分解・品質管理 | 1体 |\n   | **軍師（Gunshi）**\
-    \ | 戦略分析・QC検査 | 1体 |\n   | **足軽（Ashigaru）** | 実作業・コード実装 | 5体 |\n\n4. 削除した位置にrole_table.pngを挿入:\n\
-    \   画像パス: /home/murakami/multi-agent-shogun/projects/note_mcp_server/assets/naginata_illustrations/role_table.png\n\
-    \   まずnote-edit.jsで試みる:\n   cd /home/murakami/multi-agent-shogun/projects/note_mcp_server\n\
-    \   node scripts/note-edit.js \\\n     --action=edit \\\n     --url=\"https://note.com/n/nedb886542772\"\
-    \ \\\n     --image-file=\"/home/murakami/multi-agent-shogun/projects/note_mcp_server/assets/naginata_illustrations/role_table.png\"\
-    \n   ※ 末尾挿入になった場合はPlaywrightでエディタ操作して正しい位置（「人間（殿）は将軍に指示を出すだけ。」の直前）に移動せよ\n\n5.\
-    \ 下書き保存\n\n### テスト手順\n- note_visual_qc.pyでQCチェック:\n  source ~/.bashrc && python3\
-    \ /home/murakami/multi-agent-shogun/scripts/note_visual_qc.py \\\n    --url \"\
-    https://editor.note.com/notes/nedb886542772/edit/\"\n- PASS/FAIL結果を報告\n\n### 完了後\n\
-    bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh \"\U0001F4CA note表画像挿入完了\
-    \ cmd_1220\"\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo\
-    \ \"足軽2号、subtask_1220a完了。表削除+role_table.png挿入済み。QC: PASS/FAIL。\" report_done ashigaru2\n"
-  parent_cmd: cmd_1220
-  report_to: karo
+  steps: "## 目的\n殿がpanels_odai_arasowanaide.jsonを修正した（ゴーグル目装着指示+NGワード具体文言追加）。\n6枚のパネルPNGをVertex\
+    \ AIで順番に1枚ずつ再生成する。\n既存PNGは上書き。バックアップ済み。\n\n## 入力\nWORK=\"/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai\"\
+    \n- panels JSON: $WORK/panels_odai_arasowanaide.json（最新版を必ず読むこと）\n- 出力先: $WORK/manga_odai_arasowanaide/（既存PNGを上書き）\n\
+    - 生成スクリプト参考: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py\n\
+    \n## 手順\n\n### Step1: panels_odai_arasowanaide.jsonを読む\n全6パネルのid・director_notes・ref_images・characters・common_rulesを確認する。\n\
+    特に修正点（ゴーグル目装着指示・NGワード）を把握してから生成すること。\n\n### Step2: Vertex AI APIで6枚を順番に生成\n- APIキー:\
+    \ source /home/murakami/multi-agent-shogun/config/vertex_api_key.env（VERTEX_API_KEY）\n\
+    - モデル: gemini-2.0-flash-preview-image-generation\n- 画像サイズ: 768x1376（縦長）\n- ref_imagesが使える場合は使う。クォータ制限エラー時はテキストプロンプトのみで継続\n\
+    \n出力ファイル名はpanel idと同名（上書き）:\n- $WORK/manga_odai_arasowanaide/p1_nanda_omae.png\n\
+    - $WORK/manga_odai_arasowanaide/p2_nandayo_oi.png\n- $WORK/manga_odai_arasowanaide/p3_hii.png\n\
+    - $WORK/manga_odai_arasowanaide/p4_watashi_zo.png\n- $WORK/manga_odai_arasowanaide/p5_ore_dayo.png\n\
+    - $WORK/manga_odai_arasowanaide/p6_arasowanaide.png\n\n### Step3: ギャラリーHTML更新\n\
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/gallery_cmd1270.html\
+    \ を更新して\n最新PNG（タイムスタンプ付き）が表示されるようにする（?t=タイムスタンプ追加）。\n\n### Step4: 家老に報告\n```bash\n\
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \\\n  \"足軽2号、subtask_1274a完了。お題2「私のために争わないで」6枚再生成完了。ギャラリー:\
+    \ work/gallery_cmd1270.html\" \\\n  report_completed ashigaru2\n```\n\n## テスト確認\n\
+    - 6枚のPNGが出力先に存在すること\n- ギャラリーHTMLが更新されていること\n\n## 注意\n- git commitは不要（work/はgit-ignored）\n\
+    - ntfyは不要（karoが通知する）\n- 生成は1枚ずつ（並列禁止・APIレート制限回避）\n- ガチャ上限: 全パネル1回まで。個別NGパネルの再生成は殿の指示が必要\n"
+  task_id: subtask_1274a
+  timestamp: '2026-04-09T07:30:00'
+  title: お題2「私のために争わないで」6枚再生成（ゴーグル目装着指示+NGワード具体文言追加版）
   status: done
-  target_path: /home/murakami/multi-agent-shogun/projects/note_mcp_server/
-  task_id: subtask_1220a
-  timestamp: '2026-04-06T11:12:00'
-- bloom_level: L5
-  description: "## HL/SH候補選定（集合知 — 独立分析）\n\n### 概要\n動画 IKu8Dad0YyY「泳ぎだけでエンドラ討伐！【マイクラ】」の\n\
-    HL/SH候補を独立して分析・選定せよ。お前の分析は他の4人と統合される。\n\n### 手順\n1. インプットファイルを読め:\n   shared_context/collective_IKu8Dad0YyY.md\n\
-    \   （merged JSONのパスと抽出スクリプトが記載されている）\n\n2. 以下コンテキストを熟読せよ:\n   - projects/dozle_kirinuki/context/member_profiles.yaml\n\
-    \   - projects/dozle_kirinuki/context/highlight_knowledge.md（§3.2・§3.3.1必読）\n\
-    \   - projects/dozle_kirinuki/context/shorts_knowledge.md\n   - projects/dozle_kirinuki/context/expression_design_v5.md\n\
-    \n3. merged JSONから発話テキストを抽出して内容を把握せよ\n\n4. HL候補（4〜6シーン）を選定。各シーンに以下を明記:\n   - シーン名（10文字以内）\n\
-    \   - タイムスタンプ（MM:SS〜MM:SS）\n   - メインスピーカー\n   - 選定理由（なぜ面白いか1行）\n   - フック適性（あり/なし）\n\
-    \n5. SH候補（面白いものだけ。数合わせ禁止）を選定。各候補に:\n   - タイトル案（20文字以内）\n   - タイムスタンプ（MM:SS〜MM:SS）\n\
-    \   - 選定理由1行\n\n### 出力先\nprojects/dozle_kirinuki/work/20260406_IKu8Dad0YyY/collective_2.md\n\
-    \n### 注意\n- 他の足軽の選定結果を見るな（独立分析）\n- 数合わせ禁止。面白くないSHは0本でよい\n\n### 完了後\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
-    \ karo \\\n  \"足軽2号、subtask_1221b2完了。HL N件・SH N件選定。\" report_done ashigaru2\n"
-  parent_cmd: cmd_1221
-  project: dozle_kirinuki
-  report_to: karo
+
+- task_id: subtask_1285a
+  parent_cmd: cmd_1285
   status: done
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_IKu8Dad0YyY/collective_2.md
-  task_id: subtask_1221b2
-  timestamp: '2026-04-06T11:42:00'
-- bloom_level: L5
-  description: "## HL/SH候補選定（集合知 — 独立分析）\n\n### 概要\n動画 -F9M99oe7fY「スキルを使いこなせ！陣取りガチバトル！【マイクラ】」の\n\
-    HL/SH候補を独立して分析・選定せよ。お前の分析は他の4人と統合される。\n\n### 手順\n1. インプットファイルを読め:\n   shared_context/collective_F9M99oe7fY.md\n\
-    \n2. 以下コンテキストを熟読せよ:\n   - projects/dozle_kirinuki/context/member_profiles.yaml\n\
-    \   - projects/dozle_kirinuki/context/highlight_knowledge.md（§3.2・§3.3.1必読）\n\
-    \   - projects/dozle_kirinuki/context/shorts_knowledge.md\n   - projects/dozle_kirinuki/context/expression_design_v5.md\n\
-    \n3. merged JSONから発話テキストを抽出して内容を把握せよ\n\n4. HL候補（4〜6シーン）を選定。各シーンに以下を明記:\n   - シーン名（10文字以内）\n\
-    \   - タイムスタンプ（MM:SS〜MM:SS）\n   - メインスピーカー\n   - 選定理由（なぜ面白いか1行）\n   - フック適性（あり/なし）\n\
-    \n5. SH候補（面白いものだけ。数合わせ禁止）を選定。各候補に:\n   - タイトル案（20文字以内）\n   - タイムスタンプ（MM:SS〜MM:SS）\n\
-    \   - 選定理由1行\n\n### 出力先\nprojects/dozle_kirinuki/work/20260406_F9M99oe7fY/collective_2.md\n\
-    \n### 注意\n- 他の足軽の選定結果を見るな（独立分析）\n- 数合わせ禁止。面白くないSHは0本でよい\n\n### 完了後\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
-    \ karo \\\n  \"足軽2号、subtask_1222b2完了。HL N件・SH N件選定。\" report_done ashigaru2\n"
-  parent_cmd: cmd_1222
-  project: dozle_kirinuki
-  report_to: karo
-  status: done
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_F9M99oe7fY/collective_2.md
-  task_id: subtask_1222b2
-  timestamp: '2026-04-06T12:07:00'
-- bloom_level: L3
-  description: "## note下書き投稿 — cmd_1225「AIにテストコードを書かせるな」\n\n**公開禁止。下書き保存のみ。絶対に公開ボタンを押すな。**\n\
-    \n### 作業ディレクトリ\n```\ncd /home/murakami/multi-agent-shogun/projects/note_mcp_server\n\
-    ```\n\n### Step 1: Chrome CDP起動確認\n```\ncurl -s http://localhost:9222/json/version\
-    \ | python3 -m json.tool | head -5\n```\nエラーが出たら起動:\n```\ngoogle-chrome --remote-debugging-port=9222\
-    \ --user-data-dir=$HOME/.chrome-cdp &\nsleep 3\n```\n\n### Step 2: 記事を下書き投稿（本文+カバー+ハッシュタグ）\n\
-    ```\nnode scripts/note-edit.js   --action=create   --title=\"AIにテストコードを書かせるな\"\
-    \   --body-file=\"/home/murakami/multi-agent-shogun/projects/note_mcp_server/articles/dont_let_ai_write_tests.md\"\
-    \   --cover-image=\"/home/murakami/multi-agent-shogun/projects/note_mcp_server/assets/naginata_illustrations/test_cover_sample.jpg\"\
-    \   --hashtags=\"AI,バイブコーディング,品質保証,ハーネスエンジニアリング,自動化,個人開発,サイレントバグ\"\n```\n**投稿後のnote\
-    \ URLを必ず控えよ。**\n\n### Step 3: 挿絵3枚挿入\ninsert_images_shogun_article.jsのパターンを参考に、以下3枚を正しい位置に挿入せよ。\n\
-    \n挿入箇所（アンカーテキストで特定）と画像：\n1. `人間が結果を見るまで、誰も気づかなかった。` の後\n   → `assets/naginata_illustrations/illust_same_name.jpg`\n\
-    2. `だからテストは無駄なのだ。少なくとも、AIに書かせるテストは。` の後\n   → `assets/naginata_illustrations/illust_useless_test.jpg`\n\
-    3. `**AIが書いたコードには、AIが残した矛盾がある。**` の後（`## 毎晩自動で走らせている` の前）\n   → `assets/naginata_illustrations/illust_night_audit.jpg`\n\
-    \n既存の insert_images_shogun_article.js を改変して使うか、\nnode scripts/insert_images.js\
-    \ 等の引数を調べて使え。\n新規.pyは禁止。新規.jsは許可（insert_images_shogun_article.jsのコピー改変可）。\n\n\
-    ### Step 4: 下書き保存確認\nPlaywrightのsave as draft操作で保存。公開は絶対にしないこと。\n\n### Step 5:\
-    \ QC\n```\nsource ~/.bashrc && python3 /home/murakami/multi-agent-shogun/scripts/note_visual_qc.py\
-    \   --url \"{エディタまたは下書きURL}\"\n```\n\n### テスト手順\n- note URLがhttps://note.com/\
-    \ から始まること\n- カバー画像・挿絵3枚・ハッシュタグが設定されていること（Gemini Vision QC結果で確認）\n- 公開状態でないこと\n\
-    \n### 完了後\n```\nbash /home/murakami/multi-agent-shogun/scripts/ntfy.sh \"\U0001F4DD\
-    \ note下書き投稿完了「AIにテストコードを書かせるな」{URL} cmd_1225\"\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
-    \ karo \"足軽2号、subtask_1225a完了。note下書きURL: {URL}。QC結果報告。\" report_done ashigaru2\n\
-    ```\n"
-  parent_cmd: cmd_1225
-  report_to: karo
-  status: done
-  target_path: projects/note_mcp_server/
-  task_id: subtask_1225a
-  timestamp: '2026-04-06T16:43:18'
-- bloom_level: L3
-  description: "## note下書き本文更新 — cmd_1226（有料ゾーン追加版）\n\n**公開禁止。下書き保存のみ。絶対に公開ボタンを押すな。**\n\
-    \n### Step 1: Chrome CDP起動確認\n```\ncurl -s http://localhost:9222/json/version\
-    \ | python3 -m json.tool | head -5\n```\nエラーなら起動:\n```\ngoogle-chrome --remote-debugging-port=9222\
-    \ --user-data-dir=$HOME/.chrome-cdp &\nsleep 3\n```\n\n### Step 2: 本文を有料ゾーン追加版に差し替え\n\
-    ```\ncd /home/murakami/multi-agent-shogun/projects/note_mcp_server\nnode scripts/note-edit.js\
-    \   --action=edit   --url=\"https://note.com/n/ncdfbdfeeadd4\"   --body-file=\"\
-    /home/murakami/multi-agent-shogun/projects/note_mcp_server/articles/dont_let_ai_write_tests.md\"\
-    \n```\n\n### Step 3: 挿絵維持確認・必要なら再挿入\n本文差し替え後、挿絵が消えている場合は再挿入せよ。\nアンカーと画像の対応:\n\
-    1. `人間が結果を見るまで、誰も気づかなかった。` の後\n   → `assets/naginata_illustrations/illust_same_name.jpg`\n\
-    2. `だからテストは無駄なのだ。少なくとも、AIに書かせるテストは。` の後\n   → `assets/naginata_illustrations/illust_useless_test.jpg`\n\
-    3. `**AIが書いたコードには、AIが残した矛盾がある。**` の後\n   → `assets/naginata_illustrations/illust_night_audit.jpg`\n\
-    \n### Step 4: 下書き保存（公開禁止）\n\n### テスト手順（コスト不要）\n- Playwright/CDPでエディタ画面をスクリーンショット\
-    \ → 挿絵3枚・本文の有料ゾーンが見えること\n- 公開状態でないこと確認\n\n### 完了後\n```\nbash /home/murakami/multi-agent-shogun/scripts/ntfy.sh\
-    \ \"\U0001F4DD note下書き更新完了（有料ゾーン追加）cmd_1226 https://note.com/n/ncdfbdfeeadd4\"\
-    \nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \"足軽2号、subtask_1226a完了。有料ゾーン追加版に差し替え済み。挿絵維持確認結果報告。\"\
-    \ report_done ashigaru2\n```\n"
-  parent_cmd: cmd_1226
-  report_to: karo
-  status: done
-  target_path: projects/note_mcp_server/
-  task_id: subtask_1226a
-  timestamp: '2026-04-06T17:28:37'
-- bloom_level: L5
-  description: '## HL/SH候補選定（集合知） — yEtn5xGWVK4 足軽2号 — cmd_1232
-
-
-    ### インプット
-
-    `projects/dozle_kirinuki/shared_context/collective_yEtn5xGWVK4.md` を読んでから作業開始せよ。
-
-    （merged.jsonの読み方・参照コンテキストファイルが記載されている）
-
-
-    ### タスク
-
-    「10000メートルの超長い線路を繋げるまで終われません！【マイクラ】」を独立分析し、
-
-    HL/SH候補を選定する。他の足軽の意見を見る前に自分の分析を完成させよ。
-
-
-    ### 必読コンテキスト（必ず読んでから分析せよ）
-
-    - `projects/dozle_kirinuki/context/highlight_knowledge.md`（§3.2・§3.3.1）
-
-    - `projects/dozle_kirinuki/context/shorts_knowledge.md`
-
-    - `projects/dozle_kirinuki/context/expression_design_v5.md`
-
-    - `projects/dozle_kirinuki/context/highlight_command_template.md`
-
-    - `projects/dozle_kirinuki/context/shorts_command_template.md`
-
-
-    ### 出力形式
-
-    `/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_10000メートルの超長い線路を繋げるまで終われません！【マイクラ】/collective_2.md`
-    に保存:
-
-
-    ```markdown
-
-    # HL/SH候補選定 — yEtn5xGWVK4 足軽2号
-
-
-    ## HL候補（最大6件、タイムスタンプ・理由・hookか否か）
-
-    ...
-
-
-    ## SH候補（最大4件、タイムスタンプ・理由・尺）
-
-    ...
-
-
-    ## 総評
-
-    ...
-
-    ```
-
-
-    ### 完了後
-
-    ```
-
-    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1232b2完了。HL/SH候補選定済み。"
-    report_done ashigaru2
-
-    ```
-
-    '
-  parent_cmd: cmd_1232
-  report_to: karo
-  shared_context: projects/dozle_kirinuki/shared_context/collective_yEtn5xGWVK4.md
-  status: done
-  task_id: subtask_1232b2
-  timestamp: '2026-04-06T20:32:35'
-- bloom_level: L3
-  description: "## STTパイプライン — 動画 9bK6yDYwHng（フェーズ1）cmd_1233\n\n### 概要\n「仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】」のSTTマージを完了させる。\n\
-    vocal_stt_pipeline.py（1コマンド完結）を使え。Gemini STTは廃止済み。絶対使うな。\n\n### 手順\n\n1. YouTube動画DL（720p）\n\
-    ```\ncd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts\nsource\
-    \ ~/.bashrc && yt-dlp -f \"bestvideo[height<=720]+bestaudio/best[height<=720]\"\
-    \ \\\n  --merge-output-format mp4 \\\n  -o \"/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/input/9bK6yDYwHng.mp4\"\
-    \ \\\n  \"https://youtu.be/9bK6yDYwHng\"\n```\n\n2. STTパイプライン実行（DL→Demucs→AssemblyAI→話者ID→SRTマージ\
-    \ 一発完結）\n```\ncd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts\n\
-    source ~/.bashrc && python3 vocal_stt_pipeline.py \\\n  \"/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/input/9bK6yDYwHng.mp4\"\
-    \ \\\n  --output \"/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/merged.json\"\
-    \ \\\n  --work-dir \"/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/\"\
-    \ \\\n  --cache\n```\n\n### 注意\n- Demucs一発投入禁止（スクリプトが600秒チャンク分割を自動処理）\n- A/B/Cラベルが残っていたら報告\n\
-    \n### テスト手順\n- ls /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/merged.json\
-    \ → ファイル存在確認\n- words先頭10件のspeakerが実名であること（A/B/C不可）\n\n### 完了後\n```\nbash /home/murakami/multi-agent-shogun/scripts/ntfy.sh\
-    \ \"\U0001F4DD STTマージ完了 9bK6yDYwHng cmd_1233\"\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
-    \ karo \"足軽2号、subtask_1233a完了。STTマージ済み。merged.jsonパス・話者ラベル確認結果を報告。\" report_done\
-    \ ashigaru2\n```\n"
-  parent_cmd: cmd_1233
-  report_to: karo
-  status: done
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】
-  task_id: subtask_1233a
-  timestamp: '2026-04-06T20:49:13'
-- bloom_level: L5
-  description: '## HL/SH候補選定（集合知） — 9bK6yDYwHng 足軽2号 — cmd_1233
-
-
-    ### インプット
-
-    `projects/dozle_kirinuki/shared_context/collective_9bK6yDYwHng.md` を読んでから作業開始せよ。
-
-
-    ### ⭐ 重点分析（最重要）
-
-    お題発生タイムスタンプ周辺を必ず分析せよ:
-
-    `4:14 / 6:58 / 9:48 / 14:08 / 19:00 / 22:44 / 29:26 / 32:29 / 35:39 / 39:44 /
-    41:12 / 43:58`
-
-    各シーンで何のお題が出て、どんな面白い反応・展開があったかを特定せよ。
-
-    殿は「お題シーン」の漫画ショート化を検討中。
-
-
-    ### タスク
-
-    「仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】」を独立分析し、
-
-    HL/SH候補（特にお題シーン）を選定する。他の足軽の意見を見る前に自分の分析を完成させよ。
-
-
-    ### 必読コンテキスト
-
-    - `projects/dozle_kirinuki/context/highlight_knowledge.md`（§3.2・§3.3.1）
-
-    - `projects/dozle_kirinuki/context/shorts_knowledge.md`
-
-    - `projects/dozle_kirinuki/context/expression_design_v5.md`
-
-
-    ### 出力先
-
-    `/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/collective_2.md`
-
-
-    ### 出力形式
-
-    ```markdown
-
-    # HL/SH候補選定 — 9bK6yDYwHng 足軽2号
-
-
-    ## お題シーン分析（重点）
-
-    | タイムスタンプ | お題内容 | 面白ポイント | 漫画向き度 |
-
-    |-------------|---------|------------|----------|
-
-    | 4:14 | ... | ... | ★★★ |
-
-    ...
-
-
-    ## HL候補（最大6件）
-
-    ...
-
-
-    ## SH候補（最大4件）
-
-    ...
-
-
-    ## 総評・漫画ショート推薦シーン
-
-    ...
-
-    ```
-
-
-    ### 完了後
-
-    ```
-
-    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1233b2完了。HL/SH候補選定済み。お題シーン分析済み。"
-    report_done ashigaru2
-
-    ```
-
-    '
-  parent_cmd: cmd_1233
-  report_to: karo
-  shared_context: projects/dozle_kirinuki/shared_context/collective_9bK6yDYwHng.md
-  status: done
-  task_id: subtask_1233b2
-  timestamp: '2026-04-06T21:01:51'
-- bloom_level: L4
-  description: "## cmd_1238 Phase1: 12お題 panels JSON一括作成\n\n### 概要\n動画「仲間の気持ちがわかればチートになる世界でエンドラ討伐！」(9bK6yDYwHng)の\n\
-    全12お題シーンについて、panels JSONを12本作成する。\n\n### 必読ファイル（作業前に全部読め）\n1. `projects/dozle_kirinuki/context/manga_composition_knowledge.md`\n\
-    2. `projects/dozle_kirinuki/context/expression_design_v5.md`\n3. `projects/dozle_kirinuki/context/member_profiles.yaml`\n\
-    4. `queue/reports/gunshi_report_cmd1233_collective.yaml` （漫画ショート候補の構成案）\n5. SRT:\
-    \ `projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/merged.srt`\n\
-    \   ※各お題時間帯の前後2分を読んでセリフを正確に拾え\n6. 参考panels: `projects/dozle_kirinuki/work/20260406_一粒の種から億万長者になるまで終われません！【マイクラ】/output/manga_juuki/panels_juuki.json`\n\
-    \   ※フォーマット参照用\n\n### 動画のお題一覧（12本）\n\n| # | 時間 | OK（正解ワード） | NG（禁止ワード） | シチュエーション\
-    \ |\n|---|------|----------|----------|--------------|\n| 01 | 4:14 | あちらのお客様からです\
-    \ | かしこまりました | 居酒屋/レストラン |\n| 02 | 6:58 | 私のために争わないで！ | 一旦落ち着け！ | 恋愛三角関係 |\n|\
-    \ 03 | 9:48 | お待たせしました | ご注文をお伺いします | 新入社員/飲食店 |\n| 04 | 14:08 | 早く寝なさい | 落ち着きなさい\
-    \ | ママとゲーム |\n| 05 | 19:00 | ご飯食べに行こう | お腹空いた | 社畜相談/焼肉 |\n| 06 | 22:44 | ビビディバビディブー\
-    \ | シンデレラ | 歌詞当て |\n| 07 | 29:26 | まかせろり！ | 無理だよ | 任務受諾 |\n| 08 | 32:29 | この中にお医者様はいませんか？\
-    \ | 誰か助けて！ | 医者探し |\n| 09 | 35:39 | 先生はトイレじゃありません | 席に着きなさい | 授業中トイレ |\n| 10 |\
-    \ 39:44 | 前の車を追ってください | 急いでください | タクシー追跡 |\n| 11 | 41:12 | 今夜はカレーよ！ | 何か食べたいの？\
-    \ | 夕食の会話 |\n| 12 | 43:58 | ウチュウセンコワレタ | ワレワレハウチュウジンダ | 宇宙人遭遇 |\n\n### panels\
-    \ JSON形式の要件\n- 各JSON: 4〜6パネル構成\n- panels_juuki.jsonのフォーマットを必ず踏襲すること\n- **MENは必ず目にゴーグル**（ゴーグルなしMENは絶対NG）\n\
-    - アイコン吹き出しにはref_image必須（member_profiles.yamlのref画像を参照）\n- デフォルメ禁止（リアル調を維持）\n-\
-    \ manga_composition_knowledge.md の S1/S2/S3構図パターンを使う\n- expression_design_v5.md\
-    \ のスタイルガイドに従う\n- 各パネルにdirector_notesで場面文脈を明記（何が起きているか・笑いのポイント）\n- SRTから実際のセリフを拾い、テロップに使用\n\
-    \n### 出力先\n```\nprojects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai/panels_odai_01.json\n\
-    ...（01〜12まで）\n```\nディレクトリが存在しなければ作成せよ。\n\n### 完了条件\n- 12本のpanels JSONが全て作成されていること\n\
-    - 各JSONが有効なJSONであること（python3 -m json.tool で検証）\n\n### 完了後\n```bash\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
-    \ karo \"足軽2号、subtask_1238a完了。12本のpanels JSON作成済み。Phase2（batch1生成）の指示を待つ。\" report_completed\
-    \ ashigaru2\n```\n"
-  parent_cmd: cmd_1238
-  project: dozle_kirinuki
-  purpose: 仲間の気持ちチート動画 全12お題のpanels JSON作成（Phase1）
-  report_to: karo
-  status: done
-  task_id: subtask_1238a
-  timestamp: '2026-04-07T06:05:00'
-- bloom_level: L4
-  description: "## cmd_1238 Phase1: お題04〜06 panels JSON作成（ashigaru2担当）\n\n### 概要\n\
-    動画「仲間の気持ちがわかればチートになる世界でエンドラ討伐！」(9bK6yDYwHng)の\nお題04〜06の3本のpanels JSONを作成する。\n\
-    **画像生成はまだ不要。JSONファイル作成のみ。**\n\n### 担当お題\n\n| # | 時間 | OK（正解ワード） | NG（禁止ワード） |\
-    \ シチュエーション |\n|---|------|----------|----------|--------------|\n| 04 | 14:08\
-    \ | 早く寝なさい | 落ち着きなさい | ママとゲーム |\n| 05 | 19:00 | ご飯食べに行こう | お腹空いた | 社畜相談/焼肉 |\n\
-    | 06 | 22:44 | ビビディバビディブー | シンデレラ | 歌詞当て |\n\n\n### 必読ファイル（作業前に全部読め）\n1. `projects/dozle_kirinuki/context/manga_composition_knowledge.md`\n\
-    2. `projects/dozle_kirinuki/context/expression_design_v5.md`\n3. `projects/dozle_kirinuki/context/member_profiles.yaml`\n\
-    4. `queue/reports/gunshi_report_cmd1233_collective.yaml` （漫画ショート候補の構成案）\n5. SRT:\
-    \ `/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/merged.srt`\n\
-    \   ※各お題時間帯の前後2分を読んでセリフを正確に拾え\n6. 参考panels: `projects/dozle_kirinuki/work/20260406_一粒の種から億万長者になるまで終われません！【マイクラ】/output/manga_juuki/panels_juuki.json`\n\
-    \   ※フォーマット参照用\n\n### panels JSON要件\n- 各JSON: 4〜6パネル構成\n- panels_juuki.jsonのフォーマットを必ず踏襲すること\n\
-    - **MENは必ず目にゴーグル**（ゴーグルなしMENは絶対NG）\n- アイコン吹き出しにはref_image必須（member_profiles.yamlのref画像を参照）\n\
-    - デフォルメ禁止\n- manga_composition_knowledge.md のS1/S2/S3構図パターンを使う\n- expression_design_v5.md\
-    \ のスタイルガイドに従う\n- director_notesで場面文脈を明記（何が起きているか・笑いのポイント）\n- SRTから実際のセリフを拾いテロップに使用\n\
-    \n### 出力先\n`/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai/panels_odai_XX.json`（XX=2桁数字）\n\
-    ディレクトリが存在しなければ作成せよ。\n\n### 完了条件\n- 担当の3本のpanels JSONが全て作成されていること\n- 各JSONが有効なJSONであること（python3\
-    \ -m json.tool で検証）\n\n\n### 出力ファイル（3本）\n- `/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai/panels_odai_04.json`\n\
-    - `/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai/panels_odai_05.json`\n\
-    - `/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai/panels_odai_06.json`\n\
-    \n### 完了後\n```bash\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
-    \ karo \"ashigaru2、subtask_1238a2完了。お題04/05/06 panels JSON 3本作成済み。\" report_completed\
-    \ ashigaru2\n```\n"
-  parent_cmd: cmd_1238
-  project: dozle_kirinuki
-  purpose: お題04〜06 panels JSON作成（4:ママとゲーム / 5:社畜相談/焼肉 / 6:歌詞当て）
-  report_to: karo
-  status: done
-  task_id: subtask_1238a2
-  timestamp: '2026-04-07T08:10:00'
-- bloom_level: L3
-  description: "## cmd_1242: note下書きをGistリンク版に更新\n\n### 概要\nnote記事のコードブロックをGistリンクに差し替えた更新版MDを、ChromeCDP経由で下書きに反映する。\n\
-    公開禁止。下書き保存のみ。\n\n### 対象\n- note下書きURL: https://note.com/n/ncdfbdfeeadd4\n- 更新後のMDファイル:\
-    \ `/home/murakami/multi-agent-shogun/projects/note_mcp_server/articles/dont_let_ai_write_tests.md`\n\
-    \  （コードブロック4箇所をGistリンク3つに差し替え済み）\n\n### 手順\n\n#### Step 1: Chrome CDP起動確認\n```bash\n\
-    curl -s http://localhost:9222/json/version | python3 -m json.tool | head -5\n\
-    ```\n- 接続できない場合: `google-chrome --remote-debugging-port=9222 --user-data-dir=$HOME/.chrome-cdp\
-    \ --no-first-run &`\n- 接続できても note.com のタブがない場合は新規タブを開く\n\n#### Step 2: note-edit.jsで本文更新\n\
-    ```bash\ncd /home/murakami/multi-agent-shogun/projects/note_mcp_server\nnode scripts/note-edit.js\
-    \ \\\n  --action=edit \\\n  --url=\"https://note.com/n/ncdfbdfeeadd4\" \\\n  --body-file=\"\
-    /home/murakami/multi-agent-shogun/projects/note_mcp_server/articles/dont_let_ai_write_tests.md\"\
-    \n```\n\n#### Step 3: 挿絵確認\nnote-edit.jsの実行ログを確認:\n- 挿絵（画像）が消えていないか確認\n- もし画像が消えたログが出ていれば\
-    \ insert_images.js で再挿入（ただし挿絵パスが不明なら karo inbox_write で報告してブロック）\n- 問題なければそのまま次へ\n\
-    \n#### Step 4: 下書き保存\n```bash\nnode scripts/note-edit.js \\\n  --action=save \\\
-    \n  --url=\"https://note.com/n/ncdfbdfeeadd4\"\n```\nまたは note-edit.js が save まで自動でやる場合はStep2完了で終了。\n\
-    \n#### Step 5: ntfy通知\n```bash\nbash /home/murakami/multi-agent-shogun/scripts/ntfy.sh\
-    \ \"\U0001F4DD note下書き更新（Gist版）cmd_1242\"\n```\n\n### 完了後\n```bash\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
-    \ karo \\\n  \"足軽2号、subtask_1242a完了。note下書きGist版更新済み。挿絵確認済み。\" \\\n  report_completed\
-    \ ashigaru2\n```\n\n### 注意\n- 公開禁止。下書き保存のみ\n- note-edit.jsが存在するか先に確認: `ls projects/note_mcp_server/scripts/note-edit.js`\n\
-    - ntfyはTailscale IP 100.66.15.93 使用（192.168.2.7禁止）\n"
-  parent_cmd: cmd_1242
-  project: note_mcp_server
-  purpose: note下書き「AIにテストコードを書かせるな」をGistリンク版に更新
-  report_to: karo
-  status: done
-  task_id: subtask_1242a
-  timestamp: '2026-04-07T12:22:00'
-- bloom_level: L3
-  description: "## cmd_1244: note挿絵3枚にキャプション設定\n\n### 概要\nnote下書きの挿絵3枚に以下のキャプションを設定する。\n\
-    Playwrightでnoteエディタを操作する。公開禁止。下書き保存のみ。\n\n### 対象\n- note下書きURL: https://note.com/n/ncdfbdfeeadd4\n\
-    \n### 設定するキャプション\n\n| 画像 | キャプション |\n|------|-------------|\n| illust_same_name（1枚目）\
-    \ | 6人が喋っているのに、全員の名前が同じだった |\n| illust_useless_test（2枚目） | AIは通るテストしか書かない |\n\
-    | illust_night_audit（3枚目） | 夜間に無人で矛盾レポートが届く |\n\n### 手順\n\n#### Step 1: Chrome\
-    \ CDP起動確認\n```bash\ncurl -s http://localhost:9222/json/version | python3 -m json.tool\
-    \ | head -3\n```\n接続できない場合:\n```bash\ngoogle-chrome --remote-debugging-port=9222\
-    \ --user-data-dir=$HOME/.chrome-cdp --no-first-run &\nsleep 3\n```\n\n#### Step\
-    \ 2: Playwrightスクリプトでキャプション設定\n以下のPythonスクリプトを作成して実行（または既存のCDPスクリプトパターンに従う）:\n\
-    \n```python\n# /tmp/set_captions.py\nfrom playwright.sync_api import sync_playwright\n\
-    import time\n\ncaptions = [\n    \"6人が喋っているのに、全員の名前が同じだった\",\n    \"AIは通るテストしか書かない\"\
-    ,\n    \"夜間に無人で矛盾レポートが届く\",\n]\n\nwith sync_playwright() as p:\n    browser =\
-    \ p.chromium.connect_over_cdp(\"http://localhost:9222\")\n    context = browser.contexts[0]\n\
-    \    # noteの下書き編集ページを探す\n    page = None\n    for pg in context.pages:\n     \
-    \   if \"note.com/n/ncdfbdfeeadd4\" in pg.url or \"note.com\" in pg.url:\n   \
-    \         page = pg\n            break\n    if page is None:\n        page = context.new_page()\n\
-    \        page.goto(\"https://note.com/n/ncdfbdfeeadd4/edit\")\n        time.sleep(3)\n\
-    \n    # 画像のキャプション入力欄を探して設定\n    # noteエディタでは画像の下に「キャプションを入力」テキストエリアがある\n    caption_inputs\
-    \ = page.query_selector_all('[placeholder=\"キャプションを入力\"]')\n    print(f\"キャプション入力欄数:\
-    \ {len(caption_inputs)}\")\n    for i, inp in enumerate(caption_inputs):\n   \
-    \     if i < len(captions):\n            inp.click()\n            inp.fill(captions[i])\n\
-    \            print(f\"キャプション{i+1}設定: {captions[i]}\")\n            time.sleep(0.5)\n\
-    \n    # 下書き保存\n    time.sleep(1)\n    # Ctrl+S または保存ボタンをクリック\n    save_btn = page.query_selector('button[data-v-save],\
-    \ button:has-text(\"下書き保存\")')\n    if save_btn:\n        save_btn.click()\n \
-    \   else:\n        page.keyboard.press(\"Control+s\")\n    time.sleep(2)\n   \
-    \ print(\"下書き保存完了\")\n```\n```bash\npython3 /tmp/set_captions.py\n```\n\n※ 上記はテンプレート。実際のnoteエディタのDOM構造を確認してから調整せよ。\n\
-    ※ 既存のnote操作スクリプト（projects/note_mcp_server/scripts/）に参考になるものがあれば活用せよ。\n\n#### Step\
-    \ 3: キャプション設定確認\n- 3枚全てにキャプションが設定されていることを確認\n- 「キャプションを入力」のままの画像が0枚であること\n\n####\
-    \ Step 4: ntfy通知\n```bash\nbash /home/murakami/multi-agent-shogun/scripts/ntfy.sh\
-    \ \"\U0001F4DD noteキャプション設定完了 cmd_1244\"\n```\n\n### 完了後\n```bash\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
-    \ karo \\\n  \"足軽2号、subtask_1244a完了。挿絵3枚キャプション設定済み。下書き保存確認。\" \\\n  report_completed\
-    \ ashigaru2\n```\n\n### 注意\n- 公開禁止（下書きのまま）\n- ntfyはTailscale IP 100.66.15.93 使用（192.168.2.7禁止）\n\
-    - キャプション文字列は正確に入力せよ（句読点含む）\n"
-  parent_cmd: cmd_1244
-  project: note_mcp_server
-  purpose: note下書き「AIにテストコードを書かせるな」挿絵3枚にキャプション設定
-  report_to: karo
-  status: done
-  task_id: subtask_1244a
-  timestamp: '2026-04-07T12:44:00'
-- bloom_level: L3
-  description: "## cmd_1249-B: おらふ名場面集 クリップ作成【急ぎ】\n\n### 概要\n5シーンのYouTube URLから該当区間をDL→クリップ切り出し→テロップ追加→結合→YouTube非公開アップ。\n\
-    殿の確認用なのでクオリティは仮でOK。\n\n### 作業ディレクトリ\n```bash\nmkdir -p projects/dozle_kirinuki/work/orafu_meibamen_clips\n\
-    cd projects/dozle_kirinuki/work/orafu_meibamen_clips\n```\n\n### 5シーン一覧\n| No\
-    \ | URL | 開始秒 | シーン名 |\n|----|-----|--------|---------|\n| 1 | https://youtu.be/YXxLXD6oUDE\
-    \ | 1522 | 鍾乳洞きれいにする |\n| 2 | https://youtu.be/yDlQ9rIPjFg | 988 | 録音音声のみエンドラ討伐\
-    \ |\n| 3 | https://youtu.be/WeF0Onmox7E | 3333 | ダイヤ納品 |\n| 4 | https://youtu.be/-UOjFo56QlQ\
-    \ | 580 | キッズ下水道サバイバル |\n| 5 | https://youtu.be/-7JeegM8Lfs | 2608 | 裏切り者サバイバル#2\
-    \ |\n\n### Step 1: 各動画をDL（タイムスタンプから3分間）\n```bash\n# 例（各シーンで繰り返す）\nyt-dlp -f \"\
-    bestvideo[height<=1080]+bestaudio/best\" --merge-output-format mp4 \\\n  --download-sections\
-    \ \"*1522-1702\" \\\n  -o \"01_shonyudo.mp4\" \\\n  \"https://youtu.be/YXxLXD6oUDE\"\
-    \n```\n※ 各シーンのend秒 = start秒 + 120〜180（2〜3分）\n\n### Step 2: 各クリップにシーン名テロップ追加\n\
-    ```bash\n# 例（先頭3秒にテロップ）\nffmpeg -i 01_shonyudo.mp4 \\\n  -vf \"drawtext=text='鍾乳洞きれいにする':fontsize=52:fontcolor=white:x=40:y=40:box=1:boxcolor=black@0.6:boxborderw=8:enable='between(t,0,3)'\"\
-    \ \\\n  -c:v h264_nvenc -preset p4 -c:a aac -b:a 192k \\\n  01_shonyudo_title.mp4\n\
-    ```\n\n### Step 3: 5クリップを結合\n```bash\ncat > concat_list.txt << 'EOF'\nfile '01_shonyudo_title.mp4'\n\
-    file '02_rokuon_title.mp4'\nfile '03_dia_title.mp4'\nfile '04_kids_title.mp4'\n\
-    file '05_uragiri_title.mp4'\nEOF\n\nffmpeg -f concat -safe 0 -i concat_list.txt\
-    \ \\\n  -c:v h264_nvenc -preset p4 -c:a aac -b:a 192k \\\n  orafu_meibamen_all.mp4\n\
-    ```\n\n### Step 4: YouTube非公開アップ\n```bash\ncd /home/murakami/multi-agent-shogun\n\
-    python3 projects/dozle_kirinuki/scripts/youtube_uploader.py upload \\\n  projects/dozle_kirinuki/work/orafu_meibamen_clips/orafu_meibamen_all.mp4\
-    \ \\\n  --title \"おらふ名場面集 確認用クリップ集【ドズル社】\" \\\n  --privacy unlisted\n```\n\n###\
-    \ Step 5: ntfy通知（URL含む）\n```bash\nbash /home/murakami/multi-agent-shogun/scripts/ntfy.sh\
-    \ \"\U0001F3AC おらふ名場面集アップ完了 cmd_1249 {YouTube_URL}\"\n```\n\n### 完了後\n```bash\n\
-    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \\\n  \"足軽2号、subtask_1249b完了。おらふ名場面集5シーン結合+YouTube非公開アップ完了。URL:\
-    \ {YouTube_URL}\" \\\n  report_completed ashigaru2\n```\n\n### 注意\n- ffmpegはh264_nvenc必須（libx264禁止）\n\
-    - YouTube非公開は --privacy unlisted（privateではなくunlisted）\n- ntfyはTailscale IP 100.66.15.93\
-    \ 使用（192.168.2.7禁止）\n- クリップは確認用なので仮品質でOK（2〜3分/シーン）\n"
-  parent_cmd: cmd_1249
-  project: dozle_kirinuki
-  purpose: おらふ名場面集5シーンのクリップ切り出し→結合→YouTube非公開アップ
-  report_to: karo
-  status: done
-  task_id: subtask_1249b
-  timestamp: '2026-04-07T18:52:00'
-- task_id: subtask_1251a
-  parent_cmd: cmd_1251
-  timestamp: '2026-04-07T19:55:00'
-  project: dozle_kirinuki
-  purpose: 新着動画ZJuP6zxDnTMのSTTパイプライン完走（DL→Demucs→AssemblyAI→話者実名変換→SRTマージ）
-  status: done
-  report_to: karo
-  steps: |
-    ## 前提確認
-    ```bash
-    ls projects/dozle_kirinuki/work/ | grep ZJuP6zxDnTM  # 既存中間成果物確認
-    cat skills/video-pipeline/README.md 2>/dev/null || ls skills/video-pipeline/
-    ```
-
-    ## Step 1: video-pipelineスキルを確認して実行
-    ```bash
-    # スキル確認
-    ls skills/video-pipeline/
-    # パイプライン実行（vocal_stt_pipeline.py）
-    cd /home/murakami/multi-agent-shogun
-    python3 scripts/vocal_stt_pipeline.py \
-      --video-id ZJuP6zxDnTM \
-      --url "https://youtu.be/ZJuP6zxDnTM" \
-      --work-dir projects/dozle_kirinuki/work/ \
-      --skip-existing  # 中間成果物があればスキップ
-    ```
-    ※スクリプトの引数はREADMEや既存コードを確認して合わせること
-
-    ## Step 2: STTマージ
-    ```bash
-    python3 scripts/stt_merge.py \
-      --video-id ZJuP6zxDnTM \
-      --work-dir projects/dozle_kirinuki/work/
-    # → merged_ZJuP6zxDnTM.srt 生成
-    ```
-
-    ## Step 3: 話者ラベル確認
-    ```bash
-    grep "^[A-Z]:" projects/dozle_kirinuki/work/*/merged_ZJuP6zxDnTM.srt | head -20
-    # A/B/C等アルファベット残存がないことを確認
-    ```
-
-    ## Step 4: git commit
-    ```bash
-    git add projects/dozle_kirinuki/work/
-    git commit -m "feat(cmd_1251): ZJuP6zxDnTM STTパイプライン完了"
-    ```
-
-    ## Step 5: ntfy + karo報告
-    ```bash
-    bash scripts/ntfy.sh "🎤 STT完了 ZJuP6zxDnTM 体力と手持ちが共有の地下世界 cmd_1251"
-    bash scripts/inbox_write.sh karo \
-      "足軽2号、subtask_1251a完了。merged_ZJuP6zxDnTM.srt生成済み。話者実名変換OK。git commit済み。" \
-      report_completed ashigaru2
-    ```
-
-    ## 注意事項
-    - STTはAssemblyAI（Gemini STT禁止）
-    - 話者IDは実名必須（A/B/Cアルファベット不可）— projects/dozle_kirinuki/context/member_profiles.yaml参照
-    - 中間成果物はwork/{動画ディレクトリ}/配下に保存（/tmp禁止）
-    - ffmpegはh264_nvenc（libx264禁止）
-    - 既存scripts/vocal_stt_pipeline.py + stt_merge.py を使え（新規スクリプト作成禁止）
-    - スクリプトが見つからない場合はscripts/配下を確認してから報告
-    - ntfyはTailscale IP 100.66.15.93 を使え（192.168.2.7禁止）
-- task_id: subtask_1256b
-  parent_cmd: cmd_1256
-  timestamp: '2026-04-07T22:35:00'
-  project: crowdworks_china_shorts
-  purpose: 動画②ドバイ高級店パン(x_1991109320361038018) を構成テーブル通りにffmpeg編集→38秒縦長MP4出力
-  status: done
-  report_to: karo
-  steps: |
-    ## 素材
-    - 元動画: projects/crowdworks_china_shorts/work/x_1991109320361038018/source.mp4（48秒・縦長13MB）
-    - narration_1.wav: .../narration_1.wav
-    - narration_2.wav: .../narration_2.wav
-    - narration_3.wav: .../narration_3.wav
-    - 出力: projects/crowdworks_china_shorts/work/x_1991109320361038018/output.mp4
-    - フォント: /home/murakami/.local/share/fonts/GenEiAntiqueNv6-M.ttf
-
-    ## 解像度確認（先に実行）
-    ```bash
-    ffprobe -v quiet -show_streams -of json \
-      projects/crowdworks_china_shorts/work/x_1991109320361038018/source.mp4 | \
-      python3 -c "import json,sys; d=json.load(sys.stdin); [print(s['width'],'x',s['height']) for s in d['streams'] if s['codec_type']=='video']"
-    ```
-
-    ## 構成（38秒）
-    | 出力秒 | 元タイムスタンプ | 音声 |
-    |--------|----------------|------|
-    | 0-2    | 元0:42-0:44    | 元音声「アリガトウ」（フック） |
-    | 2-5    | 元0:00-0:05    | ナレ1（元音声-12dB） |
-    | 5-11   | 元0:07-0:13    | 元音声+字幕 |
-    | 11-17  | 元0:15-0:21    | 元音声+字幕 |
-    | 17-20  | 元0:22-0:26    | ナレ2（元音声-12dB） |
-    | 20-27  | 元0:28-0:35    | 元音声+字幕 |
-    | 27-30  | 元0:38-0:39    | ナレ3（元音声-12dB） |
-    | 30-37  | 元0:39-0:44    | 元音声（リフレイン） |
-    | 37-38  | ブラックアウト  | 無音 |
-
-    ## 字幕テキスト
-    - 0:00 「アリガトウ」
-    - 0:05-0:11:「お金持ちは豪華なご飯を食べに来るけど」「お金がない人は無料のパンをもらいに来るの」「このパンは無料なの」
-    - 0:11-0:17:「ありえないくらい硬い」「噛みすぎて顎が痛い」
-    - 0:20-0:27:「このパスタ、320元もするの」「高すぎてとても手が出ない」
-    - 0:33 「アリガトウ」
-
-    ## 実装方針
-    ```bash
-    WD="projects/crowdworks_china_shorts/work/x_1991109320361038018"
-    SRC="$WD/source.mp4"
-    FONT="/home/murakami/.local/share/fonts/GenEiAntiqueNv6-M.ttf"
-
-    # Step 1: セグメント切り出し（元が縦長なのでcrop不要の可能性）
-    ffmpeg -ss 42 -t 2  -i "$SRC" -c copy "$WD/seg1.mp4" -y
-    ffmpeg -ss 0  -t 5  -i "$SRC" -c copy "$WD/seg2.mp4" -y
-    # ... 以下同様
-    ```
-
-    ## 注意
-    - 元動画が縦長の場合はクロップ不要（解像度確認を先に行うこと）
-    - 横長の場合のみ crop=1080:1920:420:0 を適用
-    - ffmpegはh264_nvenc（libx264禁止）
-    - ナレ部分: 元音声を volume=0.25（-12dB相当）に下げてミックス
-    - 字幕: drawtext（源暎アンチック・下部中央・白+黒縁取り）
-    - ブラックアウト1秒: color=c=black+anullsrc
-    - 各セグメントを r=25 / ar=44100 / ac=2 で統一してからconcat
-
-    ## 完了後
-    ```bash
-    ffprobe -v quiet -show_entries format=duration \
-      projects/crowdworks_china_shorts/work/x_1991109320361038018/output.mp4
-    bash scripts/inbox_write.sh karo \
-      "足軽2号、subtask_1256b完了。動画②ドバイ output.mp4 生成済み。尺: {秒}秒。" \
-      report_completed ashigaru2
-    ```
-- task_id: subtask_1257b
-  parent_cmd: cmd_1257
-  timestamp: '2026-04-07T22:55:00'
-  project: crowdworks_china_shorts
-  purpose: 動画①スウェーデン output.mp4をYouTube非公開（unlisted）アップ
-  status: done
-  report_to: karo
-  steps: |
-    ## 実行
-    ```bash
-    cd /home/murakami/multi-agent-shogun
-    python3 projects/dozle_kirinuki/scripts/youtube_uploader.py upload \
-      projects/crowdworks_china_shorts/work/4pPGM62Rb18/output.mp4 \
-      --title "【衝撃】スウェーデンで中国人が路上で崩れ落ちた（確認用）" \
-      --privacy unlisted
-    ```
-
-    ## 完了後
-    ```bash
-    bash scripts/ntfy.sh "🎬 中国系ショート①スウェーデン 非公開アップ完了 cmd_1257 {URL}"
-    bash scripts/inbox_write.sh karo \
-      "足軽2号、subtask_1257b完了。スウェーデン動画 非公開アップ完了。URL: {URL}" \
-      report_completed ashigaru2
-    ```
-- task_id: subtask_1259c
-  parent_cmd: cmd_1259
-  timestamp: '2026-04-07T23:13:00'
-  project: crowdworks_china_shorts
-  purpose: test_layers5.mp4をYouTube非公開（unlisted）アップ
-  status: done
-  report_to: karo
-  steps: |
-    ## 実行
-    ```bash
-    cd /home/murakami/multi-agent-shogun
-    python3 projects/dozle_kirinuki/scripts/youtube_uploader.py upload \
-      projects/crowdworks_china_shorts/work/x_1991109320361038018/test_layers5.mp4 \
-      --title "レイヤーテストv5（ドバイ10秒）" \
-      --privacy unlisted
-    # アップ後、VIDEO_IDを取得してunlisted修正（既知バグ対策）
-    python3 projects/dozle_kirinuki/scripts/youtube_uploader.py publish \
-      {VIDEO_ID} --visibility unlisted
-    ```
-    ## 完了後
-    ```bash
-    bash scripts/ntfy.sh "🎬 レイヤーテストv5 非公開アップ完了 {URL}"
-    bash scripts/inbox_write.sh karo \
-      "足軽2号、subtask_1259c完了。test_layers5.mp4 unlisted アップ完了。URL: {URL}" \
-      report_completed ashigaru2
-    ```
-- task_id: subtask_1259d
-  parent_cmd: cmd_1259
-  timestamp: '2026-04-07T23:20:00'
-  project: crowdworks_china_shorts
-  purpose: test_layers6.mp4をYouTube非公開（unlisted）アップ
-  status: done
-  report_to: karo
-  steps: |
-    ## 実行
-    ```bash
-    cd /home/murakami/multi-agent-shogun
-    python3 projects/dozle_kirinuki/scripts/youtube_uploader.py upload \
-      projects/crowdworks_china_shorts/work/x_1991109320361038018/test_layers6.mp4 \
-      --title "レイヤーテストv6（ドバイ10秒）" \
-      --privacy unlisted
-    python3 projects/dozle_kirinuki/scripts/youtube_uploader.py publish \
-      {VIDEO_ID} --visibility unlisted
-    ```
-    ## 完了後
-    ```bash
-    bash scripts/ntfy.sh "🎬 レイヤーテストv6 非公開アップ完了 {URL}"
-    bash scripts/inbox_write.sh karo \
-      "足軽2号、subtask_1259d完了。test_layers6.mp4 unlisted アップ完了。URL: {URL}" \
-      report_completed ashigaru2
-    ```
-- task_id: subtask_1259f
-  parent_cmd: cmd_1259
-  timestamp: '2026-04-08T05:12:00'
-  project: crowdworks_china_shorts
-  purpose: final_output.mp4をYouTube非公開（unlisted）アップ
-  status: done
-  report_to: karo
-  steps: |
-    ## 実行
-    ```bash
-    cd /home/murakami/multi-agent-shogun
-    python3 projects/dozle_kirinuki/scripts/youtube_uploader.py upload \
-      projects/crowdworks_china_shorts/work/x_1991109320361038018/final_output.mp4 \
-      --title "ドバイ高級店パン 将軍編集版" \
-      --privacy unlisted
-    python3 projects/dozle_kirinuki/scripts/youtube_uploader.py publish \
-      {VIDEO_ID} --visibility unlisted
-    ```
-    ## 完了後
-    ```bash
-    bash scripts/ntfy.sh "🎬 ドバイ高級店パン 将軍編集版 非公開アップ完了 {URL}"
-    bash scripts/inbox_write.sh karo \
-      "足軽2号、subtask_1259f完了。final_output.mp4 unlisted アップ完了。URL: {URL}" \
-      report_completed ashigaru2
-    ```
-
-- task_id: subtask_1269a
-  parent_cmd: cmd_1269
-  status: done
-  assigned_to: ashigaru2
-  bloom_level: L2
-  priority: medium
-  title: "OAuth token.json をリポジトリから除外（.gitignore + git rm --cached）"
-  project: multi-agent-shogun
-  timestamp: '2026-04-09T00:14:33'
-  steps: |
-    ## 目的
-    token.jsonがリポジトリに追跡されている。.gitignoreに追加しgit rm --cachedで除外する。
-    ファイル自体は削除しない。
-
-    ## 作業ディレクトリ
-    /home/murakami/multi-agent-shogun
-
-    ## 手順
-
-    ### Step1: token.jsonの場所確認
-    ```bash
-    cd /home/murakami/multi-agent-shogun
-    git ls-files | grep token.json
-    ```
-
-    ### Step2: .gitignoreに追加
-    ```bash
-    # .gitignoreにtoken.jsonのパスを追加（既にある場合はスキップ）
-    grep -n "token.json" /home/murakami/multi-agent-shogun/.gitignore || \
-      echo "token.json" >> /home/murakami/multi-agent-shogun/.gitignore
-    ```
-    もしサブディレクトリ内のtoken.jsonであれば、そのパターンも追加。
-
-    ### Step3: git rm --cached
-    ```bash
-    cd /home/murakami/multi-agent-shogun
-    git rm --cached <token.jsonのパス>
-    ```
-
-    ### Step4: 動作確認
-    ```bash
-    git status  # token.jsonが「deleted from index」で表示されること
-    git ls-files | grep token.json  # 0件であること
-    ```
-
-    ### Step5: git commit
-    ```bash
-    cd /home/murakami/multi-agent-shogun
-    git add .gitignore
-    git commit -m "security: OAuth token.jsonをgit追跡から除外"
-    ```
-    ※ git pushは家老が実施。足軽はpush禁止。
-
-    ### Step6: 完了報告
-    ```bash
-    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
-      "足軽2号、subtask_1269a完了。token.json .gitignore追加+git rm --cached完了。commit: {HASH}" \
-      report_completed ashigaru2
-    ```
-
-    ## テスト確認
-    - git ls-files | grep token.json → 0件
-    - token.jsonファイルがディスクに存在すること（削除されていないこと）
-    - git status がcleanであること
-
-- task_id: subtask_1270a
-  parent_cmd: cmd_1270
-  status: assigned
   assigned_to: ashigaru2
   bloom_level: L4
-  priority: high
-  title: "お題漫画「私のために争わないで」6枚新規生成"
-  project: dozle_kirinuki
-  timestamp: '2026-04-09T06:19:00'
+  procedure: shared_context/procedures/manga_panel_gen.md
+  params:
+    panels_json: "projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/panels_genshijin.json"
+    panel_ids: [p1_yakutatazu, p2_ode_okotta, p3_bed_trap, p4_taeta, p5_omoshiroi_uta, p6_gratan, p7_zettai_yada]
+    output_dir: "projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_genshijin"
   steps: |
-    ## 目的
-    お題2「私のために争わないで」の漫画パネル6枚をVertex AIで新規生成する。
-    panels_odai_arasowanaide.jsonを使い、1枚ずつ順番に生成。
+    Step1: procedure記載の手順に従い7パネルをVertex AIで1枚ずつ生成。終わったらギャラリーHTML作成してkaroへ報告。
 
-    ## 入力
-    WORK="/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai"
-    - panels JSON: $WORK/panels_odai_arasowanaide.json（最新版を必ず読むこと）
-    - 出力先: $WORK/manga_odai_arasowanaide/（新規ディレクトリ作成が必要）
-    - 生成スクリプト参考: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py
+    ## 重要な描画ルール
+    - ドズルは全パネルで「原始人キャラ」：上半身裸・腰巻き・金髪・筋肉質。鎧・剣・ダイヤ装備禁止。
+    - P2のみ石の斧を持たせてよい。他パネルは武器・盾・バケツ禁止。
+    - ぼんじゅうるはサングラス着用の平安貴族風キャラ。
+    - APIキー: source /home/murakami/multi-agent-shogun/config/vertex_api_key.env（VERTEX_API_KEY）
+    - expression_design_v5.md必須参照
+
+    ## テスト
+    - 出力ディレクトリに7枚のPNGが存在すること
+    - ギャラリーHTMLを作成してURLを報告に含めること
+
+    ## 報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+      "足軽2号、subtask_1285a完了。原始人ドズル漫画7パネル生成完了。ギャラリー: {URL}" \
+      report_completed ashigaru2
+
+- task_id: subtask_1294a
+  parent_cmd: cmd_1294
+  status: done
+  assigned_to: ashigaru2
+  bloom_level: L4
+  procedure: shared_context/procedures/manga_panel_gen.md
+  params:
+    panels_json: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/panels_genshijin.json"
+    output_dir: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_genshijin/"
+    extra_flags: "--no-cache"
+  steps: |
+    Step1: source ~/.bashrc && python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py --panels /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/panels_genshijin.json --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_genshijin/ --no-cache
+
+    ## 重要な描画ルール
+    - ドズルは全パネルで「原始人キャラ」：上半身裸・腰巻き・金髪・筋肉質。鎧・剣・ダイヤ装備禁止。
+    - P2のみ石の斧を持たせてよい。他パネルは武器・盾・バケツ禁止。
+    - ぼんじゅうるはサングラス着用の平安貴族風キャラ。
+    - expression_design_v5.md必須参照
+    - APIキー: source /home/murakami/multi-agent-shogun/config/vertex_api_key.env
+
+    ## テスト
+    - 出力ディレクトリに7枚のPNGが存在すること（p1〜p7）
+
+    ## ギャラリー更新
+    - 既存ギャラリーHTMLを更新し、ブラウザアクセス可能URLを報告に含めること
+
+    ## 報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1294a完了。原始人ドズル漫画7パネル再生成完了。ギャラリー: {URL}" report_completed ashigaru2
+
+- task_id: subtask_1297a
+  parent_cmd: cmd_1297
+  status: done
+  assigned_to: ashigaru2
+  bloom_level: L4
+  procedure: shared_context/procedures/manga_panel_gen.md
+  params:
+    panels_json: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/panels_genshijin.json"
+    panel_ids: [p2_ode_okotta]
+    output_dir: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_genshijin/"
+    extra_flags: "--no-cache"
+  steps: |
+    Step1: p2_ode_okottaのみ1枚だけ再生成。504タイムアウト再試行。generate_manga_short.pyで --no-cache --panel-id p2_ode_okotta（または同等のオプション）で実行。オプションがなければ全パネル実行して既存ファイルを上書きさせよ（--no-cacheなので全再生成）。ギャラリーHTML更新後karoへ報告。
+
+    ## 重要
+    - APIキー: source /home/murakami/multi-agent-shogun/config/vertex_api_key.env
+    - 504タイムアウトが再発した場合は1〜2分待ってリトライせよ（最大3回）
+    - expression_design_v5.md必須参照
+
+    ## テスト
+    - p2_ode_okotta.pngが新しく生成されていること（タイムスタンプで確認）
+
+    ## 報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1297a完了。p2_ode_okotta再生成完了。ギャラリー: {URL}" report_completed ashigaru2
+
+- task_id: subtask_1299a
+  parent_cmd: cmd_1299
+  status: done
+  assigned_to: ashigaru2
+  bloom_level: L4
+  procedure: shared_context/procedures/manga_panel_gen.md
+  steps: |
+    Step1: 以下のコマンドをそのまま実行せよ（改変禁止・手動API禁止）。source ~/.bashrc && python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py --panels /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/panels_genshijin.json --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_genshijin/ --no-cache
+
+    ## 重要
+    - リファレンス差し替え済み（ドズル豹柄黒背景+ぼん紫束帯黒背景）
+    - ドズルは豹柄ワンショルダー原始人、ぼんは紫束帯平安貴族で描かれること
+    - APIキー: source /home/murakami/multi-agent-shogun/config/vertex_api_key.env
+
+    ## テスト
+    - 7枚全てのPNGが出力ディレクトリに存在すること
+
+    ## 報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1299a完了。原始人漫画7パネル再生成（新リファレンス版）完了。ギャラリー: {URL}" report_completed ashigaru2
+
+- task_id: subtask_1300a
+  parent_cmd: cmd_1300
+  status: done
+  assigned_to: ashigaru2
+  bloom_level: L4
+  procedure: shared_context/procedures/manga_panel_gen.md
+  steps: |
+    Step1: P1/P6のみ再生成。まず既存P2〜P5/P7をバックアップ（cp）してから --no-cache で全パネル実行。生成後、P2〜P5/P7はバックアップから復元して元の状態に戻せ。P1/P6のみ新版を残す。
+
+    ## コマンド
+    source ~/.bashrc && python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py --panels /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/panels_genshijin.json --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_genshijin/ --no-cache
+
+    ## 重要
+    - generate_manga_short.pyにパネル指定オプションがある場合はP1/P6のみ指定して実行
+    - ない場合は全パネル実行後にP2〜P5/P7をバックアップから復元
+    - P1: ナレーション枠+縦書き筆文字（吹き出し禁止）
+    - P6: ナレーション枠+縦書き筆文字（吹き出し禁止）
+    - APIキー: source /home/murakami/multi-agent-shogun/config/vertex_api_key.env
+
+    ## テスト
+    - P1/P6が新しく生成されていること（タイムスタンプ確認）
+    - P2〜P5/P7が以前のタイムスタンプのまま維持されていること
+
+    ## 報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1300a完了。P1/P6再生成（ナレーション枠版）完了。ギャラリー: {URL}" report_completed ashigaru2
+
+- task_id: subtask_1301a
+  parent_cmd: cmd_1301
+  status: done
+  assigned_to: ashigaru2
+  bloom_level: L4
+  procedure: shared_context/procedures/manga_panel_gen.md
+  steps: |
+    Step1: P1/P6/P7のみ再生成。P2〜P5は既存PNG維持。バックアップ後に --no-cache で全パネル実行→P2〜P5はバックアップから復元。
+
+    ## コマンド
+    source ~/.bashrc && python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py --panels /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/panels_genshijin.json --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_genshijin/ --no-cache
+
+    ## 重要
+    - panels_genshijin.jsonは修正済み（歌テロップfont参照指示追加）。バックアップ: panels_genshijin_backup_20260410_0816.json
+    - P1/P6: ナレーション枠+縦書き筆文字（吹き出し禁止）
+    - P7: 通常パネル（新director_notes参照）
+    - P2〜P5は既存を維持
+    - APIキー: source /home/murakami/multi-agent-shogun/config/vertex_api_key.env
+
+    ## テスト
+    - P1/P6/P7が新しく生成されていること（タイムスタンプ確認）
+    - P2〜P5が以前のタイムスタンプのまま維持されていること
+
+    ## 報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1301a完了。P1/P6/P7再生成（歌テロップfont参照版）完了。ギャラリー: {URL}" report_completed ashigaru2
+
+- task_id: subtask_1305b
+  parent_cmd: cmd_1305
+  status: done
+  assigned_to: ashigaru2
+  bloom_level: L4
+  steps: |
+    Step1: 台本23-35行目を読み、参考動画(reference_k5dRym56_Uo.mp4)のテロップスタイルを再現したASS字幕ファイルを生成。
+
+    ## 作業ディレクトリ
+    /home/murakami/multi-agent-shogun/projects/crowdworks_video_edit/work/
+
+    ## テロップスタイル（参考動画準拠）
+    - メインテロップ: 画面下部・白文字太ゴシック・黒縁取り（キーフレーズ）
+    - セクション見出し: 左上・紫背景バー+白文字（ステップ名）
+    - 英語表示: 黄色テキスト
+    - 参考: 30s=悩む女性+白テロップ、60s=黄テロップ英語、300s=紫バー見出し+白テロップ
 
     ## 手順
+    1. トライアル台本.xlsxの23-35行目を読み込む
+    2. STT stt_chunk_0.jsonのword-level timestampsと台本を照合してタイムスタンプを特定
+    3. ASS字幕形式でスタイル定義（メイン・見出し・英語の3スタイル）
+    4. テロップ内容とタイミングをASSに記述
 
-    ### Step1: 出力ディレクトリ作成
-    mkdir -p "$WORK/manga_odai_arasowanaide"
+    ## 成果物
+    work/telop.ass（ASS字幕ファイル）
 
-    ### Step2: panels_odai_arasowanaide.jsonを読む
-    全6パネルのid・director_notes・ref_images・charactersを確認する。
+    ## テスト
+    - ASSファイルが構文エラーなく生成されていること（ffmpegで--dry-run的に確認）
 
-    ### Step3: Vertex AI APIで6枚を順番に生成
-    - APIキー: source /home/murakami/multi-agent-shogun/config/vertex_api_key.env（VERTEX_API_KEY）
-    - モデル: gemini-2.0-flash-preview-image-generation
-    - 画像サイズ: 768x1376（縦長）
-    - ref_imagesが使える場合は使う。クォータ制限エラー時はテキストプロンプトのみで継続
-    - --skip-visionオプション活用で高速化可
+    ## 報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1305b完了。テロップASS生成完了。telop.ass生成。テロップ数: {count}件" report_completed ashigaru2
+- task_id: subtask_1306a
+  parent_cmd: cmd_1306
+  assigned_to: ashigaru2
+  status: done
+  bloom_level: L3
+  project: dozle_kirinuki
+  purpose: 原始人漫画P7（p7_zettai_yada）のみをVertex AI API方式で再生成する
+  steps: |
+    ## 作業ディレクトリ
+    cd /home/murakami/multi-agent-shogun
 
-    出力ファイル名はpanel idと同名:
-    - $WORK/manga_odai_arasowanaide/p1_nanda_omae.png
-    - $WORK/manga_odai_arasowanaide/p2_nandayo_oi.png
-    - $WORK/manga_odai_arasowanaide/p3_hii.png
-    - $WORK/manga_odai_arasowanaide/p4_watashi_zo.png
-    - $WORK/manga_odai_arasowanaide/p5_ore_dayo.png
-    - $WORK/manga_odai_arasowanaide/p6_arasowanaide.png
+    ## Step 1: APIキー読み込み
+    source config/vertex_api_key.env
 
-    ### Step4: ギャラリーHTML作成/更新
-    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/gallery_cmd1270.html を作成して
-    arasowanaide の全パネルPNGが表示されるようにする。
-    gallery_cmd1263.html を参考に新規作成すること。
-    HTMLのimg srcにキャッシュ回避クエリ（?t=タイムスタンプ）を追加。
-    ポート8785でアクセス可能か確認（http://192.168.2.7:8785/ で提供中）。
+    ## Step 2: 既存P7バックアップ
+    WORK_DIR="projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】"
+    mkdir -p "$WORK_DIR/manga_genshijin/backup_p7_$(date +%Y%m%d_%H%M%S)"
+    # p7_zettai_yada.png が存在する場合だけバックアップ（コピーで残す）
+    ls "$WORK_DIR/manga_genshijin/"p7_*.png 2>/dev/null && cp "$WORK_DIR/manga_genshijin/"p7_*.png "$WORK_DIR/manga_genshijin/backup_p7_$(date +%Y%m%d_%H%M%S)/" || true
+    # 既存p7_zettai_yada.pngを退避（スクリプトのSKIPを防ぐ）
+    mv "$WORK_DIR/manga_genshijin/p7_zettai_yada.png" "$WORK_DIR/manga_genshijin/p7_zettai_yada.png.bak_$(date +%Y%m%d_%H%M%S)" 2>/dev/null || true
 
-    ### Step5: 家老に報告
-    ```bash
-    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
-      "足軽2号、subtask_1270a完了。お題2「私のために争わないで」6枚生成完了。ギャラリー: work/gallery_cmd1270.html" \
-      report_completed ashigaru2
-    ```
+    ## Step 3: generate_genshijin.py 実行
+    # 既存PNG（p1-p6）はSKIPされる。p7_zettai_yada.pngが無いのでP7のみ生成される
+    source projects/dozle_kirinuki/venv/bin/activate
+    python3 "$WORK_DIR/generate_genshijin.py"
 
-    ## テスト確認
-    - 6枚のPNGが出力先に存在すること（ls $WORK/manga_odai_arasowanaide/*.png で確認）
-    - ギャラリーHTMLが作成されていること
+    ## Step 4: 生成結果確認
+    # p7_zettai_yada.png が生成されていること
+    ls -lh "$WORK_DIR/manga_genshijin/p7_zettai_yada.png"
+    # 吹き出しがないか目視確認してから報告
+
+    ## Step 5: ガチャ上限3回
+    # 品質NGなら再実行（最大3回）。3回でNGなら殿に報告してSTOP。
+
+    ## Step 6: git commit（pushは禁止）
+    git add "$WORK_DIR/manga_genshijin/p7_zettai_yada.png"
+    git commit -m "feat(cmd_1306): 原始人漫画P7再生成（吹き出し禁止・Vertex AI API方式）"
+
+    ## 品質チェック
+    - 吹き出し（speech bubble）が描かれていないこと
+    - ぼんじゅうるが絶望の表情で両手で頭を抱えていること
+    - キャラがref_bon_heian_black.png / ref_nether_5s.png と一致していること
+    - セリフはナレーション枠（四角）または画像外であること
+    - P1-P6は変更されていないこと
 
     ## 注意
-    - git commitは不要（work/はgit-ignored）
-    - ntfyは不要（karoが通知する）
-    - 生成は1枚ずつ（並列禁止・APIレート制限回避）
-    - ガチャ上限: 全パネル1回まで。個別NGパネルの再生成は殿の指示が必要
+    - 新規.py禁止。generate_genshijin.py のみ使え
+    - APIキー: source config/vertex_api_key.env（~/.bashrcのGEMINI_API_KEYは期限切れ）
+    - GCS URI方式を使う（from_bytes禁止）
+    - git push禁止（家老が行う）
+
+    ## 報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1306a完了。P7再生成完了。{吹き出し有無・品質コメント}" report_completed ashigaru2
+- task_id: subtask_1307a
+  parent_cmd: cmd_1307
+  assigned_to: ashigaru2
+  status: done
+  bloom_level: L3
+  project: dozle_kirinuki
+  purpose: 原始人漫画P7（p7_zettai_yada）を吹き出しありで再生成（cmd_1306是正・director_notes修復）
+  steps: |
+    ## 作業ディレクトリ
+    cd /home/murakami/multi-agent-shogun
+
+    ## Step 1: APIキー読み込み
+    source config/vertex_api_key.env
+    source projects/dozle_kirinuki/venv/bin/activate
+
+    WORK_DIR="projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】"
+    PANELS_JSON="$WORK_DIR/panels_genshijin.json"
+
+    ## Step 2: panels_genshijin.json の P7 director_notes を元に戻す（重要）
+    # subtask_1306aで追加された吹き出し禁止文言を削除する
+    # 正しいdirector_notes（追記前の状態）:
+    # "添付のリファレンス画像のキャラクターの外見・服装を正確に再現すること。ぼんじゅうる。絶望の表情で。両手で頭を抱え、膝から崩れ落ちるポーズ。背景は暗い集中線エフェクト。武器・盾・バケツ禁止。"
+    # Pythonで修正:
+    python3 << 'EOF'
+    import json
+    path = "projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/panels_genshijin.json"
+    with open(path) as f:
+        d = json.load(f)
+    panels = d.get('panels', d)
+    for p in panels:
+        if p.get('id') == 'p7_zettai_yada':
+            original = "添付のリファレンス画像のキャラクターの外見・服装を正確に再現すること。ぼんじゅうる。絶望の表情で。両手で頭を抱え、膝から崩れ落ちるポーズ。背景は暗い集中線エフェクト。武器・盾・バケツ禁止。"
+            p['director_notes'] = original
+            print("P7 director_notes restored:", original)
+    with open(path, 'w') as f:
+        json.dump(d, f, ensure_ascii=False, indent=2)
+    print("Done.")
+    EOF
+
+    ## Step 3: 既存P7バックアップ
+    TS=$(date +%Y%m%d_%H%M%S)
+    mkdir -p "$WORK_DIR/manga_genshijin/backup_p7_${TS}"
+    cp "$WORK_DIR/manga_genshijin/p7_zettai_yada.png" "$WORK_DIR/manga_genshijin/backup_p7_${TS}/" 2>/dev/null || true
+    # バックアップ後に削除（スクリプトのSKIPロジックを回避）
+    mv "$WORK_DIR/manga_genshijin/p7_zettai_yada.png" "$WORK_DIR/manga_genshijin/p7_zettai_yada.png.bak_${TS}" 2>/dev/null || true
+
+    ## Step 4: generate_genshijin.py 実行
+    # P1-P6はSKIP、P7のみ生成される（吹き出しあり）
+    python3 "$WORK_DIR/generate_genshijin.py"
+
+    ## Step 5: 生成結果確認
+    ls -lh "$WORK_DIR/manga_genshijin/p7_zettai_yada.png"
+    # セリフ「これ絶対使われるやつじゃん 絶対ヤダ…」が吹き出しに入っているか確認
+
+    ## ガチャ上限3回
+    # 品質NGなら再実行（最大3回）。3回でNGなら殿に報告してSTOP。
+
+    ## 品質チェック
+    - セリフ「これ絶対使われるやつじゃん 絶対ヤダ…」が吹き出し（speech bubble）に入っていること
+    - ぼんじゅうる・平安貴族・サングラスがリファレンスと一致していること
+    - ぼんが絶望の表情であること
+    - P1-P6は変更されていないこと
+
+    ## 注意
+    - 新規.py禁止。generate_genshijin.py のみ使え
+    - APIキー: source config/vertex_api_key.env
+    - git push禁止（家老が行う・work/はgit-ignoredなので実質commitも不可）
+
+    ## 報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1307a完了。P7再生成完了（吹き出しあり）。{セリフ・品質コメント}" report_completed ashigaru2
+- task_id: subtask_1309a
+  parent_cmd: cmd_1309
+  assigned_to: ashigaru2
+  status: done
+  bloom_level: L4
+  project: dozle_kirinuki
+  purpose: おんりー合流漫画P1のみ先行生成（バッチ1）→ギャラリー作成→家老に報告
+  steps: |
+    ## 作業ディレクトリ
+    cd /home/murakami/multi-agent-shogun
+    source config/vertex_api_key.env
+    source projects/dozle_kirinuki/venv/bin/activate
+
+    WORK_DIR="projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】/manga_qnly_agree"
+    PANELS_JSON="$WORK_DIR/panels_qnly_agree.json"
+    OUTPUT_DIR="$WORK_DIR/output"
+    mkdir -p "$OUTPUT_DIR"
+
+    ## Step 1: generate_qnly_agree.py を作成
+    # generate_genshijin.py を参考に panels_qnly_agree.json 用のスクリプトを作成。
+    # 保存先: projects/dozle_kirinuki/scripts/generate_qnly_agree.py
+    # 要件:
+    #   - panels_qnly_agree.json を読み込む
+    #   - 出力先: $OUTPUT_DIR/{panel_id}.png
+    #   - 既存PNGがあればSKIP（ガチャ再試行のため）
+    #   - Vertex AI API（gemini-3.1-flash-image-preview）で画像生成
+    #   - GCS URI方式でref_images渡し（from_bytes禁止）
+    #   - コマンドライン引数: --panel-id で特定パネルのみ生成可能にすること
+    # generate_genshijin.py のコア部分（Client初期化・generate_content呼び出し）をそのまま流用
+
+    ## Step 2: P1のみ生成（バッチ1）
+    python3 projects/dozle_kirinuki/scripts/generate_qnly_agree.py --panel-id p1_kodoku
+
+    # 生成確認
+    ls -lh "$OUTPUT_DIR/p1_kodoku.png"
+
+    ## Step 3: ギャラリーHTML生成
+    # シンプルなHTMLで p1_kodoku.png を表示。ダッシュボードサーバー経由でアクセスできる場所に保存。
+    python3 - << 'EOF'
+    import os
+    work_dir = "projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】/manga_qnly_agree"
+    output_dir = os.path.join(work_dir, "output")
+    html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"><title>qnly_agree P1確認</title></head>
+    <body style="background:#111;color:#fff">
+    <h1>おんりー合流漫画 P1確認</h1>
+    <img src="p1_kodoku.png" style="max-width:600px"><br>
+    <p>P1: おんりー「もう1時間経ってんだぜ？会えそうだったのに！」</p>
+    </body></html>"""
+    with open(os.path.join(output_dir, "gallery_p1.html"), "w") as f:
+        f.write(html)
+    print("Gallery:", os.path.join(output_dir, "gallery_p1.html"))
+    EOF
+
+    ## 品質チェック
+    - おんりーに眼鏡・金髪があること
+    - ドズルは登場しないパネル（P1はおんりー単独）
+    - セリフが吹き出しに入っていること
+    - コマ割りテンプレート通りの構図
+
+    ## ガチャ上限3回/パネル
+
+    ## 注意
+    - P1のみ。P2〜P7はまだ生成しない
+    - 殿確認後に家老から残りパネルのsubtask_1309bが発行される
+    - git push禁止
+
+    ## テスト
+    - $OUTPUT_DIR/p1_kodoku.png が存在すること
+    - gallery_p1.html が生成されていること
+
+    ## 報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1309a完了。P1生成完了。ギャラリー: http://192.168.2.7:8770/work/20260407_体力と手持ちが共有の地下世界で全員合流するまで終われません！マイクラ/manga_qnly_agree/output/gallery_p1.html {品質コメント}" report_completed ashigaru2
+- task_id: subtask_1316a
+  parent_cmd: cmd_1316
+  assigned_to: ashigaru2
+  status: done
+  bloom_level: L3
+  project: dozle_kirinuki
+  purpose: おんりー合流漫画P1のみ先行生成（殿確定JSON版）→ギャラリー→家老報告
+  steps: |
+    source config/vertex_api_key.env && source projects/dozle_kirinuki/venv/bin/activate
+
+    WORK_DIR="projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】/manga_qnly_agree"
+
+    # 既存output/をバックアップ
+    TS=$(date +%Y%m%d_%H%M%S) && mkdir -p "$WORK_DIR/output/backup_$TS" && cp "$WORK_DIR/output/"*.png "$WORK_DIR/output/backup_$TS/" 2>/dev/null || true
+    # p1_kodoku.pngのみ削除（他はSKIP維持）
+    rm -f "$WORK_DIR/output/p1_kodoku.png"
+
+    # P1のみ生成（--panel-id p1_kodoku）
+    python3 projects/dozle_kirinuki/scripts/generate_qnly_agree.py --panel-id p1_kodoku
+
+    ls -lh "$WORK_DIR/output/p1_kodoku.png"
+
+    # ギャラリーHTML更新（gallery_p1.html）
+    python3 - << 'EOF'
+    import os
+    base = "projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】/manga_qnly_agree/output"
+    html = """<!DOCTYPE html><html><head><meta charset="utf-8"><title>qnly_agree P1確認 v2</title></head>
+    <body style="background:#111;color:#fff"><h1>おんりー合流漫画 P1確認（殿確定JSON版）</h1>
+    <img src="p1_kodoku.png" style="max-width:600px"><br>
+    <p>P1: おんりー「もう1時間経ってんだぜ？会えそうだったのに！」</p></body></html>"""
+    with open(os.path.join(base, "gallery_p1.html"), "w") as f: f.write(html)
+    EOF
+
+    # 報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1316a完了。P1生成完了（殿確定JSON版）。ギャラリー: http://192.168.2.7:8770/work/20260407_体力と手持ちが共有の地下世界で全員合流するまで終われません！マイクラ/manga_qnly_agree/output/gallery_p1.html {品質コメント}" report_completed ashigaru2
+- task_id: subtask_1313b
+  parent_cmd: cmd_1313
+  assigned_to: ashigaru2
+  status: done
+  bloom_level: L3
+  project: crowdworks_video_edit
+  purpose: CrowdWorksカット編集済み動画にテロップ（ASS）を生成する
+  steps: |
+    入力: projects/crowdworks_video_edit/work/cut_edited_v3.mp4 (381.5s)
+    台本: projects/crowdworks_video_edit/work/トライアル台本.xlsx (23-35行目)
+    STT: projects/crowdworks_video_edit/work/stt_chunk_0.json
+    前回: projects/crowdworks_video_edit/work/telop.ass (改善参照)
+
+    参考動画スタイル準拠: 下部白文字太ゴシック黒縁取り・左上紫バー見出し・英語黄色テキスト。前回telop.assを改善しタイミングをcut_edited_v3.mp4に合わせよ。
+
+    出力: projects/crowdworks_video_edit/work/telop_v3.ass
+
+    テスト: ffmpegで構文エラーなく確認。
+
+    報告: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1313b完了。テロップ生成完了。telop_v3.ass {テロップ数}件" report_completed ashigaru2
+- task_id: subtask_1318a
+  parent_cmd: cmd_1318
+  assigned_to: ashigaru2
+  status: done
+  bloom_level: L4
+  project: dozle_kirinuki
+  purpose: おんりー合流漫画P1デバッグ再生成（Gemini APIログ全出力+髪色修正反映確認）
+  params:
+    script: projects/dozle_kirinuki/scripts/generate_qnly_agree.py
+    panels_json: "projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】/manga_qnly_agree/panels_qnly_agree.json"
+    target_panels: [p1]
+    output_dir: "output/"
+    debug_log: "output/p1_debug.log"
+  steps: |
+    generate_qnly_agree.pyに--verboseオプション追加: ①送信プロンプト全文 ②添付ref_images一覧(ファイル名・サイズ・解像度) ③使用モデル名 ④APIレスポンス全体(finish_reason/safety_ratings/画像サイズ) を標準出力+p1_debug.logに書き出す。P1のみ生成。source config/vertex_api_key.env。完了後gallery_p1.html更新して報告。
+    報告: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1318a完了。P1再生成+デバッグログ出力完了。ギャラリー: http://192.168.2.7:8770/work/20260407_{エンコード済みパス}/manga_qnly_agree/output/gallery_p1.html ログ: {主要ログ要約}" report_completed ashigaru2
+- task_id: subtask_1322a
+  parent_cmd: cmd_1322
+  assigned_to: ashigaru2
+  status: done
+  bloom_level: L3
+  project: dozle_kirinuki
+  purpose: おんりー合流漫画P1試し打ち（generate_manga_short.py --panels 使用）→殿確認
+  params:
+    script: projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py
+    panels_json: "projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】/manga_qnly_agree/panels_qnly_agree.json"
+    target_panels: [p1]
+    output_dir: "同ディレクトリ/output/"
+  steps: |
+    cd projects/dozle_kirinuki && source config/vertex_api_key.env && python3 scripts/manga_poc/generate_manga_short.py --panels {panels_json} でP1のみ生成（ガチャ上限3回）。gallery_p1.html更新後に殿確認URLを報告。P2〜P7は殿OKが出るまで絶対に生成するな。
+    報告: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1322a完了。P1生成完了。ギャラリー: http://192.168.2.7:8770/work/{エンコードパス}/manga_qnly_agree/output/gallery_p1.html {品質コメント}" report_completed ashigaru2
+- task_id: subtask_1322a2
+  parent_cmd: cmd_1322
+  redo_of: subtask_1322a
+  assigned_to: ashigaru2
+  status: done
+  bloom_level: L3
+  project: dozle_kirinuki
+  purpose: P1再生成（殿がコマ割り説明強化版JSONを保存済み）→ 既存P1をバックアップしてから再生成
+  params:
+    script: projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py
+    panels_json: "projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】/manga_qnly_agree/panels_qnly_agree.json"
+    target_panels: [p1]
+  steps: |
+    既存 output/p1_*.png を output/backup/ にバックアップしてから generate_manga_short.py --panels {panels_json} でP1のみ再生成（source config/vertex_api_key.env。ガチャ上限3回）。gallery_p1.html更新後に報告。P2〜P7は殿OKが出るまで絶対に生成するな。
+    報告: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1322a2完了。P1再生成完了（コマ割り強化版）。ギャラリー: http://192.168.2.7:8770/work/{パス}/manga_qnly_agree/output/gallery_p1.html {品質コメント}" report_completed ashigaru2
+- task_id: subtask_1322b
+  parent_cmd: cmd_1322
+  assigned_to: ashigaru2
+  status: cancelled
+  bloom_level: L3
+  project: dozle_kirinuki
+  purpose: おんりー合流漫画P2〜P7生成（殿P1 OK確認済み）
+  params:
+    script: projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py
+    panels_json: "projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】/manga_qnly_agree/panels_qnly_agree.json"
+    target_panels: [p2, p3, p4, p5, p6, p7]
+  steps: |
+    source config/vertex_api_key.env && python3 scripts/manga_poc/generate_manga_short.py --panels {panels_json} でP2〜P7を生成（ガチャ上限3回/パネル）。全7パネルのギャラリーHTMLを更新して報告。問題パネルがあればそのパネルのみ報告。
+    報告: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1322b完了。P2〜P7生成完了。ギャラリー: http://192.168.2.7:8770/work/{パス}/manga_qnly_agree/output/gallery.html {品質コメント}" report_completed ashigaru2
+- task_id: subtask_1322c
+  parent_cmd: cmd_1322
+  redo_of: subtask_1322b
+  assigned_to: ashigaru2
+  status: done
+  bloom_level: L3
+  project: dozle_kirinuki
+  purpose: おんりー合流漫画P2〜P7生成（GCS URI方式・cmd_1324完了版）
+  params:
+    script: projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py
+    panels_json: "projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】/manga_qnly_agree/panels_qnly_agree.json"
+    output_dir: "projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】/manga_qnly_agree/output/"
+    target_panels: [p2, p3, p4, p5, p6, p7]
+  steps: |
+    source config/vertex_api_key.env && python3 projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py --panels "projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】/manga_qnly_agree/panels_qnly_agree.json" --output "projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】/manga_qnly_agree/output/"
+    P1は既存PNGがあるのでスキップされる。P2〜P7のみ生成（ガチャ上限3回/パネル）。完了後ギャラリーHTML確認して報告。
+    報告: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1322c完了。P2〜P7生成完了。ギャラリー: http://192.168.2.7:8770/work/20260407_%E4%BD%93%E5%8A%9B%E3%81%A8%E6%89%8B%E6%8C%81%E3%81%A1%E3%81%8C%E5%85%B1%E6%9C%89%E3%81%AE%E3%80%8E%E5%9C%B0%E4%B8%8B%E4%B8%96%E7%95%8C%E3%80%8F%E3%81%A7%E5%85%A8%E5%93%A1%E5%90%88%E6%B5%81%E3%81%99%E3%82%8B%E3%81%BE%E3%81%A7%E7%B5%82%E3%82%8F%E3%82%8C%E3%81%BE%E3%81%9B%E3%82%93%EF%BC%81%E3%80%90%E3%83%9E%E3%82%A4%E3%82%AF%E3%83%A9%E3%80%91/manga_qnly_agree/output/gallery.html {品質コメント}" report_completed ashigaru2
+- task_id: subtask_1322d
+  parent_cmd: cmd_1322
+  redo_of: subtask_1322c
+  assigned_to: ashigaru2
+  status: cancelled
+  bloom_level: L3
+  project: dozle_kirinuki
+  purpose: おんりー合流漫画P2〜P7再生成（GCSバケット修正済み gs://shogun-manga-refs/）
+  params:
+    script: projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py
+    panels_json: "projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】/manga_qnly_agree/panels_qnly_agree.json"
+    output_dir: "projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】/manga_qnly_agree/output/"
+    gcs_bucket: gs://shogun-manga-refs/ref_images/
+  steps: |
+    ①既存P2〜P7のPNGをバックアップ: cp output/p{2..7}_*.png output/backup/ （backup/がなければ作成）
+    ②source config/vertex_api_key.env && python3 projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py --panels "projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】/manga_qnly_agree/panels_qnly_agree.json" --output "projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】/manga_qnly_agree/output/" --force
+    P1は--forceでも上書きされる可能性があるので注意（P1のPNGも事前にバックアップせよ）
+    報告: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1322d完了。P2〜P7再生成完了（GCS URI ref_images使用確認）。ギャラリー: http://192.168.2.7:8770/work/20260407_%E4%BD%93%E5%8A%9B%E3%81%A8%E6%89%8B%E6%8C%81%E3%81%A1%E3%81%8C%E5%85%B1%E6%9C%89%E3%81%AE%E3%80%8E%E5%9C%B0%E4%B8%8B%E4%B8%96%E7%95%8C%E3%80%8F%E3%81%A7%E5%85%A8%E5%93%A1%E5%90%88%E6%B5%81%E3%81%99%E3%82%8B%E3%81%BE%E3%81%A7%E7%B5%82%E3%82%8F%E3%82%8C%E3%81%BE%E3%81%9B%E3%82%93%EF%BC%81%E3%80%90%E3%83%9E%E3%82%A4%E3%82%AF%E3%83%A9%E3%80%91/manga_qnly_agree/output/gallery.html {品質コメント・GCS使用確認}" report_completed ashigaru2
+- task_id: subtask_1328a
+  parent_cmd: gacha45_shogun
+  bloom_level: L3
+  description: 漫画パネルガチャ4回目（gacha4）生成
+  status: done
+  timestamp: "2026-04-11T16:09:26"
+  steps: |
+    source config/vertex_api_key.env && python3 projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py --panels "projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の「地下世界」で全員合流するまで終われません！【マイクラ】/manga_qnly_agree/panels_qnly_agree.json" --output "projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の「地下世界」で全員合流するまで終われません！【マイクラ】/manga_qnly_agree/output/gacha4/" --force
+    報告: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1328a完了。gacha4生成完了。ギャラリー確認: http://192.168.2.7:8770/work/（適宜URLを記載）" report_completed ashigaru2
+- task_id: subtask_1330a
+  parent_cmd: cmd_1330
+  bloom_level: L3
+  description: tono_edit.mkvを9:16縦型にクロップしYouTube非公開アップ
+  status: done
+  timestamp: "2026-04-11T17:37:00"
+  procedure: shared_context/procedures/youtube_upload.md
+  steps: |
+    ①ffmpegクロップ: ffmpeg -i "projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】/manga_qnly_agree/output/tono_edit.mkv" -vf "crop=ih*9/16:ih" -c:v h264_nvenc -preset p4 -cq 18 -c:a aac -b:a 192k "projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】/manga_qnly_agree/output/tono_edit_vertical.mp4"
+    ②YouTube非公開アップ: shared_context/procedures/youtube_upload.mdを参照してprivateアップ。タイトルは動画ファイル名から適宜設定。必ずprivate（非公開）のままにすること（unlisted/public禁止）
+    ③ntfy通知: bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "🎬 YouTube非公開アップ: おんりー合流漫画ショート {URL}"
+    ④報告: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1330a完了。YouTube非公開アップ完了。URL: {URL}" report_completed ashigaru2
+- task_id: subtask_1332a
+  parent_cmd: cmd_1332
+  bloom_level: L2
+  description: FINAL_COMPOSED.mp4をYouTube非公開アップ
+  status: done
+  timestamp: "2026-04-12T10:51:00"
+  procedure: shared_context/procedures/youtube_upload.md
+  steps: |
+    shared_context/procedures/youtube_upload.mdを参照してYouTube非公開アップを実行せよ。
+    ファイル: projects/crowdworks_video_edit/work/FINAL_COMPOSED.mp4
+    タイトル: 英語学習動画 自動カット編集+テロップ+Bロール（最終版）
+    公開設定: private（非公開）。unlisted/public厳禁。
+    完了後: bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "🎬 YouTube非公開アップ: 英語学習動画 自動カット+テロップ+Bロール最終版 {URL}"
+    報告: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1332a完了。YouTube非公開アップ完了。URL: {URL}" report_completed ashigaru2
+- task_id: subtask_1333b
+  parent_cmd: cmd_1333
+  bloom_level: L4
+  description: main.py の HIGH 修正（LLMスキーマバリデ・clip_timestamps_raw境界チェック・_get_h264_encoder一貫使用）
+  status: done
+  timestamp: "2026-04-12T11:25:00"
+  steps: |
+    ## 事前確認
+    Read queue/reports/gunshi_report_nightly_audit_20260410_video.yaml のHIGH部分を確認せよ
+    対象ファイル: projects/dozle_kirinuki/scripts/main.py
+
+    ## 修正1: LLM出力スキーマバリデーション（HIGH、line 1209付近）
+    問題: selected["shorts"] 等のブラケットアクセスがKeyError即死リスク
+    修正方針: LLM出力受信直後にバリデーション層を追加
+    - selected.get("shorts") で取得し、Noneなら明確なエラーメッセージで停止
+    - 同様に line 1398 (short['hook_text']), 1400 (short['description']),
+      1419 (short['virality_score']), 1424-1427 (selected['start_time'] 等) も修正
+    実装例: 
+      shorts_list = selected.get("shorts")
+      if not shorts_list:
+          raise ValueError(f"LLM出力に 'shorts' キーがありません。実際のキー: {list(selected.keys())}")
+
+    ## 修正2: clip_timestamps_raw 境界チェック（HIGH、line 1158付近）
+    問題: clip_timestamps_raw[i + _tc_offset] でIndexErrorリスク
+    修正: アクセス前に len() チェックを追加
+    実装例:
+      if i + _tc_offset >= len(clip_timestamps_raw):
+          logger.warning(f"clip_timestamps_raw 境界外アクセス: index {i + _tc_offset}, len={len(clip_timestamps_raw)}")
+          break  # または continue で安全にスキップ
+
+    ## 修正3: _get_h264_encoder() 一貫使用（HIGH、line 262, 1102, 1267付近）
+    問題: "h264_nvenc" を直接ハードコード（3箇所）
+    修正: _get_h264_encoder() 呼び出しに置換
+    ※ from pipeline_utils import _get_h264_encoder は既に line 38 でimport済み
+    検索コマンド: grep -n '"h264_nvenc"' projects/dozle_kirinuki/scripts/main.py
+
+    ## テスト
+    python3 projects/dozle_kirinuki/scripts/main.py --help  → 正常終了確認
+    構文チェック: python3 -m py_compile projects/dozle_kirinuki/scripts/main.py
+
+    ## コミット
+    git add projects/dozle_kirinuki/scripts/main.py
+    git commit -m "fix(cmd_1333b): LLMスキーマバリデ追加・clip_timestamps_raw境界チェック・h264_nvencハードコード除去"
+
+    ## 報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1333b完了。修正内容: LLMバリデ追加（shorts/hook_text/description/virality_score/start_time）・境界チェック・_get_h264_encoder化。--helpテスト確認済み。" report_completed ashigaru2
