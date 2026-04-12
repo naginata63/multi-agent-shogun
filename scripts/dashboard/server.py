@@ -1288,6 +1288,141 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path == '/api/generate_panels_llm':
+            try:
+                import subprocess
+                length = int(self.headers.get('Content-Length', 0))
+                body = self.rfile.read(length)
+                payload = json.loads(body.decode('utf-8'))
+
+                rows = payload.get('rows', [])
+                gemini_context = payload.get('gemini_context', '')
+                scene_name = payload.get('scene_name', '')
+                title = payload.get('title', '')
+                save_path = payload.get('save_path', '')
+
+                # 1. 使用可能な表情ファイル一覧を取得
+                selected_dir = os.path.join(BASE_DIR, 'projects/dozle_kirinuki/assets/dozle_jp/character/selected')
+                available_files = set()
+                if os.path.isdir(selected_dir):
+                    available_files = {f for f in os.listdir(selected_dir) if f.endswith('.png')}
+
+                # 2. panel_candidate_prompt.txt の後半（漫画制作ナレッジ以降）を読み込む
+                prompt_path = os.path.join(BASE_DIR, 'projects/dozle_kirinuki/context/panel_candidate_prompt.txt')
+                prompt_knowledge = ''
+                if os.path.exists(prompt_path):
+                    with open(prompt_path, 'r', encoding='utf-8') as f:
+                        full_prompt = f.read()
+                    idx = full_prompt.find('# 漫画制作ナレッジ')
+                    prompt_knowledge = full_prompt[idx:] if idx >= 0 else full_prompt
+
+                # 3. rows をテキスト化
+                rows_text = '\n'.join(
+                    f"{row.get('timestamp', '')} {row.get('speaker', '')}: {row.get('text', '')}"
+                    for row in rows
+                )
+
+                # 4. 使用可能ファイルリスト（_rgba.pngのみ）
+                rgba_files = sorted(f for f in available_files if '_rgba.png' in f)
+                files_list = '\n'.join(rgba_files) if rgba_files else '（ファイルなし）'
+
+                # 5. Claudeへのプロンプト構築
+                claude_prompt = f"""あなたはドズル社漫画ショートの構成作家です。
+以下の書き起こし（殿レビュー済み）とシーン情報から、漫画パネルのJSONを生成してください。
+
+## 書き起こし（話者+セリフ）
+{rows_text}
+
+## シーン情報（Gemini動画解析）
+{gemini_context if gemini_context else '（シーン情報なし）'}
+
+## タイトル・シーン名
+タイトル: {title}
+シーン: {scene_name}
+
+## 出力形式（必須）
+panels JSONフォーマットで出力。```json で囲むこと。
+
+{prompt_knowledge}
+
+## 使用可能な表情ファイル
+以下のファイルのみ使用可（存在しないファイルは絶対に使わないこと）:
+{files_list}
+
+## 共通ルール
+全キャラクターの身長はだいたい同じくらいに描くこと。
+【最重要】おおはらMENは必ずゴーグルを目を覆うように装着して描け。
+ぼんじゅうるはサングラス必須。おんりーは丸メガネ必須。
+デフォルメ・SD・ちびキャラ禁止。武器・盾・バケツ禁止。"""
+
+                # 6. Claude CLI 呼び出し
+                claude_bin = '/home/murakami/.local/bin/claude'
+                result = subprocess.run(
+                    [claude_bin, '-p', claude_prompt, '--model', 'claude-opus-4-6'],
+                    capture_output=True, text=True, timeout=180
+                )
+                if result.returncode != 0:
+                    raise Exception(f'Claude CLI error: {result.stderr[:500]}')
+
+                output_text = result.stdout.strip()
+
+                # 7. JSON抽出
+                panels_data = None
+                json_match = re.search(r'```json\s*([\s\S]+?)\s*```', output_text)
+                if json_match:
+                    try:
+                        panels_data = json.loads(json_match.group(1))
+                    except json.JSONDecodeError:
+                        pass
+                if panels_data is None:
+                    try:
+                        panels_data = json.loads(output_text)
+                    except json.JSONDecodeError:
+                        raise Exception(f'Claude出力からJSONを抽出できませんでした。出力先頭: {output_text[:300]}')
+
+                # 8. ref_images 存在チェック＆フォールバック
+                if 'panels' in panels_data:
+                    for panel in panels_data['panels']:
+                        new_refs = []
+                        for ref in panel.get('ref_images', []):
+                            fname = os.path.basename(ref)
+                            if fname in available_files:
+                                new_refs.append(ref)
+                            else:
+                                chars = panel.get('characters', [])
+                                fallback = None
+                                for char in chars:
+                                    fb_fname = f'{char}_smile_r1_rgba.png'
+                                    if fb_fname in available_files:
+                                        fallback = f'assets/dozle_jp/character/selected/{fb_fname}'
+                                        break
+                                if fallback:
+                                    new_refs.append(fallback)
+                        panel['ref_images'] = new_refs
+
+                # 9. save_path に保存
+                if save_path:
+                    abs_save = os.path.realpath(os.path.join(BASE_DIR, save_path))
+                    if abs_save.startswith(os.path.realpath(BASE_DIR) + os.sep):
+                        os.makedirs(os.path.dirname(abs_save), exist_ok=True)
+                        with open(abs_save, 'w', encoding='utf-8') as f:
+                            json.dump(panels_data, f, ensure_ascii=False, indent=2)
+
+                panels = panels_data.get('panels', [])
+                resp = json.dumps(
+                    {'status': 'ok', 'panels': panels, 'panel_count': len(panels)},
+                    ensure_ascii=False
+                ).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp)))
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         else:
             self.send_response(404)
             self.end_headers()
