@@ -1353,7 +1353,11 @@ panels JSONフォーマットで出力。```json で囲むこと。
 全キャラクターの身長はだいたい同じくらいに描くこと。
 【最重要】おおはらMENは必ずゴーグルを目を覆うように装着して描け。
 ぼんじゅうるはサングラス必須。おんりーは丸メガネ必須。
-デフォルメ・SD・ちびキャラ禁止。武器・盾・バケツ禁止。"""
+デフォルメ・SD・ちびキャラ禁止。武器・盾・バケツ禁止。
+
+【重要】各パネルの "characters" フィールドには必ずメンバーキーを入れること。
+使用可能なキー: dozle, bon, qnly, orafu, oo_men, nekooji
+セリフがないパネルも含め、全パネルに characters を設定すること。"""
 
                 # 6. Claude CLI 呼び出し
                 claude_bin = '/home/murakami/.local/bin/claude'
@@ -1379,6 +1383,19 @@ panels JSONフォーマットで出力。```json で囲むこと。
                         panels_data = json.loads(output_text)
                     except json.JSONDecodeError:
                         raise Exception(f'Claude出力からJSONを抽出できませんでした。出力先頭: {output_text[:300]}')
+
+                # 7.5. panels_dataがリストの場合は辞書に包む
+                if isinstance(panels_data, list):
+                    panels_data = {'panels': panels_data}
+
+                # 7.6. characters空バリデーション補完
+                if 'panels' in panels_data:
+                    for i, panel in enumerate(panels_data['panels']):
+                        if not panel.get('characters'):
+                            if i < len(rows):
+                                speaker = rows[i].get('speaker', '不明')
+                                if speaker != '不明':
+                                    panel['characters'] = [speaker]
 
                 # 8. ref_images 存在チェック＆フォールバック
                 if 'panels' in panels_data:
