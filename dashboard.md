@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-12 12:08
+最終更新: 2026-04-12 12:18
 
 ## 💰 DingTalk音声QC（9万円案件）
 🟢 稼働中 | 処理済み: **228件** / 10,000件 | 報酬見込み: **¥2,052**
@@ -17,10 +17,6 @@
 
 ## 🚨 要対応 - 殿のご判断をお待ちしております
 
-### 🔴 cmd_1337 争わないでP1試し打ち完了・殿確認要
-- **P1**: `p1_nanda_omae.png` (768x1376 / 1.7MB) 生成済み
-- 出力先: `projects/dozle_kirinuki/work/20260406_.../output/manga_odai/manga_odai_arasowanaide/`
-- **→ OKならP2〜P6を生成。NGなら修正指示を**
 
 
 ### 🔴 cmd_1326 Vision分析完了・殿確認要（判定不能58件）
@@ -109,6 +105,7 @@
 |-----|------|------|
 | cmd_1336 | panels_check.html JSON読み込み機能追加完了（パス入力欄+/api/load_panels_json動的再描画）✅ |
 | cmd_1335 | panels_check.html生成完了（45KB・6パネル）✅ http://192.168.2.7:8770/work/output/manga_odai/panels_check.html |
+| cmd_1337 | 争わないでパネルv2全6枚一括生成中（Vertex API・--force）| 足軽3実行中 |
 | cmd_1334 | FINAL_COMPOSED.mp4 Bロール合成版再生成（compose_final.py作成・overlay確認必須）| 足軽1実行中 |
 | cmd_1329 | AI分析最新化完了 analysis_history:2026-04-11（04-06〜04-11の6日分追加・計20エントリー）✅ |
 | cmd_1328 | analytics data.json再構築完了 generated_at:2026-04-11 / dates:03-01〜04-08（39件）⚠️ API遅延で04-11未含 ✅ |
