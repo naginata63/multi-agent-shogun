@@ -98,15 +98,16 @@
 - **⚠️ dozle_kirinukiサブモジュール push不可**: d4baa9c5でgcloud SDK（194MB）がコミット済み→GitHub 100MB制限でreject。scripts/の変更はローカルのみ保存中。git-lfs移行 or 履歴書換が必要
 
 ## 🚨 要対応（server.py再起動）
-- **panels_check.html の3機能が再起動後に有効**: `/api/save_panels_json`・`/api/load_panels_json`・`POST /api/suggest_director_notes`（LLMプロンプト提案）
-- 実行コマンド: `kill 727745 && nohup python3 scripts/dashboard/server.py >> /tmp/dashboard.log 2>&1 &`
+- **cmd_1344追加: `/api/list_panels_json`（JSON選択UI）も再起動後に有効** commit 223efc6
+- panels_check.html の全機能が再起動後に有効: `/api/save_panels_json`・`/api/load_panels_json`・`/api/list_panels_json`・`POST /api/suggest_director_notes`
+- 実行コマンド: `kill $(pgrep -f "server.py") && nohup python3 /home/murakami/multi-agent-shogun/scripts/dashboard/server.py >> /tmp/dashboard.log 2>&1 &`
 
 ## 🔄 進行中（実行中のタスク）
 
 | cmd | 内容 | 状態 |
 |-----|------|------|
-| cmd_1344 | panels_check.html JSON選択UI追加（ファイル一覧+クリック読み込み）| 足軽2実行中 |
-| cmd_1343 | お待たせしましたパネルv4全枚生成（ゴーグル強化+P7パスタ・殿JSON修正済み）| 足軽3実行中 |
+| cmd_1344 | panels_check.html JSON選択UI追加完了（/api/list_panels_json+ドロップダウン）✅ ⚠️サーバー再起動必要 |
+| cmd_1343 | お待たせしましたパネルv4全7枚生成完了（MENゴーグル全P確認・P7パスタ確認）✅ 殿レビュー待ち |
 | cmd_1342 | お待たせしましたパネルv3全7枚生成完了（7/7・ガチャ1回・372s）✅ 殿レビュー待ち |
 | cmd_1334 | FINAL_COMPOSED.mp4 破損（moov atom not found）⛔ 殿指示により中止 |
 | cmd_1327 | cut_edited_v5.mp4完成（480p軽量版）31.6s/4.5MB → **殿確認待ち** ⛔ |
@@ -256,8 +257,8 @@
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
 | 1号 | Sonnet | idle | — |
-| 2号 | Sonnet | 実行中 | subtask_1344a（panels_check JSON選択UI）|
-| 3号 | Sonnet | 実行中 | subtask_1343a（お待たせしましたパネルv4生成）|
+| 2号 | Sonnet | idle | — |
+| 3号 | Sonnet | idle | — |
 | 4号 | Sonnet | idle | — |
 | 5号 | Sonnet | idle | — |
 | 6号 | Sonnet | idle | — |
