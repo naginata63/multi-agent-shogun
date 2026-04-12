@@ -1157,7 +1157,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 agents = ['karo', 'ashigaru1', 'ashigaru2', 'ashigaru3',
                           'ashigaru4', 'ashigaru5', 'ashigaru6', 'ashigaru7', 'gunshi']
                 # Single tmux call: collect all pane agent_ids
-                alive_agents = set()
+                alive_agents = None
                 try:
                     r = _sp.run(
                         ['tmux', 'list-panes', '-t', 'multiagent:0',
@@ -1165,20 +1165,21 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                         capture_output=True, text=True, timeout=5
                     )
                     if r.returncode == 0:
+                        alive_agents = set()
                         for line in r.stdout.strip().splitlines():
                             if ':' in line:
                                 aid = line.split(':', 1)[1].strip()
                                 if aid:
                                     alive_agents.add(aid)
                 except Exception:
-                    pass  # tmux unavailable — all pane_alive will be None
+                    pass  # tmux unavailable — alive_agents stays None
 
                 agents_data = []
                 for agent_id in agents:
                     info = {'agent_id': agent_id}
 
                     # Pane alive
-                    if alive_agents:
+                    if alive_agents is not None:
                         info['pane_alive'] = agent_id in alive_agents
                     else:
                         info['pane_alive'] = None
