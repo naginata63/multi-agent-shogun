@@ -105,29 +105,31 @@
 
 | cmd | 内容 | 状態 |
 |-----|------|------|
-| cmd_1341 | お待たせしましたパネルv2全7枚生成完了（7/7・ガチャ2回）✅ 殿レビュー待ち |
-| cmd_1340 | お待たせしましたパネルv1全7枚生成完了（7/7）✅ |
-| cmd_1339 | KOMAWARI_DESC全35エントリ修正完了（S2/T1-T6/D4-D8等）✅ commit 1ce0aeb7 |
-| cmd_1338 | panels_check.html shot_type表示・編集・保存先連動バグ修正完了（commit 49e87d27）✅ |
-| cmd_1336 | panels_check.html JSON読み込み機能追加完了（パス入力欄+/api/load_panels_json動的再描画）✅ |
-| cmd_1335 | panels_check.html生成完了（45KB・6パネル）✅ http://192.168.2.7:8770/work/output/manga_odai/panels_check.html |
-| cmd_1337 | 争わないでパネルv2全6枚生成完了（6/6成功・768x1376px）✅ 殿レビュー待ち |
-| cmd_1334 | FINAL_COMPOSED.mp4 Bロール合成版再生成（compose_final.py作成・overlay確認必須）| 足軽1実行中 |
-| cmd_1329 | AI分析最新化完了 analysis_history:2026-04-11（04-06〜04-11の6日分追加・計20エントリー）✅ |
-| cmd_1328 | analytics data.json再構築完了 generated_at:2026-04-11 / dates:03-01〜04-08（39件）⚠️ API遅延で04-11未含 ✅ |
+| cmd_1334 | FINAL_COMPOSED.mp4 Bロール合成版再生成（compose_final.py作成済み・15:40更新・Bロール確認未完了）| ⚠️ 足軽1確認中 |
 | cmd_1327 | cut_edited_v5.mp4完成（480p軽量版）31.6s/4.5MB → **殿確認待ち** ⛔ |
-| cmd_1325 | 参考動画Vision分析完了 reference_vision_analysis.md(70KB/11チャンク) ✅ | 足軽3完了 |
 | cmd_1320 Phase2 | cut_edited_v4.mp4完成 352.7s/660MB → **殿確認待ち** ⛔ |
-| cmd_1313a3 | ⛔ cmd_1320に切り替えにより中止 |
-| cmd_1313a2 | cut_edited_v3_fixed.mp4 完成（loudnorm 2pass / cq16 / 380s 569MB）⚠️ 更に修正中 |
-| cmd_1305a | CrowdWorks カット編集 ✅ cut_edited.mp4(529.7s/647MB) | 足軽1完了 |
-| cmd_1305b | CrowdWorks テロップASS生成 ✅ telop.ass(48件) | 足軽2完了 |
-| cmd_1305c | CrowdWorks Bロール画像生成 ✅ 5枚(broll_001〜005.png) | 足軽5完了 |
 | cmd_1305d | CrowdWorks 最終合成+YouTube限定公開アップ | ⛔ 殿確認後に開始 |
 
 ## ✅ 本日の完了
 | cmd | 内容 |
 |-----|------|
+| cmd_1341 | お待たせしましたパネルv2全7枚生成完了（7/7・ガチャ2回・P2 499リトライ）→ manga_odai_03_omataseshimashita_v2/ 殿レビュー待ち |
+| cmd_1340 | お待たせしましたパネルv1全7枚生成完了（7/7・ガチャ1回）→ manga_odai_03_omataseshimashita/ |
+| cmd_1339 | KOMAWARI_DESC全35エントリ修正完了（S2/T1-T6/D4-D8等）commit 1ce0aeb7 |
+| cmd_1338 | panels_check.html shot_type表示・編集・保存先連動バグ修正完了 commit 49e87d27 |
+| cmd_1337 | 争わないでパネルv2全6枚生成完了（6/6成功・768x1376px）殿レビュー待ち |
+| cmd_1336 | panels_check.html JSON読み込み機能追加完了（パス入力欄+/api/load_panels_json動的再描画）|
+| cmd_1335 | panels_check.html生成完了（45KB・6パネル）http://192.168.2.7:8770/work/output/manga_odai/panels_check.html |
+| cmd_1333 | 夜間監査CRITICAL/HIGH 10件修正完了（3並列 1333a/b/c）|
+| cmd_1332 | FINAL_COMPOSED.mp4 YouTube非公開アップ完了 → https://www.youtube.com/watch?v=XXVzw0tBBi4 |
+| cmd_1331 | 英語学習動画 自動カット編集テスト YouTube非公開アップ完了 → https://www.youtube.com/watch?v=2f4hLWamREc |
+| cmd_1330 | tono_edit.mkv 縦型クロップ+YouTube非公開アップ完了 → https://www.youtube.com/watch?v=0SBiIU74yvc |
+| cmd_1329 | AI分析最新化完了 analysis_history:2026-04-11（04-06〜04-11の6日分追加・計20エントリー）|
+| cmd_1328 | analytics data.json再構築完了 generated_at:2026-04-11 / dates:03-01〜04-08（39件）|
+| cmd_1325 | 参考動画Vision分析完了 reference_vision_analysis.md(70KB/11チャンク) |
+| cmd_1305a | CrowdWorks カット編集完了 cut_edited.mp4(529.7s/647MB) |
+| cmd_1305b | CrowdWorks テロップASS生成完了 telop.ass(48件) |
+| cmd_1305c | CrowdWorks Bロール画像生成完了 5枚(broll_001〜005.png) |
 | cmd_1286 | ピンク羊総集編25件連結+YouTube非公開アップ完了（7:46・466s）→ https://www.youtube.com/watch?v=bqSQQcN1izM |
 | cmd_1304 | ピンク羊完全版25件完了（13:36・clip_22復活）→ https://www.youtube.com/watch?v=_FsFx67be24 |
 | cmd_1303 | ピンク羊25件STTカット再設計完了（24件変更・clip_22元範囲維持・clips_redesigned.json） |
@@ -250,14 +252,14 @@
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | Sonnet | 実行中 | subtask_1327a（LLM+Vision統合カット編集・cut_edited_v5.mp4） |
+| 1号 | Sonnet | ⚠️ 確認中 | subtask_1334a検証（FINAL_COMPOSED.mp4 Bロール確認）|
 | 2号 | Sonnet | idle | — |
 | 3号 | Sonnet | idle | — |
 | 4号 | Sonnet | idle | — |
 | 5号 | Sonnet | idle | — |
 | 6号 | Sonnet | idle | — |
 | 7号 | Sonnet | idle | — |
-| 軍師 | Opus | 完了報告済 | nightly_audit_20260411_infra: C0/H2/M4/I3 |
+| 軍師 | Opus | idle | nightly_audit_20260412_youtube_api完了（C2/H5/M8）|
 
 ## APIキー状況
 - **Vertex AI ADC**: ✅ 正常
