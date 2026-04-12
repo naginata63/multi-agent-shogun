@@ -1056,6 +1056,43 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             self.send_header('Content-Length', str(len(body)))
             self.end_headers()
             self.wfile.write(body)
+        elif self.path.startswith('/api/load_raw_candidates'):
+            from urllib.parse import unquote, urlparse, parse_qs
+            parsed = urlparse(self.path)
+            params = parse_qs(parsed.query)
+            rel_path = unquote(params.get('path', [''])[0])
+            if not rel_path:
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(b'{"error": "path parameter required"}')
+                return
+            abs_path = os.path.realpath(os.path.join(BASE_DIR, rel_path))
+            if not abs_path.startswith(os.path.realpath(BASE_DIR) + os.sep):
+                self.send_response(403)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(b'{"error": "path outside project directory"}')
+                return
+            if not os.path.isfile(abs_path):
+                self.send_response(404)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(b'{"error": "file not found"}')
+                return
+            try:
+                with open(abs_path, encoding='utf-8') as f:
+                    body = f.read().encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         elif self.path.startswith('/api/load_panels_json'):
             from urllib.parse import unquote, urlparse, parse_qs
             parsed = urlparse(self.path)
