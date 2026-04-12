@@ -105,6 +105,7 @@
 
 | cmd | 内容 | 状態 |
 |-----|------|------|
+| cmd_1343 | お待たせしましたパネルv4全枚生成（ゴーグル強化+P7パスタ・殿JSON修正済み）| 足軽3実行中 |
 | cmd_1342 | お待たせしましたパネルv3全7枚生成完了（7/7・ガチャ1回・372s）✅ 殿レビュー待ち |
 | cmd_1334 | FINAL_COMPOSED.mp4 破損（moov atom not found）→ compose_final.py再実行中 | 足軽1実行中 |
 | cmd_1327 | cut_edited_v5.mp4完成（480p軽量版）31.6s/4.5MB → **殿確認待ち** ⛔ |
@@ -255,7 +256,7 @@
 |------|-----|------|---------|
 | 1号 | Sonnet | ⚠️ 確認中 | subtask_1334a検証（FINAL_COMPOSED.mp4 Bロール確認）|
 | 2号 | Sonnet | idle | — |
-| 3号 | Sonnet | idle | — |
+| 3号 | Sonnet | 実行中 | subtask_1343a（お待たせしましたパネルv4生成）|
 | 4号 | Sonnet | idle | — |
 | 5号 | Sonnet | idle | — |
 | 6号 | Sonnet | idle | — |
