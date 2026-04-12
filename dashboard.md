@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-12 11:43
+最終更新: 2026-04-12 11:53
 
 ## 💰 DingTalk音声QC（9万円案件）
 🟢 稼働中 | 処理済み: **228件** / 10,000件 | 報酬見込み: **¥2,052**
@@ -102,6 +102,7 @@
 
 | cmd | 内容 | 状態 |
 |-----|------|------|
+| cmd_1336 | panels_check.html JSON読み込み機能追加完了（パス入力欄+/api/load_panels_json動的再描画）✅ |
 | cmd_1335 | panels_check.html生成完了（45KB・6パネル）✅ http://192.168.2.7:8770/work/output/manga_odai/panels_check.html |
 | cmd_1334 | FINAL_COMPOSED.mp4 Bロール合成版再生成（compose_final.py作成・overlay確認必須）| 足軽1実行中 |
 | cmd_1329 | AI分析最新化完了 analysis_history:2026-04-11（04-06〜04-11の6日分追加・計20エントリー）✅ |
