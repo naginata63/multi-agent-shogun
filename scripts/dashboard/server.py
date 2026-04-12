@@ -584,6 +584,7 @@ def _get_dingtalk_qc_stats():
                                  capture_output=True).returncode == 0
         return {
             "total": total,
+            "processed": confirmed + error,
             "target": 10000,
             "confirmed": confirmed,
             "skipped": skipped,
@@ -844,12 +845,13 @@ function renderActionRequired(items) {
 function renderDingtalkQC(qc) {
   const el = $('dingtalk-qc');
   if (!qc) { el.innerHTML = '<div class="empty">データなし</div>'; return; }
-  const pct = (qc.total / qc.target * 100).toFixed(1);
+  const processed = qc.processed || (qc.confirmed + qc.error);
+  const pct = (processed / qc.target * 100).toFixed(1);
   const status = qc.running ? '<span class="badge badge-busy">稼働中</span>' : '<span class="badge badge-idle">停止中</span>';
   el.innerHTML = `
     <div style="margin-bottom:8px">${status} <strong>¥${qc.earned.toLocaleString()}</strong> / ¥90,000</div>
     <div style="background:#21262d;border-radius:4px;height:20px;margin-bottom:8px">
-      <div style="background:#238636;height:100%;border-radius:4px;width:${pct}%;min-width:2px;text-align:center;color:#fff;font-size:0.7em;line-height:20px">${qc.total}/${qc.target} (${pct}%)</div>
+      <div style="background:#238636;height:100%;border-radius:4px;width:${pct}%;min-width:2px;text-align:center;color:#fff;font-size:0.7em;line-height:20px">${processed}/${qc.target} (${pct}%)</div>
     </div>
     <table>
       <tr><td>✅ 確認済み</td><td>${qc.confirmed}</td></tr>
@@ -1038,6 +1040,22 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             else:
                 self.send_response(404)
                 self.end_headers()
+        elif self.path == '/api/list_panels_json':
+            import glob as _glob
+            work_dir = os.path.join(BASE_DIR, 'projects', 'dozle_kirinuki', 'work')
+            results = []
+            if os.path.isdir(work_dir):
+                for match in sorted(_glob.glob(os.path.join(work_dir, '**', 'panels_*.json'), recursive=True)):
+                    rel = os.path.relpath(match, BASE_DIR)
+                    parent = os.path.basename(os.path.dirname(match))
+                    name = os.path.basename(match) + '  [' + parent + ']'
+                    results.append({'name': name, 'path': rel})
+            body = json.dumps(results, ensure_ascii=False).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
         elif self.path.startswith('/api/load_panels_json'):
             from urllib.parse import unquote, urlparse, parse_qs
             parsed = urlparse(self.path)
@@ -1118,7 +1136,6 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         elif self.path == '/api/suggest_director_notes':
             try:
-                import anthropic
                 length = int(self.headers.get('Content-Length', 0))
                 body = self.rfile.read(length)
                 payload = json.loads(body.decode('utf-8'))
@@ -1137,20 +1154,47 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     with open(expr_design_path, 'r', encoding='utf-8') as f:
                         expr_design_text = f.read()[:3000]  # 最初の3000文字のみ（コスト節約）
 
-                # 演技指示部分を抽出（「添付画像の説明:」より前）
-                marker = '添付画像の説明:'
-                marker_idx = director_notes.find(marker)
-                if marker_idx != -1:
-                    current_acting = director_notes[:marker_idx].strip()
-                    attachment_section = director_notes[marker_idx:]
-                else:
-                    current_acting = director_notes.strip()
-                    attachment_section = ''
+                ref_images = payload.get('ref_images', [])
+                shot_type = payload.get('shot_type', '')
 
                 lines_text = '\n'.join(lines) if lines else '（セリフなし）'
 
+                # ref_imagesからファイル名説明を自動生成
+                KOMAWARI_DESC = {
+                    'S1_A.png': '全面1コマ',
+                    'S2_A.png': '上大70%+下小30%', 'S2_B.png': '上小30%+下大70%',
+                    'S2_C.png': '縦割り右小30%+左大70%', 'S2_D.png': '縦割り右大70%+左小30%',
+                    'S2_E.png': '均等縦割り',
+                    'T1.png': '全面1コマ',
+                    'T2_A.png': '上下均等2段', 'T2_B.png': '左右均等2列', 'T2_C.png': '上大下小',
+                    'T3_A.png': '均等3段', 'T3_B.png': '上1コマ+下2コマ',
+                    'T3_C.png': '縦割り左大60%+右2コマ', 'T3_D.png': '縦割り右大60%+左2コマ',
+                    'T3_E.png': '上1コマ+下2コマ(重要側60%)', 'T3_F.png': '上2コマ(重要側60%)+下1コマ',
+                    'T4_A.png': '上3コマ45%+下大55%', 'T4_B.png': '上大55%+下3コマ45%',
+                    'T4_C.png': '上下2コマ(重要側60%交互)', 'T4_D.png': '均等4段',
+                    'T4_E.png': '右大コマ縦通し+左2段+下全幅', 'T4_F.png': '上全幅+右2段+左大コマ縦通し',
+                    'T5_A.png': '上3コマ45%+下2コマ55%', 'T5_B.png': '上2コマ55%+下3コマ45%',
+                    'T5_C.png': '上2+中全幅+下2',
+                    'T6_A.png': '均等6コマ(3段2列)', 'T6_B.png': '上2大+下4小',
+                    'D1_diagonal_2.png': '斜め2分割', 'D2_zigzag_3.png': 'ジグザグ斜め3分割',
+                    'D3_v_split.png': 'V字分割(上大+下2斜め)', 'D4_radial_4.png': '放射状4分割',
+                    'D5_overlay_4.png': 'ぶち抜き大コマ+小コマ3', 'D6_staircase_4.png': '階段状4コマ',
+                    'D7_fan_3.png': '扇状(上狭→下広)', 'D8_x_split_4.png': 'X字斜め4分割',
+                }
+                ref_descs = []
+                for r in ref_images:
+                    fname = os.path.basename(r)
+                    if 'komawari_templates/' in r:
+                        desc = KOMAWARI_DESC.get(fname, 'コマ割りテンプレート')
+                        ref_descs.append(f'{fname}=コマ割りテンプレート（{desc}。この構図に従って描け）')
+                    elif 'character/selected/' in r:
+                        ref_descs.append(f'{fname}=キャラクターリファレンス（この外見・服装を正確に再現せよ）')
+                    else:
+                        ref_descs.append(f'{fname}=背景リファレンス（この背景を参考にせよ）')
+                attachment_line = '添付画像の説明: ' + '、'.join(ref_descs) if ref_descs else ''
+
                 prompt = f"""あなたはドズル社マイクラ漫画の演出家です。
-キャラクターの表情が変わったので、画像生成プロンプト（director_notes）の演技指示部分を書き直してください。
+キャラクターの表情リファレンスが変わったので、画像生成プロンプト（director_notes）を全文書き直してください。
 
 ## キャラクター設定（参考）
 {expr_design_text}
@@ -1159,34 +1203,40 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
 - シーン概要: {scene_desc}
 - 状況: {situation}
 - セリフ: {lines_text}
+- コマ割り: {shot_type}
 
 ## 表情変更
 - キャラクター: {char_name}
 - 新しい表情ファイル: {new_expression_file}
 
-## 現在の演技指示（変更前）
-{current_acting}
+## 添付リファレンス画像一覧
+{attachment_line}
+
+## 現在のdirector_notes（変更前）
+{director_notes}
 
 ## 指示
-上記の表情変更に合わせて、演技指示部分を書き直してください。
-- 「添付画像の説明:」セクションは変更しないでください（そちらは別で管理します）
-- 演技指示のみ（表情・姿勢・感情・シーン描写など）を出力してください
-- 日本語で、簡潔かつ具体的に（200字以内が望ましい）
-- 余計な説明や前置きは不要。演技指示テキストのみ出力してください"""
+上記の表情変更とリファレンス画像に合わせて、director_notesを全文書き直してください。
+以下の構成で出力:
+1. 最初に「添付画像の説明: 」行（上記の添付リファレンス画像一覧をそのまま使え）
+2. 続けて「これらのリファレンス画像のキャラクターの外見・服装を正確に再現すること。」
+3. コマ割りに応じた構図指示（上下分割なら上段・下段、左右分割なら右・左）
+   ※左右分割の場合の読み順ルール: 右コマ=先に発言する人、左コマ=後に発言する人（日本の漫画は右→左に読む）
+4. 各コマのキャラクターの表情・ポーズ・感情の具体的な描写（新しい表情に合わせる）
+5. 背景指示（リファレンス背景に合わせる）
+6. 禁止事項（武器・盾・バケツ持たせるな等）
 
-                client = anthropic.Anthropic()
-                message = client.messages.create(
-                    model='claude-sonnet-4-6',
-                    max_tokens=512,
-                    messages=[{'role': 'user', 'content': prompt}]
+- 日本語で、簡潔かつ具体的に
+- 余計な説明や前置きは不要。director_notesテキストのみ出力してください"""
+
+                import subprocess
+                result = subprocess.run(
+                    ['claude', '-p', '--model', 'sonnet', prompt],
+                    capture_output=True, text=True, timeout=60
                 )
-                suggested_acting = message.content[0].text.strip()
-
-                # 元の「添付画像の説明:」セクションを保持
-                if attachment_section:
-                    suggested = suggested_acting + '\n' + attachment_section
-                else:
-                    suggested = suggested_acting
+                if result.returncode != 0:
+                    raise Exception(f'Claude CLI error: {result.stderr[:200]}')
+                suggested = result.stdout.strip()
 
                 resp = json.dumps({'status': 'ok', 'suggested': suggested}, ensure_ascii=False).encode('utf-8')
                 self.send_response(200)

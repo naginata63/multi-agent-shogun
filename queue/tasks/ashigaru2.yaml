@@ -741,6 +741,13 @@ tasks:
     修正2: shot_type編集UI → ドロップダウン等でshot_typeを変更可能にする
     修正3: 保存先パス連動（重大バグ）→ JSON読み込み機能で別ファイルを開いた場合、保存先JSONパスもそのファイルに切り替えること。現状はJSON_REL_PATH固定で別ファイルを上書きする事故あり。
     修正4: 保存時にshot_typeが正しくJSONに含まれること
-    テスト: python3 panels_check_gen.py {JSONパス} で再生成→HTML内でshot_type表示・読み込み時パス切替を確認
-    git add projects/dozle_kirinuki/scripts/panels_check_gen.py && git commit -m "fix(cmd_1338): panels_check shot_type表示・編集・保存先連動バグ修正"
-    報告: bash scripts/inbox_write.sh karo "足軽2号、subtask_1338a完了。修正4点の確認結果を報告。" report_completed ashigaru2
+    テスト: python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/panels_check_gen.py {JSONパス} で再生成→HTML内でshot_type表示・読み込み時パス切替を確認
+    git add /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/panels_check_gen.py && git commit -m "fix(cmd_1338): panels_check shot_type表示・編集・保存先連動バグ修正"
+    報告: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1338a完了。修正4点の確認結果を報告。" report_completed ashigaru2
+- task_id: subtask_1344a
+  parent_cmd: cmd_1344
+  bloom_level: L4
+  description: panels_check.htmlにJSON選択UI追加（ファイル一覧API+ドロップダウン選択+自動読み込み）
+  status: done
+  timestamp: "2026-04-12T17:09:36"
+  steps: panels_check_gen.pyとserver.pyを修正してJSON選択UIを実装。テスト後にgit commit & bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1344a完了。実装内容を報告。" report_completed ashigaru2
