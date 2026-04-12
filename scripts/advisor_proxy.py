@@ -22,6 +22,7 @@ import signal
 import subprocess
 import sys
 import time
+import uuid
 from logging.handlers import RotatingFileHandler
 
 from aiohttp import web, ClientSession, ClientTimeout
@@ -34,6 +35,11 @@ CLAUDE_CLI = "/home/murakami/.local/bin/claude"
 ADVISOR_TIMEOUT = 90  # seconds for claude -p
 UPSTREAM_TIMEOUT = 300  # seconds for Z.AI responses
 MAX_ADVISOR_LOOPS = 3
+ADVISOR_TOOL_DEF = {
+    "name": "advisor",
+    "description": "Consult a stronger reviewer who sees your full conversation transcript. No parameters. Call before substantive work and when stuck.",
+    "input_schema": {"type": "object", "properties": {}},
+}
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
 LOG_DIR = os.path.join(PROJECT_ROOT, "logs")
@@ -287,6 +293,7 @@ def synthesize_sse(response_json: dict) -> list[bytes]:
 
 async def handle_request(request: web.Request) -> web.StreamResponse:
     """Handle all incoming requests — proxy to Z.AI with advisor interception."""
+    req_id = uuid.uuid4().hex[:8]
     path = request.path
     body = await request.read()
 
@@ -301,7 +308,7 @@ async def handle_request(request: web.Request) -> web.StreamResponse:
 
     # Only intercept POST /v1/messages
     if method != "POST" or path != "/v1/messages":
-        logger.info("Passthrough %s %s", method, path)
+        logger.info("[%s] Passthrough %s %s", req_id, method, path)
         timeout = ClientTimeout(total=UPSTREAM_TIMEOUT)
         async with ClientSession(timeout=timeout) as session:
             async with session.request(method, upstream_url, headers=headers, data=body) as resp:
@@ -322,11 +329,17 @@ async def handle_request(request: web.Request) -> web.StreamResponse:
 
     wants_stream = request_json.get("stream", False)
 
+    # Inject advisor tool definition so GLM agents can call advisor()
+    tools = request_json.setdefault("tools", [])
+    if not any(t.get("name") == "advisor" for t in tools):
+        tools.append(ADVISOR_TOOL_DEF)
+        logger.info("Injected advisor tool definition into request")
+
     # Send non-streaming to Z.AI
     upstream_body = copy.deepcopy(request_json)
     upstream_body["stream"] = False
 
-    logger.info("Messages request — model=%s stream=%s", request_json.get("model"), wants_stream)
+    logger.info("[%s] Messages request — model=%s stream=%s", req_id, request_json.get("model"), wants_stream)
 
     timeout = ClientTimeout(total=UPSTREAM_TIMEOUT)
     try:
@@ -349,8 +362,8 @@ async def handle_request(request: web.Request) -> web.StreamResponse:
         if not advisor_block:
             break
 
-        logger.info("Advisor tool_use detected (loop %d/%d), id=%s",
-                     i + 1, MAX_ADVISOR_LOOPS, advisor_block.get("id"))
+        logger.info("[%s] Advisor tool_use detected (loop %d/%d), id=%s",
+                     req_id, i + 1, MAX_ADVISOR_LOOPS, advisor_block.get("id"))
 
         # Get advice via claude -p
         context = extract_context_for_advisor(current_request)
