@@ -46,6 +46,10 @@ if [ "${__INBOX_WATCHER_TESTING__:-}" != "1" ]; then
         echo "messages: []" > "$INBOX"
     fi
 
+    # Initialize idle flag directory (queue/.flags/ — restart-safe, unlike /tmp)
+    IDLE_FLAG_DIR="${IDLE_FLAG_DIR:-${SCRIPT_DIR}/queue/.flags}"
+    mkdir -p "${IDLE_FLAG_DIR}"
+
     # Source cli_adapter first so get_cli_type() is available for idle flag creation
     _cli_adapter="${SCRIPT_DIR}/lib/cli_adapter.sh"
     if [ -f "$_cli_adapter" ]; then
@@ -64,7 +68,7 @@ if [ "${__INBOX_WATCHER_TESTING__:-}" != "1" ]; then
     # Fix: CLI starts at welcome screen = idle. Create idle flag so watcher
     # doesn't false-busy deadlock waiting for a stop_hook that never fires.
     if [[ "$_EFFECTIVE_CLI" == "claude" ]]; then
-        touch "${IDLE_FLAG_DIR:-/tmp}/agent_idle_${AGENT_ID}"
+        touch "${IDLE_FLAG_DIR}/agent_idle_${AGENT_ID}"
         echo "[$(date)] Created initial idle flag for $AGENT_ID (CLI starts idle)" >&2
     fi
 
@@ -200,7 +204,7 @@ disable_normal_nudge() {
         return 1  # Phase 1: never suppress
     fi
     # Phase 2+: check if agent is idle via flag file
-    if [ -f "${IDLE_FLAG_DIR:-/tmp}/agent_idle_${AGENT_ID}" ]; then
+    if [ -f "${IDLE_FLAG_DIR}/agent_idle_${AGENT_ID}" ]; then
         return 1  # Agent is IDLE → don't suppress, send nudge
     fi
     return 0  # Agent is BUSY → suppress, stop hook will deliver
@@ -735,7 +739,7 @@ agent_is_busy() {
     effective_cli=$(get_effective_cli_type)
     if [[ "$effective_cli" == "claude" ]]; then
         # Primary: flag file check (高信頼)
-        if [ -f "${IDLE_FLAG_DIR:-/tmp}/agent_idle_${AGENT_ID}" ]; then
+        if [ -f "${IDLE_FLAG_DIR}/agent_idle_${AGENT_ID}" ]; then
             return 1  # idle — flag exists
         fi
         # Fallback: pane直接検出 (flag不整合時の回復)
@@ -745,7 +749,7 @@ agent_is_busy() {
         fi
         # Pane says idle but flag is missing → false-busy状態を回復
         echo "[$(date)] RECOVERY: $AGENT_ID flag missing but pane is idle — recreating flag" >&2
-        touch "${IDLE_FLAG_DIR:-/tmp}/agent_idle_${AGENT_ID}"
+        touch "${IDLE_FLAG_DIR}/agent_idle_${AGENT_ID}"
         return 1  # idle — recovered
     else
         agent_is_busy_check "$PANE_TARGET"
@@ -957,7 +961,7 @@ process_unread() {
         FIRST_UNREAD_SEEN=0
         NEW_CONTEXT_SENT=0
         # Ensure idle flag exists (fast-path recovery)
-        touch "${IDLE_FLAG_DIR:-/tmp}/agent_idle_${AGENT_ID}" 2>/dev/null || true
+        touch "${IDLE_FLAG_DIR}/agent_idle_${AGENT_ID}" 2>/dev/null || true
         if ! agent_is_busy; then
             # Shogun: only clear input when pane is not active (Lord is away)
             if [ "$AGENT_ID" = "shogun" ] && pane_is_active; then
@@ -1058,7 +1062,7 @@ for s in data.get('specials', []):
             local stale_busy_limit=60  # 1 minute (shortened from 300s to reduce deadlock window)
             if [ "${FIRST_UNREAD_SEEN:-0}" -gt 0 ] && [ "$((now - FIRST_UNREAD_SEEN))" -ge "$stale_busy_limit" ]; then
                 echo "[$(date)] WARNING: $AGENT_ID busy for $((now - FIRST_UNREAD_SEEN))s with $normal_count unread — forcing idle flag (stale busy recovery)" >&2
-                touch "${IDLE_FLAG_DIR:-/tmp}/agent_idle_${AGENT_ID}"
+                touch "${IDLE_FLAG_DIR}/agent_idle_${AGENT_ID}"
                 # Fall through to normal nudge/escalation below
             else
                 if [[ "$busy_cli" == "claude" ]]; then
@@ -1164,7 +1168,7 @@ for s in data.get('specials', []):
         NEW_CONTEXT_SENT=0
         # Ensure idle flag exists when all messages are read.
         # Recovers from stop_hook_inbox.sh flag loss during block cycles.
-        touch "${IDLE_FLAG_DIR:-/tmp}/agent_idle_${AGENT_ID}" 2>/dev/null || true
+        touch "${IDLE_FLAG_DIR}/agent_idle_${AGENT_ID}" 2>/dev/null || true
         # Clear stale nudge text from input field (Codex CLI prefills last input on idle).
         # Only send C-u when agent is idle — during Working it would be disruptive.
         if ! agent_is_busy; then

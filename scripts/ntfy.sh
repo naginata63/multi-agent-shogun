@@ -21,8 +21,11 @@ while IFS= read -r line; do
     [ -n "$line" ] && AUTH_ARGS+=("$line")
 done < <(ntfy_get_auth_args "$SCRIPT_DIR/config/ntfy_auth.env")
 
+# ローカルIPをTailscale IPに自動置換（殿のスマホからアクセスできるように）
+MSG="${1//192.168.2.7/100.66.15.93}"
+
 # shellcheck disable=SC2086
-curl -s "${AUTH_ARGS[@]}" -H "Tags: outbound" -d "$1" "https://ntfy.sh/$TOPIC" > /dev/null
+curl -s "${AUTH_ARGS[@]}" -H "Tags: outbound" -d "$MSG" "https://ntfy.sh/$TOPIC" > /dev/null
 
 # === cmd完了時: 自動done更新 ===
 # メッセージが「✅ cmd_XXXX完了」パターンの場合、
@@ -46,10 +49,10 @@ _update_cmd_done() {
     (
         flock -w 5 200 || exit 0
 
-        if awk -v cmd="$cmd_id" '
+        if mawk -v cmd="$cmd_id" '
             /- id: / { in_block = ($0 ~ "- id: " cmd) }
-            in_block && /^  status: (pending|in_progress)$/ {
-                sub(/status: (pending|in_progress)/, "status: done")
+            in_block && /^  status: (pending|in_progress|suspended|assigned|blocked)$/ {
+                sub(/status: (pending|in_progress|suspended|assigned|blocked)/, "status: done")
                 in_block = 0
                 updated = 1
             }

@@ -77,7 +77,7 @@ _update_cmd_status() {
 
         # Find "- id: cmd_XXX" block, replace next "status: pending" → "status: in_progress"
         # If no status line exists, insert "  status: in_progress" after the id line
-        if awk -v cmd="$cmd_id" '
+        if mawk -v cmd="$cmd_id" '
             /- id: / {
                 if (in_block && !found_status) {
                     print "  status: in_progress"
@@ -139,7 +139,7 @@ _update_task_done() {
 
         if [ -n "$cmd_id" ]; then
             # Find last task with matching parent_cmd and status: assigned
-            target_line=$(awk -v cmd="$cmd_id" '
+            target_line=$(mawk -v cmd="$cmd_id" '
                 /^- task_id:/ { found_parent = 0 }
                 /parent_cmd:/ && $0 ~ cmd { found_parent = 1 }
                 /status: assigned/ && found_parent { target = NR }
