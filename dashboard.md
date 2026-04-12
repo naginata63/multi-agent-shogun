@@ -97,7 +97,13 @@
 - 漫画フォント30書体ギャラリー未選定: http://100.66.15.93:8783/work/font_comparison/
 - **⚠️ dozle_kirinukiサブモジュール push不可**: d4baa9c5でgcloud SDK（194MB）がコミット済み→GitHub 100MB制限でreject。scripts/の変更はローカルのみ保存中。git-lfs移行 or 履歴書換が必要
 
-## 🚨 要対応（server.py再起動）
+## 🚨 要対応
+
+### お題4「早く寝なさい」P7 武器混入
+- **cmd_1346**: P7にナイフ状の武器が混入。P7のみ再生成が推奨。
+- **殿の判断**: P7再生成するか否かをご指示ください。OKなら家老が足軽3号に再生成指示。
+
+### server.py再起動
 - **cmd_1344追加: `/api/list_panels_json`（JSON選択UI）も再起動後に有効** commit 223efc6
 - panels_check.html の全機能が再起動後に有効: `/api/save_panels_json`・`/api/load_panels_json`・`/api/list_panels_json`・`POST /api/suggest_director_notes`
 - 実行コマンド: `kill $(pgrep -f "server.py") && nohup python3 /home/murakami/multi-agent-shogun/scripts/dashboard/server.py >> /tmp/dashboard.log 2>&1 &`
@@ -106,7 +112,7 @@
 
 | cmd | 内容 | 状態 |
 |-----|------|------|
-| cmd_1346 | お題4「早く寝なさい」パネルv1全7枚生成 | 足軽3実行中 |
+| cmd_1346 | お題4「早く寝なさい」v1全7枚生成完了（MENゴーグルOK・⚠️P7に武器混入）✅ 殿判断待ち |
 | cmd_1345 | お待たせしましたv5完成（P1/P6新規生成+P2-P5/P7はv4コピー）✅ 殿レビュー待ち |
 | cmd_1344 | panels_check.html JSON選択UI追加完了（/api/list_panels_json+ドロップダウン）✅ ⚠️サーバー再起動必要 |
 | cmd_1343 | お待たせしましたパネルv4全7枚生成完了（MENゴーグル全P確認・P7パスタ確認）✅ 殿レビュー待ち |
@@ -260,7 +266,7 @@
 |------|-----|------|---------|
 | 1号 | Sonnet | idle | — |
 | 2号 | Sonnet | idle | — |
-| 3号 | Sonnet | 実行中 | subtask_1346a（お題4v1生成）|
+| 3号 | Sonnet | idle | — |
 | 4号 | Sonnet | idle | — |
 | 5号 | Sonnet | idle | — |
 | 6号 | Sonnet | idle | — |
