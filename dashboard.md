@@ -117,7 +117,7 @@
 
 | cmd | 内容 | 状態 |
 |-----|------|------|
-| cmd_1347 | generate_panel_candidates.py実装中（動画→panels JSON全自動化）⚠️プロンプトファイル未提供 | 足軽1実行中 |
+| cmd_1347 | generate_panel_candidates.py実装完了✅（325行・dry-run7パネル確認）⚠️殿プロンプト未記入 |
 | cmd_1346 | お題4「早く寝なさい」v1全7枚生成完了（MENゴーグルOK・⚠️P7に武器混入）✅ 殿判断待ち |
 | cmd_1345 | お待たせしましたv5完成（P1/P6新規生成+P2-P5/P7はv4コピー）✅ 殿レビュー待ち |
 | cmd_1344 | panels_check.html JSON選択UI追加完了（/api/list_panels_json+ドロップダウン）✅ ⚠️サーバー再起動必要 |
@@ -270,7 +270,7 @@
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | Sonnet | 実行中 | subtask_1347a（generate_panel_candidates.py実装）|
+| 1号 | Sonnet | idle | — |
 | 2号 | Sonnet | idle | — |
 | 3号 | Sonnet | idle | — |
 | 4号 | Sonnet | idle | — |
