@@ -2,6 +2,7 @@
 """MCP Dashboard Web UI v2 - Port 8770
 DB-driven auto-detection: R1-R7 rules, R7 syncs dashboard.md 🚨要対応."""
 
+import glob
 import http.server
 import json
 import os
@@ -557,29 +558,35 @@ def get_db_agent_status(agent_id: str, conn) -> str:
 # ─── Dashboard data aggregation ────────────────────────────────────────────────
 
 def _get_dingtalk_qc_stats():
-    """DingTalk音声QCのリアルタイム統計"""
-    log_path = os.path.join(BASE_DIR, "work", "dingtalk_qc", "qc_log.jsonl")
-    if not os.path.isfile(log_path):
+    """DingTalk音声QCのリアルタイム統計（複数ログファイル集約）"""
+    import subprocess
+    log_dir = os.path.join(BASE_DIR, "work", "dingtalk_qc")
+    log_files = sorted(glob.glob(os.path.join(log_dir, "qc_log*.jsonl")))
+    if not log_files:
         return None
     try:
         total = confirmed = skipped = error = 0
         sims = []
         vols = []
-        with open(log_path) as f:
-            for line in f:
-                try:
-                    d = json.loads(line)
-                    total += 1
-                    action = d.get("action", "")
-                    if "確認済み" in action: confirmed += 1
-                    elif "スキップ" in action: skipped += 1
-                    elif "エラー" in action: error += 1
-                    sim = d.get("similarity", -1)
-                    if sim >= 0: sims.append(sim)
-                    vol = d.get("mean_volume_db")
-                    if vol is not None: vols.append(vol)
-                except: pass
-        import subprocess
+        sources = {}
+        for log_path in log_files:
+            file_total = 0
+            with open(log_path) as f:
+                for line in f:
+                    try:
+                        d = json.loads(line)
+                        total += 1
+                        file_total += 1
+                        action = d.get("action", "")
+                        if "確認済み" in action: confirmed += 1
+                        elif "スキップ" in action: skipped += 1
+                        elif "エラー" in action: error += 1
+                        sim = d.get("similarity", -1)
+                        if sim >= 0: sims.append(sim)
+                        vol = d.get("mean_volume_db")
+                        if vol is not None: vols.append(vol)
+                    except: pass
+            sources[os.path.basename(log_path)] = file_total
         running = subprocess.run(["pgrep", "-f", "dingtalk_qc_loop"],
                                  capture_output=True).returncode == 0
         return {
@@ -594,6 +601,7 @@ def _get_dingtalk_qc_stats():
             "avg_volume": round(sum(vols)/len(vols), 1) if vols else 0,
             "earned": total * 9,
             "running": running,
+            "sources": sources,
         }
     except:
         return None
@@ -860,7 +868,8 @@ function renderDingtalkQC(qc) {
       <tr><td>📊 平均類似度</td><td>${qc.avg_similarity}%</td></tr>
       <tr><td>📉 最低類似度</td><td>${qc.min_similarity}%</td></tr>
       <tr><td>🔊 平均音量</td><td>${qc.avg_volume} dB</td></tr>
-    </table>`;
+    </table>
+    ${qc.sources ? `<div style="margin-top:8px;font-size:0.75em;color:#8b949e">内訳: ${Object.entries(qc.sources).map(([k,v]) => `${k.replace('qc_log','').replace('.jsonl','') || 'main'}=${v}`).join(', ')}</div>` : ''}`;
 }
 
 function renderAgents(agents) {
