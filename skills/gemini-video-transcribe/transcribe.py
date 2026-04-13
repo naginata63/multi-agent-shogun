@@ -3,13 +3,10 @@
 gemini_video_transcribe — Gemini APIによる動画字幕生成ラッパー
 
 動画ファイルをGemini APIに投入してSRT字幕を一発生成する。
-内部でgemini_speaker_pipeline.py（話者分離あり）またはgemini_transcribe.py（なし）を呼び出す。
+内部でgemini_transcribe.py（話者分離なし）を呼び出す。話者分離ありモードは廃止（vocal_stt_pipeline.pyを使用すること）。
 
 Usage:
-    # 基本（話者分離あり: Gemini + ECAPA-TDNN Speaker ID）
-    python3 skills/gemini-video-transcribe/transcribe.py video.mp4 -o output.srt
-
-    # 話者分離なし（GPU不要、高速）
+    # 話者分離なし（Gemini字幕のみ）
     python3 skills/gemini-video-transcribe/transcribe.py video.mp4 -o output.srt --no-speaker-diarize
 
     # モデル指定
@@ -164,24 +161,9 @@ def main():
             "--model", args.model,
         ]
     else:
-        # 話者分離あり: gemini_speaker_pipeline.py（Gemini + ECAPA-TDNN Speaker ID）
-        print("[transcribe] モード: 話者分離あり（Gemini + Speaker ID, GPU推奨）", flush=True)
-        cmd = [
-            sys.executable,
-            str(PROJECT_DIR / "scripts" / "gemini_speaker_pipeline.py"),
-            str(video_path),
-            "--output", str(output_path),
-            "--model", args.model,
-            "--threshold", str(args.threshold),
-        ]
-        if args.gemini_srt:
-            cmd += ["--gemini-srt", args.gemini_srt]
-        if args.profile_dir:
-            cmd += ["--profile-dir", args.profile_dir]
-
-    print(f"[transcribe] 実行: {' '.join(cmd)}", flush=True)
-    result = subprocess.run(cmd)
-    return result.returncode
+        # 話者分離ありモードは廃止（vocal_stt_pipeline.pyを使用すること）
+        print("[transcribe] エラー: 話者分離ありモードはAssemblyAI（vocal_stt_pipeline.py）を使え", flush=True)
+        return 1
 
 
 if __name__ == "__main__":
