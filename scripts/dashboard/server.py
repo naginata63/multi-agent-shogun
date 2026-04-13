@@ -607,6 +607,26 @@ def _get_dingtalk_qc_stats():
         return None
 
 
+def _get_advisor_proxy_stats():
+    """Advisor Proxyのリアルタイム統計"""
+    try:
+        import urllib.request
+        health = json.loads(urllib.request.urlopen("http://localhost:8780/health", timeout=2).read())
+        metrics = json.loads(urllib.request.urlopen("http://localhost:8780/metrics", timeout=2).read())
+        return {
+            "status": "up",
+            "uptime_seconds": health.get("uptime_seconds"),
+            "circuit_state": health.get("circuit_state", "unknown"),
+            "total_requests": metrics.get("total_requests", 0),
+            "success": metrics.get("success", 0),
+            "failures": metrics.get("failures", 0),
+            "advisor_calls": metrics.get("advisor_calls", 0),
+            "avg_response_ms": metrics.get("avg_response_ms", 0),
+        }
+    except Exception:
+        return {"status": "down"}
+
+
 def get_dashboard_data():
     conn = get_db()
 
@@ -668,6 +688,9 @@ def get_dashboard_data():
     # DingTalk QC stats
     dingtalk_qc = _get_dingtalk_qc_stats()
 
+    # Advisor Proxy stats
+    advisor_proxy = _get_advisor_proxy_stats()
+
     return {
         "stats": {
             "action_required_count": len(action_required),
@@ -678,6 +701,7 @@ def get_dashboard_data():
             "total_done": total_done,
         },
         "dingtalk_qc": dingtalk_qc,
+        "advisor_proxy": advisor_proxy,
         "action_required": action_required,
         "agents": list(agent_map.values()),
         "active_cmds": [
@@ -795,6 +819,7 @@ tr:hover td { background: #1c2128; }
 
 <div class="grid2">
   <div class="panel" id="dingtalk-panel"><h2>💰 DingTalk音声QC</h2><div id="dingtalk-qc"></div></div>
+  <div class="panel" id="advisor-proxy-panel"><h2>🔮 Advisor Proxy</h2><div id="advisor-proxy"></div></div>
   <div class="panel"><h2>🏯 足軽・軍師 状態</h2><div id="agents"></div></div>
   <div class="panel"><h2>📋 進行中 cmd</h2><div id="active-cmds"></div></div>
   <div class="panel full"><h2>✅ 最近の完了 + 📨 最新メッセージ</h2>
@@ -870,6 +895,36 @@ function renderDingtalkQC(qc) {
       <tr><td>🔊 平均音量</td><td>${qc.avg_volume} dB</td></tr>
     </table>
     ${qc.sources ? `<div style="margin-top:8px;font-size:0.75em;color:#8b949e">内訳: ${Object.entries(qc.sources).map(([k,v]) => `${k.replace('qc_log','').replace('.jsonl','') || 'main'}=${v}`).join(', ')}</div>` : ''}`;
+}
+
+function renderAdvisorProxy(ap) {
+  const el = $('advisor-proxy');
+  if (!ap) { el.innerHTML = '<div class="empty">データなし</div>'; return; }
+  if (ap.status === 'down') {
+    el.innerHTML = '<div style="text-align:center;padding:12px"><span class="badge badge-idle">停止中</span></div>';
+    return;
+  }
+  const circuit = ap.circuit_state || 'unknown';
+  const circuitBadge = circuit === 'closed'
+    ? '<span class="badge badge-idle">closed</span>'
+    : circuit === 'open'
+      ? '<span class="badge badge-busy" style="background:#f85149">OPEN</span>'
+      : `<span class="badge badge-error">${esc(circuit)}</span>`;
+  const uptime = ap.uptime_seconds != null
+    ? (ap.uptime_seconds >= 3600 ? `${Math.floor(ap.uptime_seconds/3600)}h ${Math.round((ap.uptime_seconds%3600)/60)}m` : `${Math.round(ap.uptime_seconds/60)}m`)
+    : '—';
+  const successRate = ap.total_requests > 0 ? ((ap.success / ap.total_requests) * 100).toFixed(1) : '—';
+  el.innerHTML = `
+    <table>
+      <tr><td>📡 状態</td><td><span class="badge badge-busy">稼働中</span></td></tr>
+      <tr><td>⏱ 稼働時間</td><td>${uptime}</td></tr>
+      <tr><td>🔒 サーキット</td><td>${circuitBadge}</td></tr>
+      <tr><td>📨 リクエスト</td><td>${ap.total_requests}</td></tr>
+      <tr><td>✅ 成功</td><td>${ap.success} (${successRate}%)</td></tr>
+      <tr><td>🔴 失敗</td><td>${ap.failures}</td></tr>
+      <tr><td>🔮 Advisor呼出</td><td>${ap.advisor_calls}</td></tr>
+      <tr><td>⏱ 平均応答</td><td>${Math.round(ap.avg_response_ms)}ms</td></tr>
+    </table>`;
 }
 
 function renderAgents(agents) {
@@ -963,6 +1018,7 @@ async function refresh() {
     renderStats(d.stats);
     renderActionRequired(d.action_required);
     renderDingtalkQC(d.dingtalk_qc);
+    renderAdvisorProxy(d.advisor_proxy);
     renderAgents(d.agents);
     renderActiveCmds(d.active_cmds);
     renderRecentDone(d.recent_done);
