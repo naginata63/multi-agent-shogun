@@ -401,7 +401,12 @@ def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, vid
 
     claude_path = shutil.which("claude")
     if not claude_path:
-        return "[Claude CLI が見つかりません: `which claude` で確認してください]"
+        # cron環境ではPATHに~/.local/binが含まれない場合があるためフォールバック
+        fallback = Path.home() / ".local" / "bin" / "claude"
+        if fallback.exists():
+            claude_path = str(fallback)
+        else:
+            return "[Claude CLI が見つかりません: `which claude` で確認してください]"
 
     try:
         result = subprocess.run(
