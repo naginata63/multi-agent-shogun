@@ -21,6 +21,7 @@ import os
 import signal
 import subprocess
 import sys
+import threading
 import time
 import uuid
 from logging.handlers import RotatingFileHandler
@@ -46,6 +47,92 @@ LOG_DIR = os.path.join(PROJECT_ROOT, "logs")
 PID_FILE = os.path.join(LOG_DIR, "advisor_proxy.pid")
 
 _START_TIME = time.time()
+
+# ─── Circuit Breaker ──────────────────────────────────────────────────────────
+
+
+class CircuitBreaker:
+    CLOSED = "closed"
+    OPEN = "open"
+    HALF_OPEN = "half_open"
+
+    def __init__(self, failure_threshold=5, recovery_timeout=30):
+        self.state = self.CLOSED
+        self.failure_count = 0
+        self.last_failure_time = None
+        self.failure_threshold = failure_threshold
+        self.recovery_timeout = recovery_timeout
+        self._lock = threading.Lock()
+
+    def record_success(self):
+        with self._lock:
+            self.failure_count = 0
+            self.state = self.CLOSED
+
+    def record_failure(self):
+        with self._lock:
+            self.failure_count += 1
+            self.last_failure_time = time.time()
+            if self.failure_count >= self.failure_threshold:
+                self.state = self.OPEN
+                logger.warning("Circuit OPEN — %d consecutive failures", self.failure_count)
+
+    def can_request(self) -> bool:
+        with self._lock:
+            if self.state == self.CLOSED:
+                return True
+            if self.state == self.OPEN:
+                if self.last_failure_time and (time.time() - self.last_failure_time) >= self.recovery_timeout:
+                    self.state = self.HALF_OPEN
+                    logger.info("Circuit → HALF_OPEN (recovery timeout elapsed)")
+                    return True
+                return False
+            # HALF_OPEN — allow one probe request
+            return True
+
+
+circuit_breaker = CircuitBreaker()
+
+# ─── Metrics ──────────────────────────────────────────────────────────────────
+
+
+class Metrics:
+    def __init__(self, max_response_samples=100):
+        self._lock = threading.Lock()
+        self.total_requests = 0
+        self.success = 0
+        self.failures = 0
+        self.advisor_calls = 0
+        self._response_times = []
+        self._max_samples = max_response_samples
+
+    def record_request(self):
+        with self._lock:
+            self.total_requests += 1
+
+    def record_success(self, elapsed_ms: float):
+        with self._lock:
+            self.success += 1
+            self._response_times.append(elapsed_ms)
+            if len(self._response_times) > self._max_samples:
+                self._response_times = self._response_times[-self._max_samples:]
+
+    def record_failure(self):
+        with self._lock:
+            self.failures += 1
+
+    def record_advisor_call(self):
+        with self._lock:
+            self.advisor_calls += 1
+
+    def avg_response_ms(self) -> float:
+        with self._lock:
+            if not self._response_times:
+                return 0.0
+            return sum(self._response_times) / len(self._response_times)
+
+
+metrics = Metrics()
 
 # ─── Logging ──────────────────────────────────────────────────────────────────
 
@@ -290,12 +377,38 @@ def synthesize_sse(response_json: dict) -> list[bytes]:
 
 # ─── Request Handler ──────────────────────────────────────────────────────────
 
+RETRY_MAX = 2
+RETRY_BACKOFFS = [1, 2]  # seconds
+
+
+async def _upstream_post(
+    session: ClientSession, url: str, json_body: dict, headers: dict
+) -> tuple[int, dict | bytes | None, str | None]:
+    """Post to upstream. Returns (status, response_json_or_body, error_msg)."""
+    try:
+        async with session.post(url, json=json_body, headers=headers) as resp:
+            if resp.status != 200:
+                resp_body = await resp.read()
+                return resp.status, resp_body, None
+            response_json = await resp.json()
+            return 200, response_json, None
+    except Exception as e:
+        return 502, None, str(e)
+
 
 async def handle_request(request: web.Request) -> web.StreamResponse:
     """Handle all incoming requests — proxy to Z.AI with advisor interception."""
     req_id = uuid.uuid4().hex[:8]
     path = request.path
     body = await request.read()
+    start_time = time.time()
+
+    # Circuit breaker check
+    if not circuit_breaker.can_request():
+        logger.warning("[%s] Rejected — circuit OPEN", req_id)
+        return web.Response(status=503, text="Service unavailable (circuit breaker open)")
+
+    metrics.record_request()
 
     # Forward headers (exclude hop-by-hop)
     headers = {
@@ -335,25 +448,55 @@ async def handle_request(request: web.Request) -> web.StreamResponse:
         tools.append(ADVISOR_TOOL_DEF)
         logger.info("Injected advisor tool definition into request")
 
-    # Send non-streaming to Z.AI
+    # Send non-streaming to Z.AI (with retry)
     upstream_body = copy.deepcopy(request_json)
     upstream_body["stream"] = False
 
     logger.info("[%s] Messages request — model=%s stream=%s", req_id, request_json.get("model"), wants_stream)
 
     timeout = ClientTimeout(total=UPSTREAM_TIMEOUT)
-    try:
-        async with ClientSession(timeout=timeout) as session:
-            async with session.post(upstream_url, json=upstream_body, headers=headers) as resp:
-                if resp.status != 200:
-                    resp_body = await resp.read()
-                    logger.warning("Upstream error %d", resp.status)
-                    return web.Response(status=resp.status, body=resp_body,
-                                        content_type=resp.content_type)
-                response_json = await resp.json()
-    except Exception as e:
-        logger.error("Upstream request failed: %s", e)
-        return web.Response(status=502, text=f"Upstream error: {e}")
+    response_json = None
+    last_status = 0
+    last_error = None
+
+    async with ClientSession(timeout=timeout) as session:
+        for attempt in range(RETRY_MAX + 1):
+            status, resp_data, error = await _upstream_post(
+                session, upstream_url, upstream_body, headers
+            )
+            last_status = status
+
+            if status == 200:
+                response_json = resp_data
+                break
+
+            # Retry only on 5xx or connection errors (502)
+            if status >= 500 and attempt < RETRY_MAX:
+                backoff = RETRY_BACKOFFS[attempt]
+                logger.warning("[%s] Upstream %d, retrying in %ds (attempt %d/%d)",
+                               req_id, status, backoff, attempt + 1, RETRY_MAX)
+                await asyncio.sleep(backoff)
+                continue
+
+            # Non-retryable or exhausted retries
+            if error is None and isinstance(resp_data, bytes):
+                return web.Response(status=status, body=resp_data, content_type="application/json")
+            elif error:
+                last_error = error
+                break
+            break
+
+    if response_json is None:
+        elapsed_ms = (time.time() - start_time) * 1000
+        metrics.record_failure()
+        circuit_breaker.record_failure()
+        logger.error("[%s] All retries exhausted — last_status=%d", req_id, last_status)
+        return web.Response(status=last_status or 502, text=f"Upstream error: {last_error or 'exhausted retries'}")
+
+    # Success — record metrics
+    elapsed_ms = (time.time() - start_time) * 1000
+    metrics.record_success(elapsed_ms)
+    circuit_breaker.record_success()
 
     # Advisor interception loop
     current_request = request_json
@@ -362,6 +505,7 @@ async def handle_request(request: web.Request) -> web.StreamResponse:
         if not advisor_block:
             break
 
+        metrics.record_advisor_call()
         logger.info("[%s] Advisor tool_use detected (loop %d/%d), id=%s",
                      req_id, i + 1, MAX_ADVISOR_LOOPS, advisor_block.get("id"))
 
@@ -373,7 +517,7 @@ async def handle_request(request: web.Request) -> web.StreamResponse:
         # Build continuation request
         current_request = build_continuation(current_request, response_json, advisor_block, advice)
 
-        # Send continuation to Z.AI
+        # Send continuation to Z.AI (no retry for advisor continuations)
         try:
             async with ClientSession(timeout=timeout) as session:
                 async with session.post(upstream_url, json=current_request, headers=headers) as resp:
@@ -410,7 +554,27 @@ async def handle_request(request: web.Request) -> web.StreamResponse:
 
 
 async def handle_health(request: web.Request) -> web.Response:
-    return web.json_response({"status": "ok", "port": PROXY_PORT, "upstream": UPSTREAM_URL, "uptime_seconds": int(time.time() - _START_TIME)})
+    return web.json_response({
+        "status": "ok",
+        "port": PROXY_PORT,
+        "upstream": UPSTREAM_URL,
+        "uptime_seconds": int(time.time() - _START_TIME),
+        "circuit_state": circuit_breaker.state,
+    })
+
+
+# ─── Metrics Endpoint ─────────────────────────────────────────────────────────
+
+
+async def handle_metrics(request: web.Request) -> web.Response:
+    return web.json_response({
+        "total_requests": metrics.total_requests,
+        "success": metrics.success,
+        "failures": metrics.failures,
+        "advisor_calls": metrics.advisor_calls,
+        "avg_response_ms": metrics.avg_response_ms(),
+        "circuit_state": circuit_breaker.state,
+    })
 
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
@@ -438,6 +602,7 @@ def main():
     app = web.Application()
     app.on_shutdown.append(on_shutdown)
     app.router.add_get("/health", handle_health)
+    app.router.add_get("/metrics", handle_metrics)
     app.router.add_route("*", "/{path:.*}", handle_request)
 
     logger.info("Advisor Proxy starting on port %d → %s", PROXY_PORT, UPSTREAM_URL)
