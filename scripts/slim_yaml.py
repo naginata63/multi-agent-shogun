@@ -110,14 +110,39 @@ def slim_tasks(dry_run=False):
         if not isinstance(data, dict):
             continue
 
-        task = data.get('task', {}) if isinstance(data.get('task', {}), dict) else {}
-        status = task.get('status', '') if isinstance(task, dict) else ''
-        if not status:
-            continue
-
         stem = filepath.stem
         if stem in CANONICAL_TASKS:
-            if status not in done_statuses:
+            # Handle both 'task' (legacy) and 'tasks' (current list format)
+            tasks_list = data.get('tasks', [])
+            if isinstance(tasks_list, list) and tasks_list:
+                # List format: archive done tasks, keep active ones
+                done_tasks = [t for t in tasks_list if isinstance(t, dict) and t.get('status') in done_statuses]
+                active_tasks = [t for t in tasks_list if not (isinstance(t, dict) and t.get('status') in done_statuses)]
+
+                if not done_tasks:
+                    continue
+
+                archive_path = archive_dir / f'{stem}_{timestamp}.yaml'
+                ensure_parent_dir(archive_path)
+
+                if dry_run:
+                    print(f"[DRY-RUN] would archive {len(done_tasks)} done tasks from {filepath}")
+                    continue
+
+                if not save_yaml(archive_path, {'tasks': done_tasks}):
+                    return False
+
+                data['tasks'] = active_tasks
+                if not save_yaml(filepath, data):
+                    return False
+
+                print(f"Archived {len(done_tasks)} done tasks from {stem}, kept {len(active_tasks)} active", file=sys.stderr)
+                continue
+
+            # Legacy single-task format
+            task = data.get('task', {}) if isinstance(data.get('task', {}), dict) else {}
+            status = task.get('status', '') if isinstance(task, dict) else ''
+            if not status or status not in done_statuses:
                 continue
 
             archive_path = archive_dir / f'{stem}_{timestamp}.yaml'
@@ -130,6 +155,15 @@ def slim_tasks(dry_run=False):
 
             if not save_yaml(filepath, IDLE_STUB):
                 return False
+            continue
+
+        # Non-canonical task files
+        task = data.get('task', data.get('tasks', [{}]))
+        if isinstance(task, list):
+            status = task[-1].get('status', '') if task else ''
+        elif isinstance(task, dict):
+            status = task.get('status', '')
+        else:
             continue
 
         if status not in {'done', 'cancelled'}:
@@ -248,7 +282,7 @@ def slim_inbox(agent_id, dry_run=False):
     return True
 
 
-def slim_shugun_to_karo():
+def slim_shogun_to_karo():
     """Archive done/cancelled commands from shogun_to_karo.yaml."""
     queue_dir = get_queue_dir()
     archive_dir = queue_dir / 'archive'
@@ -368,7 +402,7 @@ def main():
 
     # Process shogun_to_karo if this is Karo
     if agent_id == 'karo':
-        if not slim_shugun_to_karo():
+        if not slim_shogun_to_karo():
             sys.exit(1)
         migration(dry_run)
         if not slim_tasks(dry_run):

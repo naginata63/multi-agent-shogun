@@ -235,7 +235,7 @@ PY
     ) 200>"$LOCKFILE"
 }
 
-echo "[$(date)] ntfy listener started — topic: $TOPIC (auth: ${NTFY_TOKEN:+token}${NTFY_USER:+basic}${NTFY_TOKEN:-${NTFY_USER:-none}})" >&2
+echo "[$(date)] ntfy listener started — topic: $TOPIC (auth: ${NTFY_TOKEN:+configured}${NTFY_USER:+configured}${NTFY_TOKEN:-${NTFY_USER:-none}})" >&2
 
 while true; do
     # Stream new messages (long-lived connection, blocks until message arrives)
