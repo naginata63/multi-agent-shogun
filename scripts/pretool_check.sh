@@ -53,7 +53,7 @@ if [[ "$TOOL_NAME" == "Write" ]] || [[ "$TOOL_NAME" == "Edit" ]]; then
     AGENT_NUM="${AGENT_ID#ashigaru}"
     TASK_YAML="${REPO_DIR}/queue/tasks/ashigaru${AGENT_NUM}.yaml"
     if [ -f "$TASK_YAML" ]; then
-      TARGET_PATH=$(grep -A5 'status: assigned' "$TASK_YAML" | grep 'target_path:' | head -1 | sed 's/.*target_path: *//' | tr -d '"' | tr -d "'" || true)
+      TARGET_PATH=$(grep -A5 'status: assigned' "$TASK_YAML" | grep -E 'target_path:|output_file:' | head -1 | sed 's/.*:[[:space:]]*//' | tr -d '"' | tr -d "'" || true)
       if [ -n "$TARGET_PATH" ] && echo "$FILE_PATH" | grep -qF "$TARGET_PATH"; then
         exit 0  # target_pathと一致 → 許可
       fi
@@ -114,17 +114,20 @@ if [[ "$TOOL_NAME" == "Bash" ]]; then
   if [[ "$_AGENT_ID_BK" == ashigaru* ]]; then
     if echo "$COMMAND" | grep -qE 'python3[[:space:]]+[^-][^[:space:]]*\.py' && \
        ! echo "$COMMAND" | grep -qE 'python3[[:space:]]+-[cm]|venv/|pip'; then
-      PY_FILE=$(echo "$COMMAND" | grep -oE '[^/[:space:]]+\.py' | grep -v '__pycache__' | head -1)
-      if [[ -n "$PY_FILE" ]]; then
+      PY_FILES=$(echo "$COMMAND" | grep -oE '[^/[:space:]]+\.py' | grep -v '__pycache__')
+      if [[ -n "$PY_FILES" ]]; then
         BLACKLIST="${REPO_DIR}/config/script_blacklist.txt"
         SCRIPT_INDEX="${REPO_DIR}/projects/dozle_kirinuki/context/script_index.md"
-        # 1段目: blacklist → BLOCKED
-        if [[ -f "$BLACKLIST" ]] && grep -qxF "$PY_FILE" "$BLACKLIST"; then
-          echo "BLOCKED: ${PY_FILE} はblacklistに登録された使用禁止スクリプトです。" >&2
-          echo "config/script_blacklist.txt を参照。代替スクリプトを使用してください。" >&2
-          exit 2
-        fi
-        # 2段目: script_index.md未登録 → WARNING + 候補表示
+        # 1段目: blacklist → BLOCKED（全.pyファイルをループチェック）
+        for PY_FILE in $PY_FILES; do
+          if [[ -f "$BLACKLIST" ]] && grep -qxF "$PY_FILE" "$BLACKLIST"; then
+            echo "BLOCKED: ${PY_FILE} はblacklistに登録された使用禁止スクリプトです。" >&2
+            echo "config/script_blacklist.txt を参照。代替スクリプトを使用してください。" >&2
+            exit 2
+          fi
+        done
+        # 2段目: script_index.md未登録 → WARNING + 候補表示（メインスクリプトのみ）
+        PY_FILE=$(echo "$PY_FILES" | head -1)
         if [[ -f "$SCRIPT_INDEX" ]] && ! grep -qF "$PY_FILE" "$SCRIPT_INDEX"; then
           echo "WARNING: 未登録スクリプト: ${PY_FILE}" >&2
           # キーワード分割で類似候補を検索
