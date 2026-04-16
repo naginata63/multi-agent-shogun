@@ -77,6 +77,7 @@
 !config/voicevox_dict.txt
 !config/genai_user_profile.yaml
 !config/settings.yaml
+!config/script_blacklist.txt
 
 # Templates
 !templates/
