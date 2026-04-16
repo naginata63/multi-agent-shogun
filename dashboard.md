@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-16 16:55
+最終更新: 2026-04-16 21:17
 
 ## 💰 DingTalk音声QC（9万円案件）
 🟢 稼働中 | 処理済み: **228件** / 10,000件 | 報酬見込み: **¥2,052**
@@ -16,6 +16,11 @@
 トピック: `shogun-962f817f20fadb36`
 
 ## 🚨 要対応 - 殿のご判断をお待ちしております
+
+### 🔴 cmd_1397 — レールガンYouTube非公開アップ完了 → 殿確認待ち
+- URL: https://www.youtube.com/watch?v=IpB4U4AmqS0
+- 1080x1920 / h264_nvenc / 4.4MB / private
+- **判断**: 確認後、公開OKなら公開指示を
 
 ### 🔴 cmd_1396 — お題06 panels JSON再生成完了 → 殿レビュー待ち
 - panels_odai_06.json生成済み（**14パネル**・scene=odai_06）
@@ -119,6 +124,7 @@
 
 | cmd | 内容 |
 |-----|------|
+| cmd_1397 | ✅ レールガン縦型クロップ+YouTube非公開アップ完了（h264_nvenc 1080x1920）→ https://www.youtube.com/watch?v=IpB4U4AmqS0 |
 | cmd_1395 | ✅ 全チェックBashバイパス修正完了（軍師PASS・commit 7ec2df8・git push済み）|
 | cmd_1394 | ✅ note下書き挿絵2枚挿入+キャプション完了 → 🚨殿レビュー待ち https://note.com/n/n0044698193bd |
 | cmd_1393 | ✅ 将軍指示拡大解釈防止フック実装完了（軍師PASS・commit 6b33bcb・git push済み）|
