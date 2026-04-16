@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-12 16:26
+最終更新: 2026-04-16 16:55
 
 ## 💰 DingTalk音声QC（9万円案件）
 🟢 稼働中 | 処理済み: **228件** / 10,000件 | 報酬見込み: **¥2,052**
@@ -17,69 +17,36 @@
 
 ## 🚨 要対応 - 殿のご判断をお待ちしております
 
+### 🔴 cmd_1396 — お題06 panels JSON再生成完了 → 殿レビュー待ち
+- panels_odai_06.json生成済み（**14パネル**・scene=odai_06）
+- **レビューURL**: http://100.66.15.93:8770/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai/panel_review.html
+- **判断**: OKワード/NGワードを選定してパネル構成を確定せよ
 
+### 🔴 cmd_1394 — note記事「Claude AdvisorでGLMの品質を96%引き上げた話」殿レビュー待ち
+- 下書きURL: https://note.com/n/n0044698193bd
+- カバー画像・挿絵2枚（advisor_simple_gemini.jpg + advisor_metaphor.jpg）・キャプション全設定済み
+- **判断**: 内容・表示確認後、公開OKなら公開指示を
 
-### 🔴 cmd_1326 Vision分析完了・殿確認要（判定不能58件）
-- **結果**: 無音区間118件中
-  - PC見ている: **34件（113.8秒）** → カット対象
-  - カメラ目線: 23件 → 残す
-  - その他: 3件
-  - ⚠️ **判定不能: 58件**（バッチ2のJSONパース失敗）→ 118件中半数が未判定
-- `projects/crowdworks_video_edit/work/pc_looking_analysis.json`
-- **→ 判定不能58件を再実行するか（バッチ2のみ）、34件カット対象のみで進めるか、殿のご判断を**
+### ✅ cmd_1392/1393 — 将軍の指示拡大解釈防止策 実装完了
+詳細: `queue/reports/gunshi_report_cmd1392.yaml`
 
-### 🔴 cmd_1327 cut_edited_v5.mp4完成・殿確認待ち
-- **軽量版（480p）** duration: **31.6s** / 4.5MB
-- LLMリテイク判定: 採用61件 + 英語リピート6件 = 67件採用
-- PC視線カット: pc74件 + other3件 = **77件カット**
-- カメラ目線保持: 41件
-- ファイル: `projects/crowdworks_video_edit/work/cut_edited_v5.mp4`
-- **→ 殿ご確認ください。OKならPhase2（本番1080p）へ**
+**根本原因**: cmd の `command:` フィールドに殿の原文が残らない。家老以下は将軍の解釈しか見えないため検出不能。
 
-### 🔴 cmd_1320 Phase2完了・殿確認待ち
-- Phase1 ✅ 殿OK済み（採用54+英語リピート8で進行。seg59/63/64は採用扱い）
-- Phase2 ✅ **cut_edited_v4.mp4 完成** duration:352.7s / 660MB / loudnorm 2pass + h264_nvenc
-- **→ 殿OK後にPhase3（テロップ+Bロール+YouTube限定公開）へ**
+**軍師提案4案（推奨: 案1+案3）**:
 
-### ⛔ cmd_1322 P2〜P7生成中止（殿指示）
-- P1 殿OK済み ✅
-- P2〜P7: 殿指示により中止。再開しない。
+| 案 | 概要 | 実装難易度 | 効果 |
+|----|------|-----------|------|
+| **案1★** | PreToolUseフックで `lord_original:` フィールドを必須化。なければcmd書き込みBLOCKED | 低（1-2h） | 殿の原文を強制記録 |
+| 案2 | PostToolUseで `lord_original` と `command` の動詞差分をWARNING | 中（3-4h） | 偽陽性リスク高 |
+| **案3★** | instructions/karo.mdにlord_originalとcommandの比較チェックリスト追加 | 極低（15分） | 案1のデータを家老が検証 |
+| 案4 | UserPromptSubmitフックで殿の発言を自動キャプチャ | 高（1日+） | 最も正確だが複雑 |
 
-### 🔬 cmd_1318 Geminiデバッグ結果（殿ご確認）
-- **ギャラリー**: http://192.168.2.7:8770/work/20260407_%E4%BD%93%E5%8A%9B%E3%81%A8%E6%89%8B%E6%8C%81%E3%81%A1%E3%81%8C%E5%85%B1%E6%9C%89%E3%81%AE%E3%80%8E%E5%9C%B0%E4%B8%8B%E4%B8%96%E7%95%8C%E3%80%8F%E3%81%A7%E5%85%A8%E5%93%A1%E5%90%88%E6%B5%81%E3%81%99%E3%82%8B%E3%81%BE%E3%81%A7%E7%B5%82%E3%82%8F%E3%82%8C%E3%81%BE%E3%81%9B%E3%82%93%EF%BC%81%E3%83%9E%E3%82%A4%E3%82%AF%E3%83%A9/manga_qnly_agree/output/gallery_p1.html
-- **モデル**: gemini-3.1-flash-image-preview ✅
-- **finish_reason**: STOP ✅（正常完了）
-- **⚠️ 出力解像度**: **768×1376px / 1392KB** ← 品質しょぼい原因の可能性。以前は別の解像度？
-- **髪色修正**: green hair認識済み ✅（「green hair, glasses, vest, waist scarf」）
-- → 殿OKなら残りP2〜P7へ。解像度が問題なら解像度指定方法を調査して次cmdへ
+**軍師推奨**: 案1+案3の組み合わせ。「データを仕組みで強制し、そのデータでルールを実行可能にする」
+- 案1でlord_originalフィールドをcmdに必須化（pretool_check.shに~30行追加）
+- 案3でKaro受領時に lord_original vs command を比較チェック（karo.md追記のみ）
 
-### 📋 CrowdWorks動画カット確認待ち
-- **cut_edited_v3_fixed.mp4**: `projects/crowdworks_video_edit/work/cut_edited_v3_fixed.mp4`（loudnorm 2pass -16dBFS正規化済み / h264 cq16 / 380s 569MB）
-  - ✅ 殿OKなら → テロップ(telop.ass)+Bロール合成+YouTube限定公開アップ開始
-  - ❌ NGなら → 再修正指示
+→ ✅ **cmd_1393で実装完了**（commit 6b33bcb・push済み）
 
-### 📋 漫画レビュー待ち
-- **争わないでパネルv2（6枚）**: `manga_odai_arasowanaide/` P1〜P6 768x1376px 殿レビュー待ち
-- **お待たせしましたv2（7枚）**: `manga_odai_03_omataseshimashita_v2/` P1〜P7 殿レビュー待ち（v1も保持中）
-- **qnly_death v4**: https://youtu.be/Y7tm26PLPb0（P3リテイク済み）
-- **お題漫画「あちらのお客様からです」v2**: https://www.youtube.com/watch?v=gSEJIglR_ME（音声同期版47秒・殿レビュー待ち）
-- **お題漫画「私のために争わないで」v2**: http://192.168.2.7:8785/gallery_cmd1270.html（ゴーグル目装着+NGワード修正版・殿レビュー待ち）
-- **bon_trick 動画v1**: https://www.youtube.com/watch?v=CPpwjO2BuyA（72秒・7パネル・殿レビュー待ち）
-- **原始人ドズル漫画「仲直りの歌」v7**: http://192.168.2.7:8770/work/gallery_cmd1285.html（P7再生成済み・吹き出しあり・セリフ正常・ぼん絶望ポーズ・P6も補完済み・全7パネル・殿レビュー待ち）
-- **tono_edit3.mp4 YouTube非公開アップ済み**: https://www.youtube.com/watch?v=n9I1xCOWCKo（殿レビュー待ち）
-- **英語学習動画 自動カット+テロップ+Bロール（最終版）**: https://www.youtube.com/watch?v=XXVzw0tBBi4（非公開・殿レビュー待ち）
-- **英語学習動画 自動カット編集テスト（Chirp3+LLM版）**: https://www.youtube.com/watch?v=2f4hLWamREc（非公開・殿レビュー待ち）
-- **おんりー合流漫画ショート（縦型）YouTube非公開アップ済み**: https://www.youtube.com/watch?v=0SBiIU74yvc（1078x1918 h264_nvenc・殿レビュー待ち）
-- **ピンク羊総集編動画**: https://www.youtube.com/watch?v=bqSQQcN1izM（7:46・25件・殿レビュー待ち）
-- **ピンク羊完全版（25件・STTカット再設計）**: https://www.youtube.com/watch?v=_FsFx67be24（13:36・全25件・xfadeトランジション・clip_22復活・殿レビュー待ち）
-- **ピンク羊拡張版（前5秒・後10秒）**: https://www.youtube.com/watch?v=IQ5nRJVrsmg（13:17・24件・xfadeトランジション・旧版）
-- **原始人ドズル立ち絵v3**: refs/ref_dozle_genshijin_illust.png（1202KB・843x1264px・ワンショルダー豹柄+金髪ポニーテール・殿レビュー待ち）
-- **ぼん平安貴族立ち絵v1**: refs/ref_bon_heian_illust.png（1635KB・843x1264px・smug_r2ベース紫束帯版・殿レビュー待ち）
-
-### 📋 総集編 — 殿の選定待ち
-- 🐑 ピンク羊25件(15+10): https://youtu.be/obNdc44lqc0 追加候補: `work/cmd_1268_pink_sheep_additional.md` ⚠️合計475秒≈7分55秒（目標8分まで5秒差）
-- 🎤 MEN迷言18件: https://youtu.be/MMh3Djlf8dE
-- 🧊 おらふ名場面16件: https://youtu.be/LV4pY2O1tXs
 
 ### ✅ 夜間監査 cmd_1333 — 全CRITICAL/HIGH修正完了（2026-04-12）
 - **CRITICAL/HIGH 10件を3並列で修正完了** (subtask_1333a/b/c)
@@ -99,33 +66,119 @@
 
 ## 🚨 要対応
 
-### お題4「早く寝なさい」P7 武器混入
-- **cmd_1346**: P7にナイフ状の武器が混入。P7のみ再生成が推奨。
-- **殿の判断**: P7再生成するか否かをご指示ください。OKなら家老が足軽3号に再生成指示。
 
-### server.py再起動
-- **cmd_1344追加: `/api/list_panels_json`（JSON選択UI）も再起動後に有効** commit 223efc6
-- panels_check.html の全機能が再起動後に有効: `/api/save_panels_json`・`/api/load_panels_json`・`/api/list_panels_json`・`POST /api/suggest_director_notes`
-- 実行コマンド: `kill $(pgrep -f "server.py") && nohup python3 /home/murakami/multi-agent-shogun/scripts/dashboard/server.py >> /tmp/dashboard.log 2>&1 &`
+### 🔴 夜間監査 nightly_audit_20260416_stt — HIGH×1（STTパイプライン）
+詳細: `queue/reports/gunshi_report_nightly_audit_20260416_stt.yaml`
+
+**HIGH**:
+- `compare_speaker_srt.py` L18 ほか4ファイル: **MEMBERSハードコード（nekooji欠落）** — `["dozle","bon","qnly","orafu","oo_men"]` のみ。ネコおじ発話がunknown扱いになる。compare_speaker_srt.py（実運用影響あり）優先で `load_members_from_yaml()` に置換必要
+
+**MEDIUM×1**: skills/transcribe.py L158: gemini_transcribe.py への参照がsymlink経由でarchive/整理時にリンク切れリスク
+
+### 🔴 夜間監査 nightly_audit_20260415_infra — HIGH×2（インフラスクリプト）
+詳細: `queue/reports/gunshi_report_nightly_audit_20260415_infra.yaml`
+
+**HIGH**:
+- `scripts/ntfy_listener.sh` L238: **認証情報ログ漏洩** — `${NTFY_TOKEN:-${NTFY_USER:-none}}` がNTFY_TOKENまたはNTFY_USERの実値をlogs/inbox_watcher_*.logに平文記録
+- `scripts/posttool_yaml_check.sh` L3: **PostToolUseフック入力方式不一致** — `CLAUDE_TOOL_INPUT` 環境変数参照だが他フックはstdin方式→FILE_PATHが空→YAMLチェック未機能の可能性
+
+**MEDIUM×3**: userprompt_ntfy_check.sh /tmp使用（CLAUDE.mdルール違反）/ context_watcher.sh PROJECT_DIRハードコード / slim_yaml.py typo（slim_shugun_to_karo）
+
+### 🔴 cmd_1385 P6b 新3枚（OKワード修正済み）— 殿の選択待ち
+- cmd_1384（OKワード混入版）を**正規スクリプトで再生成完了**。軍師QC PASS。
+- **v1 / v2 / v3** の3枚（全てOKワード/NGワードテキストなし確認済み）
+- ギャラリー: http://100.66.15.93:8770/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_railgun/out/gallery_p6b_gacha.html
+- お題05 v3（全8枚）: http://100.66.15.93:8770/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai/manga_odai_05/v3/gallery.html
+- **判断**: P6b v1/v2/v3のどれを採用するか？お題05 v3は問題なければそのまま採用。
+
+### 🔴 夜間監査 nightly_audit_20260413_stt — CRITICAL×2（STTパイプライン）
+詳細: `queue/reports/gunshi_report_nightly_audit_20260413_stt.yaml`
+
+**CRITICAL**:
+- `skills/gemini-video-transcribe/transcribe.py` L167-178: **廃止済み** `gemini_speaker_pipeline.py` をsubprocess呼び出し→話者分離ありモードが実行時クラッシュ
+- `projects/dozle_kirinuki/context/hl_sh_workflow.md` L87: **廃止済み** `gemini_speaker_pipeline.py` をStep2手順として記載→足軽が参照すると必ず失敗
+
+**HIGH×4**: PROJECT_DIR算出脆弱・ECAPA-TDNN関数コード重複(~140行)・モンキーパッチ散在・stt_merge subprocess stderr未キャプチャ
+
+**MEDIUM×5**: --geminiオプション残存・speakers_expected=6ハードコード・nekooji欠落（compare_speaker_srt.py）・タイムスタンプ境界値問題・「ぺけたん」ハードコード
+
+→ ✅ cmd_1374完了（廃止参照3箇所除去・軍師PASS・commit 7386a3c・git push済み）
+
+### 🔴 夜間監査 nightly_audit_20260414_video — HIGH×2（動画制作パイプライン）
+詳細: `queue/reports/gunshi_report_nightly_audit_20260414_video.yaml`
+
+**HIGH**:
+- `projects/dozle_kirinuki/scripts/main.py` L333: `generate_thumbnail`内`esc()`エスケープ順序バグ → バックスラッシュ置換が最後（二重エスケープ）。正しい順序は`make_expression_shorts.py`・`vertical_convert.py`で実装済み
+- `projects/dozle_kirinuki/scripts/make_expression_shorts.py` L295: **ffmpeg -ss が -i の前** → CLAUDE.mdルール違反。音ズレリスク。`vertical_convert.py`では正しく -i 後に配置済み
+
+**MEDIUM×2**: generate_manga_short.py BASE_DIRハードコード / main.py selected_check_hook.sh絶対パス
+**CLEAN**: NVENC全スクリプト適用済み / GCS URI方式準拠 / 廃止スクリプト参照なし
+
 
 ## 🔄 進行中（実行中のタスク）
 
-| cmd | 内容 | 状態 |
-|-----|------|------|
-| cmd_1347 | generate_panel_candidates.py完成✅（本番テスト・--odaiフラグ実装済み・git commit済み）|
-| cmd_1346 | お題4「早く寝なさい」v1全7枚生成完了（MENゴーグルOK・⚠️P7に武器混入）✅ 殿判断待ち |
-| cmd_1345 | お待たせしましたv5完成（P1/P6新規生成+P2-P5/P7はv4コピー）✅ 殿レビュー待ち |
-| cmd_1344 | panels_check.html JSON選択UI追加完了（/api/list_panels_json+ドロップダウン）✅ ⚠️サーバー再起動必要 |
-| cmd_1343 | お待たせしましたパネルv4全7枚生成完了（MENゴーグル全P確認・P7パスタ確認）✅ 殿レビュー待ち |
-| cmd_1342 | お待たせしましたパネルv3全7枚生成完了（7/7・ガチャ1回・372s）✅ 殿レビュー待ち |
-| cmd_1334 | FINAL_COMPOSED.mp4 破損（moov atom not found）⛔ 殿指示により中止 |
-| cmd_1327 | cut_edited_v5.mp4完成（480p軽量版）31.6s/4.5MB → **殿確認待ち** ⛔ |
-| cmd_1320 Phase2 | cut_edited_v4.mp4完成 352.7s/660MB → **殿確認待ち** ⛔ |
-| cmd_1305d | CrowdWorks 最終合成+YouTube限定公開アップ | ⛔ 殿確認後に開始 |
+| cmd | 内容 |
+|-----|------|
+| cmd_1395 | ✅ 全チェックBashバイパス修正完了（軍師PASS・commit 7ec2df8・git push済み）|
+| cmd_1394 | ✅ note下書き挿絵2枚挿入+キャプション完了 → 🚨殿レビュー待ち https://note.com/n/n0044698193bd |
+| cmd_1393 | ✅ 将軍指示拡大解釈防止フック実装完了（軍師PASS・commit 6b33bcb・git push済み）|
+| cmd_1392 | ✅ 将軍指示拡大解釈防止策 軍師分析完了（4案提案・推奨: 案1+案3）→ ✅ cmd_1393で実装決定 |
+| cmd_1391 | ✅ GLM+Advisor難問テスト再実行 4.7/5.0（v1と同一・安定確認）commit cd53729・push済み |
+| cmd_1390 | ✅ pretool_check.sh バグ2件修正完了（軍師PASS・commit b2b08db・git push済み）|
+| cmd_1389 | ✅ GLM+Advisor難問テスト 4.7/5.0（GLM単体+0.4、Sonnet超え、Opus比-0.2）commit fb8119d・push済み |
+| cmd_1388 | ✅ pretool_check.sh blacklist+WARNING+候補表示 二段構え完了（軍師PASS・commit a4c18f6・git push済み）|
+| cmd_1387 | ✅ HIGH×2+MEDIUM×2修正完了（軍師PASS・commit 10005027・push不可）|
+| cmd_1386 | ✅ HIGH×2+MEDIUM×3修正完了（軍師PASS・commit f526239+da6e8e5・git push済み）|
+| cmd_1385 | ✅ P6b×3ガチャ＋お題05v3全8枚再生成完了（OKワード修正済み・軍師PASS）→ 🚨殿選択待ち |
+| cmd_1373 | おらふくん未来人v4（スカウターレンズ青白発光・ホログラムなし）1枚完了（軍師PASS・commit aeb8684・git push済み）✅ 殿レビュー待ち |
+| cmd_1375 | おらふくん未来人v5（v1ベース+SFハンドガン持ち）1枚完了（軍師PASS・commit 39eceb2・git push済み）✅ 殿レビュー待ち |
 
 ## ✅ 本日の完了
 | cmd | 内容 |
 |-----|------|
+| cmd_1384 | ✅ railgun P6bガチャ3回（v1/v2/v3）生成完了（軍師CONDITIONAL PASS・v2推奨）→ 🚨殿選択待ち |
+| cmd_1378 | ✅ panels_railgun P6b_orafu_revive_and_die API再生成完了（空吹き出しなし・軍師PASS） |
+| cmd_1383 | ✅ お題05 v2ギャラリーHTML作成完了（全8パネル・ダークテーマ・セリフ表示・軍師PASS） |
+| cmd_1381 | ✅ panels_odai_05_edited.json全8枚漫画パネルAPI生成（v2）完了（P3豚顔は殿OKの上採用・軍師PASS） |
+| cmd_1382 | ✅ お題04早く寝なさいtono_edit.mkv縦型クロップ+YouTube非公開アップ完了（h264_nvenc 1080x1920）→ https://www.youtube.com/watch?v=zUOfksVGAV0 |
+| cmd_1380 | ✅ おまたせしましたtono_edit.mkv縦型クロップ+YouTube非公開アップ完了（h264_nvenc 1080x1920・28.7秒）→ https://www.youtube.com/watch?v=MtT856uoUUM |
+| cmd_1379 | ✅ 争わないでtono_edit.mkv縦型クロップ+YouTube非公開アップ完了（h264_nvenc 1080x1920・19.5秒）→ https://www.youtube.com/watch?v=Hx2QqTAesLo |
+| cmd_1377 | ✅ panels_railgun.json P6b吹き出し禁止強化完了（2箇所追記・軍師PASS）|
+| cmd_1376 | ✅ panels_odai_05_edited.json全8パネル背景バラエティ演出差し替え完了（マイクラ参照0件・軍師PASS）|
+| nightly_audit_20260414_video | ✅ 動画制作パイプライン矛盾検出完了（CRITICAL=0 HIGH=2 MEDIUM=2）→ 🚨要対応参照 |
+| cmd_1375 | ✅ おらふくん未来人v5（SFハンドガン持ち）1枚（軍師PASS・commit 39eceb2・git push済み）殿レビュー待ち |
+| cmd_1374 | ✅ 夜間監査CRITICAL×2修正完了（gemini_speaker_pipeline.py廃止参照3箇所除去・軍師PASS・commit 7386a3c・git push済み）|
+| cmd_1372 | ✅ おらふくん未来人v3（スカウターフレーム残し・ホログラムオフ）1枚（軍師PASS・commit a22e623・git push済み）|
+| cmd_1371 | ✅ おらふくん未来人v2（スカウターなし）5枚（軍師PASS・commit 6f4e704・git push済み）ギャラリー: http://192.168.2.7:8770/work/orafu_futuristic/v2/gallery_v2.html |
+| cmd_1370 | ✅ おらふくん未来人v1 5枚生成（orafu_futuristic_01〜05.png）殿レビュー待ち |
+| cmd_1346 | ✅ お題4「早く寝なさい」v1全7枚生成（MENゴーグルOK・⚠️P7武器混入→🚨要対応参照）|
+| cmd_1345 | ✅ お待たせしましたv5完成（P1/P6新規生成+P2-P5/P7はv4コピー）殿レビュー待ち |
+| cmd_1344 | ✅ panels_check.html JSON選択UI追加完了（/api/list_panels_json+ドロップダウン・再起動済み）|
+| cmd_1343 | ✅ お待たせしましたパネルv4全7枚（MENゴーグル全P確認）殿レビュー待ち |
+| cmd_1342 | ✅ お待たせしましたパネルv3全7枚（7/7・ガチャ1回）殿レビュー待ち |
+| cmd_1369 | ✅ queue/定期バックアップ完成（backup_queue.sh・rsync+tar.gz・7日保持・軍師PASS・commit 8cc6581・⚠️cron登録は別途必要）|
+| cmd_1368 | ✅ config秘密鍵GPG暗号化バックアップ完成（backup_secrets.sh+restore_secrets.sh・AES256・往復テストPASS・軍師PASS・commit a91d9b2）|
+| cmd_1367 | ✅ バックアップ完全性監査完了（HIGH×4・MEDIUM×6・LOW×4特定・backup_audit_report.md作成・commit 4b572b4）|
+| cmd_1366 | ✅ MCPダッシュボードにAdvisor Proxyパネル追加完了（_get_advisor_proxy_stats()・HTMLパネル・commit 9fee1a1・git push済み・⚠️サーバー再起動必要）|
+| cmd_1365 | ✅ localhost:8080 AIコメント復旧完了（原因: cron PATH不足でClaude CLI見つからず→フォールバックパス追加・4/13再分析済み・軍師PASS・commit c2cc6be）|
+| cmd_1364 | ✅ DingTalk QC複数ログ集約完了（qc_log*.jsonl全合算・sources内訳追加・軍師PASS・commit 41922f9・git push済み・⚠️サーバー再起動必要）|
+| cmd_1363 | ✅ advisor_proxy.py リトライ・CircuitBreaker・Metrics実装完了（commit 2ed77ee・git push済み・⚠️プロキシ再起動必要）|
+| cmd_1362 | ✅ advisor_proxy.py handle_requestにrequest_idログ追加完了（import uuid・5箇所修正・commit cabf17c・git push済み）|
+| cmd_1361 | ✅ advisor_proxy.py /health に uptime_seconds 追加完了（import time・_START_TIME・commit eeebd54・git push済み）|
+| cmd_1360 | ✅ /api/agent_healthエンドポイント追加完了（全9エージェント死活監視・graceful degradation・軍師PASS）|
+| cmd_1356 | ✅ panel_review.html保存ボタン実装完了（_edited.json中間保存・読み込み優先順）|
+| cmd_1357 | ✅ advisor稼働テスト完了（足軽2号・advisor呼び出し2回確認済み）|
+| cmd_1358 | ✅ advisor必須ルール検証完了（足軽1/2/3全員advisor2回確認。※YAMLにadvisor指示混入→自発性は不完全）|
+| cmd_1359 | ✅ dingtalk_qc_loop.py --help追加完了（--help動作確認済み。gitignore対象のためcommit不可は設計上の仕様）|
+| nightly_audit_20260413_stt | STTパイプライン矛盾検出完了（CRITICAL=2 HIGH=4 MEDIUM=5）|
+| cmd_1355 | showStatus自動消去削除+CSSスピナー追加・characters空補完+プロンプト強化完了 |
+| cmd_1354 | panel_review.html「パネル候補生成」Claude Opus 4.6組み込み完了（/api/generate_panels_llm・ref_images存在チェック・GEMINI_CONTEXT埋め込み）|
+| cmd_1353 | ボタン名「パネル候補生成」変更＋parse_raw_to_rows()+save_raw_json_from_gemini()追加完了 |
+| cmd_1352 | panel_review.html データ保全バグ修正完了（PANELS_DATA保持・director_notes等保護・grep確認22件）|
+| cmd_1351 | panel_review.htmlファイル選択DD追加完了（_raw.json/panels JSON両対応・panelsToRows変換・スマホ対応）commit 17aaa10 |
+| cmd_1350 | panel_review.html完成（DnD並替・話者DD・行追加削除・JSON生成・スマホタッチ対応）+ _raw.json出力 + /api/load_raw_candidates |
+| cmd_1349 | panels_check.html話者変更機能追加完了（ドロップダウン・ref_images連動・スマホ対応）commit 3cbda815 |
+| cmd_1347 | generate_panel_candidates.py完成（本番テスト・--odaiフラグ実装済み・git commit済み）動画→panels JSON全自動生成 |
 | cmd_1341 | お待たせしましたパネルv2全7枚生成完了（7/7・ガチャ2回・P2 499リトライ）→ manga_odai_03_omataseshimashita_v2/ 殿レビュー待ち |
 | cmd_1340 | お待たせしましたパネルv1全7枚生成完了（7/7・ガチャ1回）→ manga_odai_03_omataseshimashita/ |
 | cmd_1339 | KOMAWARI_DESC全35エントリ修正完了（S2/T1-T6/D4-D8等）commit 1ce0aeb7 |
@@ -260,23 +313,24 @@
 | cmd_1332 | お題2「私のために争わないで」6枚再生成（� | 4/12 |
 | cmd_1333 | お題1 P6（p6_achira_clear）のみ再生成（NGワード | 4/12 |
 | cmd_1335 | お題2「私のために争わないで」6枚再生成（� | 4/12 |
+| cmd_1377 | お題2「私のために争わないで」6枚再生成（� | 4/14 |
 
 ## 足軽・軍師 状態
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | Sonnet | idle | — |
-| 2号 | Sonnet | idle | — |
-| 3号 | Sonnet | idle | — |
-| 4号 | Sonnet | idle | — |
-| 5号 | Sonnet | idle | — |
-| 6号 | Sonnet | idle | — |
-| 7号 | Sonnet | idle | — |
-| 軍師 | Opus | idle | nightly_audit_20260412_youtube_api完了（C2/H5/M8）|
+| 1号 | GLM | 完了 | subtask_1385a |
+| 2号 | GLM | 実行中 | subtask_1388a（pretool_check.sh未登録スクリプト警告）|
+| 3号 | GLM | 完了 | subtask_1387a |
+| 4号 | GLM | idle | — |
+| 5号 | GLM | idle | — |
+| 6号 | GLM | idle | — |
+| 7号 | GLM | idle | — |
+| 軍師 | Opus | 完了 | nightly_audit_20260416_stt |
 
 ## APIキー状況
 - **Vertex AI ADC**: ✅ 正常
-- **GLM**: ⚠️ レート制限超過（リセット4/11）→ 足軽全員Sonnet切替済み
+- **GLM**: ✅ 足軽全員GLMで稼働中（advisor proxy + システムプロンプト注入対応済み）
 
 ## チャンネル実績（2026-04-01更新）
 - 登録者**1,007人** / 視聴回数**98.4万回** / 総再生時間**5,925時間**
