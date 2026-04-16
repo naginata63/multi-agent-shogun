@@ -164,28 +164,36 @@ if [[ "$TOOL_NAME" == "Bash" ]]; then
   fi
 fi
 
-# ── チェック4: 将軍cmdのlord_original必須チェック (Write/Editツール) ──
-if [[ "$TOOL_NAME" == "Write" ]] || [[ "$TOOL_NAME" == "Edit" ]]; then
-  _CMD_CHECK_PATH=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('file_path',''))" 2>/dev/null || true)
-
-  if [[ "$_CMD_CHECK_PATH" == *"shogun_to_karo.yaml" ]]; then
-    # 将軍のみ対象
-    _AGENT_ID_CMD="${_AGENT_ID_CMD:-}"
-    if [ -z "$_AGENT_ID_CMD" ] && [ -n "${TMUX_PANE:-}" ]; then
-      _AGENT_ID_CMD=$(tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}' 2>/dev/null || true)
-    fi
-    if [[ "$_AGENT_ID_CMD" == "shogun" ]]; then
-      # Write: content, Edit: new_string の両方を取得
+# ── チェック4: 将軍cmdのlord_original必須チェック (Write/Edit/Bashツール) ──
+# 将軍のみ対象
+_AGENT_ID_CMD="${_AGENT_ID_CMD:-}"
+if [ -z "$_AGENT_ID_CMD" ] && [ -n "${TMUX_PANE:-}" ]; then
+  _AGENT_ID_CMD=$(tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}' 2>/dev/null || true)
+fi
+if [[ "$_AGENT_ID_CMD" == "shogun" ]]; then
+  _CMD_CONTENT=""
+  if [[ "$TOOL_NAME" == "Write" ]] || [[ "$TOOL_NAME" == "Edit" ]]; then
+    _CMD_CHECK_PATH=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('file_path',''))" 2>/dev/null || true)
+    if [[ "$_CMD_CHECK_PATH" == *"shogun_to_karo.yaml" ]]; then
       _CMD_CONTENT=$(echo "$INPUT" | python3 -c "
 import sys, json
 d = json.load(sys.stdin).get('tool_input', {})
 print(d.get('content', '') + d.get('new_string', ''))
 " 2>/dev/null || true)
+    fi
+  elif [[ "$TOOL_NAME" == "Bash" ]]; then
+    # Bashツール: command内にshogun_to_karo.yamlが含まれる場合のみ
+    if [[ "$COMMAND" == *"shogun_to_karo.yaml"* ]]; then
+      # Bashコマンド全文を_CMD_CONTENTとして扱う（HereDoc等の内容を含む）
+      _CMD_CONTENT="$COMMAND"
+    fi
+  fi
 
-      # 新規cmdブロック（- id: cmd_）が含まれるか確認
-      if echo "$_CMD_CONTENT" | grep -qF -- '- id: cmd_'; then
-        # lord_original: フィールドが存在するか確認
-        HAS_LORD_ORIGINAL=$(echo "$_CMD_CONTENT" | python3 -c "
+  if [ -n "$_CMD_CONTENT" ]; then
+    # 新規cmdブロック（- id: cmd_）が含まれるか確認
+    if echo "$_CMD_CONTENT" | grep -qF -- '- id: cmd_'; then
+      # lord_original: フィールドが存在するか確認
+      HAS_LORD_ORIGINAL=$(echo "$_CMD_CONTENT" | python3 -c "
 import sys, re
 text = sys.stdin.read()
 blocks = re.split(r'(?=^- id: cmd_)', text, flags=re.MULTILINE)
@@ -212,13 +220,12 @@ else:
     print('OK')
 " 2>/dev/null || echo "OK")
 
-        if [[ "$HAS_LORD_ORIGINAL" == MISSING:* ]]; then
-          MISSING_CMDS="${HAS_LORD_ORIGINAL#MISSING:}"
-          echo "BLOCKED: ${MISSING_CMDS} に lord_original フィールドがありません。" >&2
-          echo "殿の発言原文を lord_original: に記載せよ（加工・要約禁止）。" >&2
-          echo "例: lord_original: \"難問を今の足軽にやらせろ\"" >&2
-          exit 2
-        fi
+      if [[ "$HAS_LORD_ORIGINAL" == MISSING:* ]]; then
+        MISSING_CMDS="${HAS_LORD_ORIGINAL#MISSING:}"
+        echo "BLOCKED: ${MISSING_CMDS} に lord_original フィールドがありません。" >&2
+        echo "殿の発言原文を lord_original: に記載せよ（加工・要約禁止）。" >&2
+        echo "例: lord_original: \"難問を今の足軽にやらせろ\"" >&2
+        exit 2
       fi
     fi
   fi

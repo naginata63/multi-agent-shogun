@@ -15,10 +15,16 @@ TOOL_NAME=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.std
 FILE_PATH=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('file_path',''))" 2>/dev/null || true)
 
 # shogun_to_karo.yaml以外は即exit
-if [[ "$TOOL_NAME" != "Write" && "$TOOL_NAME" != "Edit" ]]; then
+BASH_CMD=""
+if [[ "$TOOL_NAME" == "Bash" ]]; then
+  BASH_CMD=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))" 2>/dev/null || true)
+  if [[ "$BASH_CMD" != *"shogun_to_karo.yaml"* ]]; then
+    exit 0
+  fi
+  # Bashの場合はFILE_PATHでなくコマンド内容で判定済み
+elif [[ "$TOOL_NAME" != "Write" && "$TOOL_NAME" != "Edit" ]]; then
   exit 0
-fi
-if [[ "$FILE_PATH" != *"shogun_to_karo.yaml" ]]; then
+elif [[ "$FILE_PATH" != *"shogun_to_karo.yaml" ]]; then
   exit 0
 fi
 
