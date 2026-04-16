@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-16 21:17
+最終更新: 2026-04-17 02:12
 
 ## 💰 DingTalk音声QC（9万円案件）
 🟢 稼働中 | 処理済み: **228件** / 10,000件 | 報酬見込み: **¥2,052**
@@ -16,6 +16,17 @@
 トピック: `shogun-962f817f20fadb36`
 
 ## 🚨 要対応 - 殿のご判断をお待ちしております
+
+### 🔴 夜間監査 nightly_audit_20260417_video — CRITICAL×1 HIGH×1 MEDIUM×2（動画制作）
+詳細: `queue/reports/gunshi_report_nightly_audit_20260417_video.yaml`
+
+**CRITICAL**:
+- `projects/dozle_kirinuki/scripts/main.py` L1156: **logger変数が未定義** — `logger.warning(...)` があるが `import logging` / `logger = ...` が存在しない。タイトルカードあり+clip数とscene数不一致時にNameErrorで即死。推奨: `print(f"[main] WARNING: ...")` に置換
+
+**HIGH**:
+- `projects/dozle_kirinuki/scripts/vertical_convert.py` L174: **tempfile.mkstemp()で/tmp使用** — CLAUDE.mdルール違反。`work_dir`配下に変更推奨
+
+**MEDIUM×2**: `generate_shorts_bg.py` L69 フォントフォールバックのサイレント飲み込み / `shorts_qc.py` L45 ffmpegエラーハンドリングなし
 
 ### 🔴 cmd_1397 — レールガンYouTube非公開アップ完了 → 殿確認待ち
 - URL: https://www.youtube.com/watch?v=IpB4U4AmqS0
@@ -124,6 +135,8 @@
 
 | cmd | 内容 |
 |-----|------|
+| nightly_audit_20260417_video | ✅ 動画制作スクリプト矛盾検出完了（CRITICAL×1 HIGH×1 MEDIUM×2）|
+| cmd_1398 | 🔄 レールガン再編集版 縦型クロップ→YouTube非公開アップ中（足軽1号 subtask_1398a）|
 | cmd_1397 | ✅ レールガン縦型クロップ+YouTube非公開アップ完了（h264_nvenc 1080x1920）→ https://www.youtube.com/watch?v=IpB4U4AmqS0 |
 | cmd_1395 | ✅ 全チェックBashバイパス修正完了（軍師PASS・commit 7ec2df8・git push済み）|
 | cmd_1394 | ✅ note下書き挿絵2枚挿入+キャプション完了 → 🚨殿レビュー待ち https://note.com/n/n0044698193bd |
