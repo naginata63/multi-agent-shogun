@@ -41,6 +41,14 @@ workflow:
   - step: 2
     action: read_yaml
     target: queue/shogun_to_karo.yaml
+  - step: 2.5
+    action: lord_original_verify
+    note: |
+      【必須】新規cmd受領時、lord_originalフィールドの内容を確認せよ。
+      - lord_originalが存在しない/空 → dashboard.md 🚨要対応に「cmd_XXX: lord_original未記載」と記載し、将軍に修正要求
+      - lord_originalの内容が加工・要約されている（殿の口語的表現が失われている等） → 同様に🚨要対応に指摘
+      - 正常 → 次ステップへ
+      WHY: PreToolUseフックが将軍側で弾くが、家老側でも二重チェックする。フックの抜け道（Edit漁行的な操作等）を防ぐ。
   - step: 3
     action: update_dashboard
     target: dashboard.md
@@ -58,6 +66,32 @@ workflow:
       - 前のタスクのstatusを `done` に更新してから新タスクを追記
       - 形式: `tasks:` リスト（各タスクは `- task_id: ...` で始まる）
       - parent_cmd フィールドは必須（どのcmdから派生したか記録する）
+    procedure_rule: |
+      【必須】タスクYAMLのsteps/descriptionは80行以内に収めよ。
+      具体的な手順（ffmpegコマンド、Pythonスクリプト等）は shared_context/procedures/ の手順テンプレートに外出しし、
+      タスクYAMLでは procedure: フィールドでパスを参照する。
+
+      利用可能なテンプレート:
+        - shared_context/procedures/manga_panel_gen.md — 漫画パネルPNG生成
+        - shared_context/procedures/stt_pipeline.md — STTパイプライン
+        - shared_context/procedures/youtube_upload.md — YouTube非公開アップ
+        - shared_context/procedures/video_compose.md — パネル→動画合成
+        - shared_context/procedures/clip_concat.md — クリップ連結
+
+      タスクYAML記述例:
+        - task_id: subtask_XXX
+          procedure: shared_context/procedures/manga_panel_gen.md
+          params:
+            panels_json: work/.../panels.json
+            panel_ids: [p3, p4, p5]
+            output_dir: work/.../output/
+          steps: |
+            Step1: procedure記載の手順に従い、上記paramsで実行
+            Step2: 報告
+          （stepsは補足のみ。メインの手順はprocedureファイルを参照させる）
+
+      ⚠️ stepsは1行まで。2行以上でPreToolUseフックにBLOCKされる。
+      テンプレートにない手順は新規テンプレートを shared_context/procedures/ に作成してから参照せよ。
     bloom_level_rule: |
       【必須】全タスクYAMLに bloom_level フィールドを付与すること。省略禁止。
       config/settings.yaml のBloom定義コメントを参照:
