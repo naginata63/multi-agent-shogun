@@ -37,56 +37,98 @@ if [[ "$TOOL_NAME" == "Bash" ]] && echo "$COMMAND" | grep -q "tmux capture-pane"
   fi
 fi
 
-# ── チェック2: 足軽のwork/cmd_*出力防止 + /tmp/禁止 (Write/Editツール) ──
-if [[ "$TOOL_NAME" == "Write" ]] || [[ "$TOOL_NAME" == "Edit" ]]; then
-  FILE_PATH=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('file_path',''))" 2>/dev/null || true)
-
-  # 足軽判定
-  AGENT_ID=""
-  if [ -n "${TMUX_PANE:-}" ]; then
-    AGENT_ID=$(tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}' 2>/dev/null || true)
+# ── チェック2: 足軽のwork/cmd_*出力防止 + /tmp/禁止 (Write/Edit/Bashツール) ──
+# 足軽判定（共通）
+_CK2_AGENT_ID=""
+if [ -n "${TMUX_PANE:-}" ]; then
+  _CK2_AGENT_ID=$(tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}' 2>/dev/null || true)
+fi
+if [[ "$_CK2_AGENT_ID" == ashigaru* ]]; then
+  _CK2_FILE_PATH=""
+  _CK2_SKIP=false
+  if [[ "$TOOL_NAME" == "Write" ]] || [[ "$TOOL_NAME" == "Edit" ]]; then
+    _CK2_FILE_PATH=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('file_path',''))" 2>/dev/null || true)
+  elif [[ "$TOOL_NAME" == "Bash" ]]; then
+    # Bash: リダイレクト先パスをcommandから抽出（>>, >, tee等）
+    _CK2_FILE_PATH=$(echo "$COMMAND" | python3 -c "
+import sys, re
+cmd = sys.stdin.read()
+# リダイレクト先を抽出: > /path, >> /path
+matches = re.findall(r'(?:>>|>)\s*([^\s;|&]+)', cmd)
+# tee /path パターン
+matches += re.findall(r'tee\s+([^\s;|&]+)', cmd)
+# 最初にマッチしたパスを使用
+for m in matches:
+    if m and not m.startswith('/dev/'):
+        print(m)
+        break
+" 2>/dev/null || true)
+    # Bashでshogun_to_karo.yaml書き込みの場合はチェック2の対象外（チェック4で処理）
+    if [[ "$COMMAND" == *"shogun_to_karo.yaml"* ]]; then
+      _CK2_SKIP=true
+    fi
   fi
 
-  # 足軽のみチェック
-  if [[ "$AGENT_ID" == ashigaru* ]]; then
+  if [[ "$_CK2_SKIP" == "false" && -n "$_CK2_FILE_PATH" ]]; then
     # Phase 2: タスクYAMLからtarget_pathを読み取り、一致するパスは許可
-    AGENT_NUM="${AGENT_ID#ashigaru}"
-    TASK_YAML="${REPO_DIR}/queue/tasks/ashigaru${AGENT_NUM}.yaml"
-    if [ -f "$TASK_YAML" ]; then
-      TARGET_PATH=$(grep -A5 'status: assigned' "$TASK_YAML" | grep -E 'target_path:|output_file:' | head -1 | sed 's/.*:[[:space:]]*//' | tr -d '"' | tr -d "'" || true)
-      if [ -n "$TARGET_PATH" ] && echo "$FILE_PATH" | grep -qF "$TARGET_PATH"; then
-        exit 0  # target_pathと一致 → 許可
+    _CK2_AGENT_NUM="${_CK2_AGENT_ID#ashigaru}"
+    _CK2_TASK_YAML="${REPO_DIR}/queue/tasks/ashigaru${_CK2_AGENT_NUM}.yaml"
+    if [ -f "$_CK2_TASK_YAML" ]; then
+      _CK2_TARGET_PATH=$(grep -A5 'status: assigned' "$_CK2_TASK_YAML" | grep -E 'target_path:|output_file:' | head -1 | sed 's/.*:[[:space:]]*//' | tr -d '"' | tr -d "'" || true)
+      if [ -n "$_CK2_TARGET_PATH" ] && echo "$_CK2_FILE_PATH" | grep -qF "$_CK2_TARGET_PATH"; then
+        :  # target_pathと一致 → 許可（次のチェックへ）
+      else
+        # work/cmd_* パターン検出
+        if echo "$_CK2_FILE_PATH" | grep -qE '/work/cmd_[0-9]+/'; then
+          echo "BLOCKED: 足軽はwork/cmd_*に直接書き込み禁止。タスクYAMLのtarget_pathに出力せよ。パス: $_CK2_FILE_PATH" >&2
+          exit 2
+        fi
+
+        # /tmp/ パターン検出
+        if [[ "$_CK2_FILE_PATH" == /tmp/* ]]; then
+          echo "BLOCKED: /tmp/への出力禁止（再起動で消える）。work/配下またはtarget_pathに出力せよ。パス: $_CK2_FILE_PATH" >&2
+          exit 2
+        fi
       fi
-    fi
-
-    # work/cmd_* パターン検出
-    if echo "$FILE_PATH" | grep -qE '/work/cmd_[0-9]+/'; then
-      echo "BLOCKED: 足軽はwork/cmd_*に直接書き込み禁止。タスクYAMLのtarget_pathに出力せよ。パス: $FILE_PATH" >&2
-      exit 2
-    fi
-
-    # /tmp/ パターン検出
-    if [[ "$FILE_PATH" == /tmp/* ]]; then
-      echo "BLOCKED: /tmp/への出力禁止（再起動で消える）。work/配下またはtarget_pathに出力せよ。パス: $FILE_PATH" >&2
-      exit 2
+    else
+      # タスクYAMLなし（通常ありえないが念のため）
+      if echo "$_CK2_FILE_PATH" | grep -qE '/work/cmd_[0-9]+/'; then
+        echo "BLOCKED: 足軽はwork/cmd_*に直接書き込み禁止。パス: $_CK2_FILE_PATH" >&2
+        exit 2
+      fi
+      if [[ "$_CK2_FILE_PATH" == /tmp/* ]]; then
+        echo "BLOCKED: /tmp/への出力禁止（再起動で消える）。パス: $_CK2_FILE_PATH" >&2
+        exit 2
+      fi
     fi
   fi
 fi
 
-# ── チェック3: タスクYAMLのsteps行数チェック (Write/Editツール) ──
+# ── チェック3: タスクYAMLのsteps行数チェック (Write/Edit/Bashツール) ──
+_CK3_MATCH=false
+_CK3_CONTENT=""
 if [[ "$TOOL_NAME" == "Write" ]] || [[ "$TOOL_NAME" == "Edit" ]]; then
   CHECK_PATH=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('file_path',''))" 2>/dev/null || true)
-
   if echo "$CHECK_PATH" | grep -qE 'queue/tasks/(ashigaru[0-9]+|gunshi)\.yaml'; then
-    CONTENT=$(echo "$INPUT" | python3 -c "
+    _CK3_MATCH=true
+    _CK3_CONTENT=$(echo "$INPUT" | python3 -c "
 import sys,json
 d=json.load(sys.stdin).get('tool_input',{})
 print(d.get('content','') + d.get('new_string',''))
 " 2>/dev/null || true)
+  fi
+elif [[ "$TOOL_NAME" == "Bash" ]]; then
+  # Bash: command内にqueue/tasks/*.yamlへの書き込みがあるか
+  if echo "$COMMAND" | grep -qE 'queue/tasks/(ashigaru[0-9]+|gunshi)\.yaml'; then
+    _CK3_MATCH=true
+    # Bashコマンド全文をcontentとして扱う（HereDoc等を含む）
+    _CK3_CONTENT="$COMMAND"
+  fi
+fi
 
-    if [ -n "$CONTENT" ]; then
-      # stepsフィールドの行数だけカウント（steps: | の後の内容）
-      STEPS_LINES=$(echo "$CONTENT" | python3 -c "
+if [[ "$_CK3_MATCH" == "true" && -n "$_CK3_CONTENT" ]]; then
+  # stepsフィールドの行数だけカウント（steps: | の後の内容）
+  STEPS_LINES=$(echo "$_CK3_CONTENT" | python3 -c "
 import sys, re
 text = sys.stdin.read()
 # steps: | 以降の内容を抽出
@@ -97,11 +139,9 @@ if m:
 else:
     print(0)
 " 2>/dev/null || echo 0)
-      if [ "$STEPS_LINES" -gt 1 ]; then
-        echo "BLOCKED: タスクYAMLのstepsが${STEPS_LINES}行（上限1行）。手順はshared_context/procedures/に外出しし、procedure:フィールドで参照せよ。stepsには補足1行のみ。" >&2
-        exit 2
-      fi
-    fi
+  if [ "$STEPS_LINES" -gt 1 ]; then
+    echo "BLOCKED: タスクYAMLのstepsが${STEPS_LINES}行（上限1行）。手順はshared_context/procedures/に外出しし、procedure:フィールドで参照せよ。stepsには補足1行のみ。" >&2
+    exit 2
   fi
 fi
 
