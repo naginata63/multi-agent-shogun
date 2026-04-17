@@ -95,9 +95,10 @@
 - **副産物**: `pretool_check.sh L78` の `status: assigned` 限定バグ発覚（status:in_progress移行後にtarget_path検証が機能しない）
 - **判断**: 高リスク2件の修正cmd・pretool_check.shバグ修正cmdを発令するか？
 
-### 🔴 cmd_1402 — 再現性検証レポート完成 → 殿がスコア記入
-- ファイル: `work/cmd_1402/opus47_vs_glm_advisor_retest.md`（作成中・軍師が統合レポート執筆中）
-- 完成後: 評価スコア（正確性/深さ/実用性）を記入してください
+### 🔴 cmd_1402 — 再現性検証レポート完成 → **殿がスコア記入待ち**
+- ファイル: `work/cmd_1402/opus47_vs_glm_advisor_retest.md`（commit 54e366c）
+- **主要観察**: (1)時間捏造+91%がモデル共通定常傾向と確定 (2)Q2条件Bで結論反転（統合しない→3層統合する） (3)pretool_check.sh L78-79バグ独立クロス確認
+- **判断**: 評価スコア（正確性/深さ/実用性）を記入してください
 
 ### 🔴 夜間監査 nightly_audit_20260416_stt — HIGH×1（STTパイプライン）
 詳細: `queue/reports/gunshi_report_nightly_audit_20260416_stt.yaml`
@@ -151,7 +152,6 @@
 
 | cmd | 内容 |
 |-----|------|
-| cmd_1402 | 🔄 統合レポート作成中(gunshi): ✅条件A完了(241秒) ✅条件B完了 → 軍師がopus47_vs_glm_advisor_retest.md執筆中 → 完成後殿スコア記入 |
 | cmd_1401 | ✅ Q3固定版差し替え完了（commit afc56ed）→ opus47_vs_glm_advisor.md Q3はcmd_1380〜1389で確定 |
 | cmd_1399 | ✅ 統合レポート完成（opus47_vs_glm_advisor.md）→ Q3_fixedで更新中（cmd_1401） |
 | cmd_1397 | ✅ レールガン縦型クロップ+YouTube非公開アップ完了（h264_nvenc 1080x1920）→ https://www.youtube.com/watch?v=IpB4U4AmqS0 |
@@ -172,6 +172,7 @@
 ## ✅ 本日の完了
 | cmd | 内容 |
 |-----|------|
+| cmd_1402 | ✅ 再現性検証レポート完成（commit 54e366c）→ 🚨殿スコア記入待ち |
 | cmd_1404 | ✅ --max-tokens棚卸し調査完了（足軽2号・軍師PASS）高リスク2件発覚→🚨要対応参照 |
 | cmd_1384 | ✅ railgun P6bガチャ3回（v1/v2/v3）生成完了（軍師CONDITIONAL PASS・v2推奨）→ 🚨殿選択待ち |
 | cmd_1378 | ✅ panels_railgun P6b_orafu_revive_and_die API再生成完了（空吹き出しなし・軍師PASS） |
