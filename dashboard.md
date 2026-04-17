@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-17 13:15
+最終更新: 2026-04-17 19:25
 
 ## 💰 DingTalk音声QC（9万円案件）
 🟢 稼働中 | 処理済み: **228件** / 10,000件 | 報酬見込み: **¥2,052**
@@ -14,6 +14,32 @@
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
+
+## 🚨 要対応（最優先）
+
+
+### ✅ cmd_1408完了 → **殿の採点待ち**
+**全5構成QC PASS** | git push済み d5c1082
+
+| 構成 | commit | QC |
+|------|--------|----|
+| Opus4.7単体 (subtask_1408c) | 7293ed1 | PASS |
+| Opus4.6単体 (subtask_1408d) | dca43d9 | PASS |
+| Sonnet4.6単体 (subtask_1408e) | dca43d9 | PASS |
+| GLM+Adv4.6 (subtask_1408b) | ab7ee3d | PASS |
+| GLM+Adv4.7 (subtask_1408f) | d5c1082 | PASS（proxy override 41件確認） |
+
+**判断**: Q1-Q5 × 正確性/深さ/実用性の3軸スコアを記入してください（`work/cmd_1408/` 参照）  
+軍師所見: proxy を4.6に戻す（現在4.7稼働中）
+
+### 🔴 cmd_1409 — レールガン漫画ショート最終版YouTube非公開アップ完了 → 殿確認待ち
+- URL: https://www.youtube.com/watch?v=8M31MYOlRgY（非公開・最終版 tono_edit.mkv）
+- 1080x1920 / h264_nvenc / 21.984s / 軍師QC PASS
+- **判断**: 確認後、公開OKなら公開指示を（privacy=privateのまま）
+
+### 🔴 構成5実装待ち: X-Advisor-Modelヘッダ動的切替
+- proxy動的切替（X-Advisor-Modelヘッダ指定）の実装が完了したら家老に通知を
+- 構成1-4完了後にsubtask_1408fを発令する
 
 ## 🚨 要対応 - 殿のご判断をお待ちしております
 
@@ -76,6 +102,12 @@
 - **1333b (ashigaru2)**: LLMスキーマバリデ追加・clip_timestamps_raw境界チェック・h264_nvencハードコード除去
 - **1333c (ashigaru3)**: IDLE_FLAG_DIR→queue/.flags/・awk→mawk化・generate_illustration.py Part.from_bytesフォールバック除去
 - ⚠️ **未着手(MEDIUM)**: note_visual_qc.py Part.from_bytes / Playwrightプロファイル不一致 / download.sh yt-dlp不整合等（スコープ外）
+
+### 🔧 hotfix: ffmpeg -ss 配置（大容量動画シーク問題）[2026-04-17 足軽4号]
+- **問題**: -ss after -i（CLAUDE.mdルール通り）で16GB×15309sシークが実質ハング（83分→0byte）
+- **workaround**: -ss before -i（input seeking）に変更。NVENC再エンコードなので音ズレリスク低
+- **本修正案**: パイプラインで大容量動画の-seek位置に応じて-ss配置を自動切替するロジック追加
+- **影響**: 小ファイルは -ss after -i（音ズレ回避）、大ファイル長尺シークは -ss before -i（speed優先）
 
 ### 🔧 夜間監査 2026-04-09 — STTパイプライン修正状況
 - ~~CRITICAL/HIGH3件~~ → ✅ 全修正済み（subtask_1272a + 0ef982a3）
@@ -153,8 +185,9 @@
 
 | cmd | 内容 |
 |-----|------|
-| cmd_1407 | 🔄 GLM+Advisor 4.6体制で改変5問実行中 — ADVISOR_MODEL=4.6固定確認済(f23aa97)、足軽1号(subtask_1406a)完了後に5問割当予定 |
-| cmd_1406 | ✅ /ultrareviewバグ5件修正完了（commits: b14c7e5/c3759f4/f23aa97/e8c860e/fec418c 軍師全PASS） |
+| cmd_1410 | ✅ CONDITIONAL PASS（軍師19:24）ヒーラー25件HIT・6名実名。⚠️C3空白分離残存→下流対応要 |
+| cmd_1409 | ✅ YouTube非公開アップ完了（軍師QC PASS）→ 🚨殿確認待ち https://www.youtube.com/watch?v=8M31MYOlRgY |
+| cmd_1408 | ✅ 全5構成完了・QC全PASS（git push d5c1082）→ 🚨殿採点待ち |
 | cmd_1401 | ✅ Q3固定版差し替え完了（commit afc56ed）→ opus47_vs_glm_advisor.md Q3はcmd_1380〜1389で確定 |
 | cmd_1399 | ✅ 統合レポート完成（opus47_vs_glm_advisor.md）→ Q3_fixedで更新中（cmd_1401） |
 | cmd_1397 | ✅ レールガン縦型クロップ+YouTube非公開アップ完了（h264_nvenc 1080x1920）→ https://www.youtube.com/watch?v=IpB4U4AmqS0 |
@@ -175,6 +208,7 @@
 ## ✅ 本日の完了
 | cmd | 内容 |
 |-----|------|
+| cmd_1407 | ✅ GLM+Advisor 4.6正規版 改変5問（proxy再起動後・北極星達成・advisor-in-the-loop有効性実証・commit 4bb0171）※問題改変版のため cmd_1408で再測定 |
 | cmd_1406 | ✅ /ultrareviewバグ5件修正（CHK4削除・FileChanged削除・backup mountpoint・shutsujin readiness・advisor_proxy failure記録）全5 commits・軍師全PASS |
 | cmd_1405 | ✅全世代マトリクス完成(commit b1c8917) → 🚨殿スコア記入待ち work/cmd_1402/opus47_vs_glm_advisor_retest.md |
 | cmd_1402 | ✅ 再現性検証レポート完成（commit 54e366c）→ 🚨殿スコア記入待ち |
@@ -362,14 +396,14 @@
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | GLM | 完了 | subtask_1385a |
-| 2号 | GLM | 実行中 | subtask_1388a（pretool_check.sh未登録スクリプト警告）|
-| 3号 | GLM | 完了 | subtask_1387a |
-| 4号 | GLM | idle | — |
+| 1号 | GLM | ✅ done | subtask_1408f（GLM+Adv4.7 原初5問）完了 commit d5c1082 |
+| 2号 | Claude Opus 4.6 | ✅ done | subtask_1408d（Opus4.6単体 原初5問 完了）|
+| 3号 | Claude Sonnet 4.6 | ✅ done | subtask_1408e（Sonnet4.6単体 原初5問 完了）|
+| 4号 | GLM | ✅ done | subtask_1410a2（DoZ 15309s-15489s 区間訂正版 ヒーラー25件HIT）git commit済み |
 | 5号 | GLM | idle | — |
 | 6号 | GLM | idle | — |
 | 7号 | GLM | idle | — |
-| 軍師 | Opus | 完了 | subtask_1405b（全世代マトリクス統合）|
+| 軍師 | Opus[1m] | ✅ idle | qc_1410a2 CONDITIONAL PASS完了 |
 
 ## APIキー状況
 - **Vertex AI ADC**: ✅ 正常
