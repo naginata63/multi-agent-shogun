@@ -33,6 +33,7 @@ from aiohttp import web, ClientSession, ClientTimeout
 PROXY_PORT = 8780
 UPSTREAM_URL = "https://api.z.ai/api/anthropic"
 CLAUDE_CLI = "/home/murakami/.local/bin/claude"
+ADVISOR_MODEL = os.environ.get("ADVISOR_MODEL", "claude-opus-4-6[1m]")  # 殿指示: advisorは4.6固定（4.7化で品質退化確認のため）
 ADVISOR_TIMEOUT = 90  # seconds for claude -p
 UPSTREAM_TIMEOUT = 300  # seconds for Z.AI responses
 MAX_ADVISOR_LOOPS = 3
@@ -228,7 +229,8 @@ async def call_advisor_cli(context: str) -> str:
     def _run():
         try:
             result = subprocess.run(
-                [CLAUDE_CLI, "-p", prompt, "--output-format", "text"],
+                [CLAUDE_CLI, "-p", prompt, "--output-format", "text",
+                 "--model", ADVISOR_MODEL],
                 capture_output=True,
                 text=True,
                 timeout=ADVISOR_TIMEOUT,
@@ -448,6 +450,21 @@ async def handle_request(request: web.Request) -> web.StreamResponse:
         tools.append(ADVISOR_TOOL_DEF)
         logger.info("Injected advisor tool definition into request")
 
+    # Inject advisor mandatory reminder into system prompt
+    ADVISOR_REMINDER = (
+        "\n\n[MANDATORY] You MUST call advisor() exactly twice per task: "
+        "once BEFORE starting implementation (step 3.8) and once AFTER completing implementation (step 4.8). "
+        "This is required regardless of task difficulty or size. Skipping advisor() because the task seems simple is FORBIDDEN."
+    )
+    system = request_json.get("system", "")
+    if isinstance(system, str):
+        if "MUST call advisor()" not in system:
+            request_json["system"] = system + ADVISOR_REMINDER
+    elif isinstance(system, list):
+        texts = [b.get("text", "") for b in system if b.get("type") == "text"]
+        if not any("MUST call advisor()" in t for t in texts):
+            system.append({"type": "text", "text": ADVISOR_REMINDER})
+
     # Send non-streaming to Z.AI (with retry)
     upstream_body = copy.deepcopy(request_json)
     upstream_body["stream"] = False
@@ -511,8 +528,9 @@ async def handle_request(request: web.Request) -> web.StreamResponse:
 
         # Get advice via claude -p
         context = extract_context_for_advisor(current_request)
+        logger.info("[%s] Advisor context (%d chars): %s", req_id, len(context), context[:300])
         advice = await call_advisor_cli(context)
-        logger.info("Advisor response (%d chars): %s", len(advice), advice[:100])
+        logger.info("[%s] Advisor response (%d chars): %s", req_id, len(advice), advice[:200])
 
         # Build continuation request
         current_request = build_continuation(current_request, response_json, advisor_block, advice)
@@ -523,11 +541,15 @@ async def handle_request(request: web.Request) -> web.StreamResponse:
                 async with session.post(upstream_url, json=current_request, headers=headers) as resp:
                     if resp.status != 200:
                         resp_body = await resp.read()
+                        metrics.record_failure()
+                        circuit_breaker.record_failure()
                         logger.warning("Continuation upstream error %d", resp.status)
                         return web.Response(status=resp.status, body=resp_body,
                                             content_type=resp.content_type)
                     response_json = await resp.json()
         except Exception as e:
+            metrics.record_failure()
+            circuit_breaker.record_failure()
             logger.error("Continuation request failed: %s", e)
             return web.Response(status=502, text=f"Upstream error: {e}")
 
