@@ -634,6 +634,42 @@ log_success "  └─ 家老・足軽・軍師の陣、構築完了"
 echo ""
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# STEP 5.9: Advisor Proxy起動（GLMエージェント用）
+# ═══════════════════════════════════════════════════════════════════════════════
+if grep -q "type: glm" ./config/settings.yaml 2>/dev/null; then
+    log_info "🔮 Advisor Proxy 起動中（GLM足軽用 advisor 中継）..."
+    # Stop existing proxy (PID + port fallback)
+    if [ -f ./logs/advisor_proxy.pid ]; then
+        kill "$(cat ./logs/advisor_proxy.pid)" 2>/dev/null || true
+        rm -f ./logs/advisor_proxy.pid
+    fi
+    # port 8780 を掴んでいるプロセスも確実に停止
+    _proxy_pid=$(lsof -ti :8780 2>/dev/null || true)
+    if [ -n "$_proxy_pid" ]; then
+        kill $_proxy_pid 2>/dev/null || true
+        sleep 1
+    fi
+    # Start proxy in background
+    nohup python3 ./scripts/advisor_proxy.py >> ./logs/advisor_proxy_stdout.log 2>&1 &
+    echo $! > ./logs/advisor_proxy.pid
+    sleep 1
+    _proxy_ready=false
+    for _i in $(seq 1 20); do
+        curl -sf http://localhost:8780/health >/dev/null 2>&1 && _proxy_ready=true && break
+        sleep 0.5
+    done
+    if [ "$_proxy_ready" = true ]; then
+        log_success "  └─ Advisor Proxy (port 8780) 起動完了 — PID $(cat ./logs/advisor_proxy.pid)"
+    else
+        log_info "  └─ ❌ Advisor Proxy起動失敗 (port 8780にbindせず)"
+        exit 1
+    fi
+else
+    log_info "🔮 Advisor Proxy スキップ（GLMエージェントなし）"
+fi
+echo ""
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # STEP 6: Claude Code 起動（-s / --setup-only のときはスキップ）
 # ═══════════════════════════════════════════════════════════════════════════════
 if [ "$SETUP_ONLY" = false ]; then
