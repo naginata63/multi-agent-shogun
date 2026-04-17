@@ -15,6 +15,7 @@ INPUT=$(cat 2>/dev/null || true)
 
 # ツール名とコマンドを抽出
 TOOL_NAME=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('tool_name',''))" 2>/dev/null || true)
+
 COMMAND=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('command',''))" 2>/dev/null || true)
 
 # 自分自身のテスト実行はスキップ
@@ -229,7 +230,9 @@ print(d.get('content', '') + d.get('new_string', ''))
     fi
   fi
 
+  echo "$(date +%H:%M:%S) CHK4: content_len=${#_CMD_CONTENT}, tool=$TOOL_NAME, cmd_len=${#COMMAND}, cmd_first50=${COMMAND:0:50}" >> /tmp/pretool_cmd_check.log
   if [ -n "$_CMD_CONTENT" ]; then
+    echo "$(date +%H:%M:%S) CHK4: has content, checking cmd_id" >> /tmp/pretool_cmd_check.log
     # 新規cmdブロック（- id: cmd_）が含まれるか確認
     if echo "$_CMD_CONTENT" | grep -qF -- '- id: cmd_'; then
       # lord_original: フィールドが存在するか確認

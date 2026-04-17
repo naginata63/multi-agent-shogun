@@ -97,6 +97,18 @@
                     }
                 ]
             }
+        ],
+        "FileChanged": [
+            {
+                "matcher": "shogun_to_karo.yaml",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash /home/murakami/multi-agent-shogun/scripts/filechanged_cmd_check.sh",
+                        "timeout": 40
+                    }
+                ]
+            }
         ]
     },
     "permissions": {
