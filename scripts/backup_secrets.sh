@@ -2,8 +2,9 @@
 # config/ 配下の秘密鍵をGPG暗号化してバックアップ
 set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-BACKUP_DIR="$PROJECT_ROOT/backups/secrets"
+BACKUP_DIR="/mnt/backup/multi-agent-shogun/secrets"
 CONFIG_DIR="$PROJECT_ROOT/config"
+mountpoint -q /mnt/backup || { echo "ERROR: /mnt/backup is not mounted" >&2; exit 1; }
 mkdir -p "$BACKUP_DIR"
 
 TARGETS=(

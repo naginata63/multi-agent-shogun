@@ -3,12 +3,13 @@
 set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 QUEUE_DIR="$PROJECT_ROOT/queue"
-BACKUP_DIR="$PROJECT_ROOT/backups/queue"
+BACKUP_DIR="/mnt/backup/multi-agent-shogun/queue"
 LOG_FILE="$PROJECT_ROOT/logs/backup_queue.log"
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 BACKUP_PATH="$BACKUP_DIR/$TIMESTAMP"
 ARCHIVE="$BACKUP_PATH.tar.gz"
 
+mountpoint -q /mnt/backup || { echo "ERROR: /mnt/backup is not mounted" >&2; exit 1; }
 mkdir -p "$BACKUP_DIR"
 mkdir -p "$(dirname "$LOG_FILE")"
 
