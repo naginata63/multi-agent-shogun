@@ -75,7 +75,20 @@ for m in matches:
     _CK2_AGENT_NUM="${_CK2_AGENT_ID#ashigaru}"
     _CK2_TASK_YAML="${REPO_DIR}/queue/tasks/ashigaru${_CK2_AGENT_NUM}.yaml"
     if [ -f "$_CK2_TASK_YAML" ]; then
-      _CK2_TARGET_PATH=$(grep -A5 'status: assigned' "$_CK2_TASK_YAML" | grep -E 'target_path:|output_file:' | head -1 | sed 's/.*:[[:space:]]*//' | tr -d '"' | tr -d "'" || true)
+      _CK2_TARGET_PATH=$(python3 -c "
+import sys, re
+try:
+    content = open('$_CK2_TASK_YAML').read()
+    blocks = re.split(r'(?=^- task_id:)', content, flags=re.MULTILINE)
+    for block in reversed(blocks):
+        if re.search(r'status:\s*(assigned|in_progress)', block):
+            m = re.search(r'target_path:\s*([^\n]+)', block)
+            if m:
+                print(m.group(1).strip().strip('\"').strip(\"'\"))
+                break
+except Exception:
+    pass
+" 2>/dev/null || true)
       if [ -n "$_CK2_TARGET_PATH" ] && echo "$_CK2_FILE_PATH" | grep -qF "$_CK2_TARGET_PATH"; then
         :  # target_pathと一致 → 許可（次のチェックへ）
       else
