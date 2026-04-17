@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-17 02:12
+最終更新: 2026-04-17 09:16
 
 ## 💰 DingTalk音声QC（9万円案件）
 🟢 稼働中 | 処理済み: **228件** / 10,000件 | 報酬見込み: **¥2,052**
@@ -28,10 +28,16 @@
 
 **MEDIUM×2**: `generate_shorts_bg.py` L69 フォントフォールバックのサイレント飲み込み / `shorts_qc.py` L45 ffmpegエラーハンドリングなし
 
-### 🔴 cmd_1397 — レールガンYouTube非公開アップ完了 → 殿確認待ち
-- URL: https://www.youtube.com/watch?v=IpB4U4AmqS0
-- 1080x1920 / h264_nvenc / 4.4MB / private
+### 🔴 cmd_1400 — レールガン再編集版YouTube非公開アップ完了 → 殿確認待ち
+- URL: https://www.youtube.com/watch?v=EXv3iJ9nLDc（再編集版・最新）
 - **判断**: 確認後、公開OKなら公開指示を
+
+### 🔴 cmd_1399 — Opus4.7 vs GLM+Advisor比較レポート完成 → 殿レビュー待ち
+- ファイル: work/cmd_1399/opus47_vs_glm_advisor.md
+- ✅ Q3固定版（cmd_1380〜1389）差し替え完了。評価スコア欄はTBD（将軍記入待ち）
+- ⚠️ 軍師所見: cmd_1384のOK/NGワード混入事故の具体はYAML範囲内から裏付け不可（メモリ由来の可能性。将軍の最終精査要）
+- ⚠️ pretool_check.shのwork/cmd_*ブロック問題は別cmdで対処推奨（足軽1号hotfix_notes参照）
+- **判断**: Q3_fixed版完成後にレポートを確認・評価スコア記入を
 
 ### 🔴 cmd_1396 — お題06 panels JSON再生成完了 → 殿レビュー待ち
 - panels_odai_06.json生成済み（**14パネル**・scene=odai_06）
@@ -82,6 +88,16 @@
 
 ## 🚨 要対応
 
+### 🔴 cmd_1404 — --max-tokens棚卸し調査完了 → 修正cmd発令の判断を
+詳細: `queue/reports/gunshi_report_qc_1404a.yaml`
+- **高リスク1**: `projects/dozle_kirinuki/context/remotion_llm_style_design.md:227` — `call_claude_cli` 関数内で `claude -p --max-tokens` 使用 → silent fail中の可能性
+- **高リスク2**: `work/cmd_1393/design.md:169` — `timeout 30 claude -p --max-tokens 100` (設計書内・実スクリプトではないが参照リスクあり)
+- **副産物**: `pretool_check.sh L78` の `status: assigned` 限定バグ発覚（status:in_progress移行後にtarget_path検証が機能しない）
+- **判断**: 高リスク2件の修正cmd・pretool_check.shバグ修正cmdを発令するか？
+
+### 🔴 cmd_1402 — 再現性検証レポート完成 → 殿がスコア記入
+- ファイル: `work/cmd_1402/opus47_vs_glm_advisor_retest.md`（作成中・軍師が統合レポート執筆中）
+- 完成後: 評価スコア（正確性/深さ/実用性）を記入してください
 
 ### 🔴 夜間監査 nightly_audit_20260416_stt — HIGH×1（STTパイプライン）
 詳細: `queue/reports/gunshi_report_nightly_audit_20260416_stt.yaml`
@@ -135,8 +151,9 @@
 
 | cmd | 内容 |
 |-----|------|
-| nightly_audit_20260417_video | ✅ 動画制作スクリプト矛盾検出完了（CRITICAL×1 HIGH×1 MEDIUM×2）|
-| cmd_1398 | 🔄 レールガン再編集版 縦型クロップ→YouTube非公開アップ中（足軽1号 subtask_1398a）|
+| cmd_1402 | 🔄 統合レポート作成中(gunshi): ✅条件A完了(241秒) ✅条件B完了 → 軍師がopus47_vs_glm_advisor_retest.md執筆中 → 完成後殿スコア記入 |
+| cmd_1401 | ✅ Q3固定版差し替え完了（commit afc56ed）→ opus47_vs_glm_advisor.md Q3はcmd_1380〜1389で確定 |
+| cmd_1399 | ✅ 統合レポート完成（opus47_vs_glm_advisor.md）→ Q3_fixedで更新中（cmd_1401） |
 | cmd_1397 | ✅ レールガン縦型クロップ+YouTube非公開アップ完了（h264_nvenc 1080x1920）→ https://www.youtube.com/watch?v=IpB4U4AmqS0 |
 | cmd_1395 | ✅ 全チェックBashバイパス修正完了（軍師PASS・commit 7ec2df8・git push済み）|
 | cmd_1394 | ✅ note下書き挿絵2枚挿入+キャプション完了 → 🚨殿レビュー待ち https://note.com/n/n0044698193bd |
@@ -155,6 +172,7 @@
 ## ✅ 本日の完了
 | cmd | 内容 |
 |-----|------|
+| cmd_1404 | ✅ --max-tokens棚卸し調査完了（足軽2号・軍師PASS）高リスク2件発覚→🚨要対応参照 |
 | cmd_1384 | ✅ railgun P6bガチャ3回（v1/v2/v3）生成完了（軍師CONDITIONAL PASS・v2推奨）→ 🚨殿選択待ち |
 | cmd_1378 | ✅ panels_railgun P6b_orafu_revive_and_die API再生成完了（空吹き出しなし・軍師PASS） |
 | cmd_1383 | ✅ お題05 v2ギャラリーHTML作成完了（全8パネル・ダークテーマ・セリフ表示・軍師PASS） |

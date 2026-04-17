@@ -751,3 +751,760 @@ tasks:
   status: done
   timestamp: "2026-04-12T17:09:36"
   steps: panels_check_gen.pyとserver.pyを修正してJSON選択UIを実装。テスト後にgit commit & bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1344a完了。実装内容を報告。" report_completed ashigaru2
+- task_id: subtask_1349a
+  parent_cmd: cmd_1349
+  bloom_level: L4
+  description: panels_check.htmlに話者変更機能追加（ドロップダウン・ref_images自動連動・スマホ対応）
+  status: done
+  timestamp: "2026-04-12T20:32:00"
+  target_path: projects/dozle_kirinuki/scripts/panels_check_gen.py
+  procedure: shared_context/procedures/panels_check_character_change.md
+  steps: procedure記載の手順に従い実装・git commit後にinbox_write報告
+- task_id: subtask_1357a
+  parent_cmd: cmd_1357
+  bloom_level: L5
+  description: advisor稼働テスト - work/dingtalk_qc/README.md確認（advisor()を実装前・完了前の2回必ず呼ぶこと）
+  status: done
+  timestamp: "2026-04-13T06:07:00"
+  target_path: work/dingtalk_qc/README.md
+  procedure: shared_context/procedures/advisor_test_readme_check.md
+  steps: procedure記載の手順に従い実施。advisor()を必ず2回呼ぶこと（実装前・完了前）。git commit後にinbox_write報告
+- task_id: subtask_1358b
+  parent_cmd: cmd_1358
+  bloom_level: L2
+  description: advisor必須ルール検証 - queue/.flags/ディレクトリの存在と中身を報告
+  status: done
+  timestamp: "2026-04-13T06:22:00"
+  target_path: queue/.flags/
+  steps: "queue/.flags/ディレクトリが存在するか確認し、存在すれば中身（ファイル一覧）を報告、存在しなければその旨を報告する。完了後にbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \"足軽2号、subtask_1358b完了。queue/.flags/の状態を報告。\" report_completed ashigaru2"
+- task_id: subtask_1362a
+  parent_cmd: cmd_1362
+  bloom_level: L3
+  description: "scripts/advisor_proxy.py の handle_request 関数にrequest_id（UUID4短縮8文字）ログ追加"
+  status: done
+  timestamp: "2026-04-13T08:51:00"
+  target_path: /home/murakami/multi-agent-shogun/scripts/advisor_proxy.py
+  procedure: shared_context/procedures/advisor_proxy_request_id.md
+  steps: procedure記載の手順に従い実施。git commit後にinbox_write報告。
+- task_id: subtask_1365a
+  parent_cmd: cmd_1365
+  bloom_level: L4
+  description: "localhost:8080 analytics ダッシュボードのAI分析コメントが4/13表示されない問題を調査・修正"
+  status: done
+  timestamp: "2026-04-13T09:32:00"
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/analytics/dashboard/
+  procedure: shared_context/procedures/youtube_dashboard_ai_comment_fix.md
+  steps: procedure記載の手順に従い調査・修正。原因と修正内容を報告。
+- task_id: subtask_1369a
+  parent_cmd: cmd_1369
+  bloom_level: L3
+  description: "queue/運用データ定期バックアップスクリプト作成（backup_queue.sh・タイムスタンプ付き・7日保持）"
+  status: done
+  timestamp: "2026-04-13T10:01:00"
+  procedure: shared_context/procedures/backup_queue_cron.md
+  steps: procedure記載の手順に従いスクリプト作成・手動実行テスト・git commit・inbox報告。
+- task_id: subtask_1371a
+  parent_cmd: cmd_1371
+  bloom_level: L4
+  status: done
+  blocked_by: "subtask_1370a（orafu_futuristic_01.png生成完了待ち。家老から通知後に開始せよ）"
+  timestamp: "2026-04-13T16:42:00+09:00"
+  project_root: /home/murakami/multi-agent-shogun
+  description: "おらふくん未来人版v2（スカウター削除版）5枚生成"
+  procedure: /home/murakami/multi-agent-shogun/shared_context/procedures/vertex_ai_chara_gen_orafu.md
+  steps: procedure手順のGCS URI方式を参考にv2モード（スカウターなし）で5枚生成→v2/保存→git commit→inbox報告。advisor()を実装前・完了前の2回必ず呼べ。
+  ref_image: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/orafu_futuristic/orafu_futuristic_01.png
+  output_dir: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/orafu_futuristic/v2/
+  output_files:
+    - orafu_futuristic_v2_01.png
+    - orafu_futuristic_v2_02.png
+    - orafu_futuristic_v2_03.png
+    - orafu_futuristic_v2_04.png
+    - orafu_futuristic_v2_05.png
+  prompt_key: "スカウターなし版（顔の前にスクリーン・バイザー・ゴーグル等を描画しないこと。その他の衣装・ポーズはorafu_futuristic_01.pngと同一）"
+  acceptance_criteria:
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/orafu_futuristic/v2/orafu_futuristic_v2_01.pngが存在すること
+    - v2_01.png〜v2_05.pngの5枚全て0バイトでないこと
+    - git commit済みであること
+  notes:
+    - "source /home/murakami/multi-agent-shogun/config/vertex_api_key.env 必須（実行前に毎回）"
+    - "GCS URI方式のみ。Part.from_bytes禁止"
+    - "ガチャ5回は殿の明示的許可あり（上限3回ルールの例外）"
+    - "リファレンス: orafu_futuristic_01.png（cmd_1370成果物）"
+- task_id: subtask_1374a
+  parent_cmd: cmd_1374
+  bloom_level: L3
+  status: done
+  timestamp: "2026-04-13T18:10:00+09:00"
+  project_root: /home/murakami/multi-agent-shogun
+  description: "廃止済みgemini_speaker_pipeline.py参照をコードとドキュメントから完全除去（CRITICAL×2）"
+  steps: 下記2件を修正→grep検証→git commit→inbox報告。advisor()を実装前・完了前の2回必ず呼べ。
+  targets:
+    critical1:
+      file: /home/murakami/multi-agent-shogun/skills/gemini-video-transcribe/transcribe.py
+      lines: L167-178
+      fix: "廃止済みgemini_speaker_pipeline.pyのsubprocess呼び出しブロックを削除し、エラーメッセージ「話者分離ありモードはAssemblyAI（vocal_stt_pipeline.py）を使え」に置き換えよ"
+    critical2:
+      file: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/context/hl_sh_workflow.md
+      lines: L87付近
+      fix: "gemini_speaker_pipeline.pyをvocal_stt_pipeline.pyに置き換えよ"
+  verification:
+    - "grep -r gemini_speaker_pipeline /home/murakami/multi-agent-shogun/skills/ /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/context/ → 0件"
+    - "python3 -m py_compile /home/murakami/multi-agent-shogun/skills/gemini-video-transcribe/transcribe.py → エラーなし"
+  acceptance_criteria:
+    - gemini_speaker_pipelineへの参照が0件であること
+    - transcribe.pyが構文エラーなく読み込めること
+    - git commit済みであること
+  notes:
+    - "新規.py禁止。既存ファイルの修正のみ"
+- task_id: subtask_1377a
+  parent_cmd: cmd_1377
+  bloom_level: L2
+  status: done
+  timestamp: "2026-04-14T18:02:00"
+  description: panels_railgun.jsonのp6b_orafu_revive_and_dieのdirector_notesに吹き出し禁止指示を強化追記する。p6b以外は触るな。
+  procedure: /home/murakami/multi-agent-shogun/shared_context/procedures/panels_railgun_p6b_fix.md
+  steps: 手順はprocedureファイルを参照せよ。
+- task_id: subtask_1378a
+  parent_cmd: cmd_1378
+  bloom_level: L4
+  status: done
+  timestamp: "2026-04-14T20:43:15"
+  project_root: /home/murakami/multi-agent-shogun
+  description: "panels_railgun.jsonの修正済みp6bパネルをAPI方式で再生成"
+  panels_json: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_railgun/panels_railgun.json"
+  output_dir: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_railgun/out/"
+  steps: advisor()を実装前・完了前に2回必ず呼べ。source /home/murakami/multi-agent-shogun/config/vertex_api_key.env後にgenerate_odai_panels.pyでp6b_orafu_revive_and_dieのみ再生成。空吹き出しがないこと確認後inbox_write報告。
+  acceptance_criteria:
+    - "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_railgun/out/p6b_orafu_revive_and_die.pngが存在すること"
+    - 生成画像に空の吹き出しが含まれていないこと（目視確認）
+    - ギャラリーHTMLで確認可能であること
+  notes:
+    - "source /home/murakami/multi-agent-shogun/config/vertex_api_key.env 必須"
+    - "GCS URI方式のみ（Part.from_bytes禁止）"
+    - "新規.py禁止。generate_odai_panels.pyを使え"
+    - "実行コマンド: python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/generate_odai_panels.py --panels <panels_json> --panel-id p6b_orafu_revive_and_die"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1378a完了。' report_completed ashigaru2"
+- task_id: subtask_1386a
+  parent_cmd: cmd_1386
+  bloom_level: L4
+  status: done
+  priority: high
+  timestamp: "2026-04-15T05:56:00"
+  project_root: /home/murakami/multi-agent-shogun
+  description: "夜間監査HIGH×2+MEDIUM×3（インフラスクリプト群）の修正。ntfy_listener.sh認証情報漏洩・posttool_yaml_check.shstdin方式統一・userprompt_ntfy_check.sh/tmp除去・context_watcher.shハードコード除去・slim_yaml.pytypo修正"
+  report_ref: "queue/reports/gunshi_report_nightly_audit_20260415_infra.yaml"
+  steps: |
+    advisor()を実装前に呼べ。
+    まずreport_refを読んでdetailとrecommendationを確認してから各ファイルを修正せよ。
+
+    修正1 [HIGH] scripts/ntfy_listener.sh L238:
+      ${NTFY_TOKEN:-${NTFY_USER:-none}} → 実値ではなく "configured"/"none" 表示に変更
+
+    修正2 [HIGH] scripts/posttool_yaml_check.sh:
+      CLAUDE_TOOL_INPUT環境変数方式 → INPUT=$(cat) + python3でfile_path抽出（他フックと同じ方式）
+
+    修正3 [MEDIUM] scripts/userprompt_ntfy_check.sh L17:
+      /tmp/... → ${SCRIPT_DIR}/queue/.flags/shogun_ntfy_last_line に変更
+
+    修正4 [MEDIUM] scripts/context_watcher.sh L18:
+      PROJECT_DIR="/home/murakami/..." → SCRIPT_DIR方式の動的解決に変更
+
+    修正5 [MEDIUM] scripts/slim_yaml.py L285:
+      slim_shugun_to_karo → slim_shogun_to_karo（定義+呼び出し元の2箇所）
+
+    git add scripts/ntfy_listener.sh scripts/posttool_yaml_check.sh scripts/userprompt_ntfy_check.sh scripts/context_watcher.sh scripts/slim_yaml.py
+    git commit後にadvisor()を完了前に呼んでレビューを受けよ。
+    git pushして完了後inbox報告。
+  acceptance_criteria:
+    - "ntfy_listener.sh: ログに認証情報の実値が出力されないこと"
+    - "posttool_yaml_check.sh: INPUT=$(cat)方式でstdinからJSON読み取り、FILE_PATHが正しく抽出されること"
+    - "userprompt_ntfy_check.sh: queue/.flags/を状態ファイル保存先として使用すること"
+    - "context_watcher.sh: PROJECT_DIRが動的解決されること（絶対パスハードコードなし）"
+    - "slim_yaml.py: slim_shogun_to_karo で定義・呼び出しが統一されていること"
+    - "git commit & push済み"
+  notes:
+    - "修正は既存スクリプトの編集のみ。新規.py禁止"
+    - "各修正後にbashスクリプトはbash -n でシンタックスチェック可能"
+    - "slim_yaml.pyはgrep -n slim_shugun scripts/slim_yaml.py で2箇所（定義+呼び出し元）を確認"
+    - "queue/.flags/ディレクトリが存在しない場合はmkdir -p で作成するコードをスクリプトに追加"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1386a完了。HIGH×2+MEDIUM×3修正・git push済み。' report_completed ashigaru2"
+- task_id: subtask_1386a2
+  parent_cmd: cmd_1386
+  bloom_level: L4
+  redo_of: subtask_1386a
+  status: done
+  priority: high
+  timestamp: "2026-04-15T06:06:00"
+  project_root: /home/murakami/multi-agent-shogun
+  description: "【差し戻し】ntfy_listener.sh HIGH-1修正が不完全。${NTFY_TOKEN:-${NTFY_USER:-none}}が実値を展開している。正しい修正を施してgit commitせよ。"
+  qc_report: "queue/reports/gunshi_report_qc_1386a.yaml"
+  steps: |
+    advisor()は不要。修正箇所が明確なため即実行せよ。
+
+    scripts/ntfy_listener.sh を Read して現在のL238付近を確認してから、以下の通り修正せよ:
+
+    ## 修正内容（L238付近）
+    現行（問題あり）:
+      echo "[$(date)] ntfy listener started — topic: $TOPIC (auth: ${NTFY_TOKEN:+configured}${NTFY_USER:+configured}${NTFY_TOKEN:-${NTFY_USER:-none}})" >&2
+
+    修正後:
+      AUTH_LABEL="none"; [ -n "${NTFY_TOKEN:-}" ] && AUTH_LABEL="token"; [ -n "${NTFY_USER:-}" ] && AUTH_LABEL="basic"
+      echo "[$(date)] ntfy listener started — topic: $TOPIC (auth: $AUTH_LABEL)" >&2
+
+    ## 検証
+    bash -n scripts/ntfy_listener.sh でシンタックスエラーなし確認
+
+    ## commit
+    git add scripts/ntfy_listener.sh
+    git commit -m "fix(cmd_1386): ntfy_listener.sh 認証情報ログ漏洩修正（AUTH_LABEL方式）"
+  acceptance_criteria:
+    - "ntfy_listener.shのログ行で認証情報実値が展開されないこと"
+    - "NTFY_TOKEN設定時→auth: token、NTFY_USER設定時→auth: basic、両方未設定→auth: none と出力されること"
+    - "bash -n scripts/ntfy_listener.sh がエラーなし"
+    - "git commit済み"
+  notes:
+    - "git pushは家老が実施するためcommitのみでよい"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1386a2完了。ntfy_listener.sh修正commit済み。' report_completed ashigaru2"
+- task_id: subtask_1388a
+  parent_cmd: cmd_1388
+  bloom_level: L4
+  status: in_progress
+  priority: high
+  timestamp: "2026-04-16T09:16:00"
+  project_root: /home/murakami/multi-agent-shogun
+  description: "pretool_check.shに未登録スクリプト警告チェックを追加。足軽がscript_index.mdに載っていないpython3 *.py を実行しようとしたらWARNING出力（exit 0、ブロックしない）"
+  target_file: "scripts/pretool_check.sh"
+  script_index: "projects/dozle_kirinuki/context/script_index.md"
+  steps: advisor()を実装前・完了前に必ず呼べ。pretool_check.shを読んで既存構造を把握→新チェック追加→bash -nテスト→git commit。
+  implementation_spec: |
+    ## 追加箇所
+    pretool_check.sh の末尾（exit 0 の直前）に以下のチェックブロックを追加:
+
+    ```bash
+    # ── チェック: 未登録スクリプト警告（足軽のみ・WARNINGのみ）──
+    if [[ "$TOOL_NAME" == "Bash" ]] && [[ "$AGENT_ID" == ashigaru* ]]; then
+      # python3 *.py パターン検出（ワンライナー・venv/・pip 除外）
+      if echo "$COMMAND" | grep -qE 'python3[[:space:]]+[^-][^[:space:]]*\.py' && \
+         ! echo "$COMMAND" | grep -qE 'python3[[:space:]]+-[cm]|venv/|pip'; then
+        PY_FILE=$(echo "$COMMAND" | grep -oE '[^/[:space:]]+\.py' | grep -v '__pycache__' | head -1)
+        SCRIPT_INDEX="${REPO_DIR}/projects/dozle_kirinuki/context/script_index.md"
+        if [[ -f "$SCRIPT_INDEX" ]] && [[ -n "$PY_FILE" ]]; then
+          if ! grep -qF "$PY_FILE" "$SCRIPT_INDEX"; then
+            echo "WARNING: 未登録スクリプト検出: ${PY_FILE}" >&2
+            echo "script_index.mdに登録されていません。正規スクリプトを使用してください。" >&2
+            # 部分一致で類似候補を抽出（先頭要素でgrepし最大3件）
+            BASE=$(echo "$PY_FILE" | sed 's/\.[^.]*$//' | cut -c1-10)
+            CANDIDATES=$(grep -oE '[a-zA-Z_]+\.py' "$SCRIPT_INDEX" | grep -i "$BASE" | head -3 | tr '\n' ' ')
+            [[ -n "$CANDIDATES" ]] && echo "類似スクリプト候補: ${CANDIDATES}" >&2
+          fi
+        fi
+      fi
+    fi
+    ```
+
+    ## 重要
+    - exit 0 で終わること（BLOCKしない）
+    - AGENT_IDはL45-47の既存ロジックで取得済みのため再取得不要
+    - 追加位置: 既存の最後のfiブロック後・exit 0 直前
+  acceptance_criteria:
+    - "bash -n scripts/pretool_check.sh がエラーなし"
+    - "echo '{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"python3 generate_odai_panels.py\"}}' | TMUX_PANE=% bash scripts/pretool_check.sh でWARNING出力"
+    - "echo '{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"python3 generate_manga_short.py\"}}' | bash scripts/pretool_check.sh でWARNINGなし（script_index.mdに登録済みのため）"
+    - "git commit済み"
+  notes:
+    - "新規ファイル作成禁止。pretool_check.shの修正のみ"
+    - "WARNINGはstderrへ出力（>&2）。exit 0で通過させる"
+    - "AGENT_IDの取得は既存コード（L45-47）が担う。追加ブロックはその後で $AGENT_ID を参照するだけ"
+    - "git pushは家老が実施のためcommitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1388a完了。pretool_check.sh修正commit済み。' report_completed ashigaru2"
+- task_id: subtask_1388b
+  parent_cmd: cmd_1388
+  bloom_level: L4
+  redo_of: subtask_1388a
+  status: in_progress
+  priority: high
+  timestamp: "2026-04-16T09:17:00"
+  project_root: /home/murakami/multi-agent-shogun
+  description: "【方針変更】pretool_check.shにblacklistチェックを追加。blacklistファイル（config/script_blacklist.txt）に載っているスクリプトを足軽が実行しようとしたらBLOCKED（exit 2）"
+  target_file: "scripts/pretool_check.sh"
+  blacklist_file: "config/script_blacklist.txt"
+  steps: advisor()を実装前・完了前に必ず呼べ。blacklistファイル作成→pretool_check.sh修正→bash -nテスト→git commit。
+  implementation_spec: |
+    ## Step1: config/script_blacklist.txt を作成
+    内容（1行1ファイル名）:
+      generate_odai_panels.py
+      generate_qnly_agree.py
+
+    ## Step2: pretool_check.sh に追加（exit 0 直前）
+    ```bash
+    # ── チェック: blacklistスクリプトブロック（足軽のみ）──
+    if [[ "$TOOL_NAME" == "Bash" ]] && [[ "$AGENT_ID" == ashigaru* ]]; then
+      BLACKLIST="${REPO_DIR}/config/script_blacklist.txt"
+      if [[ -f "$BLACKLIST" ]] && echo "$COMMAND" | grep -qE 'python3[[:space:]]+[^-][^[:space:]]*\.py'; then
+        PY_FILE=$(echo "$COMMAND" | grep -oE '[^/[:space:]]+\.py' | grep -v '__pycache__' | head -1)
+        if [[ -n "$PY_FILE" ]] && grep -qxF "$PY_FILE" "$BLACKLIST"; then
+          echo "BLOCKED: ${PY_FILE} はblacklistに登録された使用禁止スクリプトです。" >&2
+          echo "config/script_blacklist.txt を参照。代替スクリプトを使用してください。" >&2
+          exit 2
+        fi
+      fi
+    fi
+    ```
+
+    ## 重要
+    - blacklistに一致→BLOCKED (exit 2)
+    - 未知スクリプトは全て通過（WARNINGなし）
+    - AGENT_IDはL45-47の既存ロジックで取得済み
+    - 将軍・家老・軍師はashigaru*以外なので自動的に除外
+  acceptance_criteria:
+    - "config/script_blacklist.txt が存在し generate_odai_panels.py / generate_qnly_agree.py が記載されていること"
+    - "bash -n scripts/pretool_check.sh がエラーなし"
+    - "generate_odai_panels.py 実行時 → BLOCKED"
+    - "generate_manga_short.py 実行時 → 通過（BLOCKEDなし）"
+    - "git commit済み（config/script_blacklist.txt + scripts/pretool_check.sh の2ファイル）"
+  notes:
+    - "subtask_1388aの旧仕様（script_index.md照合・WARNING方式）は廃止。このsubtask_1388bの仕様のみ実装せよ"
+    - "新規ファイルはconfig/script_blacklist.txtのみ許可。その他の新規.py禁止"
+    - "git pushは家老が実施のためcommitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1388b完了。blacklist方式commit済み。' report_completed ashigaru2"
+- task_id: subtask_1388c
+  parent_cmd: cmd_1388
+  bloom_level: L4
+  redo_of: subtask_1388b
+  status: in_progress
+  priority: high
+  timestamp: "2026-04-16T09:18:00"
+  project_root: /home/murakami/multi-agent-shogun
+  description: "【最終仕様】pretool_check.shに二段構えチェックを追加。1段目: blacklist → BLOCKED。2段目: script_index.md未登録 → WARNING（通過）"
+  target_file: "scripts/pretool_check.sh"
+  blacklist_file: "config/script_blacklist.txt"
+  steps: advisor()を実装前・完了前に必ず呼べ。blacklistファイル作成→pretool_check.sh修正（二段）→bash -nテスト→git commit。
+  implementation_spec: |
+    ## Step1: config/script_blacklist.txt を作成
+    内容（1行1ファイル名）:
+      generate_odai_panels.py
+      generate_qnly_agree.py
+
+    ## Step2: pretool_check.sh に追加（exit 0 直前）
+    ```bash
+    # ── チェック: スクリプトblacklist + 未登録警告（足軽のみ）──
+    if [[ "$TOOL_NAME" == "Bash" ]] && [[ "$AGENT_ID" == ashigaru* ]]; then
+      if echo "$COMMAND" | grep -qE 'python3[[:space:]]+[^-][^[:space:]]*\.py' && \
+         ! echo "$COMMAND" | grep -qE 'python3[[:space:]]+-[cm]|venv/|pip'; then
+        PY_FILE=$(echo "$COMMAND" | grep -oE '[^/[:space:]]+\.py' | grep -v '__pycache__' | head -1)
+        if [[ -n "$PY_FILE" ]]; then
+          BLACKLIST="${REPO_DIR}/config/script_blacklist.txt"
+          SCRIPT_INDEX="${REPO_DIR}/projects/dozle_kirinuki/context/script_index.md"
+          # 1段目: blacklist → BLOCKED
+          if [[ -f "$BLACKLIST" ]] && grep -qxF "$PY_FILE" "$BLACKLIST"; then
+            echo "BLOCKED: ${PY_FILE} はblacklistに登録された使用禁止スクリプトです。" >&2
+            echo "config/script_blacklist.txt を参照。代替スクリプトを使用してください。" >&2
+            exit 2
+          fi
+          # 2段目: script_index.md未登録 → WARNING（通過）
+          if [[ -f "$SCRIPT_INDEX" ]] && ! grep -qF "$PY_FILE" "$SCRIPT_INDEX"; then
+            echo "WARNING: 未登録スクリプト: ${PY_FILE} — script_index.mdに未登録です。正規スクリプトか確認してください。" >&2
+          fi
+        fi
+      fi
+    fi
+    ```
+
+  acceptance_criteria:
+    - "config/script_blacklist.txt 存在・generate_odai_panels.py/generate_qnly_agree.py記載"
+    - "bash -n scripts/pretool_check.sh がエラーなし"
+    - "generate_odai_panels.py → BLOCKED (exit 2)"
+    - "generate_manga_short.py → 通過（script_index.mdに登録済みのためWARNINGなし）"
+    - "script_index.md未登録の架空スクリプト（例: foo_bar.py）→ WARNING出力・通過"
+    - "git commit済み（config/script_blacklist.txt + scripts/pretool_check.sh）"
+  notes:
+    - "これが最終仕様。subtask_1388a/bは廃止。このsubtask_1388cのみ実装せよ"
+    - "新規ファイルはconfig/script_blacklist.txtのみ許可"
+    - "git pushは家老が実施。commitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1388c完了。blacklist+WARNING二段構えcommit済み。' report_completed ashigaru2"
+- task_id: subtask_1388d
+  parent_cmd: cmd_1388
+  worker_id: ashigaru2
+  status: done
+  priority: high
+  timestamp: "2026-04-16T09:22:00"
+  project_root: /home/murakami/multi-agent-shogun
+  description: "【最終仕様v2】pretool_check.shに二段構えチェック+候補表示を追加。1段目: blacklist → BLOCKED(exit 2)。2段目: script_index.md未登録 → WARNING + 類似スクリプト候補表示（キーワードマッチ）"
+  target_file: "scripts/pretool_check.sh"
+  blacklist_file: "config/script_blacklist.txt"
+  steps: "advisor()を実装前・完了前に必ず呼べ。blacklistファイル作成→pretool_check.sh修正（二段+候補表示）→bash -nテスト→git commit。"
+  redo_of: subtask_1388c
+  implementation_spec: |
+    ## Step1: config/script_blacklist.txt を作成（または上書き）
+    内容（1行1ファイル名）:
+      generate_odai_panels.py
+      generate_qnly_agree.py
+
+    ## Step2: pretool_check.sh に追加（exit 0 直前）
+    ```bash
+    # ── チェック: スクリプトblacklist + 未登録警告（足軽のみ）──
+    if [[ "$TOOL_NAME" == "Bash" ]] && [[ "$AGENT_ID" == ashigaru* ]]; then
+      if echo "$COMMAND" | grep -qE 'python3[[:space:]]+[^-][^[:space:]]*\.py' && \
+         ! echo "$COMMAND" | grep -qE 'python3[[:space:]]+-[cm]|venv/|pip'; then
+        PY_FILE=$(echo "$COMMAND" | grep -oE '[^/[:space:]]+\.py' | grep -v '__pycache__' | head -1)
+        if [[ -n "$PY_FILE" ]]; then
+          BLACKLIST="${REPO_DIR}/config/script_blacklist.txt"
+          SCRIPT_INDEX="${REPO_DIR}/projects/dozle_kirinuki/context/script_index.md"
+          # 1段目: blacklist → BLOCKED
+          if [[ -f "$BLACKLIST" ]] && grep -qxF "$PY_FILE" "$BLACKLIST"; then
+            echo "BLOCKED: ${PY_FILE} はblacklistに登録された使用禁止スクリプトです。" >&2
+            echo "config/script_blacklist.txt を参照。代替スクリプトを使用してください。" >&2
+            exit 2
+          fi
+          # 2段目: script_index.md未登録 → WARNING + 候補表示
+          if [[ -f "$SCRIPT_INDEX" ]] && ! grep -qF "$PY_FILE" "$SCRIPT_INDEX"; then
+            echo "WARNING: 未登録スクリプト: ${PY_FILE}" >&2
+            # キーワード分割で類似候補を検索
+            BASE="${PY_FILE%.py}"
+            IFS='_' read -ra KWS <<< "$BASE"
+            BEST_CANDIDATES=""
+            while IFS= read -r si_line; do
+              if [[ "$si_line" =~ ^\#[[:space:]]([a-zA-Z_]+\.py) ]] || \
+                 [[ "$si_line" =~ ^\#{2,3}[[:space:]]([a-zA-Z_]+\.py) ]]; then
+                CAND="${BASH_REMATCH[1]}"
+                CNT=0
+                for KW in "${KWS[@]}"; do
+                  [[ "$CAND" == *"$KW"* ]] && ((CNT++)) || true
+                done
+                [[ $CNT -ge 2 ]] && BEST_CANDIDATES="${BEST_CANDIDATES}${CAND}|2 "
+                [[ $CNT -eq 1 ]] && BEST_CANDIDATES="${BEST_CANDIDATES}${CAND}|1 "
+              fi
+            done < "$SCRIPT_INDEX"
+            # 2一致優先、なければ1一致
+            SHOW=$(echo "$BEST_CANDIDATES" | tr ' ' '\n' | grep '|2' | head -3)
+            [[ -z "$SHOW" ]] && SHOW=$(echo "$BEST_CANDIDATES" | tr ' ' '\n' | grep '|1' | head -3)
+            if [[ -n "$SHOW" ]]; then
+              echo "類似の登録済みスクリプト:" >&2
+              while IFS='|' read -r CNAME _; do
+                [[ -z "$CNAME" ]] && continue
+                PURPOSE=$(grep -A5 "^### ${CNAME}" "$SCRIPT_INDEX" | grep '\*\*用途\*\*' | head -1 | sed 's/.*用途[^:：]*[:：][[:space:]]*//')
+                echo "  → ${CNAME}（${PURPOSE}）" >&2
+              done <<< "$SHOW"
+            fi
+            echo "正規スクリプトを使用してください。判断できない場合は家老に確認せよ。" >&2
+          fi
+        fi
+      fi
+    fi
+    ```
+
+  acceptance_criteria:
+    - "config/script_blacklist.txt 存在・generate_odai_panels.py/generate_qnly_agree.py記載"
+    - "bash -n scripts/pretool_check.sh がエラーなし"
+    - "generate_odai_panels.py → BLOCKED (exit 2、標準エラーにBLOCKEDメッセージ出力)"
+    - "generate_manga_short.py → 通過・WARNINGなし（script_index.mdに登録済み）"
+    - "script_index.md未登録の架空スクリプト（例: generate_odai_v2.py）→ WARNING + 候補表示出力・通過(exit 0)"
+    - "候補表示テスト: generate_odai_v2.pyで検索→generate_odai_panels.pyが候補として表示されること"
+    - "git commit済み（config/script_blacklist.txt + scripts/pretool_check.sh）"
+  notes:
+    - "これが最終仕様。subtask_1388a/b/cは廃止。このsubtask_1388dのみ実装せよ"
+    - "subtask_1388cとの差分: WARNINGにキーワードマッチ候補表示を追加"
+    - "新規ファイルはconfig/script_blacklist.txtのみ許可"
+    - "git pushは家老が実施。commitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1388d完了。blacklist+WARNING+候補表示commit済み。' report_completed ashigaru2"
+  status: done
+
+- task_id: subtask_1390a
+  parent_cmd: cmd_1390
+  bloom_level: L3
+  assigned_to: ashigaru2
+  timestamp: "2026-04-16T10:40:00"
+  status: done
+  title: pretool_check.sh バグ2件修正（blacklistバイパス + 偽陽性）
+  description: |
+    scripts/pretool_check.sh の2件のバグを修正せよ。
+
+    ## バグ1: blacklistバイパス（L117 head -1問題）
+    現状: grep -oE '[^/[:space:]]+\.py' | head -1 で最初の.pyのみ取得
+    問題: python3 safe.py banned.py のように第2引数に禁止名があると通り抜ける
+    修正: head -1を外して全.pyファイルをループでBLOCKEDチェック、WARNINGはhead -1を維持
+
+    修正後コード（BLOCKEDチェック部分）:
+    PY_FILES=$(echo "$COMMAND" | grep -oE '[^/[:space:]]+\.py' | grep -v '__pycache__')
+    if [[ -n "$PY_FILES" ]]; then
+      1段目: blacklist チェック - 全.pyをループ
+      for PY_FILE in $PY_FILES; do
+        if [[ -f "$BLACKLIST" ]] && grep -qxF "$PY_FILE" "$BLACKLIST"; then
+          echo "BLOCKED: ${PY_FILE} はblacklistに登録された使用禁止スクリプトです。" >&2
+          exit 2
+        fi
+      done
+      2段目: WARNING はhead -1のメインスクリプトのみ（変更なし）
+      PY_FILE=$(echo "$COMMAND" | grep -oE '[^/[:space:]]+\.py' | grep -v '__pycache__' | head -1)
+      以下既存のWARNING処理をそのまま維持
+    fi
+
+    ## バグ2: 偽陽性（L56 target_pathのみ認識）
+    現状: grep 'target_path:' でタスクYAMLから許可パスを取得
+    修正: target_pathとoutput_fileの両方を認識
+    TARGET_PATH=$(grep -A5 'status: done' "$TASK_YAML" | grep -E 'target_path:|output_file:' | head -1 | sed 's/.*:[[:space:]]*//' | tr -d '"' | tr -d "'" || true)
+
+  steps: |
+    Step1: advisor()を呼んで修正方針確認 Step2: pretool_check.sh Read（L40-74とL108-162付近） Step3: Bug1修正（ループ化）+ Bug2修正（output_file追加） Step4: bash -n で構文チェック Step5: テスト5件確認 Step6: advisor()最終確認 Step7: git commit Step8: 完了報告
+  acceptance_criteria:
+    - "bash -n scripts/pretool_check.sh がエラーなし"
+    - "python3 safe.py generate_odai_panels.py → BLOCKED (bug1修正確認)"
+    - "python3 generate_odai_panels.py → BLOCKED"
+    - "python3 generate_manga_short.py → 通過"
+    - "python3 generate_manga_short.py --config something.py → 通過（.py引数でも無害なら通過）"
+    - "output_file許可確認（偽陽性解消）"
+    - "git commit済み（scripts/pretool_check.shのみ）"
+  notes:
+    - "pretool_check.shの修正のみ。新規ファイル作成禁止"
+    - "git pushは家老が実施。commitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1390a完了。pretool_check.sh bug1/bug2修正commit済み。' report_completed ashigaru2"
+  status: done
+
+- task_id: subtask_1393a
+  parent_cmd: cmd_1393
+  bloom_level: L4
+  assigned_to: ashigaru2
+  timestamp: "2026-04-16T11:22:00"
+  status: done
+  title: 将軍指示拡大解釈防止フック実装（Phase2）
+  description: |
+    work/cmd_1393/design.md を読んで設計通りに実装せよ。
+    実装優先順序（設計書の推奨順序に従え）:
+    1. pretool_check.sh に PreToolUse チェック4追加
+    2. context/cmd_template.md に lord_original フィールド追加
+    3. scripts/posttool_cmd_check.sh を新規作成
+    4. .claude/settings.json に PostToolUse フック登録
+    5. instructions/karo.md に lord_original 検証チェック追加
+
+    ## 重要：実装前に確認すること
+    - scripts/pretool_check.sh の末尾を読んで追加位置を確認（exit 0 直前）
+    - .claude/settings.json を読んで既存 PostToolUse 配列の構造を確認
+    - queue/shogun_to_karo.yaml の先頭キー名を確認（'commands:' か否か）
+      ※ posttool_cmd_check.sh の yaml.safe_load で参照するキーと一致させること
+    - context/cmd_template.md を読んで lord_original の追加箇所を確認
+
+    ## テスト（実装完了後に全件確認）
+    テスト1: lord_original 未記載 cmd を Write → BLOCKED (exit 2)
+    テスト2: lord_original 記載あり + 忠実な cmd → BLOCKED なし
+    テスト3: bash -n scripts/pretool_check.sh → エラーなし
+    テスト4: bash -n scripts/posttool_cmd_check.sh → エラーなし
+    （PostToolUse の実動作テストはclaude -p を呼ぶためコスト発生。bash -n のみで可）
+
+  steps: |
+    Step1: advisor()を呼んで実装方針確認 Step2: work/cmd_1393/design.md を Read Step3: 対象ファイル（pretool_check.sh, settings.json, shogun_to_karo.yaml先頭, cmd_template.md）を Read Step4: 実装（優先順序1→2→3→4→5） Step5: bash -nで構文チェック Step6: テスト1/2を実行してBLOCKED動作確認 Step7: advisor()で実装完了チェック Step8: git add scripts/pretool_check.sh scripts/posttool_cmd_check.sh .claude/settings.json context/cmd_template.md instructions/karo.md && git commit Step9: 完了報告
+  acceptance_criteria:
+    - "bash -n scripts/pretool_check.sh がエラーなし"
+    - "bash -n scripts/posttool_cmd_check.sh がエラーなし"
+    - "lord_original未記載cmd → BLOCKED (exit 2)"
+    - "lord_original記載あり cmd → BLOCKEDなし"
+    - "settings.jsonにposttool_cmd_check.shが登録されていること"
+    - "context/cmd_template.mdにlord_originalフィールドが追加されていること"
+    - "git commit済み（全5ファイル）"
+  notes:
+    - "posttool_cmd_check.sh の yaml キー名は shogun_to_karo.yaml の実際のキーに合わせよ"
+    - "新規.py禁止（CLAUDE.mdルール）"
+    - "git pushは家老が実施。commitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1393a完了。拡大解釈防止フック実装commit済み。' report_completed ashigaru2"
+  status: done
+
+
+- task_id: subtask_1395a
+  parent_cmd: cmd_1395
+  bloom_level: L3
+  assigned_to: ashigaru2
+  timestamp: "2026-04-16T13:52:00"
+  status: done
+  title: pretool_check.sh / posttool_cmd_check.sh Bashバイパス修正（全チェック対応）
+  description: |
+    cmd_1393で実装したlord_originalチェックにBashバイパスがある。
+    Bashツールで `cat >> shogun_to_karo.yaml` するとWrite/Editフィルタを素通りする。
+    pretool_check.shとposttool_cmd_check.shの両方にBashツール対応を追加せよ。
+
+    ## 修正1: pretool_check.sh（チェック4の拡張）
+    既存のWrite/Editチェック(`if [[ "$TOOL_NAME" == "Write" ]] || [[ "$TOOL_NAME" == "Edit" ]]`)に
+    加えて、Bashツールでもshogunがshoguntokaroを書く場合はlord_originalをチェックする。
+
+    Bashの場合はcommandフィールドからshogun_to_karo.yamlを含む操作を検出:
+    ```bash
+    # BashツールでもWrite/Editと同じチェックを適用
+    _BASH_CMD=""
+    if [[ "$TOOL_NAME" == "Bash" ]]; then
+      _BASH_CMD=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))" 2>/dev/null || true)
+      if [[ "$_BASH_CMD" != *"shogun_to_karo.yaml"* ]]; then
+        # shogun_to_karo.yaml を含まないBashは素通り（次のチェックへ）
+        goto_next_check  # ← 実際はif-else構造で制御
+      fi
+    fi
+    ```
+
+    BashコマンドからHereDoc内容（lord_original/commandフィールド）を抽出する方法:
+    - Bashコマンドの全文（_BASH_CMD）を `_CMD_CONTENT` として扱う
+    - 同じPythonロジック（`- id: cmd_` ブロック検出 + lord_original確認）を適用
+
+    ## 修正2: posttool_cmd_check.sh（ファイルパスフィルタの拡張）
+    コマンドのイメージ:
+    ```bash
+    # 修正前
+    if [[ "$TOOL_NAME" != "Write" && "$TOOL_NAME" != "Edit" ]]; then
+      exit 0
+    fi
+    if [[ "$FILE_PATH" != *"shogun_to_karo.yaml" ]]; then
+      exit 0
+    fi
+
+    # 修正後
+    if [[ "$TOOL_NAME" == "Bash" ]]; then
+      BASH_CMD=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))" 2>/dev/null || true)
+      if [[ "$BASH_CMD" != *"shogun_to_karo.yaml"* ]]; then
+        exit 0
+      fi
+      # Bashの場合はFILE_PATHでなくコマンド判定なので continue
+    elif [[ "$TOOL_NAME" != "Write" && "$TOOL_NAME" != "Edit" ]]; then
+      exit 0
+    elif [[ "$FILE_PATH" != *"shogun_to_karo.yaml" ]]; then
+      exit 0
+    fi
+    ```
+
+    ## テスト
+    1. bash -n scripts/pretool_check.sh → エラーなし
+    2. bash -n scripts/posttool_cmd_check.sh → エラーなし
+    3. Write/Editツールの既存チェックが動作すること（テスト1/2がまだ通ること）
+    4. （コスト発生のためclaude -p実呼び出しテストはスキップ。bash -nのみで可）
+
+  steps: |
+    Step1: advisor()を呼んで修正方針確認 Step2: scripts/pretool_check.sh と scripts/posttool_cmd_check.sh を Read Step3: Bash対応をpretool_check.shのチェック4に追加 Step4: posttool_cmd_check.shのフィルタをBash対応に修正 Step5: bash -n 2件実行 Step6: advisor()で修正内容確認 Step7: git add + git commit Step8: 完了報告
+  acceptance_criteria:
+    - "bash -n scripts/pretool_check.sh がエラーなし"
+    - "bash -n scripts/posttool_cmd_check.sh がエラーなし"
+    - "Bashツールでもshogunがshoguntokaroに書く場合にlord_originalチェックが発動すること（ロジック確認）"
+    - "Write/Editの既存チェックが引き続き動作すること（コード確認）"
+    - "git commit済み（scripts/pretool_check.sh + scripts/posttool_cmd_check.sh）"
+  notes:
+    - "既存のWrite/Edit対応を壊さないこと"
+    - "新規.py禁止（CLAUDE.mdルール）"
+    - "git pushは家老が実施。commitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1395a完了。Bashバイパス修正commit済み。' report_completed ashigaru2"
+  status: done
+
+- task_id: subtask_1395a2
+  parent_cmd: cmd_1395
+  redo_of: subtask_1395a
+  bloom_level: L3
+  assigned_to: ashigaru2
+  timestamp: "2026-04-16T14:05:00"
+  status: done
+  title: pretool_check.sh チェック2/3 Bashバイパス修正（redo）
+  description: |
+    subtask_1395aのFAIL分を修正せよ。チェック4+PostToolUseのBash対応は完了済み。
+    未対応のチェック2とチェック3にBash対応を追加する。
+
+    ## 修正箇所
+
+    ### チェック2（pretool_check.sh L40-74）: work/cmd_*禁止 + /tmp禁止
+    現在: `if [[ "$TOOL_NAME" == "Write" ]] || [[ "$TOOL_NAME" == "Edit" ]]`
+    修正: BashツールでもFILE_PATHを抽出して同じチェックを適用
+
+    ```bash
+    # Bashの場合はリダイレクト先パスを抽出
+    if [[ "$TOOL_NAME" == "Bash" ]]; then
+      FILE_PATH=$(echo "$COMMAND" | grep -oP '(?:>|>>|tee\s+)\s*\K[^\s;|&]+' | head -1)
+    fi
+    ```
+    FILE_PATHが取れた場合は既存のwork/cmd_*・/tmp チェックと同じロジックを適用。
+
+    ### チェック3（pretool_check.sh L76-106）: タスクYAMLのsteps行数
+    現在: `if [[ "$TOOL_NAME" == "Write" ]] || [[ "$TOOL_NAME" == "Edit" ]]`
+    修正: BashツールでもFILE_PATHを抽出し、queue/tasks/*.yamlへの書き込みはsteps行数チェックを適用
+
+    同じパターンで:
+    ```bash
+    if [[ "$TOOL_NAME" == "Bash" ]]; then
+      FILE_PATH=$(echo "$COMMAND" | grep -oP '(?:>|>>|tee\s+)\s*\K[^\s;|&]+' | head -1)
+    fi
+    ```
+
+  steps: |
+    Step1: advisor()を呼んで修正方針確認 Step2: scripts/pretool_check.sh を Read（L40-106付近を重点確認） Step3: チェック2（L40-74）にBash対応追加 Step4: チェック3（L76-106）にBash対応追加 Step5: bash -n scripts/pretool_check.sh エラーなし確認 Step6: advisor()で最終確認 Step7: git add scripts/pretool_check.sh && git commit -m "fix(cmd_1395): pretool_check チェック2/3にBashバイパス対応追加" Step8: 完了報告
+  acceptance_criteria:
+    - "bash -n scripts/pretool_check.sh がエラーなし"
+    - "チェック2（L40付近）にBashツールの条件が追加されていること"
+    - "チェック3（L76付近）にBashツールの条件が追加されていること"
+    - "Bashでリダイレクト先パスを抽出するロジックが追加されていること"
+    - "git commit済み（pretool_check.shのみ）"
+  notes:
+    - "チェック4とposttool_cmd_check.shは修正不要（subtask_1395aで対応済み）"
+    - "git pushは家老が実施。commitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1395a2完了。チェック2/3 Bashバイパス修正commit済み。' report_completed ashigaru2"
+
+- task_id: subtask_1399c
+  parent_cmd: cmd_1399
+  bloom_level: L2
+  assigned_to: ashigaru2
+  blocked_by: [subtask_1399a, subtask_1399b]
+  timestamp: "2026-04-17T08:42:00"
+  status: cancelled
+  cancel_reason: "殿是正指示: 統合レポート作業は軍師が担当（subtask_1399d）。足軽への割当取消。"
+  title: "条件A・B解答を統合レポートに組み立て（家老通知待ち）"
+  description: |
+    subtask_1399a（条件A）とsubtask_1399b（条件B）の両方完了後に実行せよ（家老から通知が来る）。
+
+    入力:
+    - work/cmd_1399/condition_a.md （条件A: Opus 4.7単体解答）
+    - work/cmd_1399/condition_b.md （条件B: GLM+Advisor解答）
+
+    出力: work/cmd_1399/opus47_vs_glm_advisor.md
+
+    レポート構造（以下の順で記載）:
+    1. ヘッダー: 評価概要（評価者=将軍、実行日、条件A/B概要）
+    2. Q1-Q5の各問: 「### Q[N]: [タイトル]」の下に条件Aと条件Bの回答を並列掲載
+    3. 評価表（空欄）: 正確性/深さ/実用性/応答速度/advisor効果 × 条件A/条件B（値は空欄・将軍が記入）
+    4. 前回比較表: Opus4.6=4.9 / Sonnet=4.4 / GLM単体=4.3 / GLM+Advisor4.6=4.7 / 条件A=? / 条件B=?
+    5. 考察欄（空欄・将軍が記入）
+  steps: "Step1: condition_a.md読取 Step2: condition_b.md読取 Step3: opus47_vs_glm_advisor.md作成（各問並列掲載+空欄評価表+比較表+考察欄） Step4: git add work/cmd_1399/ && git commit -m 'test(cmd_1399): Opus4.7 vs GLM+Advisor 統合レポート作成' Step5: 完了報告"
+  acceptance_criteria:
+    - "work/cmd_1399/opus47_vs_glm_advisor.md が存在すること"
+    - "Q1-Q5の各問に条件A・条件B両方の回答が含まれること"
+    - "空欄の評価表（正確性/深さ/実用性/応答速度）が含まれること"
+    - "前回結果との比較表が含まれること"
+    - "git commit済み"
+  notes:
+    - "評価値の記入禁止（将軍が行う）。空欄のまま提出せよ"
+    - "git pushは家老が実施。commitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1399c完了。統合レポート作成済み。work/cmd_1399/opus47_vs_glm_advisor.md' report_completed ashigaru2"
+- task_id: subtask_1404a
+  parent_cmd: cmd_1404
+  assigned_to: ashigaru2
+  status: done
+  bloom_level: L2
+  target_path: "work/cmd_1404/max_tokens_audit.md"
+  description: |
+    ## cmd_1404: --max-tokens 棚卸し調査
+
+    プロジェクト全体で `--max-tokens`（CLI廃止オプション）を使っている箇所を全件列挙し、
+    work/cmd_1404/max_tokens_audit.md に報告書を作成せよ。
+
+    **背景**: posttool_cmd_check.sh で `claude -p --max-tokens 100` が silent fail していた（本日発覚・修正済み）。
+    他にも同種の問題が潜んでいる可能性があるため棚卸し。
+
+    **修正は絶対にするな**。調査・報告のみ。
+
+    **調査範囲**: scripts/, .claude/, projects/, instructions/, context/, memory/, skills/, queue/, CLAUDE.md
+    **除外**: node_modules/, venv_whisper/, .git/
+
+    **出力フォーマット**: work/cmd_1404/max_tokens_audit.md
+    （検出件数・ファイルパス・行番号・該当行・silent fail懸念度の表を作成）
+  steps: "Step1: grep -rn 'max-tokens' . --include='*.sh' --include='*.py' --include='*.md' --include='*.yaml' --include='*.json' --exclude-dir=node_modules --exclude-dir=venv_whisper --exclude-dir=.git でCLIオプション形式を全件検索 Step2: grep -rn 'max_tokens' . （同条件）でPython API形式も参考検索 Step3: 結果をwork/cmd_1404/max_tokens_audit.mdに書き出す（フォーマットはdescription参照） Step4: git add work/cmd_1404/ && git commit -m 'audit(cmd_1404): --max-tokens棚卸し調査レポート' Step5: 完了報告"
+  acceptance_criteria:
+    - "work/cmd_1404/max_tokens_audit.md が存在すること"
+    - "--max-tokens (CLIオプション形式) の検出件数が明記されていること"
+    - "各ヒットのファイルパス・行番号・該当行・silent fail懸念度が一覧化されていること"
+    - "0件なら0件と明記されていること"
+    - "修正が行われていないこと"
+    - "git commit済み"
+  notes:
+    - "修正禁止。調査・報告のみ"
+    - "新規.py/.sh作成禁止"
+    - "git pushは家老が実施。commitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1404a完了。max-tokens棚卸し調査完了。work/cmd_1404/max_tokens_audit.md' report_completed ashigaru2"
