@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-17 12:50
+最終更新: 2026-04-17 12:57
 
 ## 💰 DingTalk音声QC（9万円案件）
 🟢 稼働中 | 処理済み: **228件** / 10,000件 | 報酬見込み: **¥2,052**
@@ -153,7 +153,8 @@
 
 | cmd | 内容 |
 |-----|------|
-| cmd_1406 | 🔄 /ultrareviewバグ5件修正中 — 足軽1(CHK4削除+FileChanged), 足軽2(backup mountpoint), 足軽3(advisor_proxy failure記録), 足軽4(shutsujin readiness) |
+| cmd_1407 | 🔄 GLM+Advisor 4.6体制で改変5問実行中 — ADVISOR_MODEL=4.6固定確認済(f23aa97)、足軽1号(subtask_1406a)完了後に5問割当予定 |
+| cmd_1406 | 🔄 /ultrareviewバグ5件修正中 — 足軽2(1406b✅軍師PASS) 足軽3(1406c✅軍師QC中) 足軽4(1406d✅軍師PASS) 足軽1(1406a進行中) |
 | cmd_1401 | ✅ Q3固定版差し替え完了（commit afc56ed）→ opus47_vs_glm_advisor.md Q3はcmd_1380〜1389で確定 |
 | cmd_1399 | ✅ 統合レポート完成（opus47_vs_glm_advisor.md）→ Q3_fixedで更新中（cmd_1401） |
 | cmd_1397 | ✅ レールガン縦型クロップ+YouTube非公開アップ完了（h264_nvenc 1080x1920）→ https://www.youtube.com/watch?v=IpB4U4AmqS0 |
