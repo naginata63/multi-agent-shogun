@@ -1511,7 +1511,8 @@ tasks:
 - task_id: subtask_1405a
   parent_cmd: cmd_1405
   assigned_to: ashigaru2
-  status: assigned
+  status: cancelled
+  cancel_reason: "karoより中断命令。cmd_1405方式が差替えられた。"
   bloom_level: L3
   description: |
     ## cmd_1405 データ収集: Opus 4.6単体 + Sonnet 4.6単体 改変5問実行
@@ -1550,3 +1551,82 @@ tasks:
     - "新規.py禁止。bash ループで実行"
     - "git pushは家老が実施。commitのみ可"
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1405a完了。Opus4.6+Sonnet4.6 10件解答保存。work/cmd_1405/' report_completed ashigaru2"
+- task_id: subtask_1406b
+  parent_cmd: cmd_1406
+  assigned_to: ashigaru2
+  status: done
+  bloom_level: L2
+  project: multi-agent-shogun
+  description: |
+    ## cmd_1406 task3: backup scripts mountpoint検証追加
+
+    /ultrareviewが発見: /mnt/backup 未マウント時にroot FSへsilentlyバックアップが書き込まれる危険。
+
+    ### 修正対象
+    1. /home/murakami/multi-agent-shogun/scripts/backup_secrets.sh L7の mkdir直前に mountpoint 検証を挿入
+       挿入コード: `mountpoint -q /mnt/backup || { echo "ERROR: /mnt/backup is not mounted" >&2; exit 1; }`
+    2. /home/murakami/multi-agent-shogun/scripts/backup_queue.sh L12の mkdir直前にも同じ検証を挿入
+
+    ### テスト方法
+    - `bash -n /home/murakami/multi-agent-shogun/scripts/backup_secrets.sh` → 構文エラーなし
+    - `bash -n /home/murakami/multi-agent-shogun/scripts/backup_queue.sh` → 構文エラーなし
+    - `grep -n "mountpoint" /home/murakami/multi-agent-shogun/scripts/backup_secrets.sh /home/murakami/multi-agent-shogun/scripts/backup_queue.sh` で追加確認
+  steps: "Step0: advisor()を呼ぶ。Step1: Read /home/murakami/multi-agent-shogun/scripts/backup_secrets.sh 全体確認。Step2: mkdir直前にmountpoint検証行を挿入。Step3: Read /home/murakami/multi-agent-shogun/scripts/backup_queue.sh 全体確認。Step4: mkdir直前にmountpoint検証行を挿入。Step5: bash -nで両ファイル確認。Step6: commit。Step7: 完了報告"
+  acceptance_criteria:
+    - "/home/murakami/multi-agent-shogun/scripts/backup_secrets.sh に mountpoint -q /mnt/backup 行が追加されていること"
+    - "/home/murakami/multi-agent-shogun/scripts/backup_queue.sh に mountpoint -q /mnt/backup 行が追加されていること"
+    - "両ファイルとも bash -n で構文エラーなしであること"
+    - "git commit 済み"
+  notes:
+    - "advisor()を実装前に必ず呼ぶこと"
+    - "新規ファイル作成禁止。既存ファイル修正のみ"
+    - "git pushは家老が実施。commitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1406b完了。backup mountpoint検証追加。' report_completed ashigaru2"
+
+- task_id: subtask_1408d
+  parent_cmd: cmd_1408
+  assigned_to: ashigaru2
+  status: done
+  bloom_level: L4
+  project: multi-agent-shogun
+  description: |
+    ## cmd_1408 構成2: Opus 4.6 [1m] 単体（原初5問）
+
+    このタスクは家老がcli_restartでClaude Opus 4.6 [1m]に切替後に割り当てる。
+    advisor() 呼出 0回厳守（単体構成の純粋性維持のため）。
+
+    ### 実行指示
+    出力先: /home/murakami/multi-agent-shogun/work/cmd_1408/condition_opus46/
+    各回答ファイル冒頭に必ず記載: `モデル: Claude Opus 4.6 [1m] / 開始時刻: YYYY-MM-DDTHH:MM:SS / advisor呼出回数: 0`
+
+    ### 原初5問（1文字も改変禁止）
+
+    **Q1**: subtitle_semantic_index.pyのmmap化で検索が壊れた件の原因分析+修正案を提示させよ。実際のファイルを読ませて回答させる
+    入力ファイル: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/subtitle_semantic_index.py を Read して解答
+
+    **Q2**: inbox_write.sh + inbox_watcher.sh の統合案を設計させよ。両ファイルの内容を渡して統合設計を出させる
+    入力ファイル: /home/murakami/multi-agent-shogun/scripts/inbox_write.sh と inbox_watcher.sh を Read して解答
+
+    **Q3**: shogun_to_karo.yamlから最新5 cmdの依存関係を分析させよ（YAMLの一部を入力として渡す）
+    入力ファイル: /home/murakami/multi-agent-shogun/queue/shogun_to_karo.yaml の末尾（最新5 cmd分）を Read して解答
+
+    **Q4**: ffmpegサンプルレート不一致問題（44100Hz vs 48000Hz concat）の根本対策設計
+
+    **Q5**: ドズル社切り抜きチャンネルのnote記事ドラフト作成（テーマ: AIエージェント7体で動画編集した話）
+
+    ### git commit
+    全5問完了後: git add work/cmd_1408/condition_opus46/ && git commit -m "test(cmd_1408): Opus4.6単体 原初5問"
+  steps: "Step1: mkdir -p work/cmd_1408/condition_opus46/。Step2-6: Q1-Q5を入力ファイルRead→解答→q{n}.md保存（冒頭メタデータ記載、advisor()呼出禁止）。Step7: git commit。Step8: inbox_write karo 完了報告"
+  acceptance_criteria:
+    - "work/cmd_1408/condition_opus46/q1.md〜q5.md が5件存在すること"
+    - "各ファイル冒頭にモデル・時刻・advisor呼出回数:0が記載されていること"
+    - "advisor()が0回であること"
+    - "問題文が原初5問と完全一致（改変なし）であること"
+    - "git commit 済み"
+  notes:
+    - "advisor()呼出禁止（単体構成）"
+    - "問題文を1文字も書き換えるな"
+    - "git pushは家老が実施。commitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1408d完了。Opus4.6単体 原初5問解答。' report_completed ashigaru2"
+  target_path: /home/murakami/multi-agent-shogun/work/cmd_1408/condition_opus46/
+  timestamp: "2026-04-17T15:23:54"
