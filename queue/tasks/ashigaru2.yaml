@@ -1508,3 +1508,45 @@ tasks:
     - "新規.py/.sh作成禁止"
     - "git pushは家老が実施。commitのみ可"
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1404a完了。max-tokens棚卸し調査完了。work/cmd_1404/max_tokens_audit.md' report_completed ashigaru2"
+- task_id: subtask_1405a
+  parent_cmd: cmd_1405
+  assigned_to: ashigaru2
+  status: assigned
+  bloom_level: L3
+  description: |
+    ## cmd_1405 データ収集: Opus 4.6単体 + Sonnet 4.6単体 改変5問実行
+
+    cmd_1402と完全同一の改変5問を、claude -p --model で Opus 4.6 / Sonnet 4.6 それぞれに解かせ、
+    解答ファイルを work/cmd_1405/ に保存する。
+
+    **問題文（1文字も変えるな）**:
+    Q1: 実バグ分析: pretool_check.shのblacklistチェックで、パス付きスクリプト名（python3 /full/path/to/banned.py）がすり抜ける問題の原因分析+修正案
+    Q2: 複数ファイルリファクタリング設計: inbox_write.sh + inbox_watcher.sh の統合案設計
+    Q3: 長文コンテキスト理解: shogun_to_karo.yamlの最新10 cmdの依存関係・優先度・進捗分析
+    Q4: エッジケース考慮: generate_manga_short.pyでVertex API 504 DEADLINE_EXCEEDEDが頻発する問題の根本対策設計
+    Q5: 日本語創造タスク: note記事ドラフト「AIに漫画を描かせてYouTubeショートを量産した話」
+
+    **実行コマンド（bashループ）**:
+    各問をプロンプトファイルに書き出し→claude -p --model で呼び出す。
+    外部 `date '+%s'` で wall-clock 計測し、解答ファイル冒頭にモデル名・開始/終了時刻を記載すること。
+
+    **出力先**:
+    - work/cmd_1405/condition_opus46/q{1..5}.md
+    - work/cmd_1405/condition_sonnet46/q{1..5}.md
+
+    **厳守**:
+    - advisor()呼出し 0回厳守
+    - 新規.py禁止（bashで実行）
+    - --max-budget-usd: Opus 4.6は1.00、Sonnet 4.6は0.50
+  steps: "Step1: Q1〜Q5のプロンプトファイルを work/cmd_1405/prompts/ に作成 Step2: Opus 4.6で5問実行（各問 date+%s で計測→冒頭記載） Step3: Sonnet 4.6で5問実行（同上） Step4: git add work/cmd_1405/ && git commit -m 'test(cmd_1405): Opus4.6+Sonnet4.6 5問データ収集完了' Step5: 完了報告"
+  acceptance_criteria:
+    - "work/cmd_1405/condition_opus46/q1.md〜q5.md が5件存在すること"
+    - "work/cmd_1405/condition_sonnet46/q1.md〜q5.md が5件存在すること"
+    - "各ファイル冒頭にモデル名・開始/終了時刻が記載されていること"
+    - "advisor()呼出し 0回"
+    - "git commit済み"
+  notes:
+    - "advisor()を呼んではならない"
+    - "新規.py禁止。bash ループで実行"
+    - "git pushは家老が実施。commitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1405a完了。Opus4.6+Sonnet4.6 10件解答保存。work/cmd_1405/' report_completed ashigaru2"
