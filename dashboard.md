@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-17 09:16
+最終更新: 2026-04-17 12:38
 
 ## 💰 DingTalk音声QC（9万円案件）
 🟢 稼働中 | 処理済み: **228件** / 10,000件 | 報酬見込み: **¥2,052**
@@ -95,10 +95,11 @@
 - **副産物**: `pretool_check.sh L78` の `status: assigned` 限定バグ発覚（status:in_progress移行後にtarget_path検証が機能しない）
 - **判断**: 高リスク2件の修正cmd・pretool_check.shバグ修正cmdを発令するか？
 
-### 🔴 cmd_1402 — 再現性検証レポート完成 → **殿がスコア記入待ち**
-- ファイル: `work/cmd_1402/opus47_vs_glm_advisor_retest.md`（commit 54e366c）
-- **主要観察**: (1)時間捏造+91%がモデル共通定常傾向と確定 (2)Q2条件Bで結論反転（統合しない→3層統合する） (3)pretool_check.sh L78-79バグ独立クロス確認
-- **判断**: 評価スコア（正確性/深さ/実用性）を記入してください
+### 🔴 cmd_1405完成 + cmd_1402 — 全世代マトリクス完成 → **殿がスコア記入待ち**
+- ファイル: `work/cmd_1402/opus47_vs_glm_advisor_retest.md`（commit b1c8917）
+- **4モデル比較**: Opus 4.6単体 / Sonnet 4.6単体 / Opus 4.7単体 / GLM+Adv 4.7
+- **主要観察**: (1)時間報告信頼性喪失が全4モデル共通（タイムスタンプ矛盾がSonnet4.6でも再現） (2)Q2条件Bで結論反転（統合しない→3層統合する） (3)pretool_check.sh L78-79バグ4重独立確認
+- **判断**: Q1-Q5×正確性/深さ/実用性の評価スコアを記入してください
 
 ### 🔴 夜間監査 nightly_audit_20260416_stt — HIGH×1（STTパイプライン）
 詳細: `queue/reports/gunshi_report_nightly_audit_20260416_stt.yaml`
@@ -172,7 +173,7 @@
 ## ✅ 本日の完了
 | cmd | 内容 |
 |-----|------|
-| cmd_1405 | 🔄 ✅Opus4.6[1m]完了(4b2827d) 🔄Sonnet4.6実行中(ashigaru3) → 完了後軍師がマトリクス統合 |
+| cmd_1405 | ✅全世代マトリクス完成(commit b1c8917) → 🚨殿スコア記入待ち work/cmd_1402/opus47_vs_glm_advisor_retest.md |
 | cmd_1402 | ✅ 再現性検証レポート完成（commit 54e366c）→ 🚨殿スコア記入待ち |
 | cmd_1404 | ✅ --max-tokens棚卸し調査完了（足軽2号・軍師PASS）高リスク2件発覚→🚨要対応参照 |
 | cmd_1384 | ✅ railgun P6bガチャ3回（v1/v2/v3）生成完了（軍師CONDITIONAL PASS・v2推奨）→ 🚨殿選択待ち |
@@ -365,7 +366,7 @@
 | 5号 | GLM | idle | — |
 | 6号 | GLM | idle | — |
 | 7号 | GLM | idle | — |
-| 軍師 | Opus | 完了 | nightly_audit_20260416_stt |
+| 軍師 | Opus | 完了 | subtask_1405b（全世代マトリクス統合）|
 
 ## APIキー状況
 - **Vertex AI ADC**: ✅ 正常
