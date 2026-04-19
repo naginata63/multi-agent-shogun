@@ -10,7 +10,9 @@
 """
 
 import argparse
+import hashlib
 import os
+import subprocess
 import sys
 import tempfile
 import yaml
@@ -28,6 +30,7 @@ MODEL = "gemini-2.5-flash"
 VIEWPORT_WIDTH = 800
 SECTION_HEIGHT = 1200
 REPORT_DIR = Path("/home/murakami/multi-agent-shogun/queue/reports")
+GCS_BUCKET = "shogun-manga-refs"
 
 QC_PROMPT = """このnote記事エディタのスクリーンショットを厳しくQCせよ。
 以下の問題がないか確認:
@@ -64,12 +67,24 @@ def take_screenshots(page) -> list[dict]:
     return screenshots
 
 
+def _upload_to_gcs(local_path: str) -> str:
+    """Upload local file to GCS, return gs:// URI."""
+    h = hashlib.md5(Path(local_path).read_bytes()).hexdigest()[:12]
+    gcs_uri = f"gs://{GCS_BUCKET}/qc_screenshots/{h}.png"
+    proc = subprocess.run(
+        ["gcloud", "storage", "cp", local_path, gcs_uri],
+        capture_output=True, text=True, timeout=30,
+    )
+    if proc.returncode != 0:
+        raise RuntimeError(f"GCS upload failed: {proc.stderr[:200]}")
+    return gcs_uri
+
+
 def analyze_section(client, image_path: str, label: str) -> dict:
     """Gemini 2.5 Flashで1セクションを分析。"""
     from google.genai import types
 
-    with open(image_path, "rb") as f:
-        img_bytes = f.read()
+    gcs_uri = _upload_to_gcs(image_path)
 
     response = client.models.generate_content(
         model=MODEL,
@@ -77,7 +92,7 @@ def analyze_section(client, image_path: str, label: str) -> dict:
             types.Content(
                 role="user",
                 parts=[
-                    types.Part.from_bytes(data=img_bytes, mime_type="image/png"),
+                    types.Part.from_uri(file_uri=gcs_uri, mime_type="image/png"),
                     types.Part.from_text(text=QC_PROMPT),
                 ],
             ),
