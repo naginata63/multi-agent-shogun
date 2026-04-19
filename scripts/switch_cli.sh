@@ -160,11 +160,13 @@ while i < len(lines):
         agent_indent = len(line) - len(stripped)
         prefix = ' ' * agent_indent
 
-        # Check if flow style: "ashigaru4: { model: sonnet }"
+        # Check if flow style: "ashigaru4: { model: sonnet }" — allow trailing comment
         after_key = stripped[len(f'{agent_id}:'):].strip()
-        if after_key.startswith('{') and after_key.endswith('}'):
-            # Parse the flow-style dict
-            inner = after_key[1:-1].strip()
+        flow_match = re.match(r'\s*\{(.*?)\}\s*(#.*)?$', after_key)
+        if flow_match:
+            # Parse the flow-style dict (comment preserved)
+            inner = flow_match.group(1).strip()
+            trailing_comment = flow_match.group(2) or ''
             pairs = {}
             for pair in inner.split(','):
                 pair = pair.strip()
@@ -176,9 +178,12 @@ while i < len(lines):
                 pairs['type'] = new_type
             if new_model:
                 pairs['model'] = new_model
-            # Rebuild flow-style line
+            # Rebuild flow-style line (preserve trailing comment if present)
             pair_strs = [f'{k}: {v}' for k, v in pairs.items()]
-            new_lines.append(f'{prefix}{agent_id}: {{ {", ".join(pair_strs)} }}')
+            rebuilt = f'{prefix}{agent_id}: {{ {", ".join(pair_strs)} }}'
+            if trailing_comment:
+                rebuilt += f'  {trailing_comment}'
+            new_lines.append(rebuilt)
             i += 1
             continue
         else:

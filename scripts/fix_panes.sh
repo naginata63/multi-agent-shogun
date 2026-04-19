@@ -13,6 +13,15 @@ SESSION="multiagent"
 WINDOW=0
 WORKDIR="/home/murakami/multi-agent-shogun"
 
+# CLI Adapter読み込み（settings.yaml の type/model に従って起動コマンドを構築）
+if [ -f "$WORKDIR/lib/cli_adapter.sh" ]; then
+  # shellcheck disable=SC1091
+  source "$WORKDIR/lib/cli_adapter.sh"
+  CLI_ADAPTER_LOADED=true
+else
+  CLI_ADAPTER_LOADED=false
+fi
+
 # 正しいpane配置
 AGENTS=(karo ashigaru1 ashigaru2 ashigaru3 ashigaru4 ashigaru5 ashigaru6 ashigaru7 gunshi)
 TOTAL=9
@@ -42,38 +51,45 @@ if [ "$CURRENT" -ne "$TOTAL" ]; then
   exit 1
 fi
 
-# Step 4: bashのままのpaneにClaude CLIを起動
-echo "Claude CLI起動チェック..."
+# Step 4: bashのままのpaneにCLI起動（settings.yamlに従いClaude/GLM/Codex等を選択）
+echo "CLI起動チェック..."
 NEW_PANES=()  # 新規起動したpaneのインデックスを記録
 for i in $(seq 0 $((TOTAL - 1))); do
   CMD=$(tmux list-panes -t "${SESSION}:${WINDOW}" -F '#{pane_index} #{pane_current_command}' | awk -v idx="$i" '$1 == idx {print $2}')
+  AGENT_ID="${AGENTS[$i]}"
   if [ "$CMD" = "bash" ] || [ "$CMD" = "zsh" ]; then
-    # karo(0)とgunshi(8)はOpus、足軽はSonnet
-    if [ "$i" -eq 0 ] || [ "$i" -eq $((TOTAL - 1)) ]; then
-      MODEL="opus[1m]"
+    if [ "$CLI_ADAPTER_LOADED" = true ]; then
+      LAUNCH_CMD=$(build_cli_command "$AGENT_ID")
+      CLI_TYPE=$(get_cli_type "$AGENT_ID")
     else
-      MODEL="sonnet"
+      # フォールバック（cli_adapter.sh不在時のみ）
+      if [ "$i" -eq 0 ] || [ "$i" -eq $((TOTAL - 1)) ]; then
+        LAUNCH_CMD="claude --model 'opus[1m]' --dangerously-skip-permissions"
+      else
+        LAUNCH_CMD="claude --model 'sonnet' --dangerously-skip-permissions"
+      fi
+      CLI_TYPE="claude"
     fi
-    echo "  0.${i}: bashを検出 → Claude CLI起動 (model=${MODEL})"
-    tmux send-keys -t "${SESSION}:${WINDOW}.${i}" "cd ${WORKDIR} && claude --model '${MODEL}' --dangerously-skip-permissions" Enter
+    echo "  0.${i} (${AGENT_ID}): bashを検出 → ${CLI_TYPE}起動"
+    tmux send-keys -t "${SESSION}:${WINDOW}.${i}" "cd ${WORKDIR} && ${LAUNCH_CMD}" Enter
     NEW_PANES+=("$i")
     sleep 2
   else
-    echo "  0.${i}: ${CMD}（既にCLI起動済み）"
+    echo "  0.${i} (${AGENT_ID}): ${CMD}（既にCLI起動済み）"
   fi
 done
 
-# Step 4.5: 新規起動したpaneに /advisor opus を自動送信
+# Step 4.5: 新規起動したpaneに /advisor sonnet を自動送信
 if [ "${#NEW_PANES[@]}" -gt 0 ]; then
-  echo "新規起動paneに /advisor opus を送信..."
+  echo "新規起動paneに /advisor sonnet を送信..."
   echo "CLI起動完了を待機中（10秒）..."
   sleep 10
   for i in "${NEW_PANES[@]}"; do
-    echo "  0.${i}: /advisor opus 送信"
-    tmux send-keys -t "${SESSION}:${WINDOW}.${i}" "/advisor opus" Enter
+    echo "  0.${i}: /advisor sonnet 送信"
+    tmux send-keys -t "${SESSION}:${WINDOW}.${i}" "/advisor sonnet" Enter
     sleep 0.3
   done
-  echo "  /advisor opus送信完了。"
+  echo "  /advisor sonnet送信完了。"
 fi
 
 # Step 5: agent_idを設定

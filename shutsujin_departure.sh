@@ -817,21 +817,21 @@ with open(f,'w') as fh: yaml.safe_dump(d, fh, default_flow_style=False, allow_un
     echo ""
 
     # ═══════════════════════════════════════════════════════════════════════════
-    # STEP 6.2: 全エージェントに /advisor opus を送信
+    # STEP 6.2: 全エージェントに /advisor sonnet を送信
     # ═══════════════════════════════════════════════════════════════════════════
-    log_war "🔮 全エージェントに /advisor opus を送信中..."
+    log_war "🔮 全エージェントに /advisor sonnet を送信中..."
     echo "  CLI起動完了を待機中（10秒）..."
     sleep 10
     # 将軍
-    tmux send-keys -t shogun:main "/advisor opus" Enter
+    tmux send-keys -t shogun:main "/advisor sonnet" Enter
     sleep 0.3
     # 家老・足軽・軍師（PANE_BASE から _ASHIGARU_COUNT+1 まで）
     for i in $(seq 0 $((_ASHIGARU_COUNT + 1))); do
         p=$((PANE_BASE + i))
-        tmux send-keys -t "multiagent:agents.${p}" "/advisor opus" Enter
+        tmux send-keys -t "multiagent:agents.${p}" "/advisor sonnet" Enter
         sleep 0.3
     done
-    log_success "✅ 全エージェントに /advisor opus 送信完了"
+    log_success "✅ 全エージェントに /advisor sonnet 送信完了"
     echo ""
 
     # ═══════════════════════════════════════════════════════════════════════════
