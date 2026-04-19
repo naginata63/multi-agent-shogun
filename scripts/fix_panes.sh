@@ -79,17 +79,24 @@ for i in $(seq 0 $((TOTAL - 1))); do
   fi
 done
 
-# Step 4.5: 新規起動したpaneに /advisor sonnet を自動送信
-if [ "${#NEW_PANES[@]}" -gt 0 ]; then
-  echo "新規起動paneに /advisor sonnet を送信..."
+# Step 4.5: 家老paneにのみ /advisor opus を自動送信（policy: /advisor は家老=Sonnet限定）
+# 将軍（opus）・軍師（opus）・足軽（glm）はadvisor不要
+KARO_INDEX=0
+karo_was_new=false
+for i in "${NEW_PANES[@]}"; do
+  if [ "$i" -eq "$KARO_INDEX" ]; then
+    karo_was_new=true
+    break
+  fi
+done
+if [ "$karo_was_new" = true ]; then
+  echo "家老paneに /advisor opus を送信..."
   echo "CLI起動完了を待機中（10秒）..."
   sleep 10
-  for i in "${NEW_PANES[@]}"; do
-    echo "  0.${i}: /advisor sonnet 送信"
-    tmux send-keys -t "${SESSION}:${WINDOW}.${i}" "/advisor sonnet" Enter
-    sleep 0.3
-  done
-  echo "  /advisor sonnet送信完了。"
+  echo "  0.${KARO_INDEX}: /advisor opus 送信"
+  tmux send-keys -t "${SESSION}:${WINDOW}.${KARO_INDEX}" "/advisor opus" Enter
+  sleep 0.3
+  echo "  /advisor opus送信完了。"
 fi
 
 # Step 5: agent_idを設定
