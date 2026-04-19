@@ -356,8 +356,8 @@ if [ "$CLEAN_MODE" = true ]; then
     for i in $(seq 1 "$_ASHIGARU_COUNT"); do
         cat > ./queue/tasks/ashigaru${i}.yaml << EOF
 # 足軽${i}専用タスクファイル
-task:
-  task_id: null
+tasks:
+- task_id: null
   parent_cmd: null
   description: null
   target_path: null
@@ -369,8 +369,8 @@ EOF
     # 軍師タスクファイルリセット
     cat > ./queue/tasks/gunshi.yaml << EOF
 # 軍師専用タスクファイル
-task:
-  task_id: null
+tasks:
+- task_id: null
   parent_cmd: null
   description: null
   target_path: null
