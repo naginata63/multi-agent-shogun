@@ -178,6 +178,10 @@
 # Projects (private content, submodules only)
 !projects/
 !projects/note_mcp_server
+!projects/udemy_course/
+!projects/udemy_course/context/
+!projects/udemy_course/context/reference_videos/
+!projects/udemy_course/context/reference_videos/*.srt
 
 # Orders (task instruction archive submodule)
 !orders
