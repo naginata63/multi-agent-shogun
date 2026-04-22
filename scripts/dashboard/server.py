@@ -8,6 +8,8 @@ import json
 import os
 import re
 import sqlite3
+import threading
+import uuid
 import yaml
 from datetime import datetime, timezone, timedelta
 
@@ -25,10 +27,14 @@ DONE_STATUSES = {"done", "cancelled", "superseded", "done_ng"}
 ACTIVE_STATUSES = {"pending", "assigned", "in_progress", "blocked"}
 _EXCLUDED_AGENTS_R5 = {"pending", "archive"}
 
+# ─── Async Job Tracking ─────────────────────────────────────────────────────
+_jobs = {}
+_jobs_lock = threading.Lock()
+
 # ─── DB helpers ────────────────────────────────────────────────────────────────
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=5)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -599,7 +605,7 @@ def _get_dingtalk_qc_stats():
             "avg_similarity": round(sum(sims)/len(sims), 1) if sims else 0,
             "min_similarity": round(min(sims), 1) if sims else 0,
             "avg_volume": round(sum(vols)/len(vols), 1) if vols else 0,
-            "earned": total * 9,
+            "earned": (confirmed + error) * 9,
             "running": running,
             "sources": sources,
         }
@@ -1036,6 +1042,275 @@ setInterval(refresh, 10000);
 </html>"""
 
 
+# ─── Async Job Workers ────────────────────────────────────────────────────────────
+
+def _run_suggest_director_notes(job_id, payload):
+    """Background worker for /api/suggest_director_notes."""
+    import subprocess
+    try:
+        _jobs[job_id]['status'] = 'running'
+        scene_desc = payload.get('scene_desc', '')
+        situation = payload.get('situation', '')
+        lines = payload.get('lines', [])
+        char_name = payload.get('char_name', '')
+        new_expression_file = payload.get('new_expression_file', '')
+        director_notes = payload.get('director_notes', '')
+        expr_design_path = os.path.join(BASE_DIR, 'projects/dozle_kirinuki/context/expression_design_v5.md')
+        expr_design_text = ''
+        if os.path.exists(expr_design_path):
+            with open(expr_design_path, 'r', encoding='utf-8') as f:
+                expr_design_text = f.read()[:3000]
+        ref_images = payload.get('ref_images', [])
+        shot_type = payload.get('shot_type', '')
+        lines_text = '\n'.join(lines) if lines else '（セリフなし）'
+        KOMAWARI_DESC = {
+            'S1_A.png': '全面1コマ', 'S2_A.png': '上大70%+下小30%', 'S2_B.png': '上小30%+下大70%',
+            'S2_C.png': '縦割り右小30%+左大70%', 'S2_D.png': '縦割り右大70%+左小30%',
+            'S2_E.png': '均等縦割り', 'T1.png': '全面1コマ',
+            'T2_A.png': '上下均等2段', 'T2_B.png': '左右均等2列', 'T2_C.png': '上大下小',
+            'T3_A.png': '均等3段', 'T3_B.png': '上1コマ+下2コマ',
+            'T3_C.png': '縦割り左大60%+右2コマ', 'T3_D.png': '縦割り右大60%+左2コマ',
+            'T3_E.png': '上1コマ+下2コマ(重要側60%)', 'T3_F.png': '上2コマ(重要側60%)+下1コマ',
+            'T4_A.png': '上3コマ45%+下大55%', 'T4_B.png': '上大55%+下3コマ45%',
+            'T4_C.png': '上下2コマ(重要側60%交互)', 'T4_D.png': '均等4段',
+            'T4_E.png': '右大コマ縦通し+左2段+下全幅', 'T4_F.png': '上全幅+右2段+左大コマ縦通し',
+            'T5_A.png': '上3コマ45%+下2コマ55%', 'T5_B.png': '上2コマ55%+下3コマ45%',
+            'T5_C.png': '上2+中全幅+下2',
+            'T6_A.png': '均等6コマ(3段2列)', 'T6_B.png': '上2大+下4小',
+            'D1_diagonal_2.png': '斜め2分割', 'D2_zigzag_3.png': 'ジグザグ斜め3分割',
+            'D3_v_split.png': 'V字分割(上大+下2斜め)', 'D4_radial_4.png': '放射状4分割',
+            'D5_overlay_4.png': 'ぶち抜き大コマ+小コマ3', 'D6_staircase_4.png': '階段状4コマ',
+            'D7_fan_3.png': '扇状(上狭→下広)', 'D8_x_split_4.png': 'X字斜め4分割',
+        }
+        ref_descs = []
+        for r in ref_images:
+            fname = os.path.basename(r)
+            if 'komawari_templates/' in r:
+                desc = KOMAWARI_DESC.get(fname, 'コマ割りテンプレート')
+                ref_descs.append(f'{fname}=コマ割りテンプレート（{desc}。この構図に従って描け）')
+            elif 'character/selected/' in r:
+                ref_descs.append(f'{fname}=キャラクターリファレンス（この外見・服装を正確に再現せよ）')
+            else:
+                ref_descs.append(f'{fname}=背景リファレンス（この背景を参考にせよ）')
+        attachment_line = '添付画像の説明: ' + '、'.join(ref_descs) if ref_descs else ''
+        prompt = f"""あなたはドズル社マイクラ漫画の演出家です。
+キャラクターの表情リファレンスが変わったので、画像生成プロンプト（director_notes）を全文書き直してください。
+
+## キャラクター設定（参考）
+{expr_design_text}
+
+## パネル情報
+- シーン概要: {scene_desc}
+- 状況: {situation}
+- セリフ: {lines_text}
+- コマ割り: {shot_type}
+
+## 表情変更
+- キャラクター: {char_name}
+- 新しい表情ファイル: {new_expression_file}
+
+## 添付リファレンス画像一覧
+{attachment_line}
+
+## 現在のdirector_notes（変更前）
+{director_notes}
+
+## 指示
+上記の表情変更とリファレンス画像に合わせて、director_notesを全文書き直してください。
+以下の構成で出力:
+1. 最初に「添付画像の説明: 」行（上記の添付リファレンス画像一覧をそのまま使え）
+2. 続けて「これらのリファレンス画像のキャラクターの外見・服装を正確に再現すること。」
+3. コマ割りに応じた構図指示（上下分割なら上段・下段、左右分割なら右・左）
+   ※左右分割の場合の読み順ルール: 右コマ=先に発言する人、左コマ=後に発言する人（日本の漫画は右→左に読む）
+4. 各コマのキャラクターの表情・ポーズ・感情の具体的な描写（新しい表情に合わせる）
+5. 背景指示（リファレンス背景に合わせる）
+6. 禁止事項（武器・盾・バケツ持たせるな等）
+
+- 日本語で、簡潔かつ具体的に
+- 余計な説明や前置きは不要。director_notesテキストのみ出力してください"""
+        result = subprocess.run(
+            ['claude', '-p', '--model', 'sonnet', prompt],
+            capture_output=True, text=True, timeout=60
+        )
+        if result.returncode != 0:
+            raise Exception(f'Claude CLI error: {result.stderr[:200]}')
+        suggested = result.stdout.strip()
+        with _jobs_lock:
+            _jobs[job_id]['status'] = 'done'
+            _jobs[job_id]['result'] = {'status': 'ok', 'suggested': suggested}
+    except Exception as e:
+        with _jobs_lock:
+            _jobs[job_id]['status'] = 'error'
+            _jobs[job_id]['error'] = str(e)
+
+
+def _run_generate_panels(job_id, payload):
+    """Background worker for /api/generate_panels_llm."""
+    import subprocess
+    try:
+        _jobs[job_id]['status'] = 'running'
+        rows = payload.get('rows', [])
+        gemini_context = payload.get('gemini_context', '')
+        scene_name = payload.get('scene_name', '')
+        title = payload.get('title', '')
+        save_path = payload.get('save_path', '')
+        selected_dir = os.path.join(BASE_DIR, 'projects/dozle_kirinuki/assets/dozle_jp/character/selected')
+        available_files = set()
+        if os.path.isdir(selected_dir):
+            available_files = {f for f in os.listdir(selected_dir) if f.endswith('.png')}
+        prompt_path = os.path.join(BASE_DIR, 'projects/dozle_kirinuki/context/panel_candidate_prompt.txt')
+        prompt_knowledge = ''
+        if os.path.exists(prompt_path):
+            with open(prompt_path, 'r', encoding='utf-8') as f:
+                full_prompt = f.read()
+            idx = full_prompt.find('# 漫画制作ナレッジ')
+            prompt_knowledge = full_prompt[idx:] if idx >= 0 else full_prompt
+        rows_text = '\n'.join(
+            f"{row.get('timestamp', '')} {row.get('speaker', '')}: {row.get('text', '')}"
+            for row in rows
+        )
+        rgba_files = sorted(f for f in available_files if '_rgba.png' in f)
+        files_list = '\n'.join(rgba_files) if rgba_files else '（ファイルなし）'
+        scene_summary = DashboardHandler._extract_scene_summary(gemini_context) if gemini_context else ''
+        claude_prompt = f"""あなたはドズル社漫画ショートの構成作家です。
+以下の書き起こし（殿レビュー済み）とシーン情報から、漫画パネルのJSONを生成してください。
+
+## 書き起こし（話者+セリフ）
+{rows_text}
+
+## シーン情報（Gemini動画解析）
+{scene_summary if scene_summary else '（シーン情報なし）'}
+
+## タイトル・シーン名
+タイトル: {title}
+シーン: {scene_name}
+
+## 出力形式（必須）
+```json で囲んで以下の形式で出力せよ。全フィールド必須。省略するな。
+
+{{
+  "panels": [
+    {{
+      "id": "p1_xxx",
+      "title": "P1: 話者「セリフ冒頭」",
+      "characters": ["dozle"],
+      "lines": ["セリフ全文"],
+      "start_sec": 0,
+      "duration_sec": 5,
+      "shot_type": "S2",
+      "is_climax": false,
+      "scene_desc": "シーンの説明",
+      "situation": "状況の説明",
+      "director_notes": "表情コード+ポーズ+背景+禁止事項",
+      "ref_images": ["assets/dozle_jp/character/selected/dozle_smile_r1_rgba.png"]
+    }}
+  ]
+}}
+
+### フィールド説明
+- characters: メンバーキー（dozle/bon/qnly/orafu/oo_men/nekooji）。必須
+- lines: セリフ。書き起こしから該当セリフをそのまま入れよ。必須
+- shot_type: 1人→S2、2人→T2_B、climax→S1
+- ref_images: "assets/dozle_jp/character/selected/{{キャラ}}_{{表情}}_rgba.png" 形式。下記の使用可能ファイルから選べ
+- director_notes: 表情コード+ポーズ具体指示+背景+禁止事項。必須
+
+{prompt_knowledge}
+
+## 使用可能な表情ファイル
+以下のファイルのみ使用可（存在しないファイルは絶対に使わないこと）:
+{files_list}
+
+## 共通ルール
+全キャラクターの身長はだいたい同じくらいに描くこと。
+【最重要】おおはらMENは必ずゴーグルを目を覆うように装着して描け。
+ぼんじゅうるはサングラス必須。おんりーは丸メガネ必須。
+デフォルメ・SD・ちびキャラ禁止。武器・盾・バケツ禁止。
+
+【重要】各パネルの "characters" フィールドには必ずメンバーキーを入れること。
+使用可能なキー: dozle, bon, qnly, orafu, oo_men, nekooji
+セリフがないパネルも含め、全パネルに characters を設定すること。"""
+        claude_bin = '/home/murakami/.local/bin/claude'
+        result = subprocess.run(
+            [claude_bin, '-p', claude_prompt, '--model', 'claude-opus-4-6'],
+            capture_output=True, text=True, timeout=300
+        )
+        if result.returncode != 0:
+            raise Exception(f'Claude CLI error: {result.stderr[:500]}')
+        output_text = result.stdout.strip()
+        panels_data = None
+        json_match = re.search(r'```json\s*([\s\S]+?)\s*```', output_text)
+        if json_match:
+            try:
+                panels_data = json.loads(json_match.group(1))
+            except json.JSONDecodeError:
+                pass
+        if panels_data is None:
+            try:
+                panels_data = json.loads(output_text)
+            except json.JSONDecodeError:
+                raise Exception(f'Claude出力からJSONを抽出できませんでした。出力先頭: {output_text[:300]}')
+        if isinstance(panels_data, list):
+            panels_data = {'panels': panels_data}
+        if 'panels' in panels_data:
+            for i, panel in enumerate(panels_data['panels']):
+                if not panel.get('characters'):
+                    if i < len(rows):
+                        speaker = rows[i].get('speaker', '不明')
+                        if speaker != '不明':
+                            panel['characters'] = [speaker]
+        REF_PREFIX = 'projects/dozle_kirinuki/assets/dozle_jp/character/selected/'
+        if 'panels' in panels_data:
+            for panel in panels_data['panels']:
+                new_refs = []
+                for ref in panel.get('ref_images', []):
+                    fname = os.path.basename(ref)
+                    if fname in available_files:
+                        new_refs.append(REF_PREFIX + fname)
+                    else:
+                        chars = panel.get('characters', [])
+                        fallback = None
+                        for char in chars:
+                            fb_fname = f'{char}_smile_r1_rgba.png'
+                            if fb_fname in available_files:
+                                fallback = REF_PREFIX + fb_fname
+                                break
+                        if fallback:
+                            new_refs.append(fallback)
+                panel['ref_images'] = new_refs
+        if 'meta' not in panels_data or not panels_data['meta']:
+            panels_data['meta'] = {}
+        meta = panels_data['meta']
+        if not meta.get('scene'):
+            meta['scene'] = scene_name or ''
+        if not meta.get('title'):
+            meta['title'] = title or '（タイトル未設定）'
+        if not meta.get('panel_count'):
+            meta['panel_count'] = len(panels_data.get('panels', []))
+        if not meta.get('common_rules'):
+            meta['common_rules'] = (
+                "全キャラクターの身長はだいたい同じくらいに描くこと。極端な身長差をつけるな。"
+                "【最重要】おおはらMENは必ずゴーグルを目を覆うように装着（目が隠れる位置。額に上げるな）して描け。"
+                "ゴーグルなしのMENは絶対に描くな。リファレンス画像のゴーグルをそのまま再現せよ。"
+                "サングラスではなくゴーグルである。ぼんじゅうるはサングラス必須。おんりーは丸メガネ必須。"
+                "デフォルメ・SD・ちびキャラ禁止。等身大のアニメ風キャラクターとして描くこと。武器・盾・バケツ禁止。"
+            )
+        meta['generated_by'] = 'claude_opus_via_panel_review'
+        if save_path:
+            abs_save = os.path.realpath(os.path.join(BASE_DIR, save_path))
+            if abs_save.startswith(os.path.realpath(BASE_DIR) + os.sep):
+                os.makedirs(os.path.dirname(abs_save), exist_ok=True)
+                with open(abs_save, 'w', encoding='utf-8') as f:
+                    json.dump(panels_data, f, ensure_ascii=False, indent=2)
+        panels = panels_data.get('panels', [])
+        with _jobs_lock:
+            _jobs[job_id]['status'] = 'done'
+            _jobs[job_id]['result'] = {'status': 'ok', 'panels': panels, 'panel_count': len(panels)}
+    except Exception as e:
+        with _jobs_lock:
+            _jobs[job_id]['status'] = 'error'
+            _jobs[job_id]['error'] = str(e)
+
+
 # ─── HTTP Handler ───────────────────────────────────────────────────────────────
 
 class DashboardHandler(http.server.BaseHTTPRequestHandler):
@@ -1070,6 +1345,22 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.send_response(500)
                 self.end_headers()
                 self.wfile.write(str(e).encode())
+        elif self.path.startswith('/api/job_status'):
+            from urllib.parse import urlparse, parse_qs
+            qs = parse_qs(urlparse(self.path).query)
+            job_id = qs.get('id', [''])[0]
+            with _jobs_lock:
+                job = _jobs.get(job_id)
+            if job is None:
+                body = json.dumps({'status': 'not_found'}).encode()
+                self.send_response(404)
+            else:
+                body = json.dumps(job, default=str).encode()
+                self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
         elif self.path in ('/', '/index.html'):
             body = HTML.encode()
             self.send_response(200)
@@ -1349,106 +1640,14 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 body = self.rfile.read(length)
                 payload = json.loads(body.decode('utf-8'))
 
-                scene_desc = payload.get('scene_desc', '')
-                situation = payload.get('situation', '')
-                lines = payload.get('lines', [])
-                char_name = payload.get('char_name', '')
-                new_expression_file = payload.get('new_expression_file', '')
-                director_notes = payload.get('director_notes', '')
+                job_id = uuid.uuid4().hex[:8]
+                with _jobs_lock:
+                    _jobs[job_id] = {'status': 'queued', 'created': datetime.now().isoformat()}
+                t = threading.Thread(target=_run_suggest_director_notes, args=(job_id, payload), daemon=True)
+                t.start()
 
-                # expression_design_v5.md を読み込む（キャラクター性格情報）
-                expr_design_path = os.path.join(BASE_DIR, 'projects/dozle_kirinuki/context/expression_design_v5.md')
-                expr_design_text = ''
-                if os.path.exists(expr_design_path):
-                    with open(expr_design_path, 'r', encoding='utf-8') as f:
-                        expr_design_text = f.read()[:3000]  # 最初の3000文字のみ（コスト節約）
-
-                ref_images = payload.get('ref_images', [])
-                shot_type = payload.get('shot_type', '')
-
-                lines_text = '\n'.join(lines) if lines else '（セリフなし）'
-
-                # ref_imagesからファイル名説明を自動生成
-                KOMAWARI_DESC = {
-                    'S1_A.png': '全面1コマ',
-                    'S2_A.png': '上大70%+下小30%', 'S2_B.png': '上小30%+下大70%',
-                    'S2_C.png': '縦割り右小30%+左大70%', 'S2_D.png': '縦割り右大70%+左小30%',
-                    'S2_E.png': '均等縦割り',
-                    'T1.png': '全面1コマ',
-                    'T2_A.png': '上下均等2段', 'T2_B.png': '左右均等2列', 'T2_C.png': '上大下小',
-                    'T3_A.png': '均等3段', 'T3_B.png': '上1コマ+下2コマ',
-                    'T3_C.png': '縦割り左大60%+右2コマ', 'T3_D.png': '縦割り右大60%+左2コマ',
-                    'T3_E.png': '上1コマ+下2コマ(重要側60%)', 'T3_F.png': '上2コマ(重要側60%)+下1コマ',
-                    'T4_A.png': '上3コマ45%+下大55%', 'T4_B.png': '上大55%+下3コマ45%',
-                    'T4_C.png': '上下2コマ(重要側60%交互)', 'T4_D.png': '均等4段',
-                    'T4_E.png': '右大コマ縦通し+左2段+下全幅', 'T4_F.png': '上全幅+右2段+左大コマ縦通し',
-                    'T5_A.png': '上3コマ45%+下2コマ55%', 'T5_B.png': '上2コマ55%+下3コマ45%',
-                    'T5_C.png': '上2+中全幅+下2',
-                    'T6_A.png': '均等6コマ(3段2列)', 'T6_B.png': '上2大+下4小',
-                    'D1_diagonal_2.png': '斜め2分割', 'D2_zigzag_3.png': 'ジグザグ斜め3分割',
-                    'D3_v_split.png': 'V字分割(上大+下2斜め)', 'D4_radial_4.png': '放射状4分割',
-                    'D5_overlay_4.png': 'ぶち抜き大コマ+小コマ3', 'D6_staircase_4.png': '階段状4コマ',
-                    'D7_fan_3.png': '扇状(上狭→下広)', 'D8_x_split_4.png': 'X字斜め4分割',
-                }
-                ref_descs = []
-                for r in ref_images:
-                    fname = os.path.basename(r)
-                    if 'komawari_templates/' in r:
-                        desc = KOMAWARI_DESC.get(fname, 'コマ割りテンプレート')
-                        ref_descs.append(f'{fname}=コマ割りテンプレート（{desc}。この構図に従って描け）')
-                    elif 'character/selected/' in r:
-                        ref_descs.append(f'{fname}=キャラクターリファレンス（この外見・服装を正確に再現せよ）')
-                    else:
-                        ref_descs.append(f'{fname}=背景リファレンス（この背景を参考にせよ）')
-                attachment_line = '添付画像の説明: ' + '、'.join(ref_descs) if ref_descs else ''
-
-                prompt = f"""あなたはドズル社マイクラ漫画の演出家です。
-キャラクターの表情リファレンスが変わったので、画像生成プロンプト（director_notes）を全文書き直してください。
-
-## キャラクター設定（参考）
-{expr_design_text}
-
-## パネル情報
-- シーン概要: {scene_desc}
-- 状況: {situation}
-- セリフ: {lines_text}
-- コマ割り: {shot_type}
-
-## 表情変更
-- キャラクター: {char_name}
-- 新しい表情ファイル: {new_expression_file}
-
-## 添付リファレンス画像一覧
-{attachment_line}
-
-## 現在のdirector_notes（変更前）
-{director_notes}
-
-## 指示
-上記の表情変更とリファレンス画像に合わせて、director_notesを全文書き直してください。
-以下の構成で出力:
-1. 最初に「添付画像の説明: 」行（上記の添付リファレンス画像一覧をそのまま使え）
-2. 続けて「これらのリファレンス画像のキャラクターの外見・服装を正確に再現すること。」
-3. コマ割りに応じた構図指示（上下分割なら上段・下段、左右分割なら右・左）
-   ※左右分割の場合の読み順ルール: 右コマ=先に発言する人、左コマ=後に発言する人（日本の漫画は右→左に読む）
-4. 各コマのキャラクターの表情・ポーズ・感情の具体的な描写（新しい表情に合わせる）
-5. 背景指示（リファレンス背景に合わせる）
-6. 禁止事項（武器・盾・バケツ持たせるな等）
-
-- 日本語で、簡潔かつ具体的に
-- 余計な説明や前置きは不要。director_notesテキストのみ出力してください"""
-
-                import subprocess
-                result = subprocess.run(
-                    ['claude', '-p', '--model', 'sonnet', prompt],
-                    capture_output=True, text=True, timeout=60
-                )
-                if result.returncode != 0:
-                    raise Exception(f'Claude CLI error: {result.stderr[:200]}')
-                suggested = result.stdout.strip()
-
-                resp = json.dumps({'status': 'ok', 'suggested': suggested}, ensure_ascii=False).encode('utf-8')
-                self.send_response(200)
+                resp = json.dumps({'status': 'processing', 'job_id': job_id}, ensure_ascii=False).encode('utf-8')
+                self.send_response(202)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self.send_header('Content-Length', str(len(resp)))
                 self.end_headers()
@@ -1460,195 +1659,18 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         elif self.path == '/api/generate_panels_llm':
             try:
-                import subprocess
                 length = int(self.headers.get('Content-Length', 0))
                 body = self.rfile.read(length)
                 payload = json.loads(body.decode('utf-8'))
 
-                rows = payload.get('rows', [])
-                gemini_context = payload.get('gemini_context', '')
-                scene_name = payload.get('scene_name', '')
-                title = payload.get('title', '')
-                save_path = payload.get('save_path', '')
+                job_id = uuid.uuid4().hex[:8]
+                with _jobs_lock:
+                    _jobs[job_id] = {'status': 'queued', 'created': datetime.now().isoformat()}
+                t = threading.Thread(target=_run_generate_panels, args=(job_id, payload), daemon=True)
+                t.start()
 
-                # 1. 使用可能な表情ファイル一覧を取得
-                selected_dir = os.path.join(BASE_DIR, 'projects/dozle_kirinuki/assets/dozle_jp/character/selected')
-                available_files = set()
-                if os.path.isdir(selected_dir):
-                    available_files = {f for f in os.listdir(selected_dir) if f.endswith('.png')}
-
-                # 2. panel_candidate_prompt.txt の後半（漫画制作ナレッジ以降）を読み込む
-                prompt_path = os.path.join(BASE_DIR, 'projects/dozle_kirinuki/context/panel_candidate_prompt.txt')
-                prompt_knowledge = ''
-                if os.path.exists(prompt_path):
-                    with open(prompt_path, 'r', encoding='utf-8') as f:
-                        full_prompt = f.read()
-                    idx = full_prompt.find('# 漫画制作ナレッジ')
-                    prompt_knowledge = full_prompt[idx:] if idx >= 0 else full_prompt
-
-                # 3. rows をテキスト化
-                rows_text = '\n'.join(
-                    f"{row.get('timestamp', '')} {row.get('speaker', '')}: {row.get('text', '')}"
-                    for row in rows
-                )
-
-                # 4. 使用可能ファイルリスト（_rgba.pngのみ）
-                rgba_files = sorted(f for f in available_files if '_rgba.png' in f)
-                files_list = '\n'.join(rgba_files) if rgba_files else '（ファイルなし）'
-
-                # 5. Claudeへのプロンプト構築
-                claude_prompt = f"""あなたはドズル社漫画ショートの構成作家です。
-以下の書き起こし（殿レビュー済み）とシーン情報から、漫画パネルのJSONを生成してください。
-
-## 書き起こし（話者+セリフ）
-{rows_text}
-
-## シーン情報（Gemini動画解析）
-{self._extract_scene_summary(gemini_context) if gemini_context else '（シーン情報なし）'}
-
-## タイトル・シーン名
-タイトル: {title}
-シーン: {scene_name}
-
-## 出力形式（必須）
-```json で囲んで以下の形式で出力せよ。全フィールド必須。省略するな。
-
-{{
-  "panels": [
-    {{
-      "id": "p1_xxx",
-      "title": "P1: 話者「セリフ冒頭」",
-      "characters": ["dozle"],
-      "lines": ["セリフ全文"],
-      "start_sec": 0,
-      "duration_sec": 5,
-      "shot_type": "S2",
-      "is_climax": false,
-      "scene_desc": "シーンの説明",
-      "situation": "状況の説明",
-      "director_notes": "表情コード+ポーズ+背景+禁止事項",
-      "ref_images": ["assets/dozle_jp/character/selected/dozle_smile_r1_rgba.png"]
-    }}
-  ]
-}}
-
-### フィールド説明
-- characters: メンバーキー（dozle/bon/qnly/orafu/oo_men/nekooji）。必須
-- lines: セリフ。書き起こしから該当セリフをそのまま入れよ。必須
-- shot_type: 1人→S2、2人→T2_B、climax→S1
-- ref_images: "assets/dozle_jp/character/selected/{{キャラ}}_{{表情}}_rgba.png" 形式。下記の使用可能ファイルから選べ
-- director_notes: 表情コード+ポーズ具体指示+背景+禁止事項。必須
-
-{prompt_knowledge}
-
-## 使用可能な表情ファイル
-以下のファイルのみ使用可（存在しないファイルは絶対に使わないこと）:
-{files_list}
-
-## 共通ルール
-全キャラクターの身長はだいたい同じくらいに描くこと。
-【最重要】おおはらMENは必ずゴーグルを目を覆うように装着して描け。
-ぼんじゅうるはサングラス必須。おんりーは丸メガネ必須。
-デフォルメ・SD・ちびキャラ禁止。武器・盾・バケツ禁止。
-
-【重要】各パネルの "characters" フィールドには必ずメンバーキーを入れること。
-使用可能なキー: dozle, bon, qnly, orafu, oo_men, nekooji
-セリフがないパネルも含め、全パネルに characters を設定すること。"""
-
-                # 6. Claude CLI 呼び出し
-                claude_bin = '/home/murakami/.local/bin/claude'
-                result = subprocess.run(
-                    [claude_bin, '-p', claude_prompt, '--model', 'claude-opus-4-6'],
-                    capture_output=True, text=True, timeout=300
-                )
-                if result.returncode != 0:
-                    raise Exception(f'Claude CLI error: {result.stderr[:500]}')
-
-                output_text = result.stdout.strip()
-
-                # 7. JSON抽出
-                panels_data = None
-                json_match = re.search(r'```json\s*([\s\S]+?)\s*```', output_text)
-                if json_match:
-                    try:
-                        panels_data = json.loads(json_match.group(1))
-                    except json.JSONDecodeError:
-                        pass
-                if panels_data is None:
-                    try:
-                        panels_data = json.loads(output_text)
-                    except json.JSONDecodeError:
-                        raise Exception(f'Claude出力からJSONを抽出できませんでした。出力先頭: {output_text[:300]}')
-
-                # 7.5. panels_dataがリストの場合は辞書に包む
-                if isinstance(panels_data, list):
-                    panels_data = {'panels': panels_data}
-
-                # 7.6. characters空バリデーション補完
-                if 'panels' in panels_data:
-                    for i, panel in enumerate(panels_data['panels']):
-                        if not panel.get('characters'):
-                            if i < len(rows):
-                                speaker = rows[i].get('speaker', '不明')
-                                if speaker != '不明':
-                                    panel['characters'] = [speaker]
-
-                # 8. ref_images 存在チェック＆フォールバック＆パス正規化
-                REF_PREFIX = 'projects/dozle_kirinuki/assets/dozle_jp/character/selected/'
-                if 'panels' in panels_data:
-                    for panel in panels_data['panels']:
-                        new_refs = []
-                        for ref in panel.get('ref_images', []):
-                            fname = os.path.basename(ref)
-                            if fname in available_files:
-                                # パスを正規化（projects/dozle_kirinuki/...形式に統一）
-                                new_refs.append(REF_PREFIX + fname)
-                            else:
-                                chars = panel.get('characters', [])
-                                fallback = None
-                                for char in chars:
-                                    fb_fname = f'{char}_smile_r1_rgba.png'
-                                    if fb_fname in available_files:
-                                        fallback = REF_PREFIX + fb_fname
-                                        break
-                                if fallback:
-                                    new_refs.append(fallback)
-                        panel['ref_images'] = new_refs
-
-                # 8.5. meta自動補完
-                if 'meta' not in panels_data or not panels_data['meta']:
-                    panels_data['meta'] = {}
-                meta = panels_data['meta']
-                if not meta.get('scene'):
-                    meta['scene'] = scene_name or ''
-                if not meta.get('title'):
-                    meta['title'] = title or '（タイトル未設定）'
-                if not meta.get('panel_count'):
-                    meta['panel_count'] = len(panels_data.get('panels', []))
-                if not meta.get('common_rules'):
-                    meta['common_rules'] = (
-                        "全キャラクターの身長はだいたい同じくらいに描くこと。極端な身長差をつけるな。"
-                        "【最重要】おおはらMENは必ずゴーグルを目を覆うように装着（目が隠れる位置。額に上げるな）して描け。"
-                        "ゴーグルなしのMENは絶対に描くな。リファレンス画像のゴーグルをそのまま再現せよ。"
-                        "サングラスではなくゴーグルである。ぼんじゅうるはサングラス必須。おんりーは丸メガネ必須。"
-                        "デフォルメ・SD・ちびキャラ禁止。等身大のアニメ風キャラクターとして描くこと。武器・盾・バケツ禁止。"
-                    )
-                meta['generated_by'] = 'claude_opus_via_panel_review'
-
-                # 9. save_path に保存
-                if save_path:
-                    abs_save = os.path.realpath(os.path.join(BASE_DIR, save_path))
-                    if abs_save.startswith(os.path.realpath(BASE_DIR) + os.sep):
-                        os.makedirs(os.path.dirname(abs_save), exist_ok=True)
-                        with open(abs_save, 'w', encoding='utf-8') as f:
-                            json.dump(panels_data, f, ensure_ascii=False, indent=2)
-
-                panels = panels_data.get('panels', [])
-                resp = json.dumps(
-                    {'status': 'ok', 'panels': panels, 'panel_count': len(panels)},
-                    ensure_ascii=False
-                ).encode('utf-8')
-                self.send_response(200)
+                resp = json.dumps({'status': 'processing', 'job_id': job_id}, ensure_ascii=False).encode('utf-8')
+                self.send_response(202)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self.send_header('Content-Length', str(len(resp)))
                 self.end_headers()
@@ -1672,7 +1694,7 @@ if __name__ == '__main__':
     print(f"Tasks: {TASKS_DIR}")
     print(f"shogun_to_karo: {SHOGUN_TO_KARO}")
     print("Agent status detection: DB-driven (messages table).")
-    server = http.server.HTTPServer(('0.0.0.0', PORT), DashboardHandler)
+    server = http.server.ThreadingHTTPServer(('0.0.0.0', PORT), DashboardHandler)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
