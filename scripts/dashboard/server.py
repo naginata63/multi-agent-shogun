@@ -1413,20 +1413,37 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             else:
                 self.send_response(404)
                 self.end_headers()
-        elif self.path == '/api/list_panels_json':
+        elif self.path.startswith('/api/list_panels_json'):
+            # ?dir=<相対パス> で対象ディレクトリ限定（同階層のみscan）。指定なしなら work/ 全体
+            from urllib.parse import urlparse as _up, parse_qs as _pq, unquote as _uq
             import glob as _glob
-            work_dir = os.path.join(BASE_DIR, 'projects', 'dozle_kirinuki', 'work')
+            qs = _pq(_up(self.path).query)
+            dir_param = (qs.get('dir', [''])[0] or '').strip()
             results = []
-            if os.path.isdir(work_dir):
-                edited_matches = sorted(_glob.glob(os.path.join(work_dir, '**', '*_edited.json'), recursive=True))
-                raw_matches = sorted(_glob.glob(os.path.join(work_dir, '**', '*_raw.json'), recursive=True))
-                all_panels = sorted(_glob.glob(os.path.join(work_dir, '**', 'panels_*.json'), recursive=True))
-                panels_matches = [m for m in all_panels if not m.endswith('_edited.json')]
-                for match in edited_matches + raw_matches + panels_matches:
-                    rel = os.path.relpath(match, BASE_DIR)
-                    parent = os.path.basename(os.path.dirname(match))
-                    name = os.path.basename(match) + '  [' + parent + ']'
-                    results.append({'name': name, 'path': rel})
+            if dir_param:
+                if '..' in dir_param or dir_param.startswith('/'):
+                    self.send_response(403); self.end_headers(); return
+                target_dir = os.path.join(BASE_DIR, _uq(dir_param))
+                if os.path.isdir(target_dir):
+                    edited_matches = sorted(_glob.glob(os.path.join(target_dir, '*_edited.json')))
+                    raw_matches = sorted(_glob.glob(os.path.join(target_dir, '*_raw.json')))
+                    all_panels = sorted(_glob.glob(os.path.join(target_dir, 'panels_*.json')))
+                    panels_matches = [m for m in all_panels if not m.endswith('_edited.json')]
+                    for match in edited_matches + raw_matches + panels_matches:
+                        rel = os.path.relpath(match, BASE_DIR)
+                        results.append({'name': os.path.basename(match), 'path': rel})
+            else:
+                work_dir = os.path.join(BASE_DIR, 'projects', 'dozle_kirinuki', 'work')
+                if os.path.isdir(work_dir):
+                    edited_matches = sorted(_glob.glob(os.path.join(work_dir, '**', '*_edited.json'), recursive=True))
+                    raw_matches = sorted(_glob.glob(os.path.join(work_dir, '**', '*_raw.json'), recursive=True))
+                    all_panels = sorted(_glob.glob(os.path.join(work_dir, '**', 'panels_*.json'), recursive=True))
+                    panels_matches = [m for m in all_panels if not m.endswith('_edited.json')]
+                    for match in edited_matches + raw_matches + panels_matches:
+                        rel = os.path.relpath(match, BASE_DIR)
+                        parent = os.path.basename(os.path.dirname(match))
+                        name = os.path.basename(match) + '  [' + parent + ']'
+                        results.append({'name': name, 'path': rel})
             body = json.dumps(results, ensure_ascii=False).encode('utf-8')
             self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
