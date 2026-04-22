@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-17 19:25
+最終更新: 2026-04-22 22:28
 
 ## 💰 DingTalk音声QC（9万円案件）
 🟢 稼働中 | 処理済み: **228件** / 10,000件 | 報酬見込み: **¥2,052**
@@ -17,31 +17,77 @@
 
 ## 🚨 要対応（最優先）
 
+### 🔴 cmd_1427 — ゼピュロス3バージョン並列状態 → 殿の最終選抜判断要
+| バージョン | URL | 概要 |
+|-----------|-----|------|
+| 旧版 | https://youtu.be/kE2jkMhSWGw | outro有り・作戦会議なし・F案concat |
+| v2 | https://youtu.be/2_QYghuH198 | 黒画面廃止・SEオーバーレイのみ |
+| **v3（推奨）** | **https://youtu.be/D7JYECifQ1M** | **作戦会議冒頭挿入+SE1箇所・軍師PASS** |
 
-### ✅ cmd_1408完了 → **殿の採点待ち**
-**全5構成QC PASS** | git push済み d5c1082
+**実視聴確認推奨**:
+- t=83s: 作戦会議→ボス戦A切替のSEが明瞭に聞こえるか
+- t=2461s: 違和感のある効果音がないか（元音声スパイクと推定、念のため確認）
 
-| 構成 | commit | QC |
-|------|--------|----|
-| Opus4.7単体 (subtask_1408c) | 7293ed1 | PASS |
-| Opus4.6単体 (subtask_1408d) | dca43d9 | PASS |
-| Sonnet4.6単体 (subtask_1408e) | dca43d9 | PASS |
-| GLM+Adv4.6 (subtask_1408b) | ab7ee3d | PASS |
-| GLM+Adv4.7 (subtask_1408f) | d5c1082 | PASS（proxy override 41件確認） |
+**判断**: 採用バージョンを選定・不採用バージョンの削除指示を
 
-**判断**: Q1-Q5 × 正確性/深さ/実用性の3軸スコアを記入してください（`work/cmd_1408/` 参照）  
-軍師所見: proxy を4.6に戻す（現在4.7稼働中）
 
-### 🔴 cmd_1409 — レールガン漫画ショート最終版YouTube非公開アップ完了 → 殿確認待ち
-- URL: https://www.youtube.com/watch?v=8M31MYOlRgY（非公開・最終版 tono_edit.mkv）
-- 1080x1920 / h264_nvenc / 21.984s / 軍師QC PASS
-- **判断**: 確認後、公開OKなら公開指示を（privacy=privateのまま）
 
-### 🔴 構成5実装待ち: X-Advisor-Modelヘッダ動的切替
-- proxy動的切替（X-Advisor-Modelヘッダ指定）の実装が完了したら家老に通知を
-- 構成1-4完了後にsubtask_1408fを発令する
+### 🟡 夜間監査 nightly_audit_20260421_video — CRITICAL×0 HIGH×0 MEDIUM×4（動画制作）
+詳細: `queue/reports/gunshi_report_nightly_audit_20260421_video.yaml`
+
+**過去HIGH問題は全てregression-free確認 ✅**
+
+**MEDIUM（新規）**:
+- M1: `generate_outro.py` L204: libx264 2段階エンコード（**CLAUDE.md NVENCルール違反**）
+- M2: `main.py` L658: `--diarize`フラグ下のWhisperX抜け穴（04-20 H2と同根）
+- M3: `/usr/bin/ffmpeg` 絶対パスハードコード多数
+- M4: Remotion命名ミスマッチ（DoZ名だが中身HASESHIN案件）+ DoZメンバー色未登録
+
+**判断**: M1（libx264違反）のみ修正cmd発令を検討（他MEDIUMは優先度低）
+
+### 🔴 夜間監査 nightly_audit_20260420_stt — CRITICAL×0 HIGH×3（STTパイプライン）
+詳細: `queue/reports/gunshi_report_nightly_audit_20260420_stt.yaml`
+
+**HIGH（新規）**:
+- H1: `vocal_stt_pipeline.py`: `--disable-speaker-id` オプション不在 → 非DoZ音声にメンバー名強制付与（qc_1418a [qnly]誤同定の根本原因）
+- H2: `auto_fetch.py` / `pipeline.sh` / `skills/video-pipeline/SKILL.md` がWhisperX経路を案内 → AssemblyAI必須ルール違反トラップ
+- H3: ECAPA-TDNN threshold `0.25` ハードコード
+
+**判断**: H1-H3の修正cmdを発令するか？
+
+### ✅ cmd_1411 — panels QC FAIL → cmd_1413で対処中（殿判断済み）
+- clip/SRT PASS。区間誤り（14889-16089）・フォールバック捏造が原因でpanels NG
+- cmd_1413 Step0+1完了（スクリプト修正・STT済み）。Step2（panels）はクォータ枯渇でブロック中
+
 
 ## 🚨 要対応 - 殿のご判断をお待ちしております
+
+### 🔴 夜間監査 nightly_audit_20260419_youtube_api — CRITICAL×0 HIGH×5 MEDIUM×7（YouTube/外部連携）
+詳細: `queue/reports/gunshi_report_nightly_audit_20260419_youtube_api.yaml`
+
+**前回(04-12)CRITICAL×2+HIGH×3 はすべて解消確認 ✅**
+
+**HIGH（新規）**:
+- H1: `youtube_uploader.py`: `--privacy` 有効化による `publishAt` 組合せのYouTube API違反regression
+- H2: `generate_dashboard.py`: SCOPES不一致（force-ssl欠落）
+- H3: `note_mcp_server`: Playwrightプロファイル二重体制 52ファイル中50未対処
+- H4: `note_visual_qc.py`: Part.from_bytes未修正（既報）
+- H5: `note-edit.js`: 空文字ログイン継続（アカウントロックリスク）
+
+**判断**: H1-H5の修正cmd発令を検討してください
+
+### 🔴 夜間監査 nightly_audit_20260418_infra — CRITICAL×0 HIGH×3 MEDIUM×6 LOW×4（インフラ）
+詳細: `queue/reports/gunshi_report_nightly_audit_20260418_infra.yaml`
+
+**HIGH（新規）**:
+- `scripts/fix_panes.sh` L51-58: **CLI Adapter未連携** — 復旧時に常に`claude`コマンドで起動→GLM足軽がClaude CLIで立ち上がる。`lib/cli_adapter.sh`連携が必要
+- `shutsujin_departure.sh` L357-379: **clean mode YAML形式破壊** — dict形式(`task:`)で初期化後に家老がlist形式を追記するとYAMLパースエラー。テンプレートを`tasks:\n  - task_id: null`に統一すべき
+
+**HIGH（既報）**: ntfy_listener.sh L238認証タイプstderr出力、posttool_yaml_check.sh python3不一致
+
+**MEDIUM新規**: shutsujin_departure.sh advisor_proxy system python3使用、ntfy_listener.sh メッセージ毎4-5 Python起動、fix_panes.sh AGENTSハードコード、posttool_cmd_check.sh claude-p API費用累積（$25/日リスク）、ntfy.sh Tailscale IPハードコード
+
+**判断**: fix_panes.sh CLIAdapter連携修正・clean mode YAML形式修正のcmd発令を検討してください
 
 ### 🔴 夜間監査 nightly_audit_20260417_video — CRITICAL×1 HIGH×1 MEDIUM×2（動画制作）
 詳細: `queue/reports/gunshi_report_nightly_audit_20260417_video.yaml`
@@ -53,10 +99,6 @@
 - `projects/dozle_kirinuki/scripts/vertical_convert.py` L174: **tempfile.mkstemp()で/tmp使用** — CLAUDE.mdルール違反。`work_dir`配下に変更推奨
 
 **MEDIUM×2**: `generate_shorts_bg.py` L69 フォントフォールバックのサイレント飲み込み / `shorts_qc.py` L45 ffmpegエラーハンドリングなし
-
-### 🔴 cmd_1400 — レールガン再編集版YouTube非公開アップ完了 → 殿確認待ち
-- URL: https://www.youtube.com/watch?v=EXv3iJ9nLDc（再編集版・最新）
-- **判断**: 確認後、公開OKなら公開指示を
 
 ### 🔴 cmd_1399 — Opus4.7 vs GLM+Advisor比較レポート完成 → 殿レビュー待ち
 - ファイル: work/cmd_1399/opus47_vs_glm_advisor.md
@@ -103,6 +145,21 @@
 - **1333c (ashigaru3)**: IDLE_FLAG_DIR→queue/.flags/・awk→mawk化・generate_illustration.py Part.from_bytesフォールバック除去
 - ⚠️ **未着手(MEDIUM)**: note_visual_qc.py Part.from_bytes / Playwrightプロファイル不一致 / download.sh yt-dlp不整合等（スコープ外）
 
+### 🔧 cmd_1427: amix SE音量はnormalize=0推奨 [2026-04-22 足軽1号hotfix]
+- SE volume=1.5でmax=-6.9dB（-3dB未達）→ volume=3.0に再エンコで対応
+- 根本原因: amixのデフォルトnormalize=1が音量を正規化して下げる
+- 次回同種タスク: `amix=inputs=2:normalize=0` で正規化無効化せよ
+
+### 🔧 cmd_1426: submodule path矛盾でgit commit不達 [2026-04-22]
+- params.dst = submodule work/（dozle_kirinuki内） vs params.work_dir = メインリポ work/ の混在
+- 足軽はpath矛盾を正当判断しcommit回避（clip自体は正常生成・PASS）
+- 次回task設計でsubmodule/メインリポのpath統一を徹底せよ
+
+### 🔧 cmd_1415c2: 8c8289bに無関係JS16件混入（プロセス改善）[2026-04-19]
+- git add時に note_mcp_server/ 配下の無関係JS16件がcmd_1415cコミットに混入
+- 内容は問題なし（軍師確認済）。再発防止にgit add <specific files>の徹底を
+- 次回タスクで対処推奨
+
 ### 🔧 hotfix: ffmpeg -ss 配置（大容量動画シーク問題）[2026-04-17 足軽4号]
 - **問題**: -ss after -i（CLAUDE.mdルール通り）で16GB×15309sシークが実質ハング（83分→0byte）
 - **workaround**: -ss before -i（input seeking）に変更。NVENC再エンコードなので音ズレリスク低
@@ -126,12 +183,6 @@
 - **高リスク2**: `work/cmd_1393/design.md:169` — `timeout 30 claude -p --max-tokens 100` (設計書内・実スクリプトではないが参照リスクあり)
 - **副産物**: `pretool_check.sh L78` の `status: assigned` 限定バグ発覚（status:in_progress移行後にtarget_path検証が機能しない）
 - **判断**: 高リスク2件の修正cmd・pretool_check.shバグ修正cmdを発令するか？
-
-### 🔴 cmd_1405完成 + cmd_1402 — 全世代マトリクス完成 → **殿がスコア記入待ち**
-- ファイル: `work/cmd_1402/opus47_vs_glm_advisor_retest.md`（commit b1c8917）
-- **4モデル比較**: Opus 4.6単体 / Sonnet 4.6単体 / Opus 4.7単体 / GLM+Adv 4.7
-- **主要観察**: (1)時間報告信頼性喪失が全4モデル共通（タイムスタンプ矛盾がSonnet4.6でも再現） (2)Q2条件Bで結論反転（統合しない→3層統合する） (3)pretool_check.sh L78-79バグ4重独立確認
-- **判断**: Q1-Q5×正確性/深さ/実用性の評価スコアを記入してください
 
 ### 🔴 夜間監査 nightly_audit_20260416_stt — HIGH×1（STTパイプライン）
 詳細: `queue/reports/gunshi_report_nightly_audit_20260416_stt.yaml`
@@ -181,13 +232,34 @@
 **CLEAN**: NVENC全スクリプト適用済み / GCS URI方式準拠 / 廃止スクリプト参照なし
 
 
+## ⚠️ 将軍ステータス（2026-04-22 20:49）
+| 項目 | 状態 |
+|------|------|
+| 将軍pane (shogun:0.0) | ⚠️ API 529 後・状態不明（家老が代行中） |
+| 引き継ぎ | ✅ cmd_1422/1423 完了。cmd_1424 v3を家老が足軽1号へ委任中 |
+
 ## 🔄 進行中（実行中のタスク）
 
 | cmd | 内容 |
 |-----|------|
-| cmd_1410 | ✅ CONDITIONAL PASS（軍師19:24）ヒーラー25件HIT・6名実名。⚠️C3空白分離残存→下流対応要 |
-| cmd_1409 | ✅ YouTube非公開アップ完了（軍師QC PASS）→ 🚨殿確認待ち https://www.youtube.com/watch?v=8M31MYOlRgY |
-| cmd_1408 | ✅ 全5構成完了・QC全PASS（git push d5c1082）→ 🚨殿採点待ち |
+| cmd_1427 | ✅ ゼピュロスv3完了・YouTube非公開アップ済み: https://www.youtube.com/watch?v=D7JYECifQ1M（SE max=-2.4dB ✓・軍師QC PASS）|
+| cmd_1426 | ✅ TNTエンドラ16-18分クリップ抽出完了（clip_960_1080.mp4 120s PASS・軍師QC通過）|
+| cmd_1425 | 🔄 3並列DL中: ✅ツルギ完了(9パート) / 🔄ヘンディー / 🔄シャルロット → 6日目1時間分割 |
+| cmd_1424 | ✅ v2完了 YouTube非公開アップ済み: https://www.youtube.com/watch?v=2_QYghuH198 |
+| cmd_1423 | ✅ kE2jkMhSWGw タイトル・説明欄更新完了（ブザービーターフォーマット・private維持）after_update.json確認済 |
+| cmd_1422 | ✅ DoZ5日目ゼピュロス 2バージョン非公開アップ完了（outro無し: gAniF0l5u_0 / outro有り: kE2jkMhSWGw）|
+| nightly_audit_20260422_infra | ✅ インフラ系矛盾検出完了（CRITICAL×0 HIGH×0・04-18修正全regression-free）|
+| nightly_audit_20260421_video | ✅ 動画制作系矛盾検出完了（CRITICAL×0 HIGH×0 MEDIUM×4）→ 詳細下記 |
+| nightly_audit_20260420_stt | ✅ STTパイプライン矛盾検出完了（CRITICAL×0 HIGH×3）→ 🚨要対応参照 |
+| cmd_1421 | ✅ DoZセマンティック検索基盤完了・足軽5号idle |
+| cmd_1420 | ✅ YouTube非公開アップ完了・軍師QC PASS https://www.youtube.com/watch?v=jgmXApCnPxY |
+| cmd_1414 | ⏸ on_hold: 殿判断待ち（panels PARTIAL PASS）。hasehinはコラボキャラで実在 |
+| cmd_1413 | ⏸ on_hold: STT+スクリプト修正完了。panels再生成は殿判断待ち |
+| cmd_1412 | ✅ YouTube非公開アップ完了（殿対処済み 2026-04-19）https://www.youtube.com/watch?v=nG6dMBspc4M |
+| cmd_1411 | ⏸ on_hold: clip/SRT PASS・panels QC FAIL → 殿判断待ち |
+| cmd_1410 | ✅ PASS（殿方針訂正19:37）ヒーラー25件HIT・oo_men 6件ラベル確認。C3不問 |
+| cmd_1409 | ✅ YouTube非公開アップ完了（殿対処済み 2026-04-19）https://www.youtube.com/watch?v=8M31MYOlRgY |
+| cmd_1408 | ✅ 全5構成完了・QC全PASS（殿対処済み 2026-04-19）|
 | cmd_1401 | ✅ Q3固定版差し替え完了（commit afc56ed）→ opus47_vs_glm_advisor.md Q3はcmd_1380〜1389で確定 |
 | cmd_1399 | ✅ 統合レポート完成（opus47_vs_glm_advisor.md）→ Q3_fixedで更新中（cmd_1401） |
 | cmd_1397 | ✅ レールガン縦型クロップ+YouTube非公開アップ完了（h264_nvenc 1080x1920）→ https://www.youtube.com/watch?v=IpB4U4AmqS0 |
@@ -208,6 +280,12 @@
 ## ✅ 本日の完了
 | cmd | 内容 |
 |-----|------|
+| cmd_1421 | ✅ DoZセマンティック検索基盤構築完了（7,853チャンク登録・検索3本PASS・軍師PASS・commit ffce837a・git push b255f79）|
+| cmd_1415 | ✅ 夜間監査CRITICAL/HIGH全修正完了（3並列）。1415a/b/c2全軍師PASS（commits 8c26ce6/0d7a947/d4f2e0b）git push済み |
+| cmd_1418 | ✅ Udemy参考動画tqj46pUd_Tw STT字幕化完了（374エントリ・26:50・軍師QC PASS・commit 44cc0d2）|
+| cmd_1370 | ✅ done化（status同期）。おらふくん未来人立ち絵はcmd_1373/1375で完了済み |
+| cmd_1398 | ✅ done化（status同期）。レールガン非公開アップはcmd_1409で完了済み（8M31MYOlRgY）|
+| cmd_1416 | ✅ 足軽GLM切替不能調査 — 既に解消済み（settings.yaml正・全足軽GLM稼働中・proxy正常）|
 | cmd_1407 | ✅ GLM+Advisor 4.6正規版 改変5問（proxy再起動後・北極星達成・advisor-in-the-loop有効性実証・commit 4bb0171）※問題改変版のため cmd_1408で再測定 |
 | cmd_1406 | ✅ /ultrareviewバグ5件修正（CHK4削除・FileChanged削除・backup mountpoint・shutsujin readiness・advisor_proxy failure記録）全5 commits・軍師全PASS |
 | cmd_1405 | ✅全世代マトリクス完成(commit b1c8917) → 🚨殿スコア記入待ち work/cmd_1402/opus47_vs_glm_advisor_retest.md |
@@ -396,14 +474,14 @@
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | GLM | ✅ done | subtask_1408f（GLM+Adv4.7 原初5問）完了 commit d5c1082 |
-| 2号 | Claude Opus 4.6 | ✅ done | subtask_1408d（Opus4.6単体 原初5問 完了）|
-| 3号 | Claude Sonnet 4.6 | ✅ done | subtask_1408e（Sonnet4.6単体 原初5問 完了）|
-| 4号 | GLM | ✅ done | subtask_1410a2（DoZ 15309s-15489s 区間訂正版 ヒーラー25件HIT）git commit済み |
-| 5号 | GLM | idle | — |
-| 6号 | GLM | idle | — |
+| 1号 | GLM | ✅ idle | subtask_1424a2完了（ゼピュロスv3 D7JYECifQ1M・軍師PASS）|
+| 2号 | GLM | ✅ done | subtask_1425a完了（ツルギ 9パート/8h22m/30117s 完全一致）|
+| 3号 | GLM | 🔄 作業中 | subtask_1425b（ヘンディー twitch DL+1時間分割）|
+| 4号 | GLM | 🔄 作業中 | subtask_1425c（シャルロット YouTube DL+1時間分割）|
+| 5号 | GLM | ⏸ blocked | subtask_1425d（集約・1425a/b/c完了待ち）|
+| 6号 | GLM | ✅ idle | subtask_1426a完了（TNTエンドラclip_960_1080.mp4 120s確認）|
 | 7号 | GLM | idle | — |
-| 軍師 | Opus[1m] | ✅ idle | qc_1410a2 CONDITIONAL PASS完了 |
+| 軍師 | Opus[1m] | ✅ idle | nightly_audit_20260418_infra完了（HIGH×3 MEDIUM×6）|
 
 ## APIキー状況
 - **Vertex AI ADC**: ✅ 正常

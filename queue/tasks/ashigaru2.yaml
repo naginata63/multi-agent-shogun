@@ -969,7 +969,7 @@ tasks:
 - task_id: subtask_1388a
   parent_cmd: cmd_1388
   bloom_level: L4
-  status: in_progress
+status: done
   priority: high
   timestamp: "2026-04-16T09:16:00"
   project_root: /home/murakami/multi-agent-shogun
@@ -1022,7 +1022,7 @@ tasks:
   parent_cmd: cmd_1388
   bloom_level: L4
   redo_of: subtask_1388a
-  status: in_progress
+status: done
   priority: high
   timestamp: "2026-04-16T09:17:00"
   project_root: /home/murakami/multi-agent-shogun
@@ -1072,7 +1072,7 @@ tasks:
   parent_cmd: cmd_1388
   bloom_level: L4
   redo_of: subtask_1388b
-  status: in_progress
+status: done
   priority: high
   timestamp: "2026-04-16T09:18:00"
   project_root: /home/murakami/multi-agent-shogun
@@ -1630,3 +1630,26 @@ tasks:
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1408d完了。Opus4.6単体 原初5問解答。' report_completed ashigaru2"
   target_path: /home/murakami/multi-agent-shogun/work/cmd_1408/condition_opus46/
   timestamp: "2026-04-17T15:23:54"
+- task_id: subtask_1425a
+  parent_cmd: cmd_1425
+  bloom_level: L2
+  status: done
+  timestamp: "2026-04-22T20:53:09"
+  description: "DoZ6日目 ツルギ(twitch 2749326446) DL+1時間分割。保存先 DAY6_DIR/raw/ → DAY6_DIR/multi/day6_tsurugi_part_XX.mp4"
+  params:
+    url: "https://www.twitch.tv/videos/2749326446"
+    day6_dir: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260416_【#DoZ】6日目 腹から声が出ないヒーラーに命を任せれられるとでも？【ドズル社／おおはらMEN視点】"
+    raw_out: "day6_tsurugi_full.mp4"
+    prefix: "day6_tsurugi"
+    work_dir: "/home/murakami/multi-agent-shogun/work/cmd_1425"
+  steps: "mkdir -p work/cmd_1425 DAY6_DIR/raw DAY6_DIR/multi → downloader.py/auto_fetch.py確認→無ければyt-dlp直呼びsh作成(work/cmd_1425/dl_tsurugi.sh)でDL→ffmpeg -i raw/day6_tsurugi_full.mp4 -c copy -f segment -segment_time 3600 -reset_timestamps 1 multi/day6_tsurugi_part_%02d.mp4 → ffprobe各partで尺/codec確認→結果をwork/cmd_1425/tsurugi_parts.json保存→完了報告"
+  acceptance_criteria:
+    - "day6_tsurugi_full.mp4 DL成功（音声付き）"
+    - "day6_tsurugi_part_00.mp4〜 が DAY6_DIR/multi/ に存在"
+    - "tsurugi_parts.json に各partの duration/size_mb/codec 記録"
+    - "day5_ prefix ファイルを上書きしていないこと"
+  notes:
+    - "Twitch DL: yt-dlp標準で試す。認証エラー時はwork/cmd_1425/にOAuth cookieオプション追加"
+    - "分割は -c copy（再エンコード不要・h264_nvenc不要）"
+    - "/tmp禁止。中間ファイルはwork/cmd_1425/配下"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1425a完了。ツルギDL+分割完了。' report_completed ashigaru2"
