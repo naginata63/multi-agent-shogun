@@ -168,7 +168,9 @@ def build_daily_series(raw_list: list[dict]) -> dict:
 
 
 def build_daily_extended(raw_list: list[dict]) -> dict:
-    """日次拡張指標（comments, shares, subs_lost, avg_view_pct, impressions, ctr）"""
+    """日次拡張指標（comments, shares, subs_lost, avg_view_pct, impressions, ctr）
+    欠損値は一律 null（API未取得＝null、実値0はint 0）。0埋め禁止。
+    """
     all_daily: dict[str, dict] = {}
     all_impressions: dict[str, dict] = {}
 
@@ -178,15 +180,20 @@ def build_daily_extended(raw_list: list[dict]) -> dict:
         for imp in raw.get("impressions_ctr", {}).get("daily", []):
             all_impressions[imp["date"]] = imp
 
+    def _get_or_null(mapping: dict, date: str, key: str):
+        """キーが存在すればその値、なければnull。値がNoneもnullとして扱う。"""
+        val = mapping.get(date, {}).get(key)
+        return val if val is not None else None
+
     sorted_dates = sorted(all_daily.keys())
     return {
         "dates": sorted_dates,
-        "comments": [all_daily[d].get("comments", 0) for d in sorted_dates],
-        "shares": [all_daily[d].get("shares", 0) for d in sorted_dates],
-        "subs_lost": [all_daily[d].get("subs_lost", 0) for d in sorted_dates],
-        "avg_view_pct": [all_daily[d].get("avg_view_pct") for d in sorted_dates],
-        "impressions": [all_impressions.get(d, {}).get("impressions", 0) for d in sorted_dates],
-        "ctr": [all_impressions.get(d, {}).get("ctr") for d in sorted_dates],
+        "comments": [_get_or_null(all_daily, d, "comments") for d in sorted_dates],
+        "shares": [_get_or_null(all_daily, d, "shares") for d in sorted_dates],
+        "subs_lost": [_get_or_null(all_daily, d, "subs_lost") for d in sorted_dates],
+        "avg_view_pct": [_get_or_null(all_daily, d, "avg_view_pct") for d in sorted_dates],
+        "impressions": [_get_or_null(all_impressions, d, "impressions") for d in sorted_dates],
+        "ctr": [_get_or_null(all_impressions, d, "ctr") for d in sorted_dates],
     }
 
 
@@ -272,6 +279,12 @@ def build_predictions(raw_list: list[dict]) -> dict:
     }
 
 
+def _strip_handle(title: str) -> str:
+    """タイトルから@ハンドル・ハッシュタグ・【】見出しを除去（キャラ検出前処理）"""
+    import re as _re
+    return _re.sub(r'@\w+|#\w+|【[^】]+】', '', title)
+
+
 def build_content_analysis(raw_list: list[dict]) -> dict:
     """動画の尺別・キャラ別分析"""
     if not raw_list:
@@ -303,20 +316,24 @@ def build_content_analysis(raw_list: list[dict]) -> dict:
                 "total_views": sum(view_list),
             })
 
-    # キャラ別分析（word boundary で誤爆防止）
-    import re as _re
+    # キャラ別分析（strip_handle + substring match）
     character_patterns = {
-        "dozle": _re.compile(r'\bdozle\b|\bドズル\b', _re.IGNORECASE),
-        "bon": _re.compile(r'\bbon\b|\bぼん\b', _re.IGNORECASE),
-        "MEN": _re.compile(r'\bMEN\b(?!.*RAMEN)'),
-        "qnly": _re.compile(r'\bqnly\b', _re.IGNORECASE),
-        "orafu": _re.compile(r'\borafu\b|\bおらふ\b', _re.IGNORECASE),
-        "nekooji": _re.compile(r'\bnekooji\b|\bねこおじ\b', _re.IGNORECASE),
+        "dozle": ["ドズル", "dozle"],
+        "bon": ["ぼんじゅうる", "ぼん"],
+        "oo_men": ["おおはらMEN", "おおはら", "MEN"],
+        "qnly": ["おんりー", "ONLY"],
+        "orafu": ["おらふ", "オラフ"],
+        "nekooji": ["ネコおじ", "ねこおじ"],
     }
 
     by_character = []
-    for name, pattern in character_patterns.items():
-        char_views = [v.get("views", 0) for v in videos if pattern.search(v.get("title", ""))]
+    for name, keywords in character_patterns.items():
+        char_views = []
+        for v in videos:
+            clean = _strip_handle(v.get("title", ""))
+            # 長いキーワードを先にチェック（部分一致優先度制御）
+            if any(kw in clean for kw in keywords):
+                char_views.append(v.get("views", 0))
         if char_views:
             by_character.append({
                 "character": name,
