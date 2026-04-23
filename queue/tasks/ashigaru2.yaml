@@ -1653,3 +1653,93 @@ status: done
     - "分割は -c copy（再エンコード不要・h264_nvenc不要）"
     - "/tmp禁止。中間ファイルはwork/cmd_1425/配下"
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1425a完了。ツルギDL+分割完了。' report_completed ashigaru2"
+- task_id: subtask_1428b
+  parent_cmd: cmd_1428
+  bloom_level: L3
+  status: done
+  timestamp: "2026-04-22T22:45:00+09:00"
+  description: "clip_960_1080.mp4 → Geminiパネル候補JSON + panel_review.html生成"
+  params:
+    clip: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260421_TNTしか使えない世界でエンドラ討伐/clip_960_1080.mp4"
+    output_dir: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260421_TNTしか使えない世界でエンドラ討伐/manga_960_1080"
+    panels_json: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260421_TNTしか使えない世界でエンドラ討伐/manga_960_1080/panels_960_1080.json"
+    scene: "tnt_enderman_960_1080"
+    title: "TNTエンドラ討伐クライマックス"
+  steps: "advisor()呼び実装前確認→mkdir -p /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260421_TNTしか使えない世界でエンドラ討伐/manga_960_1080→generate_panel_candidates.py実行[cd /home/murakami/multi-agent-shogun && source /home/murakami/multi-agent-shogun/config/vertex_api_key.env && python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/generate_panel_candidates.py --clip params.clip --scene params.scene --title params.title --output params.panels_json]→panels_960_1080.json存在確認（jqでpanel数確認）→panels_960_1080_raw.json存在確認→panel_review_gen.py実行[python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/panel_review_gen.py params.output_dir/panels_960_1080_raw.json]→panel_review.html生成確認→advisor()完了前確認→完了報告"
+  acceptance_criteria:
+    - "panels_960_1080.json 生成（7パネル以上）"
+    - "panels_960_1080_raw.json 生成"
+    - "panel_review.html 生成（同ディレクトリ内）"
+  notes:
+    - "Gemini APIキー: source /home/murakami/multi-agent-shogun/config/vertex_api_key.env 必須（~/.bashrcのGEMINI_API_KEYは期限切れ）"
+    - "GCSキャッシュあり: 2回目以降は --no-cache不要"
+    - "フォールバック禁止: generate_panel_candidates.py がエラーならそのまま報告せよ。ダミーJSONを作るな"
+    - "panel_review_gen.py引数は _raw.json を渡すこと（panels.jsonではない）"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1428b完了。panels_960_1080.json+panel_review.html生成。' report_completed ashigaru2"
+- task_id: subtask_1432a
+  parent_cmd: cmd_1432
+  bloom_level: L3
+  status: done
+  timestamp: "2026-04-23T07:45:00+09:00"
+  description: "panel編集UI改善: 元データ上書き禁止 + 立ち絵プルダウン絞り込み"
+  steps: "advisor()実装前確認→対象2ファイルをReadで把握→Phase1(panel_review_gen.py L769 save_path変更・_v2.json系インクリメント)→Phase2(panels_check_gen.py 保存先_edited.json固定+立ち絵プルダウン基本9表情絞り込み+その他トグル)→再生成テスト→advisor()完了前確認→git commit & push→ntfy通知"
+  params:
+    file1: "projects/dozle_kirinuki/scripts/panel_review_gen.py"
+    file2: "projects/dozle_kirinuki/scripts/panels_check_gen.py"
+  acceptance_criteria:
+    - "panel_review_gen.py: generatePanelCandidates() の save_path が _v2.json/_v3.json 等にインクリメント（元panels_xxx.jsonは上書きしない）"
+    - "panels_check_gen.py: 保存ボタンの保存先が _edited.json 固定（元ファイル温存）"
+    - "panels_check_gen.py: 立ち絵プルダウンが基本9表情を最上位表示・その他トグルで全表示"
+    - "再生成後の両HTMLがブラウザで正常表示"
+    - "git commit & push 済み"
+  notes:
+    - "【重要】対象ファイル名: panel_review_claude_gen.pyはXX→正しくは panel_review_gen.py (L329 generatePanelCandidates, L755-769が対象)"
+    - "基本9表情: angry_r2, crying_r1, embarrassed_r1, scheming_r2, skeptical_r1, smile_r1, smug_r2, surprise_r2, troubled_r1"
+    - "server.py item4(任意安全弁)はcmd_1431対応中のため今回スキップ。cmd_1431完了後に検討"
+    - "cmd_1432のcommandにあるpanel_review_claude_gen.pyは誤記。実在しない"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1432a完了。panel_review元データ保護+立ち絵絞り込み済み。' report_completed ashigaru2"
+    - "完了後ntfy: bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh '✅ cmd_1432完了: panel編集UI改善（元データ温存+立ち絵絞り込み）'"
+- task_id: subtask_1434b
+  parent_cmd: cmd_1434
+  bloom_level: L4
+  blocked_by: []
+  status: done
+  timestamp: "2026-04-24T06:58:00+09:00"
+  description: "dashboard/index.html拡張(Phase3): 新セクション6種追加"
+  procedure: "shared_context/procedures/cmd_1434_phase3.md"
+  steps: "procedure参照。advisor()x2必須(実装前/完了前)。完了後inbox_writeで報告"
+  acceptance_criteria:
+    - "3-A 収益化進捗パネル: ショート/長尺パス進捗バー表示（data.monetization参照）"
+    - "3-B 視聴者層グラフ: 年齢層/性別/国別/デバイス別 doughnut+bar（data.demographics参照）"
+    - "3-C Retention折れ線: Top5動画タブ切替（data.retention_top5参照）"
+    - "3-D CTRトレンド二重軸: CTR+impressions折れ線（data.daily_extended参照）"
+    - "3-E 尺別・キャラ別パフォーマンス表（data.content_analysis参照）"
+    - "3-F 予測セクション: subs_3mo/views_3mo/subs_6mo（monetization_est_dateは表示しない）"
+    - "既存KPI/日次推移/トラフィック/動画一覧/ランキング/AI分析セクションが壊れていない"
+    - "git commit 済み"
+  notes:
+    - "対象: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/analytics/dashboard/index.html"
+    - "data.json: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/analytics/dashboard/data.json"
+    - "Chart.js は既存CDNを流用。3Dグラフ禁止（Chart.js v4非対応）→doughnut(2D)代替"
+    - "data.json の新keys不在時はgraceful degradation（セクション非表示）"
+    - "モバイル対応必須（800px以下でレイアウト崩れないこと）"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1434b完了。Phase3 dashboard新セクション6種実装済み。' report_completed ashigaru2"
+- task_id: subtask_1434b2
+  parent_cmd: cmd_1434
+  bloom_level: L4
+  status: in_progress
+  timestamp: "2026-04-24T08:20:21"
+  description: "generate_dashboard.py の HTML テンプレートに Phase3 セクション（6種）を追加。cronが毎日 generate_dashboard.py を呼び index.html を再生成するため、このスクリプトのテンプレートにも Phase3 を組み込まないと上書きされ続ける。"
+  target_path: "/home/murakami/multi-agent-shogun/scripts/generate_dashboard.py"
+  steps: "advisor()実装前確認→/home/murakami/multi-agent-shogun/scripts/generate_dashboard.py の generate_html() 関数（L663付近）をReadして既存テンプレート把握→/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/analytics/dashboard/index.html の Phase3 セクション（CSS L66-80 + HTML L97-234 + JS renderMonetization/renderDemographics/renderRetention/renderCTR/renderContentAnalysis/renderPredictions + 呼び出し L848-852）を把握→generate_dashboard.py の HTML 文字列生成箇所に同等内容を追加→cd /home/murakami/multi-agent-shogun && python3 /home/murakami/multi-agent-shogun/scripts/generate_dashboard.py --skip-video-analysis を実行→生成された index.html に renderMonetization 等 6 関数が存在することを grep で確認→advisor()完了前確認→git commit & push→ntfy通知"
+  acceptance_criteria:
+    - "generate_dashboard.py 実行後の index.html に renderMonetization / renderDemographics / renderRetention / renderCTR / renderContentAnalysis / renderPredictions が存在すること"
+    - "curl http://127.0.0.1:8080/ で section-monetization/demographics/retention/ctr/content-analysis/predictions の 6 セクションが返ること"
+    - "既存セクション（日次推移/トラフィック/動画別/ランキング/AI分析/KPI）が壊れていないこと"
+    - "git commit 済み（main repo & submodule）"
+  notes:
+    - "対象: /home/murakami/multi-agent-shogun/scripts/generate_dashboard.py（メインリポジトリ）"
+    - "generate_html() の HTML 文字列に Phase3 CSS + HTML + JS を追加する"
+    - "data.json の新 keys 不在時は graceful degradation（section-hidden クラス付与）を維持すること"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1434b2完了。generate_dashboard.py Phase3追加完了。' report_completed ashigaru2"
+    - "完了後ntfy: bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh '✅ cmd_1434 UI実装完了・新セクション6種表示確認'"
