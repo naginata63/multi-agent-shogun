@@ -1129,9 +1129,10 @@ def _run_suggest_director_notes(job_id, payload):
 
 - 日本語で、簡潔かつ具体的に
 - 余計な説明や前置きは不要。director_notesテキストのみ出力してください"""
+        # claude CLI 引数順序: --model を先に、-p prompt を最後に（-p直後がpromptとして解釈されるため）
         result = subprocess.run(
-            ['claude', '-p', '--model', 'sonnet', prompt],
-            capture_output=True, text=True, timeout=60
+            ['claude', '--model', 'sonnet', '-p', prompt],
+            capture_output=True, text=True, timeout=180
         )
         if result.returncode != 0:
             raise Exception(f'Claude CLI error: {result.stderr[:200]}')
