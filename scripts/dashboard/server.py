@@ -1697,6 +1697,95 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path == '/api/regenerate_partial_with_gemini':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length).decode('utf-8'))
+                panels_path = body.get('panels_path', '')
+                clip_path = body.get('clip_path', '')
+                target_ranges = body.get('target_ranges', [])
+                edited_rows = body.get('edited_rows', [])
+
+                if not panels_path or not clip_path or not target_ranges:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(b'{"error": "panels_path, clip_path, target_ranges required"}')
+                    return
+
+                # パストラバーサル防止
+                abs_panels = os.path.realpath(os.path.join(BASE_DIR, panels_path))
+                abs_clip = os.path.realpath(clip_path)
+                if not abs_panels.startswith(os.path.realpath(BASE_DIR) + os.sep):
+                    self.send_response(403)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(b'{"error": "panels_path outside project"}')
+                    return
+
+                import tempfile
+                job_id = uuid.uuid4().hex[:8]
+
+                # edited_rowsを一時ファイルに保存
+                tmp_edited = os.path.join(tempfile.gettempdir(), f'edited_rows_{job_id}.json')
+                with open(tmp_edited, 'w', encoding='utf-8') as f:
+                    json.dump(edited_rows, f, ensure_ascii=False)
+
+                # ranges文字列: "12-72,120-180"
+                ranges_str = ','.join(f'{int(s)}-{int(e)}' for s, e in target_ranges)
+
+                # 出力パス: panels_xxx_partial_v2.json
+                output_path = panels_path.replace('.json', '_partial_v2.json')
+
+                GENERATE_PANELS_SCRIPT = os.path.join(BASE_DIR, 'projects/dozle_kirinuki/scripts/generate_panel_candidates.py')
+                abs_base_panels = abs_panels
+
+                with _jobs_lock:
+                    _jobs[job_id] = {'status': 'queued', 'created': datetime.now().isoformat()}
+
+                def _run_partial_regen(jid, clip, ranges, tmp_json, out, base_panels):
+                    try:
+                        _jobs[jid]['status'] = 'running'
+                        cmd = [
+                            'python3', GENERATE_PANELS_SCRIPT,
+                            '--clip', clip,
+                            '--partial-ranges', ranges,
+                            '--edited-rows-json', tmp_json,
+                            '--respect-edits',
+                            '--base-panels', base_panels,
+                            '--output', os.path.join(BASE_DIR, out),
+                        ]
+                        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        stdout, stderr = proc.communicate(timeout=600)
+                        if proc.returncode == 0:
+                            with _jobs_lock:
+                                _jobs[jid] = {'status': 'done', 'output': out, 'error': None}
+                        else:
+                            err = stderr.decode('utf-8', errors='replace')[:500]
+                            with _jobs_lock:
+                                _jobs[jid] = {'status': 'error', 'output': None, 'error': err}
+                    except Exception as e:
+                        with _jobs_lock:
+                            _jobs[jid] = {'status': 'error', 'output': None, 'error': str(e)}
+
+                t = threading.Thread(
+                    target=_run_partial_regen,
+                    args=(job_id, abs_clip, ranges_str, tmp_edited, output_path, abs_base_panels),
+                    daemon=True
+                )
+                t.start()
+
+                resp = json.dumps({'status': 'processing', 'job_id': job_id}, ensure_ascii=False).encode('utf-8')
+                self.send_response(202)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp)))
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         else:
             self.send_response(404)
             self.end_headers()
