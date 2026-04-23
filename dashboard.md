@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-24 08:30
+最終更新: 2026-04-24 08:38
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -26,7 +26,7 @@
 
 | cmd | 担当 | 状態 |
 |-----|------|------|
-| cmd_1434 generate_dashboard.py修正 | 足軽2号 | subtask_1434b2 実行中 |
+| （進行中タスクなし） | — | — |
 
 ---
 
@@ -35,7 +35,7 @@
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
 | 1号 | GLM | ✅ idle | subtask_1435a 完了 |
-| 2号 | GLM | 🔄 in_progress | subtask_1434b2（generate_dashboard.py Phase3追加）|
+| 2号 | GLM | ✅ idle | subtask_1434b2 完了 |
 | 3号 | GLM | ✅ idle | — |
 | 4号 | GLM | ✅ idle | subtask_1425c2 完了 |
 | 5号 | GLM | ✅ idle | subtask_1425d2 完了 |
@@ -50,7 +50,7 @@
 | cmd | 内容 |
 |-----|------|
 | cmd_1425 | ✅ **完了** Day6 3視点DL+集約（tsurugi/hendy/charlotte 各9パート・part_info.json git commit d9fce67）|
-| cmd_1434 | ✅ Phase1+2+3+by_duration4区分完了。index.html restore済み・generate_dashboard.py修正中 |
+| cmd_1434 | ✅ **完了** Phase1+2+3+by_duration4区分全完了。generate_dashboard.py冪等生成対応済み・6セクション表示確認 git f5408ab |
 | nightly_audit_20260424_video | ✅ 動画制作系矛盾検出（CRITICAL×0 HIGH×0・MEDIUM×1 outro stderr deadlock）|
 | cmd_1428 | ✅ done化（殿判断: YouTube非公開アップ完結）|
 | cmd_1411/1413/1414 | ✅ done化（DoZ5日目ヒーラー漫画ショート・ゼピュロス3版投稿済みで終了・殿判断）|
