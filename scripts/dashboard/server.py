@@ -1703,14 +1703,13 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 body = json.loads(self.rfile.read(length).decode('utf-8'))
                 panels_path = body.get('panels_path', '')
                 clip_path = body.get('clip_path', '')
-                target_ranges = body.get('target_ranges', [])
                 edited_rows = body.get('edited_rows', [])
 
-                if not panels_path or not clip_path or not target_ranges:
+                if not panels_path or not clip_path or not edited_rows:
                     self.send_response(400)
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()
-                    self.wfile.write(b'{"error": "panels_path, clip_path, target_ranges required"}')
+                    self.wfile.write(b'{"error": "panels_path, clip_path, edited_rows required"}')
                     return
 
                 # パストラバーサル防止
@@ -1731,11 +1730,8 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 with open(tmp_edited, 'w', encoding='utf-8') as f:
                     json.dump(edited_rows, f, ensure_ascii=False)
 
-                # ranges文字列: "12-72,120-180"
-                ranges_str = ','.join(f'{int(s)}-{int(e)}' for s, e in target_ranges)
-
-                # 出力パス: panels_xxx_partial_v2.json
-                output_path = panels_path.replace('.json', '_partial_v2.json')
+                # 出力パス: panels_xxx_v2.json （元データ保護）
+                output_path = panels_path.replace('.json', '_v2.json')
 
                 GENERATE_PANELS_SCRIPT = os.path.join(BASE_DIR, 'projects/dozle_kirinuki/scripts/generate_panel_candidates.py')
                 abs_base_panels = abs_panels
@@ -1743,16 +1739,14 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 with _jobs_lock:
                     _jobs[job_id] = {'status': 'queued', 'created': datetime.now().isoformat()}
 
-                def _run_partial_regen(jid, clip, ranges, tmp_json, out, base_panels):
+                def _run_partial_regen(jid, clip, tmp_json, out):
                     try:
                         _jobs[jid]['status'] = 'running'
                         cmd = [
                             'python3', GENERATE_PANELS_SCRIPT,
                             '--clip', clip,
-                            '--partial-ranges', ranges,
                             '--edited-rows-json', tmp_json,
                             '--respect-edits',
-                            '--base-panels', base_panels,
                             '--output', os.path.join(BASE_DIR, out),
                         ]
                         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -1770,7 +1764,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
 
                 t = threading.Thread(
                     target=_run_partial_regen,
-                    args=(job_id, abs_clip, ranges_str, tmp_edited, output_path, abs_base_panels),
+                    args=(job_id, abs_clip, tmp_edited, output_path),
                     daemon=True
                 )
                 t.start()
