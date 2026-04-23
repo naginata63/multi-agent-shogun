@@ -194,12 +194,12 @@ def is_short(video):
 
 
 def get_daily_stats(analytics):
-    """日別統計（Analytics API）"""
+    """日別統計（Analytics API）- 拡張指標付き"""
     res = analytics.reports().query(
         ids=f"channel=={CHANNEL_ID}",
         startDate=ANALYTICS_START,
         endDate=ANALYTICS_END,
-        metrics="views,estimatedMinutesWatched,averageViewDuration,likes,subscribersGained",
+        metrics="views,estimatedMinutesWatched,averageViewDuration,likes,subscribersGained,subscribersLost,comments,shares,averageViewPercentage",
         dimensions="day",
         sort="day"
     ).execute()
@@ -213,6 +213,10 @@ def get_daily_stats(analytics):
             "avg_view_sec": int(row[3]),
             "likes": int(row[4]),
             "subs_gained": int(row[5]),
+            "subs_lost": int(row[6]) if len(row) > 6 else 0,
+            "comments": int(row[7]) if len(row) > 7 else 0,
+            "shares": int(row[8]) if len(row) > 8 else 0,
+            "avg_view_pct": round(float(row[9]), 1) if len(row) > 9 and row[9] is not None else None,
         }
         for row in rows
     ]
@@ -298,6 +302,207 @@ def get_traffic_sources(analytics):
         }
         for row in rows
     ]
+
+
+def get_content_type_stats(analytics):
+    """コンテンツタイプ別統計（short/longForm）"""
+    res = analytics.reports().query(
+        ids=f"channel=={CHANNEL_ID}",
+        startDate=ANALYTICS_START,
+        endDate=ANALYTICS_END,
+        metrics="views,estimatedMinutesWatched,subscribersGained",
+        dimensions="creatorContentType",
+        sort="-views"
+    ).execute()
+
+    result = {}
+    for row in res.get("rows", []):
+        ct = row[0]  # "short" or "longForm" or "liveStream"
+        result[ct] = {
+            "views": int(row[1]),
+            "watch_minutes": int(row[2]),
+            "subs_gained": int(row[3]),
+        }
+    return result
+
+
+def get_demographics(analytics):
+    """視聴者層（年齢・性別・国別）"""
+    result = {"age": [], "gender": {}, "country": []}
+
+    # 年齢別
+    try:
+        res = analytics.reports().query(
+            ids=f"channel=={CHANNEL_ID}",
+            startDate=ANALYTICS_START,
+            endDate=ANALYTICS_END,
+            metrics="views,estimatedMinutesWatched",
+            dimensions="ageGroup",
+            sort="-views"
+        ).execute()
+        result["age"] = [
+            {"group": row[0], "views": int(row[1]), "watch_minutes": int(row[2])}
+            for row in res.get("rows", [])
+        ]
+    except Exception as e:
+        print(f"  [警告] 年齢別取得失敗: {e}")
+
+    # 性別別
+    try:
+        res = analytics.reports().query(
+            ids=f"channel=={CHANNEL_ID}",
+            startDate=ANALYTICS_START,
+            endDate=ANALYTICS_END,
+            metrics="views",
+            dimensions="gender",
+        ).execute()
+        for row in res.get("rows", []):
+            g = row[0].lower()
+            result["gender"][g] = int(row[1])
+    except Exception as e:
+        print(f"  [警告] 性別別取得失敗: {e}")
+
+    # 国別 Top10
+    try:
+        res = analytics.reports().query(
+            ids=f"channel=={CHANNEL_ID}",
+            startDate=ANALYTICS_START,
+            endDate=ANALYTICS_END,
+            metrics="views,estimatedMinutesWatched",
+            dimensions="country",
+            sort="-views",
+            maxResults=10
+        ).execute()
+        result["country"] = [
+            {"code": row[0], "views": int(row[1]), "watch_minutes": int(row[2])}
+            for row in res.get("rows", [])
+        ]
+    except Exception as e:
+        print(f"  [警告] 国別取得失敗: {e}")
+
+    return result
+
+
+def get_device_stats(analytics):
+    """デバイス別統計"""
+    result = {"device_type": [], "os": []}
+
+    try:
+        res = analytics.reports().query(
+            ids=f"channel=={CHANNEL_ID}",
+            startDate=ANALYTICS_START,
+            endDate=ANALYTICS_END,
+            metrics="views,estimatedMinutesWatched",
+            dimensions="deviceType",
+            sort="-views"
+        ).execute()
+        result["device_type"] = [
+            {"type": row[0], "views": int(row[1]), "watch_minutes": int(row[2])}
+            for row in res.get("rows", [])
+        ]
+    except Exception as e:
+        print(f"  [警告] デバイス別取得失敗: {e}")
+
+    try:
+        res = analytics.reports().query(
+            ids=f"channel=={CHANNEL_ID}",
+            startDate=ANALYTICS_START,
+            endDate=ANALYTICS_END,
+            metrics="views",
+            dimensions="operatingSystem",
+            sort="-views",
+            maxResults=5
+        ).execute()
+        result["os"] = [
+            {"name": row[0], "views": int(row[1])}
+            for row in res.get("rows", [])
+        ]
+    except Exception as e:
+        print(f"  [警告] OS別取得失敗: {e}")
+
+    return result
+
+
+def get_audience_retention(analytics, videos):
+    """再生数TOP5動画のオーディエンスリテンション"""
+    top5 = sorted(videos, key=lambda v: v["views"], reverse=True)[:5]
+    result = {}
+
+    for v in top5:
+        vid = v["id"]
+        try:
+            res = analytics.reports().query(
+                ids=f"channel=={CHANNEL_ID}",
+                startDate=ANALYTICS_START,
+                endDate=ANALYTICS_END,
+                metrics="audienceWatchRatio",
+                dimensions="elapsedVideoTimeRatio",
+                filters=f"video=={vid}",
+                sort="elapsedVideoTimeRatio"
+            ).execute()
+            rows = res.get("rows", [])
+            if rows:
+                result[vid] = {
+                    "title": v["title"],
+                    "data": [
+                        {"ratio": round(float(row[0]), 2), "audienceWatchRatio": round(float(row[1]), 4)}
+                        for row in rows
+                    ]
+                }
+        except Exception as e:
+            print(f"  [警告] リテンション取得失敗 {vid}: {e}")
+
+    return result
+
+
+def get_impressions_ctr(analytics):
+    """インプレッション数・CTR（日次＋動画別）"""
+    result = {"daily": [], "per_video": []}
+
+    # 日次
+    try:
+        res = analytics.reports().query(
+            ids=f"channel=={CHANNEL_ID}",
+            startDate=ANALYTICS_START,
+            endDate=ANALYTICS_END,
+            metrics="impressions,impressionsClickThroughRate",
+            dimensions="day",
+            sort="day"
+        ).execute()
+        result["daily"] = [
+            {
+                "date": row[0],
+                "impressions": int(row[1]),
+                "ctr": round(float(row[2]) * 100, 2) if row[2] is not None else None,
+            }
+            for row in res.get("rows", [])
+        ]
+    except Exception as e:
+        print(f"  [警告] 日次インプレッション取得失敗: {e}")
+
+    # 動画別 TOP20
+    try:
+        res = analytics.reports().query(
+            ids=f"channel=={CHANNEL_ID}",
+            startDate=ANALYTICS_START,
+            endDate=ANALYTICS_END,
+            metrics="impressions,impressionsClickThroughRate",
+            dimensions="video",
+            sort="-impressions",
+            maxResults=20
+        ).execute()
+        result["per_video"] = [
+            {
+                "id": row[0],
+                "impressions": int(row[1]),
+                "ctr": round(float(row[2]) * 100, 2) if row[2] is not None else None,
+            }
+            for row in res.get("rows", [])
+        ]
+    except Exception as e:
+        print(f"  [警告] 動画別インプレッション取得失敗: {e}")
+
+    return result
 
 
 def load_prev_raw():
@@ -718,6 +923,52 @@ def main():
         except Exception as e:
             print(f"  [警告] 周回率取得失敗: {e}")
 
+    # --- Phase1 追加API指標 ---
+    content_type_stats = {}
+    if analytics:
+        print("[analytics] コンテンツタイプ別統計取得中...")
+        try:
+            content_type_stats = get_content_type_stats(analytics)
+            print(f"  {list(content_type_stats.keys())}")
+        except Exception as e:
+            print(f"  [警告] コンテンツタイプ別取得失敗: {e}")
+
+    demographics = {}
+    if analytics:
+        print("[analytics] 視聴者層取得中...")
+        try:
+            demographics = get_demographics(analytics)
+            print(f"  年齢:{len(demographics.get('age',[]))}件 国:{len(demographics.get('country',[]))}件")
+        except Exception as e:
+            print(f"  [警告] 視聴者層取得失敗: {e}")
+
+    device_stats = {}
+    if analytics:
+        print("[analytics] デバイス別統計取得中...")
+        try:
+            device_stats = get_device_stats(analytics)
+            print(f"  デバイス:{len(device_stats.get('device_type',[]))}件 OS:{len(device_stats.get('os',[]))}件")
+        except Exception as e:
+            print(f"  [警告] デバイス別取得失敗: {e}")
+
+    retention_top5 = {}
+    if analytics:
+        print("[analytics] オーディエンスリテンション取得中（TOP5動画）...")
+        try:
+            retention_top5 = get_audience_retention(analytics, videos)
+            print(f"  {len(retention_top5)}本取得")
+        except Exception as e:
+            print(f"  [警告] リテンション取得失敗: {e}")
+
+    impressions_ctr = {}
+    if analytics:
+        print("[analytics] インプレッション/CTR取得中...")
+        try:
+            impressions_ctr = get_impressions_ctr(analytics)
+            print(f"  日次:{len(impressions_ctr.get('daily',[]))}日 動画別:{len(impressions_ctr.get('per_video',[]))}本")
+        except Exception as e:
+            print(f"  [警告] インプレッション取得失敗: {e}")
+
     # 前日比計算
     prev_raw = load_prev_raw()
     if prev_raw:
@@ -735,6 +986,11 @@ def main():
         "daily_stats": daily_stats,
         "traffic_sources": traffic_sources,
         "per_video_analytics": per_video_analytics,
+        "content_type_stats": content_type_stats,
+        "demographics": demographics,
+        "device_stats": device_stats,
+        "retention_top5": retention_top5,
+        "impressions_ctr": impressions_ctr,
     }
     raw_path = ANALYTICS_DIR / f"{DATE_STR}_raw.json"
     with open(raw_path, "w", encoding="utf-8") as f:

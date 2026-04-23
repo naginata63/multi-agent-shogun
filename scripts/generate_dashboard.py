@@ -167,6 +167,176 @@ def build_daily_series(raw_list: list[dict]) -> dict:
     return series
 
 
+def build_daily_extended(raw_list: list[dict]) -> dict:
+    """日次拡張指標（comments, shares, subs_lost, avg_view_pct, impressions, ctr）"""
+    all_daily: dict[str, dict] = {}
+    all_impressions: dict[str, dict] = {}
+
+    for raw in raw_list:
+        for day in raw.get("daily_stats", []):
+            all_daily[day["date"]] = day
+        for imp in raw.get("impressions_ctr", {}).get("daily", []):
+            all_impressions[imp["date"]] = imp
+
+    sorted_dates = sorted(all_daily.keys())
+    return {
+        "dates": sorted_dates,
+        "comments": [all_daily[d].get("comments", 0) for d in sorted_dates],
+        "shares": [all_daily[d].get("shares", 0) for d in sorted_dates],
+        "subs_lost": [all_daily[d].get("subs_lost", 0) for d in sorted_dates],
+        "avg_view_pct": [all_daily[d].get("avg_view_pct") for d in sorted_dates],
+        "impressions": [all_impressions.get(d, {}).get("impressions", 0) for d in sorted_dates],
+        "ctr": [all_impressions.get(d, {}).get("ctr") for d in sorted_dates],
+    }
+
+
+def build_content_type(raw_list: list[dict]) -> dict:
+    """コンテンツタイプ別（short/longForm）統計"""
+    ct = latest_from_raw(raw_list, "content_type_stats", {})
+    key_map = {"shorts": "short", "videoOnDemand": "longForm", "liveStream": "live"}
+    result = {}
+    for api_key, out_key in key_map.items():
+        if api_key in ct:
+            result[out_key] = {
+                "views": ct[api_key].get("views", 0),
+                "watch_minutes": ct[api_key].get("watch_minutes", 0),
+                "subs_gained": ct[api_key].get("subs_gained", 0),
+            }
+    # Ensure both keys exist
+    for key in ("short", "longForm"):
+        if key not in result:
+            result[key] = {"views": 0, "watch_minutes": 0, "subs_gained": 0}
+    return result
+
+
+def build_demographics(raw_list: list[dict]) -> dict:
+    """視聴者層データ"""
+    demo = latest_from_raw(raw_list, "demographics", {})
+    return {
+        "age": demo.get("age", []),
+        "gender": demo.get("gender", {}),
+        "country": demo.get("country", []),
+        "device": latest_from_raw(raw_list, "device_stats", {}),
+    }
+
+
+def build_retention_top5(raw_list: list[dict]) -> dict:
+    """再生数TOP5動画のオーディエンスリテンション"""
+    return latest_from_raw(raw_list, "retention_top5", {})
+
+
+def build_monetization(raw_list: list[dict]) -> dict:
+    """YPP収益化条件の達成状況"""
+    ct = latest_from_raw(raw_list, "content_type_stats", {})
+
+    shorts_views = ct.get("shorts", {}).get("views", 0)
+    longform_watch_min = ct.get("videoOnDemand", {}).get("watch_minutes", 0)
+    longform_watch_hours = longform_watch_min / 60
+
+    total_views_90d = sum(
+        sum(d.get("views", 0) for d in r.get("daily_stats", []))
+        for r in raw_list[-90:] if raw_list
+    )
+    shorts_pct = round(shorts_views / total_views_90d * 100, 1) if total_views_90d > 0 else 0.0
+    longform_pct = round(longform_watch_hours / 4000 * 100, 1) if longform_watch_hours > 0 else 0.0
+
+    return {
+        "shorts_path_views_90d": shorts_views,
+        "shorts_path_pct": shorts_pct,
+        "longform_watch_hours_365d": round(longform_watch_hours, 1),
+        "longform_path_pct": longform_pct,
+    }
+
+
+def build_predictions(raw_list: list[dict]) -> dict:
+    """将来予測（3ヶ月/6ヶ月後の登録者・再生数）"""
+    if len(raw_list) < 7:
+        return {"subs_3mo": 0, "views_3mo": 0, "subs_6mo": 0}
+
+    recent = raw_list[-7:]
+    ch = recent[-1].get("channel", {})
+    current_subs = ch.get("subscribers", 0)
+    current_views = ch.get("total_views", 0)
+
+    first_ch = recent[0].get("channel", {})
+    first_subs = first_ch.get("subscribers", current_subs)
+    first_views = first_ch.get("total_views", current_views)
+
+    daily_sub_rate = max(0, (current_subs - first_subs) / len(recent))
+    daily_view_rate = max(0, (current_views - first_views) / len(recent))
+
+    return {
+        "subs_3mo": round(current_subs + daily_sub_rate * 90),
+        "views_3mo": round(current_views + daily_view_rate * 90),
+        "subs_6mo": round(current_subs + daily_sub_rate * 180),
+    }
+
+
+def build_content_analysis(raw_list: list[dict]) -> dict:
+    """動画の尺別・キャラ別分析"""
+    if not raw_list:
+        return {"by_duration": [], "by_character": []}
+
+    latest = raw_list[-1]
+    videos = [v for v in latest.get("videos", [])
+              if v.get("privacy_status", "public") == "public"]
+
+    # 尺別分析
+    duration_buckets = {"short": [], "medium": [], "long": []}
+    for v in videos:
+        sec = v.get("duration_sec", 0)
+        views = v.get("views", 0)
+        if sec <= 60:
+            duration_buckets["short"].append(views)
+        elif sec <= 180:
+            duration_buckets["medium"].append(views)
+        else:
+            duration_buckets["long"].append(views)
+
+    by_duration = []
+    for label, view_list in duration_buckets.items():
+        if view_list:
+            by_duration.append({
+                "category": label,
+                "count": len(view_list),
+                "avg_views": round(sum(view_list) / len(view_list)),
+                "total_views": sum(view_list),
+            })
+
+    # キャラ別分析（word boundary で誤爆防止）
+    import re as _re
+    character_patterns = {
+        "dozle": _re.compile(r'\bdozle\b|\bドズル\b', _re.IGNORECASE),
+        "bon": _re.compile(r'\bbon\b|\bぼん\b', _re.IGNORECASE),
+        "MEN": _re.compile(r'\bMEN\b(?!.*RAMEN)'),
+        "qnly": _re.compile(r'\bqnly\b', _re.IGNORECASE),
+        "orafu": _re.compile(r'\borafu\b|\bおらふ\b', _re.IGNORECASE),
+        "nekooji": _re.compile(r'\bnekooji\b|\bねこおじ\b', _re.IGNORECASE),
+    }
+
+    by_character = []
+    for name, pattern in character_patterns.items():
+        char_views = [v.get("views", 0) for v in videos if pattern.search(v.get("title", ""))]
+        if char_views:
+            by_character.append({
+                "character": name,
+                "count": len(char_views),
+                "avg_views": round(sum(char_views) / len(char_views)),
+                "total_views": sum(char_views),
+            })
+
+    return {"by_duration": by_duration, "by_character": by_character}
+
+
+def latest_from_raw(raw_list: list[dict], key: str, default=None):
+    """raw_listの末尾から指定キーの値を取得"""
+    for raw in reversed(raw_list):
+        val = raw.get(key)
+        if val:
+            return val
+    return default if default is not None else {}
+
+
 def build_video_table(latest_raw: dict, prev_raw: dict | None) -> list[dict]:
     """動画テーブルデータ構築（前日比・like_rate・loop_rate・avg_view_pct付き）"""
     videos = latest_raw.get("videos", [])
@@ -435,6 +605,15 @@ def generate_data_json(raw_list: list[dict], analysis: list[dict]) -> dict:
     jst = timezone(timedelta(hours=9))
     generated_at = datetime.now(jst).strftime("%Y-%m-%dT%H:%M:%S")
 
+    # Phase2 拡張データ
+    daily_extended = build_daily_extended(raw_list_filtered)
+    content_type = build_content_type(raw_list_filtered)
+    demographics = build_demographics(raw_list_filtered)
+    retention_top5 = build_retention_top5(raw_list_filtered)
+    monetization = build_monetization(raw_list_filtered)
+    predictions = build_predictions(raw_list_filtered)
+    content_analysis = build_content_analysis(raw_list_filtered)
+
     return {
         "generated_at": generated_at,
         "channel": {
@@ -444,6 +623,13 @@ def generate_data_json(raw_list: list[dict], analysis: list[dict]) -> dict:
             "video_count": ch.get("video_count", 0),
         },
         "daily_series": daily_series,
+        "daily_extended": daily_extended,
+        "content_type": content_type,
+        "demographics": demographics,
+        "retention_top5": retention_top5,
+        "monetization": monetization,
+        "predictions": predictions,
+        "content_analysis": content_analysis,
         "traffic_sources": traffic,
         "videos": videos,
         "analysis_history": analysis,
