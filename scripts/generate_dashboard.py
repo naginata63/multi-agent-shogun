@@ -294,17 +294,19 @@ def build_content_analysis(raw_list: list[dict]) -> dict:
     videos = [v for v in latest.get("videos", [])
               if v.get("privacy_status", "public") == "public"]
 
-    # 尺別分析
-    duration_buckets = {"short": [], "medium": [], "long": []}
+    # 尺別分析（4区分: <30s / 30-60s / 60-120s / 120s+）
+    duration_buckets = {"under_30s": [], "30_to_60s": [], "60_to_120s": [], "over_120s": []}
     for v in videos:
         sec = v.get("duration_sec", 0)
         views = v.get("views", 0)
-        if sec <= 60:
-            duration_buckets["short"].append(views)
-        elif sec <= 180:
-            duration_buckets["medium"].append(views)
+        if sec < 30:
+            duration_buckets["under_30s"].append(views)
+        elif sec <= 60:
+            duration_buckets["30_to_60s"].append(views)
+        elif sec <= 120:
+            duration_buckets["60_to_120s"].append(views)
         else:
-            duration_buckets["long"].append(views)
+            duration_buckets["over_120s"].append(views)
 
     by_duration = []
     for label, view_list in duration_buckets.items():
