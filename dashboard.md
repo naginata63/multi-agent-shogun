@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-24 08:22
+最終更新: 2026-04-24 08:30
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -26,9 +26,7 @@
 
 | cmd | 担当 | 状態 |
 |-----|------|------|
-| cmd_1435 --max-tokens削除 | 足軽1号 | subtask_1435a 実行中（work/cmd_1393フック問題あり）|
 | cmd_1434 generate_dashboard.py修正 | 足軽2号 | subtask_1434b2 実行中 |
-| cmd_1425 Day6 4視点集約 | 足軽5号 | subtask_1425d2 実行中 |
 
 ---
 
@@ -36,11 +34,11 @@
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | GLM | 🔄 in_progress | subtask_1435a（--max-tokens削除）|
+| 1号 | GLM | ✅ idle | subtask_1435a 完了 |
 | 2号 | GLM | 🔄 in_progress | subtask_1434b2（generate_dashboard.py Phase3追加）|
 | 3号 | GLM | ✅ idle | — |
 | 4号 | GLM | ✅ idle | subtask_1425c2 完了 |
-| 5号 | GLM | 🔄 in_progress | subtask_1425d2（Day6 4視点集約）|
+| 5号 | GLM | ✅ idle | subtask_1425d2 完了 |
 | 6号 | GLM | ✅ idle | — |
 | 7号 | GLM | ✅ idle | — |
 | 軍師 | Opus | ✅ idle | — |
@@ -51,7 +49,7 @@
 
 | cmd | 内容 |
 |-----|------|
-| cmd_1425 シャルロットDL | ✅ subtask_1425c2 PASS（--js-runtimes node でbot検知突破・9パート分割完了）|
+| cmd_1425 | ✅ **完了** Day6 3視点DL+集約（tsurugi/hendy/charlotte 各9パート・part_info.json git commit d9fce67）|
 | cmd_1434 | ✅ Phase1+2+3+by_duration4区分完了。index.html restore済み・generate_dashboard.py修正中 |
 | nightly_audit_20260424_video | ✅ 動画制作系矛盾検出（CRITICAL×0 HIGH×0・MEDIUM×1 outro stderr deadlock）|
 | cmd_1428 | ✅ done化（殿判断: YouTube非公開アップ完結）|
