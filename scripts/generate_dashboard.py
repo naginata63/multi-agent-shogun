@@ -726,6 +726,21 @@ def generate_html() -> str:
     .ranking-num { color: #888; width: 22px; flex-shrink: 0; text-align: right; margin-right: 6px; }
     .ranking-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #ccc; margin-right: 6px; }
     .ranking-val { color: var(--accent); font-weight: bold; flex-shrink: 0; }
+    /* Phase3: 新セクション */
+    .progress-bar-wrap { background: #2a2a4a; border-radius: 6px; height: 20px; overflow: hidden; margin: 6px 0; }
+    .progress-bar-fill { height: 100%; border-radius: 6px; transition: width 0.5s; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 0.85em; color: #aaa; }
+    .progress-value { font-weight: bold; color: var(--accent); }
+    .monetization-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 800px) { .monetization-grid { grid-template-columns: 1fr; } }
+    .demo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    @media (max-width: 800px) { .demo-grid { grid-template-columns: 1fr; } }
+    .prediction-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    @media (max-width: 800px) { .prediction-grid { grid-template-columns: 1fr; } }
+    .section-hidden { display: none; }
+    .perf-table th { cursor: default; }
+    .perf-table td, .perf-table th { text-align: right; }
+    .perf-table td:first-child, .perf-table th:first-child { text-align: left; }
   </style>
 </head>
 <body>
@@ -740,6 +755,23 @@ def generate_html() -> str:
       <div class="kpi-card"><div class="kpi-label">総再生数</div><div class="kpi-value" id="kpi-views">-</div></div>
       <div class="kpi-card"><div class="kpi-label">動画数</div><div class="kpi-value" id="kpi-vcount">-</div></div>
       <div class="kpi-card"><div class="kpi-label">前日再生増</div><div class="kpi-value" id="kpi-growth">-</div><div class="kpi-sub" id="kpi-growth-date"></div></div>
+    </div>
+
+    <!-- 3-A: 収益化進捗パネル -->
+    <div class="card" id="section-monetization">
+      <h2>収益化進捗</h2>
+      <div class="monetization-grid">
+        <div>
+          <div class="progress-label"><span>ショートパス（90日再生）</span><span class="progress-value" id="mon-short-val">-</span></div>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="mon-short-bar" style="width:0%;background:#e94560"></div></div>
+          <div style="font-size:0.8em;color:#666">目標: 1,000万再生</div>
+        </div>
+        <div>
+          <div class="progress-label"><span>長尺パス（365日視聴時間）</span><span class="progress-value" id="mon-long-val">-</span></div>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="mon-long-bar" style="width:0%;background:#0f3460"></div></div>
+          <div style="font-size:0.8em;color:#666">目標: 4,000時間</div>
+        </div>
+      </div>
     </div>
 
     <div class="card">
@@ -813,6 +845,55 @@ def generate_html() -> str:
     <div class="card">
       <h2>AI分析コメント</h2>
       <div id="analysis-list"><p id="no-data" style="display:none">分析コメントなし</p></div>
+    </div>
+
+    <!-- 3-B: 視聴者層グラフ -->
+    <div class="card" id="section-demographics">
+      <h2>視聴者層</h2>
+      <div class="demo-grid">
+        <div id="demo-age-wrap"><h3 style="font-size:0.95em;color:#aaa;margin:0 0 8px">年齢層</h3><canvas id="chart-age" style="max-height:250px"></canvas></div>
+        <div id="demo-gender-wrap"><h3 style="font-size:0.95em;color:#aaa;margin:0 0 8px">性別</h3><canvas id="chart-gender" style="max-height:250px"></canvas></div>
+        <div id="demo-country-wrap"><h3 style="font-size:0.95em;color:#aaa;margin:0 0 8px">国別（再生数 Top10）</h3><canvas id="chart-country" style="max-height:280px"></canvas></div>
+        <div id="demo-device-wrap"><h3 style="font-size:0.95em;color:#aaa;margin:0 0 8px">デバイス別</h3><canvas id="chart-device" style="max-height:250px"></canvas></div>
+      </div>
+    </div>
+
+    <!-- 3-C: Audience Retention -->
+    <div class="card" id="section-retention">
+      <h2>Audience Retention（Top5動画）</h2>
+      <div class="tab-btns" id="retention-tabs"></div>
+      <canvas id="retentionChart" style="max-height:320px"></canvas>
+    </div>
+
+    <!-- 3-D: CTRトレンド -->
+    <div class="card" id="section-ctr">
+      <h2>CTRトレンド</h2>
+      <canvas id="ctrChart" style="max-height:300px"></canvas>
+    </div>
+
+    <!-- 3-E: 尺別・キャラ別パフォーマンス -->
+    <div class="card" id="section-content-analysis">
+      <h2>尺別・キャラ別パフォーマンス</h2>
+      <div class="demo-grid">
+        <div>
+          <h3 style="font-size:0.95em;color:#aaa;margin:0 0 8px">尺別</h3>
+          <div class="table-wrap"><table class="perf-table" id="perf-duration-table"><thead><tr><th>カテゴリ</th><th>本数</th><th>平均再生</th><th>合計再生</th></tr></thead><tbody></tbody></table></div>
+        </div>
+        <div>
+          <h3 style="font-size:0.95em;color:#aaa;margin:0 0 8px">キャラ別</h3>
+          <div class="table-wrap"><table class="perf-table" id="perf-character-table"><thead><tr><th>キャラ</th><th>本数</th><th>平均再生</th><th>合計再生</th></tr></thead><tbody></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3-F: 予測セクション -->
+    <div class="card" id="section-predictions">
+      <h2>予測</h2>
+      <div class="prediction-grid">
+        <div class="kpi-card"><div class="kpi-label">3ヶ月後 登録者予測</div><div class="kpi-value" id="pred-subs-3mo">-</div></div>
+        <div class="kpi-card"><div class="kpi-label">6ヶ月後 登録者予測</div><div class="kpi-value" id="pred-subs-6mo">-</div></div>
+        <div class="kpi-card"><div class="kpi-label">3ヶ月後 累計再生予測</div><div class="kpi-value" id="pred-views-3mo">-</div></div>
+      </div>
     </div>
   </div>
 
@@ -1255,6 +1336,159 @@ function renderKPI() {
   }
 }
 
+// ── Phase3: 新セクション ──────────────────────────────────
+function renderMonetization() {
+  if (!data || !data.monetization) { hide(\'section-monetization\'); return; }
+  const m = data.monetization;
+  const shortPct = (m.shorts_path_pct || 0);
+  const longPct = (m.longform_path_pct || 0);
+  document.getElementById(\'mon-short-val\').textContent = fmt(m.shorts_path_views_90d) + \' / \' + fmt(10000000) + \' (\' + fmtPct(shortPct) + \')\';
+  document.getElementById(\'mon-short-bar\').style.width = Math.min(shortPct, 100) + \'%\';
+  document.getElementById(\'mon-long-val\').textContent = fmt(m.longform_watch_hours_365d) + \'h / 4,000h (\' + fmtPct(longPct) + \')\';
+  document.getElementById(\'mon-long-bar\').style.width = Math.min(longPct, 100) + \'%\';
+}
+
+function renderDemographics() {
+  if (!data || !data.demographics) { hide(\'section-demographics\'); return; }
+  const dg = data.demographics;
+  const colors = [\'#e94560\',\'#0f3460\',\'#533483\',\'#16aa6e\',\'#f9a825\',\'#2196f3\',\'#ff5722\',\'#9c27b0\',\'#00bcd4\',\'#607d8b\'];
+  let anyData = false;
+
+  if (dg.age && dg.age.length) {
+    anyData = true;
+    new Chart(document.getElementById(\'chart-age\'), {
+      type: \'doughnut\',
+      data: { labels: dg.age.map(a => a.group), datasets: [{ data: dg.age.map(a => a.views), backgroundColor: colors }] },
+      options: { plugins: { legend: { position: \'right\', labels: { color: \'#ccc\', font: { size: 11 } } } } }
+    });
+  } else { hide(\'demo-age-wrap\'); }
+
+  if (dg.gender && Object.keys(dg.gender).length) {
+    anyData = true;
+    const gKeys = Object.keys(dg.gender);
+    new Chart(document.getElementById(\'chart-gender\'), {
+      type: \'doughnut\',
+      data: { labels: gKeys, datasets: [{ data: gKeys.map(k => dg.gender[k].views || dg.gender[k]), backgroundColor: colors }] },
+      options: { plugins: { legend: { position: \'right\', labels: { color: \'#ccc\', font: { size: 11 } } } } }
+    });
+  } else { hide(\'demo-gender-wrap\'); }
+
+  if (dg.country && dg.country.length) {
+    anyData = true;
+    const top10 = dg.country.slice(0, 10);
+    new Chart(document.getElementById(\'chart-country\'), {
+      type: \'bar\',
+      data: { labels: top10.map(c => c.code), datasets: [{ label: \'再生数\', data: top10.map(c => c.views), backgroundColor: colors }] },
+      options: { indexAxis: \'y\', responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: \'#888\' }, grid: { color: \'#2a2a4a\' } }, y: { ticks: { color: \'#ccc\' }, grid: { color: \'#2a2a4a\' } } } }
+    });
+  } else { hide(\'demo-country-wrap\'); }
+
+  if (dg.device && dg.device.device_type && dg.device.device_type.length) {
+    anyData = true;
+    const dt = dg.device.device_type;
+    new Chart(document.getElementById(\'chart-device\'), {
+      type: \'doughnut\',
+      data: { labels: dt.map(d => d.type), datasets: [{ data: dt.map(d => d.views), backgroundColor: colors }] },
+      options: { plugins: { legend: { position: \'right\', labels: { color: \'#ccc\', font: { size: 11 } } } } }
+    });
+  } else { hide(\'demo-device-wrap\'); }
+
+  if (!anyData) hide(\'section-demographics\');
+}
+
+let retentionChartInstance = null;
+function renderRetention() {
+  if (!data || !data.retention_top5) { hide(\'section-retention\'); return; }
+  const r5 = data.retention_top5;
+  const videoIds = Object.keys(r5);
+  if (!videoIds.length) { hide(\'section-retention\'); return; }
+
+  const tabsEl = document.getElementById(\'retention-tabs\');
+  videoIds.forEach((vid, i) => {
+    const title = r5[vid].title || vid;
+    const shortTitle = title.length > 20 ? title.slice(0, 20) + \'...\' : title;
+    const btn = document.createElement(\'button\');
+    btn.className = \'tab-btn\' + (i === 0 ? \' active\' : \'\');
+    btn.textContent = shortTitle;
+    btn.onclick = () => showRetentionChart(vid, btn);
+    tabsEl.appendChild(btn);
+  });
+  showRetentionChart(videoIds[0], tabsEl.querySelector(\'.tab-btn\'));
+}
+
+function showRetentionChart(videoId, btn) {
+  document.querySelectorAll(\'#retention-tabs .tab-btn\').forEach(b => b.classList.remove(\'active\'));
+  if (btn) btn.classList.add(\'active\');
+  const rd = data.retention_top5[videoId];
+  if (!rd || !rd.data) return;
+  if (retentionChartInstance) { retentionChartInstance.destroy(); retentionChartInstance = null; }
+  const labels = rd.data.map(d => (d.ratio * 100).toFixed(0) + \'%\');
+  const values = rd.data.map(d => d.audienceWatchRatio);
+  retentionChartInstance = new Chart(document.getElementById(\'retentionChart\'), {
+    type: \'line\',
+    data: { labels, datasets: [{ label: \'視聴維持率\', data: values, borderColor: \'#e94560\', backgroundColor: \'rgba(233,69,96,0.1)\', fill: true, tension: 0.3, pointRadius: 0 }] },
+    options: {
+      responsive: true,
+      plugins: { legend: { labels: { color: \'#ccc\' } } },
+      scales: { x: { ticks: { color: \'#888\', maxTicksLimit: 10 }, grid: { color: \'#2a2a4a\' } }, y: { ticks: { color: \'#888\' }, grid: { color: \'#2a2a4a\' }, title: { display: true, text: \'視聴維持率\', color: \'#888\' } } }
+    }
+  });
+}
+
+function renderCTR() {
+  if (!data || !data.daily_extended) { hide(\'section-ctr\'); return; }
+  const de = data.daily_extended;
+  const ctrVals = (de.ctr || []).filter(v => v != null);
+  const impVals = (de.impressions || []).filter(v => v != null);
+  if (!ctrVals.length && !impVals.length) { hide(\'section-ctr\'); return; }
+
+  const labels = (de.dates || []).map(d => d.slice(5));
+  new Chart(document.getElementById(\'ctrChart\'), {
+    type: \'line\',
+    data: { labels, datasets: [
+      { label: \'CTR%\', data: de.ctr || [], borderColor: \'#e94560\', backgroundColor: \'transparent\', tension: 0.3, yAxisID: \'yL\', spanGaps: true },
+      { label: \'インプレッション\', data: de.impressions || [], borderColor: \'#2196f3\', backgroundColor: \'transparent\', tension: 0.3, yAxisID: \'yR\', spanGaps: true }
+    ] },
+    options: {
+      responsive: true,
+      plugins: { legend: { labels: { color: \'#ccc\' } } },
+      scales: {
+        x: { ticks: { color: \'#888\' }, grid: { color: \'#2a2a4a\' } },
+        yL: { ticks: { color: \'#888\' }, grid: { color: \'#2a2a4a\' }, title: { display: true, text: \'CTR%\', color: \'#888\' } },
+        yR: { position: \'right\', ticks: { color: \'#888\' }, grid: { drawOnChartArea: false }, title: { display: true, text: \'インプレッション\', color: \'#888\' } }
+      }
+    }
+  });
+}
+
+function renderContentAnalysis() {
+  if (!data || !data.content_analysis) { hide(\'section-content-analysis\'); return; }
+  const ca = data.content_analysis;
+
+  if (ca.by_duration && ca.by_duration.length) {
+    const tbody = document.querySelector(\'#perf-duration-table tbody\');
+    tbody.innerHTML = ca.by_duration.map(d => `<tr><td>${escHtml(d.category)}</td><td>${fmt(d.count)}</td><td>${fmt(d.avg_views)}</td><td>${fmt(d.total_views)}</td></tr>`).join(\'\');
+  } else { document.getElementById(\'perf-duration-table\').parentElement.parentElement.style.display = \'none\'; }
+
+  if (ca.by_character && ca.by_character.length) {
+    const tbody = document.querySelector(\'#perf-character-table tbody\');
+    tbody.innerHTML = ca.by_character.map(c => `<tr><td>${escHtml(c.character)}</td><td>${fmt(c.count)}</td><td>${fmt(c.avg_views)}</td><td>${fmt(c.total_views)}</td></tr>`).join(\'\');
+  } else { document.getElementById(\'perf-character-table\').parentElement.parentElement.style.display = \'none\'; }
+}
+
+function renderPredictions() {
+  if (!data || !data.predictions) { hide(\'section-predictions\'); return; }
+  const p = data.predictions;
+  document.getElementById(\'pred-subs-3mo\').textContent = fmt(p.subs_3mo);
+  document.getElementById(\'pred-subs-6mo\').textContent = fmt(p.subs_6mo);
+  document.getElementById(\'pred-views-3mo\').textContent = fmt(p.views_3mo);
+}
+
+function hide(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add(\'section-hidden\');
+}
+
 fetch(\'data.json\')
   .then(r => r.json())
   .then(d => {
@@ -1266,6 +1500,12 @@ fetch(\'data.json\')
     renderTable([...d.videos].sort((a, b) => (b.views || 0) - (a.views || 0)));
     renderAnalysis();
     renderRankings();
+    renderMonetization();
+    renderDemographics();
+    renderRetention();
+    renderCTR();
+    renderContentAnalysis();
+    renderPredictions();
     // ロード後にハッシュが既にあればルーティング
     route();
   })
