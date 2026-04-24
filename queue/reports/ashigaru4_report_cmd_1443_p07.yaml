@@ -1,0 +1,160 @@
+worker_id: ashigaru4
+task_id: cmd_1443_p07
+parent_cmd: cmd_1443
+timestamp: "2026-04-24T19:57:00+09:00"
+status: done
+result:
+  summary: |
+    cmd_1443 Wave B/p07 H9 Phase 間殿ゲート必須化を実装完了。shared_context/task_yaml_schema.md を
+    新設し、task YAML (verify:) + cmd YAML (phase_gate:) の schema を単一資産に集約。
+    cmd_template.md 内の verify 欄ガイダンスはポインタ化し二重管理を排除。
+    scripts/phase_gate_checker.sh (shell) を新設・--scan モード + 通常モード
+    (Phase完了通知→ntfy+dashboard🚨自動追加) を実装。実 dashboard.md への dry-run で
+    挿入位置が正しく 🚨 要対応セクション内・## 🔄 進行中 の前に入ることを確認。
+    unit test 11/11 pass + H1/p06 regression tests 30/30 pass (合計 41/41)。
+
+  files_modified:
+    - "/home/murakami/multi-agent-shogun/shared_context/task_yaml_schema.md (新設)"
+    - "/home/murakami/multi-agent-shogun/scripts/phase_gate_checker.sh (新設)"
+    - "/home/murakami/multi-agent-shogun/tests/unit/test_phase_gate.sh (新設)"
+    - "/home/murakami/multi-agent-shogun/context/cmd_template.md (verify 欄ガイダンスをポインタ化)"
+
+  deliverables:
+    - id: D1
+      title: "schema 単一正典: shared_context/task_yaml_schema.md"
+      detail: |
+        task YAML 9 必須フィールド・verify 欄 (cmd_1442 H1)・phase_gate 欄 (p07 H9) を 1 本に統合。
+        CHK1-CHK8 lint 一覧付き。cmd_template.md 内 verify 欄ガイダンスは supersede 済 (ポインタ化)。
+    - id: D2
+      title: "scripts/phase_gate_checker.sh (shell・新規.py禁止遵守)"
+      detail: |
+        通常モード: `phase_gate_checker.sh <cmd_id> <phase_n> [summary]`
+          → ntfy + dashboard.md 🚨要対応セクション末尾に自動追加 (flock 直列化)。
+          挿入位置は `## 🚨 要対応` セクション内・次の `## ` h2 の直前 (実ファイル dry-run 済)。
+          cmd_id が shogun_to_karo.yaml に無くても WARNING のみで実行継続。
+          ntfy.sh 失敗時も dashboard 追加は継続 (partial success)。
+        --scan モード: shogun_to_karo.yaml 全 cmd を走査し、多 Phase (Phase/Wave キーワード 2+ 回)
+          なのに phase_gate: 未宣言の cmd を PHASE_GATE_WARNING 行で stdout 出力 (未来の hook 連携用)。
+          サマリは stderr に出すため `2>/dev/null | grep PHASE_GATE_WARNING` で clean input 取得可。
+        --help サポート・引数欠落は exit 2 (usage 表示)。
+    - id: D3
+      title: "unit test 11 ケース"
+      where: "tests/unit/test_phase_gate.sh"
+      detail: |
+        --help / --scan / 通常モード / 不在 cmd_id / 単 Phase false positive 回避 /
+        dashboard 追記位置正当性 (regex 実測) / ntfy モック呼出 確認
+
+  acceptance_criteria_check:
+    - criterion: "shared_context/task_yaml_schema.md に phase_gate: 欄追加+例示"
+      status: PASS
+      evidence: "§2.2 phase_gate 欄 + 例 (cmd_1434) 掲載。task_yaml_schema.md は 125 行・単一正典化"
+    - criterion: "scripts/phase_gate_checker.sh 新設(shell・新規.py禁止)"
+      status: PASS
+      evidence: "shell + python3 -c / heredoc のみ使用 (既存 hook 群と同パターン)。新規 .py なし"
+    - criterion: "Phase完了検知→ntfy+dashboard🚨自動追加動作確認"
+      status: PASS
+      evidence: |
+        unit test Case 4 (mock) + 実 dashboard dry-run で PASS。
+        dry-run: cmd_1434 Phase 3 を実 dashboard.md コピーに挿入し、位置検証 (entry=4514 / next_h2=4695 / section_hdr=83) で INSERT_OK 確認
+    - criterion: "既存cmd regression なし"
+      status: PASS
+      evidence: |
+        pretool_check.sh 既存 CHK1-CHK8 は無変更。
+        test_done_gate.sh 8/8 + test_pretool_verify.sh 5/5 + test_pretool_lint.sh 17/17 = 30/30 regression clean。
+        --scan 実 shogun_to_karo.yaml で 9 cmd に PHASE_GATE_WARNING 出力だが情報提示のみで enforcement なし。
+        既存 cmd 動作は一切影響なし。
+    - criterion: "git commit 済み"
+      status: PENDING
+      evidence: "本報告書作成後に commit 予定 (明示パス指定・CHK8 遵守)"
+
+  test_results:
+    - suite: test_phase_gate.sh
+      cases: 11
+      pass: 11
+      fail: 0
+      cases_detail:
+        - "--help → exit 0"
+        - "引数なし → exit 2 (usage)"
+        - "scan 多 Phase cmd_9001 (未宣言) → PHASE_GATE_WARNING 検出"
+        - "scan cmd_9002 (phase_gate: required 宣言済) → 警告なし"
+        - "scan cmd_9003 (Phase キーワード 0 個) → 警告なし"
+        - "通常モード cmd_9999 Phase 2 → exit 0"
+        - "dashboard.md に新規 entry 追記"
+        - "挿入位置が 🚨 セクション内・次 ## 見出しの前"
+        - "ntfy モック呼出 OK"
+        - "不在 cmd_id は WARNING のみで exit 0 継続"
+        - "単 Phase cmd (キーワード 1 つ) → false positive なし"
+    - suite: regression (H1 harness + p06 lint)
+      suites:
+        test_done_gate.sh: "8/8 PASS"
+        test_pretool_verify.sh: "5/5 PASS"
+        test_pretool_lint.sh: "17/17 PASS"
+
+  scan_real_yaml_output: |
+    本実装の非侵襲性 evidence として、実 shogun_to_karo.yaml に対する --scan 結果を添付。
+    9 cmd が多 Phase なのに phase_gate: 未宣言として検出されたが、これは情報提示のみで
+    enforcement は伴わない (既存 cmd の動作に影響なし)。家老/将軍が必要に応じて
+    該当 cmd に phase_gate: required を追記する運用想定:
+      PHASE_GATE_WARNING: cmd_1385 keywords=Phase 1,Phase 2,Phase 3
+      PHASE_GATE_WARNING: cmd_1393 keywords=Phase 1,Phase 2
+      PHASE_GATE_WARNING: cmd_1428 keywords=Phase 1,Phase 2
+      PHASE_GATE_WARNING: cmd_1432 keywords=Phase 1,Phase 2
+      PHASE_GATE_WARNING: cmd_1434 keywords=Phase 1,Phase 2,Phase 3,Phase1,Phase2,Phase3
+      PHASE_GATE_WARNING: cmd_1440 keywords=Phase 1
+      PHASE_GATE_WARNING: cmd_1441 keywords=Phase1,Phase2
+      PHASE_GATE_WARNING: cmd_1442 keywords=Phase 1,Phase 2,Phase 3
+      PHASE_GATE_WARNING: cmd_1443 keywords=Wave A,Wave B,Wave C
+
+  design_decisions:
+    - point: "schema を task_yaml_schema.md に一元化 (supersede)"
+      decision: "cmd_template.md 内 verify 欄ガイダンスを削除・ポインタ化"
+      reason: "二重管理回避 (advisor 指摘反映)。schema の single source of truth 確立"
+    - point: "phase_gate は cmd-level のみ"
+      decision: "shogun_to_karo.yaml (cmd YAML) に限定・task YAML には導入せず"
+      reason: "Phase は cmd-wide 概念 (cmd_1434 Phase3 等)。task YAML には phase 概念が存在しない (advisor 指摘反映)"
+    - point: "手動起動のみ (PreToolUse/PostToolUse 連携 deferred)"
+      decision: "家老が Phase 完了検知時に手動呼出する前提で実装"
+      reason: |
+        auto-trigger hook 連携は複数 hour 工数・LOW 1h scope 超過 (advisor 指摘反映)。
+        本実装の構造 (--scan モード stdout cleanliness) は未来 hook 連携を阻害しない
+    - point: "--scan は情報提示のみ・exit 0 固定"
+      decision: "PHASE_GATE_WARNING prefix を stdout・SUMMARY を stderr に分離"
+      reason: "future pipe 連携 (grep '^PHASE_GATE_WARNING') で clean input 取得可能 (advisor 指摘反映)"
+    - point: "dashboard 追記時 flock 使用"
+      decision: "posttool_verify_runner.sh と同じ flock パターン採用"
+      reason: "家老/軍師の同時編集衝突回避"
+    - point: "cmd_id 不在時は warning continue"
+      decision: "exit 0 で dashboard 書込は継続"
+      reason: "運用中の typo や cmd_id 誤りで Phase gate 機能が全停止するのを避ける"
+
+  limitations:
+    - id: L1
+      description: "auto-trigger hook 連携は未実装 (手動呼出のみ)"
+      impact: "家老が Phase 完了を検知したタイミングで bash scripts/phase_gate_checker.sh を明示的に呼ぶ必要あり"
+      mitigation: "次 Wave で subtask_1443_p07b (future work) として hook 連携検討。--scan モードの stdout 仕様は連携を阻害しない"
+    - id: L2
+      description: "CHK7 (task YAML lint) は将来の karo writes も gating する"
+      impact: |
+        karo が新しい task を起票する際、9 必須フィールド欠落で BLOCK される。
+        これは意図された動作 (schema 遵守の機械化) だが、karo 運用側の把握必要
+      mitigation: "task_yaml_schema.md §3 に CHK7 の適用範囲を明記済。karo が必要フィールドを template から参照すれば BLOCK されない"
+    - id: L3
+      description: "date -Iseconds は GNU date 専用"
+      impact: "macOS/BSD 環境では fallback の %Y-%m-%dT%H:%M:%S (timezone なし) になり、dashboard 内の timestamp 形式が不揃い"
+      mitigation: "本 repo は Linux 運用前提 (WSL2) のため実害なし。必要なら date --iso-8601=seconds 等の互換代替に移行可能"
+    - id: L4
+      description: "phase_gate_checker.sh は単純な Phase キーワード検知のみ (セマンティック判定なし)"
+      impact: "'Phase 1' が複数回現れる単 Phase cmd を誤って多 Phase と判定する可能性 (例: cmd_1440 で 4 回の 'Phase 1' 言及)"
+      mitigation: "--scan 結果は情報提示のみ・enforcement なし。家老/将軍が実 cmd 構造を見て phase_gate 必要性を判断"
+
+skill_candidate:
+  found: false
+
+hotfix_notes: null
+
+next_actions:
+  - "git commit (明示パス指定・CHK8 遵守)"
+  - "inbox_write karo で完了報告"
+  - "軍師 QC 依頼 (phase_gate_checker.sh logic + schema doc の網羅性検証)"
+  - "Follow-up 候補: auto-trigger hook 連携 (家老が Phase 完了 inbox_write 受信時に自動呼出)"
+  - "Follow-up 候補: 既存 9 cmd (cmd_1385 等) への phase_gate: required 追記 (家老判断)"

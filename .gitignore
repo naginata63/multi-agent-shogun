@@ -90,6 +90,7 @@
 !shared_context/cmem_quickstart.md
 !shared_context/cron_inventory.md
 !shared_context/crontab.snapshot.txt
+!shared_context/task_yaml_schema.md
 
 # Python venv
 !requirements.txt
@@ -179,6 +180,7 @@
 !scripts/cron_health_check.sh
 !scripts/done_gate.sh
 !scripts/posttool_verify_runner.sh
+!scripts/phase_gate_checker.sh
 !scripts/silent_fail_watcher.sh
 !systemd/
 !systemd/silent_fail_watcher.service
