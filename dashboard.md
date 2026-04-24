@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-24 15:59
+最終更新: 2026-04-24 16:19
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -15,9 +15,9 @@
 **全D判断確定（2026-04-24 15:50-15:57）:**
 | # | 判断 | 実装状況 |
 |---|------|---------|
-| ~~D7訂正~~ | ✅A確定(expression_index温存) | 足軽5号完了・軍師QC中 |
-| ~~D10~~ | ✅β確定(L1-4=GLM/L5-6=Opus[1m]・Sonnet除外) | 足軽4号 subtask_1441_p05 実装中 |
-| ~~D3~~ | ✅a確定(whitelist継続+skill-creator自動化) | 足軽1号 subtask_1441_p04 実装中 |
+| ~~D7訂正~~ | ✅A確定(expression_index温存) | ✅**完全完了** 軍師qc_1441_p20 PASS(MCP 18→8件・archive 184行・count_discrepancy加点) |
+| ~~D10~~ | ✅β確定(L1-4=GLM/L5-6=Opus[1m]・Sonnet除外) | 足軽4号実装完了(commit 1c8bb06)→軍師QC待ち |
+| ~~D3~~ | ✅a確定(whitelist継続+skill-creator自動化) | ✅**完全完了** 軍師qc_1441_p04 PASS(334行・保守的deviation加点) |
 | ~~D5~~ | ✅b確定(現状維持・archive化しない) | 作業不要（将来Codex/Copilot復帰用に温存） |
 | ~~D6~~ | ✅c確定(スリム化案作成) | 軍師 memory_md_slim_proposal.md 作成中 |
 | ~~D9~~ | ✅a確定(filter-repo+force-with-lease) | 未発令（destructive・慎重）|
@@ -31,6 +31,19 @@
 - D9 未発令（次段で足軽へ割当予定）
 
 詳細: `work/cmd_1441/execution_plan_v2.md` + `decision_gates_v2.md` (commit 94383d7)
+
+### 🚨 cmd_1442 ハーネス設計完了（殿提示・Phase C発令判断要）
+**軍師 subtask_1442a 完了** commit 95895ce (failure_clusters 5cluster/18事例 + existing_harness 17×5matrix/穴G1-G10 + harness_proposal 13件4軸評価)
+
+**優先度配置:**
+- **A (今週・5件・~12-15h)**: H1 完了後curl自動 / H2 dashboard残骸lifecycle / H3+H8 cmd発令前mem-search / H4 silent fail検知 / H7 hotfix3回→skill提案
+- **B (2週内・4件・~4h)**: H5 cmd YAML lint / H9 Phase間殿ゲート / H10 / H11
+- **C (来月・2件・~1.5h)**: H12 / H13 形骸化防止
+- 除外: H6 (既存資産重複) / H14/H15 (合流処理済)
+
+**期待効果:** 殿激怒5+件/月 → ≤1件/月 / hotfix独立発明3-5件/月 → ≤1件/月
+
+**判断要:** Wave A(今週) 5件を Phase C として発令するか殿承認。詳細 `work/cmd_1442/harness_proposal.md`
 
 ### 🚨 スキル化候補（殿承認要）
 - **skill-candidate-tracker**: スキル化候補のトラッキング・棚卸しツール化（足軽7号 subtask_1441ghi で浮上・skill_candidate:true）
@@ -54,7 +67,8 @@
 | cmd | 担当 | 状態 |
 |-----|------|------|
 | cmd_1436 | — | ✅ **完了** todolist.md作成済み(将軍) |
-| cmd_1441 | 全員 | 🔄 全D確定・Wave A並列実行(D3/D7/D10/D6進行・D9未発令・D8別軸) |
+| cmd_1441 | 全員 | 🔄 Wave A進行(D3完了/D7完了→QC中/D10実装中/D6案作成中・D9未発令) |
+| cmd_1442 | 軍師 | ✅ **設計完了** ハーネス提案13件(A5/B4/C2・~18-21h)・commit 95895ce・殿提示待ち |
 | cmd_1437 | 足軽1号 | ✅ 収益化進捗セクション削除完了 commit 73fc9c0c+d2dde95 |
 | cmd_1438 | 軍師 | ✅ PASS メンバー名日本語化/命名衝突/caption/by_duration/Chart destroy全完了 |
 
@@ -64,14 +78,14 @@
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | Opus[1m] | 🔄 作業中 | subtask_1441_p04 (D3: skill-creator .gitignore自動化工程追記) |
+| 1号 | Opus[1m] | ✅ idle | subtask_1441_p04 ✅完全完了(D3 334行/9061910・qc PASS加点) |
 | 2号 | Opus[1m] | ✅ idle | subtask_1441b 完了 |
 | 3号 | Opus[1m] | ✅ idle | subtask_1441c 完了 |
-| 4号 | Opus[1m] | 🔄 作業中 | subtask_1441_p05 (D10: bloom_routing+capability_tiers追加) |
-| 5号 | Opus[1m] | ✅ idle | subtask_1441_p20 完了(D7 10件delete+expression_index温存)・軍師QC中 |
+| 4号 | Opus[1m] | ✅ idle | subtask_1441_p05 完了(D10 bloom_routing+capability_tiers/1c8bb06)・QC待ち |
+| 5号 | Opus[1m] | ✅ idle | subtask_1441_p20 ✅完全完了(qc_1441_p20 PASS・count_discrepancy加点評価) |
 | 6号 | Opus[1m] | ✅ idle | subtask_1441f 完了(ashigaru6_f.md 114行/8案/040ff46) |
 | 7号 | Opus[1m] | ✅ idle | subtask_1441ghi 完了(ashigaru7_ghi.md 206行/22案/6c704fb) |
-| 軍師 | Opus[1m] | 🔄 作業中 | qc_1441_p20 → subtask_1441_p10_memory_slim(D6 MEMORY.md スリム化案) |
+| 軍師 | Opus[1m] | 🔄 作業中 | p20 ✅/p04 ✅/cmd_1442 ✅/p05 QC→memory_slim(D6)着手中 |
 
 ---
 
