@@ -6,7 +6,9 @@ LOCK_FILE="/tmp/automation_cmd_rag.lock"
 exec 200>"$LOCK_FILE"
 flock -n 200 || { echo "already running"; exit 0; }
 
-cd /home/murakami/multi-agent-shogun
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+cd "$REPO_DIR"
 PYTHON=".venv/bin/python3"
 source ~/.bashrc
 
@@ -27,7 +29,7 @@ fi
 
 # 既に処理済みか確認
 # 永続ディレクトリに移行 (/tmp は再起動で消失 → 重複 RAG 実行の恐れ)
-FLAGS_DIR="/home/murakami/multi-agent-shogun/queue/.flags"
+FLAGS_DIR="$REPO_DIR/queue/.flags"
 mkdir -p "$FLAGS_DIR"
 LAST_PROCESSED="$FLAGS_DIR/cmd_rag_last_processed"
 if [ -f "$LAST_PROCESSED" ] && [ "$(cat $LAST_PROCESSED)" = "$LAST_CMD_ID" ]; then

@@ -32,7 +32,7 @@ from aiohttp import web, ClientSession, ClientTimeout
 
 PROXY_PORT = 8780
 UPSTREAM_URL = "https://api.z.ai/api/anthropic"
-CLAUDE_CLI = "/home/murakami/.local/bin/claude"
+CLAUDE_CLI = os.path.expanduser("~/.local/bin/claude")
 ADVISOR_MODEL = os.environ.get("ADVISOR_MODEL", "claude-opus-4-6[1m]")  # 殿指示: advisorは4.6固定（4.7化で品質退化確認のため）
 ADVISOR_TIMEOUT = 90  # seconds for claude -p
 UPSTREAM_TIMEOUT = 300  # seconds for Z.AI responses
@@ -263,7 +263,7 @@ async def call_advisor_cli(context: str, model_override: str | None = None) -> s
                 capture_output=True,
                 text=True,
                 timeout=ADVISOR_TIMEOUT,
-                env={**os.environ, "HOME": "/home/murakami"},
+                env={**os.environ, "HOME": os.path.expanduser("~")},
             )
             if result.returncode == 0 and result.stdout.strip():
                 return result.stdout.strip()

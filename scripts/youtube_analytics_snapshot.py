@@ -3,10 +3,10 @@
 youtube_analytics_snapshot.py — YouTube日次レポート自動取得スクリプト
 
 毎日5:57にcrontabから実行:
-    57 5 * * * cd /home/murakami/multi-agent-shogun && venv/bin/python3 scripts/youtube_analytics_snapshot.py >> projects/dozle_kirinuki/analytics/cron.log 2>&1
+    57 5 * * * cd $HOME/multi-agent-shogun && venv/bin/python3 scripts/youtube_analytics_snapshot.py >> projects/dozle_kirinuki/analytics/cron.log 2>&1
 
 手動実行:
-    cd /home/murakami/multi-agent-shogun
+    cd $HOME/multi-agent-shogun
     source venv/bin/activate
     python3 scripts/youtube_analytics_snapshot.py
 """
@@ -26,7 +26,7 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 
 # --- Paths ---
-BASE_DIR = Path(__file__).parent.parent  # /home/murakami/multi-agent-shogun
+BASE_DIR = Path(__file__).parent.parent
 PROJECT_DIR = BASE_DIR / "projects" / "dozle_kirinuki"
 ANALYTICS_DIR = PROJECT_DIR / "analytics"
 TOKEN_PATH = PROJECT_DIR / "token.json"
@@ -831,7 +831,7 @@ def setup_crontab():
         return
 
     cron_entry = (
-        "57 5 * * * cd /home/murakami/multi-agent-shogun && "
+        f"57 5 * * * cd {BASE_DIR} && "
         "venv/bin/python3 scripts/youtube_analytics_snapshot.py >> "
         "projects/dozle_kirinuki/analytics/cron.log 2>&1"
     )

@@ -29,7 +29,7 @@ LOCATION = "global"
 MODEL = "gemini-2.5-flash"
 VIEWPORT_WIDTH = 800
 SECTION_HEIGHT = 1200
-REPORT_DIR = Path("/home/murakami/multi-agent-shogun/queue/reports")
+REPORT_DIR = Path(__file__).parent.parent / "queue" / "reports"
 GCS_BUCKET = "shogun-manga-refs"
 
 QC_PROMPT = """このnote記事エディタのスクリーンショットを厳しくQCせよ。

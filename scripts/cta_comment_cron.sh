@@ -6,7 +6,7 @@
 
 set -euo pipefail
 
-REPO_DIR="/home/murakami/multi-agent-shogun"
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SCRIPT="$REPO_DIR/scripts/cta_comment.py"
 LOG_DIR="$REPO_DIR/logs"
 

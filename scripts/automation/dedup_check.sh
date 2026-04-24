@@ -5,12 +5,14 @@ LOCK_FILE="/tmp/automation_dedup.lock"
 exec 200>"$LOCK_FILE"
 flock -n 200 || exit 0
 
-cd /home/murakami/multi-agent-shogun
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+cd "$REPO_DIR"
 PYTHON=".venv/bin/python3"
 source ~/.bashrc
 
 # 永続ディレクトリに移行 (/tmp は再起動で消失 → 毎回全件再走査で負荷増)
-FLAGS_DIR="/home/murakami/multi-agent-shogun/queue/.flags"
+FLAGS_DIR="$REPO_DIR/queue/.flags"
 mkdir -p "$FLAGS_DIR"
 LAST_CHECK="$FLAGS_DIR/dedup_last_check"
 REPORT_FILE="queue/reports/dedup_warnings.yaml"

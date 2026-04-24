@@ -406,7 +406,7 @@ async def run_with_cookie_fallback(
     import sqlite3
     from datetime import datetime
 
-    CHROME_PROFILE = Path("/home/murakami/.config/google-chrome/Default")
+    CHROME_PROFILE = Path.home() / ".config" / "google-chrome" / "Default"
     TEMP_PROFILE = Path("/tmp/chrome_yt_studio_session")
 
     def decrypt_cookies():

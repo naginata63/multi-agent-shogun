@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 07:40
+最終更新: 2026-04-25 07:44
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -8,10 +8,16 @@
 
 ## 🚨 要対応（殿の御判断必要）
 
-### 🔄 cmd_1452 Phase3 実行中（Tier-A 72GB削除・足軽1号担当）
+### 🚨 cmd_1452 Phase3 完了・80%目標未達（df 84%・追加対応要否判断）
 
-**殿判断確定(07:16)**: ★Option A★ Tier-A全削除のみ。Tier-B/Cは触るな。
-足軽1号 disk掃除実行中。完了後 df -h 80%以下確認 → 軍師QC → 家老 ntfy通知予定。
+**実績**: Tier-A 35GB回収(88%→84%)・目標80%未達。軍師QC中。
+**原因分析中**: 計画72GB中35GBのみ回収→pin保護/lsof稼働/実ファイルサイズ差異の可能性。
+軍師QC報告後、追加削除が必要かの殿判断要。
+
+### 🚨 cmd_1451 HIGH Finding（silent_fail_watcher 新規noise大量発生）
+
+07:12以降、genai_daily.log 403/404/429 HTTP error と advisor_proxy INFO行が新規noise として大量発生。
+is_noise_line() にこれらのパターン追加が必要。**別cmdで速やか対応推奨**。
 
 ### ℹ️ スキル化候補（殿承認済・発令済）
 - ~~**skill-candidate-tracker**~~: ✅ **完遂 02:54** commit ccd613e・qc_1447発令中
@@ -68,12 +74,14 @@
 | cmd_1448 | 足軽3号→軍師 | 🔄 完遂・qc_1448 発令中(00:30-02:30 cron観察 hit=0 主流・C01-C10 再発なし) |
 | cmd_1449 | — | ✅ **全5領域完遂宣言 23:51** 軍師4件連続QC(a=PASS/b=PASS_with_AC_note/c=PASS/d=PASS_with_hook_finding)+e=設計doc完遂(a312447) |
 | cmd_1450 | — | ✅ **完遂 23:57** 軍師qc_1450 PASS(AC 9全PASS・本文2079字・題材A1・draft gate堅持)・⚠️pre-publish fact-check 1件(L55 framing gap 殿確認要) |
-| cmd_1451 | 足軽2号→軍師 | 🔄 完遂(commit 877b53e+01108a6)・qc_1451 軍師再発令中(06:44→07:33再nudge) |
-| cmd_1452 | 足軽1号 | 🔄 **Phase3実行中** 殿承認Option A(07:16)・Tier-A 72GB削除・df 80%確認後QC |
+| cmd_1447 | 足軽6号→軍師 | ✅ **PASS_with_finding(07:41)** skill_inventory.log 旧ERROR tail-200残存(INFO・実装bug非該当) |
+| cmd_1448 | 足軽3号→軍師 | ✅ **PASS_with_finding(07:41)** 03:30以降C01再発=tail-200窓内残存疑い(MEDIUM・別cmd推奨) |
+| cmd_1451 | 足軽2号→軍師 | ✅ **PASS_with_finding(07:41)** 07:12以降新規noise大量発生(HIGH・is_noise_line拡張別cmd要) |
+| cmd_1452 | 足軽1号→軍師QC中 | 🔄 **Phase3完遂・軍師QC中** 35GB回収(88%→84%)・目標80%未達・原因分析中 |
 | cmd_1453 | — | ✅ **完遂 07:00** inbox_watcher.sh glm CLI追加(commit dadc4cd)・watcher再起動待ち |
 | cmd_1455 | 足軽4号→軍師 | 🔄 **発令済(07:27)** H_post done_gate.sh拡張(≤20行diff・設計doc a312447) |
-| cmd_1456 a/c/d | 足軽5/6/7号→軍師 | 🔄 **a=✅完遂(commit eb5820b/7箇所)** c=ashigaru6進行中/d=ashigaru7進行中 |
-| subtask_1450_cleanup | 足軽2号 | 🔄 **発令済(07:32)** note下書き2件削除(殿判断破棄・URL 2件) |
+| cmd_1456 a/c/d | 足軽5/6/7号→軍師 | 🔄 **a=✅(eb5820b/7箇所)/c=進行中/d=✅(ed199ab)** c完了後一括QC予定 |
+| subtask_1450_cleanup | 足軽2号→軍師QC中 | ✅ **完遂** note下書き2件削除・両URL404確認・ntfy送信済・軍師QC中 |
 | nightly_audit_20260425_infra | — | ✅ **完遂 02:14** 軍師8件検出(C=0/H=0/M=4/I=4)・対処: cmd_1453✅/cmd_1456進行中 |
 
 ---
@@ -82,14 +90,14 @@
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | GLM | 🔄 busy | cmd_1452_p3 Tier-A disk掃除(07:27発令・72GB削除目標) |
-| 2号 | GLM | 🔄 busy | subtask_1450_cleanup note下書き2件削除(07:32発令・CDP使用) |
-| 3号 | Opus[1m] | ✅ idle | cmd_1448 ✅完遂・qc_1448 軍師再発令中 |
-| 4号 | GLM | 🔄 busy | cmd_1455 H_post done_gate.sh拡張(07:27発令・≤20行diff) |
-| 5号 | GLM | 🔄 busy | subtask_1456a inbox_watcher .venv環境変数化6箇所(07:27発令) |
-| 6号 | GLM | 🔄 busy | subtask_1456c scripts $HOME化11箇所(07:27発令) |
-| 7号 | GLM | 🔄 busy | subtask_1456d task_yaml_schema post_steps追記(07:27発令) |
-| 軍師 | Opus[1m] | 🔄 QC中 | qc_1447/1448/1451 再発令(07:33再nudge・セッション消失からの再開) |
+| 1号 | GLM | ✅ idle | cmd_1452_p3 ✅完遂 35GB回収(88%→84%)・軍師QC中 |
+| 2号 | GLM | ✅ idle | subtask_1450_cleanup ✅完遂 note下書き2件削除・軍師QC中 |
+| 3号 | Opus[1m] | ✅ idle | cmd_1448 ✅完遂・軍師PASS_with_finding |
+| 4号 | GLM | 🔄 busy | cmd_1455 H_post done_gate.sh拡張(07:27発令・進行中) |
+| 5号 | GLM | ✅ idle | subtask_1456a ✅完遂(commit eb5820b/7箇所)・軍師QC中 |
+| 6号 | GLM | 🔄 busy | subtask_1456c scripts $HOME化11箇所(07:27発令・進行中) |
+| 7号 | GLM | ✅ idle | subtask_1456d ✅完遂(commit ed199ab)・cmd_1456c完了後一括QC |
+| 軍師 | Opus[1m] | 🔄 QC中 | qc_subtask_1456a/qc_cmd_1452_p3/qc_subtask_1450_cleanup(07:43発令) |
 
 ---
 

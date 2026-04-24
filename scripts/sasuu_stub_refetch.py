@@ -14,9 +14,9 @@ from pathlib import Path
 import fitz  # PyMuPDF
 from playwright.sync_api import sync_playwright
 
-CHROME_PROFILE = "/home/murakami/.cache/ms-playwright/note-profile"
-PDF_DIR = Path("/home/murakami/multi-agent-shogun/work/cmd_1039/pdfs")
-MD_DIR = Path("/home/murakami/multi-agent-shogun/work/cmd_1039/articles")
+CHROME_PROFILE = str(Path.home() / ".cache" / "ms-playwright" / "note-profile")
+PDF_DIR = Path(__file__).parent.parent / "work" / "cmd_1039" / "pdfs"
+MD_DIR = Path(__file__).parent.parent / "work" / "cmd_1039" / "articles"
 
 STUB_NUMS = [
     29, 31, 33, 35, 38, 41, 44, 45, 46, 47, 48, 49,

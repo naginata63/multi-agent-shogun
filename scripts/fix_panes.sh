@@ -11,7 +11,7 @@ set -euo pipefail
 
 SESSION="multiagent"
 WINDOW=0
-WORKDIR="/home/murakami/multi-agent-shogun"
+WORKDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # CLI Adapter読み込み（settings.yaml の type/model に従って起動コマンドを構築）
 if [ -f "$WORKDIR/lib/cli_adapter.sh" ]; then

@@ -6,11 +6,13 @@ LOCK_FILE="/tmp/automation_post_fetch.lock"
 exec 200>"$LOCK_FILE"
 flock -n 200 || { echo "already running"; exit 0; }
 
-LOG="/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/logs/post_fetch.log"
-REPORT_DIR="/home/murakami/multi-agent-shogun/queue/reports"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+LOG="$REPO_DIR/projects/dozle_kirinuki/logs/post_fetch.log"
+REPORT_DIR="$REPO_DIR/queue/reports"
 
-cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
-source /home/murakami/multi-agent-shogun/venv/bin/activate
+cd "$REPO_DIR/projects/dozle_kirinuki"
+source "$REPO_DIR/venv/bin/activate"
 source ~/.bashrc  # GEMINI_API_KEY
 
 # 最新動画IDを取得（auto_fetchのログから）— sentimentのみ使用

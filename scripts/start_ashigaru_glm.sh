@@ -7,7 +7,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-GLM_HOME="/home/murakami/.claude_glm"
+GLM_HOME="$HOME/.claude_glm"
 API_KEY_FILE="$PROJECT_ROOT/config/glm_api_key.env"
 SETTINGS_FILE="$GLM_HOME/.claude/settings.json"
 
@@ -29,7 +29,7 @@ fi
 mkdir -p "$GLM_HOME/.claude"
 
 # ADC認証ファイルを通常HOMEからコピー（Vertex AI用）
-MAIN_ADC="/home/murakami/.config/gcloud/application_default_credentials.json"
+MAIN_ADC="$HOME/.config/gcloud/application_default_credentials.json"
 GLM_ADC="$GLM_HOME/.config/gcloud/application_default_credentials.json"
 if [[ -f "$MAIN_ADC" ]]; then
     mkdir -p "$GLM_HOME/.config/gcloud"
@@ -48,7 +48,7 @@ cat > "$SETTINGS_FILE" << EOF
   },
   "env": {
     "ANTHROPIC_AUTH_TOKEN": "$ZAI_API_KEY",
-    "ANTHROPIC_BASE_URL": "https://api.z.ai/api/anthropic",
+    "ANTHROPIC_BASE_URL": "http://localhost:8780",
     "API_TIMEOUT_MS": "3000000",
     "ANTHROPIC_DEFAULT_HAIKU_MODEL": "glm-4.5-air",
     "ANTHROPIC_DEFAULT_SONNET_MODEL": "glm-5.1",

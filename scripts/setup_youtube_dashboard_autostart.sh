@@ -6,7 +6,9 @@
 
 set -e
 
-DASHBOARD_DIR="/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/analytics/dashboard"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+DASHBOARD_DIR="$REPO_DIR/projects/dozle_kirinuki/analytics/dashboard"
 SERVICE_DIR="$HOME/.config/systemd/user"
 AUTOSTART_DIR="$HOME/.config/autostart"
 
@@ -14,14 +16,14 @@ echo "=== YouTube Dashboard Autostart Setup ==="
 
 # 1. systemdユーザーサービス作成
 mkdir -p "$SERVICE_DIR"
-cat > "$SERVICE_DIR/youtube-dashboard.service" << 'EOF'
+cat > "$SERVICE_DIR/youtube-dashboard.service" << EOF
 [Unit]
 Description=YouTube Analytics Dashboard HTTP Server
 After=default.target
 
 [Service]
 Type=simple
-WorkingDirectory=/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/analytics/dashboard
+WorkingDirectory=$DASHBOARD_DIR
 ExecStartPre=/bin/bash -c '! ss -tlnp | grep -q ":8080 "'
 ExecStart=/usr/bin/python3 -m http.server 8080
 Restart=on-failure

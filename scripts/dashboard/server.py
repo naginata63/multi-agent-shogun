@@ -1231,7 +1231,7 @@ def _run_generate_panels(job_id, payload):
 【重要】各パネルの "characters" フィールドには必ずメンバーキーを入れること。
 使用可能なキー: dozle, bon, qnly, orafu, oo_men, nekooji
 セリフがないパネルも含め、全パネルに characters を設定すること。"""
-        claude_bin = '/home/murakami/.local/bin/claude'
+        claude_bin = os.path.expanduser('~/.local/bin/claude')
         result = subprocess.run(
             [claude_bin, '-p', claude_prompt, '--model', 'claude-opus-4-6'],
             capture_output=True, text=True, timeout=300
