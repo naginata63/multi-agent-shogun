@@ -174,12 +174,14 @@ $ ls -la "projects/dozle_kirinuki/work/20260416_【#DoZ】6日目…おおはら
 
 ## 6. 家老への apply 手順
 
+**前提**: 本レポートは既に commit 済 (`dd69042`)。家老 apply 時の commit 対象は `work/cmd_1425/part_info.json` のみ。
+
 1. 本レポートの §4 JSON ブロック全文を `work/cmd_1425/part_info.json` に書き込み（足軽は hook で阻止されるため家老が直接 Write / Edit）
 2. 検証: `jq . work/cmd_1425/part_info.json > /dev/null && echo OK`
-3. コミット（明示パス）:
+3. コミット（明示パス・対象は part_info.json のみ）:
    ```
-   git add work/cmd_1425/part_info.json work/cmd_1449/part_info_fix_report.md
-   git commit -m "fix(cmd_1449_d): part_info.json oo_men セクション追記(誤記修正・10 parts 実在反映)"
+   git add work/cmd_1425/part_info.json
+   git commit -m "fix(cmd_1449_d): part_info.json oo_men セクション追記(誤記修正・10 parts 実在反映・ref dd69042 レポート)"
    ```
 
 ## 7. AC 進捗サマリ
@@ -191,7 +193,7 @@ $ ls -la "projects/dozle_kirinuki/work/20260416_【#DoZ】6日目…おおはら
 | 3 | part_info.json JSON 構文妥当(jq . パス) | ⏸ **apply 後 verify** (§6 step 2) |
 | 4 | work/cmd_1449/part_info_fix_report.md 作成 | ✅ (本ファイル) |
 | 5 | 実在確認 ls 証跡あり | ✅ (§3.1) |
-| 6 | git commit 済み(明示パス) | ⏸ **apply 時に一括 commit** (§6 step 3) |
+| 6 | git commit 済み(明示パス) | ✅ 本レポート commit 済 (`dd69042`) / ⏸ part_info.json は家老 apply 時に別 commit (§6 step 3) |
 
 ## 8. 後続提案（別 cmd 化）
 
