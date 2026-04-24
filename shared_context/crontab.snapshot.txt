@@ -1,0 +1,33 @@
+# 生成AI技術トレンド日報 — 毎朝8時自動生成
+0 7 * * * cd /home/murakami/multi-agent-shogun && bash scripts/genai_daily_report.sh >> logs/genai_daily.log 2>&1
+
+# auto_fetch.py — 新着動画自動収集
+#15 18 * * * source ~/.bashrc && cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki && source /home/murakami/multi-agent-shogun/venv/bin/activate && python3 scripts/auto_fetch.py >> logs/auto_fetch.log 2>&1
+#30 19 * * * source ~/.bashrc && cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki && source /home/murakami/multi-agent-shogun/venv/bin/activate && python3 scripts/auto_fetch.py --chat-retry >> logs/auto_fetch.log 2>&1
+
+# Embedding semantic index auto-update（毎時）
+0 * * * * source ~/.bashrc && cd /home/murakami/multi-agent-shogun && source /home/murakami/multi-agent-shogun/venv/bin/activate && python3 scripts/semantic_search.py update >> logs/semantic_update.log 2>&1
+
+# Scene search index rebuild（毎日19:00、auto_fetch後）
+#0 19 * * * source ~/.bashrc && cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki && source /home/murakami/multi-agent-shogun/venv/bin/activate && python3 scripts/scene_search.py build >> /home/murakami/multi-agent-shogun/logs/scene_build.log 2>&1
+#25 18 * * * bash /home/murakami/multi-agent-shogun/scripts/automation/post_fetch_recommend.sh >> /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/logs/post_fetch.log 2>&1
+#40 19 * * * bash /home/murakami/multi-agent-shogun/scripts/automation/post_fetch_recommend.sh >> /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/logs/post_fetch.log 2>&1
+*/15 * * * * bash /home/murakami/multi-agent-shogun/scripts/automation/dedup_check.sh >> /home/murakami/multi-agent-shogun/logs/dedup.log 2>&1
+57 5 * * * cd /home/murakami/multi-agent-shogun && venv/bin/python3 scripts/youtube_analytics_snapshot.py >> projects/dozle_kirinuki/analytics/cron.log 2>&1
+
+# 夜間矛盾検出 — 毎晩2:02にカテゴリローテで軍師に監査させる
+2 2 * * * cd /home/murakami/multi-agent-shogun && bash scripts/nightly_audit.sh >> logs/nightly_audit.log 2>&1
+* * * * * /home/murakami/multi-agent-shogun/scripts/kill_orphan_chrome.sh
+5 12 * * * bash /home/murakami/multi-agent-shogun/scripts/cta_comment_cron.sh >> /home/murakami/multi-agent-shogun/logs/cta_comment.log 2>&1
+0 2 * * * bash /home/murakami/multi-agent-shogun/scripts/mcp_experiment.sh >> /tmp/mcp_experiment_cron.log 2>&1
+0 3 * * * bash /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh karo && bash /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh ashigaru1 && bash /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh ashigaru2 && bash /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh ashigaru3 && bash /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh ashigaru4 && bash /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh ashigaru5 && bash /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh ashigaru6 && bash /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh ashigaru7 && bash /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh gunshi >> /home/murakami/multi-agent-shogun/logs/slim_yaml_cron.log 2>&1
+
+
+# プロジェクト全体バックアップ — 6時間ごと（別ドライブsdc）
+0 */6 * * * cd /home/murakami/multi-agent-shogun && bash scripts/backup_full.sh >> logs/backup_full.log 2>&1
+
+
+# cron_health_check — cron silent fail 検知 (cmd_1443_p09 / H12)
+30 * * * * bash /home/murakami/multi-agent-shogun/scripts/cron_health_check.sh
+# H7 hotfix trend detector — weekly (Monday 06:00): 3回以上の類似hotfixをskill化候補として検知
+0 6 * * 1 cd /home/murakami/multi-agent-shogun && bash scripts/hotfix_trend_detector.sh >> logs/hotfix_trend.log 2>&1

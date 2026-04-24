@@ -88,6 +88,8 @@
 !shared_context/README.md
 !shared_context/qc_template.md
 !shared_context/cmem_quickstart.md
+!shared_context/cron_inventory.md
+!shared_context/crontab.snapshot.txt
 
 # Python venv
 !requirements.txt
@@ -173,6 +175,7 @@
 !scripts/nightly_audit.sh
 !scripts/dashboard_lifecycle.sh
 !scripts/hotfix_trend_detector.sh
+!scripts/cron_health_check.sh
 !discord-news-bot.service
 # config/discord_bot.env は * で除外済み（トークン含む、絶対コミット禁止）
 

@@ -502,3 +502,19 @@ source ~/.bashrc && python3 scripts/semantic_search.py query "テスト" --json
 ```
 
 インデックスはgit commit時に自動更新される。手動更新: `python3 scripts/semantic_search.py update`
+
+## Cron Inventory Quarterly Review (義務・H12)
+
+軍師は四半期ごと (1月/4月/7月/10月) に `shared_context/cron_inventory.md` を棚卸しせよ。
+殿判断 H12 (2026-04-24) 「いま初めて知った」問題対策・cron 死文化検知のため必須。
+
+**手順**:
+1. `crontab -l > /tmp/crontab_current.txt`
+2. `diff shared_context/crontab.snapshot.txt /tmp/crontab_current.txt` で前回差分確認
+3. 各 entry の目的/所管/停止影響/ログ健全性を再検証 (C11 `cron_health_check.log` を参照)
+4. Disabled (D01-D05) 再開/削除判断
+5. スナップショット更新: `crontab -l > shared_context/crontab.snapshot.txt`
+6. 結果を dashboard.md 掲載 + inbox_write karo で家老に報告
+7. 殿に ntfy 送信 (四半期レビュー完了)
+
+詳細な手順・必須フィールド仕様は `shared_context/cron_inventory.md §5` を参照。
