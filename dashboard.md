@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 07:54
+最終更新: 2026-04-25 07:59
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -29,6 +29,14 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 - **disk使用率84%（殿判断: Tier-B削除なし妥協）**: Day6 MIX時は「disk タイト運用」前提で cmd 起票要
 - **cmd_1425d2 part_info.json誤記**: 『oo_men不在』は誤り・実態は `t7JJlTDACyc_part_*` 10本存在（軍師qc_1425d2見落とし・Phase Bで修正）
 - **Day6 4視点MIX codec混在**: charlotte=vp9 / 他=h264 → concat -c copy不可・事前トランスコード必須（Day6 MIX cmd起票時に明示必要）
+
+### ⚠️ 再発防止策（殿指摘: active_cmds残骸再発・cmd status更新漏れ）
+
+**根本問題**: 全subtask完遂→親cmd status:done化が手動依存・ループ漏れ発生。
+**提案**: karo.md ワークフロー step11 に「全subtask done確認→shogun_to_karo.yaml 親cmd status:done更新」を必須明記。
+**対処済**: cmd_1447/1448/1449/1450/1451/1452/1453/1455/1456 status一括更新完了(07:59)。進行中: cmd_1453/1457のみ。
+
+---
 
 ### 🔧 cmd_1441で浮上した技術負債（足軽hotfix報告より）
 - **家老タスクYAMLのtarget_path欠落**: cmd_1441で全足軽が pretool_check.sh BLOCKに遭遇→自力workaround（3/4/5号のhotfix_notes報告）。家老のtask_design_checklistに `target_path必須` を追加せよ
@@ -77,8 +85,8 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 | cmd_1451 | 足軽2号→軍師 | ✅ **PASS_with_finding(07:41)** noise 2種→advisor_proxy: cmd_1457対応中/403系: 要確認 |
 | cmd_1452 | 足軽1号→軍師 | ✅ **完了(07:52)** 35GB回収 88%→84%。殿判断Option C確定・Tier-B追加削除なし |
 | cmd_1453 | — | ✅ **完遂 07:00** inbox_watcher.sh glm CLI追加(dadc4cd)・watcher再起動待ち |
-| cmd_1455 | 足軽4号→軍師 | 🔄 **完遂(07:48)・軍師QC中** done_gate.sh H_post拡張 diff≤20行・unit test 4PASS |
-| cmd_1456 a/c/d | 足軽5/6/7号→軍師 | 🔄 **a=✅PASS(07:47)/c=✅完遂QC中/d=✅PASS** 軍師2件QC中(qc_cmd_1455/qc_1456c) |
+| cmd_1455 | 足軽4号→軍師 | ✅ **PASS(07:57)** done_gate.sh H_post拡張 +20行(AC上限完全一致)・unit test 8件全PASS |
+| cmd_1456 a/c/d | 足軽5/6/7号→軍師 | ✅ **全完遂・QC完了** a=PASS/c=PASS_with_finding(INFO)/d=PASS |
 | cmd_1457 | 足軽3号→軍師 | 🔄 **発令(07:51)** is_noise_line 4パターン追加(advisor_proxy false positive抑制) |
 | nightly_audit_20260425_infra | — | ✅ **完遂 02:14** 軍師8件検出(M=4/I=4)・cmd_1453✅/cmd_1456✅完遂 |
 
@@ -91,11 +99,11 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 | 1号 | GLM | ✅ idle | cmd_1452_p3 ✅完遂・軍師PASS_with_finding(07:47)・殿判断待ち |
 | 2号 | GLM | ✅ idle | subtask_1450_cleanup ✅完遂・軍師PASS(07:47) |
 | 3号 | Opus[1m] | 🔄 busy | cmd_1457 subtask_1457a 発令(07:51)・is_noise_line 4パターン追加 |
-| 4号 | GLM | ✅ idle | cmd_1455 ✅完遂(07:48)・軍師QC中(qc_cmd_1455) |
+| 4号 | GLM | ✅ idle | cmd_1455 ✅PASS(07:57・軍師QC) |
 | 5号 | GLM | ✅ idle | subtask_1456a ✅PASS(07:47・軍師QC) |
-| 6号 | GLM | ✅ idle | subtask_1456c ✅完遂(07:49)・軍師QC中(qc_subtask_1456c) |
+| 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1456d ✅PASS(軍師QC) |
-| 軍師 | Opus[1m] | 🔄 QC中 | qc_cmd_1455/qc_subtask_1456c(07:51発令・2件) |
+| 軍師 | Opus[1m] | ✅ idle | 全QC完了(07:57) |
 
 ---
 
