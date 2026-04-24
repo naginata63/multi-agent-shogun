@@ -969,7 +969,7 @@ tasks:
 - task_id: subtask_1388a
   parent_cmd: cmd_1388
   bloom_level: L4
-status: done
+  status: done
   priority: high
   timestamp: "2026-04-16T09:16:00"
   project_root: /home/murakami/multi-agent-shogun
@@ -1022,7 +1022,7 @@ status: done
   parent_cmd: cmd_1388
   bloom_level: L4
   redo_of: subtask_1388a
-status: done
+  status: done
   priority: high
   timestamp: "2026-04-16T09:17:00"
   project_root: /home/murakami/multi-agent-shogun
@@ -1072,7 +1072,7 @@ status: done
   parent_cmd: cmd_1388
   bloom_level: L4
   redo_of: subtask_1388b
-status: done
+  status: done
   priority: high
   timestamp: "2026-04-16T09:18:00"
   project_root: /home/murakami/multi-agent-shogun
@@ -1782,7 +1782,8 @@ status: done
 - task_id: subtask_1441b
   parent_cmd: cmd_1441
   bloom_level: L4
-  status: in_progress
+  status: done
+  completed_at: "2026-04-24T13:13:13+09:00"
   timestamp: "2026-04-24T13:03:00+09:00"
   target_path: "/home/murakami/multi-agent-shogun/work/cmd_1441/ideas/ashigaru2_b.md"
   description: "cmd_1441 Phase A カテゴリ(b) cmd done化漏れのアイデア出し。/home/murakami/multi-agent-shogun/queue/shogun_to_karo.yaml の status: in_progress / pending 全件棚卸し → 実質完了だが未done化の候補を /home/murakami/multi-agent-shogun/work/cmd_1441/ideas/ashigaru2_b.md に整理"
@@ -1791,6 +1792,56 @@ status: done
     - "/home/murakami/multi-agent-shogun/work/cmd_1441/ideas/ashigaru2_b.md 作成(3セクション・最低5アイデア)"
     - "git commit済み"
   notes:
-    - "subtask_1440cd完了後に家老が status: assigned に切替+inbox_write で起動する。今は作業禁止"
+    - "subtask_1440cd完了後に家老が status: done に切替+inbox_write で起動する。今は作業禁止"
     - "新規.py禁止・md作成のみ"
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1441b完了。' report_completed ashigaru2"
+
+- task_id: cmd_1443_p05
+  parent_cmd: cmd_1443
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/scripts/hotfix_trend_detector.sh
+  timestamp: "2026-04-24T19:15:00+09:00"
+  description: "cmd_1443 Wave A/p05 H7: hotfix 3回→skill 自動提案 cron。queue/reports/とclaude-mem hotfix_notes走査+類似度正規化+3回hit→ntfy+dashboard通知"
+  steps: "advisor()→Step1:Read /home/murakami/multi-agent-shogun/work/cmd_1442/execution_plan_v3.md §2 H7→Step2:scripts/hotfix_trend_detector.sh新設(shell)で queue/reports/ashigaru*_report_*.yaml+claude-mem hotfix_notes走査+類似度正規化(キーワード+正規表現 bash+awk)+3回hit検知→Step3:同種hotfix 3回以上で dashboard.md スキル化候補セクション自動追記+scripts/ntfy.sh通知→Step4:weekly cron設定→Step5:動作確認(サンプル hotfix_notes 3件で検知動作確認)→advisor()→Step6:git commit→Step7:inbox_write karo報告"
+  acceptance_criteria:
+    - "scripts/hotfix_trend_detector.sh 新設(shell・新規.py禁止)"
+    - "queue/reports+claude-mem hotfix_notes 走査動作確認"
+    - "類似度正規化(3回以上hit検知)動作確認"
+    - "dashboard.md スキル化候補セクション自動追記+ntfy通知動作確認"
+    - "weekly cron 設定(cron_inventory.md には p09 でまとめて記録)"
+    - "git commit 済み"
+  notes:
+    - "殿判断H7採用(2026-04-24 18:28): hotfix 3回→skill 自動提案"
+    - "参考設計: work/cmd_1442/execution_plan_v3.md §2 H7"
+    - "既存 scripts/cmem_search.sh + scripts/ntfy.sh 活用"
+    - "新規.py禁止・shellのみ(類似度算出はpython3 -c インラインスニペット許容)"
+    - "advisor()必須(作業前+完了前)・軍師QC必須"
+    - "所要時間: MED 2-3h"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、cmd_1443_p05完了(H7 hotfix3回→skill cron)。' report_completed ashigaru2"
+
+- task_id: subtask_1449_b
+  parent_cmd: cmd_1449
+  bloom_level: L4
+  status: done
+  completed_at: "2026-04-24T23:43:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh
+  timestamp: "2026-04-24T23:24:00+09:00"
+  description: "cmd_1449 領域B cmd_1443_p09 incidental 3件のうち 2件(C08/C09)修正。C02 Traceback は cmd_1448(足軽3号)と scope 重複ゆえ本 subtask では除外調整済。(B2)C08 /tmp禁止違反スクリプト特定→work/配下移行 (B3)C09 scripts/slim_yaml.sh 連結ロジック修正"
+  steps: "advisor()→Step1:C08 grep -rn '/tmp' scripts/ shared_context/ projects/*/scripts/ → CLAUDE.md ルール違反の /tmp 使用スクリプト一覧化(除外: /tmp/claude-*/など Claude harness 管理下は対象外)→Step2:該当スクリプトを work/配下 or 適切な永続dirに移行+コード修正→Step3:C09 scripts/slim_yaml.sh をReadし連結ロジック bug 特定(軍師 qc_1443_p09 で指摘)→Step4:連結ロジック修正+unit test(fixture 用 sample yaml で入出力確認)→Step5:C02 は cmd_1448 と重複ゆえ本subtask除外明記(報告書にscope境界記録)→verify: /tmp 参照ゼロ+slim_yaml.sh unit test PASS→Step6:git commit(明示パス)→Step7:inbox_write gunshi QC依頼"
+  acceptance_criteria:
+    - "C08: /tmp使用スクリプト全特定+work/配下移行+コード修正完了"
+    - "C09: scripts/slim_yaml.sh 連結ロジック bug 修正+unit test PASS"
+    - "C02: cmd_1448 とscope境界明記(本subtaskでは扱わない)"
+    - "verify: grep -r '/tmp' scripts/ で Claude harness管理下以外ゼロ + slim_yaml.sh 連結fixture テスト PASS"
+    - "git commit 済み(明示パスのみ)"
+  notes:
+    - "殿指示(2026-04-24 23:22)『やれるだけやれ』5領域並列一掃"
+    - "足軽2号選定: cmd_1443_p05 H7 hotfix_trend_detector 実装者・shell+pattern matching の知見"
+    - "C02 は cmd_1448 とscope重複ゆえ除外(足軽3号担当)"
+    - "並列非干渉: 他領域A/C/D/E と別ファイル群"
+    - "新規.py禁止・shell修正のみ"
+    - "advisor() 最低1回(作業前推奨)"
+    - "git add . 禁止(CHK8)・明示パスのみ"
+    - "所要時間: LOW-MED 1-2h (2小項目)"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽2号、subtask_1449_b完了(C08/C09修正・C02は cmd_1448除外)。QC依頼。' report_completed ashigaru2"
