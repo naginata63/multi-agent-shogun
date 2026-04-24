@@ -37,6 +37,26 @@ fi
 
 ADVISOR_LOG="${REPO_DIR}/logs/advisor_calls.log"
 
+# ── post_steps marker 存在チェック (H_post_step_completion_detector) ──
+POST_STEPS_MISSING=$(TASK_YAML="$TASK_YAML" TASK_ID="$TASK_ID" REPO_DIR="$REPO_DIR" python3 <<'PYEOF' 2>/dev/null
+import os,re,sys;c=open(os.environ['TASK_YAML']).read();t=os.environ['TASK_ID'];R=os.environ['REPO_DIR']
+for b in re.split(r'(?=^- task_id:)',c,flags=re.M):
+ m=re.search(r'^- task_id:\s*(\S+)',b,re.M)
+ if not m or m.group(1).strip('"\'')!=t: continue
+ ps=re.search(r'^\s+post_steps:\s*\n((?:\s+-\s+.+\n)*)',b,re.M)
+ if not ps: sys.exit(0)
+ for l in ps.group(1).splitlines():
+  k=re.match(r'\s+-\s+(.+?)\s*(?:#.*)?$',l)
+  if k:
+   v=k.group(1).strip('"\'');p=v if os.path.isabs(v) else os.path.join(R,v)
+   if v and not os.path.isfile(p): print(v)
+ sys.exit(0)
+PYEOF
+)
+[ -z "$POST_STEPS_MISSING" ] || { echo "BLOCK: ${TASK_ID} post_steps 未完了 ($(echo "$POST_STEPS_MISSING"|wc -l) 件欠落)" >&2
+  echo "欠落 marker:" >&2;echo "$POST_STEPS_MISSING"|sed 's/^/  - /' >&2
+  echo "対応: post-step を完了させてから status:done / QC 依頼せよ" >&2;exit 2; }
+
 # ── 該当 task block を抽出し verify 有無・verify_result を判定 ──
 GATE_RESULT=$(TASK_YAML="$TASK_YAML" TASK_ID="$TASK_ID" python3 <<'PYEOF' 2>/dev/null
 import os, re, sys
