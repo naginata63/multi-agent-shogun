@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 08:38
+最終更新: 2026-04-25 08:40
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -8,9 +8,12 @@
 
 ## 🚨 要対応（殿の御判断必要）
 
-### ✅ 解決済み cmd_1458 殿判断(08:30): 音声OK・置換進行中
+### 🚨 cmd_1458 置換完了・殿の公開URL確認をお願いします
 
-新版(zP_j7NRg9Lw)public化+旧版private化を足軽3号が実施中。
+- **新版(音声正常)**: https://www.youtube.com/watch?v=zP_j7NRg9Lw → **public化完了**
+- **旧版(音声不調)**: https://www.youtube.com/watch?v=8M31MYOlRgY → **private化完了**
+- cmd_1397/1400の旧版(IpB4U4AmqS0/EXv3iJ9nLDc)はYouTube上に存在せず（削除済み）
+- 殿が新版URL再生確認後、dashboard 🚨 を解除ください
 
 ### ✅ 解決済み cmd_1452 disk掃除（殿判断(07:52): Option C 84%妥協確定）
 
@@ -98,7 +101,7 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 | cmd_1455 | 足軽4号→軍師 | ✅ **PASS(07:57)** done_gate.sh H_post拡張 +20行(AC上限完全一致)・unit test 8件全PASS |
 | cmd_1456 a/c/d | 足軽5/6/7号→軍師 | ✅ **全完遂・QC完了** a=PASS/c=PASS_with_finding(INFO)/d=PASS |
 | cmd_1457 | 足軽3号→軍師 | ✅ **PASS_with_finding(08:33)** 30分観察完了・advisor_proxy FP 0件達成・Finding: WARN flush 1172件/30min genai_daily系noise抑制検討推奨 |
-| cmd_1458 | 足軽1号/3号→軍師 | 🔄 **置換中(08:32)** 新版QC PASS(08:11)・殿判断音声OK・足軽3号 subtask_1458b public/private切替 |
+| cmd_1458 | 足軽1号/3号→軍師 | ✅ **置換完了(08:39)** 新版zP_j7NRg9Lw=public・旧版8M31MYOlRgY=private・🚨殿URL確認要 |
 | cmd_1459 | 足軽2号/5号 | 🔄 **A=in_progress(足軽2号)** / **B=✅完了(08:37)・軍師QC中** |
 | nightly_audit_20260425_infra | — | ✅ **完遂 02:14** 軍師8件検出(M=4/I=4)・cmd_1453✅/cmd_1456✅完遂 |
 
@@ -110,7 +113,7 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 |------|-----|------|---------|
 | 1号 | GLM | ✅ idle | cmd_1458 ✅PASS_with_finding(08:11) |
 | 2号 | GLM | 🔄 busy | subtask_1459a 発令(08:30)・全74本 defaultLanguage=ja 一括update |
-| 3号 | Opus[1m] | 🔄 busy | subtask_1458b 発令(08:32)・新版public化+旧版private化 |
+| 3号 | Opus[1m] | ✅ idle | subtask_1458b ✅完了(08:39)・新版public+旧版private確認 |
 | 4号 | GLM | ✅ idle | cmd_1455 ✅PASS(07:57・軍師QC) |
 | 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
