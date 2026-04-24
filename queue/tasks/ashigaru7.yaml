@@ -1,0 +1,39 @@
+tasks:
+- task_id: subtask_1428c_prep
+  parent_cmd: cmd_1428
+  bloom_level: L2
+  status: done
+  timestamp: "2026-04-23T11:25:00+09:00"
+  description: "cmd_1428 Phase2 事前準備: panels JSON確認 + manga-short環境確認（画像生成はまだしない）"
+  steps: "panels_asobunokinshi.json / panels_960_1080.json の内容確認（panel数・話者ラベル・lineがSRT一致か）→manga-shortスキル動作確認(SKILL.md読む)→出力ディレクトリ準備→確認レポートを inbox_write で家老に報告"
+  params:
+    panels1: "projects/dozle_kirinuki/work/20260421_TNTしか使えない世界でエンドラ討伐/manga_asobunokinshi/panels_asobunokinshi.json"
+    panels2: "projects/dozle_kirinuki/work/20260421_TNTしか使えない世界でエンドラ討伐/manga_960_1080/panels_960_1080.json"
+    clip1: "projects/dozle_kirinuki/work/20260421_TNTしか使えない世界でエンドラ討伐/clip_asobunokinshi.mp4"
+    clip2: "projects/dozle_kirinuki/work/20260421_TNTしか使えない世界でエンドラ討伐/clip_960_1080.mp4"
+    skill_doc: "skills/manga-short/SKILL.md"
+  acceptance_criteria:
+    - "両panels JSONのpanel数・話者ラベル確認済み（アルファベットラベルがないか確認）"
+    - "manga-short スキルの必須引数・動作フロー把握済み"
+    - "出力ディレクトリ work/cmd_1428/ 存在確認・なければ mkdir"
+    - "確認レポートをkaro inboxに報告（パネル数・話者ラベル・準備OK/NG）"
+  notes:
+    - "【重要】画像生成はまだしない。殿のパネルレビューOK待ちのため"
+    - "panels_asobunokinshi_edited.json が存在する（殿が既に編集済みかもしれない）→ こちらを優先して確認"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽7号、subtask_1428c_prep完了。panels確認結果: [報告内容]' report_completed ashigaru7"
+
+- task_id: subtask_1441ghi
+  parent_cmd: cmd_1441
+  bloom_level: L4
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/work/cmd_1441/ideas/ashigaru7_ghi.md
+  timestamp: "2026-04-24T12:55:00+09:00"
+  description: "cmd_1441 Phase A カテゴリ(g)MCN申請文v1→v2 + (h)スキル化候補積残 + (i)cmem todolist Phase2/3整理 の3カテゴリ統合アイデア出し。work/cmd_1441/ideas/ashigaru7_ghi.md に3セクション(g/h/i)で整理"
+  steps: "advisor()→work/dozle_application/(g)+dashboard.md🚨スキル化候補(h)+work/cmd_1436/todolist.md(i) を読む→g/h/i 3セクションそれぞれ現状/やれてないこと/アイデアでmd作成→advisor()→git add commit→inbox_write karo報告"
+  acceptance_criteria:
+    - "work/cmd_1441/ideas/ashigaru7_ghi.md 作成(3カテゴリ各々 現状/やれてないこと/アイデア・最低各3アイデア)"
+    - "git commit済み"
+  notes:
+    - "新規.py禁止・md作成のみ・3カテゴリ1ファイル統合"
+    - "(g)MCN=ドズル社加入申請・v1ドラフト未送信。(h)スキル化=yt-dlp-js-runtimes(承認済cmd_1439進行中)等。(i)cmem=C/J/D完了後のPhase2/3未着手"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽7号、subtask_1441ghi完了。' report_completed ashigaru7"
