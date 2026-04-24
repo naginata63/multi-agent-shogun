@@ -50,6 +50,7 @@
 | cmd_1447 | 足軽6号 | 🔄 **発令 23:15** skill-candidate-tracker スキル化(queue/reports/*.yaml定期スキャン→inventory化・weekly cron+/skill-inventory両対応・MED 2-3h) |
 | cmd_1448 | 足軽3号 | 🔄 **発令 23:20** cron 4エラー種(C01 Vertex 404/C02+C04 Traceback/C10 rsync code 23)根本修正・H4 silent_fail_watcher ノイズ一掃(MED 2-4h) |
 | cmd_1449 | 足軽1/2/4/7+軍師 | 🔄 **発令 23:24** 殿指示『やれるだけやれ』5領域並列一掃(A 技術負債4件/B incidental 2件/C Udemy v1 minor 3件/D part_info誤記/E H_post 設計doc) |
+| cmd_1450 | 足軽5号 | 🔄 **発令 23:30** γ将軍 note記事1本(題材C1-C3/A1候補・推奨C3 YPP達成 or A1 silent_fail・★下書き固定★) |
 
 ---
 
@@ -61,7 +62,7 @@
 | 2号 | Opus[1m] | 🔄 busy | subtask_1449_b C08 /tmp違反+C09 slim_yaml連結修正(23:24発令・LOW-MED 1-2h) |
 | 3号 | Opus[1m] | 🔄 busy | cmd_1448 cron 4エラー根本修正(23:20発令・MED 2-4h) |
 | 4号 | Opus[1m] | 🔄 busy | subtask_1449_a cmd_1441 技術負債4件一掃(23:24発令・LOW-MED 1-2h) |
-| 5号 | Opus[1m] | ✅ idle | 予備 |
+| 5号 | Opus[1m] | 🔄 busy | cmd_1450 γ将軍 note記事執筆(23:30発令・MED 1-2h・★下書き固定★) |
 | 6号 | Opus[1m] | 🔄 busy | cmd_1447 skill-candidate-tracker スキル化(23:15発令・MED 2-3h) |
 | 7号 | Opus[1m] | 🔄 busy | subtask_1449_c Udemy v1 minor 3件修正(23:24発令・LOW 30min-1h) |
 | 軍師 | Opus[1m] | 🔄 busy | subtask_1449_e H_post_step_completion_detector 設計doc(23:24発令・MED 1-2h) |
