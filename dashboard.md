@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-24 15:21
+最終更新: 2026-04-24 15:59
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -10,25 +10,25 @@
 
 ~~🔴 cmd_1434 polish~~: cmd_1437+cmd_1438で全件解消済み
 
-### 🚨 cmd_1441 Phase B2 完了 → 殿判断要請（execution_plan_v2.md + decision_gates_v2.md）
+### 🚨 cmd_1441 Phase C 着手中（★全D判断確定★ Wave A 並列実行）
 
-軍師 subtask_1441_phaseB2 完了（commit 94383d7）。殿2重指示反映済み: (A)D4=A1-a復活確定+(B)動画系4件保留。優先度A=3件(今夜)/B=5件(今週)/C=7件(2週内)/保留=4件/MCN別軸=1件。
+**全D判断確定（2026-04-24 15:50-15:57）:**
+| # | 判断 | 実装状況 |
+|---|------|---------|
+| ~~D7訂正~~ | ✅A確定(expression_index温存) | 足軽5号完了・軍師QC中 |
+| ~~D10~~ | ✅β確定(L1-4=GLM/L5-6=Opus[1m]・Sonnet除外) | 足軽4号 subtask_1441_p05 実装中 |
+| ~~D3~~ | ✅a確定(whitelist継続+skill-creator自動化) | 足軽1号 subtask_1441_p04 実装中 |
+| ~~D5~~ | ✅b確定(現状維持・archive化しない) | 作業不要（将来Codex/Copilot復帰用に温存） |
+| ~~D6~~ | ✅c確定(スリム化案作成) | 軍師 memory_md_slim_proposal.md 作成中 |
+| ~~D9~~ | ✅a確定(filter-repo+force-with-lease) | 未発令（destructive・慎重）|
+| D8(別軸) | MCN v2 | 殿外部情報依存・継続待機 |
 
-**🚨 殿判断要請6件（未決ゲート）:**
-| # | 判断事項 | 軍師推奨 |
-|---|---------|---------|
-| **D10(新設・最優先)** | capability_tiers モデルmapping（L1-L6 × GLM/Sonnet/Opus[1m]） | **Option β**: L1-L3=GLM / L4-L5=Sonnet / L6=今夜限Opus[1m]・平時Sonnet |
-| D3 | skills/ whitelist vs 全体tracked | 全体tracked（.gitignoreからskills/除外・根本解決） |
-| D5 | instructions/ 26file archive化 OK? | archive化（git mv・履歴保持） |
-| D6 | MEMORY.md Session Start 変更可否（292行→100行index化） | core/*.md分割+shogun.md同期更新 |
-| D7訂正 | MCP削除対象 **10件 or 11件**（expression_index.jsonが現役2D資産・CDP漫画パネル用・足軽5号発見） | **要殿判断**: (A) expression_index.json温存で10件削除 or (B) 11件全削除 |
-| D9 | dozle_kirinuki submodule履歴書換 OK? | backup+force-with-lease |
-| D8(別軸継続) | MCN v2（ガイドラインURL/PDF+送信チャネル+AI3段構え承認） | 殿外部情報依存・待機 |
-
-**進行状況:**
-- 足軽5号 subtask_1441_p20 **STOP中**: D7対象entity 11件（内3D=10・現役2D=1）判明→殿判断待ち。archive/3d_pipeline_2026q1.md には11件全転記済（非破壊）
-- 軍師 idle（phaseB2完了）
-- Wave A着手は殿判断後
+**現Wave A進行中（並列5件）:**
+- 足軽1号 D3(skill-creator.md自動化工程追記)
+- 足軽4号 D10(config/settings.yaml bloom_routing+capability_tiers)
+- 足軽5号 D7完了→軍師QC待ち
+- 軍師 qc_1441_p20 + D6 memory_slim proposal の2件順次
+- D9 未発令（次段で足軽へ割当予定）
 
 詳細: `work/cmd_1441/execution_plan_v2.md` + `decision_gates_v2.md` (commit 94383d7)
 
@@ -54,7 +54,7 @@
 | cmd | 担当 | 状態 |
 |-----|------|------|
 | cmd_1436 | — | ✅ **完了** todolist.md作成済み(将軍) |
-| cmd_1441 | 軍師/足軽5号 | ⏸ Phase B2 完了(execution_plan_v2.md) / 足軽5号 D7 判定待ち / 殿判断要請6件 |
+| cmd_1441 | 全員 | 🔄 全D確定・Wave A並列実行(D3/D7/D10/D6進行・D9未発令・D8別軸) |
 | cmd_1437 | 足軽1号 | ✅ 収益化進捗セクション削除完了 commit 73fc9c0c+d2dde95 |
 | cmd_1438 | 軍師 | ✅ PASS メンバー名日本語化/命名衝突/caption/by_duration/Chart destroy全完了 |
 
@@ -64,14 +64,14 @@
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | Opus[1m] | ✅ idle | subtask_1441a 殿判断でskip(重複作業回避)・cmd_1439完了済 |
-| 2号 | Opus[1m] | ✅ idle | subtask_1441b 完了(ashigaru2_b.md 113行・軍師qc PASS) |
-| 3号 | Opus[1m] | ✅ idle | subtask_1441c 完了(ashigaru3_c.md 10アイデア/f294637) |
-| 4号 | Opus[1m] | ✅ idle | subtask_1441d 完了(ashigaru4_d.md/bloom_routing破綻発見) |
-| 5号 | Opus[1m] | ⏸ STOP | subtask_1441_p20(D7) archive転記済・delete待機(expression_index.json判定待ち) |
+| 1号 | Opus[1m] | 🔄 作業中 | subtask_1441_p04 (D3: skill-creator .gitignore自動化工程追記) |
+| 2号 | Opus[1m] | ✅ idle | subtask_1441b 完了 |
+| 3号 | Opus[1m] | ✅ idle | subtask_1441c 完了 |
+| 4号 | Opus[1m] | 🔄 作業中 | subtask_1441_p05 (D10: bloom_routing+capability_tiers追加) |
+| 5号 | Opus[1m] | ✅ idle | subtask_1441_p20 完了(D7 10件delete+expression_index温存)・軍師QC中 |
 | 6号 | Opus[1m] | ✅ idle | subtask_1441f 完了(ashigaru6_f.md 114行/8案/040ff46) |
 | 7号 | Opus[1m] | ✅ idle | subtask_1441ghi 完了(ashigaru7_ghi.md 206行/22案/6c704fb) |
-| 軍師 | Opus[1m] | ✅ idle | subtask_1441_phaseB2 完了(execution_plan_v2.md+decision_gates_v2.md/94383d7) |
+| 軍師 | Opus[1m] | 🔄 作業中 | qc_1441_p20 → subtask_1441_p10_memory_slim(D6 MEMORY.md スリム化案) |
 
 ---
 
