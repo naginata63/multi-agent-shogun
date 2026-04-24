@@ -117,7 +117,7 @@ tasks:
 - task_id: subtask_1456d
   parent_cmd: cmd_1456
   bloom_level: L2
-  status: in_progress
+  status: done
   timestamp: "2026-04-25T07:27:00+09:00"
   target_path: /home/murakami/multi-agent-shogun/shared_context/task_yaml_schema.md
   description: |

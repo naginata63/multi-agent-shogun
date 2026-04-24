@@ -68,6 +68,65 @@ tasks:
 
 **URL verify 時のスクショ**: `verify.screenshot_url` があれば足軽が shogun-screenshot skill で保存し、`verify_output_path` にパス追記 (hook から skill 起動は Claude Code 仕様上不可)。
 
+### 1.4 post_steps 欄 (cmd_1455 H_post_step_completion_detector・opt-in)
+
+長時間 post-step (gc / repack / 大量ファイル生成 / 外部 API 完了待ち) を持つ task で、各 step の完了 marker を宣言する。`done_gate.sh` が marker 物理存在を確認し、1 件でも欠落していれば BLOCK する。
+
+```yaml
+  post_steps:
+    - work/cmd_1446/post_size.log      # gc 完了 marker
+    - work/cmd_1446/push.log           # push 完了 marker
+    - work/cmd_1446/filter_repo.log    # filter-repo 完了 marker
+```
+
+- **型**: `list<string>` — 絶対パス or `REPO_DIR` 相対パス
+- **意味**: 各 entry は「当該 step が完了したときに書かれるファイル」。marker 存在 = step 完了の proxy
+- **判定**: 存在判定のみ (`[[ -f ]]` 相当)。size / content は問わない (content 検証は `verify:` 欄の責務)
+- **後方互換**: 欄なし / 空 list → skip (opt-in)
+
+**marker 選定 contract (R4)**:
+- marker は **「step の完了コードが最後に書くファイル」** に限る
+- 中間生成物 (`tmp_pack_*`, `.partial`, `.tmp`, スケルトンファイル等) を marker に指定してはならない
+- ✅ OK: `du -sh ... | tee post_size.log` のような step 終了直後に sync 書出すログ
+- ❌ NG: `git pack-objects` が中間的に書出す `tmp_pack_*` や `.tmp` 拡張子ファイル
+- ✅ OK: `cp --finished-marker` 系の明示終端マーカー、`.done` / `.complete` suffix
+
+**gate 発火 trigger**:
+1. 足軽/軍師の自己 `status: done` 宣言時 (PostToolUse hook → `done_gate.sh`)
+2. 家老→軍師 QC-request `inbox_write` 時 (将来拡張予定・v1 では trigger 1 のみ)
+
+**BLOCK 時の出力**:
+```
+BLOCK: <task_id> post_steps 未完了 (N 件欠落)
+欠落 marker:
+  - work/cmd_1446/post_size.log
+対応: post-step を実行完了させてから status:done / QC 依頼せよ
+log: logs/done_gate.log
+```
+
+### 1.5 verify_exempt 欄 (任意・verify 免除宣言)
+
+verify command の定義・実行が不要・不可能な task で、`done_gate.sh` の verify 検査を免除する。
+
+```yaml
+  verify_exempt: true
+  # または理由付き:
+  verify_exempt: "markdown ドキュメント作成のため verify command 非適用"
+```
+
+- **型**: `boolean` or `string` — `true` (免除) / 理由文字列 (免除 + 根拠記録)
+- **意味**: `verify:` 欄の宣言が不要になり、`done_gate.sh` の `verify_result: pass` 検査を skip
+- **後方互換**: 欄なし → 従来通り (verify 欄 opt-in なので宣言なし task は元々 skip)
+- **advisor 検査は免除されない**: `verify_exempt` は verify command のみ免除。advisor 2 回呼出 (step 3.8 + 4.8) は引き続き必須
+- **post_steps との併用**: 可能。verify は免除しつつ post_steps marker は要求可能
+
+**適用基準**:
+- ✅ 純粋な markdown / ドキュメント作成 task
+- ✅ creative 系 task (画像生成プロンプト設計等・客観的 pass/fail が困難)
+- ✅ 調査・分析 task (成果物が report YAML のみ)
+- ❌ 機能実装 task (verify command で動作確認すべき)
+- ❌ infrastructure 変更 task (既存機能の regression がないことを verify すべき)
+
 ---
 
 ## 2. cmd YAML スキーマ (`queue/shogun_to_karo.yaml`)
@@ -132,7 +191,7 @@ cmd.command 内に "Phase N" キーワードが現れる場合 (cmd_1434 等)、
 | CHK2 | 足軽の Write/Edit/Bash | work/cmd_* 直書込・/tmp 書込 BLOCK (target_path 一致は許可) | 常時 |
 | CHK3 | task YAML Write/Edit | steps 多行 BLOCK | 常時 |
 | CHK4 | shogun_to_karo.yaml 将軍編集 | 新規 cmd 起票に lord_original 欄必須 | 新規 cmd のみ |
-| CHK5 | task YAML 編集 | verify: 宣言済 task の status:done 遷移を verify_result:pass 未達なら BLOCK | verify: 欄なしは素通り |
+| CHK5 | task YAML 編集 | verify: 宣言済 task の status:done 遷移を verify_result:pass 未達なら BLOCK (verify_exempt: true 宣言済は免除) | verify: 欄なし・verify_exempt ありは素通り |
 | CHK6 | advisor tool 呼出 | logs/advisor_calls.log 追記 (side-effect のみ・BLOCK しない) | 対象外 |
 | CHK7 | queue/tasks/{ashigaru*,gunshi}.yaml 編集 | 新規 task_id に 9 必須フィールド欠落 BLOCK | NEW task_id のみ (既存素通り) |
 | CHK8 | Bash `git add` | `.` / `-A` / `--all` / `*` / `-f .` を BLOCK (引用符・heredoc 誤検知回避) | 常時 |
@@ -156,3 +215,4 @@ cmd.command 内に "Phase N" キーワードが現れる場合 (cmd_1434 等)、
 | 日付 | 変更 | 出典 subtask |
 |------|------|-------------|
 | 2026-04-24 | 初版作成 (verify:/phase_gate: 統合・CHK7/CHK8 文書化) | cmd_1443_p07 (ashigaru4) |
+| 2026-04-25 | §1.4 post_steps / §1.5 verify_exempt 追記・CHK5 注記更新 | cmd_1456 subtask_1456d (ashigaru7) |
