@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-24 15:11
+最終更新: 2026-04-24 15:21
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -10,16 +10,27 @@
 
 ~~🔴 cmd_1434 polish~~: cmd_1437+cmd_1438で全件解消済み
 
-### 🚨 cmd_1441 Phase B2 改訂中（殿方針反映・軍師差し戻し）
+### 🚨 cmd_1441 Phase B2 完了 → 殿判断要請（execution_plan_v2.md + decision_gates_v2.md）
 
-**殿方針変更2点:**
-- **(A) D4訂正**: bloom_routing A1-b削除→**A1-a復活**確定（明日以降GLM/Sonnet混在運用で動的振り分け必要）
-- **(B) 仕組み改善優先**: 『仕組みの改善が優先・動画編集は今どうでもいい』→ 動画系(p06 TNT/p12 Day6 MIX/F-1 charlotte/D1)を**保留**・p11 Opus観測のみ残す
+軍師 subtask_1441_phaseB2 完了（commit 94383d7）。殿2重指示反映済み: (A)D4=A1-a復活確定+(B)動画系4件保留。優先度A=3件(今夜)/B=5件(今週)/C=7件(2週内)/保留=4件/MCN別軸=1件。
 
-**仕組み改善最優先項目（Wave再編成対象）:**
-D3 skills tracked / D4 bloom_routing復活 / D5 instructions archive / D6 MEMORY.md整理 / D7 MCP 3D entity削除 / D9 submodule履歴書換 / B-1 status一括更新 / B-2 cmd_1348救出 / A-4 target_path checklist恒久化 / A-7 skill-creator whitelist / A-8 dashboard lifecycle自動化 / J-5 ntfy wrapper統一 / S17 instructions archive化 / S19 memory archive新設 / claude-mem Phase2-3 / PreCompact snapshot強化
+**🚨 殿判断要請6件（未決ゲート）:**
+| # | 判断事項 | 軍師推奨 |
+|---|---------|---------|
+| **D10(新設・最優先)** | capability_tiers モデルmapping（L1-L6 × GLM/Sonnet/Opus[1m]） | **Option β**: L1-L3=GLM / L4-L5=Sonnet / L6=今夜限Opus[1m]・平時Sonnet |
+| D3 | skills/ whitelist vs 全体tracked | 全体tracked（.gitignoreからskills/除外・根本解決） |
+| D5 | instructions/ 26file archive化 OK? | archive化（git mv・履歴保持） |
+| D6 | MEMORY.md Session Start 変更可否（292行→100行index化） | core/*.md分割+shogun.md同期更新 |
+| D7訂正 | MCP削除対象 **10件 or 11件**（expression_index.jsonが現役2D資産・CDP漫画パネル用・足軽5号発見） | **要殿判断**: (A) expression_index.json温存で10件削除 or (B) 11件全削除 |
+| D9 | dozle_kirinuki submodule履歴書換 OK? | backup+force-with-lease |
+| D8(別軸継続) | MCN v2（ガイドラインURL/PDF+送信チャネル+AI3段構え承認） | 殿外部情報依存・待機 |
 
-**進行:** 軍師 subtask_1441_phaseB2 作業中 → execution_plan_v2.md + decision_gates_v2.md 作成中。D8 MCNは別軸継続。
+**進行状況:**
+- 足軽5号 subtask_1441_p20 **STOP中**: D7対象entity 11件（内3D=10・現役2D=1）判明→殿判断待ち。archive/3d_pipeline_2026q1.md には11件全転記済（非破壊）
+- 軍師 idle（phaseB2完了）
+- Wave A着手は殿判断後
+
+詳細: `work/cmd_1441/execution_plan_v2.md` + `decision_gates_v2.md` (commit 94383d7)
 
 ### 🚨 スキル化候補（殿承認要）
 - **skill-candidate-tracker**: スキル化候補のトラッキング・棚卸しツール化（足軽7号 subtask_1441ghi で浮上・skill_candidate:true）
@@ -43,7 +54,7 @@ D3 skills tracked / D4 bloom_routing復活 / D5 instructions archive / D6 MEMORY
 | cmd | 担当 | 状態 |
 |-----|------|------|
 | cmd_1436 | — | ✅ **完了** todolist.md作成済み(将軍) |
-| cmd_1441 | 軍師 | 🔄 Phase B2 改訂中(動画系保留/仕組み改善優先/D4=A1-a復活) → 殿再提示待ち |
+| cmd_1441 | 軍師/足軽5号 | ⏸ Phase B2 完了(execution_plan_v2.md) / 足軽5号 D7 判定待ち / 殿判断要請6件 |
 | cmd_1437 | 足軽1号 | ✅ 収益化進捗セクション削除完了 commit 73fc9c0c+d2dde95 |
 | cmd_1438 | 軍師 | ✅ PASS メンバー名日本語化/命名衝突/caption/by_duration/Chart destroy全完了 |
 
@@ -57,10 +68,10 @@ D3 skills tracked / D4 bloom_routing復活 / D5 instructions archive / D6 MEMORY
 | 2号 | Opus[1m] | ✅ idle | subtask_1441b 完了(ashigaru2_b.md 113行・軍師qc PASS) |
 | 3号 | Opus[1m] | ✅ idle | subtask_1441c 完了(ashigaru3_c.md 10アイデア/f294637) |
 | 4号 | Opus[1m] | ✅ idle | subtask_1441d 完了(ashigaru4_d.md/bloom_routing破綻発見) |
-| 5号 | Opus[1m] | ✅ idle | subtask_1441e 完了(ashigaru5_e.md 8案/812d3b0) |
+| 5号 | Opus[1m] | ⏸ STOP | subtask_1441_p20(D7) archive転記済・delete待機(expression_index.json判定待ち) |
 | 6号 | Opus[1m] | ✅ idle | subtask_1441f 完了(ashigaru6_f.md 114行/8案/040ff46) |
 | 7号 | Opus[1m] | ✅ idle | subtask_1441ghi 完了(ashigaru7_ghi.md 206行/22案/6c704fb) |
-| 軍師 | Opus[1m] | 🔄 作業中 | subtask_1441_phaseB2 改訂(execution_plan_v2.md+decision_gates_v2.md) |
+| 軍師 | Opus[1m] | ✅ idle | subtask_1441_phaseB2 完了(execution_plan_v2.md+decision_gates_v2.md/94383d7) |
 
 ---
 
