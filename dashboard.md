@@ -51,7 +51,7 @@
 | cmd_1447 | 足軽6号 | 🔄 **発令 23:15** skill-candidate-tracker スキル化(queue/reports/*.yaml定期スキャン→inventory化・weekly cron+/skill-inventory両対応・MED 2-3h) |
 | cmd_1448 | 足軽3号 | 🔄 **発令 23:20** cron 4エラー種(C01 Vertex 404/C02+C04 Traceback/C10 rsync code 23)根本修正・H4 silent_fail_watcher ノイズ一掃(MED 2-4h) |
 | cmd_1449 | — | ✅ **全5領域完遂宣言 23:51** 軍師4件連続QC(a=PASS/b=PASS_with_AC_note/c=PASS/d=PASS_with_hook_finding)+e=設計doc完遂(a312447) |
-| cmd_1450 | 足軽5号→軍師 | 🔄 note下書き完遂(primary:note.com/n/ncc16d996a760・duplicate:n6c9869e71668 殿レビュー時削除依頼・題材A1 silent_fail)・qc_1450 発令中 |
+| cmd_1450 | — | ✅ **完遂 23:57** 軍師qc_1450 PASS(AC 9全PASS・本文2079字・題材A1・draft gate堅持)・⚠️pre-publish fact-check 1件(L55 framing gap 殿確認要) |
 | cmd_1451 | 足軽2号→軍師 | 🔄 3系統対処完遂(commit 877b53e+01108a6・A:429根治/B:is_noise_line 4pattern/C:gunshi.yaml構造修正)・qc_1451 発令中 |
 | cmd_1452 | 足軽4号 | 🔄 **Phase1発令 23:48** disk 88%→80%掃除(★高優先度・Day6 MIX blocker★)・Phase2殿承認ゲートMUST・Phase3 rm は承認後別発令 |
 
