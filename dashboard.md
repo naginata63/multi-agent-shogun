@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-24 08:38
+最終更新: 2026-04-24 13:03
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -8,10 +8,7 @@
 
 ## 🚨 要対応（殿の御判断必要）
 
-### 🔴 cmd_1434 polish LOW4件 — 次cmd化判断（家老が1つにまとめて発令可）
-- LOW_3: prediction method 表記なし（subs_3mo等が何の予測か UIに caption なし）
-- LOW_4: by_duration UI ラベル英字のまま（under_30s → 30秒未満等の日本語変換要）
-- LOW_5: Chart destroy() が retention のみ（他グラフ: 現状 risk 0 / 将来対応推奨）
+~~🔴 cmd_1434 polish~~: cmd_1437+cmd_1438で全件解消済み
 
 ### 🚨 スキル化候補（殿承認要）
 - **yt-dlp-js-runtimes-fix**: `--js-runtimes node` でYouTube n-challenge bot検知突破。横断的汎用hotfix（軍師価値HIGH判定）→ スキル化承認願い
@@ -26,7 +23,11 @@
 
 | cmd | 担当 | 状態 |
 |-----|------|------|
-| （進行中タスクなし） | — | — |
+| cmd_1436 | — | ✅ **完了** todolist.md作成済み(将軍) |
+| cmd_1441 | 足軽1-7+軍師 | 🔄 Phase A進行中(軍師j完了・足軽2号b解除発令・他5体着手中)|
+| cmd_1437 | 足軽1号 | ✅ 収益化進捗セクション削除完了 commit 73fc9c0c+d2dde95 |
+| cmd_1438 | 軍師 | ✅ PASS メンバー名日本語化/命名衝突/caption/by_duration/Chart destroy全完了 |
+| cmd_1439 | 足軽1号(subtask_1439a) | 🔄 yt-dlp-js-runtimes-fix スキル作成中 |
 
 ---
 
@@ -34,14 +35,14 @@
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | GLM | ✅ idle | subtask_1435a 完了 |
-| 2号 | GLM | ✅ idle | subtask_1434b2 完了 |
-| 3号 | GLM | ✅ idle | — |
-| 4号 | GLM | ✅ idle | subtask_1425c2 完了 |
-| 5号 | GLM | ✅ idle | subtask_1425d2 完了 |
-| 6号 | GLM | ✅ idle | — |
-| 7号 | GLM | ✅ idle | — |
-| 軍師 | Opus | ✅ idle | — |
+| 1号 | Opus[1m] | 🔄 作業中 | subtask_1439a(yt-dlp skill) / 1441a(blocked) |
+| 2号 | Opus[1m] | 🔄 作業中 | subtask_1441b(cmd done化漏れ ideas) |
+| 3号 | Opus[1m] | 🔄 作業中 | subtask_1441c(ファイル蓄積整理 ideas) |
+| 4号 | Opus[1m] | 🔄 作業中 | subtask_1441d(設計書整理 ideas) |
+| 5号 | Opus[1m] | 🔄 作業中 | subtask_1441e(memory整理 ideas) |
+| 6号 | Opus[1m] | 🔄 作業中 | subtask_1441f(動画系積残 ideas) |
+| 7号 | Opus[1m] | 🔄 作業中 | subtask_1441ghi(MCN+skill+cmem ideas) |
+| 軍師 | Opus[1m] | ⏸ 待機中 | subtask_1441j完了(qc_1440cd PASS済) / 1441_phaseB(a-g待ち) |
 
 ---
 
@@ -49,8 +50,12 @@
 
 | cmd | 内容 |
 |-----|------|
+| cmd_1440 | ✅ **完了** claude-mem Phase1 C/J/D三項目完遂（cmem_quickstart.md+cmem_search.sh+worker LAN公開）軍師qc_1440j/qc_1440cd PASS commit 1517ccc |
 | cmd_1425 | ✅ **完了** Day6 3視点DL+集約（tsurugi/hendy/charlotte 各9パート・part_info.json git commit d9fce67）|
 | cmd_1434 | ✅ **完了** Phase1+2+3+by_duration4区分全完了。generate_dashboard.py冪等生成対応済み・6セクション表示確認 git f5408ab |
+| cmd_1437 | ✅ **完了** 収益化進捗セクション削除（YPP達成済みのため不要）commit 73fc9c0c+d2dde95 |
+| cmd_1438 | ✅ **完了** ダッシュボードpolish7項目（日本語化/命名衝突/caption/by_duration/Chart destroy全対応）Phase3最終形態確立 |
+| cmd_1436 | ✅ **完了** claude-mem活用分析+todolist.md作成（軍師分析→将軍統合） |
 | nightly_audit_20260424_video | ✅ 動画制作系矛盾検出（CRITICAL×0 HIGH×0・MEDIUM×1 outro stderr deadlock）|
 | cmd_1428 | ✅ done化（殿判断: YouTube非公開アップ完結）|
 | cmd_1411/1413/1414 | ✅ done化（DoZ5日目ヒーラー漫画ショート・ゼピュロス3版投稿済みで終了・殿判断）|
@@ -61,7 +66,7 @@
 
 ## APIキー状況
 - **Vertex AI ADC**: ✅ 正常
-- **GLM**: ✅ 足軽全員GLMで稼働中
+- **モデル**: ✅ 全エージェント Opus[1m] 統一稼働中（YAML syntax修正済）
 
 ## チャンネル実績（2026-04-24更新）
 - 登録者**2,740人** / 総再生**348万回** / 動画**74本**

@@ -1782,9 +1782,8 @@ status: done
 - task_id: subtask_1441b
   parent_cmd: cmd_1441
   bloom_level: L4
-  status: blocked
-  blocked_by: [subtask_1440cd]
-  timestamp: "2026-04-24T12:55:00+09:00"
+  status: assigned
+  timestamp: "2026-04-24T13:03:00+09:00"
   description: "cmd_1441 Phase A カテゴリ(b) cmd done化漏れのアイデア出し。/home/murakami/multi-agent-shogun/queue/shogun_to_karo.yaml の status: in_progress / pending 全件棚卸し → 実質完了だが未done化の候補を /home/murakami/multi-agent-shogun/work/cmd_1441/ideas/ashigaru2_b.md に整理"
   steps: "advisor()→grep 'status: in_progress\\|status: pending' /home/murakami/multi-agent-shogun/queue/shogun_to_karo.yaml → 各cmdの進捗を/home/murakami/multi-agent-shogun/dashboard.md と照合→現状/やれてないこと/アイデア3セクションでmd作成→advisor()→git add commit→inbox_write karo報告"
   acceptance_criteria:
