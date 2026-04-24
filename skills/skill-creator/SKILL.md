@@ -233,6 +233,66 @@ Should NOT trigger:
 10. **バリデーションスクリプト化**: クリティカルなチェックはscripts/に（コードは決定的、言語は非決定的）
 11. **テスト**: Triggering / Functional / Performance の3領域
 12. **設置**: `~/.claude/skills/skill-name/` に配置
+13. **.gitignore whitelist 登録**: 下記「.gitignore Whitelist 登録手順」に従い2行追加 → `git add .gitignore` → 新規SKILL.mdを `git status` で tracked 状態になっているか確認
+
+## .gitignore Whitelist 登録手順（必須）
+
+本リポジトリは **whitelist方式** の `.gitignore`（全除外 → 公開対象のみ `!` で許可）を採用している。
+新規スキルを作成した場合、`.gitignore` の `# Skills (public OSS skills committed to repo)` ブロックに**手動で2行追加**しない限り、作成した SKILL.md は git tracked にならず、永久に commit されない（cmd_1439 `yt-dlp-js-runtimes-fix` で実際に hotfix 対応が発生済み）。
+
+### 追加する2行（推奨パターン — D3 機密混入防止方針に整合）
+
+```
+!skills/<skill-name>/
+!skills/<skill-name>/SKILL.md
+```
+
+- `<skill-name>` は frontmatter の `name:` フィールド（＝スキルフォルダ名 kebab-case）で置換すること。リテラルな `<skill-name>` を書き込むな
+- 配置位置: `.gitignore` 内の `# Skills (public OSS skills committed to repo)` ブロック末尾（他スキルの登録行と同じ場所にグルーピング）
+- scripts/, assets/, references/ 等を追加配置した場合は、拡張子別に `!skills/<skill-name>/scripts/*.sh` 等を**明示的に**追加（後述「追加アセットの扱い」参照）
+
+### シェルスニペット（冪等版・コピペ可）
+
+```bash
+# <skill-name> を実際のスキル名に置換してから実行せよ
+SKILL_NAME="<skill-name>"
+GITIGNORE="$(git rev-parse --show-toplevel)/.gitignore"
+
+for LINE in "!skills/${SKILL_NAME}/" "!skills/${SKILL_NAME}/SKILL.md"; do
+  grep -qxF "$LINE" "$GITIGNORE" || echo "$LINE" >> "$GITIGNORE"
+done
+
+# 確認
+git -C /home/murakami/multi-agent-shogun status skills/${SKILL_NAME}/
+# → SKILL.md が untracked として表示されれば OK（=追加行が効いている）
+```
+
+`grep -qxF ... || echo ... >> ...` で冪等性を確保（二重登録しない）。本来は sed で `# Skills` ブロック末尾に挿入するのが理想だが、末尾追記でも動作する（`.gitignore` はパターン順序不問で全行評価される）。
+
+### 追加アセットの扱い（scripts/, assets/, references/）
+
+SKILL.md 以外のファイルを配置した場合、`!skills/<skill-name>/` だけでは**中身のファイルは除外されたまま**（親の `*` ルールが効く）。拡張子別に明示追加せよ：
+
+```
+# 例: shogun-screenshot の場合
+!skills/shogun-screenshot/
+!skills/shogun-screenshot/SKILL.md
+!skills/shogun-screenshot/scripts/
+!skills/shogun-screenshot/scripts/*.sh
+!skills/shogun-screenshot/scripts/*.py
+```
+
+### ❌ 非推奨: `!skills/<skill-name>/**`
+
+一見便利だが、ephemeral ファイル（ログ、キャッシュ、APIキー等）が混入した場合に**全てコミット対象になる**。D3 殿判断（2026-04-24）で「機密混入防止のため全体tracked化は見送り」と確定しているため、recursive glob (`/**`) は使うな。明示ホワイトリスト（`/SKILL.md` 個別指定）を厳守せよ。
+
+### チェックリスト
+
+- [ ] `.gitignore` に `!skills/<skill-name>/` 追加
+- [ ] `.gitignore` に `!skills/<skill-name>/SKILL.md` 追加
+- [ ] `git status` で新規 SKILL.md が untracked として表示される
+- [ ] scripts/assets 等を配置した場合、拡張子別の明示ホワイトリスト追加済
+- [ ] `git add .gitignore skills/<skill-name>/` → `git commit`
 
 ## バリデーションスクリプト推奨
 
