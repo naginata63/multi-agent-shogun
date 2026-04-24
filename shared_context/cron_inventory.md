@@ -135,22 +135,22 @@
 | 目的 | MCP memory server の日次実験・graph growth 計測・claude-mem 同期検証 |
 | 所管 | 軍師 (実験監督) / 将軍 (設計変更) |
 | 停止影響 | MCP memory の日次検証データが途絶える。memory graph 異常検知の遅延。 |
-| ログ | `/tmp/mcp_experiment_cron.log` ⚠️ |
+| ログ | `logs/mcp_experiment_cron.log` + `logs/mcp_experiment_YYYYMMDD_HHMMSS.log` (実行単位) |
 | 状態 | active |
-| 備考 | **ログパスが /tmp** で CLAUDE.md「/tmp 禁止」ルール違反。再起動でログ消失。次回メンテ時 `logs/` 配下へ移設推奨 (out of scope for cmd_1443_p09)。 |
+| 備考 | cmd_1449 領域B (subtask_1449_b) で /tmp → `logs/` 移設完了。scripts/mcp_experiment.sh 内の `LOG_FILE` と crontab の stdout redirect を同時修正。 |
 
 ### C09 — slim_yaml (全エージェント)
 
 | 項目 | 値 |
 |------|-----|
 | スケジュール | `0 3 * * *` (毎晩 3:00 JST) |
-| コマンド | `bash scripts/slim_yaml.sh {karo,ashigaru1..7,gunshi}` (9 連結) |
+| コマンド | `bash scripts/slim_yaml_all.sh` (wrapper: 9 agent を loop 実行・失敗時も継続) |
 | 目的 | 全エージェントの `queue/tasks/{agent}.yaml` を圧縮 (done タスク記録は保持・容量削減) |
 | 所管 | 家老 (運用) |
 | 停止影響 | task YAML が肥大化し、足軽のコンテキスト消費量が増える。起動時の YAML 読み込みコスト増。 |
 | ログ | `logs/slim_yaml_cron.log` |
 | 状態 | active |
-| 備考 | 9 エージェント分を `&&` 連結。途中 1 件失敗で後続もスキップされる仕様 (drift リスク要観察)。 |
+| 備考 | cmd_1449 領域B (subtask_1449_b) で `&&` 連結 → `scripts/slim_yaml_all.sh` wrapper に置換。1 件失敗しても後続 agent は継続実行 + FAIL は stderr にログ記録。wrapper 自体の exit は any-fail→1・all-ok→0。unit test: `scripts/tests/test_slim_yaml_all.sh` で継続性検証済 (5 ケース PASS)。 |
 
 ### C10 — プロジェクト全体バックアップ
 

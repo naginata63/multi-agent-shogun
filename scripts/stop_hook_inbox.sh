@@ -46,7 +46,9 @@ fi
 
 # ─── ntfy送信漏れ自動検出（家老のみ） ───
 _check_ntfy_missed() {
-    local WATERMARK_FILE="/tmp/ntfy_check_watermark_karo"
+    local WATERMARK_DIR="$SCRIPT_DIR/queue/.flags"
+    local WATERMARK_FILE="$WATERMARK_DIR/ntfy_check_watermark_karo"
+    mkdir -p "$WATERMARK_DIR"
     local NTFY_LOG="$SCRIPT_DIR/queue/ntfy_sent.log"
     local YAML_FILE="$SCRIPT_DIR/queue/shogun_to_karo.yaml"
 

@@ -78,6 +78,8 @@ clean_dashboard_md() {
   tmp_output="$(mktemp)"
   local removed_lines
   removed_lines="$(mktemp)"
+  local count_file
+  count_file="$(mktemp)"
 
   # 抽出ルール: ~~...~~ と 解決済/解消済 の両方を含む行だけ削除対象
   # ただし「## 」「### 」で始まる見出し行は除外 (セクション全体を消さない)
@@ -116,11 +118,11 @@ clean_dashboard_md() {
     END {
       print cleaned > "/dev/stderr"
     }
-  ' "$DASHBOARD_MD" > "$tmp_output" 2> >(read n; echo "$n" > /tmp/_dashlc_count; wait)
+  ' "$DASHBOARD_MD" > "$tmp_output" 2> >(read n; echo "$n" > "$count_file"; wait)
 
   wait
-  cleaned_count="$(cat /tmp/_dashlc_count 2>/dev/null || echo 0)"
-  rm -f /tmp/_dashlc_count
+  cleaned_count="$(cat "$count_file" 2>/dev/null || echo 0)"
+  rm -f "$count_file"
 
   if [[ "$cleaned_count" == "0" ]]; then
     log "dashboard.md: no resolved stragglers found"

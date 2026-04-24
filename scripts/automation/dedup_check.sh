@@ -9,7 +9,10 @@ cd /home/murakami/multi-agent-shogun
 PYTHON=".venv/bin/python3"
 source ~/.bashrc
 
-LAST_CHECK="/tmp/dedup_last_check"
+# 永続ディレクトリに移行 (/tmp は再起動で消失 → 毎回全件再走査で負荷増)
+FLAGS_DIR="/home/murakami/multi-agent-shogun/queue/.flags"
+mkdir -p "$FLAGS_DIR"
+LAST_CHECK="$FLAGS_DIR/dedup_last_check"
 REPORT_FILE="queue/reports/dedup_warnings.yaml"
 
 # 前回チェック以降に変更があったファイルを検出

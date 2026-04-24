@@ -29,7 +29,7 @@ TARGETS=(
   "C05:$SCRIPT_DIR/logs/nightly_audit.log"
   "C06:$SCRIPT_DIR/logs/orphan_chrome_cleanup.log"
   "C07:$SCRIPT_DIR/logs/cta_comment.log"
-  "C08:/tmp/mcp_experiment_cron.log"
+  "C08:$SCRIPT_DIR/logs/mcp_experiment_cron.log"
   "C09:$SCRIPT_DIR/logs/slim_yaml_cron.log"
   "C10:$SCRIPT_DIR/logs/backup_full.log"
 )

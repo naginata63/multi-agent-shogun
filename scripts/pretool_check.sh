@@ -243,9 +243,9 @@ print(d.get('content', '') + d.get('new_string', ''))
     fi
   fi
 
-  echo "$(date +%H:%M:%S) CHK4: content_len=${#_CMD_CONTENT}, tool=$TOOL_NAME, cmd_len=${#COMMAND}, cmd_first50=${COMMAND:0:50}" >> /tmp/pretool_cmd_check.log
+  echo "$(date +%H:%M:%S) CHK4: content_len=${#_CMD_CONTENT}, tool=$TOOL_NAME, cmd_len=${#COMMAND}, cmd_first50=${COMMAND:0:50}" >> "$SCRIPT_DIR/../logs/pretool_cmd_check.log"
   if [ -n "$_CMD_CONTENT" ]; then
-    echo "$(date +%H:%M:%S) CHK4: has content, checking cmd_id" >> /tmp/pretool_cmd_check.log
+    echo "$(date +%H:%M:%S) CHK4: has content, checking cmd_id" >> "$SCRIPT_DIR/../logs/pretool_cmd_check.log"
     # 新規cmdブロック（- id: cmd_）が含まれるか確認
     if echo "$_CMD_CONTENT" | grep -qF -- '- id: cmd_'; then
       # lord_original: フィールドが存在するか確認

@@ -26,7 +26,10 @@ if [ -z "$LAST_CMD_ID" ]; then
 fi
 
 # 既に処理済みか確認
-LAST_PROCESSED="/tmp/cmd_rag_last_processed"
+# 永続ディレクトリに移行 (/tmp は再起動で消失 → 重複 RAG 実行の恐れ)
+FLAGS_DIR="/home/murakami/multi-agent-shogun/queue/.flags"
+mkdir -p "$FLAGS_DIR"
+LAST_PROCESSED="$FLAGS_DIR/cmd_rag_last_processed"
 if [ -f "$LAST_PROCESSED" ] && [ "$(cat $LAST_PROCESSED)" = "$LAST_CMD_ID" ]; then
   echo "$(date) Already processed $LAST_CMD_ID" >> logs/cmd_rag.log
   exit 0

@@ -107,6 +107,9 @@
 !scripts/build_instructions.sh
 !scripts/slim_yaml.sh
 !scripts/slim_yaml.py
+!scripts/slim_yaml_all.sh
+!scripts/tests/
+!scripts/tests/test_slim_yaml_all.sh
 !scripts/seo_qc.py
 !scripts/gcp_billing_check.sh
 !scripts/seo_qc.sh

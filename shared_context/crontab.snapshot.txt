@@ -19,8 +19,8 @@
 2 2 * * * cd /home/murakami/multi-agent-shogun && bash scripts/nightly_audit.sh >> logs/nightly_audit.log 2>&1
 * * * * * /home/murakami/multi-agent-shogun/scripts/kill_orphan_chrome.sh
 5 12 * * * bash /home/murakami/multi-agent-shogun/scripts/cta_comment_cron.sh >> /home/murakami/multi-agent-shogun/logs/cta_comment.log 2>&1
-0 2 * * * bash /home/murakami/multi-agent-shogun/scripts/mcp_experiment.sh >> /tmp/mcp_experiment_cron.log 2>&1
-0 3 * * * bash /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh karo && bash /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh ashigaru1 && bash /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh ashigaru2 && bash /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh ashigaru3 && bash /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh ashigaru4 && bash /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh ashigaru5 && bash /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh ashigaru6 && bash /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh ashigaru7 && bash /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh gunshi >> /home/murakami/multi-agent-shogun/logs/slim_yaml_cron.log 2>&1
+0 2 * * * bash /home/murakami/multi-agent-shogun/scripts/mcp_experiment.sh >> /home/murakami/multi-agent-shogun/logs/mcp_experiment_cron.log 2>&1
+0 3 * * * bash /home/murakami/multi-agent-shogun/scripts/slim_yaml_all.sh >> /home/murakami/multi-agent-shogun/logs/slim_yaml_cron.log 2>&1
 
 
 # プロジェクト全体バックアップ — 6時間ごと（別ドライブsdc）
