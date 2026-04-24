@@ -330,6 +330,10 @@ tests/specs/osato_lms_*
 !work/cmd_1408/
 !work/cmd_1408/**
 
+# cmd_1441 プロジェクト全積み残し棚卸し (2026-04-24)
+!work/cmd_1441/
+!work/cmd_1441/**
+
 # note visual QC script (cmd_1211)
 !scripts/note_visual_qc.py
 !scripts/backup_secrets.sh
