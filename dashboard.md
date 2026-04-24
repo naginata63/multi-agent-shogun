@@ -87,6 +87,7 @@
 | cmd_1450 | — | ✅ **完遂 23:57** 軍師qc_1450 PASS(AC 9全PASS・本文2079字・題材A1・draft gate堅持)・⚠️pre-publish fact-check 1件(L55 framing gap 殿確認要) |
 | cmd_1451 | 足軽2号→軍師 | 🔄 3系統対処完遂(commit 877b53e+01108a6・A:429根治/B:is_noise_line 4pattern/C:gunshi.yaml構造修正)・qc_1451 発令中 |
 | cmd_1452 | 足軽4号→殿 | 🚨 **Phase2殿承認ゲート待ち 00:00** Phase1完遂(commit 9816032・Tier-A 72G/Tier-B 170G特定)・3案殿提示中 |
+| nightly_audit_20260425_infra | 軍師 | 🔄 **発令 02:05** 殿夜間矛盾検出(インフラカテゴリ・読んで報告のみ・朝までにdashboard反映) |
 
 ---
 
