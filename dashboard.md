@@ -52,6 +52,7 @@
 | cmd_1449 | 足軽1/2/4/7+軍師 | 🔄 **発令 23:24** 殿指示『やれるだけやれ』5領域並列一掃(A 技術負債4件/B incidental 2件/C Udemy v1 minor 3件/D part_info誤記/E H_post 設計doc) |
 | cmd_1450 | 足軽5号 | 🔄 **発令 23:30** γ将軍 note記事1本(題材C1-C3/A1候補・推奨C3 YPP達成 or A1 silent_fail・★下書き固定★) |
 | cmd_1451 | 足軽2号 | 🔄 **発令 23:42** silent_fail_watcher通知汚染一掃(429 embedding quota+YAML parse warning+WARN exclusion・cmd_1448と scope境界明確) |
+| cmd_1452 | 足軽4号 | 🔄 **Phase1発令 23:48** disk 88%→80%掃除(★高優先度・Day6 MIX blocker★)・Phase2殿承認ゲートMUST・Phase3 rm は承認後別発令 |
 
 ---
 
@@ -62,7 +63,7 @@
 | 1号 | Opus[1m] | ✅ idle | 1449_d ✅完了(レポート+家老apply・commit b9d05b6・軍師QC中) |
 | 2号 | Opus[1m] | 🔄 busy | cmd_1451 silent_fail_watcher通知汚染一掃(23:42発令)+1449_b✅完了(de29639・軍師QC中) |
 | 3号 | Opus[1m] | 🔄 busy | cmd_1448 cron 4エラー根本修正(23:20発令・MED 2-4h) |
-| 4号 | Opus[1m] | ✅ idle | 1449_a ✅完了(技術負債4件一掃・commit a8e2878・軍師QC中) |
+| 4号 | Opus[1m] | 🔄 busy | cmd_1452_p1 disk掃除Phase1棚卸し(23:48発令・LOW 30min-1h)+1449_a✅完了(軍師QC中) |
 | 5号 | Opus[1m] | 🔄 busy | cmd_1450 γ将軍 note記事執筆(23:30発令・MED 1-2h・★下書き固定★) |
 | 6号 | Opus[1m] | 🔄 busy | cmd_1447 skill-candidate-tracker スキル化(23:15発令・MED 2-3h) |
 | 7号 | Opus[1m] | 🔄 busy | subtask_1449_c Udemy v1 minor 3件修正(23:24発令・LOW 30min-1h) |

@@ -1,1 +1,0 @@
-/home/murakami/multi-agent-shogun/scripts/archive/gemini_transcribe.py

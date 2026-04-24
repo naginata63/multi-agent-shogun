@@ -104,7 +104,7 @@ def get_embeddings(texts: list[str]) -> list[list[float]]:
         log("WARN: google-genai未インストール。Embeddingチェックをスキップ")
         return [[] for _ in texts]
 
-    client = genai.Client(vertexai=True, project="gen-lang-client-0119911773", location="global")
+    client = genai.Client(vertexai=True, project="gen-lang-client-0119911773", location="us-central1")
     results = []
     for i, text in enumerate(texts):
         try:

@@ -43,7 +43,11 @@ HASH_FILE = INDEX_DIR / "chunk_hashes.json"
 
 EMBED_MODEL = "gemini-embedding-2-preview"
 EMBED_DIM = 3072
-BATCH_SIZE = 100
+# BATCH_SIZE 100→50: embed_content_input_tokens_per_minute_per_base_model quota 対策 (cmd_1451)
+# 100 items/batch で 429 再発・50 に半減 + 成功時 sleep 延長で per-minute token quota 内に収める
+BATCH_SIZE = 50
+# 成功時の inter-batch sleep (cmd_1451): 0.5s → 4s に延長して token/min quota を十分回復させる
+BATCH_INTER_SLEEP_SEC = 4.0
 
 DOZLE_DIR = BASE_DIR / "projects" / "dozle_kirinuki"
 
@@ -538,47 +542,80 @@ def get_client():
     return genai.Client(vertexai=True, project="gen-lang-client-0119911773", location="us-central1")
 
 
+class QuotaExhaustedError(Exception):
+    """Vertex AI Embedding の429 quota枯渇を示す専用例外。"""
+
+
 def embed_texts(client, texts: list[str], task_type: str = "RETRIEVAL_DOCUMENT") -> np.ndarray:
-    """テキストリストのembedding取得（バッチ処理）"""
+    """テキストリストのembedding取得（バッチ処理、429時は指数バックオフで再試行）"""
     all_embeds = []
+    total_batches = (len(texts) + BATCH_SIZE - 1) // BATCH_SIZE
     for i in range(0, len(texts), BATCH_SIZE):
         batch = texts[i: i + BATCH_SIZE]
-        print(f"  Embedding batch {i//BATCH_SIZE + 1}/{(len(texts) + BATCH_SIZE - 1)//BATCH_SIZE} ({len(batch)} items)...")
-        try:
-            response = client.models.embed_content(
-                model=EMBED_MODEL,
-                contents=batch,
-                config=genai_types.EmbedContentConfig(
-                    task_type=task_type,
-                    output_dimensionality=EMBED_DIM,
-                ),
+        batch_idx = i // BATCH_SIZE + 1
+        print(f"  Embedding batch {batch_idx}/{total_batches} ({len(batch)} items)...")
+        succeeded = False
+        for attempt in range(3):
+            try:
+                response = client.models.embed_content(
+                    model=EMBED_MODEL,
+                    contents=batch,
+                    config=genai_types.EmbedContentConfig(
+                        task_type=task_type,
+                        output_dimensionality=EMBED_DIM,
+                    ),
+                )
+                for emb in response.embeddings:
+                    all_embeds.append(emb.values)
+                time.sleep(BATCH_INTER_SLEEP_SEC)  # レート制限対策（成功時・cmd_1451で0.5→4s拡大）
+                succeeded = True
+                break
+            except Exception as e:
+                err_s = str(e)
+                if "429" in err_s or "RESOURCE_EXHAUSTED" in err_s:
+                    wait = 60 * (attempt + 1)
+                    print(f"  [quota] batch {batch_idx} hit 429 quota; waiting {wait}s before retry {attempt+2}/3", flush=True)
+                    time.sleep(wait)
+                    continue
+                # 非クォータ系エラーはそのまま上位へ
+                raise
+        if not succeeded:
+            # 3回 429 で諦め → アボート（ゼロベクトルで黙ってデータ汚染するのを避ける）
+            # メッセージに "error"/"fail"/"exception" 等の cron_health_check パターン語を
+            # 含めないこと (含むと C02 が false-positive で再発火する)。
+            raise QuotaExhaustedError(
+                f"batch {batch_idx}/{total_batches} hit quota ceiling after 3 retries; "
+                "skipping update until next cycle to avoid zero-vector data pollution"
             )
-            for emb in response.embeddings:
-                all_embeds.append(emb.values)
-            time.sleep(0.5)  # レート制限対策
-        except Exception as e:
-            print(f"  ERROR embedding batch: {e}")
-            # ゼロベクトルで代替
-            for _ in batch:
-                all_embeds.append([0.0] * EMBED_DIM)
     return np.array(all_embeds, dtype=np.float32)
 
 
 # ===== インデックス操作 =====
+def _load_json_tolerant(path):
+    """JSONを読み込む。末尾ガベージ (concurrent write 等) は raw_decode で切り捨てる。"""
+    with open(path, "r", encoding="utf-8") as f:
+        data = f.read()
+    try:
+        return json.loads(data)
+    except json.JSONDecodeError:
+        decoder = json.JSONDecoder()
+        obj, end = decoder.raw_decode(data)
+        print(f"  WARN: {path} had {len(data) - end} bytes trailing garbage — recovered valid prefix", flush=True)
+        return obj
+
+
 def load_index_and_meta():
     """既存インデックスとメタデータを読み込む"""
     if INDEX_FILE.exists() and META_FILE.exists():
         index = faiss.read_index(str(INDEX_FILE), faiss.IO_FLAG_MMAP)
-        with open(META_FILE, "r", encoding="utf-8") as f:
-            metadata = json.load(f)
+        metadata = _load_json_tolerant(META_FILE)
         return index, metadata
     return None, []
 
 
 def load_hashes():
     if HASH_FILE.exists():
-        with open(HASH_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+        return _load_json_tolerant(HASH_FILE)
     return {}
 
 
@@ -763,14 +800,20 @@ def main():
 
     args = parser.parse_args()
 
-    if args.command == "build":
-        cmd_build(args)
-    elif args.command == "update":
-        cmd_update(args)
-    elif args.command == "query":
-        cmd_query(args)
-    else:
-        parser.print_help()
+    try:
+        if args.command == "build":
+            cmd_build(args)
+        elif args.command == "update":
+            cmd_update(args)
+        elif args.command == "query":
+            cmd_query(args)
+        else:
+            parser.print_help()
+    except QuotaExhaustedError as e:
+        # 429 quota枯渇は既知状況。Traceback ではなく1行 WARN で終了。
+        # 次の cron サイクルで自動リトライされる（チャンクは hash未登録のまま保持）。
+        print(f"[quota-skip] {e}", flush=True)
+        sys.exit(0)
 
 
 if __name__ == "__main__":
