@@ -170,6 +170,9 @@
 !scripts/backup_queue.sh
 !scripts/advisor_proxy.py
 !scripts/cmem_search.sh
+!scripts/nightly_audit.sh
+!scripts/dashboard_lifecycle.sh
+!scripts/hotfix_trend_detector.sh
 !discord-news-bot.service
 # config/discord_bot.env は * で除外済み（トークン含む、絶対コミット禁止）
 
