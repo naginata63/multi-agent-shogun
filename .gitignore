@@ -179,6 +179,9 @@
 !scripts/cron_health_check.sh
 !scripts/done_gate.sh
 !scripts/posttool_verify_runner.sh
+!scripts/silent_fail_watcher.sh
+!systemd/
+!systemd/silent_fail_watcher.service
 !discord-news-bot.service
 # config/discord_bot.env は * で除外済み（トークン含む、絶対コミット禁止）
 

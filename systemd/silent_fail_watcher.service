@@ -1,0 +1,15 @@
+[Unit]
+Description=Silent Fail Log Watcher (cmd_1443_p04 H4) — ERROR/WARN/FALLBACK を即検知し ntfy
+After=default.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/murakami/multi-agent-shogun
+ExecStart=/bin/bash /home/murakami/multi-agent-shogun/scripts/silent_fail_watcher.sh
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:/home/murakami/multi-agent-shogun/logs/silent_fail_watcher_stdout.log
+StandardError=append:/home/murakami/multi-agent-shogun/logs/silent_fail_watcher_stderr.log
+
+[Install]
+WantedBy=default.target
