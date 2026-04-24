@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-24 13:03
+最終更新: 2026-04-24 13:36
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -10,12 +10,14 @@
 
 ~~🔴 cmd_1434 polish~~: cmd_1437+cmd_1438で全件解消済み
 
-### 🚨 スキル化候補（殿承認要）
-- **yt-dlp-js-runtimes-fix**: `--js-runtimes node` でYouTube n-challenge bot検知突破。横断的汎用hotfix（軍師価値HIGH判定）→ スキル化承認願い
-
 ### ⚠️ 技術的残課題（優先度低）
 - **dozle_kirinukiサブモジュール push不可**: gcloud SDK 194MB超過 → git-lfs移行 or 履歴書換が必要
 - **disk使用率88%（残116GB）**: Day6 MIX前に要確認（4視点×約50GB消費見込み）
+
+### 🔧 cmd_1441で浮上した技術負債（足軽hotfix報告より）
+- **家老タスクYAMLのtarget_path欠落**: cmd_1441で全足軽が pretool_check.sh BLOCKに遭遇→自力workaround（3/4/5号のhotfix_notes報告）。家老のtask_design_checklistに `target_path必須` を追加せよ
+- **bloom_routing 参照破綻**: CLAUDE.md/karo.mdがsettings.yaml→bloom_routing参照するが当該キー不在（足軽4号発見）
+- **.gitignore work/配下**: git add -f で強制追加運用中（足軽4号指摘）→ work/ は.gitignoreから除外 or 運用見直し
 
 ---
 
@@ -24,7 +26,7 @@
 | cmd | 担当 | 状態 |
 |-----|------|------|
 | cmd_1436 | — | ✅ **完了** todolist.md作成済み(将軍) |
-| cmd_1441 | 足軽1-7+軍師 | 🔄 Phase A進行中(軍師j完了・足軽2号b解除発令・他5体着手中)|
+| cmd_1441 | 足軽1-7+軍師 | 🔄 Phase A 7/8完了(軍師j・足軽2b/3c/4d/5e/7ghi) / 残 6f作業中・1a blocked |
 | cmd_1437 | 足軽1号 | ✅ 収益化進捗セクション削除完了 commit 73fc9c0c+d2dde95 |
 | cmd_1438 | 軍師 | ✅ PASS メンバー名日本語化/命名衝突/caption/by_duration/Chart destroy全完了 |
 | cmd_1439 | 足軽1号(subtask_1439a) | 🔄 yt-dlp-js-runtimes-fix スキル作成中 |
@@ -36,12 +38,12 @@
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
 | 1号 | Opus[1m] | 🔄 作業中 | subtask_1439a(yt-dlp skill) / 1441a(blocked) |
-| 2号 | Opus[1m] | 🔄 作業中 | subtask_1441b(cmd done化漏れ ideas) |
-| 3号 | Opus[1m] | 🔄 作業中 | subtask_1441c(ファイル蓄積整理 ideas) |
-| 4号 | Opus[1m] | 🔄 作業中 | subtask_1441d(設計書整理 ideas) |
-| 5号 | Opus[1m] | 🔄 作業中 | subtask_1441e(memory整理 ideas) |
+| 2号 | Opus[1m] | ✅ idle | subtask_1441b 完了(ashigaru2_b.md 113行・軍師qc PASS) |
+| 3号 | Opus[1m] | ✅ idle | subtask_1441c 完了(ashigaru3_c.md 10アイデア/f294637) |
+| 4号 | Opus[1m] | ✅ idle | subtask_1441d 完了(ashigaru4_d.md/bloom_routing破綻発見) |
+| 5号 | Opus[1m] | ✅ idle | subtask_1441e 完了(ashigaru5_e.md 8案/812d3b0) |
 | 6号 | Opus[1m] | 🔄 作業中 | subtask_1441f(動画系積残 ideas) |
-| 7号 | Opus[1m] | 🔄 作業中 | subtask_1441ghi(MCN+skill+cmem ideas) |
+| 7号 | Opus[1m] | ✅ idle | subtask_1441ghi 完了(ashigaru7_ghi.md 206行/22案/6c704fb) |
 | 軍師 | Opus[1m] | ⏸ 待機中 | subtask_1441j完了(qc_1440cd PASS済) / 1441_phaseB(a-g待ち) |
 
 ---
