@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 07:33
+最終更新: 2026-04-25 07:40
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -72,7 +72,7 @@
 | cmd_1452 | 足軽1号 | 🔄 **Phase3実行中** 殿承認Option A(07:16)・Tier-A 72GB削除・df 80%確認後QC |
 | cmd_1453 | — | ✅ **完遂 07:00** inbox_watcher.sh glm CLI追加(commit dadc4cd)・watcher再起動待ち |
 | cmd_1455 | 足軽4号→軍師 | 🔄 **発令済(07:27)** H_post done_gate.sh拡張(≤20行diff・設計doc a312447) |
-| cmd_1456 a/c/d | 足軽5/6/7号→軍師 | 🔄 **発令済(07:27)** nightly_audit MEDIUM 3件修正(a=.venv/c=$HOME/d=schema) |
+| cmd_1456 a/c/d | 足軽5/6/7号→軍師 | 🔄 **a=✅完遂(commit eb5820b/7箇所)** c=ashigaru6進行中/d=ashigaru7進行中 |
 | subtask_1450_cleanup | 足軽2号 | 🔄 **発令済(07:32)** note下書き2件削除(殿判断破棄・URL 2件) |
 | nightly_audit_20260425_infra | — | ✅ **完遂 02:14** 軍師8件検出(C=0/H=0/M=4/I=4)・対処: cmd_1453✅/cmd_1456進行中 |
 
