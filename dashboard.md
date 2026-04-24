@@ -59,10 +59,10 @@
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | Opus[1m] | 🔄 busy | subtask_1449_d part_info.json 誤記修正(23:24発令・LOW 30min) |
-| 2号 | Opus[1m] | 🔄 busy | subtask_1449_b C08 /tmp違反+C09 slim_yaml連結修正(23:24発令・LOW-MED 1-2h) |
+| 1号 | Opus[1m] | ✅ idle | 1449_d ✅完了(レポート+家老apply・commit b9d05b6・軍師QC中) |
+| 2号 | Opus[1m] | 🔄 busy | cmd_1451 silent_fail_watcher通知汚染一掃(23:42発令)+1449_b✅完了(de29639・軍師QC中) |
 | 3号 | Opus[1m] | 🔄 busy | cmd_1448 cron 4エラー根本修正(23:20発令・MED 2-4h) |
-| 4号 | Opus[1m] | 🔄 busy | subtask_1449_a cmd_1441 技術負債4件一掃(23:24発令・LOW-MED 1-2h) |
+| 4号 | Opus[1m] | ✅ idle | 1449_a ✅完了(技術負債4件一掃・commit a8e2878・軍師QC中) |
 | 5号 | Opus[1m] | 🔄 busy | cmd_1450 γ将軍 note記事執筆(23:30発令・MED 1-2h・★下書き固定★) |
 | 6号 | Opus[1m] | 🔄 busy | cmd_1447 skill-candidate-tracker スキル化(23:15発令・MED 2-3h) |
 | 7号 | Opus[1m] | 🔄 busy | subtask_1449_c Udemy v1 minor 3件修正(23:24発令・LOW 30min-1h) |
