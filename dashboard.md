@@ -93,11 +93,11 @@
 | cmd_1443 | 全足軽+軍師 | ✅ **完了 20:16** 軍師QC 10/10 PASS (push済 a76e866) |
 | cmd_1445 | 足軽7号→軍師 | ✅ **完了 20:40** 軍師qc_1445 PASS_with_v2_follow_up_items (AC全8 PASS・minor findings 3件・v2課題6件) |
 | cmd_1446 | — | ✅ **完全完遂 23:12** 軍師qc_1446_resume PASS_with_process_improvement_note (AC 10/10・前回BLOCKER全解消・家老機敏対応高評価) |
-| cmd_1447 | 足軽6号 | 🔄 **発令 23:15** skill-candidate-tracker スキル化(queue/reports/*.yaml定期スキャン→inventory化・weekly cron+/skill-inventory両対応・MED 2-3h) |
-| cmd_1448 | 足軽3号 | 🔄 **発令 23:20** cron 4エラー種(C01 Vertex 404/C02+C04 Traceback/C10 rsync code 23)根本修正・H4 silent_fail_watcher ノイズ一掃(MED 2-4h) |
+| cmd_1447 | 足軽6号→軍師 | 🔄 完遂(commit ccd613e・PENDING 2/IMPLEMENTED 2/NAMELESS 5)・qc_1447 発令中 |
+| cmd_1448 | 足軽3号→軍師 | 🔄 完遂・qc_1448 発令中(00:30-02:30 cron観察 hit=0 主流・C01-C10 再発なし) |
 | cmd_1449 | — | ✅ **全5領域完遂宣言 23:51** 軍師4件連続QC(a=PASS/b=PASS_with_AC_note/c=PASS/d=PASS_with_hook_finding)+e=設計doc完遂(a312447) |
 | cmd_1450 | — | ✅ **完遂 23:57** 軍師qc_1450 PASS(AC 9全PASS・本文2079字・題材A1・draft gate堅持)・⚠️pre-publish fact-check 1件(L55 framing gap 殿確認要) |
-| cmd_1451 | 足軽2号→軍師 | 🔄 3系統対処完遂(commit 877b53e+01108a6・A:429根治/B:is_noise_line 4pattern/C:gunshi.yaml構造修正)・qc_1451 発令中 |
+| cmd_1451 | 足軽2号→軍師 | 🔄 3系統対処完遂(commit 877b53e+01108a6)・qc_1451 発令中(AC5軍師独立verify・家老裁定認可) |
 | cmd_1452 | 足軽4号→殿 | 🚨 **Phase2殿承認ゲート待ち 00:00** Phase1完遂(commit 9816032・Tier-A 72G/Tier-B 170G特定)・3案殿提示中 |
 | nightly_audit_20260425_infra | — | ✅ **完遂 02:14** 軍師8件検出(C=0/H=0/M=4/I=4)・HIGH前回比全解消・advisor 2件false positive demote |
 
