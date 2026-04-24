@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 08:10
+最終更新: 2026-04-25 08:12
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -7,6 +7,12 @@
 ---
 
 ## 🚨 要対応（殿の御判断必要）
+
+### 🚨 cmd_1458 殿レビュー要（tono_edit2縦長・音声不調修正版）
+
+**非公開URL**: https://www.youtube.com/watch?v=zP_j7NRg9Lw
+**確認事項**: 再生して音声が正常か確認 → 問題版と置換するか別動画として残すか判断
+軍師QC: PASS_with_finding(08:11)・1080x1920/h264_nvenc/aac確認済
 
 ### ✅ 解決済み cmd_1452 disk掃除（殿判断(07:52): Option C 84%妥協確定）
 
@@ -88,7 +94,7 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 | cmd_1455 | 足軽4号→軍師 | ✅ **PASS(07:57)** done_gate.sh H_post拡張 +20行(AC上限完全一致)・unit test 8件全PASS |
 | cmd_1456 a/c/d | 足軽5/6/7号→軍師 | ✅ **全完遂・QC完了** a=PASS/c=PASS_with_finding(INFO)/d=PASS |
 | cmd_1457 | 足軽3号→軍師 | 🔄 **完遂(08:01)・軍師QC中(30分観察08:31まで)** is_noise_line 4パターン追加 |
-| cmd_1458 | 足軽1号→軍師 | 🔄 **完遂(08:09)・軍師QC中** 縦長1080x1920+h264_nvenc+非公開アップ(https://www.youtube.com/watch?v=zP_j7NRg9Lw) |
+| cmd_1458 | 足軽1号→軍師 | ✅ **PASS_with_finding(08:11)** 1080x1920/h264_nvenc/aac 193k確認・殿レビュー要(音声確認+旧動画置換判断) |
 | nightly_audit_20260425_infra | — | ✅ **完遂 02:14** 軍師8件検出(M=4/I=4)・cmd_1453✅/cmd_1456✅完遂 |
 
 ---
@@ -104,7 +110,7 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 | 5号 | GLM | ✅ idle | subtask_1456a ✅PASS(07:47・軍師QC) |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1456d ✅PASS(軍師QC) |
-| 軍師 | Opus[1m] | 🔄 QC中 | qc_subtask_1457a(30分観察08:31)/qc_subtask_1458a(並行) |
+| 軍師 | Opus[1m] | 🔄 QC中 | qc_subtask_1457a(30分観察08:31) / qc_subtask_1458a ✅PASS(08:11) |
 
 ---
 
