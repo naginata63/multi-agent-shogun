@@ -69,6 +69,23 @@ is_excluded() {
     esac
 }
 
+# ── 行レベル除外パターン (cmd_1451 noise 一掃) ──
+# 以下の行は ERROR/WARN に分類されても通知対象外 (self-healing / 既知 false-positive):
+#   - inbox_watcher*.log "nudge text still visible" → retry 機構が正常動作中 (1-2 attempt で収束)
+#   - semantic_update.log "[quota] batch N hit 429" → 60s backoff で self-healing 中
+#   - semantic_update.log "WARN: .../gunshi.yaml: while parsing ..." → YAML 修正後消えるが再発保険
+# cmd_1448 scope (C01-C10 = cron_health_check.log 内の embedding 404 / rsync code 23 等) は除外しない
+is_noise_line() {
+    local line="$1"
+    case "$line" in
+        *"nudge text still visible"*) return 0 ;;
+        *"[quota] batch "*"hit 429 quota"*) return 0 ;;
+        *"while parsing a block mapping"*) return 0 ;;
+        *"expected <block end>, but found <block sequence start>"*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 # ── 監視対象ディレクトリ列挙 ──
 # 監視対象 (タスク YAML 仕様 3ディレクトリ):
 #   (1) logs/ (ルート)
@@ -203,6 +220,8 @@ process_line() {
     local source_file="$1"
     local line="$2"
     [ -z "$line" ] && return 0
+    # cmd_1451: 行レベルの noise exclusion (self-healing / 既知 false-positive)
+    is_noise_line "$line" && return 0
     local level
     level=$(classify_line "$line")
     case "$level" in

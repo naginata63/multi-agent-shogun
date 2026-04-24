@@ -361,10 +361,15 @@ tests/specs/osato_lms_*
 !work/cmd_1449/
 !work/cmd_1449/**
 
+# cmd_1448 cron 4エラー根本修正 レポート (2026-04-24)
+!work/cmd_1448/
+!work/cmd_1448/**
+
 # note visual QC script (cmd_1211)
 !scripts/note_visual_qc.py
 !scripts/backup_secrets.sh
 !scripts/restore_secrets.sh
+!scripts/backup_full.sh
 
 # Backups (README only; encrypted .gpg stays excluded by *)
 !backups/
