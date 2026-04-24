@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 08:12
+最終更新: 2026-04-25 08:38
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -8,22 +8,19 @@
 
 ## 🚨 要対応（殿の御判断必要）
 
-### 🚨 cmd_1458 殿レビュー要（tono_edit2縦長・音声不調修正版）
+### ✅ 解決済み cmd_1458 殿判断(08:30): 音声OK・置換進行中
 
-**非公開URL**: https://www.youtube.com/watch?v=zP_j7NRg9Lw
-**確認事項**: 再生して音声が正常か確認 → 問題版と置換するか別動画として残すか判断
-軍師QC: PASS_with_finding(08:11)・1080x1920/h264_nvenc/aac確認済
+新版(zP_j7NRg9Lw)public化+旧版private化を足軽3号が実施中。
 
 ### ✅ 解決済み cmd_1452 disk掃除（殿判断(07:52): Option C 84%妥協確定）
 
 Tier-A 35GB回収 88%→84%で完了扱い。Tier-B追加削除なし。
 Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 
-### 🚨 cmd_1451 HIGH Finding（noise 2種・advisor_proxy部分対応中）
+### ✅ 解決済み cmd_1451 HIGH Finding（advisor_proxy対応完了・genai_daily要確認）
 
-07:12以降、新規noise 2種類:
-1. **advisor_proxy INFO行** → ✅ **cmd_1457発令(07:51・足軽3号)で対応中**（Advisor context/response/System prompt/billing-header 4パターン追加）
-2. **genai_daily.log 403/404/429** → 要確認（真エラー or noise？・cmd_1457スコープ外）
+1. **advisor_proxy INFO行** → ✅ **cmd_1457 QC PASS_with_finding(08:33)** 30分観察FP 0件達成
+2. **genai_daily.log 403/404/429** → 別cmdで追加検討推奨（Finding INFO: WARN flush 1172件/30min）
 
 ### ℹ️ スキル化候補（殿承認済・発令済）
 - ~~**skill-candidate-tracker**~~: ✅ **完遂 02:54** commit ccd613e・qc_1447発令中
@@ -35,6 +32,13 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 - **disk使用率84%（殿判断: Tier-B削除なし妥協）**: Day6 MIX時は「disk タイト運用」前提で cmd 起票要
 - **cmd_1425d2 part_info.json誤記**: 『oo_men不在』は誤り・実態は `t7JJlTDACyc_part_*` 10本存在（軍師qc_1425d2見落とし・Phase Bで修正）
 - **Day6 4視点MIX codec混在**: charlotte=vp9 / 他=h264 → concat -c copy不可・事前トランスコード必須（Day6 MIX cmd起票時に明示必要）
+
+### 📌 技術知見: YouTube音声不調の真因（cmd_1458発見・08:31）
+
+**真因**: オートダビング機能有効 + 動画言語設定未設定 → YouTube自動翻訳+音声吹替えで破壊
+**殿対処**: オートダビング機能を手動でOFF(08:31)
+**cmd_1459 位置付け**: 機能OFF+言語ja二重防御として継続価値あり
+**memory化進行中**: memory/feedback_youtube_autodubbing_pitfall.md (将軍作成中)
 
 ### ⚠️ 再発防止策（殿指摘: active_cmds残骸再発・cmd status更新漏れ）
 
@@ -93,8 +97,9 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 | cmd_1453 | — | ✅ **完遂 07:00** inbox_watcher.sh glm CLI追加(dadc4cd)・watcher再起動待ち |
 | cmd_1455 | 足軽4号→軍師 | ✅ **PASS(07:57)** done_gate.sh H_post拡張 +20行(AC上限完全一致)・unit test 8件全PASS |
 | cmd_1456 a/c/d | 足軽5/6/7号→軍師 | ✅ **全完遂・QC完了** a=PASS/c=PASS_with_finding(INFO)/d=PASS |
-| cmd_1457 | 足軽3号→軍師 | 🔄 **完遂(08:01)・軍師QC中(30分観察08:31まで)** is_noise_line 4パターン追加 |
-| cmd_1458 | 足軽1号→軍師 | ✅ **PASS_with_finding(08:11)** 1080x1920/h264_nvenc/aac 193k確認・殿レビュー要(音声確認+旧動画置換判断) |
+| cmd_1457 | 足軽3号→軍師 | ✅ **PASS_with_finding(08:33)** 30分観察完了・advisor_proxy FP 0件達成・Finding: WARN flush 1172件/30min genai_daily系noise抑制検討推奨 |
+| cmd_1458 | 足軽1号/3号→軍師 | 🔄 **置換中(08:32)** 新版QC PASS(08:11)・殿判断音声OK・足軽3号 subtask_1458b public/private切替 |
+| cmd_1459 | 足軽2号/5号 | 🔄 **A=in_progress(足軽2号)** / **B=✅完了(08:37)・軍師QC中** |
 | nightly_audit_20260425_infra | — | ✅ **完遂 02:14** 軍師8件検出(M=4/I=4)・cmd_1453✅/cmd_1456✅完遂 |
 
 ---
@@ -103,14 +108,14 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | GLM | ✅ idle | cmd_1458 ✅完遂(08:09)・軍師QC中(qc_subtask_1458a) |
-| 2号 | GLM | ✅ idle | subtask_1450_cleanup ✅完遂・軍師PASS(07:47) |
-| 3号 | Opus[1m] | ✅ idle | cmd_1457 ✅完遂(08:01)・軍師QC中(30分観察08:31まで) |
+| 1号 | GLM | ✅ idle | cmd_1458 ✅PASS_with_finding(08:11) |
+| 2号 | GLM | 🔄 busy | subtask_1459a 発令(08:30)・全74本 defaultLanguage=ja 一括update |
+| 3号 | Opus[1m] | 🔄 busy | subtask_1458b 発令(08:32)・新版public化+旧版private化 |
 | 4号 | GLM | ✅ idle | cmd_1455 ✅PASS(07:57・軍師QC) |
-| 5号 | GLM | ✅ idle | subtask_1456a ✅PASS(07:47・軍師QC) |
+| 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1456d ✅PASS(軍師QC) |
-| 軍師 | Opus[1m] | 🔄 QC中 | qc_subtask_1457a(30分観察08:31) / qc_subtask_1458a ✅PASS(08:11) |
+| 軍師 | Opus[1m] | 🔄 QC中 | qc_subtask_1459b 発令(08:38) / qc_subtask_1457a ✅PASS_with_finding(08:33) |
 
 ---
 
