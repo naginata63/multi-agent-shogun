@@ -69,11 +69,15 @@ is_excluded() {
     esac
 }
 
-# ── 行レベル除外パターン (cmd_1451 noise 一掃) ──
+# ── 行レベル除外パターン (cmd_1451 + cmd_1457 noise 一掃) ──
 # 以下の行は ERROR/WARN に分類されても通知対象外 (self-healing / 既知 false-positive):
 #   - inbox_watcher*.log "nudge text still visible" → retry 機構が正常動作中 (1-2 attempt で収束)
 #   - semantic_update.log "[quota] batch N hit 429" → 60s backoff で self-healing 中
 #   - semantic_update.log "WARN: .../gunshi.yaml: while parsing ..." → YAML 修正後消えるが再発保険
+#   - advisor_proxy*.log "Advisor context" → advisor呼出時のcontextダンプ(INFO)
+#   - advisor_proxy*.log "Advisor response" → advisor応答本文(INFO)
+#   - advisor_proxy*.log "[System prompt excerpt]" → system prompt断片(INFO)
+#   - advisor_proxy*.log "x-anthropic-billing-header" → billing header(INFO)
 # cmd_1448 scope (C01-C10 = cron_health_check.log 内の embedding 404 / rsync code 23 等) は除外しない
 is_noise_line() {
     local line="$1"
@@ -82,6 +86,10 @@ is_noise_line() {
         *"[quota] batch "*"hit 429 quota"*) return 0 ;;
         *"while parsing a block mapping"*) return 0 ;;
         *"expected <block end>, but found <block sequence start>"*) return 0 ;;
+        *"Advisor context"*) return 0 ;;
+        *"Advisor response"*) return 0 ;;
+        *"[System prompt excerpt]"*) return 0 ;;
+        *"x-anthropic-billing-header"*) return 0 ;;
         *) return 1 ;;
     esac
 }
