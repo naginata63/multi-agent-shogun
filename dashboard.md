@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 08:46
+最終更新: 2026-04-25 08:47
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -97,7 +97,7 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 | cmd_1450 | — | ✅ **done_ng(07:24)** subtask_1450_cleanup=PASS(07:47・軍師QC)・note下書き2件削除・両URL 404確認済 |
 | cmd_1451 | 足軽2号→軍師 | ✅ **PASS_with_finding(07:41)** noise 2種→advisor_proxy: cmd_1457対応中/403系: 要確認 |
 | cmd_1452 | 足軽1号→軍師 | ✅ **完了(07:52)** 35GB回収 88%→84%。殿判断Option C確定・Tier-B追加削除なし |
-| cmd_1453 | — | ✅ **完遂 07:00** inbox_watcher.sh glm CLI追加(dadc4cd)・watcher再起動待ち |
+| cmd_1453 | — | ✅ **完遂 07:00** inbox_watcher.sh glm CLI追加(dadc4cd)・完了(機能影響なし) |
 | cmd_1455 | 足軽4号→軍師 | ✅ **PASS(07:57)** done_gate.sh H_post拡張 +20行(AC上限完全一致)・unit test 8件全PASS |
 | cmd_1456 a/c/d | 足軽5/6/7号→軍師 | ✅ **全完遂・QC完了** a=PASS/c=PASS_with_finding(INFO)/d=PASS |
 | cmd_1457 | 足軽3号→軍師 | ✅ **PASS_with_finding(08:33)** 30分観察完了・advisor_proxy FP 0件達成・Finding: WARN flush 1172件/30min genai_daily系noise抑制検討推奨 |
