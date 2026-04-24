@@ -274,6 +274,7 @@ def build_content_analysis(raw_list: list[dict]) -> dict:
 
     # 尺別分析（4区分: <30s / 30-60s / 60-120s / 120s+）
     duration_buckets = {"under_30s": [], "30_to_60s": [], "60_to_120s": [], "over_120s": []}
+    duration_labels = {"under_30s": "30秒未満", "30_to_60s": "30〜60秒", "60_to_120s": "60〜120秒", "over_120s": "120秒以上"}
     for v in videos:
         sec = v.get("duration_sec", 0)
         views = v.get("views", 0)
@@ -290,7 +291,7 @@ def build_content_analysis(raw_list: list[dict]) -> dict:
     for label, view_list in duration_buckets.items():
         if view_list:
             by_duration.append({
-                "category": label,
+                "category": duration_labels[label],
                 "count": len(view_list),
                 "avg_views": round(sum(view_list) / len(view_list)),
                 "total_views": sum(view_list),
@@ -316,7 +317,7 @@ def build_content_analysis(raw_list: list[dict]) -> dict:
                 char_views.append(v.get("views", 0))
         if char_views:
             by_character.append({
-                "character": name,
+                "character": keywords[0],
                 "count": len(char_views),
                 "avg_views": round(sum(char_views) / len(char_views)),
                 "total_views": sum(char_views),
@@ -868,6 +869,9 @@ let data = null;
 let currentSort = { key: \'views\', dir: -1 };
 let dailyChartInstance = null;
 let detailChartInstances = [];
+let trafficChartInstance = null;
+let demoChartInstances = { age: null, gender: null, country: null, device: null };
+let ctrChartInstance = null;
 
 const fmt = n => n == null ? \'-\' : n.toLocaleString();
 const fmtPct = n => n == null ? \'-\' : n.toFixed(1) + \'%\';
@@ -933,7 +937,7 @@ function renderVideoDetail(videoId) {
     </div>
 
     <div class="card">
-      <h2>日次再生数推移</h2>
+      <h2>この動画の日次再生数</h2>
       <canvas id="detail-views-chart"></canvas>
     </div>
 
@@ -960,7 +964,7 @@ function renderVideoDetail(videoId) {
     </div>
 
     <div class="card">
-      <h2>AI動画分析</h2>
+      <h2>この動画のAI分析</h2>
       <div id="video-analysis-list"></div>
     </div>
   `;
@@ -1194,10 +1198,11 @@ function showChart(metric, btn) {
 
 function renderTraffic() {
   if (!data || !data.traffic_sources.length) return;
+  if (trafficChartInstance) { trafficChartInstance.destroy(); trafficChartInstance = null; }
   const labels = data.traffic_sources.map(s => s.source + \' (\' + s.pct + \'%)\');
   const values = data.traffic_sources.map(s => s.views);
   const colors = [\'#e94560\',\'#0f3460\',\'#533483\',\'#16aa6e\',\'#f9a825\',\'#2196f3\',\'#ff5722\',\'#9c27b0\',\'#00bcd4\',\'#607d8b\'];
-  new Chart(document.getElementById(\'trafficChart\'), {
+  trafficChartInstance = new Chart(document.getElementById(\'trafficChart\'), {
     type: \'doughnut\',
     data: {
       labels,
@@ -1305,7 +1310,8 @@ function renderDemographics() {
 
   if (dg.age && dg.age.length) {
     anyData = true;
-    new Chart(document.getElementById(\'chart-age\'), {
+    if (demoChartInstances.age) { demoChartInstances.age.destroy(); demoChartInstances.age = null; }
+    demoChartInstances.age = new Chart(document.getElementById(\'chart-age\'), {
       type: \'doughnut\',
       data: { labels: dg.age.map(a => a.group), datasets: [{ data: dg.age.map(a => a.views), backgroundColor: colors }] },
       options: { plugins: { legend: { position: \'right\', labels: { color: \'#ccc\', font: { size: 11 } } } } }
@@ -1315,7 +1321,8 @@ function renderDemographics() {
   if (dg.gender && Object.keys(dg.gender).length) {
     anyData = true;
     const gKeys = Object.keys(dg.gender);
-    new Chart(document.getElementById(\'chart-gender\'), {
+    if (demoChartInstances.gender) { demoChartInstances.gender.destroy(); demoChartInstances.gender = null; }
+    demoChartInstances.gender = new Chart(document.getElementById(\'chart-gender\'), {
       type: \'doughnut\',
       data: { labels: gKeys, datasets: [{ data: gKeys.map(k => dg.gender[k].views || dg.gender[k]), backgroundColor: colors }] },
       options: { plugins: { legend: { position: \'right\', labels: { color: \'#ccc\', font: { size: 11 } } } } }
@@ -1325,7 +1332,8 @@ function renderDemographics() {
   if (dg.country && dg.country.length) {
     anyData = true;
     const top10 = dg.country.slice(0, 10);
-    new Chart(document.getElementById(\'chart-country\'), {
+    if (demoChartInstances.country) { demoChartInstances.country.destroy(); demoChartInstances.country = null; }
+    demoChartInstances.country = new Chart(document.getElementById(\'chart-country\'), {
       type: \'bar\',
       data: { labels: top10.map(c => c.code), datasets: [{ label: \'再生数\', data: top10.map(c => c.views), backgroundColor: colors }] },
       options: { indexAxis: \'y\', responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: \'#888\' }, grid: { color: \'#2a2a4a\' } }, y: { ticks: { color: \'#ccc\' }, grid: { color: \'#2a2a4a\' } } } }
@@ -1335,7 +1343,8 @@ function renderDemographics() {
   if (dg.device && dg.device.device_type && dg.device.device_type.length) {
     anyData = true;
     const dt = dg.device.device_type;
-    new Chart(document.getElementById(\'chart-device\'), {
+    if (demoChartInstances.device) { demoChartInstances.device.destroy(); demoChartInstances.device = null; }
+    demoChartInstances.device = new Chart(document.getElementById(\'chart-device\'), {
       type: \'doughnut\',
       data: { labels: dt.map(d => d.type), datasets: [{ data: dt.map(d => d.views), backgroundColor: colors }] },
       options: { plugins: { legend: { position: \'right\', labels: { color: \'#ccc\', font: { size: 11 } } } } }
@@ -1392,7 +1401,8 @@ function renderCTR() {
   if (!ctrVals.length && !impVals.length) { hide(\'section-ctr\'); return; }
 
   const labels = (de.dates || []).map(d => d.slice(5));
-  new Chart(document.getElementById(\'ctrChart\'), {
+  if (ctrChartInstance) { ctrChartInstance.destroy(); ctrChartInstance = null; }
+  ctrChartInstance = new Chart(document.getElementById(\'ctrChart\'), {
     type: \'line\',
     data: { labels, datasets: [
       { label: \'CTR%\', data: de.ctr || [], borderColor: \'#e94560\', backgroundColor: \'transparent\', tension: 0.3, yAxisID: \'yL\', spanGaps: true },
