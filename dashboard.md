@@ -8,6 +8,39 @@
 
 ## 🚨 要対応（殿の御判断必要）
 
+### 🚨🚨 cmd_1452 Phase2 殿承認ゲート（disk 88%→80%掃除・Day6 MIX blocker）
+
+足軽4号 Phase1 棚卸し完遂(2026-04-25 00:00・commit 9816032)。
+
+**現状**: 961G中 800G使用(88%)・残112G → 目標80%以下(残192G以上)・**約77GB削減必要**
+
+**Tier-A SAFE（合計約72G・安全削除推奨）:**
+| パス | サイズ | 根拠 |
+|------|--------|------|
+| ~/.cache/huggingface | 28G | HF model cache 再DL可・★pin保護付き実行推奨 |
+| ~/.cache/pip | 12G | pip cache 再DL可 |
+| /tmp/remotion-*(3件) | 13.4G | remotion ビルド tmp・未稼働時削除可 |
+| /home/murakami/multi-agent-shogun/work/cmd_1424 | 9.4G | cmd_1424 完遂済(DAY6 multi-view audio verify) |
+| /tmp/dozle_kirinuki.backup.1777030230 | 3.8G | cmd_1446 filter-repo 完遂済 backup |
+| ~/.cache/google-chrome | 3.1G | Chrome cache 再生成可 |
+| ~/.cache/ms-playwright | 2.1G | playwright browsers 再DL可 |
+
+**Tier-B NEEDS_LORD_REVIEW（約170G・殿個別確認要）:**
+- work_使用禁止フォルダ 8.2G / ~/.claude_glm 25G / ~/ダウンロード/(動画/font/deb) 約11G
+- projects/dozle_kirinuki/work/ 配下 公開済動画素材 多数(約110G・再編集可能性)
+- clips_1286_pink_sheep (34G・未発行なら KEEP)
+
+**Tier-C KEEP**: Day6 現行素材 107G(cmd_1425 関連・MIX本番で使用)
+
+**3案提示:**
+- **(A) Tier-A全削除のみ**(72G回収・80%到達ギリギリ・最安全)
+- **(B) Tier-A全 + Tier-B 一部選抜**(目標100G以上回収・余裕確保)
+- **(C) Tier-A全 + Tier-B 全て削除**(242G大掃除・超過達成・多数の再生成コスト)
+
+**殿ゲート要点7項目**: submodule注意/ext4予約5%/pin保護/remotion未稼働確認/huggingface使用中モデル除外/dozle動画は個別確認/Tier1禁忌絶対回避
+
+詳細: work/cmd_1452/disk_cleanup_plan.md (commit 9816032)
+
 ### 🚨 スキル化候補（殿承認要）
 - ~~**skill-candidate-tracker**~~: ✅ **殿承認済(21:10)→cmd_1447 発令(23:15)** 足軽6号着手・H12 cron_inventory知見活用
 - **H_post_step_completion_detector 実装cmd** (設計doc完遂23:36): 軍師 subtask_1449_e で設計v1完成(commit a312447・7セクション+Appendix A/B)。結論=H1 done_gate.sh 拡張案(新ファイル不要・diff≤20行・工数 2.5h LOW・cmd_1446事案80%カバー)。AC 11項目で実装cmd発令可能→殿承認要
@@ -53,7 +86,7 @@
 | cmd_1449 | — | ✅ **全5領域完遂宣言 23:51** 軍師4件連続QC(a=PASS/b=PASS_with_AC_note/c=PASS/d=PASS_with_hook_finding)+e=設計doc完遂(a312447) |
 | cmd_1450 | — | ✅ **完遂 23:57** 軍師qc_1450 PASS(AC 9全PASS・本文2079字・題材A1・draft gate堅持)・⚠️pre-publish fact-check 1件(L55 framing gap 殿確認要) |
 | cmd_1451 | 足軽2号→軍師 | 🔄 3系統対処完遂(commit 877b53e+01108a6・A:429根治/B:is_noise_line 4pattern/C:gunshi.yaml構造修正)・qc_1451 発令中 |
-| cmd_1452 | 足軽4号 | 🔄 **Phase1発令 23:48** disk 88%→80%掃除(★高優先度・Day6 MIX blocker★)・Phase2殿承認ゲートMUST・Phase3 rm は承認後別発令 |
+| cmd_1452 | 足軽4号→殿 | 🚨 **Phase2殿承認ゲート待ち 00:00** Phase1完遂(commit 9816032・Tier-A 72G/Tier-B 170G特定)・3案殿提示中 |
 
 ---
 
@@ -64,7 +97,7 @@
 | 1号 | Opus[1m] | ✅ idle | 1449_d ✅完遂+軍師PASS_with_hook_finding(23:51・家老apply legitimate) |
 | 2号 | Opus[1m] | 🔄 busy | cmd_1451 silent_fail_watcher通知汚染一掃(23:42発令)+1449_b✅完了(de29639・軍師QC中) |
 | 3号 | Opus[1m] | 🔄 busy | cmd_1448 cron 4エラー根本修正(23:20発令・MED 2-4h) |
-| 4号 | Opus[1m] | 🔄 busy | cmd_1452_p1 disk掃除Phase1棚卸し(23:48発令・LOW 30min-1h)+1449_a✅完了(軍師QC中) |
+| 4号 | Opus[1m] | ✅ idle | cmd_1452_p1 ✅完遂 00:00(Tier-A 72G+Tier-B 170G候補特定・commit 9816032・Phase2殿承認待ち) |
 | 5号 | Opus[1m] | 🔄 busy | cmd_1450 γ将軍 note記事執筆(23:30発令・MED 1-2h・★下書き固定★) |
 | 6号 | Opus[1m] | 🔄 busy | cmd_1447 skill-candidate-tracker スキル化(23:15発令・MED 2-3h) |
 | 7号 | Opus[1m] | 🔄 busy | subtask_1449_c Udemy v1 minor 3件修正(23:24発令・LOW 30min-1h) |
