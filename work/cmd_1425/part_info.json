@@ -1,152 +1,36 @@
 {
-  "description": "Day6 4視点DL+1時間分割集約 (oo_men除く3視点)",
+  "description": "Day6 4視点DL+1時間分割集約 (4視点: tsurugi/hendy/charlotte/oo_men)",
   "generated_at": "2026-04-24T08:26:14+0900",
-  "note": "oo_men_parts.jsonが存在しないため3視点のみ",
+  "updated_at": "2026-04-24T23:45:00+0900",
+  "note": "cmd_1449_d で oo_men セクション追記(誤記修正)。oo_men 分割 part は `day6_oo_men_part_*.mp4` ではなく `t7JJlTDACyc_part_*.mp4` (video_id 命名) で projects/dozle_kirinuki/work/20260416_…おおはらMEN視点/ 配下に 10 本実在。当初 `day6_oo_men_*` パターンで探索したため『存在しない』と誤判定された。",
   "tsurugi": {
     "source": "day6_tsurugi_full.mp4",
     "total_parts": 9,
     "parts": [
-      {
-        "file": "day6_tsurugi_part_00.mp4",
-        "duration_hms": "01:00:02",
-        "size_mb": 2653.1,
-        "video_codec": "h264",
-        "audio_codec": "aac",
-        "duration_sec": 3602.02
-      },
-      {
-        "file": "day6_tsurugi_part_01.mp4",
-        "duration_hms": "01:00:00",
-        "size_mb": 2652.7,
-        "video_codec": "h264",
-        "audio_codec": "aac",
-        "duration_sec": 3600.0
-      },
-      {
-        "file": "day6_tsurugi_part_02.mp4",
-        "duration_hms": "01:00:00",
-        "size_mb": 2652.2,
-        "video_codec": "h264",
-        "audio_codec": "aac",
-        "duration_sec": 3600.0
-      },
-      {
-        "file": "day6_tsurugi_part_03.mp4",
-        "duration_hms": "01:00:00",
-        "size_mb": 2652.4,
-        "video_codec": "h264",
-        "audio_codec": "aac",
-        "duration_sec": 3600.0
-      },
-      {
-        "file": "day6_tsurugi_part_04.mp4",
-        "duration_hms": "01:00:00",
-        "size_mb": 2653.0,
-        "video_codec": "h264",
-        "audio_codec": "aac",
-        "duration_sec": 3600.0
-      },
-      {
-        "file": "day6_tsurugi_part_05.mp4",
-        "duration_hms": "01:00:00",
-        "size_mb": 2653.1,
-        "video_codec": "h264",
-        "audio_codec": "aac",
-        "duration_sec": 3600.0
-      },
-      {
-        "file": "day6_tsurugi_part_06.mp4",
-        "duration_hms": "01:00:00",
-        "size_mb": 2653.4,
-        "video_codec": "h264",
-        "audio_codec": "aac",
-        "duration_sec": 3600.0
-      },
-      {
-        "file": "day6_tsurugi_part_07.mp4",
-        "duration_hms": "01:00:00",
-        "size_mb": 2652.6,
-        "video_codec": "h264",
-        "audio_codec": "aac",
-        "duration_sec": 3600.0
-      },
-      {
-        "file": "day6_tsurugi_part_08.mp4",
-        "duration_hms": "00:21:55",
-        "size_mb": 969.1,
-        "video_codec": "h264",
-        "audio_codec": "aac",
-        "duration_sec": 1315.4
-      }
+      {"file": "day6_tsurugi_part_00.mp4", "duration_hms": "01:00:02", "size_mb": 2653.1, "video_codec": "h264", "audio_codec": "aac", "duration_sec": 3602.02},
+      {"file": "day6_tsurugi_part_01.mp4", "duration_hms": "01:00:00", "size_mb": 2652.7, "video_codec": "h264", "audio_codec": "aac", "duration_sec": 3600.0},
+      {"file": "day6_tsurugi_part_02.mp4", "duration_hms": "01:00:00", "size_mb": 2652.2, "video_codec": "h264", "audio_codec": "aac", "duration_sec": 3600.0},
+      {"file": "day6_tsurugi_part_03.mp4", "duration_hms": "01:00:00", "size_mb": 2652.4, "video_codec": "h264", "audio_codec": "aac", "duration_sec": 3600.0},
+      {"file": "day6_tsurugi_part_04.mp4", "duration_hms": "01:00:00", "size_mb": 2653.0, "video_codec": "h264", "audio_codec": "aac", "duration_sec": 3600.0},
+      {"file": "day6_tsurugi_part_05.mp4", "duration_hms": "01:00:00", "size_mb": 2653.1, "video_codec": "h264", "audio_codec": "aac", "duration_sec": 3600.0},
+      {"file": "day6_tsurugi_part_06.mp4", "duration_hms": "01:00:00", "size_mb": 2653.4, "video_codec": "h264", "audio_codec": "aac", "duration_sec": 3600.0},
+      {"file": "day6_tsurugi_part_07.mp4", "duration_hms": "01:00:00", "size_mb": 2652.6, "video_codec": "h264", "audio_codec": "aac", "duration_sec": 3600.0},
+      {"file": "day6_tsurugi_part_08.mp4", "duration_hms": "00:21:55", "size_mb": 969.1, "video_codec": "h264", "audio_codec": "aac", "duration_sec": 1315.4}
     ]
   },
   "hendy": {
     "task": "subtask_1425b",
     "source": "twitch_2749323185",
     "parts": [
-      {
-        "file": "day6_hendy_part_00.mp4",
-        "duration_sec": 3600.0,
-        "size_mb": 2648.7,
-        "video_codec": "h264",
-        "audio_codec": "aac"
-      },
-      {
-        "file": "day6_hendy_part_01.mp4",
-        "duration_sec": 3600.0,
-        "size_mb": 2652.3,
-        "video_codec": "h264",
-        "audio_codec": "aac"
-      },
-      {
-        "file": "day6_hendy_part_02.mp4",
-        "duration_sec": 3600.0,
-        "size_mb": 2652.2,
-        "video_codec": "h264",
-        "audio_codec": "aac"
-      },
-      {
-        "file": "day6_hendy_part_03.mp4",
-        "duration_sec": 3600.0,
-        "size_mb": 2652.3,
-        "video_codec": "h264",
-        "audio_codec": "aac"
-      },
-      {
-        "file": "day6_hendy_part_04.mp4",
-        "duration_sec": 3600.0,
-        "size_mb": 2652.5,
-        "video_codec": "h264",
-        "audio_codec": "aac"
-      },
-      {
-        "file": "day6_hendy_part_05.mp4",
-        "duration_sec": 3600.0,
-        "size_mb": 2653.0,
-        "video_codec": "h264",
-        "audio_codec": "aac"
-      },
-      {
-        "file": "day6_hendy_part_06.mp4",
-        "duration_sec": 3600.0,
-        "size_mb": 2652.8,
-        "video_codec": "h264",
-        "audio_codec": "aac"
-      },
-      {
-        "file": "day6_hendy_part_07.mp4",
-        "duration_sec": 3600.0,
-        "size_mb": 2652.5,
-        "video_codec": "h264",
-        "audio_codec": "aac"
-      },
-      {
-        "file": "day6_hendy_part_08.mp4",
-        "duration_sec": 4041.5,
-        "size_mb": 2973.8,
-        "video_codec": "h264",
-        "audio_codec": "aac"
-      }
+      {"file": "day6_hendy_part_00.mp4", "duration_sec": 3600.0, "size_mb": 2648.7, "video_codec": "h264", "audio_codec": "aac"},
+      {"file": "day6_hendy_part_01.mp4", "duration_sec": 3600.0, "size_mb": 2652.3, "video_codec": "h264", "audio_codec": "aac"},
+      {"file": "day6_hendy_part_02.mp4", "duration_sec": 3600.0, "size_mb": 2652.2, "video_codec": "h264", "audio_codec": "aac"},
+      {"file": "day6_hendy_part_03.mp4", "duration_sec": 3600.0, "size_mb": 2652.3, "video_codec": "h264", "audio_codec": "aac"},
+      {"file": "day6_hendy_part_04.mp4", "duration_sec": 3600.0, "size_mb": 2652.5, "video_codec": "h264", "audio_codec": "aac"},
+      {"file": "day6_hendy_part_05.mp4", "duration_sec": 3600.0, "size_mb": 2653.0, "video_codec": "h264", "audio_codec": "aac"},
+      {"file": "day6_hendy_part_06.mp4", "duration_sec": 3600.0, "size_mb": 2652.8, "video_codec": "h264", "audio_codec": "aac"},
+      {"file": "day6_hendy_part_07.mp4", "duration_sec": 3600.0, "size_mb": 2652.5, "video_codec": "h264", "audio_codec": "aac"},
+      {"file": "day6_hendy_part_08.mp4", "duration_sec": 4041.5, "size_mb": 2973.8, "video_codec": "h264", "audio_codec": "aac"}
     ],
     "total_parts": 9
   },
@@ -155,70 +39,39 @@
     "video_id": "v19JAnVjZ_c",
     "total_parts": 9,
     "parts": [
-      {
-        "file": "day6_charlotte_part_00.mp4",
-        "size_bytes": 1364601133,
-        "size_mb": 1301.4,
-        "video_codec": "vp9",
-        "duration_sec": 3600.0
-      },
-      {
-        "file": "day6_charlotte_part_01.mp4",
-        "size_bytes": 1372635937,
-        "size_mb": 1309.0,
-        "video_codec": "vp9",
-        "duration_sec": 3600.0
-      },
-      {
-        "file": "day6_charlotte_part_02.mp4",
-        "size_bytes": 1366989729,
-        "size_mb": 1303.7,
-        "video_codec": "vp9",
-        "duration_sec": 3600.0
-      },
-      {
-        "file": "day6_charlotte_part_03.mp4",
-        "size_bytes": 1376136050,
-        "size_mb": 1312.4,
-        "video_codec": "vp9",
-        "duration_sec": 3605.7
-      },
-      {
-        "file": "day6_charlotte_part_04.mp4",
-        "size_bytes": 1459110164,
-        "size_mb": 1391.5,
-        "video_codec": "vp9",
-        "duration_sec": 3600.0
-      },
-      {
-        "file": "day6_charlotte_part_05.mp4",
-        "size_bytes": 1330583048,
-        "size_mb": 1268.9,
-        "video_codec": "vp9",
-        "duration_sec": 3600.0
-      },
-      {
-        "file": "day6_charlotte_part_06.mp4",
-        "size_bytes": 1416099675,
-        "size_mb": 1350.5,
-        "video_codec": "vp9",
-        "duration_sec": 3600.0
-      },
-      {
-        "file": "day6_charlotte_part_07.mp4",
-        "size_bytes": 1292691580,
-        "size_mb": 1232.8,
-        "video_codec": "vp9",
-        "duration_sec": 3600.0
-      },
-      {
-        "file": "day6_charlotte_part_08.mp4",
-        "size_bytes": 1138337689,
-        "size_mb": 1085.6,
-        "video_codec": "vp9",
-        "duration_sec": 3346.0
-      }
+      {"file": "day6_charlotte_part_00.mp4", "size_bytes": 1364601133, "size_mb": 1301.4, "video_codec": "vp9", "duration_sec": 3600.0},
+      {"file": "day6_charlotte_part_01.mp4", "size_bytes": 1372635937, "size_mb": 1309.0, "video_codec": "vp9", "duration_sec": 3600.0},
+      {"file": "day6_charlotte_part_02.mp4", "size_bytes": 1366989729, "size_mb": 1303.7, "video_codec": "vp9", "duration_sec": 3600.0},
+      {"file": "day6_charlotte_part_03.mp4", "size_bytes": 1376136050, "size_mb": 1312.4, "video_codec": "vp9", "duration_sec": 3605.7},
+      {"file": "day6_charlotte_part_04.mp4", "size_bytes": 1459110164, "size_mb": 1391.5, "video_codec": "vp9", "duration_sec": 3600.0},
+      {"file": "day6_charlotte_part_05.mp4", "size_bytes": 1330583048, "size_mb": 1268.9, "video_codec": "vp9", "duration_sec": 3600.0},
+      {"file": "day6_charlotte_part_06.mp4", "size_bytes": 1416099675, "size_mb": 1350.5, "video_codec": "vp9", "duration_sec": 3600.0},
+      {"file": "day6_charlotte_part_07.mp4", "size_bytes": 1292691580, "size_mb": 1232.8, "video_codec": "vp9", "duration_sec": 3600.0},
+      {"file": "day6_charlotte_part_08.mp4", "size_bytes": 1138337689, "size_mb": 1085.6, "video_codec": "vp9", "duration_sec": 3346.0}
     ],
     "generated_at": "2026-04-24T08:14:58+09:00"
+  },
+  "oo_men": {
+    "source": "youtube_t7JJlTDACyc",
+    "video_id": "t7JJlTDACyc",
+    "video_title": "【#DoZ】6日目 腹から声が出ないヒーラーに命を任せれられるとでも？【ドズル社／おおはらMEN視点】",
+    "source_dir": "projects/dozle_kirinuki/work/20260416_【#DoZ】6日目 腹から声が出ないヒーラーに命を任せれられるとでも？【ドズル社／おおはらMEN視点】/",
+    "filename_pattern": "t7JJlTDACyc_part_*.mp4",
+    "total_parts": 10,
+    "total_duration_sec": 32508.433,
+    "total_duration_hms": "09:01:48.43",
+    "parts": [
+      {"file": "t7JJlTDACyc_part_00.mp4", "duration_sec": 3600.081, "size_bytes": 1816898876, "size_mb": 1732.7, "video_codec": "vp9", "audio_codec": "opus"},
+      {"file": "t7JJlTDACyc_part_01.mp4", "duration_sec": 3600.074, "size_bytes": 1873027722, "size_mb": 1786.3, "video_codec": "vp9", "audio_codec": "opus"},
+      {"file": "t7JJlTDACyc_part_02.mp4", "duration_sec": 3600.068, "size_bytes": 1869511362, "size_mb": 1782.9, "video_codec": "vp9", "audio_codec": "opus"},
+      {"file": "t7JJlTDACyc_part_03.mp4", "duration_sec": 3600.001, "size_bytes": 1740771602, "size_mb": 1660.1, "video_codec": "vp9", "audio_codec": "opus"},
+      {"file": "t7JJlTDACyc_part_04.mp4", "duration_sec": 3600.001, "size_bytes": 2024495521, "size_mb": 1930.7, "video_codec": "vp9", "audio_codec": "opus"},
+      {"file": "t7JJlTDACyc_part_05.mp4", "duration_sec": 3600.001, "size_bytes": 1741514055, "size_mb": 1660.8, "video_codec": "vp9", "audio_codec": "opus"},
+      {"file": "t7JJlTDACyc_part_06.mp4", "duration_sec": 3600.421, "size_bytes": 2086631301, "size_mb": 1990.0, "video_codec": "vp9", "audio_codec": "opus"},
+      {"file": "t7JJlTDACyc_part_07.mp4", "duration_sec": 3602.664, "size_bytes": 1631934981, "size_mb": 1556.3, "video_codec": "vp9", "audio_codec": "opus"},
+      {"file": "t7JJlTDACyc_part_08.mp4", "duration_sec": 3600.074, "size_bytes": 1181141710, "size_mb": 1126.4, "video_codec": "vp9", "audio_codec": "opus"},
+      {"file": "t7JJlTDACyc_part_09.mp4", "duration_sec": 105.048,  "size_bytes": 13421407,   "size_mb": 12.8,   "video_codec": "vp9", "audio_codec": "opus"}
+    ],
+    "generated_at": "2026-04-24T23:45:00+09:00"
   }
 }
