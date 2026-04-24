@@ -1727,7 +1727,7 @@ status: done
 - task_id: subtask_1434b2
   parent_cmd: cmd_1434
   bloom_level: L4
-  status: in_progress
+  status: done
   timestamp: "2026-04-24T08:20:21"
   description: "generate_dashboard.py の HTML テンプレートに Phase3 セクション（6種）を追加。cronが毎日 generate_dashboard.py を呼び index.html を再生成するため、このスクリプトのテンプレートにも Phase3 を組み込まないと上書きされ続ける。"
   target_path: "/home/murakami/multi-agent-shogun/scripts/generate_dashboard.py"
@@ -1743,3 +1743,54 @@ status: done
     - "data.json の新 keys 不在時は graceful degradation（section-hidden クラス付与）を維持すること"
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1434b2完了。generate_dashboard.py Phase3追加完了。' report_completed ashigaru2"
     - "完了後ntfy: bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh '✅ cmd_1434 UI実装完了・新セクション6種表示確認'"
+
+- task_id: subtask_1438a
+  parent_cmd: cmd_1438
+  status: done
+  timestamp: "2026-04-24T09:15:00+09:00"
+  description: "cmd_1434 ダッシュボード追加修正4件。(1)メンバー名日本語化 (2)命名衝突解消 (3)data.json updated_at:None修正 (4)既存polish LOW3件(prediction方法表記/by_duration和訳/Chart destroy全グラフ)"
+  steps: "Step0:advisor()呼ぶ(作業前)。Step1:generate_dashboard.pyをReadし(1)全セクション英語キー(dozle/bon/qnly/orafu/oo_men/nekooji)→日本語(ドズル/ぼんじゅうる/おんりー/おらふくん/おおはらMEN/ネコおじ)へEdit変換、(2)動画詳細内ラベル命名衝突解消(日次再生数推移→この動画の日次再生数/AI動画分析→この動画のAI分析)、(3)updated_at:None→datetime.now().isoformat()書き込み、(4)subs_3moなど予測キーにcaptionテキスト追加(LOW_3)、(5)by_duration英語ラベル→日本語化(under_30s→30秒未満/30_to_60s→30〜60秒/60_to_120s→60〜120秒/over_120s→120秒以上)(LOW_4)、(6)Chart destroy()を全グラフに実装(LOW_5)。Step2:generate_dashboard.py再実行で冪等性確認。Step3:curl http://127.0.0.1:8080/ で変更確認。Step4:advisor()呼ぶ(完了前)。Step5:submodule commit。Step6:main commit。Step7:inbox_write karo完了報告"
+  acceptance_criteria:
+    - "ダッシュボード上のメンバー名が全て日本語表記（ドズル/ぼんじゅうる/おんりー/おらふくん/おおはらMEN/ネコおじ）"
+    - "動画詳細内ラベルが『この動画の日次再生数』『この動画のAI分析』に変更済み"
+    - "data.json の updated_at フィールドが None でなく日時文字列"
+    - "予測セクションに 3ヶ月後登録者予測 等の caption 表記あり"
+    - "by_duration ラベルが日本語（30秒未満/30〜60秒/60〜120秒/120秒以上）"
+    - "curl http://127.0.0.1:8080/ 確認済み・commit済み"
+  notes:
+    - "修正対象ファイル: /home/murakami/multi-agent-shogun/scripts/generate_dashboard.py"
+    - "generate_dashboard.py再実行でindex.htmlが上書きされる。両方を同期修正すること"
+    - "変更後は必ずgenerate_dashboard.pyを再実行してindex.htmlを再生成すること"
+
+- task_id: subtask_1440cd
+  parent_cmd: cmd_1440
+  status: done
+  timestamp: "2026-04-24T12:47:00+09:00"
+  completed_at: "2026-04-24T12:57:43+09:00"
+  description: "cmd_1440 C+D実装: (C)shared_context/cmem_quickstart.md作成（殿がcurlで直接検索できるコマンド集）+ (D)scripts/cmem_search.sh作成（軍師QC前検索helper）+手順書追記"
+  steps: "Step0:advisor()呼ぶ(作業前)。Step1-C:Read /home/murakami/multi-agent-shogun/shared_context/ でcmem_quickstart.md未存在確認→Write /home/murakami/multi-agent-shogun/shared_context/cmem_quickstart.md(curl 3パターン: search/summaries/observations + パース例 + 使い方説明。殿目線でコピペ可能な形式)。Step2-D:grep 'cmem_search' /home/murakami/multi-agent-shogun/scripts/ で既存確認→Write /home/murakami/multi-agent-shogun/scripts/cmem_search.sh(#!/bin/bash, QUERY=$1, curl http://localhost:37777/api/search?query= limit=5 | python3パース)→chmod +x。Step3-D追記:Read /home/murakami/multi-agent-shogun/shared_context/qc_template.md → Edit でQC開始前にcmem_search.sh実行手順を追記。Step4:動作確認: bash /home/murakami/multi-agent-shogun/scripts/cmem_search.sh 'yt-dlp' で観察取得確認。Step5:advisor()呼ぶ(完了前)。Step6:git add→commit。Step7:inbox_write karo 完了報告"
+  acceptance_criteria:
+    - "shared_context/cmem_quickstart.md に curl 3パターン(search/summaries/observations)と出力パース例が含まれる"
+    - "scripts/cmem_search.sh が実行可能で bash cmem_search.sh 'yt-dlp' が観察を返す"
+    - "shared_context/qc_template.md に cmem_search.sh QC前検索手順が追記されている"
+    - "git commit済み"
+  notes:
+    - "cmem worker URL: http://localhost:37777"
+    - "curl例(search): curl -s 'http://localhost:37777/api/search?query=yt-dlp&limit=5'"
+    - "新規.py禁止。shellスクリプト(cmem_search.sh)はOK"
+
+- task_id: subtask_1441b
+  parent_cmd: cmd_1441
+  bloom_level: L4
+  status: blocked
+  blocked_by: [subtask_1440cd]
+  timestamp: "2026-04-24T12:55:00+09:00"
+  description: "cmd_1441 Phase A カテゴリ(b) cmd done化漏れのアイデア出し。/home/murakami/multi-agent-shogun/queue/shogun_to_karo.yaml の status: in_progress / pending 全件棚卸し → 実質完了だが未done化の候補を /home/murakami/multi-agent-shogun/work/cmd_1441/ideas/ashigaru2_b.md に整理"
+  steps: "advisor()→grep 'status: in_progress\\|status: pending' /home/murakami/multi-agent-shogun/queue/shogun_to_karo.yaml → 各cmdの進捗を/home/murakami/multi-agent-shogun/dashboard.md と照合→現状/やれてないこと/アイデア3セクションでmd作成→advisor()→git add commit→inbox_write karo報告"
+  acceptance_criteria:
+    - "/home/murakami/multi-agent-shogun/work/cmd_1441/ideas/ashigaru2_b.md 作成(3セクション・最低5アイデア)"
+    - "git commit済み"
+  notes:
+    - "subtask_1440cd完了後に家老が status: assigned に切替+inbox_write で起動する。今は作業禁止"
+    - "新規.py禁止・md作成のみ"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1441b完了。' report_completed ashigaru2"
