@@ -232,28 +232,6 @@ def build_retention_top5(raw_list: list[dict]) -> dict:
     return latest_from_raw(raw_list, "retention_top5", {})
 
 
-def build_monetization(raw_list: list[dict]) -> dict:
-    """YPP収益化条件の達成状況"""
-    ct = latest_from_raw(raw_list, "content_type_stats", {})
-
-    shorts_views = ct.get("shorts", {}).get("views", 0)
-    longform_watch_min = ct.get("videoOnDemand", {}).get("watch_minutes", 0)
-    longform_watch_hours = longform_watch_min / 60
-
-    total_views_90d = sum(
-        sum(d.get("views", 0) for d in r.get("daily_stats", []))
-        for r in raw_list[-90:] if raw_list
-    )
-    shorts_pct = round(shorts_views / total_views_90d * 100, 1) if total_views_90d > 0 else 0.0
-    longform_pct = round(longform_watch_hours / 4000 * 100, 1) if longform_watch_hours > 0 else 0.0
-
-    return {
-        "shorts_path_views_90d": shorts_views,
-        "shorts_path_pct": shorts_pct,
-        "longform_watch_hours_365d": round(longform_watch_hours, 1),
-        "longform_path_pct": longform_pct,
-    }
-
 
 def build_predictions(raw_list: list[dict]) -> dict:
     """将来予測（3ヶ月/6ヶ月後の登録者・再生数）"""
@@ -629,7 +607,7 @@ def generate_data_json(raw_list: list[dict], analysis: list[dict]) -> dict:
     content_type = build_content_type(raw_list_filtered)
     demographics = build_demographics(raw_list_filtered)
     retention_top5 = build_retention_top5(raw_list_filtered)
-    monetization = build_monetization(raw_list_filtered)
+
     predictions = build_predictions(raw_list_filtered)
     content_analysis = build_content_analysis(raw_list_filtered)
 
@@ -646,7 +624,7 @@ def generate_data_json(raw_list: list[dict], analysis: list[dict]) -> dict:
         "content_type": content_type,
         "demographics": demographics,
         "retention_top5": retention_top5,
-        "monetization": monetization,
+
         "predictions": predictions,
         "content_analysis": content_analysis,
         "traffic_sources": traffic,
@@ -731,8 +709,7 @@ def generate_html() -> str:
     .progress-bar-fill { height: 100%; border-radius: 6px; transition: width 0.5s; }
     .progress-label { display: flex; justify-content: space-between; font-size: 0.85em; color: #aaa; }
     .progress-value { font-weight: bold; color: var(--accent); }
-    .monetization-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    @media (max-width: 800px) { .monetization-grid { grid-template-columns: 1fr; } }
+
     .demo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
     @media (max-width: 800px) { .demo-grid { grid-template-columns: 1fr; } }
     .prediction-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
@@ -755,23 +732,6 @@ def generate_html() -> str:
       <div class="kpi-card"><div class="kpi-label">総再生数</div><div class="kpi-value" id="kpi-views">-</div></div>
       <div class="kpi-card"><div class="kpi-label">動画数</div><div class="kpi-value" id="kpi-vcount">-</div></div>
       <div class="kpi-card"><div class="kpi-label">前日再生増</div><div class="kpi-value" id="kpi-growth">-</div><div class="kpi-sub" id="kpi-growth-date"></div></div>
-    </div>
-
-    <!-- 3-A: 収益化進捗パネル -->
-    <div class="card" id="section-monetization">
-      <h2>収益化進捗</h2>
-      <div class="monetization-grid">
-        <div>
-          <div class="progress-label"><span>ショートパス（90日再生）</span><span class="progress-value" id="mon-short-val">-</span></div>
-          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="mon-short-bar" style="width:0%;background:#e94560"></div></div>
-          <div style="font-size:0.8em;color:#666">目標: 1,000万再生</div>
-        </div>
-        <div>
-          <div class="progress-label"><span>長尺パス（365日視聴時間）</span><span class="progress-value" id="mon-long-val">-</span></div>
-          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="mon-long-bar" style="width:0%;background:#0f3460"></div></div>
-          <div style="font-size:0.8em;color:#666">目標: 4,000時間</div>
-        </div>
-      </div>
     </div>
 
     <div class="card">
@@ -1337,17 +1297,6 @@ function renderKPI() {
 }
 
 // ── Phase3: 新セクション ──────────────────────────────────
-function renderMonetization() {
-  if (!data || !data.monetization) { hide(\'section-monetization\'); return; }
-  const m = data.monetization;
-  const shortPct = (m.shorts_path_pct || 0);
-  const longPct = (m.longform_path_pct || 0);
-  document.getElementById(\'mon-short-val\').textContent = fmt(m.shorts_path_views_90d) + \' / \' + fmt(10000000) + \' (\' + fmtPct(shortPct) + \')\';
-  document.getElementById(\'mon-short-bar\').style.width = Math.min(shortPct, 100) + \'%\';
-  document.getElementById(\'mon-long-val\').textContent = fmt(m.longform_watch_hours_365d) + \'h / 4,000h (\' + fmtPct(longPct) + \')\';
-  document.getElementById(\'mon-long-bar\').style.width = Math.min(longPct, 100) + \'%\';
-}
-
 function renderDemographics() {
   if (!data || !data.demographics) { hide(\'section-demographics\'); return; }
   const dg = data.demographics;
@@ -1500,7 +1449,7 @@ fetch(\'data.json\')
     renderTable([...d.videos].sort((a, b) => (b.views || 0) - (a.views || 0)));
     renderAnalysis();
     renderRankings();
-    renderMonetization();
+
     renderDemographics();
     renderRetention();
     renderCTR();
