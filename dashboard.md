@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-24 13:41
+最終更新: 2026-04-24 13:44
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -32,7 +32,7 @@
 | cmd | 担当 | 状態 |
 |-----|------|------|
 | cmd_1436 | — | ✅ **完了** todolist.md作成済み(将軍) |
-| cmd_1441 | 足軽1-7+軍師 | 🔄 Phase A 8/9完了 / 残 1a(足軽1号に発令済・1439a完了でunblock) → 完了次第 Phase B unblock |
+| cmd_1441 | 足軽1-7+軍師 | 🔄 Phase A 完了(1a殿判断skip) / Phase B 発令中(軍師 integrity_audit+execution_plan 作成) |
 | cmd_1437 | 足軽1号 | ✅ 収益化進捗セクション削除完了 commit 73fc9c0c+d2dde95 |
 | cmd_1438 | 軍師 | ✅ PASS メンバー名日本語化/命名衝突/caption/by_duration/Chart destroy全完了 |
 
@@ -42,14 +42,14 @@
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | Opus[1m] | 🔄 作業中 | subtask_1441a(dashboard🚨ideas・1439a完了でunblock発令済) |
+| 1号 | Opus[1m] | ✅ idle | subtask_1441a 殿判断でskip(重複作業回避)・cmd_1439完了済 |
 | 2号 | Opus[1m] | ✅ idle | subtask_1441b 完了(ashigaru2_b.md 113行・軍師qc PASS) |
 | 3号 | Opus[1m] | ✅ idle | subtask_1441c 完了(ashigaru3_c.md 10アイデア/f294637) |
 | 4号 | Opus[1m] | ✅ idle | subtask_1441d 完了(ashigaru4_d.md/bloom_routing破綻発見) |
 | 5号 | Opus[1m] | ✅ idle | subtask_1441e 完了(ashigaru5_e.md 8案/812d3b0) |
 | 6号 | Opus[1m] | ✅ idle | subtask_1441f 完了(ashigaru6_f.md 114行/8案/040ff46) |
 | 7号 | Opus[1m] | ✅ idle | subtask_1441ghi 完了(ashigaru7_ghi.md 206行/22案/6c704fb) |
-| 軍師 | Opus[1m] | ⏸ 待機中 | subtask_1441j完了(qc_1440cd PASS済) / 1441_phaseB(a-g待ち) |
+| 軍師 | Opus[1m] | 🔄 作業中 | subtask_1441_phaseB(integrity_audit+execution_plan 統合) |
 
 ---
 
