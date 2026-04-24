@@ -977,7 +977,8 @@ External PRs are reinforcements. Treat with respect.
 4. `queue/shogun_to_karo.yaml` — current instructions
 5. If task has `project` field → read `context/{project}.md`
 6. Read related files
-7. Report loading complete, then begin decomposition
+7. **Ingest `queue/pending_mcp_obs.yaml`** (cmd_1443_p03 / H3+H8) — 各 `status: pending` エントリについて `mcp__memory__add_observations({entity_name, observations:[observation]})` を呼び、完了したら `status: ingested` に更新し当該行を `queue/pending_mcp_obs.archive.yaml` に移す。ファイルが無い・空 `entries: []` の場合は skip。
+8. Report loading complete, then begin decomposition
 
 ## Autonomous Judgment (Act Without Being Told)
 

@@ -172,6 +172,7 @@
 !scripts/backup_queue.sh
 !scripts/advisor_proxy.py
 !scripts/cmem_search.sh
+!scripts/cmd_intake_hook.sh
 !scripts/nightly_audit.sh
 !scripts/dashboard_lifecycle.sh
 !scripts/hotfix_trend_detector.sh

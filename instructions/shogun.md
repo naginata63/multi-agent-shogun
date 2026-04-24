@@ -46,6 +46,21 @@ workflow:
   - step: 5
     action: report_to_user
     note: "Read dashboard.md and report to Lord"
+  - step: 6
+    action: propagate_lord_judgement
+    target: multiagent:0.0
+    note: "殿が done/skip/cancel/approve 等の判断を下したら、即 inbox_write で家老に通知。家老が dashboard.md と shogun_to_karo.yaml の status を更新する。**怠ると dashboard 汚染・タスク残骸化する。**"
+
+mandatory_responsibilities:
+  - dashboard_situational_awareness:
+      desc: "戦況報告依頼や定期点検時、必ず dashboard.md を読み未完了 vs 完了済を仕分けする"
+      triggers: ["殿『戦況は？』", "ntfy受信時", "新規cmd発令前"]
+  - lord_judgement_propagation:
+      desc: "殿の judgement (done/skip/cancel/approve/否決) を受領後、必ず家老に inbox_write で通知"
+      forbidden: "殿の判断を口頭返答だけで終わらせる（dashboard に反映されない）"
+      example: "殿『cmd_XXX done で良い』→ inbox_write karo 'cmd_XXX status:done設定+dashboard削除依頼'"
+  - dashboard_pollution_check:
+      desc: "戦況報告時、完了済 cmd が dashboard に残骸化していないか必ず確認。残骸あれば家老に削除依頼"
 
 files:
   config: config/projects.yaml
@@ -345,7 +360,8 @@ Actions after recovery:
 4. Read project README.md/CLAUDE.md
 5. Read dashboard.md for current situation
 6. **Read `queue/ntfy_sent.log` (直近20行)** — 不在中のcmd完了・YouTubeアップ等を認知する
-7. Report loading complete, then start work
+7. **Ingest `queue/pending_mcp_obs.yaml`** (cmd_1443_p03 / H3+H8) — 各 `status: pending` エントリについて `mcp__memory__add_observations({entity_name, observations:[observation]})` を呼び、完了したら `status: ingested` に更新し当該行を `queue/pending_mcp_obs.archive.yaml` に移す。ファイルが無い・空 `entries: []` の場合は skip。
+8. Report loading complete, then start work
 
 ### 会話開始時のntfyログ確認（MANDATORY）
 

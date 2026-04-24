@@ -37,3 +37,26 @@ tasks:
     - "新規.py禁止・md作成のみ・3カテゴリ1ファイル統合"
     - "(g)MCN=ドズル社加入申請・v1ドラフト未送信。(h)スキル化=yt-dlp-js-runtimes(承認済cmd_1439進行中)等。(i)cmem=C/J/D完了後のPhase2/3未着手"
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽7号、subtask_1441ghi完了。' report_completed ashigaru7"
+
+- task_id: cmd_1443_p03
+  parent_cmd: cmd_1443
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/scripts/cmd_intake_hook.sh
+  timestamp: "2026-04-24T19:15:00+09:00"
+  description: "cmd_1443 Wave A/p03 H3+H8拡張: cmd起票時 mem-search 自動実行 + 4系統自動 add_observations。殿追加指示で書き側も自動化"
+  steps: "advisor()→Step1:Read /home/murakami/multi-agent-shogun/work/cmd_1442/execution_plan_v3.md §3 Δ3→Step2:scripts/cmd_intake_hook.sh新設(shell)で shogun_to_karo.yaml PreToolUseでcmd本文からキーワード抽出(awk・日本語名詞+英単語)→Step3:scripts/cmem_search.sh呼出し hit>0なら結果をcmdコメント挿入/hit=0なら警告注入→Step4:4系統自動add_observations実装 (i)cmem obs POST /api/observations (ii)mcp__memory__add_observations rule_yaml_first (iii)feedback_*.md:殿激怒キーワード検出でlord-angry slash呼出予約 (iv)dashboard_archive/にcmd追記→Step5:.claude/settings.json PreToolUse hook登録(shogun_to_karo.yaml編集時)→Step6:動作確認(サンプルcmdで4系統全動作確認)→advisor()→Step7:git commit→Step8:inbox_write karo報告"
+  acceptance_criteria:
+    - "scripts/cmd_intake_hook.sh 新設(shell・新規.py禁止)"
+    - "mem-search 自動実行・hit 0 件時 警告コメント注入動作確認"
+    - "4系統自動 add_observations 全動作確認(cmem obs/MCP entity/feedback_*.md検出/dashboard archive)"
+    - ".claude/settings.json PreToolUse hook 登録"
+    - "既存 shogun_to_karo.yaml 編集 regression なし"
+    - "git commit 済み"
+  notes:
+    - "殿判断H3+H8採用+登録自動化(2026-04-24 18:25): 4系統自動add_observations追加"
+    - "参考設計: work/cmd_1442/execution_plan_v3.md §3 Δ3"
+    - "既存 scripts/cmem_search.sh 活用・拡張"
+    - "新規.py禁止・shellのみ・advisor()必須(作業前+完了前)・軍師QC必須"
+    - "所要時間: MED 2-3h"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽7号、cmd_1443_p03完了(H3+H8拡張 4系統自動add_obs)。' report_completed ashigaru7"

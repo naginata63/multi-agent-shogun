@@ -443,8 +443,9 @@ Recover from primary data:
    - `assigned` → resume work
    - `done` → await next instruction
 3. Read Memory MCP (read_graph) if available
-4. Read `context/{project}.md` if task has project field
-5. dashboard.md is secondary info only — trust YAML as authoritative
+4. **Ingest `queue/pending_mcp_obs.yaml`** (cmd_1443_p03 / H3+H8) — 各 `status: pending` エントリについて `mcp__memory__add_observations({entity_name, observations:[observation]})` を呼び、完了したら `status: ingested` に更新し当該行を `queue/pending_mcp_obs.archive.yaml` に移す。ファイルが無い・空 `entries: []` の場合は skip。
+5. Read `context/{project}.md` if task has project field
+6. dashboard.md is secondary info only — trust YAML as authoritative
 
 ## /clear Recovery
 

@@ -65,6 +65,15 @@
                         "timeout": 5
                     }
                 ]
+            },
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash /home/murakami/multi-agent-shogun/scripts/cmd_intake_hook.sh",
+                        "timeout": 8
+                    }
+                ]
             }
         ],
         "PostToolUse": [
