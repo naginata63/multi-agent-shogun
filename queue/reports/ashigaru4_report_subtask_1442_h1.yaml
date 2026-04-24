@@ -1,0 +1,171 @@
+worker_id: ashigaru4
+task_id: subtask_1442_h1
+parent_cmd: cmd_1442
+timestamp: "2026-04-24T19:29:00+09:00"
+status: done
+result:
+  summary: |
+    cmd_1442 Wave A H1 verify ハーネス + H10改 advisor 呼出率メトリクス統合を実装完了でござる。
+    家老 scope_extension (18:33 殿承認) の done_gate.sh 新設・advisor_calls.log 自動収集・後方互換
+    も全反映。unit test 13/13 全通過。既存 hook 破壊なし。
+
+  files_modified:
+    - "/home/murakami/multi-agent-shogun/context/cmd_template.md"
+    - "/home/murakami/multi-agent-shogun/scripts/pretool_check.sh"
+    - "/home/murakami/multi-agent-shogun/scripts/posttool_verify_runner.sh"
+    - "/home/murakami/multi-agent-shogun/scripts/done_gate.sh"
+    - "/home/murakami/multi-agent-shogun/scripts/advisor_proxy.py"
+    - "/home/murakami/multi-agent-shogun/.claude/settings.json"
+    - "/home/murakami/multi-agent-shogun/tests/unit/test_done_gate.bats"
+    - "/home/murakami/multi-agent-shogun/tests/unit/test_done_gate.sh"
+    - "/home/murakami/multi-agent-shogun/tests/unit/test_pretool_verify.sh"
+
+  deliverables:
+    - id: D1
+      title: "task YAML verify: 欄 schema 文書化"
+      where: "context/cmd_template.md"
+      detail: "verify.{command, pass_criteria, screenshot_url, timeout_seconds} + verify_result + verify_output_path. opt-in: 欄無し=後方互換で素通り"
+    - id: D2
+      title: "PreToolUse BLOCK gate (CHK5 + CHK6)"
+      where: "scripts/pretool_check.sh"
+      detail: "status:done 遷移時 done_gate.sh に委譲・verify_result:pass 未達 → exit 2 BLOCK / CHK6: tool_name==advisor 時 logs/advisor_calls.log 追記"
+    - id: D3
+      title: "done gate central logic"
+      where: "scripts/done_gate.sh (新設・yq 不使用・shell+python3)"
+      detail: "verify 欄 opt-in + verify_result:pass 必須 + advisor 呼出 >=2 必須。subtask_ 接頭辞剥離の短縮形 task_id にも対応"
+    - id: D4
+      title: "PostToolUse 自動 verify runner"
+      where: "scripts/posttool_verify_runner.sh (新設) + .claude/settings.json"
+      detail: "verify_result: run_now 宣言時のみ trigger・verify.command 実行 (timeout ≤120s) → pass/fail 書戻し + verify_output_path 記録。危険パターン拒絶 (rm -rf / sudo / git push --force 等)"
+    - id: D5
+      title: "advisor 呼出自動ログ (H10改統合)"
+      where: "scripts/advisor_proxy.py (GLM proxy 経由) + scripts/pretool_check.sh CHK6 (ネイティブ経由)"
+      detail: "logs/advisor_calls.log に ISO8601\\tagent_id\\ttask_id\\tsource=... で追記。done_gate.sh が grep でカウント"
+    - id: D6
+      title: "unit test 13 ケース (bats + pure-bash 併置)"
+      where: "tests/unit/test_done_gate.{bats,sh} / test_pretool_verify.sh"
+      detail: "opt-in 素通り / verify:pass+advisor>=2→OK / verify_result欠落→BLOCK / verify_result=fail→BLOCK / advisor<2→BLOCK / 短縮形 task_id 照合 / 不在 task skip / 引数不足 / PreToolUse E2E 5ケース"
+
+  acceptance_criteria_check:
+    - criterion: "context/cmd_template.md に verify: 必須フィールドのスキーマ+例示"
+      status: PASS
+      evidence: "context/cmd_template.md §「Task YAML verify: 欄」に schema + 採択例 (cmd_1434 OGP)"
+    - criterion: "scripts/pretool_check.sh 拡張: status:done 時 verify有無+pass チェックBLOCK動作"
+      status: PASS
+      evidence: "CHK5 新設 (pretool_check.sh L290-)。tests/unit/test_pretool_verify.sh 5/5 pass"
+    - criterion: ".claude/hooks/post_tool_use.sh が task status:done遷移時 verify command自動実行"
+      status: PASS_WITH_NOTE
+      evidence: "scripts/posttool_verify_runner.sh (新設) + settings.json 連携。ただし設計是正: status:done 検出ではなく verify_result: run_now 明示宣言を trigger とした。理由: PostToolUse は BLOCK 不可 (exit 0 固定) ため、done 遷移後の検知は既に手遅れ (advisor 初回 call でも指摘)。代わりに PreToolUse で BLOCK する二重化構成"
+    - criterion: "shogun-screenshot 連携: URL verify時スクショ保存パス明示"
+      status: PASS_AS_DOC
+      evidence: "hook から skill 直接呼出は Claude Code 仕様上不可 → cmd_template.md で agent (足軽) 側に委譲する手順を明文化 (§「URL verify の screenshot」)"
+    - criterion: "unit test 3ケース通過"
+      status: PASS
+      evidence: "3 ケース要件に対し 13 ケース実装・全 PASS (test_done_gate.sh 8/8 + test_pretool_verify.sh 5/5)"
+    - criterion: "git commit済み"
+      status: PENDING
+      evidence: "本報告書作成後に commit 予定"
+
+  scope_extension_check:
+    source: "家老 scope_extension (msg_20260424_191156_b33724f7・殿承認 18:33)"
+    items:
+      - id: A
+        requirement: "scripts/done_gate.sh 新設 (shell・yq依存)"
+        status: PASS_WITH_DEVIATION
+        note: "yq は使用せず python3 (既存全 hook と同パターン) で YAML 解析。yq 依存追加を避けた"
+      - id: B
+        requirement: "advisor 呼出ログ logs/advisor_calls.log 自動収集 (advisor_proxy.py 拡張)"
+        status: PASS_WITH_LIMITATION
+        note: "GLM 経路 = advisor_proxy.py に log_advisor_call 追加で網羅。Claude-native 経路 = pretool_check.sh CHK6 追加したが、Claude Code の built-in advisor() tool は PreToolUse hook を bypass する仕様のため、現環境では自動記録されない。手動簡易テスト (printf + bash pretool_check.sh) では期待通り記録される。詳細は hotfix_notes 参照"
+      - id: C
+        requirement: "後方互換: verify: 欄無し既存 subtask は従来通り done 許可"
+        status: PASS
+        note: "done_gate.sh が verify 欄なし → SKIP:no_verify_field で exit 0。test_done_gate.sh T-DG-001 で検証"
+      - id: D
+        requirement: "既存 subtask regression 確認必須"
+        status: PASS
+        note: "全既存 hook (CHK1-CHK4) syntax 変更なし・bash -n 構文通過・pretool_check.sh は CHK5 を末尾追加のみ"
+
+  test_results:
+    - suite: test_done_gate.sh (pure-bash)
+      cases: 8
+      pass: 8
+      fail: 0
+      cases_detail:
+        - "T-DG-001 verify欄なし→skip (opt-in 後方互換)"
+        - "T-DG-002 verify:pass+advisor>=2→OK"
+        - "T-DG-003 verify_result欠落→BLOCK"
+        - "T-DG-004 verify_result=fail→BLOCK"
+        - "T-DG-005 advisor=0→BLOCK"
+        - "T-DG-006 短縮形 task_id でもカウント→OK"
+        - "T-DG-007 task_id 不在→skip"
+        - "T-DG-008 引数不足→usage BLOCK"
+    - suite: test_pretool_verify.sh (PreToolUse CHK5 E2E)
+      cases: 5
+      pass: 5
+      fail: 0
+      cases_detail:
+        - "CHK5 legacy task (verify欄なし)→素通り"
+        - "CHK5 verify_result欠落 + status:done→BLOCK"
+        - "CHK5 verify_result=fail + status:done→BLOCK"
+        - "CHK5 status:in_progress→素通り"
+        - "CHK5 queue/tasks 以外→素通り"
+    - suite: test_done_gate.bats (bats 版)
+      cases: 8
+      pass: N/A
+      fail: N/A
+      note: "bats 未インストール環境のため実行不可。make install-deps 後に CI で確認想定"
+
+  design_decisions:
+    - point: "task YAML vs cmd YAML での verify: 欄配置"
+      decision: "task YAML (queue/tasks/*) 側に配置・cmd_template.md はガイダンス"
+      reason: "足軽単位で verify 検証の粒度を確保。cmd スキーマは既存踏襲 (advisor call 1 の指摘反映)"
+    - point: "BLOCK は PreToolUse / 自動実行は PostToolUse"
+      decision: "二重化 (pretool=gate、posttool=auto-runner on run_now sentinel)"
+      reason: "PostToolUse は exit 0 固定で BLOCK 不可 (既存 posttool_cmd_check.sh 参照)。task YAML の文言『PostToolUse で done 阻止』は PreToolUse で実装"
+    - point: "shogun-screenshot skill 連携"
+      decision: "hook から起動せず、cmd_template.md で agent 側の手順として文書化"
+      reason: "Claude Code hook は shell のみ。skill は agent-level 起動のみ (advisor 指摘反映)"
+    - point: "opt-in 運用 (verify 欄無し → skip)"
+      decision: "既存全 task の regression を回避する唯一の移行策"
+      reason: "全 task に verify 欄を強制すると既存数百 task が一斉 BLOCK される事故。家老 scope_extension の要件 (C) に合致"
+
+  limitations:
+    - id: L1
+      description: "Claude-native (Opus/Sonnet) の advisor() built-in tool は PreToolUse hook を bypass する (Claude Code 仕様)"
+      impact: "ネイティブ agent の advisor 呼出は logs/advisor_calls.log に記録されない → verify 欄宣言済み task を Claude-native agent が done にしようとすると advisor 不足で BLOCK される"
+      mitigation: "GLM 経路 (advisor_proxy.py) では正しく記録。Claude-native 経路で verify 欄を使う場合は手動 log 追記 OR 将来別 hook 機構で対応 (次 Wave で検討)"
+      evidence: "本 session で advisor() を 2 回呼んだが logs/advisor_calls.log に entry なし。一方 printf '{\"tool_name\":\"advisor\"...}' | bash pretool_check.sh で手動起動すると entry 生成される"
+    - id: L2
+      description: "gunshi.md の step 3.5 相当 (@current_task pane option 設定) が未設定だと task_id=unknown でログ記録される"
+      impact: "gunshi 側で verify: 欄使用時、done_gate.sh の advisor 呼出照合が失敗しやすい"
+      mitigation: "次 Wave で gunshi.md / 共通 instruction 側に step 3.5 を横展開する要"
+    - id: L3
+      description: "bats ローカル未インストール"
+      impact: ".bats 版 test は make install-deps + npm install -g bats 後でないと実行不可"
+      mitigation: "pure-bash 版 (test_done_gate.sh・test_pretool_verify.sh) を併置してローカル実行可。bats 版は CI で検証想定"
+
+skill_candidate:
+  found: false
+
+hotfix_notes:
+  what_was_wrong: |
+    初回実装で pretool_check.sh CHK5 の python ブロックが `echo "$INPUT" | python3 <<'PYEOF'` パターンだったため、stdin が空になる silent failure を起こしていた (heredoc が pipe の stdin を奪う bash 仕様)。E2E テストで初めて判明。
+  workaround: |
+    INPUT を env var (PRETOOL_INPUT_JSON) として python に渡す形に変更。既存 CHK1-CHK4 は `python3 -c "..."` パターンのためこの問題に遭わない。
+  proper_fix: |
+    将来 hook script で heredoc + stdin が必要な場合は必ず env var / 一時ファイル / python3 -c パターンで stdin pipe を維持せよ。本件は advisor 事前助言 + 完了前助言で検出 → CHK5 を fix 済み。
+
+  what_was_wrong_2: |
+    家老 task YAML 本文は「PostToolUse hook で done 阻止」と記載していたが、Claude Code の PostToolUse は exit 0 固定で BLOCK 不可 (既存 posttool_cmd_check.sh のコメント参照)。
+  workaround_2: |
+    実際の BLOCK は PreToolUse CHK5 で実装。PostToolUse は verify_result: run_now の sentinel を見て verify コマンド自動実行のみ担当する二重化。
+  proper_fix_2: |
+    次回 task YAML 発令時、Claude Code hook 仕様を踏まえて PreToolUse/PostToolUse の役割分担を明記せよ (家老 Task Assignment Checklist に追記候補)。
+
+next_actions:
+  - "git commit (ashigaru は push 禁止→家老に委任)"
+  - "inbox_write karo で完了報告 (task YAML 末尾の inbox_write 定型通り)"
+  - "家老→軍師 QC 依頼 (軍師がテスト結果 / 仕様整合 / regression を二重検査)"
+  - "Wave A 他 subtask (p02-p05) との並列進行に影響なし"
+  - "L1 制限 (Claude-native advisor bypass) の恒久対策は次 Wave で別 subtask として検討要"

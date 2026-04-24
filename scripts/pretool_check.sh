@@ -287,4 +287,129 @@ else:
   fi
 fi
 
+# ── チェック5: done gate (cmd_1442 H1 + H10改統合) ──
+# queue/tasks/{ashigaru*,gunshi}.yaml の status:done 遷移を検査:
+#   (1) verify: 欄宣言済 task は verify_result:pass 必須 (未達なら BLOCK)
+#   (2) verify: 欄宣言済 task は advisor 呼出 2 回以上必須 (未達なら BLOCK)
+# opt-in: verify: 欄無しの task は素通り (既存全 subtask の後方互換)。
+# 実ロジックは scripts/done_gate.sh に委譲。
+if [[ "$TOOL_NAME" == "Write" ]] || [[ "$TOOL_NAME" == "Edit" ]]; then
+  _CK5_FILE_PATH=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('file_path',''))" 2>/dev/null || true)
+  if echo "$_CK5_FILE_PATH" | grep -qE 'queue/tasks/(ashigaru[0-9]+|gunshi)\.yaml$'; then
+    # edit 後の content を simulate し、status:done の task_id を列挙する
+    # NOTE: stdin は heredoc が奪うため INPUT を env 経由で渡す
+    _CK5_DONE_IDS=$(PRETOOL_INPUT_JSON="$INPUT" PRETOOL_FILE_PATH="$_CK5_FILE_PATH" python3 <<'PYEOF' 2>/dev/null
+import sys, json, re, os, tempfile
+try:
+    data = json.loads(os.environ.get('PRETOOL_INPUT_JSON', ''))
+except Exception:
+    sys.exit(0)
+ti = data.get('tool_input', {})
+tool = data.get('tool_name', '')
+file_path = os.environ.get('PRETOOL_FILE_PATH', '')
+
+if tool == 'Edit':
+    old_s = ti.get('old_string', '')
+    new_s = ti.get('new_string', '')
+    if not re.search(r'(^|\n)\s*status:\s*done\b', new_s):
+        sys.exit(0)
+    try:
+        with open(file_path) as f:
+            content = f.read()
+    except Exception:
+        sys.exit(0)
+    if ti.get('replace_all'):
+        content = content.replace(old_s, new_s)
+    else:
+        content = content.replace(old_s, new_s, 1)
+elif tool == 'Write':
+    content = ti.get('content', '')
+else:
+    sys.exit(0)
+
+# post-edit content を temp file に出力し、done かつ verify 宣言済 task_id を列挙
+tmp = tempfile.NamedTemporaryFile('w', suffix='.yaml', delete=False, prefix='pretool_sim_')
+tmp.write(content)
+tmp.close()
+
+blocks = re.split(r'(?=^- task_id:)', content, flags=re.MULTILINE)
+ids = []
+for block in blocks:
+    if not block.strip().startswith('- task_id:'):
+        continue
+    tid_m = re.search(r'^- task_id:\s*(\S+)', block, re.MULTILINE)
+    if not tid_m:
+        continue
+    task_id = tid_m.group(1).strip().strip('"').strip("'")
+    if not re.search(r'^\s+verify:\s*(\{|$|\n)', block, re.MULTILINE):
+        continue
+    st_m = re.search(r'^\s+status:\s*([^\s\n#]+)', block, re.MULTILINE)
+    if not st_m:
+        continue
+    status_val = st_m.group(1).strip().strip('"').strip("'")
+    if status_val != 'done':
+        continue
+    ids.append(task_id)
+
+if ids:
+    print(tmp.name)
+    for tid in ids:
+        print(tid)
+else:
+    os.unlink(tmp.name)
+PYEOF
+)
+    if [ -n "$_CK5_DONE_IDS" ]; then
+      _CK5_SIM=$(echo "$_CK5_DONE_IDS" | head -n1)
+      _CK5_AGENT=""
+      if [ -n "${TMUX_PANE:-}" ]; then
+        _CK5_AGENT=$(tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}' 2>/dev/null || true)
+      fi
+      [ -z "$_CK5_AGENT" ] && _CK5_AGENT="unknown"
+
+      _CK5_FAIL=0
+      _CK5_MSG=""
+      while IFS= read -r _CK5_TID; do
+        [ -z "$_CK5_TID" ] && continue
+        if bash "${SCRIPT_DIR}/done_gate.sh" "$_CK5_AGENT" "$_CK5_TID" "$_CK5_SIM" 2>/tmp/done_gate_err.$$ ; then
+          :
+        else
+          _CK5_FAIL=1
+          _CK5_MSG="${_CK5_MSG}$(cat /tmp/done_gate_err.$$ 2>/dev/null)\n"
+        fi
+        rm -f /tmp/done_gate_err.$$
+      done < <(echo "$_CK5_DONE_IDS" | tail -n +2)
+
+      rm -f "$_CK5_SIM" 2>/dev/null
+
+      if [ "$_CK5_FAIL" -eq 1 ]; then
+        printf "%b" "$_CK5_MSG" >&2
+        exit 2
+      fi
+    fi
+  fi
+fi
+
+# ── チェック6: advisor 呼出ログ (cmd_1442 H10改) ──
+# tool_name == "advisor" 検出時、logs/advisor_calls.log に追記。
+# 形式: ISO8601\tagent_id\ttask_id\tloop=pre|post
+# done_gate.sh はこのログを参照して呼出回数を検証する。
+if [[ "$TOOL_NAME" == "advisor" ]]; then
+  _CK6_AGENT=""
+  _CK6_TASK=""
+  if [ -n "${TMUX_PANE:-}" ]; then
+    _CK6_AGENT=$(tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}' 2>/dev/null || true)
+    _CK6_TASK=$(tmux display-message -t "$TMUX_PANE" -p '#{@current_task}' 2>/dev/null || true)
+  fi
+  [ -z "$_CK6_AGENT" ] && _CK6_AGENT="unknown"
+  [ -z "$_CK6_TASK" ] && _CK6_TASK="unknown"
+  mkdir -p "${REPO_DIR}/logs" 2>/dev/null || true
+  printf "%s\t%s\t%s\tsource=pretool_hook\n" \
+    "$(date -Iseconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S)" \
+    "$_CK6_AGENT" \
+    "$_CK6_TASK" \
+    >> "${REPO_DIR}/logs/advisor_calls.log" 2>/dev/null || true
+  # Never BLOCK advisor calls — logging is side-effect only
+fi
+
 exit 0

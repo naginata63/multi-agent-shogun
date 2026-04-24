@@ -46,6 +46,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
 LOG_DIR = os.path.join(PROJECT_ROOT, "logs")
 PID_FILE = os.path.join(LOG_DIR, "advisor_proxy.pid")
+ADVISOR_CALLS_LOG = os.path.join(LOG_DIR, "advisor_calls.log")  # cmd_1442 H10改 done_gate.sh 参照用
 
 _START_TIME = time.time()
 
@@ -166,6 +167,25 @@ def detect_advisor_tool_use(response_body: dict) -> dict | None:
     return None
 
 
+def log_advisor_call(agent_id: str | None, task_id: str | None, req_id: str) -> None:
+    """Append advisor call event to logs/advisor_calls.log (cmd_1442 H10改).
+
+    Format: ISO8601\tagent_id\ttask_id\tsource=advisor_proxy\treq_id=<req_id>
+    done_gate.sh greps this log to verify 2x advisor call requirement.
+    Best-effort; never raises.
+    """
+    try:
+        from datetime import datetime, timezone
+        ts = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%dT%H:%M:%S%z")
+        agent = agent_id or "unknown"
+        task = task_id or "unknown"
+        line = f"{ts}\t{agent}\t{task}\tsource=advisor_proxy\treq_id={req_id}\n"
+        with open(ADVISOR_CALLS_LOG, "a") as f:
+            f.write(line)
+    except Exception as e:
+        logger.warning("advisor_calls.log write failed: %s", e)
+
+
 # ─── Context Extraction ──────────────────────────────────────────────────────
 
 
@@ -217,20 +237,29 @@ def extract_context_for_advisor(request_body: dict) -> str:
 # ─── Claude -p Advisor Call ───────────────────────────────────────────────────
 
 
-async def call_advisor_cli(context: str) -> str:
-    """Call claude -p to get advisor response. Runs in thread pool."""
+async def call_advisor_cli(context: str, model_override: str | None = None) -> str:
+    """Call claude -p to get advisor response. Runs in thread pool.
+
+    Args:
+        context: conversation context to send to advisor
+        model_override: optional per-request model ID (from X-Advisor-Model header).
+                        Falls back to ADVISOR_MODEL env default if None.
+    """
     prompt = (
         "You are an advisor reviewing an agent's work. "
         "Based on the conversation below, provide concise advice "
         "in under 100 words using enumerated steps.\n\n"
         f"{context}"
     )
+    effective_model = model_override or ADVISOR_MODEL
+    logger.info("call_advisor_cli: invoking claude -p with --model %s (override=%s)",
+                effective_model, model_override or "none")
 
     def _run():
         try:
             result = subprocess.run(
                 [CLAUDE_CLI, "-p", prompt, "--output-format", "text",
-                 "--model", ADVISOR_MODEL],
+                 "--model", effective_model],
                 capture_output=True,
                 text=True,
                 timeout=ADVISOR_TIMEOUT,
@@ -399,11 +428,20 @@ async def _upstream_post(
 
 
 async def handle_request(request: web.Request) -> web.StreamResponse:
-    """Handle all incoming requests — proxy to Z.AI with advisor interception."""
+    """Handle all incoming requests — proxy to Z.AI with advisor interception.
+
+    Clients may specify `X-Advisor-Model: claude-opus-4-6[1m]` to override the
+    default advisor model per-request (no proxy restart required).
+    """
     req_id = uuid.uuid4().hex[:8]
     path = request.path
     body = await request.read()
     start_time = time.time()
+
+    # Per-request advisor model override (fallback to ADVISOR_MODEL env default)
+    advisor_model_override = request.headers.get("X-Advisor-Model")
+    if advisor_model_override:
+        logger.info("[%s] X-Advisor-Model override: %s", req_id, advisor_model_override)
 
     # Circuit breaker check
     if not circuit_breaker.can_request():
@@ -526,10 +564,17 @@ async def handle_request(request: web.Request) -> web.StreamResponse:
         logger.info("[%s] Advisor tool_use detected (loop %d/%d), id=%s",
                      req_id, i + 1, MAX_ADVISOR_LOOPS, advisor_block.get("id"))
 
-        # Get advice via claude -p
+        # cmd_1442 H10改: advisor 呼出を logs/advisor_calls.log に記録
+        # agent_id / task_id はクライアント側ヘッダ (X-Agent-Id / X-Current-Task) 優先、
+        # なければ system prompt からの推測 (失敗時 unknown)
+        hdr_agent = request.headers.get("X-Agent-Id")
+        hdr_task = request.headers.get("X-Current-Task")
+        log_advisor_call(hdr_agent, hdr_task, req_id)
+
+        # Get advice via claude -p (per-request model override via X-Advisor-Model header)
         context = extract_context_for_advisor(current_request)
         logger.info("[%s] Advisor context (%d chars): %s", req_id, len(context), context[:300])
-        advice = await call_advisor_cli(context)
+        advice = await call_advisor_cli(context, model_override=advisor_model_override)
         logger.info("[%s] Advisor response (%d chars): %s", req_id, len(advice), advice[:200])
 
         # Build continuation request

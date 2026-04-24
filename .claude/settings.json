@@ -85,6 +85,15 @@
                         "timeout": 35
                     }
                 ]
+            },
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash /home/murakami/multi-agent-shogun/scripts/posttool_verify_runner.sh",
+                        "timeout": 130
+                    }
+                ]
             }
         ],
         "UserPromptSubmit": [
