@@ -86,6 +86,8 @@
 # Context README
 !shared_context/
 !shared_context/README.md
+!shared_context/qc_template.md
+!shared_context/cmem_quickstart.md
 
 # Python venv
 !requirements.txt
@@ -167,6 +169,7 @@
 !scripts/fix_panes.sh
 !scripts/backup_queue.sh
 !scripts/advisor_proxy.py
+!scripts/cmem_search.sh
 !discord-news-bot.service
 # config/discord_bot.env は * で除外済み（トークン含む、絶対コミット禁止）
 
