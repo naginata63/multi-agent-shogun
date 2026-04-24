@@ -34,6 +34,30 @@ cli:
     ashigaru6: { type: glm, model: glm }
     ashigaru7: { type: glm, model: glm }
 
+# ============================================================
+# Bloom-based Dynamic Model Routing (殿判断 cmd_1441 D10 Option β / 2026-04-24)
+# A1-a 復活 — L1-L4=GLM (Z.AI GLM-5.1) / L5-L6=Opus[1m] (Claude)。Sonnet除外。
+# 家老 step 6.5 + lib/cli_adapter.sh get_recommended_model が参照する。
+# capability_tiers のキーは cli.agents.*.model の値と一致させること。
+# ============================================================
+bloom_routing: auto
+
+available_cost_groups:
+  - glm
+  - claude_max
+
+capability_tiers:
+  glm:                    # cli.agents.ashigaru{1-7}.model == "glm"
+    max_bloom: 4          # L1-L4: Z.AI GLM-5.1
+    cost_group: glm
+  "opus[1m]":             # Claude Opus 4.7 (1M context)
+    max_bloom: 6          # L5-L6: 分析・創造・戦略
+    cost_group: claude_max
+
+bloom_model_preference:
+  L1-L4: [glm]
+  L5-L6: ["opus[1m]"]
+
 # ntfy通知設定
 ntfy_topic: "shogun-962f817f20fadb36"
 ntfy_image_dir: "screenshots/ntfy"
