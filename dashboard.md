@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-24 13:44
+最終更新: 2026-04-24 14:02
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -9,6 +9,31 @@
 ## 🚨 要対応（殿の御判断必要）
 
 ~~🔴 cmd_1434 polish~~: cmd_1437+cmd_1438で全件解消済み
+
+### 🚨 cmd_1441 Phase C 発令待機（殿判断要・execution_plan.md 参照）
+
+**軍師 Phase B 完了** — 121 raw ideas → 28 subtask 統合。Wave1:11件/Wave2:13件/Wave3:4件。詳細: `work/cmd_1441/execution_plan.md` + `integrity_audit.md` (commit 889d948)
+
+**Wave 1（即答で閉じる）** — 11件の中で殿一問即答が必要な項目:
+- **p03**: work/cmd_1424 (9.3GB中間動画) 削除OK? （.gitignore済・Day6 MIX前提の中間データ）→ 推奨：削除Yes
+
+**Wave 2 殿判断ゲート D1-D9（ntfy一括提示想定）:**
+| # | 判断事項 | 軍師推奨 |
+|---|---------|---------|
+| D1 | Day6 MIX 優先区間（3分×3箇所等） | 3分×3箇所 |
+| D2 | cmd_1413採用 / 1411却下の再確認 | 現状維持 |
+| D3 | skills whitelist vs 全体tracked | 全体tracked |
+| D4 | bloom_routing A1-a復活 vs A1-b削除 | A1-b削除 |
+| D5 | instructions 26file archive化 OK? | archive化 |
+| D6 | MEMORY.md Session Start 変更可否 | shogun.md同期更新 |
+| D7 | MCP 3D entity 削除可逆性手順承認 | snapshot+転記必須 |
+| D8 | MCN ガイドラインURL/送信先/AI3段構え承認 | 送信先確定が最優先blocker |
+| D9 | dozle_kirinuki submodule 履歴書換 OK? | backup+force-with-lease |
+
+**今夜ウィンドウ限定推奨（Opus週次リセット直後）:**
+- p06 TNT漫画ショート2本完走（1-2h）
+- p11 Opus[1m]観測ダッシュボード基準値取得（2-3h）
+- p01+p02 cmd一括done化5件+cmd_1348救出（45min）
 
 ### 🚨 スキル化候補（殿承認要）
 - **skill-candidate-tracker**: スキル化候補のトラッキング・棚卸しツール化（足軽7号 subtask_1441ghi で浮上・skill_candidate:true）
@@ -32,7 +57,7 @@
 | cmd | 担当 | 状態 |
 |-----|------|------|
 | cmd_1436 | — | ✅ **完了** todolist.md作成済み(将軍) |
-| cmd_1441 | 足軽1-7+軍師 | 🔄 Phase A 完了(1a殿判断skip) / Phase B 発令中(軍師 integrity_audit+execution_plan 作成) |
+| cmd_1441 | 足軽1-7+軍師 | ⏸ Phase B 完了(28subtask統合) / Phase C発令は殿判断ゲートD1-D9待ち(execution_plan.md参照) |
 | cmd_1437 | 足軽1号 | ✅ 収益化進捗セクション削除完了 commit 73fc9c0c+d2dde95 |
 | cmd_1438 | 軍師 | ✅ PASS メンバー名日本語化/命名衝突/caption/by_duration/Chart destroy全完了 |
 
@@ -49,7 +74,7 @@
 | 5号 | Opus[1m] | ✅ idle | subtask_1441e 完了(ashigaru5_e.md 8案/812d3b0) |
 | 6号 | Opus[1m] | ✅ idle | subtask_1441f 完了(ashigaru6_f.md 114行/8案/040ff46) |
 | 7号 | Opus[1m] | ✅ idle | subtask_1441ghi 完了(ashigaru7_ghi.md 206行/22案/6c704fb) |
-| 軍師 | Opus[1m] | 🔄 作業中 | subtask_1441_phaseB(integrity_audit+execution_plan 統合) |
+| 軍師 | Opus[1m] | ✅ idle | subtask_1441_phaseB 完了(28subtask統合・commit 889d948) |
 
 ---
 
