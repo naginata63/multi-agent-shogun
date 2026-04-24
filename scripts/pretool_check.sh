@@ -412,4 +412,153 @@ if [[ "$TOOL_NAME" == "advisor" ]]; then
   # Never BLOCK advisor calls — logging is side-effect only
 fi
 
+# ── チェック7: task YAML lint (cmd_1443 p06 H5) ──
+# queue/tasks/{ashigaru*,gunshi}.yaml に新規 task ブロックを追加する編集で、
+# 必須フィールド (task_id/parent_cmd/bloom_level/status/target_path/timestamp/
+# description/steps/acceptance_criteria) 欠落時 BLOCK。
+#
+# 規制は NEW task_id のみ対象 (既存 task の status 変更等は素通り・regression 回避)。
+# NEW 判定: 編集前ファイルに該当 task_id がなく、編集後に出現する task_id。
+if [[ "$TOOL_NAME" == "Write" ]] || [[ "$TOOL_NAME" == "Edit" ]]; then
+  _CK7_FILE_PATH=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('file_path',''))" 2>/dev/null || true)
+  if echo "$_CK7_FILE_PATH" | grep -qE 'queue/tasks/(ashigaru[0-9]+|gunshi)\.yaml$'; then
+    _CK7_RESULT=$(PRETOOL_INPUT_JSON="$INPUT" PRETOOL_FILE_PATH="$_CK7_FILE_PATH" python3 <<'PYEOF' 2>/dev/null
+import os, json, re, sys
+REQUIRED = ['task_id','parent_cmd','bloom_level','status','target_path','timestamp','description','steps','acceptance_criteria']
+try:
+    data = json.loads(os.environ.get('PRETOOL_INPUT_JSON',''))
+except Exception:
+    sys.exit(0)
+ti = data.get('tool_input', {})
+tool = data.get('tool_name', '')
+file_path = os.environ.get('PRETOOL_FILE_PATH', '')
+
+# pre-edit content
+try:
+    with open(file_path) as f:
+        pre = f.read()
+except Exception:
+    pre = ''
+
+if tool == 'Edit':
+    old_s = ti.get('old_string','')
+    new_s = ti.get('new_string','')
+    if ti.get('replace_all'):
+        post = pre.replace(old_s, new_s)
+    else:
+        post = pre.replace(old_s, new_s, 1)
+elif tool == 'Write':
+    post = ti.get('content','')
+else:
+    sys.exit(0)
+
+def ids_in(content):
+    out = set()
+    for m in re.finditer(r'^- task_id:\s*(\S+)', content, re.MULTILINE):
+        v = m.group(1).strip().strip('"').strip("'")
+        out.add(v)
+    return out
+
+pre_ids = ids_in(pre)
+post_ids = ids_in(post)
+new_ids = post_ids - pre_ids
+if not new_ids:
+    sys.exit(0)
+
+blocks = re.split(r'(?=^- task_id:)', post, flags=re.MULTILINE)
+violations = []
+for block in blocks:
+    if not block.strip().startswith('- task_id:'):
+        continue
+    m = re.search(r'^- task_id:\s*(\S+)', block, re.MULTILINE)
+    if not m:
+        continue
+    tid = m.group(1).strip().strip('"').strip("'")
+    if tid not in new_ids:
+        continue
+    missing = []
+    for fld in REQUIRED:
+        if fld == 'task_id':
+            continue  # already confirmed
+        # Acceptance criteria = list, so look for the key start only
+        if not re.search(rf'^\s+{re.escape(fld)}:', block, re.MULTILINE):
+            missing.append(fld)
+    if missing:
+        violations.append(f'{tid}: missing {",".join(missing)}')
+
+if violations:
+    print('BLOCKED: task YAML lint (cmd_1443 p06 H5): 新規 task_id に必須フィールド欠落')
+    for v in violations:
+        print(f'  - {v}')
+    print('必須フィールド: ' + ' / '.join(REQUIRED))
+    print('既存 task の編集は対象外 (NEW task_id のみ lint)。task YAML 追記時は template 参照せよ。')
+    sys.exit(2)
+sys.exit(0)
+PYEOF
+)
+    _CK7_EXIT=$?
+    if [ $_CK7_EXIT -eq 2 ]; then
+      echo "$_CK7_RESULT" >&2
+      exit 2
+    fi
+  fi
+fi
+
+# ── チェック8: git add . / -A BLOCK (cmd_1443 p06 scope_extension) ──
+# 軍師 qc_1443_p02 HIGH finding (commit 1440234 巻込事故) 対応:
+# 足軽が `git add .` で他足軽の作業中ファイルを巻込 commit する事故の恒久防止。
+# BLOCK: `git add .` (literal dot), `git add -A`, `git add --all`, `git add *` (unquoted glob)
+# 許可: `git add -p` / `--patch`, `git add <具体パス>`, `git add -u` (tracked-only・note で記録)
+# 重要: ヒアドキュメント / 引用文字列内に現れる "git add ." 等の文字列は誤検知しない
+#       (commit message に `git add .` と書いた場合等の false positive 回避)
+if [[ "$TOOL_NAME" == "Bash" ]]; then
+  # ヒアドキュメント (<<'EOF' ... EOF / <<EOF ... EOF / <<-EOF / <<'PYEOF' 等) を除去
+  # また "..." / '...' / $(cat <<...) 等の引用内容も除外
+  _CK8_CMD=$(PRETOOL_CMD_RAW="$COMMAND" python3 <<'PYEOF_CK8' 2>/dev/null || true
+import os, re, sys
+cmd = os.environ.get('PRETOOL_CMD_RAW', '')
+# Strip heredoc bodies: match <<'TAG' or <<"TAG" or <<TAG or <<-TAG up to a line "TAG"
+def strip_heredocs(s):
+    def repl(m):
+        return '\n'  # keep line count roughly
+    # -? optional indent, ' or " optional quotes around tag
+    pat = re.compile(r"<<-?(['\"]?)(\w+)\1.*?^\s*\2\s*$", re.DOTALL | re.MULTILINE)
+    prev = None
+    while prev != s:
+        prev = s
+        s = pat.sub(repl, s)
+    return s
+cmd = strip_heredocs(cmd)
+# Strip single-quoted strings '...' (no escaping inside)
+cmd = re.sub(r"'[^']*'", "''", cmd)
+# Strip double-quoted strings "..." (simple — ignore escaped quotes)
+cmd = re.sub(r'"[^"]*"', '""', cmd)
+# Strip backtick `...`
+cmd = re.sub(r'`[^`]*`', '``', cmd)
+print(cmd)
+PYEOF_CK8
+)
+  if [ -z "$_CK8_CMD" ]; then
+    _CK8_CMD="$COMMAND"  # fallback
+  fi
+  # `git add .` / `git add -f .`
+  if echo "$_CK8_CMD" | grep -qE '(^|[[:space:];&|])git add ([-][AfF]+ )?(\.)($|[[:space:];&|])'; then
+    echo "BLOCKED: 'git add .' 禁止 (cmd_1443 p06 scope / 軍師 qc_1443_p02 HIGH finding)" >&2
+    echo "理由: 他足軽の作業中ファイルを意図せず staged する巻込事故の恒久対策" >&2
+    echo "許可: 'git add <具体パス>' / 'git add -p' (対話的) / 'git add --patch'" >&2
+    exit 2
+  fi
+  if echo "$_CK8_CMD" | grep -qE '(^|[[:space:];&|])git add ([-][AfF]+ )?\*($|[[:space:];&|])'; then
+    echo "BLOCKED: 'git add *' (unquoted glob) 禁止 (cmd_1443 p06 scope)" >&2
+    echo "許可: 'git add <具体パス>' / 'git add -p'" >&2
+    exit 2
+  fi
+  if echo "$_CK8_CMD" | grep -qE '(^|[[:space:];&|])git add (-A|--all)\b'; then
+    echo "BLOCKED: 'git add -A' / 'git add --all' 禁止 (cmd_1443 p06 scope)" >&2
+    echo "理由: 他足軽の作業中ファイルを意図せず staged する巻込事故の恒久対策" >&2
+    echo "許可: 'git add <具体パス>' / 'git add -p'" >&2
+    exit 2
+  fi
+fi
+
 exit 0
