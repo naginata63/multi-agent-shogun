@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 08:04
+最終更新: 2026-04-25 08:10
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -88,7 +88,7 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 | cmd_1455 | 足軽4号→軍師 | ✅ **PASS(07:57)** done_gate.sh H_post拡張 +20行(AC上限完全一致)・unit test 8件全PASS |
 | cmd_1456 a/c/d | 足軽5/6/7号→軍師 | ✅ **全完遂・QC完了** a=PASS/c=PASS_with_finding(INFO)/d=PASS |
 | cmd_1457 | 足軽3号→軍師 | 🔄 **完遂(08:01)・軍師QC中(30分観察08:31まで)** is_noise_line 4パターン追加 |
-| cmd_1458 | 足軽1号→軍師 | 🔄 **発令(08:03)** tono_edit2縦長クロップ+h264_nvenc+YouTube非公開アップ(22秒・音声不調修正) |
+| cmd_1458 | 足軽1号→軍師 | 🔄 **完遂(08:09)・軍師QC中** 縦長1080x1920+h264_nvenc+非公開アップ(https://www.youtube.com/watch?v=zP_j7NRg9Lw) |
 | nightly_audit_20260425_infra | — | ✅ **完遂 02:14** 軍師8件検出(M=4/I=4)・cmd_1453✅/cmd_1456✅完遂 |
 
 ---
@@ -97,14 +97,14 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | GLM | 🔄 busy | cmd_1458 subtask_1458a 発令(08:03)・縦長クロップ+NVENC+YouTube非公開アップ |
+| 1号 | GLM | ✅ idle | cmd_1458 ✅完遂(08:09)・軍師QC中(qc_subtask_1458a) |
 | 2号 | GLM | ✅ idle | subtask_1450_cleanup ✅完遂・軍師PASS(07:47) |
 | 3号 | Opus[1m] | ✅ idle | cmd_1457 ✅完遂(08:01)・軍師QC中(30分観察08:31まで) |
 | 4号 | GLM | ✅ idle | cmd_1455 ✅PASS(07:57・軍師QC) |
 | 5号 | GLM | ✅ idle | subtask_1456a ✅PASS(07:47・軍師QC) |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1456d ✅PASS(軍師QC) |
-| 軍師 | Opus[1m] | ✅ idle | 全QC完了(07:57) |
+| 軍師 | Opus[1m] | 🔄 QC中 | qc_subtask_1457a(30分観察08:31)/qc_subtask_1458a(並行) |
 
 ---
 
