@@ -66,6 +66,16 @@ workflow:
       - 前のタスクのstatusを `done` に更新してから新タスクを追記
       - 形式: `tasks:` リスト（各タスクは `- task_id: ...` で始まる）
       - parent_cmd フィールドは必須（どのcmdから派生したか記録する）
+    target_path_rule: |
+      【必須】全タスクYAMLに target_path フィールドを付与すること。省略禁止。
+      - 形式: 絶対パスで記述（例: /home/murakami/multi-agent-shogun/instructions/karo.md）
+      - 意味: 足軽が書き込んでよい成果物ファイルの指定。pretool_check.sh (CHK1/CK2) が
+        Write/Edit ツールのファイルパスと照合し、work/cmd_*/ 配下への直接書込を BLOCK する。
+      - 成果物が複数ファイルに跨る場合: 共通ディレクトリ（例: /home/murakami/.../scripts/）か、
+        主たる成果物ファイルを指定し、steps 内で他ファイルを明記する。
+      - target_path 欠落のタスクは pretool_check CHK6 (cmd YAML lint) で BLOCK される。
+      - 判断不能なタスク（調査/探索系）でも target_path は必須。報告先 YAML を指定してよい
+        （例: queue/reports/ashigaru{N}_report_{task_id}.yaml）。
     procedure_rule: |
       【必須】タスクYAMLのsteps/descriptionは80行以内に収めよ。
       具体的な手順（ffmpegコマンド、Pythonスクリプト等）は shared_context/procedures/ の手順テンプレートに外出しし、

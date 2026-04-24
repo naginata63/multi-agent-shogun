@@ -84,21 +84,22 @@ language:
 
 ## /clear Recovery (ashigaru/gunshi only)
 
-Lightweight recovery using only CLAUDE.md (auto-loaded). Do NOT read instructions/*.md (cost saving).
+Recovery after /clear. instructions/*.md を必ず読むこと（ルール変更が反映されないため）。
 
 ```
 Step 1: tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}' → ashigaru{N} or gunshi
-Step 2: (gunshi only) mcp__memory__read_graph (skip on failure). Ashigaru skip — task YAML is sufficient.
-Step 3: Read queue/tasks/{your_id}.yaml → 末尾のstatus:assignedタスクを探す。なければidle
-Step 3.5: Read queue/inbox/{your_id}.yaml → unread messages があれば処理
-Step 4: If task has "project:" field → read shared_context/{project}.md
+Step 2: Read instructions/{your_role}.md （ashigaru→instructions/ashigaru.md、gunshi→instructions/gunshi.md）
+Step 3: (gunshi only) mcp__memory__read_graph (skip on failure). Ashigaru skip — task YAML is sufficient.
+Step 4: Read queue/tasks/{your_id}.yaml → 末尾のstatus:assignedタスクを探す。なければidle
+Step 4.5: Read queue/inbox/{your_id}.yaml → unread messages があれば処理
+Step 5: If task has "project:" field → read shared_context/{project}.md
         If task has "target_path:" → read that file
-Step 5: Start work
+Step 6: Start work
 ```
 
-**CRITICAL**: Steps 1-3を完了するまでinbox処理するな。`inboxN` nudgeが先に届いても無視し、自己識別を必ず先に終わらせよ。
+**CRITICAL**: Steps 1-4を完了するまでinbox処理するな。`inboxN` nudgeが先に届いても無視し、自己識別→instructions読み込みを必ず先に終わらせよ。
 
-Forbidden after /clear: reading instructions/*.md (1st task), polling (F004), contacting humans directly (F002). Trust task YAML only — pre-/clear memory is gone.
+Forbidden after /clear: polling (F004), contacting humans directly (F002). Trust task YAML only — pre-/clear memory is gone.
 
 ## Summary Generation (compaction)
 
@@ -115,7 +116,7 @@ After compaction, the system instructs "Continue the conversation from where it 
 
 # Agent Role Quick Reference (/clear Recovery用)
 
-/clear Recovery後、instructions/*.mdを読まない足軽・軍師向けの最低限ガイド。
+/clear Recovery後の参照用。instructions/*.mdも必ず読むこと。
 
 | Role | Primary Job | Report To | Key Forbidden Actions |
 |------|-------------|-----------|----------------------|
@@ -208,14 +209,17 @@ Race condition is eliminated: `/clear` wipes old context. Agent re-reads YAML wi
 
 家老がタスクYAMLを足軽/軍師に割り当てる際、以下を**必ず順番に**実行せよ:
 1. タスクYAML書き込み完了（queue/tasks/{agent}.yaml）
-2. **テスト手順をstepsに含めたか確認** ← 成果物の動作確認方法を必ず明記（Webならブラウザアクセス確認、スクリプトなら実行テスト、API変更ならcurlテスト等）。コストがかかるテスト（画像生成API等）は除外を明記すること。テスト手順なしのタスクYAMLは不完全。
-3. `inbox_write.sh` でターゲットに通知 ← **これを絶対に忘れるな**
-4. 通知完了確認（inbox YAMLにメッセージが追加されたことを tail で確認）
+2. **target_path必須付与確認** ← 全タスクに `target_path:`（絶対パス）を必ず付与。pretool_check.sh CHK1/CHK6 が欠落を BLOCK する。調査系タスクでも報告 YAML パスを指定せよ（詳細: instructions/karo.md の target_path_rule）。
+3. **テスト手順をstepsに含めたか確認** ← 成果物の動作確認方法を必ず明記（Webならブラウザアクセス確認、スクリプトなら実行テスト、API変更ならcurlテスト等）。コストがかかるテスト（画像生成API等）は除外を明記すること。テスト手順なしのタスクYAMLは不完全。
+4. **advisor()呼び出しがworkflowに含まれているか確認** ← ashigaru.mdのstep 3.8（実装前）とstep 4.8（完了前）でadvisor必須。タスクYAMLのstepsにも「advisor()を呼べ」と明記するとなお良い。
+5. `inbox_write.sh` でターゲットに通知 ← **これを絶対に忘れるな**
+6. 通知完了確認（inbox YAMLにメッセージが追加されたことを tail で確認）
 
 **タスクYAML書き込み後、inbox_writeせずに次の作業へ移ることは禁止。**
-1つのタスク割り当て = YAML書き込み + inbox_write + テスト手順明記 の3点で1セット。
+1つのタスク割り当て = YAML書き込み + target_path付与 + inbox_write + テスト手順明記 + advisor必須 の5点で1セット。
 （2026-03-04 是正: subtask_206a3でYAML書き込み後inbox通知を忘れた事例から制定）
 （2026-03-30 追加: OGP機能でimport漏れ・サーバーブロックが未テストで本番投入された事例から制定）
+（2026-04-24 追加: cmd_1441 全足軽 pretool_check BLOCK 事案（target_path 欠落）から target_path必須化を明文化）
 
 ## Report Flow (interrupt prevention)
 
@@ -435,7 +439,7 @@ When processing large datasets (30+ items requiring individual web search, API c
 
 # Git Safety Protocol (all agents)
 
-**5+ファイルを修正するスクリプト実行時、以下を厳守。詳細: instructions/git_safety.md**
+**5+ファイルを修正するスクリプト実行時、以下を厳守。詳細: instructions/git_safety.md / memory/feedback_git_safety.md（4原則）**
 
 ```
 ① SAVE: git add <dir> && commit  ② TEST: 1件だけ実行→確認
@@ -443,4 +447,32 @@ When processing large datasets (30+ items requiring individual web search, API c
 ⑤ OK→commit＆次へ / NG→git restore <dir>＆報告＆STOP
 ```
 
-- `git add .` 禁止（`git add <dir>` のみ）。足軽は `git push` 禁止（家老がcmd完了時に実施）。
+- `git add .` 禁止（`git add <dir>` のみ）。pretool_check.sh CHK8 が BLOCK する。足軽は `git push` 禁止（家老がcmd完了時に実施）。
+- **commit前 `git diff --cached` 必須**: 意図外ファイルが staged されていないか目視確認。`git add <file>` で明示パス指定を推奨（`git add -p` も可）。
+
+## work/ ディレクトリ コミットルール
+
+`.gitignore` は whitelist 方式（`*` で全除外 → 個別ファイル/ディレクトリを `!` で許可）。`work/` 配下は原則 git-ignored。成果物を git 管理したい場合:
+
+| 方針 | 手順 |
+|------|------|
+| 長期保存（cmd横断で参照する設計書等） | `.gitignore` に `!work/cmd_XXXX/**` を **追加** → `git add work/cmd_XXXX/` で commit |
+| 単発緊急コミット | `git add -f work/cmd_XXXX/file.md`（-f で .gitignore を override） |
+| 禁止 | `git add -f .` や `git add -Af`（他ファイル巻込事故の温床） |
+
+既存の whitelist 例: `work/cmd_1039/`, `work/cmd_1408/`, `work/cmd_1441/`, `work/archive/20260417_wrong_questions/`。新規 cmd の成果物を残す必要がある場合、家老が cmd 完了時に `.gitignore` 追記を判断する。
+
+# Advisor Tool Usage (all agents)
+
+You have access to an `advisor` tool backed by a stronger reviewer model. It takes NO parameters — when you call advisor(), your entire conversation history is automatically forwarded. They see the task, every tool call you've made, every result you've seen.
+
+Call advisor BEFORE substantive work — before writing, before committing to an interpretation, before building on an assumption. If the task requires orientation first (finding files, fetching a source, seeing what's there), do that, then call advisor. Orientation is not substantive work. Writing, editing, and declaring an answer are.
+
+Also call advisor:
+- When you believe the task is complete. BEFORE this call, make your deliverable durable: write the file, save the result, commit the change.
+- When stuck — errors recurring, approach not converging, results that don't fit.
+- When considering a change of approach.
+
+Give the advice serious weight. If you follow a step and it fails empirically, or you have primary-source evidence that contradicts a specific claim, adapt.
+
+The advisor should respond in under 100 words and use enumerated steps, not explanations.
