@@ -1845,3 +1845,57 @@ tasks:
     - "git add . 禁止(CHK8)・明示パスのみ"
     - "所要時間: LOW-MED 1-2h (2小項目)"
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽2号、subtask_1449_b完了(C08/C09修正・C02は cmd_1448除外)。QC依頼。' report_completed ashigaru2"
+
+- task_id: cmd_1451
+  parent_cmd: cmd_1451
+  bloom_level: L4
+  status: done
+  started_at: "2026-04-24T23:45:00+09:00"
+  completed_at: "2026-04-24T23:55:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/work/cmd_1451/noise_analysis_report.md
+  timestamp: "2026-04-24T23:42:00+09:00"
+  description: "cmd_1451 silent_fail_watcher 起動後の通知汚染一掃: semantic_update 429 embedding quota+YAML parse warning(gunshi.yaml)+inbox_watcher nudge WARN の3系統分類・修正+exclusion pattern 追加。13件通知(23:30-23:37)の真/既知/false positive分類"
+  steps: "advisor()→Step1:logs/silent_fail_watcher.log 直近24h ERROR/WARN 抽出→13件通知を3区分(真ERROR/既知noise/false positive)→Step2:(1)semantic_update 429 RESOURCE_EXHAUSTED→aiplatform embedding quota 超過の根本対処(sleep/batch size/cron時刻分散/retry backoff)・memory feedback_vertex_location_by_model.md参照(Embedding=us-central1)→Step3:(2)YAML parse warning(gunshi.yaml)→validator検査→修正 or semantic_update側エラーハンドリング改善→Step4:(3)inbox_watcher nudge text still visible WARN→実害なければexclusion patternで抑制→Step5:scripts/silent_fail_watcher.sh exclusion pattern設定更新(cmd_1448 scope C01-C10は除外しない)→Step6:変更後 30分 cron観察→429+YAML warn 再発なし確認→Step7:work/cmd_1451/noise_analysis_report.md作成→advisor()→Step8:git commit(明示パス)→Step9:inbox_write gunshi QC依頼"
+  acceptance_criteria:
+    - "semantic_update 429 RESOURCE_EXHAUSTED 発生元特定+根本対処"
+    - "YAML parse warning(gunshi.yaml) 原因特定+修正"
+    - "inbox_watcher nudge WARN exclusion pattern 追加"
+    - "silent_fail_watcher exclusion pattern 設定更新(cmd_1448 scope重複なし)"
+    - "変更後 30分 cron→429+YAML warn 再発なし"
+    - "work/cmd_1451/noise_analysis_report.md 作成"
+    - "git commit 済み(明示パス)"
+    - "verify: silent_fail_watcher 直近30分 ERROR件数 N件以下(定量条件)"
+  notes:
+    - "殿指示(2026-04-24 23:37)『c』受理・cmd_1448 scope拡大を別cmd化"
+    - "足軽2号選定: cmd_1443_p05 H7+subtask_1449_b(C08/C09)の shell+log解析知見"
+    - "並列非干渉: cmd_1448(足軽3号 C01-C10根本)と scope境界明確"
+    - "新規.py禁止・shell修正のみ"
+    - "/tmp禁止・work/cmd_1451/ 配下"
+    - "advisor() 最低1回"
+    - "git add . 禁止(CHK8)・明示パスのみ"
+    - "所要時間: MED 2-3h"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽2号、cmd_1451完了(silent_fail_watcher 通知汚染一掃)。QC依頼。' report_completed ashigaru2"
+
+- task_id: subtask_1450_cleanup
+  parent_cmd: cmd_1450
+  bloom_level: L1
+  status: in_progress
+  timestamp: "2026-04-25T07:32:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/work/cmd_1450/cleanup_log.md
+  description: |
+    cmd_1450 破棄後処理。殿判断(07:24)でnote記事A1を破棄。
+    note.comの下書き2件をCDP経由で削除:
+    (1) 正版: https://note.com/n/ncc16d996a760
+    (2) 重複: https://note.com/n/n6c9869e71668
+    削除完了後 ntfy通知。work/cmd_1450/ の学習用コミットデータは保持。
+  steps: "Step1:CDP起動確認→Step2:note.com管理画面→下書き一覧→Step3:正版削除(https://note.com/n/ncc16d996a760)→Step4:重複削除(https://note.com/n/n6c9869e71668)→Step5:両URL 404/削除済み確認→Step6:/home/murakami/multi-agent-shogun/work/cmd_1450/cleanup_log.md 記録→Step7:bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh '🗑️ note draft 2件削除完了(殿判断・学習記録保持)'→Step8:inbox_write karo報告"
+  acceptance_criteria:
+    - "https://note.com/n/ncc16d996a760 削除済み(404またはアクセス不可確認)"
+    - "https://note.com/n/n6c9869e71668 削除済み(同上)"
+    - "ntfy通知送信済み"
+    - "/home/murakami/multi-agent-shogun/work/cmd_1450/cleanup_log.md 記録"
+  notes:
+    - "git commit不要(外部サービス操作のみ)"
+    - "/home/murakami/multi-agent-shogun/work/cmd_1450/ の既存コミットデータは保持(rm禁止)"
+    - "CDP起動: 既存--remote-debugging-port=9222プロセス確認またはChrome CDP起動(memory/feedback_chrome_cdp_startup.md参照)"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1450_cleanup完了(note下書き2件削除・ntfy送信済)。' report_completed ashigaru2"

@@ -60,3 +60,83 @@ tasks:
     - "新規.py禁止・shellのみ・advisor()必須(作業前+完了前)・軍師QC必須"
     - "所要時間: MED 2-3h"
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽7号、cmd_1443_p03完了(H3+H8拡張 4系統自動add_obs)。' report_completed ashigaru7"
+
+- task_id: cmd_1445
+  parent_cmd: cmd_1445
+  bloom_level: L6
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/curriculum_v1.md
+  timestamp: "2026-04-24T20:18:00+09:00"
+  description: "Udemy講座『AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全実践』カリキュラム設計v1。L1プロンプト+L2コンテキスト(claude-mem/MCP/instructions)+L3ハーネス(hook/done_gate/silent_fail/lord-angry等13種)統合コース設計"
+  steps: "advisor()→Step1:Read memory/project_udemy_3engineering.md(実パス /home/murakami/.claude/projects/-home-murakami-multi-agent-shogun/memory/project_udemy_3engineering.md)→Step2:Read work/cmd_1444/marketing_trip_videos_summary.md+udemy_strategy.txt+udemy_engineering.json(マーケ戦略と既存講座分析)→Step3:cmd_1443実装成果(12ハーネス)をL3教材化・cmd_1442/1441経験をL1/L2教材化→Step4:projects/udemy_course/drafts/curriculum_v1.md作成(章立て: L1プロンプト基礎→L2コンテキスト実装→L3ハーネス実装13例→総合演習・各章に学習目標/演習課題/成果物定義)→Step5:差別化ポイント明記(9体並列実運用+13ハーネス実装実例+3階層統合は市場ゼロ)→Step6:advisor()→Step7:git add 明示パス(projects/udemy_course/drafts/curriculum_v1.md のみ)+commit→Step8:inbox_write gunshi QC依頼"
+  acceptance_criteria:
+    - "projects/udemy_course/drafts/curriculum_v1.md 作成(章立て+学習目標+演習課題+成果物定義)"
+    - "L1/L2/L3 3階層の章構成"
+    - "cmd_1443 12ハーネス実装例をL3教材化"
+    - "cmd_1441/1442 経験をL1プロンプト・L2コンテキスト教材化"
+    - "差別化ポイント明記(3階層統合は市場ゼロ・9体並列実運用・13ハーネス実装)"
+    - "work/cmd_1444 マーケ戦略+既存講座分析の反映"
+    - "git commit 済み(明示パスで add)"
+  notes:
+    - "殿発令 cmd_1445(2026-04-24 20:17・Option B 即起票)"
+    - "必須参照: memory/project_udemy_3engineering.md + work/cmd_1444/* (特に marketing_trip_videos_summary.md + udemy_strategy.txt + udemy_engineering.json)"
+    - "足軽7号選定理由: cmd_1443_p03で三層アーキ(cmd_intake_hook.sh+fallback 3点+SessionStart ingest)を実装した張本人・理解度最高"
+    - "新規.py禁止・markdown作成のみ"
+    - "advisor()必須(作業前+完了前)"
+    - "git add . 禁止(CHK8 絶対BLOCK)・明示パス `git add projects/udemy_course/drafts/curriculum_v1.md` のみ"
+    - "軍師QC必須"
+    - "所要時間: MED-HIGH 3-5h (大型設計タスク)"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽7号、cmd_1445完了(Udemy講座カリキュラム設計v1)。QC依頼。' report_completed ashigaru7"
+
+- task_id: subtask_1449_c
+  parent_cmd: cmd_1449
+  bloom_level: L4
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/curriculum_v1.md
+  timestamp: "2026-04-24T23:24:00+09:00"
+  description: "cmd_1449 領域C Udemy v1 カリキュラム minor 3件修正(軍師 qc_1445 指摘): (1)18h尺vs1000円不整合 (2)既存講座固有名詞引用 (3)筆者third-person L343-L570残存。v2 課題 6件は殿レビュー後ゆえ本subtaskではスコープ外"
+  steps: "advisor()→Step1:Read queue/reports/gunshi_report_qc_1445.yaml の minor findings 3件の具体指摘箇所確認→Step2:Read projects/udemy_course/drafts/curriculum_v1.md 該当L343-L570+他該当箇所→Step3:(1)18h尺vs1000円の不整合解消(価格or時間どちらか整合化・軍師指摘の根拠確認)→Step4:(2)既存講座固有名詞引用を一般化 or 出典明記で対応→Step5:(3)筆者third-person L343-L570 を著者自身が一人称で書く記述に統一→Step6:verify: 修正前後の diff 確認+minor 3件 finding が解消されているか自己確認→Step7:git commit(明示パス)→Step8:inbox_write gunshi QC依頼"
+  acceptance_criteria:
+    - "minor finding (1) 18h尺vs1000円不整合解消"
+    - "minor finding (2) 既存講座固有名詞引用を一般化 or 出典明記"
+    - "minor finding (3) 筆者third-person L343-L570 一人称統一"
+    - "v2 課題 6件(U1 rubric含む)は本subtaskスコープ外明記"
+    - "curriculum_v1.md 全体整合性維持(修正で破綻しないこと)"
+    - "verify: 自己 diff レビュー+軍師 minor 3件 解消確認"
+    - "git commit 済み(明示パス curriculum_v1.md のみ)"
+  notes:
+    - "殿指示(2026-04-24 23:22)『やれるだけやれ』5領域並列一掃"
+    - "足軽7号選定: cmd_1445 curriculum_v1 作成者・全体把握+整合修正に最適"
+    - "v2 課題 6件(U1 rubric最優先BLOCKING含む)は殿レビュー後別cmdで継続"
+    - "並列非干渉: 他領域A/B/D/E と別ファイル群"
+    - "advisor() 最低1回(作業前推奨)"
+    - "git add . 禁止・明示パスのみ(curriculum_v1.md)"
+    - "所要時間: LOW 30min-1h (minor修正3件)"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽7号、subtask_1449_c完了(Udemy v1 minor 3件修正)。QC依頼。' report_completed ashigaru7"
+
+- task_id: subtask_1456d
+  parent_cmd: cmd_1456
+  bloom_level: L2
+  status: in_progress
+  timestamp: "2026-04-25T07:27:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/shared_context/task_yaml_schema.md
+  description: |
+    cmd_1456 領域d: shared_context/task_yaml_schema.md に post_steps / verify_exempt フィールド仕様を追記。
+    cmd_1455 H_post_step_completion_detector 実装と整合。
+    参照: work/cmd_1449/H_post_step_completion_detector_design.md (R1/R4のschema spec)。
+    cmd_1443_p07 (task_yaml_schema.md 単一正典化実装)の形式に倣って記述。
+    完了後 work/cmd_1456/infra_cleanup_report.md に領域d 結果追記。
+  steps: "advisor()→Step1:shared_context/task_yaml_schema.md 現状読解(既存セクション構造確認)→Step2:設計doc R1/R4のpost_steps spec熟読→Step3:post_steps フィールド仕様追記(型/意味/サンプルYAML/marker選定contract)→Step4:verify_exempt フィールド仕様追記→Step5:yaml.safe_load等でschema doc形式確認→Step6:work/cmd_1456/infra_cleanup_report.md に領域d追記→commit→advisor()→Step7:inbox_write karo報告"
+  acceptance_criteria:
+    - "shared_context/task_yaml_schema.md に post_steps フィールド仕様追記(型/意味/サンプル/marker contract)"
+    - "shared_context/task_yaml_schema.md に verify_exempt フィールド仕様追記"
+    - "cmd_1455 done_gate.sh実装と整合(field名/型が一致)"
+    - "既存セクション構造を壊さない(cmd_1443_p07形式踏襲)"
+    - "work/cmd_1456/infra_cleanup_report.md に領域d diff記録"
+    - "git commit 済み"
+  notes:
+    - "advisor()最低2回(作業前・完了前)"
+    - "新規.py禁止"
+    - "cmd_1455(ashigaru4)との整合必須→done_gate.sh実装のfield仕様を先に確認してから追記"
+    - "work/cmd_1456/ディレクトリ: mkdir -p で冪等"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽7号、subtask_1456d完了(task_yaml_schema post_steps/verify_exempt追記)。' report_completed ashigaru7"

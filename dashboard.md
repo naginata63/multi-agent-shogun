@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-24 23:18
+最終更新: 2026-04-25 07:33
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -8,44 +8,15 @@
 
 ## 🚨 要対応（殿の御判断必要）
 
-### 🚨🚨 cmd_1452 Phase2 殿承認ゲート（disk 88%→80%掃除・Day6 MIX blocker）
+### 🔄 cmd_1452 Phase3 実行中（Tier-A 72GB削除・足軽1号担当）
 
-足軽4号 Phase1 棚卸し完遂(2026-04-25 00:00・commit 9816032)。
+**殿判断確定(07:16)**: ★Option A★ Tier-A全削除のみ。Tier-B/Cは触るな。
+足軽1号 disk掃除実行中。完了後 df -h 80%以下確認 → 軍師QC → 家老 ntfy通知予定。
 
-**現状**: 961G中 800G使用(88%)・残112G → 目標80%以下(残192G以上)・**約77GB削減必要**
-
-**Tier-A SAFE（合計約72G・安全削除推奨）:**
-| パス | サイズ | 根拠 |
-|------|--------|------|
-| ~/.cache/huggingface | 28G | HF model cache 再DL可・★pin保護付き実行推奨 |
-| ~/.cache/pip | 12G | pip cache 再DL可 |
-| /tmp/remotion-*(3件) | 13.4G | remotion ビルド tmp・未稼働時削除可 |
-| /home/murakami/multi-agent-shogun/work/cmd_1424 | 9.4G | cmd_1424 完遂済(DAY6 multi-view audio verify) |
-| /tmp/dozle_kirinuki.backup.1777030230 | 3.8G | cmd_1446 filter-repo 完遂済 backup |
-| ~/.cache/google-chrome | 3.1G | Chrome cache 再生成可 |
-| ~/.cache/ms-playwright | 2.1G | playwright browsers 再DL可 |
-
-**Tier-B NEEDS_LORD_REVIEW（約170G・殿個別確認要）:**
-- work_使用禁止フォルダ 8.2G / ~/.claude_glm 25G / ~/ダウンロード/(動画/font/deb) 約11G
-- projects/dozle_kirinuki/work/ 配下 公開済動画素材 多数(約110G・再編集可能性)
-- clips_1286_pink_sheep (34G・未発行なら KEEP)
-
-**Tier-C KEEP**: Day6 現行素材 107G(cmd_1425 関連・MIX本番で使用)
-
-**3案提示:**
-- **(A) Tier-A全削除のみ**(72G回収・80%到達ギリギリ・最安全)
-- **(B) Tier-A全 + Tier-B 一部選抜**(目標100G以上回収・余裕確保)
-- **(C) Tier-A全 + Tier-B 全て削除**(242G大掃除・超過達成・多数の再生成コスト)
-
-**殿ゲート要点7項目**: submodule注意/ext4予約5%/pin保護/remotion未稼働確認/huggingface使用中モデル除外/dozle動画は個別確認/Tier1禁忌絶対回避
-
-詳細: work/cmd_1452/disk_cleanup_plan.md (commit 9816032)
-
-### 🚨 スキル化候補（殿承認要）
-- ~~**skill-candidate-tracker**~~: ✅ **殿承認済(21:10)→cmd_1447 発令(23:15)** 足軽6号着手・H12 cron_inventory知見活用
-- **H_post_step_completion_detector 実装cmd** (設計doc完遂23:36): 軍師 subtask_1449_e で設計v1完成(commit a312447・7セクション+Appendix A/B)。結論=H1 done_gate.sh 拡張案(新ファイル不要・diff≤20行・工数 2.5h LOW・cmd_1446事案80%カバー)。AC 11項目で実装cmd発令可能→殿承認要
-- **cmd_1449_d follow-up 2件** (軍師qc_1449_d 推奨): (1)oo_men Day6 10parts 未processing → speaker ID/STT/merge pipeline 通すか殿判断 (2)cmd_1425 part_info 生成器を video_id fallback 探索付きに改修(再発防止)→殿承認要
-- ~~yt-dlp-js-runtimes-fix~~: cmd_1439 でスキル化完了 commit c179f8a+85e1e32
+### ℹ️ スキル化候補（殿承認済・発令済）
+- ~~**skill-candidate-tracker**~~: ✅ **完遂 02:54** commit ccd613e・qc_1447発令中
+- ~~**H_post_step_completion_detector**~~: ✅ **殿承認(07:19)→cmd_1455発令済** 足軽4号着手中
+- ~~**cmd_1449_d follow-up 2件**~~: ✅ **殿判断(07:17) 対応不要** 両件close
 
 ### ⚠️ 技術的残課題（優先度低）
 - ~~**dozle_kirinukiサブモジュール push不可**~~: ✅ **解決(20:55)** cmd_1446 filter-repo で gcloud 278MB 履歴ごと除去・force-with-lease push完遂・fresh clone 2.9G検証済
@@ -70,11 +41,11 @@
 - **C08 /tmp 禁止違反**: CLAUDE.md ルール違反の /tmp 使用スクリプトあり(work/配下に移行要)
 - **C09 slim_yaml 連結**: scripts/slim_yaml.sh の連結ロジックに不具合。別cmdで cleanup 要
 
-### 🔧 nightly_audit_20260425_infra MEDIUM 4件(別cmd化推奨)
-- **(a) inbox_watcher.sh .venv/bin/python3 hardcoded**: 2→6 regression(参照増加)
-- **(b) capability_tiers に karo=sonnet 不在**: config/settings.yaml L41 自己コメント違反
-- **(c) /home/murakami hardcoded 11箇所残存**: scripts/ 横断・分類整理要
-- **(d) task_yaml_schema.md post_steps/verify_exempt 未記載**: anticipatory
+### 🔄 nightly_audit_20260425_infra MEDIUM 対処中(cmd_1456)
+- **(a) inbox_watcher.sh .venv/bin/python3 hardcoded**: → subtask_1456a(足軽5号)実施中
+- ~~**(b) capability_tiers に karo=sonnet 不在**~~: **殿判断(07:23) 対応不要** (家老はbloom_routing対象外)
+- **(c) /home/murakami hardcoded 11箇所残存**: → subtask_1456c(足軽6号)実施中
+- **(d) task_yaml_schema.md post_steps/verify_exempt 未記載**: → subtask_1456d(足軽7号)実施中
 
 ### ℹ️ nightly_audit_20260425_infra INFO 4件(対処不要)
 - MCP Phase 4 dead code 解消(H1→解消)
@@ -97,9 +68,13 @@
 | cmd_1448 | 足軽3号→軍師 | 🔄 完遂・qc_1448 発令中(00:30-02:30 cron観察 hit=0 主流・C01-C10 再発なし) |
 | cmd_1449 | — | ✅ **全5領域完遂宣言 23:51** 軍師4件連続QC(a=PASS/b=PASS_with_AC_note/c=PASS/d=PASS_with_hook_finding)+e=設計doc完遂(a312447) |
 | cmd_1450 | — | ✅ **完遂 23:57** 軍師qc_1450 PASS(AC 9全PASS・本文2079字・題材A1・draft gate堅持)・⚠️pre-publish fact-check 1件(L55 framing gap 殿確認要) |
-| cmd_1451 | 足軽2号→軍師 | 🔄 3系統対処完遂(commit 877b53e+01108a6)・qc_1451 発令中(AC5軍師独立verify・家老裁定認可) |
-| cmd_1452 | 足軽4号→殿 | 🚨 **Phase2殿承認ゲート待ち 00:00** Phase1完遂(commit 9816032・Tier-A 72G/Tier-B 170G特定)・3案殿提示中 |
-| nightly_audit_20260425_infra | — | ✅ **完遂 02:14** 軍師8件検出(C=0/H=0/M=4/I=4)・HIGH前回比全解消・advisor 2件false positive demote |
+| cmd_1451 | 足軽2号→軍師 | 🔄 完遂(commit 877b53e+01108a6)・qc_1451 軍師再発令中(06:44→07:33再nudge) |
+| cmd_1452 | 足軽1号 | 🔄 **Phase3実行中** 殿承認Option A(07:16)・Tier-A 72GB削除・df 80%確認後QC |
+| cmd_1453 | — | ✅ **完遂 07:00** inbox_watcher.sh glm CLI追加(commit dadc4cd)・watcher再起動待ち |
+| cmd_1455 | 足軽4号→軍師 | 🔄 **発令済(07:27)** H_post done_gate.sh拡張(≤20行diff・設計doc a312447) |
+| cmd_1456 a/c/d | 足軽5/6/7号→軍師 | 🔄 **発令済(07:27)** nightly_audit MEDIUM 3件修正(a=.venv/c=$HOME/d=schema) |
+| subtask_1450_cleanup | 足軽2号 | 🔄 **発令済(07:32)** note下書き2件削除(殿判断破棄・URL 2件) |
+| nightly_audit_20260425_infra | — | ✅ **完遂 02:14** 軍師8件検出(C=0/H=0/M=4/I=4)・対処: cmd_1453✅/cmd_1456進行中 |
 
 ---
 
@@ -107,14 +82,14 @@
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | Opus[1m] | ✅ idle | 1449_d ✅完遂+軍師PASS_with_hook_finding(23:51・家老apply legitimate) |
-| 2号 | Opus[1m] | 🔄 busy | cmd_1451 silent_fail_watcher通知汚染一掃(23:42発令)+1449_b✅完了(de29639・軍師QC中) |
-| 3号 | Opus[1m] | 🔄 busy | cmd_1448 cron 4エラー根本修正(23:20発令・MED 2-4h) |
-| 4号 | Opus[1m] | ✅ idle | cmd_1452_p1 ✅完遂 00:00(Tier-A 72G+Tier-B 170G候補特定・commit 9816032・Phase2殿承認待ち) |
-| 5号 | Opus[1m] | 🔄 busy | cmd_1450 γ将軍 note記事執筆(23:30発令・MED 1-2h・★下書き固定★) |
-| 6号 | Opus[1m] | 🔄 busy | cmd_1447 skill-candidate-tracker スキル化(23:15発令・MED 2-3h) |
-| 7号 | Opus[1m] | 🔄 busy | subtask_1449_c Udemy v1 minor 3件修正(23:24発令・LOW 30min-1h) |
-| 軍師 | Opus[1m] | ✅ idle | subtask_1449_e ✅完了 23:36(設計doc v1・commit a312447・H1拡張案推奨・実装は別cmd) |
+| 1号 | GLM | 🔄 busy | cmd_1452_p3 Tier-A disk掃除(07:27発令・72GB削除目標) |
+| 2号 | GLM | 🔄 busy | subtask_1450_cleanup note下書き2件削除(07:32発令・CDP使用) |
+| 3号 | Opus[1m] | ✅ idle | cmd_1448 ✅完遂・qc_1448 軍師再発令中 |
+| 4号 | GLM | 🔄 busy | cmd_1455 H_post done_gate.sh拡張(07:27発令・≤20行diff) |
+| 5号 | GLM | 🔄 busy | subtask_1456a inbox_watcher .venv環境変数化6箇所(07:27発令) |
+| 6号 | GLM | 🔄 busy | subtask_1456c scripts $HOME化11箇所(07:27発令) |
+| 7号 | GLM | 🔄 busy | subtask_1456d task_yaml_schema post_steps追記(07:27発令) |
+| 軍師 | Opus[1m] | 🔄 QC中 | qc_1447/1448/1451 再発令(07:33再nudge・セッション消失からの再開) |
 
 ---
 
@@ -141,7 +116,9 @@
 | cmd_1446 | ✅ **完全完遂 23:12** D9 submodule履歴書換 push成功+gcloud 278MB除去+fresh clone PASS+軍師qc_1446_resume PASS (AC 10/10) |
 | cmd_1398/1412/1417/1420/1424 | ✅ **一括 done 化 20:55** (殿判断・自動検出R1/R6 動画系5件・status更新+dashboard残骸なし確認) |
 | dashboard残骸一掃 | ✅ **完了 23:18** 殿指示(23:16)・shogun_to_karo.yaml 4件 in_progress→done(cmd_1441/1443/1445/1446)+subtask_1398a→cancelled+旧🚨セクション削除・足軽現タスク欄刷新 |
-| cmd_1449 全5領域 | ✅ **完遂 23:51** A/B/C/D/E 全軍師QC PASS(a8e2878/de29639+df1b470/06ecb45/b9d05b6/a312447)・follow-up 2件別cmd推奨 |
+| cmd_1449 全5領域 | ✅ **完遂 23:51** A/B/C/D/E 全軍師QC PASS(a8e2878/de29639+df1b470/06ecb45/b9d05b6/a312447)・follow-up 2件殿判断(07:17)対応不要 |
+| cmd_1450 | ✅ **done_ng(07:24)** 殿判断「面白くない・なぎなた不在」→note下書き2件削除中(subtask_1450_cleanup/足軽2号) |
+| cmd_1453 | ✅ **完遂 07:00** inbox_watcher.sh glm CLIサポート追加・CLIunresolved WARN撲滅(commit dadc4cd)・watcher再起動待ち |
 | nightly_audit_20260425_infra | ✅ **完遂 02:14(翌日)** 軍師8件検出(C=0/H=0/M=4/I=4)・HIGH前回比全解消・詳細report queue/reports/gunshi_report_nightly_audit_20260425_infra.yaml |
 | cmd_1436 | ✅ **完了** claude-mem活用分析+todolist.md作成（軍師分析→将軍統合） |
 | nightly_audit_20260424_video | ✅ 動画制作系矛盾検出（CRITICAL×0 HIGH×0・MEDIUM×1 outro stderr deadlock）|
