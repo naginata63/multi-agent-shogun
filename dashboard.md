@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 08:40
+最終更新: 2026-04-25 08:43
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -102,7 +102,7 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 | cmd_1456 a/c/d | 足軽5/6/7号→軍師 | ✅ **全完遂・QC完了** a=PASS/c=PASS_with_finding(INFO)/d=PASS |
 | cmd_1457 | 足軽3号→軍師 | ✅ **PASS_with_finding(08:33)** 30分観察完了・advisor_proxy FP 0件達成・Finding: WARN flush 1172件/30min genai_daily系noise抑制検討推奨 |
 | cmd_1458 | 足軽1号/3号→軍師 | ✅ **置換完了(08:39)** 新版zP_j7NRg9Lw=public・旧版8M31MYOlRgY=private・🚨殿URL確認要 |
-| cmd_1459 | 足軽2号/5号 | 🔄 **A=in_progress(足軽2号)** / **B=✅完了(08:37)・軍師QC中** |
+| cmd_1459 | 足軽2号/5号 | 🔄 **A=✅完了(08:41)・軍師QC発令** / **B=✅PASS_with_finding(08:42)** A=100本(50更新+50既ja)・失敗0・quota25% |
 | nightly_audit_20260425_infra | — | ✅ **完遂 02:14** 軍師8件検出(M=4/I=4)・cmd_1453✅/cmd_1456✅完遂 |
 
 ---
@@ -112,13 +112,13 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
 | 1号 | GLM | ✅ idle | cmd_1458 ✅PASS_with_finding(08:11) |
-| 2号 | GLM | 🔄 busy | subtask_1459a 発令(08:30)・全74本 defaultLanguage=ja 一括update |
+| 2号 | GLM | ✅ idle | subtask_1459a ✅完了(08:41)・100本ja更新(50更新+50既設定)・軍師QC中 |
 | 3号 | Opus[1m] | ✅ idle | subtask_1458b ✅完了(08:39)・新版public+旧版private確認 |
 | 4号 | GLM | ✅ idle | cmd_1455 ✅PASS(07:57・軍師QC) |
 | 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1456d ✅PASS(軍師QC) |
-| 軍師 | Opus[1m] | 🔄 QC中 | qc_subtask_1459b 発令(08:38) / qc_subtask_1457a ✅PASS_with_finding(08:33) |
+| 軍師 | Opus[1m] | 🔄 QC中 | qc_subtask_1459a 発令(08:43) / qc_subtask_1459b ✅PASS_with_finding(08:42) |
 
 ---
 
