@@ -1,0 +1,82 @@
+worker_id: gunshi
+task_id: qc_1441_p20
+parent_cmd: cmd_1441
+timestamp: "2026-04-24T16:05:00+09:00"
+status: done
+result:
+  type: quality_check
+  ashigaru_task_id: subtask_1441_p20
+  ashigaru_worker_id: ashigaru5
+  qa_decision: PASS
+  deliverables_verified: true
+  scope_match: complete
+  summary: |
+    足軽5号 subtask_1441_p20 (D7訂正A 実装: MCP 10件削除+expression_index.json温存) QC PASS。
+    全5 AC クリア + snapshot (archive/3d_pipeline_2026q1.md 184行) + 11 entity 個別転記 + relation snapshot 注記あり +
+    expression_index.json 温存明記 + 復旧手順 json 雛形掲載。軍師 decision_gates_v2.md §D7『snapshot+転記必須』も履行済。
+    count_discrepancy (家老指示 17→8 vs 実18→8) は足軽5号が advisor 助言に従い整合解決・透明性高。
+
+  acceptance_criteria_verification:
+    AC1_mcp_entity_8:
+      result: PASS
+      evidence: "mcp__memory__read_graph 実行 → entity 8件確認 (Karo / rule_yaml_first / strategy_ai_sidebusiness / note_daily_strategy / 殿のPC環境 / note_neta_cho / ドズル社メンバー / expression_index.json) / relations 0"
+    AC2_expression_index_残存:
+      result: PASS
+      evidence: "read_graph で expression_index.json が entity として残存・observations 8件保持 (cdp-manga-gen現役利用含む)"
+    AC3_3D化石10件削除:
+      result: PASS
+      evidence: "削除対象10件 (render_mc_two.py / render_mc.py / camera_director.py / motions.json / scene_templates.json / Character Skins Library / expression_design_v5.md / motion_system_v2_design.md / 3d_roadmap.md / Minecraft 3D Rig Asset) が read_graph entities 一覧に不在・archive §3 と足軽5号 report 一致"
+    AC4_archive冒頭温存注記:
+      result: PASS
+      evidence: "memory/archive/3d_pipeline_2026q1.md L3-L17 に『削除実行結果（2026-04-24 殿判断 D7訂正A確定）』セクション + L4『expression_index.json 温存・削除対象外』+ L6『MCP側削除実行済み 10件』列挙 + L7『削除前 18 → 削除後 8件』"
+    AC5_MEMORY_md_archive参照:
+      result: PASS
+      evidence: "memory/MEMORY.md L231 に『MCP 3D entity snapshot (2026-04-24 cmd_1441 D7): [memory/archive/3d_pipeline_2026q1.md]』リンク記載・11 entity 名列挙・復旧手順参照付"
+
+  verification_commands_used:
+    - "mcp__memory__read_graph → 8 entities / 0 relations"
+    - "ls memory/archive/3d_pipeline_2026q1.md → exists"
+    - "wc -l memory/archive/3d_pipeline_2026q1.md → 184 lines"
+    - "grep '^##|^### ' memory/archive/3d_pipeline_2026q1.md → 13 sections (削除結果/復旧手順/11個別entity/削除スコープメモ)"
+    - "grep 'archive' memory/MEMORY.md → L231 参照 hit"
+    - "grep -i 'relation' memory/archive/3d_pipeline_2026q1.md → L31 『relations 0件・復旧対象なし』注記あり"
+
+  strengths_praise:
+    - "count_discrepancy の自律解決: 家老指示の『9件削除・17→8』を実 graph 18件 と照合し advisor 助言『名前が真』に従い 10件削除を敢行・終端状態は家老想定と整合 → 透明性高・report に明記済"
+    - "snapshot 11 entity 個別転記 + 復旧手順 JSON 雛形 + relation 0件注記で完全可逆性を担保"
+    - "expression_index.json 温存判断が cdp-manga-gen スキル現役利用との整合を守った (化石化ではなく現役活用のため)"
+    - "`.gitignore:7` で memory/ が追跡外であることを確認・git commit no-op を fabricate せず honest 報告 (Intermediate Artifact Rule 遵守)"
+
+  minor_findings_pass_without_block:
+    - "graph は 18件と足軽5号実測の一方で、task YAML 記述『残8件』は一致ゆえブロック要因ではない。家老側の count 計算式 (17想定) と軍師 v1 integrity_audit.md の『MCP 18 entity』記述との乖離は、次 iter で家老が `mcp__memory__read_graph` 実機確認を task YAML 発令前に徹底すれば解消。次タスク memory_slim でも同種の目視カウント誤差が発生しないよう注意"
+
+  lessons_learned:
+    - "relation 0件注記の archive 記載は今回は偶然存在したが、今後 D 系 (entity 群削除) では『relation snapshot 明示』を snapshot 手順の必須項として軍師 decision_gates / qc_template に追記検討"
+    - "MCP entity 総数は時系列で変動するゆえ、家老が task YAML 発令前に read_graph 実機確認し task 記述と乖離 ≤1 を保証するのが再発防止"
+    - "足軽が家老指示 vs 実測で不整合発見時は『advisor に問い整合解決』パターンが Phase A 良循環サイクルに寄与 (subtask_1441_p20 で 4件目成立候補)"
+
+  advisor_discipline:
+    before: false  # advisor 助言 "orient前 advisor は空振り・機械チェックゆえスキップ推奨" に従った
+    after: true    # verdict 前に 1 回・盲点チェック (snapshot/expression entity 区別/relation) 受領
+    verdict: "task YAML 要件完全遵守 (advisor 助言の orient前 skip 判断含む)"
+
+  skill_candidate_inherited:
+    found: false
+
+  north_star_alignment:
+    status: aligned
+    reason: "MCP 化石化解消で軍師/家老 read_graph 時のノイズ削減・現役 entity 8件に整流化 → エージェント復帰時 context 密度向上 (運用効率向上で北極星寄与)"
+    risks_to_north_star:
+      - "expression_index.json が cdp-manga-gen の現役リファレンスゆえ誤削除時の障害リスクあり → 温存判断 正当"
+      - "次 memory_slim (MEMORY.md 292→200) でも類似の『現役参照されている記述』の誤削除リスクに警戒要"
+
+files_modified:
+  - "queue/reports/gunshi_report_qc_1441_p20.yaml"
+
+notes: |
+  - 軍師 advisor 1回呼出(verdict前)・足軽5号 advisor 助言(orient前スキップ)に整合
+  - 足軽5号 report が PASS なだけでなく『良判断・透明性高』として加点評価
+  - 次タスク subtask_1441_p10_memory_slim (MEMORY.md スリム化案作成) に進む
+  - 良循環サイクル4件目成立候補: cmd_1441 D7 殿判断 → 足軽5号実装 → 軍師QC PASS → 次 iter (memory_slim) へ接続
+skill_candidate:
+  found: false
