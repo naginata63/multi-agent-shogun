@@ -44,8 +44,13 @@
 | H7 | ✅採用(18:28) | - | ⏸ 足軽発令準備中(cron hotfix3回→skill) |
 | H5 | ✅採用(18:29) | - | ⏸ 足軽発令準備中(LOW 30min cmd YAML lint) |
 | H9 | ✅採用(18:30) | - | ⏸ 足軽発令準備中(LOW 1h Phase間殿ゲート) |
+| H10改 | ✅採用(18:33) | **H1統合即時阻止型** | ⏸ H1完了後に統合実装(scripts/done_gate.sh・追加1-2h) |
+| H11 | ✅採用(18:34) | レビュー方式 | ⏸ 足軽発令準備中(LOW 1h .claude/commands/lord-angry.md 殿激怒→feedback/MEMORY自動生成) |
+| H12 | ✅採用(18:36) | 透明性必須 | ⏸ 足軽発令準備中(LOW 1h shared_context/cron_inventory.md+nightly_audit健全性+quarterly review・各cronに目的/所管/停止影響明記) |
 
-**次ターン発令予定:** 軍師(H2+H3+H8設計) + 足軽4名並列(H4/H5/H7/H9)。詳細 `work/cmd_1442/harness_proposal.md`
+**次ターン発令予定:** cmd_1443 起票済(shogun_to_karo.yaml) → Wave A 5件+Wave B 4件+Wave C 1件の足軽分散発令。詳細 `work/cmd_1442/execution_plan_v3.md` (軍師commit 98e076a 322行)
+
+**軍師v3計画10 subtask:** p01(H1+H10改足軽4号)/p02(H2拡張足軽1号)/p03(H3+H8足軽7号)/p04(H4足軽3号)/p05(H7足軽2号)/p06(H5足軽4号)/p07(H9足軽4号)/p08(H11足軽5号)/p09(H12足軽6号)/p10(H13足軽5号)
 
 ### 🚨 スキル化候補（殿承認要）
 - **skill-candidate-tracker**: スキル化候補のトラッキング・棚卸しツール化（足軽7号 subtask_1441ghi で浮上・skill_candidate:true）
