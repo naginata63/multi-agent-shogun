@@ -32,6 +32,7 @@ TARGETS=(
   "C08:$SCRIPT_DIR/logs/mcp_experiment_cron.log"
   "C09:$SCRIPT_DIR/logs/slim_yaml_cron.log"
   "C10:$SCRIPT_DIR/logs/backup_full.log"
+  "C14:$SCRIPT_DIR/logs/skill_inventory.log"
 )
 
 # パターン: 単語境界付き・大文字小文字無視。

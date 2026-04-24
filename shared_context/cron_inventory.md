@@ -1,6 +1,6 @@
 # Cron Inventory (多エージェント将軍 cron 全棚卸し)
 
-**最終更新**: 2026-04-24 / ashigaru5 (cmd_1443_p10 H13 C13 追加)
+**最終更新**: 2026-04-25 / ashigaru6 (cmd_1447 C14 skill-candidate-tracker 追加)
 **前身**: work/cmd_1442/execution_plan_v3.md §3 Δ5
 **採用根拠**: 殿判断 H12 (2026-04-24 18:36) 「いま初めて知った」問題の透明性対策
 
@@ -203,6 +203,19 @@
 | ログ | `logs/monthly_feedback_review.log` |
 | 状態 | active |
 | 備考 | 状態ファイル `logs/monthly_feedback_review_state.json` で同一 slug の再通知を 30日抑止。dashboard は `<!-- monthly-feedback-review: {slug} -->` マーカーで二重追記防止。cmd_1443_p10 で新設。 |
+
+### C14 — skill-candidate-tracker (cmd_1447)
+
+| 項目 | 値 |
+|------|-----|
+| スケジュール | `30 3 * * 0` (毎週日曜 3:30 JST) |
+| コマンド | `cd /home/murakami/multi-agent-shogun && bash skills/skill-candidate-tracker/collect.sh --write` |
+| 目的 | `queue/reports/*.yaml` を横断スキャン→`skill_candidate.found=true` を抽出→`context/skill_candidates_inventory.md` に markdown table で集約。新規 PENDING 検出時は ntfy 通知。手動目視運用からの脱却・継続改善インフラ。 |
+| 所管 | 軍師 (レビュー) / 家老 (skill 化判断) / 将軍 (承認) |
+| 停止影響 | skill_candidate 候補が dashboard に反映されず埋没 (subtask_1441ghi で dashboard 記載 1 件に対し実態 10 件超の乖離が発覚した再発防止機構が止まる)。 |
+| ログ | `logs/skill_inventory.log` + 状態ファイル `logs/skill_inventory_state.json` |
+| 状態 | active |
+| 備考 | cmd_1447 で新設。`/skill-inventory` slash command で即時実行可。SKILL.md は `skills/skill-candidate-tracker/SKILL.md`。新規 .py 禁止で全処理 shell + python3 HEREDOC。 |
 
 ---
 
