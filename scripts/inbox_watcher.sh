@@ -62,6 +62,8 @@ if [ "${__INBOX_WATCHER_TESTING__:-}" != "1" ]; then
     if command -v get_cli_type &>/dev/null; then
         _EFFECTIVE_CLI="$(get_cli_type "$AGENT_ID" 2>/dev/null || echo "$CLI_TYPE")"
     fi
+    # glm uses claude CLI binary (ANTHROPIC_BASE_URL override) — treat as claude
+    [[ "$_EFFECTIVE_CLI" == "glm" ]] && _EFFECTIVE_CLI="claude"
 
     echo "[$(date)] inbox_watcher started — agent: $AGENT_ID, pane: $PANE_TARGET, cli: $_EFFECTIVE_CLI" >&2
 
@@ -243,7 +245,7 @@ should_throttle_nudge() {
 
 is_valid_cli_type() {
     case "${1:-}" in
-        claude|codex|copilot|kimi|gemini) return 0 ;;
+        claude|codex|copilot|kimi|gemini|glm) return 0 ;;
         *) return 1 ;;
     esac
 }
@@ -259,7 +261,7 @@ get_effective_cli_type() {
         if is_valid_cli_type "${CLI_TYPE:-}" && [ "$pane_cli" != "${CLI_TYPE}" ]; then
             echo "[$(date)] [WARN] CLI drift detected for $AGENT_ID: arg=${CLI_TYPE}, pane=${pane_cli}. Using pane value." >&2
         fi
-        echo "$pane_cli"
+        echo "${pane_cli/glm/claude}"
         return 0
     fi
 
@@ -267,7 +269,7 @@ get_effective_cli_type() {
         if [ -n "$pane_cli" ]; then
             echo "[$(date)] [WARN] Invalid pane @agent_cli for $AGENT_ID: '${pane_cli}'. Falling back to arg=${CLI_TYPE}." >&2
         fi
-        echo "${CLI_TYPE}"
+        echo "${CLI_TYPE/glm/claude}"
         return 0
     fi
 
