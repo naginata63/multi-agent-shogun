@@ -70,6 +70,18 @@
 - **C08 /tmp 禁止違反**: CLAUDE.md ルール違反の /tmp 使用スクリプトあり(work/配下に移行要)
 - **C09 slim_yaml 連結**: scripts/slim_yaml.sh の連結ロジックに不具合。別cmdで cleanup 要
 
+### 🔧 nightly_audit_20260425_infra MEDIUM 4件(別cmd化推奨)
+- **(a) inbox_watcher.sh .venv/bin/python3 hardcoded**: 2→6 regression(参照増加)
+- **(b) capability_tiers に karo=sonnet 不在**: config/settings.yaml L41 自己コメント違反
+- **(c) /home/murakami hardcoded 11箇所残存**: scripts/ 横断・分類整理要
+- **(d) task_yaml_schema.md post_steps/verify_exempt 未記載**: anticipatory
+
+### ℹ️ nightly_audit_20260425_infra INFO 4件(対処不要)
+- MCP Phase 4 dead code 解消(H1→解消)
+- CHK8 git add BLOCK hook 配線済
+- ntfy.sh LAN IP 自動置換
+- karo→gunshi nudge storm は mechanism 解明のみ対処不要
+
 ---
 
 ## 🔄 進行中
@@ -87,7 +99,7 @@
 | cmd_1450 | — | ✅ **完遂 23:57** 軍師qc_1450 PASS(AC 9全PASS・本文2079字・題材A1・draft gate堅持)・⚠️pre-publish fact-check 1件(L55 framing gap 殿確認要) |
 | cmd_1451 | 足軽2号→軍師 | 🔄 3系統対処完遂(commit 877b53e+01108a6・A:429根治/B:is_noise_line 4pattern/C:gunshi.yaml構造修正)・qc_1451 発令中 |
 | cmd_1452 | 足軽4号→殿 | 🚨 **Phase2殿承認ゲート待ち 00:00** Phase1完遂(commit 9816032・Tier-A 72G/Tier-B 170G特定)・3案殿提示中 |
-| nightly_audit_20260425_infra | 軍師 | 🔄 **発令 02:05** 殿夜間矛盾検出(インフラカテゴリ・読んで報告のみ・朝までにdashboard反映) |
+| nightly_audit_20260425_infra | — | ✅ **完遂 02:14** 軍師8件検出(C=0/H=0/M=4/I=4)・HIGH前回比全解消・advisor 2件false positive demote |
 
 ---
 
@@ -130,6 +142,7 @@
 | cmd_1398/1412/1417/1420/1424 | ✅ **一括 done 化 20:55** (殿判断・自動検出R1/R6 動画系5件・status更新+dashboard残骸なし確認) |
 | dashboard残骸一掃 | ✅ **完了 23:18** 殿指示(23:16)・shogun_to_karo.yaml 4件 in_progress→done(cmd_1441/1443/1445/1446)+subtask_1398a→cancelled+旧🚨セクション削除・足軽現タスク欄刷新 |
 | cmd_1449 全5領域 | ✅ **完遂 23:51** A/B/C/D/E 全軍師QC PASS(a8e2878/de29639+df1b470/06ecb45/b9d05b6/a312447)・follow-up 2件別cmd推奨 |
+| nightly_audit_20260425_infra | ✅ **完遂 02:14(翌日)** 軍師8件検出(C=0/H=0/M=4/I=4)・HIGH前回比全解消・詳細report queue/reports/gunshi_report_nightly_audit_20260425_infra.yaml |
 | cmd_1436 | ✅ **完了** claude-mem活用分析+todolist.md作成（軍師分析→将軍統合） |
 | nightly_audit_20260424_video | ✅ 動画制作系矛盾検出（CRITICAL×0 HIGH×0・MEDIUM×1 outro stderr deadlock）|
 | cmd_1428 | ✅ done化（殿判断: YouTube非公開アップ完結）|
