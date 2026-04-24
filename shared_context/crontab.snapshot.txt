@@ -31,3 +31,5 @@
 30 * * * * bash /home/murakami/multi-agent-shogun/scripts/cron_health_check.sh
 # H7 hotfix trend detector — weekly (Monday 06:00): 3回以上の類似hotfixをskill化候補として検知
 0 6 * * 1 cd /home/murakami/multi-agent-shogun && bash scripts/hotfix_trend_detector.sh >> logs/hotfix_trend.log 2>&1
+# H13 monthly feedback review — 毎月1日 04:00: memory/feedback_*.md の陳腐化検知 (cmd_1443_p10)
+0 4 1 * * cd /home/murakami/multi-agent-shogun && bash scripts/monthly_feedback_review.sh >> logs/monthly_feedback_review.log 2>&1

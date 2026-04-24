@@ -1,6 +1,6 @@
 # Cron Inventory (多エージェント将軍 cron 全棚卸し)
 
-**最終更新**: 2026-04-24 / ashigaru6 (cmd_1443_p09 H12 新設)
+**最終更新**: 2026-04-24 / ashigaru5 (cmd_1443_p10 H13 C13 追加)
 **前身**: work/cmd_1442/execution_plan_v3.md §3 Δ5
 **採用根拠**: 殿判断 H12 (2026-04-24 18:36) 「いま初めて知った」問題の透明性対策
 
@@ -191,6 +191,19 @@
 | 状態 | active |
 | 備考 | cmd_1443_p05 で実装。idempotent (状態ファイルで通知済クラスタを記録)。 |
 
+### C13 — monthly feedback review (cmd_1443_p10 / H13)
+
+| 項目 | 値 |
+|------|-----|
+| スケジュール | `0 4 1 * *` (毎月1日 4:00 JST) |
+| コマンド | `cd /home/murakami/multi-agent-shogun && bash scripts/monthly_feedback_review.sh` |
+| 目的 | `memory/feedback_*.md` のうち 90日以上参照ゼロ (git log / queue/reports / claude-mem 全て 0 hit) の stale feedback を検知し、dashboard.md 「🔍 feedback レビュー推奨（月次検知）」に追記 + ntfy 通知 |
+| 所管 | 軍師 (検知) / 家老 (確認・棚卸し起票) / 将軍 (削除/更新承認) |
+| 停止影響 | stale feedback が陳腐化したまま残り、LLM 判断のノイズ源になる。MEMORY.md スリム化サイクルが途絶える (cmd_1441 D6 Option A の恒常化手段)。 |
+| ログ | `logs/monthly_feedback_review.log` |
+| 状態 | active |
+| 備考 | 状態ファイル `logs/monthly_feedback_review_state.json` で同一 slug の再通知を 30日抑止。dashboard は `<!-- monthly-feedback-review: {slug} -->` マーカーで二重追記防止。cmd_1443_p10 で新設。 |
+
 ---
 
 ## 3. Disabled cron (コメントアウト行)
@@ -294,3 +307,4 @@
 | 日付 | 変更者 | 内容 |
 |------|--------|------|
 | 2026-04-24 | ashigaru6 (cmd_1443_p09) | 新設。C01-C10 棚卸し + C11 新規 (cron_health_check) + D01-D05 記録 |
+| 2026-04-24 | ashigaru5 (cmd_1443_p10) | C13 新規 (monthly feedback review / H13)。crontab snapshot 同時更新。 |

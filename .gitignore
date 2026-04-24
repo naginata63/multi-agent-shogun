@@ -182,6 +182,7 @@
 !scripts/posttool_verify_runner.sh
 !scripts/phase_gate_checker.sh
 !scripts/silent_fail_watcher.sh
+!scripts/monthly_feedback_review.sh
 !systemd/
 !systemd/silent_fail_watcher.service
 !discord-news-bot.service
