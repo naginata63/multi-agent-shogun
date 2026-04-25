@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 17:29
+最終更新: 2026-04-25 17:33
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -13,6 +13,7 @@
 - **cmd_1450**: done_ng(07:24)済・note下書き削除subtask_1450_cleanup完了? cleanup完了確認→statusを正式done化
 
 ### ⚠️ 技術的残課題（将来対処）
+- **pretool_check: /tmp/work/cmd_* でメッセージ誤表示** (軍師qc_1473a観察・動作は正常): /tmpパス下のwork/cmd_*にも「リポジトリルート直下」エラー文が出る。別cmd起票推奨。
 
 ### 📌 技術知見: YouTube音声不調の真因（cmd_1458発見・08:31）
 
@@ -39,7 +40,7 @@
 | cmd | 担当 | 状態 |
 |-----|------|------|
 | cmd_1464 | 足軽1号 | 🔄 **seg8sen再生成中(17:14)** seg8sen.mp4破損→Steps 2-5再実行→transition→concat→YouTube |
-| cmd_1473 | 軍師 | 🔄 **軍師QC中(17:28)** subtask_1473a完了(73e7a9a push済)・qc_1473a発令 |
+| cmd_1473 | 軍師 | ✅ **完遂(17:31)** pretool_check CHK2改修 軍師QC PASS 6/6 push済(73e7a9a) |
 | cmd_1472 | 将軍 | ✅ **将軍直接実行(17:16)** サムネ再生成・おおはらMEN中央下部配置・3案→殿選択（家老手出し無用） |
 
 ---
@@ -86,6 +87,7 @@
 | cmd_1465 | ✅ **完遂(13:41)** Udemy curriculum_v2.md 672行 5ペルソナ/18章ハンズオン/競合4領域対決 軍師PASS_with_finding |
 | cmd_1467 | ✅ **完遂(15:55)** Day6 ECHIDNA サムネ 案2確定(--ref-limit 0)・thumbnail_final.png commit 0c3518c cmd_1464完了後YouTube適用 |
 | cmd_1470 | ✅ **完遂(15:49)** pretool_check CHK3 procedure:必須化 7/7AC commit d8764ad 軍師PASS |
+| cmd_1473 | ✅ **完遂(17:31)** pretool_check CHK2 work/cmd_* BLOCK→projects/*/work/* OK化 commit 73e7a9a 軍師PASS 6/6 |
 | cmd_1471 | ✅ **完遂(17:05)** POST /api/cmd_create+flock排他制御 74行 commit 67f76d6 push済 軍師PASS |
 | cmd_1469 | ✅ **完遂(13:37)** server.py R1 タイムスタンプparse修正 fresh cmd age正常化(416日→0.12h) 軍師PASS |
 | cmd_1468 | ✅ **完遂(13:32)** cron再発真因究明 古いログ再検知→offset追跡実装 13:30 hit=0確認 軍師PASS |
