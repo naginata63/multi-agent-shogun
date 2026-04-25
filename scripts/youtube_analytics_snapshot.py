@@ -33,8 +33,10 @@ TOKEN_PATH = PROJECT_DIR / "token.json"
 CLIENT_SECRET_PATH = PROJECT_DIR / "client_secret.json"
 NTFY_SCRIPT = BASE_DIR / "scripts" / "ntfy.sh"
 
-# ブランドアカウント（毎日ドズル社切り抜き）のチャンネルID
-CHANNEL_ID = "UCiyY9PX64Nat6sd2vUhrTDQ"
+# 単一情報源: projects/dozle_kirinuki/context/youtube_channel.yaml
+import yaml as _yaml
+with open(PROJECT_DIR / "context" / "youtube_channel.yaml", "r", encoding="utf-8") as _f:
+    CHANNEL_ID = _yaml.safe_load(_f)["brand"]["channel_id"]
 
 # Analytics APIスコープを追加
 SCOPES = [

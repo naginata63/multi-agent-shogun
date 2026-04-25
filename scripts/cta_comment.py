@@ -38,15 +38,13 @@ SCOPES = [
     "https://www.googleapis.com/auth/youtube.force-ssl",
 ]
 
-# 毎日ドズル社切り抜きチャンネル ID
-CHANNEL_ID = "UCiyY9PX64Nat6sd2vUhrTDQ"
-
-# CTAコメント最新版
-CTA_COMMENT = (
-    "明日も面白いシーン切り抜きます！見逃したくない人はチャンネル登録✂️\n"
-    "\n"
-    "切り抜いてほしいシーン大募集！コメントで教えてくれたらAIで見つけ出します🔍"
-)
+# 単一情報源: projects/dozle_kirinuki/context/youtube_channel.yaml
+import yaml
+_CHANNEL_YAML = os.path.join(PROJECT_DIR, "context", "youtube_channel.yaml")
+with open(_CHANNEL_YAML, "r", encoding="utf-8") as _f:
+    _ch_cfg = yaml.safe_load(_f)
+CHANNEL_ID = _ch_cfg["brand"]["channel_id"]
+CTA_COMMENT = _ch_cfg["cta_comment"].rstrip("\n")
 
 
 def get_service():

@@ -1381,6 +1381,83 @@ commands:
     \ 並行発令 cmd: cmd_1487 (本スキル必要性の実証元) / cmd_1488 (SQLite p2) / cmd_1489 (master-telop\
     \ skill) / cmd_1491 (server.py inbox統合)\n- 関連手順: shared_context/qc_template.md\
     \ (cmd_1479で動画QC追加項目セクション既存)\n- 教訓元: cmd_1485 CONDITIONAL_PASSスキップ → 殿実視聴NG"
+- id: cmd_1491
+  status: done
+  completed_at: '2026-04-25T22:32:00+09:00'
+  timestamp: '2026-04-25T22:16:00+09:00'
+  priority: high
+  project: multi-agent-shogun
+  assigned_to: shogun
+  lord_original: Aきょか (server.py inbox自動通知統合 殿許可)・MCP APIつかえよ
+  purpose: scripts/dashboard/server.py の POST /api/cmd_create を拡張し、cmd起票成功時に自動で家老inboxへ通知メッセージを追加する。inbox_write.sh
+    の bash 呼出を不要化し、cmd_1475 item_3 改修推奨を実装。**根幹システム改修ゆえ将軍が直接実装**。
+  north_star: MCP API 1発で『cmd起票 + 家老通知 + cmd_history JSON保管 + (将来) SQLite INSERT』が完結する設計に統一。将軍/家老/足軽が
+    bash inbox_write.sh を呼ぶ必要がなくなり、API一元化で hook chain簡素化と障害点減少。
+  acceptance_criteria:
+  - 'POST /api/cmd_create に新規パラメータ追加: notify_karo (bool・デフォルトtrue) / notify_message
+    (str・省略時はcmd purposeから自動生成)'
+  - cmd_create成功時、notify_karo=true なら queue/inbox/karo.yaml に msg追加 (flock保護・既存inbox_write.sh
+    と同等動作)
+  - msg追加時、msg_id 生成 (msg_<timestamp>_<8文字hash>形式)・read=false / from=shogun / type=cmd_new
+    / content=notify_message or 自動生成
+  - POST受信内容を queue/cmd_history/<cmd_id>_request.json に自動保存 (将来の audit_log テーブル代替まで・SQLite
+    p2完了後は廃止)
+  - 'kill_switch: notify_karo=false で従来動作 (inbox通知なし) が動くこと'
+  - 既存呼出元 (将軍/家老/足軽の bash inbox_write.sh 経由) は影響なし (互換性維持)
+  - 'curl テスト: POST /api/cmd_create -d ''{...notify_karo: true...}'' で karo.yaml に
+    msg追加確認'
+  - 'watcher 連携: inbox/karo.yaml 変更で inotifywait が wakeup nudge を発火 (動作確認)'
+  - git commit + push
+  - dashboard.md 完遂報告
+  command: "## 殿命\n『Aきょか』(=server.py inbox自動通知統合 許可)\n『MCP APIつかえよ』(=cmd起票はAPI一発・bash\
+    \ inbox_write.sh併用は技術負債)\n\n## 背景\n現状: 将軍が cmd起票時に以下2ステップ実行\n1. POST /api/cmd_create\
+    \ でshogun_to_karo.yaml に entry追加\n2. bash scripts/inbox_write.sh karo \"...\"\
+    \ cmd_new shogun で家老通知\n\n問題: API + bash の二重呼出 → ミス余地 (cmd_1487発令時に scripts/inbox_write.sh\
+    \ で wd誤りで失敗例あり)\n\ncmd_1475 item_3 (HIGH推奨): cmd_create + inbox自動通知統合。本cmdで実装。\n\
+    \n## 範囲（厳守）\n- POST /api/cmd_create 拡張のみ (新規API追加ではない)\n- 互換性維持 (既存呼出元・bash inbox_write.sh\
+    \ は引き続き動作)\n- SQLite INSERT は cmd_1488 (p2 dual-path) で別途追加・本cmdは触らない\n\n## やること（将軍直接実装）\n\
+    \n### Step 1: server.py POST /api/cmd_create 拡張\n既存コード (queue/shogun_to_karo.yaml\
+    \ への flock + append) はそのまま。\n以下を追加:\n\n```python\n# 既存処理の最後 (yaml entry追加成功後・レスポンス返す前)\n\
+    \nnotify_karo = body.get('notify_karo', True)  # デフォルトtrue\nnotify_message = body.get('notify_message')\
+    \ or f\"{cmd_id}発令済(API)。purpose: {body['purpose'][:80]}\"\n\nif notify_karo:\n\
+    \    inbox_path = QUEUE_DIR / 'inbox' / 'karo.yaml'\n    inbox_lock = inbox_path.with_suffix('.yaml.lock')\n\
+    \    msg_id = f\"msg_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{secrets.token_hex(4)}\"\
+    \n    new_msg = {\n        'id': msg_id,\n        'from': 'shogun',\n        'type':\
+    \ 'cmd_new',\n        'content': notify_message,\n        'read': False,\n   \
+    \     'timestamp': datetime.now(timezone(timedelta(hours=9))).isoformat()\n  \
+    \  }\n    with open(inbox_lock, 'w') as lf:\n        fcntl.flock(lf, fcntl.LOCK_EX)\n\
+    \        with open(inbox_path, 'r', encoding='utf-8') as f:\n            inbox_data\
+    \ = yaml.safe_load(f) or {'messages': []}\n        inbox_data.setdefault('messages',\
+    \ []).append(new_msg)\n        with open(inbox_path, 'w', encoding='utf-8') as\
+    \ f:\n            yaml.dump(inbox_data, f, allow_unicode=True, sort_keys=False,\
+    \ default_flow_style=False, width=10000)\n```\n\n### Step 2: cmd_history JSON保管追加\n\
+    ```python\n# yaml entry追加成功後\nhistory_dir = QUEUE_DIR / 'cmd_history'\nhistory_dir.mkdir(exist_ok=True)\n\
+    history_path = history_dir / f'{cmd_id}_request.json'\nwith open(history_path,\
+    \ 'w', encoding='utf-8') as f:\n    json.dump(body, f, ensure_ascii=False, indent=2)\n\
+    ```\n\n### Step 3: curl テスト\n```bash\n# テストcmd起票 (cmd_99_test 等)\ncurl -X POST\
+    \ http://127.0.0.1:8770/api/cmd_create \\\n  -H \"Content-Type: application/json\"\
+    \ \\\n  -d '{\"id\":\"cmd_test_99\",\"purpose\":\"test\",\"lord_original\":\"\
+    test\",\"notify_message\":\"テスト通知\"}'\n# 確認:\n# 1. shogun_to_karo.yaml に cmd_test_99\
+    \ entry あり\n# 2. queue/inbox/karo.yaml に msg追加・content='テスト通知'\n# 3. queue/cmd_history/cmd_test_99_request.json\
+    \ 保存\n# 4. 家老pane が wakeup したか (inotifywait経由)\n# テスト後 cleanup: shogun_to_karo.yaml\
+    \ から cmd_test_99 削除・karo.yaml から msg削除\n```\n\n### Step 4: server.py 再起動\n```bash\n\
+    ps aux | grep dashboard/server.py | grep -v grep  # 既存PID確認\nkill -TERM <PID>\n\
+    nohup python3 scripts/dashboard/server.py > logs/dashboard_server.log 2>&1 &\n\
+    ```\n\n### Step 5: 既存呼出元の互換性確認\n- `bash scripts/inbox_write.sh karo \"...\" cmd_new\
+    \ shogun` が引き続き動作\n- `notify_karo=false` の cmd起票で inbox通知が skipされる\n\n### Step\
+    \ 6: dashboard.md 完遂報告\n\n## 重要な制約\n- **既存呼出元に影響なし** (互換性維持)\n- **SQLite INSERT\
+    \ は本cmdで触らない** (cmd_1488 で別途追加)\n- **kill_switch: notify_karo=false で従来動作維持**\n\
+    - **flock 必須** (queue/inbox/karo.yaml の race condition回避)\n\n## 担当\n**将軍直接** (assigned_to:\
+    \ shogun)・根幹システム改修ゆえ家老/足軽委任せず\n\n## 工数目安\n- Step 1 server.py拡張: 1時間\n- Step 2\
+    \ cmd_history保管: 15分\n- Step 3 curlテスト: 30分\n- Step 4 server再起動: 5分\n- Step 5\
+    \ 互換性確認: 15分\n- Step 6 dashboard更新: 10分\n計: 2-2.5時間\n\n## 軍師QC観点\n- API拡張が既存動作を破壊していない\
+    \ (互換性)\n- inbox通知の flock 動作\n- cmd_history JSON が正しく保存される\n- kill_switch 動作\n\
+    - watcher 連携 (nudge発火)\n\n## 関連\n- 並行発令 cmd: cmd_1487 (Day6 1戦目修正・足軽1号), cmd_1488\
+    \ (SQLite p2・足軽4号), cmd_1489 (master-telop skill), cmd_1490 (video-qc-llm skill)\n\
+    - **干渉注意**: cmd_1488 (SQLite p2) と本cmdの server.py改修箇所が干渉する可能性 → **本cmd1491 を先に完遂し、cmd_1488\
+    \ で SQLite INSERT を追加する順序** とする (家老調整)\n- 起源: cmd_1475 item_3 改修推奨"
+  completion_note: 将軍直接実装。POST /api/cmd_create に notify_karo+notify_message パラメータ追加。inbox自動通知統合・cmd_history
+    JSON保管・kill_switch対応。git commit 863bb19。
 - id: cmd_1492
   status: done
   completed_at: '2026-04-26T00:03:00+09:00'
