@@ -4933,3 +4933,16 @@ commands:
   done_at: "2026-04-25T14:58:32+09:00"
   priority: high
   purpose: "curriculum_v2.md Marp HTML化+LAN公開(8082)で殿スマホレビュー可能に。殿指示『Udemy は HTML にしておくれ』(13:43)"
+- id: cmd_1470
+  status: in_progress
+  assigned_to: ashigaru3
+  issued_at: "2026-04-25T15:29:00+09:00"
+  purpose: "pretool_check.sh CHK3 拡張: procedure: フィールド不在を BLOCK。cmd_1467 title化け事故の根本対策（指示書md強制で伝達失敗を構造的防止）。新規task_idのみ規制・後方互換必須。"
+  acceptance_criteria:
+    - "CHK3にprocedure:不在BLOCK追加"
+    - "新規task_idのみ規制・後方互換"
+    - "テスト2ケース PASS・regression 0件"
+    - "task_yaml_schema.md更新"
+    - "instructions/karo.md+ashigaru.md更新"
+    - "git commit + push"
+    - "軍師QC PASS"
