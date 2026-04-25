@@ -16,7 +16,7 @@ from datetime import datetime, timezone, timedelta
 
 PORT = 8770
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(_SCRIPT_DIR, "..", "..", "data", "dashboard.db")
+DB_PATH = os.path.join(_SCRIPT_DIR, "..", "..", "queue", "cmds.db")  # cmd_1488 dual-path 統一 (旧: data/dashboard.db 空)
 BASE_DIR = os.path.join(_SCRIPT_DIR, "..", "..")
 TASKS_DIR = os.path.join(BASE_DIR, "queue", "tasks")
 INBOX_DIR = os.path.join(BASE_DIR, "queue", "inbox")
@@ -1482,6 +1482,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
         elif self.path.startswith('/api/cmd_list'):
+            # cmd_1488 dual-path 完了後は SQLite が読み出しソース。
             try:
                 from urllib.parse import urlparse, parse_qs
                 qs = parse_qs(urlparse(self.path).query)
@@ -1489,39 +1490,119 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 keyword = qs.get('q', [None])[0]
                 limit = int(qs.get('limit', ['200'])[0])
 
-                with open(SHOGUN_TO_KARO, 'r', encoding='utf-8') as f:
-                    data = yaml.safe_load(f) or {}
-                cmds = data.get('commands', []) or []
+                conn = sqlite3.connect(DB_PATH, timeout=5)
+                conn.row_factory = sqlite3.Row
+                try:
+                    counts = {}
+                    for r in conn.execute(
+                        "SELECT status, COUNT(*) AS c FROM commands GROUP BY status"
+                    ):
+                        counts[r['status']] = r['c']
+                    total = sum(counts.values())
 
-                # Counts (全件)
-                counts = {}
-                for c in cmds:
-                    s = c.get('status', 'unknown')
-                    counts[s] = counts.get(s, 0) + 1
+                    sql = "SELECT * FROM commands"
+                    params = []
+                    where = []
+                    if status_filter:
+                        where.append("status = ?")
+                        params.append(status_filter)
+                    if keyword:
+                        kw = f"%{keyword.lower()}%"
+                        where.append(
+                            "(LOWER(id) LIKE ? OR LOWER(COALESCE(purpose,'')) LIKE ? "
+                            "OR LOWER(COALESCE(lord_original,'')) LIKE ? "
+                            "OR LOWER(COALESCE(assigned_to,'')) LIKE ?)"
+                        )
+                        params.extend([kw, kw, kw, kw])
+                    if where:
+                        sql += " WHERE " + " AND ".join(where)
+                    sql += " ORDER BY COALESCE(timestamp, issued_at) DESC LIMIT ?"
+                    params.append(limit)
 
-                # Filter
-                filtered = cmds
-                if status_filter:
-                    filtered = [c for c in filtered if c.get('status') == status_filter]
-                if keyword:
-                    kw = keyword.lower()
-                    filtered = [c for c in filtered
-                                if kw in str(c.get('id', '')).lower()
-                                or kw in str(c.get('purpose', '')).lower()
-                                or kw in str(c.get('lord_original', '')).lower()
-                                or kw in str(c.get('assigned_to', '')).lower()]
-
-                # Newest first (timestamp/issued_at desc)
-                filtered.sort(key=lambda c: c.get('timestamp', '') or c.get('issued_at', ''), reverse=True)
-                filtered = filtered[:limit]
+                    cmds = []
+                    for r in conn.execute(sql, params):
+                        d = {k: v for k, v in dict(r).items()
+                             if v is not None and k != 'full_yaml_blob'}
+                        for k_json, k_clean in [
+                            ('acceptance_criteria_json', 'acceptance_criteria'),
+                            ('depends_on_json', 'depends_on'),
+                            ('notes_json', 'notes'),
+                        ]:
+                            if d.get(k_json):
+                                try:
+                                    d[k_clean] = json.loads(d[k_json])
+                                except Exception:
+                                    pass
+                                d.pop(k_json, None)
+                        cmds.append(d)
+                finally:
+                    conn.close()
 
                 resp_data = {
-                    'total': len(cmds),
+                    'total': total,
                     'counts': counts,
-                    'shown': len(filtered),
-                    'cmds': filtered,
+                    'shown': len(cmds),
+                    'cmds': cmds,
+                    'source': 'sqlite',
                 }
-                body = json.dumps(resp_data, ensure_ascii=False, indent=2).encode('utf-8')
+                body = json.dumps(resp_data, ensure_ascii=False, indent=2,
+                                  default=str).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path.startswith('/api/cmd_detail'):
+            # GET /api/cmd_detail?id=cmd_1487 → 1件分の full データ
+            try:
+                from urllib.parse import urlparse, parse_qs
+                qs = parse_qs(urlparse(self.path).query)
+                cmd_id = (qs.get('id', [''])[0] or '').strip()
+                if not cmd_id:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'id required'}).encode('utf-8'))
+                    return
+
+                conn = sqlite3.connect(DB_PATH, timeout=5)
+                conn.row_factory = sqlite3.Row
+                try:
+                    r = conn.execute(
+                        "SELECT * FROM commands WHERE id = ?", (cmd_id,)
+                    ).fetchone()
+                finally:
+                    conn.close()
+
+                if r is None:
+                    self.send_response(404)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(
+                        {'error': f'cmd not found: {cmd_id}'}, ensure_ascii=False
+                    ).encode('utf-8'))
+                    return
+
+                d = {k: v for k, v in dict(r).items() if v is not None}
+                for k_json, k_clean in [
+                    ('acceptance_criteria_json', 'acceptance_criteria'),
+                    ('depends_on_json', 'depends_on'),
+                    ('notes_json', 'notes'),
+                ]:
+                    if d.get(k_json):
+                        try:
+                            d[k_clean] = json.loads(d[k_json])
+                        except Exception:
+                            pass
+                        d.pop(k_json, None)
+
+                body = json.dumps(d, ensure_ascii=False, indent=2,
+                                  default=str).encode('utf-8')
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self.send_header('Content-Length', str(len(body)))
