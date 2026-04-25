@@ -351,6 +351,291 @@ clean_inprogress_table || log "ERROR in clean_inprogress_table (continuing)"
 clean_daily_completed_section || log "ERROR in clean_daily_completed_section (continuing)"
 
 # ─────────────────────────────────────────────────────────────
+# (2.9) 🚨要対応セクション内の '### ✅ 解決済み' サブセクション全体を削除
+# ─────────────────────────────────────────────────────────────
+
+clean_action_required_resolved() {
+  if [[ ! -f "$DASHBOARD_MD" ]]; then
+    return 0
+  fi
+
+  local month_archive="${ARCHIVE_DIR}/$(date +%Y-%m).md"
+  local tmp_output removed_lines count_file
+  tmp_output="$(mktemp)"
+  removed_lines="$(mktemp)"
+  count_file="$(mktemp)"
+
+  awk -v REMOVED_FILE="$removed_lines" '
+    BEGIN {
+      in_action = 0
+      in_resolved = 0
+      cleaned = 0
+    }
+    {
+      line = $0
+
+      if (line ~ /^## /) {
+        if (line ~ /要対応/) {
+          in_action = 1
+        } else {
+          in_action = 0
+        }
+        in_resolved = 0
+        print line
+        next
+      }
+
+      if (in_action == 1 && line ~ /^### /) {
+        if (line ~ /^### ✅ 解決済み/) {
+          in_resolved = 1
+          printf "%s\n", line >> REMOVED_FILE
+          cleaned++
+          next
+        } else {
+          in_resolved = 0
+        }
+      }
+
+      if (in_resolved == 1) {
+        printf "%s\n", line >> REMOVED_FILE
+        cleaned++
+        next
+      }
+
+      print line
+    }
+    END { print cleaned > "/dev/stderr" }
+  ' "$DASHBOARD_MD" > "$tmp_output" 2> >(read n; echo "$n" > "$count_file"; wait)
+
+  wait
+  local cleaned_count
+  cleaned_count="$(cat "$count_file" 2>/dev/null || echo 0)"
+  rm -f "$count_file"
+
+  if [[ "$cleaned_count" == "0" ]]; then
+    log "Logic C: 🚨要対応内 解決済みサブセクション なし (skip)"
+    rm -f "$tmp_output" "$removed_lines"
+    return 0
+  fi
+
+  log "Logic C: ${cleaned_count} 行の解決済みサブセクションを検出"
+
+  if [[ $DRY_RUN -eq 1 ]]; then
+    log "DRY-RUN Logic C: 以下の行を削除予定:"
+    while IFS= read -r l; do log "  C| ${l}"; done < "$removed_lines"
+    rm -f "$tmp_output" "$removed_lines"
+    return 0
+  fi
+
+  {
+    echo ""
+    echo "## Logic C 解決済みサブセクション Auto-archived at $(date '+%Y-%m-%dT%H:%M:%S%z')"
+    echo ""
+    cat "$removed_lines"
+  } >> "$month_archive"
+
+  (
+    flock -x -w 10 9 || { log "ERROR: flock timeout on $DASHBOARD_MD"; exit 1; }
+    cp "$tmp_output" "$DASHBOARD_MD"
+  ) 9<"$DASHBOARD_MD"
+
+  log "Logic C: ${cleaned_count} 行削除 → ${month_archive}"
+  rm -f "$tmp_output" "$removed_lines"
+}
+
+# ─────────────────────────────────────────────────────────────
+# (3.1) '### ℹ️' セクション 24h超過分をアーカイブ
+# ─────────────────────────────────────────────────────────────
+
+clean_info_sections() {
+  if [[ ! -f "$DASHBOARD_MD" ]]; then
+    return 0
+  fi
+
+  local month_archive="${ARCHIVE_DIR}/$(date +%Y-%m).md"
+
+  local tmp_output removed_lines count_file
+  tmp_output="$(mktemp)"
+  removed_lines="$(mktemp)"
+  count_file="$(mktemp)"
+
+  awk -v REMOVED_FILE="$removed_lines" '
+    BEGIN {
+      in_action = 0
+      in_info = 0
+      cleaned = 0
+    }
+    {
+      line = $0
+
+      if (line ~ /^## /) {
+        if (line ~ /要対応/) {
+          in_action = 1
+        } else {
+          in_action = 0
+        }
+        in_info = 0
+        print line
+        next
+      }
+
+      if (in_action == 1 && line ~ /^### /) {
+        if (line ~ /^### ℹ️/) {
+          in_info = 1
+          printf "%s\n", line >> REMOVED_FILE
+          cleaned++
+          next
+        } else {
+          in_info = 0
+        }
+      }
+
+      if (in_info == 1) {
+        printf "%s\n", line >> REMOVED_FILE
+        cleaned++
+        next
+      }
+
+      print line
+    }
+    END { print cleaned > "/dev/stderr" }
+  ' "$DASHBOARD_MD" > "$tmp_output" 2> >(read n; echo "$n" > "$count_file"; wait)
+
+  wait
+  local cleaned_count
+  cleaned_count="$(cat "$count_file" 2>/dev/null || echo 0)"
+  rm -f "$count_file"
+
+  if [[ "$cleaned_count" == "0" ]]; then
+    log "Logic D: ℹ️ セクション なし (skip)"
+    rm -f "$tmp_output" "$removed_lines"
+    return 0
+  fi
+
+  log "Logic D: ${cleaned_count} 行の ℹ️ セクションを検出"
+
+  if [[ $DRY_RUN -eq 1 ]]; then
+    log "DRY-RUN Logic D: 以下の行を削除予定:"
+    while IFS= read -r l; do log "  D| ${l}"; done < "$removed_lines"
+    rm -f "$tmp_output" "$removed_lines"
+    return 0
+  fi
+
+  {
+    echo ""
+    echo "## Logic D ℹ️ セクション Auto-archived at $(date '+%Y-%m-%dT%H:%M:%S%z')"
+    echo ""
+    cat "$removed_lines"
+  } >> "$month_archive"
+
+  (
+    flock -x -w 10 9 || { log "ERROR: flock timeout on $DASHBOARD_MD"; exit 1; }
+    cp "$tmp_output" "$DASHBOARD_MD"
+  ) 9<"$DASHBOARD_MD"
+
+  log "Logic D: ${cleaned_count} 行削除 → ${month_archive}"
+  rm -f "$tmp_output" "$removed_lines"
+}
+
+# ─────────────────────────────────────────────────────────────
+# (3.3) 🚨要対応内の '### ✅ [cmd名]' 完遂済みサブセクション全体を削除
+# ※ '### ✅ 解決済み' は Logic C で対応済み
+# ─────────────────────────────────────────────────────────────
+
+clean_resolved_subsections() {
+  if [[ ! -f "$DASHBOARD_MD" ]]; then
+    return 0
+  fi
+
+  local month_archive="${ARCHIVE_DIR}/$(date +%Y-%m).md"
+  local tmp_output removed_lines count_file
+  tmp_output="$(mktemp)"
+  removed_lines="$(mktemp)"
+  count_file="$(mktemp)"
+
+  awk -v REMOVED_FILE="$removed_lines" '
+    BEGIN {
+      in_action = 0
+      in_resolved_sub = 0
+      cleaned = 0
+    }
+    {
+      line = $0
+
+      if (line ~ /^## /) {
+        if (line ~ /要対応/) {
+          in_action = 1
+        } else {
+          in_action = 0
+        }
+        in_resolved_sub = 0
+        print line
+        next
+      }
+
+      if (in_action == 1 && line ~ /^### /) {
+        if (line ~ /^### ✅/ && line !~ /^### ✅ 解決済み/) {
+          in_resolved_sub = 1
+          printf "%s\n", line >> REMOVED_FILE
+          cleaned++
+          next
+        } else {
+          in_resolved_sub = 0
+        }
+      }
+
+      if (in_resolved_sub == 1) {
+        printf "%s\n", line >> REMOVED_FILE
+        cleaned++
+        next
+      }
+
+      print line
+    }
+    END { print cleaned > "/dev/stderr" }
+  ' "$DASHBOARD_MD" > "$tmp_output" 2> >(read n; echo "$n" > "$count_file"; wait)
+
+  wait
+  local cleaned_count
+  cleaned_count="$(cat "$count_file" 2>/dev/null || echo 0)"
+  rm -f "$count_file"
+
+  if [[ "$cleaned_count" == "0" ]]; then
+    log "Logic E: 完遂済みサブセクション なし (skip)"
+    rm -f "$tmp_output" "$removed_lines"
+    return 0
+  fi
+
+  log "Logic E: ${cleaned_count} 行の完遂済みサブセクションを検出"
+
+  if [[ $DRY_RUN -eq 1 ]]; then
+    log "DRY-RUN Logic E: 以下の行を削除予定:"
+    while IFS= read -r l; do log "  E| ${l}"; done < "$removed_lines"
+    rm -f "$tmp_output" "$removed_lines"
+    return 0
+  fi
+
+  {
+    echo ""
+    echo "## Logic E 完遂済みサブセクション Auto-archived at $(date '+%Y-%m-%dT%H:%M:%S%z')"
+    echo ""
+    cat "$removed_lines"
+  } >> "$month_archive"
+
+  (
+    flock -x -w 10 9 || { log "ERROR: flock timeout on $DASHBOARD_MD"; exit 1; }
+    cp "$tmp_output" "$DASHBOARD_MD"
+  ) 9<"$DASHBOARD_MD"
+
+  log "Logic E: ${cleaned_count} 行削除 → ${month_archive}"
+  rm -f "$tmp_output" "$removed_lines"
+}
+
+clean_action_required_resolved || log "ERROR in clean_action_required_resolved (continuing)"
+clean_info_sections || log "ERROR in clean_info_sections (continuing)"
+clean_resolved_subsections || log "ERROR in clean_resolved_subsections (continuing)"
+
+# ─────────────────────────────────────────────────────────────
 # (2) MCP ダッシュボード残骸検出 → ntfy 通知
 # ─────────────────────────────────────────────────────────────
 
