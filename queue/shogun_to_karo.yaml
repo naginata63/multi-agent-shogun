@@ -4926,3 +4926,9 @@ commands:
     - "調査箇所: scripts/dashboard/server.py L177-210 detect_action_required R1 ロジック"
     - "shogun_to_karo.yaml の timestamp フィールド format 確認(ISO8601 vs epoch)"
     - "優先度 medium"
+- id: cmd_1466
+  status: in_progress
+  assigned_to: ashigaru7
+  issued_at: "2026-04-25T14:46:00+09:00"
+  priority: high
+  purpose: "curriculum_v2.md Marp HTML化+LAN公開(8082)で殿スマホレビュー可能に。殿指示『Udemy は HTML にしておくれ』(13:43)"

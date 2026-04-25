@@ -144,7 +144,7 @@ tasks:
 - task_id: subtask_1465a
   parent_cmd: cmd_1465
   bloom_level: L4
-  status: assigned
+  status: done
   timestamp: "2026-04-25T12:08:00+09:00"
   target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/curriculum_v2.md
   description: |
@@ -181,3 +181,29 @@ tasks:
     - "競合対決表はudemy_engineering.jsonの実際の講座名を使うこと(架空不可)"
     - "advisor()必須(作業前・完了前)"
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽7号、subtask_1465a完了(curriculum_v2.md生成)。QC依頼。' report_completed ashigaru7"
+- task_id: subtask_1466a
+  parent_cmd: cmd_1466
+  bloom_level: L3
+  status: assigned
+  timestamp: "2026-04-25T14:46:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/curriculum_v2.html
+  description: |
+    curriculum_v2.md を Marp HTML 化 + LAN公開(8082) で殿スマホレビュー可能にせよ。
+    殿指示『Udemy は HTML にしておくれ』(13:43)。
+  steps: "advisor()→Step1:curriculum_v2.md確認→Step2:Marp frontmatter追加+章境界---区切り変換→Step3:npx @marp-team/marp-cli でHTML生成→Step4:python3 -m http.server 8082 --bind 0.0.0.0 バックグラウンド起動→Step5:curl http://localhost:8082/curriculum_v2.html で動作確認→Step6:ntfy殿に http://192.168.2.7:8082/curriculum_v2.html 通知→advisor()→Step7:git commit+push→Step8:inbox gunshi QC→Step9:inbox karo報告"
+  acceptance_criteria:
+    - "curriculum_v2.html ビルド成功(Marp warning 0件)"
+    - "LAN公開 http://192.168.2.7:8082/ accessible"
+    - "章境界が適切にスライド分割されている"
+    - "ntfy殿スマホにURL通知済み"
+    - "軍師QC PASS"
+    - "git commit + push完了"
+  notes:
+    - "ソース: projects/udemy_course/drafts/curriculum_v2.md (672行・cmd_1465完了)"
+    - "出力: projects/udemy_course/drafts/curriculum_v2.html"
+    - "LAN公開ポート: 8082 (8081は cmd_1467 thumbnail用で使用中の可能性)"
+    - "Marp変換: frontmatter(marp: true)追加+章ごとに---スライド区切り"
+    - "新規.py禁止・/tmp禁止・git add . 禁止(CHK8)"
+    - "advisor()必須(作業前・完了前)"
+    - "ナレッジ化: 成功後 shared_context/procedures/slide_lan_publish.md 化(knowledge_todo.md既登録)"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽7号、subtask_1466a完了(curriculum_v2.html LAN公開)。QC依頼。' report_completed ashigaru7"

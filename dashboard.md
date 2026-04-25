@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 13:42
+最終更新: 2026-04-25 14:47
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -35,6 +35,7 @@
 | cmd | 担当 | 状態 |
 |-----|------|------|
 | cmd_1464 | 足軽1号 | 🔄 **発令(12:10)** Day6 4視点MIX seg独立+wipeleft SE→final.mp4+YouTube非公開 |
+| cmd_1466 | 足軽7号 | 🔄 **発令(14:46)** curriculum_v2.md Marp HTML化+LAN公開(8082)殿スマホレビュー |
 | cmd_1465 | 軍師 | ✅ **完遂(13:41)** curriculum_v2.md 672行 5AC全項目PASS 軍師PASS_with_finding |
 | cmd_1467 | 足軽2号 | ⏳ **殿レビュー待ち(13:29)** 3案生成完了 http://192.168.2.7:8081/ ntfy通知済 |
 | cmd_1468 | 軍師 | ✅ **完遂(13:32)** cron再発真因究明 offset追跡実装・13:30 hit=0確認 軍師PASS |
@@ -52,7 +53,7 @@
 | 4号 | GLM | ✅ idle | subtask_1469a ✅完了(13:34)・server.py R1 タイムスタンプparse修正 |
 | 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
-| 7号 | GLM | ✅ idle | subtask_1465a ✅完了(13:38)・curriculum_v2.md 672行生成 軍師QC中 |
+| 7号 | GLM | 🔄 busy | subtask_1466a 発令(14:46)・curriculum_v2.md Marp HTML化+LAN公開(8082) |
 | 軍師 | Opus[1m] | ✅ idle | qc_subtask_1465a ✅PASS(13:41)・cmd_1465完遂 |
 
 ---
