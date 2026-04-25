@@ -104,6 +104,7 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 | cmd_1459 | 足軽2号/5号 | ✅ **A=PASS_with_finding(08:46) / B=PASS_with_finding(08:42)** 全100本ja設定・upload script jaデフォルト化完了 |
 | cmd_1460 | 足軽2号→軍師 | ✅ **完全close(09:48)** en-US 27本全復元✅ / 残19本: private 18本+unlisted 1本・殿判断対処不要 |
 | nightly_audit_20260425_infra | — | ✅ **完遂 02:14** 軍師8件検出(M=4/I=4)・cmd_1453✅/cmd_1456✅完遂 |
+| cmd_1461 | 足軽2号→軍師 | 🔄 **発令(10:25)** dashboard_lifecycle.sh拡張・進行中✅完了行自動削除仕組み化 |
 
 ---
 
@@ -112,7 +113,7 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
 | 1号 | GLM | 🔄 busy | subtask_1453a_observe 発令(09:55)・watcher WARN 0件確認(~10:25) |
-| 2号 | GLM | ✅ idle | subtask_1460a ✅完遂(09:28)・en-US 27本全復元・軍師QC中 |
+| 2号 | GLM | 🔄 busy | subtask_1461a 発令(10:25)・dashboard_lifecycle.sh拡張 |
 | 3号 | Opus[1m] | ✅ idle | subtask_1458b ✅完了(08:39)・新版public+旧版private確認 |
 | 4号 | GLM | ✅ idle | cmd_1455 ✅PASS(07:57・軍師QC) |
 | 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
