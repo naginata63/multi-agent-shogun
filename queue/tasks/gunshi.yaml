@@ -3722,7 +3722,7 @@ tasks:
 - task_id: qc_subtask_1468a
   parent_cmd: cmd_1468
   bloom_level: L4
-  status: assigned
+  status: done
   timestamp: "2026-04-25T13:17:00+09:00"
   target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1468a.yaml
   description: "cmd_1468 QC: cron 4エラー再発真因究明・offset追跡実装・YAML修復・hit=0確認。13:30 cronサイクルで再発0件確認が必須AC。"
@@ -3739,3 +3739,22 @@ tasks:
     - "shared_context/qc_template.md 必須参照"
     - "advisor()必須"
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1468a完了(判定)。' qc_result gunshi"
+- task_id: qc_subtask_1469a
+  parent_cmd: cmd_1469
+  bloom_level: L3
+  status: assigned
+  timestamp: "2026-04-25T13:35:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1469a.yaml
+  description: "cmd_1469 QC: server.py R1 タイムスタンプparse修正・fresh cmd age 416日誤算定バグ解消確認。shared_context/qc_template.md 参照してQCせよ。"
+  steps: "shared_context/qc_template.md 参照→server.py L177-210 実読(parse修正内容確認)→shogun_to_karo.yaml 実 timestamp フォーマット確認→修正後の R1 ロジック動作評価(epoch 0化なし/判定skip or 推定)→git log/diff で実変更確認→PASS/FAIL判定→report作成→inbox karo"
+  acceptance_criteria:
+    - "R1 ロジックで ISO8601 timestamp が正しく parse される修正が入っている"
+    - "parse エラー時は epoch 0 化せず判定skip or 起票時刻推定を使用"
+    - "fresh cmd のage正常計算確認(416日問題の解消根拠明記)"
+    - "git commit + push 済み確認"
+  notes:
+    - "調査対象: scripts/dashboard/server.py L177-210 detect_action_required R1 ロジック"
+    - "足軽4号レポート: queue/reports/ashigaru4_report_subtask_1469a.yaml (存在確認要)"
+    - "shared_context/qc_template.md 必須参照"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1469a完了(判定)。' qc_result gunshi"
