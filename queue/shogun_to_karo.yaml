@@ -1118,7 +1118,8 @@ commands:
   - 優先度 medium (運用効率化・実害は dashboard 肥大化)
   project: multi-agent-shogun
 - id: cmd_1487
-  status: in_progress
+  status: cancelled
+  completed_at: '2026-04-25T23:07:00+09:00'
   priority: high
   purpose: Day6 Echidna 1戦目seg を再修正。(1) oo_men_1sen.mp4 を VP9→h264変換時の bitrate劣化(4035→2255
     kb/s)を解消・元4Mbps級画質を維持して再生成 (2) charlotte/hendy/tsurugi 全視点 sync を mpv視覚検証必須で再測定（殿視聴で時間ズレ発覚）(3)
