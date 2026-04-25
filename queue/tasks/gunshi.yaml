@@ -3761,7 +3761,7 @@ tasks:
 - task_id: qc_subtask_1465a
   parent_cmd: cmd_1465
   bloom_level: L5
-  status: assigned
+  status: done
   timestamp: "2026-04-25T13:39:00+09:00"
   target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1465a.yaml
   description: "cmd_1465 QC: Udemy curriculum_v2.md マーケ強化版(5AC全項目補完確認)。shared_context/qc_template.md 参照してQCせよ。"
@@ -3781,3 +3781,24 @@ tasks:
     - "shared_context/qc_template.md 必須参照"
     - "advisor()必須"
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1465a完了(判定)。' qc_result gunshi"
+- task_id: qc_subtask_1466a
+  parent_cmd: cmd_1466
+  bloom_level: L3
+  status: assigned
+  timestamp: "2026-04-25T14:57:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1466a.yaml
+  description: "cmd_1466 QC: curriculum_v2.html Marp HTML化+LAN公開(8082)確認。shared_context/qc_template.md 参照してQCせよ。"
+  steps: "shared_context/qc_template.md 参照→curriculum_v2.html 実在確認→curl http://localhost:8082/curriculum_v2.html でHTTP 200確認→ファイルサイズ/スライド数妥当性確認→git commit+push確認→PASS/FAIL判定→report作成→inbox karo"
+  acceptance_criteria:
+    - "projects/udemy_course/drafts/curriculum_v2.html 実在"
+    - "curl http://localhost:8082/curriculum_v2.html HTTP 200"
+    - "Marp frontmatter(marp: true)と---区切りスライド分割あり"
+    - "ntfy送信済み確認(足軽レポート)"
+    - "git commit + push済み確認"
+  notes:
+    - "LAN URL: http://192.168.2.7:8082/curriculum_v2.html"
+    - "足軽7号レポート: queue/reports/ashigaru7_report_subtask_1466a.yaml (存在確認要)"
+    - "ナレッジ化候補: 成功後 shared_context/procedures/slide_lan_publish.md (knowledge_todo.md登録済)"
+    - "shared_context/qc_template.md 必須参照"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1466a完了(判定)。' qc_result gunshi"
