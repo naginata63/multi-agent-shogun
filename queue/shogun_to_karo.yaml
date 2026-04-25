@@ -4851,9 +4851,10 @@ commands:
     - "並列稼働: cmd_1463/1464 (DoZ動画) と並列可"
   project: udemy_course
 - id: cmd_1468
-  status: in_progress
+  status: done
   assigned_to: ashigaru3
   issued_at: "2026-04-25T12:51:31+09:00"
+  done_at: "2026-04-25T13:32:20+09:00"
   purpose: "cron 4エラー再発の真因究明: cmd_1448で対処済のはずが C01/C02/C05/C09/C10/C14 が30分毎に再検知継続。古いログ再検知 or cmd_1448修正不備を切り分け。"
   command: |
     【目的】cron_health_check.log に C01/C02/C05/C09/C10/C14 が30分毎再検知継続中。
