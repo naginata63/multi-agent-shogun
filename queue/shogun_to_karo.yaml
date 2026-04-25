@@ -4826,3 +4826,29 @@ commands:
     - "Day6 codec 混在問題(charlotte=vp9)の恒久解決 → MIX cmd の起点"
   procedure: "shared_context/procedures/day6_4viewpoint_dl.md"
   project: dozle_kirinuki
+
+- id: cmd_1464
+  status: pending
+  timestamp: "2026-04-25T11:42:00+09:00"
+  priority: high
+  lord_original: "Day6 4視点 MIX 動画化。seg1戦目(142秒)+seg8戦目(2150秒)を1本に連結。視点切替(MEN→charlotte/hendy/tsurugi バリエーション・たまに4画面grid)。音声はメイン視点追従。右上テロップ『エキドナ(初戦)』『エキドナ(8戦目)』。横長1080p h264_nvenc 14Mbps。YouTube非公開先行。opening不要。"
+  north_star: |
+    cmd_1463 でh264統一した4視点素材を使い、Day6 ボス戦の見応えあるMIX動画を生成する。
+    視点切替とたまの4画面gridでライブ感を演出。音声は表示視点に追従。
+  purpose: "Day6 ボス1戦目+8戦目 4視点MIX動画 生成→YouTube非公開アップ（殿レビュー用）"
+  acceptance_criteria:
+    - "1本の横長1080p MP4 生成 (1戦目142秒+8戦目2150秒≒38分)"
+    - "視点切替: MEN始まり→MEN終わり・中間でcharlotte/hendy/tsurugi・盛り上がりで4画面grid(2x2)"
+    - "音声: 表示視点の音声採用(4画面grid時はMEN音声)"
+    - "右上テロップ: 『エキドナ(初戦)』seg1戦目期間・『エキドナ(8戦目)』seg8戦目期間"
+    - "codec h264_nvenc + aac 192k・bitrate 14Mbps程度"
+    - "YouTube非公開アップ完了 (URL報告)"
+    - "defaultLanguage=ja + defaultAudioLanguage=ja"
+    - "軍師QC PASS"
+  notes:
+    - "依存: cmd_1463 (4視点素材8本) 完了が前提→完了後に足軽1号(cmd_1424経験者)へ発令"
+    - "参考: cmd_1424 zephyrus_v3.sh / shared_context/procedures/multi_view_sync.md"
+    - "amix不要 (音声は切替ゆえ)"
+    - "opening/outro なし (殿確定)"
+  project: dozle_kirinuki
+  depends_on: cmd_1463
