@@ -14,7 +14,8 @@
 
 ## 案件 (実証待ち)
 
-- [ ] **cmd_1466 Marp HTML + LAN公開でスライド殿スマホレビュー** 成功実証後 → `procedures/slide_lan_publish.md` 化 (起票: 2026-04-25)
+- [x] **cmd_1466 Marp HTML + LAN公開でスライド殿スマホレビュー** → `procedures/slide_lan_publish.md` **作成予定** 軍師PASS(14:58) (起票: 2026-04-25)
+- [x] **cmd_1467 Day6 エキドナ サムネ生成 (DoZ 6人パターン)** → `procedures/dozle_thumbnail_generation.md` **作成済み 2026-04-25** (Day2/3/5 既存パターンゆえ即ナレッジ化)
 
 ## アーカイブ
 

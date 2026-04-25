@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 14:57
+最終更新: 2026-04-25 15:00
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -35,7 +35,7 @@
 | cmd | 担当 | 状態 |
 |-----|------|------|
 | cmd_1464 | 足軽1号 | 🔄 **発令(12:10)** Day6 4視点MIX seg独立+wipeleft SE→final.mp4+YouTube非公開 |
-| cmd_1466 | 軍師QC中 | 🔄 **QC発令(14:57)** curriculum_v2.html LAN公開 http://192.168.2.7:8082/ 軍師QC中 |
+| cmd_1466 | 軍師 | ✅ **完遂(14:58)** curriculum_v2.html 38スライド LAN公開 http://192.168.2.7:8082/ 軍師PASS |
 | cmd_1465 | 軍師 | ✅ **完遂(13:41)** curriculum_v2.md 672行 5AC全項目PASS 軍師PASS_with_finding |
 | cmd_1467 | 足軽2号 | ⏳ **殿レビュー待ち(13:29)** 3案生成完了 http://192.168.2.7:8081/ ntfy通知済 |
 | cmd_1468 | 軍師 | ✅ **完遂(13:32)** cron再発真因究明 offset追跡実装・13:30 hit=0確認 軍師PASS |
@@ -54,7 +54,7 @@
 | 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1466a ✅完了(14:56)・curriculum_v2.html LAN公開 軍師QC中 |
-| 軍師 | Opus[1m] | 🔄 busy | qc_subtask_1466a 発令(14:57)・curriculum_v2.html LAN公開QC中 |
+| 軍師 | Opus[1m] | ✅ idle | qc_subtask_1466a ✅PASS(14:58)・cmd_1466完遂 |
 
 ---
 
@@ -81,6 +81,7 @@
 | dashboard残骸一掃 | ✅ **完了 23:18** 殿指示(23:16)・shogun_to_karo.yaml 4件 in_progress→done(cmd_1441/1443/1445/1446)+subtask_1398a→cancelled+旧🚨セクション削除・足軽現タスク欄刷新 |
 | cmd_1449 全5領域 | ✅ **完遂 23:51** A/B/C/D/E 全軍師QC PASS(a8e2878/de29639+df1b470/06ecb45/b9d05b6/a312447)・follow-up 2件殿判断(07:17)対応不要 |
 | cmd_1450 | ✅ **done_ng(07:24)** 殿判断「面白くない・なぎなた不在」→note下書き2件削除中(subtask_1450_cleanup/足軽2号) |
+| cmd_1466 | ✅ **完遂(14:58)** curriculum_v2.html 38スライド Marp+LAN公開(8082) 軍師PASS・slide_lan_publish手順確立 |
 | cmd_1465 | ✅ **完遂(13:41)** Udemy curriculum_v2.md 672行 5ペルソナ/18章ハンズオン/競合4領域対決 軍師PASS_with_finding |
 | cmd_1469 | ✅ **完遂(13:37)** server.py R1 タイムスタンプparse修正 fresh cmd age正常化(416日→0.12h) 軍師PASS |
 | cmd_1468 | ✅ **完遂(13:32)** cron再発真因究明 古いログ再検知→offset追跡実装 13:30 hit=0確認 軍師PASS |
