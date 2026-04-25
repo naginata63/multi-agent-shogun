@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 20:14
+最終更新: 2026-04-25 20:22
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -27,11 +27,20 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 ### 📐 cmd_1475 設計レビュー結果
 - **item_3 改修推奨（HIGH）**: cmd_create+inbox自動通知統合。報告: queue/reports/gunshi_design_review_1475.yaml
 
-### 📐 cmd_1480 ストレージ移行設計完了 → 殿の御判断必要
-軍師設計完了(19:05)。報告: `queue/reports/gunshi_design_storage_migration_1480.yaml`
-- **核心結論**: storage format移行は本質ではない。**API filter + ETag/304 が本丸**
-- **推奨実装順位**: 段階1(GET /api/cmd_list filter) → 段階1.5(POST mark_read API) → 段階2(agent行動切替)でcontext経済性99%達成可能
-- **保留推奨**: 段階3(JSONL化)・段階4(SQLite化)は段階1+2の運用観察後に再評価
+### 📐 cmd_1481 SQLite化詳細設計完了(20:22) → 殿の御判断必要
+軍師設計完了(20:22)。報告: `queue/reports/gunshi_design_sqlite_migration_1481.yaml` (710行)
+- **核心設計**: Schema(commands/inbox_messages/tasks/reports/audit_log+FTS5+全index)+migration p0〜p7(dual-path 1週間soak)
+- **廃止候補(3件)**: slim_yaml_all.sh / dashboard_lifecycle.sh / posttool_yaml_check.sh → SQL代替で廃止可
+- **改修候補(4件)**: nightly_audit.sh / cmd_intake_hook.sh / inbox_write.sh / pretool_check.sh → SQLite対応改修
+- **削減見込**: hooks 1295行削減
+- **安全策**: WAL+Litestream+日次dump 3層backup / kill_switch(ENV: STORAGE_BACKEND) / rollback策
+- **実測立証**: slim_yaml_all本日karo failed / nightly_audit異常終了62byte / archive 19日空白 / YAML破損修復痕跡
+- **前提要件(p0)**: sqlite3 CLI + Litestream 未install → インストール先行必要
+- 殿の判断要: 実装着手するか? p0(sqlite3+Litestream install)から始めるか?
+
+### 📐 cmd_1480 ストレージ移行設計完了 → cmd_1481で見直し済み
+~~軍師設計完了(19:05)。報告: `queue/reports/gunshi_design_storage_migration_1480.yaml`~~
+- cmd_1481で軍師が自己訂正・段階4 SQLite化を「進める前提」に転換。cmd_1480 段階1+1.5+2（API filter+ETag）は上位互換として残す
 - **重大干渉**: **cmd_1477b**(inbox_write.sh安全化)と段階1.5(POST mark_read API)は**統合実装必須**
 - 殿の判断要: 段階1から着手するか? 担当足軽・タイミングはいつか?
 
@@ -68,7 +77,7 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 | cmd | 担当 | 状態 |
 |-----|------|------|
 | cmd_1478 | 足軽1号 | ✅ **完遂(20:10)** Day6 Echidna 4視点MIX 規格修正+YouTube差替え 新URL: M7UKrqiI3Eo |
-| cmd_1481 | 軍師 | 🔄 **設計中(20:14〜)** SQLite化詳細設計+自動化棚卸し+廃止候補特定 |
+| cmd_1481 | 軍師 | ✅ **完遂(20:22)** SQLite化詳細設計(710行)+廃止候補3件+削減1295行見込 |
 | cmd_1476 | 軍師 | ✅ **完遂(18:27)** /clear後 独立評価 HIGH3件 MEDIUM5件 LOW3件 発掘 |
 
 ---
@@ -84,7 +93,7 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 | 5号 | GLM | ✅ idle | subtask_1477c ✅完了(18:46)・軍師QC PASS(18:48)・logrotate/cron代替+DEBUG化 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1466a ✅完了(14:56)・curriculum_v2.html LAN公開 軍師PASS |
-| 軍師 | Opus[1m] | 🔄 稼働中 | design_sqlite_migration_1481 SQLite化詳細設計中(20:14〜) |
+| 軍師 | Opus[1m] | ✅ idle | design_sqlite_migration_1481 ✅完了(20:22) SQLite化詳細設計+廃止候補3件 |
 
 ---
 

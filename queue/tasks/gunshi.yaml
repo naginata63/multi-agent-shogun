@@ -221,7 +221,10 @@ tasks:
   parent_cmd: cmd_1481
   assigned_to: gunshi
   bloom_level: L6
-  status: assigned
+  status: done
+  started_at: '2026-04-25T20:16:00+09:00'
+  completed_at: '2026-04-25T20:35:00+09:00'
+  report_path: queue/reports/gunshi_design_sqlite_migration_1481.yaml
   timestamp: '2026-04-25T20:13:58+09:00'
   description: 'SQLite化詳細設計+既存自動化棚卸し+廃止候補特定。殿の体験で cmd_1480 段階4「当面不要」判定が見直された前提。軍師は前回判定の自己訂正を含めて進める前提で設計を出す。'
   target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_design_sqlite_migration_1481.yaml
