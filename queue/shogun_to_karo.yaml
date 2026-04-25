@@ -1400,3 +1400,20 @@ commands:
   - 'レスポンス: {success: true, msg_id: ..., timestamp: ...}'
   - curlテストで実際にinboxにメッセージが届くこと確認済み
   - git commit済み（push は家老が実施）
+- id: cmd_1493
+  status: done
+  completed_at: '2026-04-26T00:19:00+09:00'
+  priority: low
+  purpose: POST /api/inbox_write のレスポンスmsg_idとYAML実際のmsg_idを一致させる。inbox_write.shの出力からmsg_idを取得してレスポンスに使う。
+  timestamp: '2026-04-26T00:05:00+09:00'
+  lord_original: して
+  project: system
+  notify_karo: false
+  command: 'scripts/dashboard/server.py の /api/inbox_write 実装(L2096〜)を修正せよ。現状: server側でuuid生成→レスポンス、subprocess.runのinbox_write.shで別uuid生成。修正:
+    inbox_write.shの stdout を capture し実際のmsg_idを取得→レスポンスのmsg_idに使う。inbox_write.shがmsg_idをstdoutに出力しない場合は出力を追加せよ。curlテストでレスポンスmsg_idとinbox
+    YAML msg_idが一致することを確認。target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py'
+  acceptance_criteria:
+  - POST /api/inbox_write のレスポンスmsg_idとinbox YAML実際のmsg_idが一致する
+  - subprocess.run の stdout からmsg_idを取得している
+  - curlテストで一致を確認済み
+  - git commit済み（push は家老が実施）
