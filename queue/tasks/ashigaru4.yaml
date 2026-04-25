@@ -236,9 +236,9 @@ tasks:
   parent_cmd: cmd_1477
   assigned_to: ashigaru4
   bloom_level: L3
-  status: assigned
+  status: done
   timestamp: '2026-04-25T18:35:00+09:00'
-  description: advisor_proxy.py claude -p タイムアウト根本対処。軍師指摘(gunshi_design_review_1476.yaml): 90→120s延長は対症療法・当日18:19にも発火・152件/日。軽量モデル(haiku 4.5 or sonnet 4.6)への切替、またはclaude -p常駐化で根本解決。修正範囲はadvisor_proxy.pyのみ(scope creep禁止)。
+  description: 'advisor_proxy.py claude -p タイムアウト根本対処。軍師指摘(gunshi_design_review_1476.yaml): 90→120s延長は対症療法・当日18:19にも発火・152件/日。軽量モデル(haiku 4.5 or sonnet 4.6)への切替、またはclaude -p常駐化で根本解決。修正範囲はadvisor_proxy.pyのみ(scope creep禁止)。'
   target_path: /home/murakami/multi-agent-shogun/scripts/advisor_proxy.py
   procedure: shared_context/qc_template.md
   steps: 'advisor()実装前→scripts/advisor_proxy.py読む(タイムアウト設定・モデル指定確認)→queue/reports/gunshi_design_review_1476.yaml参照(issue_advisor_proxy_timeout_unresolved)→logs/advisor_proxy.logでtimeout件数確認→軽量モデル切替(--model claude-haiku-4-5-20251001 or claude-sonnet-4-6優先)実装→advisor()呼出テスト(タイムアウト無し確認)→tail -20 logs/advisor_proxy.log確認→advisor()完了前→git add scripts/advisor_proxy.py && git commit→完了報告YAML(queue/reports/ashigaru4_report_subtask_1477a.yaml)→inbox_write gunshi QC依頼→inbox_write karo完了報告'
