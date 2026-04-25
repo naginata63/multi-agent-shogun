@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 09:31
+最終更新: 2026-04-25 09:48
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -8,12 +8,11 @@
 
 ## 🚨 要対応（殿の御判断必要）
 
-### 🚨 cmd_1458 置換完了・殿の公開URL確認をお願いします
+### ✅ 解決済み YouTubeオートダビング件 完全close（殿判断 09:48）
 
-- **新版(音声正常)**: https://www.youtube.com/watch?v=zP_j7NRg9Lw → **public化完了**
-- **旧版(音声不調)**: https://www.youtube.com/watch?v=8M31MYOlRgY → **private化完了**
-- cmd_1397/1400の旧版(IpB4U4AmqS0/EXv3iJ9nLDc)はYouTube上に存在せず（削除済み）
-- 殿が新版URL再生確認後、dashboard 🚨 を解除ください
+- cmd_1458 ✅ 新版(zP_j7NRg9Lw)public化・旧版(8M31MYOlRgY)private化完了
+- cmd_1460 ✅ 残19本: private 18本(視聴者0)＋unlisted 1本(殿判断で放置)・全件対処不要
+- YouTubeオートダビング問題: 完全close
 
 ### ✅ 解決済み cmd_1452 disk掃除（殿判断(07:52): Option C 84%妥協確定）
 
@@ -103,7 +102,7 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 | cmd_1457 | 足軽3号→軍師 | ✅ **PASS_with_finding(08:33)** 30分観察完了・advisor_proxy FP 0件達成・Finding: WARN flush 1172件/30min genai_daily系noise抑制検討推奨 |
 | cmd_1458 | 足軽1号/3号→軍師 | ✅ **置換完了(08:39)** 新版zP_j7NRg9Lw=public・旧版8M31MYOlRgY=private・🚨殿URL確認要 |
 | cmd_1459 | 足軽2号/5号 | ✅ **A=PASS_with_finding(08:46) / B=PASS_with_finding(08:42)** 全100本ja設定・upload script jaデフォルト化完了 |
-| cmd_1460 | 足軽2号→軍師 | ✅ **PASS_with_finding(09:31)** en-US 27本全復元✅ / 19本ja固定(YouTube API unset不可制約・auto-dubbing OFF済で実害なし) |
+| cmd_1460 | 足軽2号→軍師 | ✅ **完全close(09:48)** en-US 27本全復元✅ / 残19本: private 18本+unlisted 1本・殿判断対処不要 |
 | nightly_audit_20260425_infra | — | ✅ **完遂 02:14** 軍師8件検出(M=4/I=4)・cmd_1453✅/cmd_1456✅完遂 |
 
 ---
