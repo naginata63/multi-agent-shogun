@@ -1,4 +1,28 @@
 tasks:
+- task_id: qc_1489a
+  parent_cmd: cmd_1489
+  assigned_to: gunshi
+  bloom_level: L5
+  status: done
+  timestamp: '2026-04-25T22:44:16+09:00'
+  procedure: /home/murakami/multi-agent-shogun/shared_context/qc_template.md
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1489a.yaml
+  description: 'cmd_1489 /master-telop-two-stage スキルQC。.claude/commands/master-telop-two-stage.md
+    のfrontmatter妥当性・procedures参照整合・トリガー語句網羅性・Do NOT use for明記を検証。PASS/FAIL判定。'
+  steps: '/home/murakami/multi-agent-shogun/shared_context/qc_template.md 読む→/home/murakami/multi-agent-shogun/.claude/commands/master-telop-two-stage.md
+    読む→/home/murakami/multi-agent-shogun/shared_context/procedures/master_telop_two_stage.md
+    読む→/home/murakami/multi-agent-shogun/.claude/commands/skill-creator.md 読む(frontmatter品質基準確認)→[QC1]frontmatter:
+    name/description/argument-hint/allowed-tools 完備確認→[QC2]descriptionに具体的トリガー語句6種以上明記確認→[QC3]本文:
+    procedures/master_telop_two_stage.md を参照する薄いwrapper形式・重複定義なし確認→[QC4]Do NOT use for: 漫画ショート/表情ショート
+    明記確認→[QC5]context/skill_candidates_inventory.md 登録確認→PASS/CONDITIONAL_PASS/FAIL判定→完了報告YAML(/home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1489a.yaml)→inbox_write
+    karo 判定結果'
+  acceptance_criteria:
+  - frontmatter: name=master-telop-two-stage / description 1024文字以内 / トリガー語句6種以上 / argument-hint
+    / allowed-tools 完備
+  - 本文: shared_context/procedures/master_telop_two_stage.md 参照形式・重複定義なし
+  - Do NOT use for: 漫画ショート(panels JSONベース) / 表情ショート(別workflow) 明記
+  - context/skill_candidates_inventory.md に IMPLEMENTED として登録済み
+  - git commit f2741e2 push済み確認
 - task_id: qc_1413a
   parent_cmd: cmd_1413
   assigned_to: gunshi
@@ -22,29 +46,23 @@ tasks:
     bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo ''QC結果{PASS/FAIL}:
     qc_1413a。{所見}'' qc_result gunshi'
   superseded_by: qc_1414a
-- task_id: qc_1485a
-  parent_cmd: cmd_1485
+- task_id: nightly_audit_20260426_youtube
+  parent_cmd: nightly_audit
   assigned_to: gunshi
-  bloom_level: L5
-  status: done
-  qa_decision: conditional_pass
-  completed_at: '2026-04-25T22:00:30+09:00'
-  report_path: queue/reports/gunshi_report_qc_1485a.yaml
-  timestamp: '2026-04-25T21:56:00+09:00'
-  title: 'cmd_1485 Day6 Echidna 1戦目修正 QC'
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1485a.yaml
-  procedure: shared_context/qc_template.md
-  steps: 'shared_context/qc_template.md参照でQC実施→advisor()実施前後→queue/reports/ashigaru1_report_subtask_1485a.yaml読む→work/cmd_1485/以下の成果物確認(ffprobe で master_1sen.mp4+with_telop_1sen.mp4 specs確認)→sync_record.yaml確認→acceptance_criteria全件照合→QC報告YAML書込(queue/reports/gunshi_report_qc_1485a.yaml)→inbox_write karo完了報告'
+  bloom_level: L4
+  status: assigned
+  timestamp: '2026-04-26T02:03:00+09:00'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_nightly_audit_20260426_youtube.yaml
+  description: '夜間矛盾検出: YouTube/外部連携カテゴリ(youtube_uploader.py/downloader.py/note系/API連携)の矛盾・不整合をコードリーディングで発見し報告。テスト禁止・コード修正禁止・読んで報告するだけ。'
+  steps: 'shared_context/qc_template.md参照→対象ファイル特定(scripts/youtube_*.py scripts/note_*.py scripts/*downloader*.py scripts/*uploader*.py projects/note_mcp_server/配下)→各ファイルを目視確認→矛盾・不整合・デッドコード・未使用変数・設計乖離を列挙→CRITICAL/HIGH/MEDIUM/INFO分類→報告YAML(target_path)に書く→inbox_write karo'
   acceptance_criteria:
-  - 'charlotte sync offset=-42.752秒(conf=1.00×3回再現)が採用され、sync_record.yamlに記録されていること'
-  - 'work/cmd_1485/master_1sen.mp4 が存在し、ffprobeでテロップなし・適切なcodec/解像度であること'
-  - 'work/cmd_1485/with_telop_1sen.mp4 が存在し、Day5フォーマット(fontsize=48/pink border/右上)準拠であること'
-  - 'MEN画質劣化根本原因(元素材2.3Mbps・再エンコード追加劣化なし)が報告に明記されていること'
-  - '8戦目に手を加えていないこと確認(work/cmd_1485/配下に8sen系ファイルがないこと)'
-  - '1戦目のみ修正・cmd_1485スコープ遵守確認'
+    - 対象カテゴリのファイルを全て確認済み
+    - CRITICAL/HIGH/MEDIUM/INFO で分類した findings を報告
+    - テスト実行なし・コード修正なし（読んで報告のみ）
+    - 報告書を target_path に保存済み
+    - dashboard に結果掲載（家老が実施）
   notes:
-  - cmd_1485は1戦目セグのみ・8戦目には進まない(殿明示)
-  - LLM軍師は動画再生不可のためmpv視聴はスキップ・ffprobe+reports目視でQC
-  - MEN画質は元素材起因のため改善不可と判断済み(報告書記載)
-  - 成果物は work/cmd_1485/ 配下(.gitignore除外なので現物確認必須)
-  - '完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo ''QC結果{PASS/FAIL}: qc_1485a。{所見}'' qc_result gunshi'
+    - 参考フォーマット: queue/reports/gunshi_report_nightly_audit_20260425_infra.yaml
+    - 対象: YouTube/外部連携（youtube_uploader.py, downloader.py, note系, API連携）
+    - 朝までにdashboard掲載
+    - '完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、nightly_audit_20260426_youtube完了。報告書確認されたし。" report_completed gunshi'
