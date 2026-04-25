@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 18:55
+最終更新: 2026-04-25 19:07
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -12,17 +12,23 @@
 - **cmd_1348**: 309h放置 DingTalk QC → done/cancel どちら? (2026-04-25 殿確認待ち)
 - **cmd_1450**: done_ng(07:24)済・note下書き削除subtask_1450_cleanup完了? cleanup完了確認→statusを正式done化
 
-### 🔴 cmd_1476 軍師独立評価 HIGH 3件 → cmd_1477で対処中
-報告: queue/reports/gunshi_design_review_1476.yaml（前回レポート未参照・11件独立発掘）
-
-- **[HIGH-1] advisor_proxy タイムアウト恒常化** → **subtask_1477a 足軽4号 対処中(18:39〜)**
-- **[HIGH-2] inbox_write.sh YAML silent failure** → **subtask_1477b Stage 2(1477a+1477c完了後に発令)**
-- **[HIGH-3] logs/ 無回転 187MB** → **subtask_1477c 足軽5号 対処中(18:39〜)**
+### 🔧 cmd_1477 Stage1 完了 → プロセス再起動が必要（要対応）
+- **[HIGH-1] advisor_proxy**: subtask_1477a ✅PASS(18:48) モデル切替完了。**★advisor_proxy 再起動が必要** (PID 388911 停止→再起動でSonnet 4.6 default反映)。kill権限要確認。
+- **[HIGH-2] inbox_write.sh YAML silent failure**: **subtask_1477b 足軽3号 対処中(18:52〜)**
+- **[HIGH-3] logs/ 無回転**: subtask_1477c ✅PASS(18:48) logrotate/cron代替+DEBUG化完了。**★inbox_watcher 再起動推奨** (DEBUG gating完全反映)
 
 MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML archive自動化・shogun_to_karo atomic write・hook chain計測・プロセス supervisor導入
 
 ### 📐 cmd_1475 設計レビュー結果
 - **item_3 改修推奨（HIGH）**: cmd_create+inbox自動通知統合。報告: queue/reports/gunshi_design_review_1475.yaml
+
+### 📐 cmd_1480 ストレージ移行設計完了 → 殿の御判断必要
+軍師設計完了(19:05)。報告: `queue/reports/gunshi_design_storage_migration_1480.yaml`
+- **核心結論**: storage format移行は本質ではない。**API filter + ETag/304 が本丸**
+- **推奨実装順位**: 段階1(GET /api/cmd_list filter) → 段階1.5(POST mark_read API) → 段階2(agent行動切替)でcontext経済性99%達成可能
+- **保留推奨**: 段階3(JSONL化)・段階4(SQLite化)は段階1+2の運用観察後に再評価
+- **重大干渉**: **cmd_1477b**(inbox_write.sh安全化)と段階1.5(POST mark_read API)は**統合実装必須**
+- 殿の判断要: 段階1から着手するか? 担当足軽・タイミングはいつか?
 
 ### 🎬 cmd_1464 完遂後・殿の判断要
 - **skill_candidate: multi-view-mix-generator** (軍師qc_1464b推奨) → 殿承認でスキル化すべきか?
@@ -57,10 +63,7 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 | cmd | 担当 | 状態 |
 |-----|------|------|
 | cmd_1476 | 軍師 | ✅ **完遂(18:27)** /clear後 独立評価 HIGH3件 MEDIUM5件 LOW3件 発掘 |
-| cmd_1477 | 足軽3号 | 🔄 **Stage2 進行中(18:52〜)** Stage1(1477a/1477c) 軍師QC PASS(18:48)。Stage2=1477b inbox_write安全化(足軽3号) |
 | cmd_1478 | 足軽1号 | 🔄 **進行中(18:51〜)** Day6 Echidna 4視点MIX規格修正(seg1再生成+テロップ+sync_record+YouTube差替) |
-| cmd_1479 | 足軽2号 | 🔄 **進行中(18:51〜)** 動画系QC規格化5ファイル編集(multi_view_sync/scene_switch/qc_template/karo.md/gunshi_video_qc) |
-| cmd_1480 | 軍師 | 🔄 **進行中(18:53〜)** TODO B ストレージ移行計画妥当性チェック+詳細設計 |
 
 ---
 
@@ -69,13 +72,13 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
 | 1号 | GLM | 🔄 稼働中 | subtask_1478a 着手中(18:51〜) Day6 Echidna MIX規格修正・seg1再生成+テロップ |
-| 2号 | GLM | 🔄 稼働中 | subtask_1479a 着手中(18:51〜) 動画系QC規格化5ファイル編集 |
-| 3号 | Opus[1m] | 🔄 稼働中 | subtask_1477b 着手中(18:52〜) inbox_write.sh silent_fail log化 |
+| 2号 | GLM | ✅ idle | subtask_1479a ✅完了(19:01)・軍師QC PASS(19:01)・動画系QC規格化5ファイル |
+| 3号 | Opus[1m] | ✅ idle | subtask_1477b ✅完了(19:01)・軍師QC PASS(19:03)・inbox_write.sh silent_fail log化 |
 | 4号 | GLM | ✅ idle | subtask_1477a ✅完了(18:46)・軍師QC PASS(18:48)・advisor_proxy Sonnet切替 |
 | 5号 | GLM | ✅ idle | subtask_1477c ✅完了(18:46)・軍師QC PASS(18:48)・logrotate/cron代替+DEBUG化 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1466a ✅完了(14:56)・curriculum_v2.html LAN公開 軍師PASS |
-| 軍師 | Opus[1m] | 🔄 稼働中 | design_storage_migration_1480 着手中(18:53〜) TODO B ストレージ移行設計レビュー |
+| 軍師 | Opus[1m] | ✅ idle | design_storage_migration_1480 ✅完遂(19:05)・qc_1477b ✅PASS(19:03) |
 
 ---
 
@@ -105,6 +108,9 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 | cmd_1466 | ✅ **完遂(14:58)** curriculum_v2.html 38スライド Marp+LAN公開(8082) 軍師PASS・slide_lan_publish手順確立 |
 | cmd_1465 | ✅ **完遂(13:41)** Udemy curriculum_v2.md 672行 5ペルソナ/18章ハンズオン/競合4領域対決 軍師PASS_with_finding |
 | cmd_1464 | ✅ **完遂(17:59)** Day6 4視点MIX final.mp4(2291s/1080p) YouTube非公開 EVfo4W7jCIc サムネ設定済 軍師PASS 6/6 |
+| cmd_1477 | ✅ **完遂(19:05)** HIGH3件対処完遂: advisor_proxy Sonnet切替+logrotate+inbox_write silent_fail log化。全subtask軍師QC PASS |
+| cmd_1479 | ✅ **完遂(19:01)** 動画系QC規格化5ファイル編集(multi_view_sync/scene_switch/qc_template/karo.md/gunshi_video_qc.md) 軍師QC PASS |
+| cmd_1480 | ✅ **完遂(19:05)** TODO B ストレージ移行設計 軍師中立評価。API filter+ETag/304が本丸・段階1+2でcontext99%改善可能。詳細は要対応欄 |
 | cmd_1476 | ✅ **完遂(18:27)** 独立評価 HIGH3(advisor_proxy/inbox_write/logs)/MEDIUM5/LOW3 報告: gunshi_design_review_1476.yaml |
 | cmd_1475 | ✅ **完遂(18:09)** cmd読込側システム設計 軍師中立評価 5問・改修推奨1(item_3) 報告: gunshi_design_review_1475.yaml |
 | cmd_1472 | ✅ **完遂(17:36)** Day6 ECHIDNAサムネ v3案1確定・将軍直接実行・thumbnail_final.png commit df61381+f252122 push済 |

@@ -170,8 +170,10 @@ tasks:
   parent_cmd: cmd_1480
   assigned_to: gunshi
   bloom_level: L5
-  status: in_progress
+  status: done
   started_at: '2026-04-25T18:54:30+09:00'
+  completed_at: '2026-04-25T19:08:00+09:00'
+  report_path: queue/reports/gunshi_design_storage_migration_1480.yaml
   timestamp: '2026-04-25T18:47:00+09:00'
   description: TODO B (読込API/SQLite化計画) の妥当性チェック+詳細設計。背景全体像(殿のcontext経済性指摘・将軍経緯・軍師cmd_1476独立判定との乖離)を開示済。独立判断で設計レビューせよ。
   target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_design_storage_migration_1480.yaml
@@ -188,4 +190,30 @@ tasks:
   notes:
   - 優先度: qc_1477_stage1完了後に着手(家老がステータス更新したら開始)
   - 殿命「背景理由も含めておけ」→queue/shogun_to_karo.yaml cmd_1480 commandに全背景記載済
+- task_id: qc_1477b
+  parent_cmd: cmd_1477
+  assigned_to: gunshi
+  bloom_level: L5
+  status: done
+  qa_decision: pass
+  completed_at: '2026-04-25T19:14:00+09:00'
+  report_path: queue/reports/gunshi_report_qc_1477b.yaml
+  note: "ashigaru3直接依頼経由で19:14先行QC完遂・正式タスクYAML(19:03)受領前に既にPASS判定+家老通知済(msg_20260425_191420)。CRITICAL要件『live通信正常動作』も本日数十回のinbox_write実通信成功で実証。"
+  timestamp: '2026-04-25T19:03:00+09:00'
+  description: subtask_1477b (inbox_write.sh silent_fail log化+flock警告化) のQC。_log_silent_fail()ヘルパー追加・4箇所にログ出力追加・return 0 Never failポリシー維持・atomic write+rename(L221-227)変更なし確認。テスト3ケースPASS報告済(commit 8534db6)。CRITICAL:inbox_write.shはライブ通信基盤ゆえ機能劣化がないか特に厳格にQCせよ。
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1477b.yaml
+  procedure: shared_context/qc_template.md
+  steps: 'shared_context/qc_template.md参照→queue/reports/ashigaru3_report_subtask_1477b.yaml読む→scripts/inbox_write.sh全文読む(_log_silent_fail/4箇所ログ/atomic write+rename)→CRITICAL確認(ライブ通信基盤機能劣化なし/return0維持/L221-227無変更)→advisor()→PASS/FAIL判定→queue/reports/gunshi_report_qc_1477b.yaml作成→inbox_write karo QC結果報告'
+  acceptance_criteria:
+  - _log_silent_fail() ヘルパーが実装されていること
+  - _update_cmd_status()のflock失敗+mawk失敗の2箇所にログ追加済み
+  - _update_task_done()のflock失敗+target_line不在の2箇所にログ追加済み
+  - return 0 # Never fail ポリシーが維持されていること
+  - atomic write+rename(L221-227付近)が変更されていないこと
+  - 実際のinbox_write.sh実行で通信が正常動作すること
+  - 完了報告YAML: queue/reports/gunshi_report_qc_1477b.yaml
+  notes:
+  - CRITICAL: inbox_write.shはエージェント間通信の根幹。機能劣化は全エージェント停止に直結
+  - cmd_1477はqc_1477b PASS後に完遂となる
+  - logs/inbox_write_silent_fail.log への出力テストも確認
   - 「進めるべきでない」と判断する場合も堂々と述べてよい

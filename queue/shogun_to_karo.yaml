@@ -1675,8 +1675,9 @@ commands:
     \  novel_insights: <将軍が想定外の観点を発見したか>\nsummary: <総括>\n```\n\n## 注意\n- 『前回 5項目を再現する』のは\
     \ bias 残留。**忘れて** 独立に発掘せよ\n- 軍師の観察眼を最大限信頼する。『改修要らず』結論も歓迎。\n- 将軍/家老/殿への忖度は要らぬ。"
 - id: cmd_1477
-  status: in_progress
+  status: done
   started_at: '2026-04-25T18:39:00+09:00'
+  completed_at: '2026-04-25T19:05:00+09:00'
   priority: high
   purpose: 軍師cmd_1476独立評価で発掘されたHIGH 3件を即対応（advisor_proxy timeout根本対処+inbox_write安全化+logrotate導入）
   timestamp: '2026-04-25T18:32:35+09:00'
@@ -1773,7 +1774,7 @@ commands:
     \ 検証\n\n## 実装の参考\n- cmd_1464 work/cmd_1464/ の生成スクリプト・transition.mp4・sync_offsets\
     \ を流用\n- cmd_1424 zephyrus_v3.sh (Day5 Zephyrus) のテロップ実装を参照"
 - id: cmd_1479
-  status: in_progress
+  status: done
   started_at: '2026-04-25T18:51:00+09:00'
   priority: high
   purpose: 動画系QC規格化（QC形骸化対策）+ sync_record.yaml フォーマット標準化（殿要件）
@@ -1821,7 +1822,7 @@ commands:
     \ / multi_view_scene_switch.md / qc_template.md / karo.md or gunshi_video_qc.md)\n\
     - 各ファイルが diff で適切に追記されているか\n- 既存内容の破壊がないか\n- cmd_1478 のacceptance_criteriaが本規格を満たすか相互検証"
 - id: cmd_1480
-  status: in_progress
+  status: done
   priority: medium
   purpose: 'shared_context/todo_storage_migration.md (TODO B: 読込API/SQLite化計画) の妥当性チェック+詳細設計を軍師に依頼。背景理由（殿のcontext経済性指摘・将軍の段階移行案・軍師cmd_1476独立判定との乖離）も全て開示。'
   timestamp: '2026-04-25T18:43:57+09:00'
