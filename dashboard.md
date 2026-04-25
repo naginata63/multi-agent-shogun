@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-26 08:08
+最終更新: 2026-04-26 08:19
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -66,7 +66,8 @@
 
 | cmd | 内容 |
 |-----|------|
-| cmd_1494 | ✅ **完遂(08:00・将軍直接)** SQLite dual-path read API全面切替+write API追加(task_create/report_create)+API利用ガイド整備。read=7本・write=4本。commits: af8070b/fd1df75/8e6fe3c push済 |
+| YAML/SQLite齟齬解消 | ✅ **完遂(08:18・将軍直接)** gunshi.yaml parse error解消+全ashigaru/gunshi.yaml SQLiteから再生成(11件)。/api/task_list 正常化。commits: 2a59892/1c232cb push済 |
+| cmd_1494 | ✅ **完遂(08:00・将軍直接)** SQLite dual-path read API全面切替+write API追加(task_create/report_create)+API利用ガイド整備。read=7本・write=4本。commits: af8070b/fd1df75/8e6fe3c/7033702 push済 |
 | nightly_audit_20260426 | ✅ **全件完遂(07:40・将軍直接)** HIGH5/5+MEDIUM4/5+INFO4/4。M#3スキップ(低優先・将軍判断)。commits: 5551ec9〜b426f12 計6件 push済 |
 | cmd_1493 | ✅ **完遂(00:19)** POST /api/inbox_write レスポンスmsg_id整合修正。curl実機確認PASS。commit ff723a0 push済 |
 | cmd_1492 | ✅ **完遂(00:03)** POST /api/inbox_write エンドポイント実装。commit 52dc11b push済 |
