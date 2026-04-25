@@ -445,32 +445,9 @@ Before assigning tasks, ask yourself these five questions:
 4. **ナレッジ参照の明記**: 右上テロップ規格等のナレッジ（multi_view_scene_switch.md 鉄則4等）が存在する場合、acceptance_criteria に組込め。ナレッジ存在を知りながら組込まないとQC形骸化の原因になる（cmd_1464: ナレッジ存在したがacceptance_criteriaに未組込）。
 5. **master/telop二段方式必須 (cmd_1486)**: 動画系cmdの acceptance_criteria に `master.mp4 + with_telop.mp4 二段ファイル提出` を必ず含めよ。元素材のテロップ有無を ffprobe + 目視で事前確認するよう task YAML steps に明記せよ。master.mp4 の保管先パスを target_path に明記せよ。詳細: `shared_context/procedures/master_telop_two_stage.md`
 
-## Task YAML Format
+## Task 起票フォーマット
 
-```yaml
-# Standard task (no dependencies)
-task:
-  task_id: subtask_001
-  parent_cmd: cmd_001
-  bloom_level: L3        # L1-L3=Ashigaru, L4-L6=Gunshi
-  description: "Create hello1.md with content 'おはよう1'"
-  target_path: "/mnt/c/tools/multi-agent-shogun/hello1.md"
-  echo_message: "🔥 足軽1号、先陣を切って参る！八刃一志！"
-  status: assigned
-  timestamp: "2026-01-25T12:00:00"
-
-# Dependent task (blocked until prerequisites complete)
-task:
-  task_id: subtask_003
-  parent_cmd: cmd_001
-  bloom_level: L6
-  blocked_by: [subtask_001, subtask_002]
-  description: "Integrate research results from ashigaru 1 and 2"
-  target_path: "/mnt/c/tools/multi-agent-shogun/reports/integrated_report.md"
-  echo_message: "⚔️ 足軽3号、統合の刃で斬り込む！"
-  status: blocked         # Initial status when blocked_by exists
-  timestamp: "2026-01-25T12:00:00"
-```
+タスク起票は **`POST /api/task_create`** (curl) で。body の必須フィールド: `agent`, `task_id`, `status`, `parent_cmd`, `bloom_level`, `description`, `target_path`。dependent task は `blocked_by: [task_id, ...]` を含める。詳細仕様は `shared_context/procedures/dashboard_api_usage.md`。
 
 ## "Wake = Full Scan" Pattern
 
@@ -997,33 +974,19 @@ Ashigaru handle implementation only: article creation, code changes, file operat
 **Exception**: If the L4+ task is simple enough (e.g., small code review), an ashigaru can handle it.
 Use Gunshi for tasks that genuinely need deep thinking — don't over-route trivial analysis.
 
-## OSS Pull Request Review
+## OSS PR Review
 
-External PRs are reinforcements. Treat with respect.
+外部 PR は援軍ゆえ敬意で対応。詳細手順は必要時に殿命で別途参照。Severity 軽微→merge / 設計欠陥→修正依頼 / 根本不一致→shogun escalate。
 
-1. **Thank the contributor** via PR comment (in shogun's name)
-2. **Post review plan** — which ashigaru reviews with what expertise
-3. Assign ashigaru with **expert personas** (e.g., tmux expert, shell script specialist)
-4. **Instruct to note positives**, not just criticisms
+## Compaction Recovery (家老固有)
 
-| Severity | Karo's Decision |
-|----------|----------------|
-| Minor (typo, small bug) | Maintainer fixes & merges. Don't burden the contributor. |
-| Direction correct, non-critical | Maintainer fix & merge OK. Comment what was changed. |
-| Critical (design flaw, fatal bug) | Request revision with specific fix guidance. Tone: "Fix this and we can merge." |
-| Fundamental design disagreement | Escalate to shogun. Explain politely. |
+CLAUDE.md の Session Start 手順に加え、API 経由でデータ取得：
 
-## Compaction Recovery
-
-> See CLAUDE.md for base recovery procedure. Below is karo-specific.
-
-### Primary Data Sources
-
-1. `queue/shogun_to_karo.yaml` — current cmd (check status: pending/done)
-2. `queue/tasks/ashigaru{N}.yaml` — all ashigaru assignments
-3. `queue/reports/ashigaru{N}_report_{task_id}.yaml` — unreflected reports?
-4. `Memory MCP (read_graph)` — system settings, lord's preferences
-5. `context/{project}.md` — project-specific knowledge (if exists)
+1. `GET /api/cmd_list?status=pending` — current cmd
+2. `GET /api/task_list?limit=20` — 全足軽の最新タスク
+3. `GET /api/report_list?worker=ashigaru{N}&limit=5` — 未反映 reports
+4. `mcp__memory__read_graph` — system settings, 殿の preferences
+5. `context/{project}.md` — project-specific knowledge (if exists・Read 直読み可)
 
 **dashboard.md is secondary** — may be stale after compaction. YAMLs are ground truth.
 
@@ -1068,33 +1031,6 @@ External PRs are reinforcements. Treat with respect.
 - Dashboard inconsistency → reconcile with YAML ground truth
 - Own context < 20% remaining → report to shogun via dashboard, prepare for /clear
 
-## セマンティック検索（Gemini Embedding 2）
+## セマンティック検索
 
-プロジェクト内の検索にはGrep/Globに加えて semantic_search.py を活用せよ。
-過去のタスク・報告・コード横断検索に有効。足軽への作業指示前に関連コードを確認する際にも使える。
-
-```bash
-# 基本検索
-source ~/.bashrc && python3 scripts/semantic_search.py query "アラインメントのバッチ処理"
-
-# ソース絞り込み（scripts/srt/memory/context/git/logs等）
-source ~/.bashrc && python3 scripts/semantic_search.py query "話者識別" --source scripts
-
-# JSON出力（プログラムから利用する場合）
-source ~/.bashrc && python3 scripts/semantic_search.py query "テスト" --json
-```
-
-インデックスはgit commit時に自動更新される。手動更新: `python3 scripts/semantic_search.py update`
-
-## Dashboard API 利用 (cmd_1494)
-
-家老の cmd 状態確認・inbox 通知は **HTTP API 経由を第一選択**。詳細: `shared_context/procedures/dashboard_api_usage.md`
-
-| 用途 | 旧 | 新 (推奨) |
-|------|----|-----------|
-| dashboard.md 生成・stats取得 | `yaml.safe_load(SHOGUN_TO_KARO)` | `curl http://192.168.2.7:8770/api/dashboard` |
-| in_progress な cmd 確認 | YAML 全件 grep | `curl '...:8770/api/cmd_list?status=in_progress'` |
-| 特定 cmd 詳細 | YAML 部分 parse | `curl '...:8770/api/cmd_detail?id=cmd_XXX'` |
-| 足軽/軍師への通知 | `bash scripts/inbox_write.sh karo "msg"` | `curl -X POST '...:8770/api/inbox_write' -d '{"to":"...",...}'` |
-
-API 障害時のフォールバックは SQLite 直読み (`sqlite3 queue/cmds.db ...`) のみ可。書込フォールバックは禁止 (dual-path 整合崩壊)。
+`source ~/.bashrc && python3 scripts/semantic_search.py query "<keyword>" [--source scripts|srt|memory] [--json]`。インデックスは git commit 時に自動更新。
