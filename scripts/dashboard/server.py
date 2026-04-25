@@ -1722,6 +1722,56 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path.startswith('/api/report_detail'):
+            # GET /api/report_detail?id=<report_id> — DB行 + YAML 全文を返す
+            try:
+                from urllib.parse import urlparse, parse_qs
+                qs = parse_qs(urlparse(self.path).query)
+                rid = (qs.get('id', [''])[0] or '').strip()
+                if not rid:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'id required'}).encode('utf-8'))
+                    return
+                conn = sqlite3.connect(DB_PATH, timeout=5)
+                conn.row_factory = sqlite3.Row
+                try:
+                    r = conn.execute(
+                        "SELECT * FROM reports WHERE report_id = ?", (rid,)
+                    ).fetchone()
+                finally:
+                    conn.close()
+                if r is None:
+                    self.send_response(404)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(
+                        {'error': f'report not found: {rid}'}, ensure_ascii=False
+                    ).encode('utf-8'))
+                    return
+                d = {k: v for k, v in dict(r).items() if v is not None}
+                rp = d.get('report_path')
+                if rp:
+                    full = rp if os.path.isabs(rp) else os.path.join(BASE_DIR, rp)
+                    if os.path.isfile(full):
+                        try:
+                            with open(full, 'r', encoding='utf-8') as f:
+                                d['content_yaml'] = f.read()
+                        except Exception:
+                            d['content_yaml'] = None
+                body = json.dumps(d, ensure_ascii=False, indent=2,
+                                  default=str).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         elif self.path.startswith('/api/report_list'):
             # GET /api/report_list?cmd=cmd_XXX&worker=ashigaru3&limit=20
             try:

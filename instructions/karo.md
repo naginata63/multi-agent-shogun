@@ -342,6 +342,8 @@ done
 | 進行中cmd一覧 | `GET /api/cmd_list?status=in_progress` |
 | dashboard 集計 (active_cmds/agents/messages) | `GET /api/dashboard` |
 | 各エージェント生存・inbox状態 | `GET /api/agent_health` |
+| 報告書 (QC report 等) の YAML 全文取得 | `GET /api/report_detail?id=<report_id>` |
+| 報告書一覧 | `GET /api/report_list?cmd=cmd_XXX` or `?worker=ashigaruN` |
 
 詳細・curl 実例は `shared_context/procedures/dashboard_api_usage.md`。
 
