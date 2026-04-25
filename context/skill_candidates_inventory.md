@@ -1,18 +1,18 @@
 # Skill Candidates Inventory (自動棚卸し)
 
-**最終更新**: 2026-04-25T02:52:05 / skill-candidate-tracker (cmd_1447)
+**最終更新**: 2026-04-25T22:30:00 / subtask_1490a (cmd_1490)
 
 `queue/reports/*.yaml` の `skill_candidate.found=true` を横断抽出した一覧。
 同名候補は初出/最終言及日で集約。Python/PyYAML でパース (旧形式 bare + 新形式 nested 両対応)。
 
 ## サマリー
 
-- 総候補数: **10**
+- 総候補数: **11**
 - 🚨 PENDING (未スキル化): **2**
-- ✅ IMPLEMENTED (スキル化済): **3**
+- ✅ IMPLEMENTED (スキル化済): **4**
 - 🟡 NAMELESS (旧形式・name欠落): **5**
 - 🔁 2回以上言及 (ashigaru.md skill化基準クリア): **2**
-- 🆕 直近7日以内初出 (cutoff=2026-04-18): **2**
+- 🆕 直近7日以内初出 (cutoff=2026-04-18): **3**
 
 ## 候補一覧 (PENDING 先頭・last_seen 降順)
 
@@ -28,6 +28,7 @@
 | 8 | `yt-dlp-js-runtimes-fix` | ✅ IMPLEMENTED | 2 | 2026-04-24 | 2026-04-24 | yt-dlp使用時にn-challenge solving failedが発生したら --js-runtimes node を追加で解決 | subtask_1425c2(ashigaru4), qc_1425c2(gunshi) |
 | 9 | `skill-candidate-tracker` | ✅ IMPLEMENTED | 1 | 2026-04-24 | 2026-04-24 | queue/reports/ を週次 grep で skill_candidate:found=true を集計→dashboard🚨セクションに自動反映するトラッキング skill（本タスクの H-2 相当） | subtask_1441ghi(ashigaru7) |
 | 10 | `master-telop-two-stage` | ✅ IMPLEMENTED | 1 | 2026-04-25 | 2026-04-25 | 動画MIX (4視点等) でテロップを後加工する標準ワークフロー。master.mp4 + with_telop.mp4 二段保存方式 | subtask_1489a(ashigaru3) |
+| 11 | `video-qc-llm-mode` | ✅ IMPLEMENTED | 1 | 2026-04-25 | 2026-04-25 | LLM軍師が動画QCする際の4点セット (ffprobe+sync_record+drawtext_params_diff+bitrate分析)。視覚検証不可でも形骸化防止。cmd_1485教訓。 | subtask_1490a(ashigaru7) |
 
 ## 🔁 2回以上言及された候補 (skill化基準クリア)
 
@@ -38,6 +39,7 @@
 
 - **`yt-dlp-js-runtimes-fix`** (IMPLEMENTED) — first_seen=2026-04-24
 - **`skill-candidate-tracker`** (IMPLEMENTED) — first_seen=2026-04-24
+- **`video-qc-llm-mode`** (IMPLEMENTED) — first_seen=2026-04-25
 
 ---
 
