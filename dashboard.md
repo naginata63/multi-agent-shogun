@@ -85,7 +85,7 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 
 | cmd | 担当 | 状態 |
 |-----|------|------|
-| cmd_1461 | 足軽2号→軍師 | 🔄 **軍師QC中(10:39)** Logic A=19件/Logic B=2件削除・cron 1h設定・memory化完了 |
+| cmd_1461 | 足軽2号→軍師 | ✅ **PASS(10:41)** Logic A=19件/Logic B=2件自動削除・1hcron設定・memory化完了 |
 
 ---
 
@@ -100,7 +100,7 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 | 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1456d ✅PASS(軍師QC) |
-| 軍師 | Opus[1m] | 🔄 busy | qc_subtask_1461a 発令(10:39)・dashboard_lifecycle拡張QC |
+| 軍師 | Opus[1m] | ✅ idle | qc_subtask_1461a ✅PASS(10:41) / 全QC完了 |
 
 ---
 
