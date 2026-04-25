@@ -217,3 +217,26 @@ tasks:
   - cmd_1477はqc_1477b PASS後に完遂となる
   - logs/inbox_write_silent_fail.log への出力テストも確認
   - 「進めるべきでない」と判断する場合も堂々と述べてよい
+- task_id: design_sqlite_migration_1481
+  parent_cmd: cmd_1481
+  assigned_to: gunshi
+  bloom_level: L6
+  status: assigned
+  timestamp: '2026-04-25T20:13:58+09:00'
+  description: 'SQLite化詳細設計+既存自動化棚卸し+廃止候補特定。殿の体験で cmd_1480 段階4「当面不要」判定が見直された前提。軍師は前回判定の自己訂正を含めて進める前提で設計を出す。'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_design_sqlite_migration_1481.yaml
+  procedure: shared_context/qc_template.md
+  steps: 'cmd_1481 command全文をqueue/shogun_to_karo.yaml(id:cmd_1481)で必ず確認→advisor()→設計実施(Schema/Migration/廃止リスト/WAL+Litestream/hooks改修箇所/前回判定自己訂正)→queue/reports/gunshi_design_sqlite_migration_1481.yaml作成→inbox_write karo完了報告'
+  acceptance_criteria:
+  - SQLite schema 詳細設計（commands/inbox_messages/tasks/reports テーブル+全index）
+  - migration 計画（dual-path 1週間期間・並行運用・kill_switch・rollback策）
+  - 廃止すべき既存自動化スクリプトのリストアップ（slim_yaml/nightly_audit/dashboard_lifecycle等）
+  - WAL+Litestream バックアップ詳細設計+復旧手順
+  - hooks 改修箇所リストアップ（pretool_check.sh/posttool_yaml_check.sh/cmd_intake_hook.sh等）
+  - cmd_1480「段階4 当面不要」判定の自己訂正セクションを含むこと
+  - 殿の体験ベース論拠への応答を含むこと
+  - 出力ファイル: queue/reports/gunshi_design_sqlite_migration_1481.yaml
+  notes:
+  - 殿命: 進める前提で設計を出せ。技術的に最適な設計を出せ
+  - cmd_1480 段階1+1.5+2（GET API+ETag+mark_read）は本設計の上位互換として残す
+  - cmd_1481 full commandはqueue/shogun_to_karo.yaml id:cmd_1481を必ず全文参照すること

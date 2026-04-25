@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 20:10
+最終更新: 2026-04-25 20:14
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -68,6 +68,7 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 | cmd | 担当 | 状態 |
 |-----|------|------|
 | cmd_1478 | 足軽1号 | ✅ **完遂(20:10)** Day6 Echidna 4視点MIX 規格修正+YouTube差替え 新URL: M7UKrqiI3Eo |
+| cmd_1481 | 軍師 | 🔄 **設計中(20:14〜)** SQLite化詳細設計+自動化棚卸し+廃止候補特定 |
 | cmd_1476 | 軍師 | ✅ **完遂(18:27)** /clear後 独立評価 HIGH3件 MEDIUM5件 LOW3件 発掘 |
 
 ---
@@ -83,7 +84,7 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 | 5号 | GLM | ✅ idle | subtask_1477c ✅完了(18:46)・軍師QC PASS(18:48)・logrotate/cron代替+DEBUG化 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1466a ✅完了(14:56)・curriculum_v2.html LAN公開 軍師PASS |
-| 軍師 | Opus[1m] | ✅ idle | design_storage_migration_1480 ✅完遂(19:05)・qc_1477b ✅PASS(19:03) |
+| 軍師 | Opus[1m] | 🔄 稼働中 | design_sqlite_migration_1481 SQLite化詳細設計中(20:14〜) |
 
 ---
 

@@ -1886,3 +1886,71 @@ commands:
     \ ...\n```\n\n## 注意\n- 前回 cmd_1476 と異なり、本cmdは『将軍の計画を軍師がレビュー』。完全独立評価ではない。\n- 軍師の前回判定\
     \ (改修不要) は記録として残るが、本cmdは『殿命下でやるならどう設計するか』が主目的。\n- 軍師が『やるべきでない』と判断するなら堂々と述べよ。殿/将軍への忖度は要らぬ。\n\
     - TODO B md は将軍起票ゆえ将軍biasを含む。軍師は批判的に読み・誤りを指摘してよい。"
+- id: cmd_1481
+  status: in_progress
+  started_at: '2026-04-25T20:13:58+09:00'
+  priority: high
+  purpose: SQLite化詳細設計+既存自動化棚卸し+廃止候補特定（殿の体験論拠で cmd_1480 段階4『当面不要』判定が見直された前提・軍師は前回判定の自己訂正を含めて進める設計を出す）
+  timestamp: '2026-04-25T20:12:57+09:00'
+  lord_original: ということで設計いらいせよ / 例えば、今日のサムネ作成どんだけターン消費したと思っているの？過去にやったのになかなかたどり着かない
+    / yamlの整理何度もやった、自動化もしたはずなのにできてない
+  project: multi-agent-shogun
+  assigned_to: gunshi
+  north_star: 殿の体験で立証された2つの真実『過去類似cmd検索ニーズの恒常的発生（人間側）』『複数の自動化スクリプトが動いているのに効果が出ていない（slim_yaml/nightly_audit/dashboard_lifecycle等）』を解消するため、SQLite一元管理への移行を安全に設計する。複雑な自動化を
+    SQL クエリで置換廃止することで、システムをシンプル化し、人間の検索ニーズも同時解決する。
+  acceptance_criteria:
+  - SQLite schema 詳細設計（commands/inbox_messages/tasks/reports テーブル+全 index）
+  - migration 計画（dual-path 1週間期間・並行運用設計・kill_switch・rollback策）
+  - '**廃止すべき既存自動化スクリプトのリストアップ**: slim_yaml_all.sh / nightly_audit.sh / dashboard_lifecycle.sh
+    / その他の YAML処理系を SQL クエリで代替する設計'
+  - WAL+Litestream バックアップ詳細設計+復旧手順
+  - hooks 改修箇所のリストアップ（pretool_check.sh / posttool_yaml_check.sh / cmd_intake_hook.sh
+    等）
+  - 軍師の cmd_1480 判定（『段階4 当面不要』）の自己訂正セクションを含むこと
+  - 殿の体験ベース論拠への応答（agent観察に偏った判定盲点を認める）
+  - '出力: queue/reports/gunshi_design_sqlite_migration_1481.yaml'
+  command: "## 殿命\n『ということで設計いらいせよ』\n＋『例えば、今日のサムネ作成どんだけターン消費したと思っているの？過去にやったのになかなかたどり着かない』\n\
+    ＋『yamlの整理何度もやった、自動化もしたはずなのにできてない』\n\n→ 軍師は cmd_1480 で『段階4 SQLite 当面不要』と判定したが、殿の体験で2つの真実が判明:\n\
+    \  1. 過去類似cmd検索ニーズが恒常的発生（人間側・agent観察では見えない）\n  2. 複数自動化スクリプトが cron で動いているのに効果が出ていない\n\
+    \nこれにより cmd_1480 段階4 の『再評価トリガー』(『将軍/家老が dashboard で複雑な集計を頻繁に行うようになった時』) は **既に成立**。\n\
+    軍師は前回判定の盲点を認め、進める前提で詳細設計を出せ。\n\n## 殿の体験ベース論拠（詳細）\n\n### 論拠1: 過去類似cmd検索ニーズ\n今日\
+    \ Day6 ECHIDNA サムネ作成（cmd_1467/v2/v3）で将軍は約20ターン消費した。\n内訳: ls/find/grep+Read+diff+ナレッジ探索+試行錯誤。\n\
+    SQL なら `SELECT * FROM commands WHERE purpose LIKE '%サムネ%' ORDER BY timestamp DESC\
+    \ LIMIT 5` で1ターン。\n→ 約20倍のターン削減効果が発生中。これが軍師観察に埋没していた。\n\n### 論拠2: 動いていない自動化（実測）\n\
+    以下の cron が動いているのに効果が出ていない:\n  - `0 3 * * * slim_yaml_all.sh` ← 毎日3時 YAMLスリム化稼働中\n\
+    \  - `2 2 * * * nightly_audit.sh` ← 深夜2時2分 監査稼働 → ログ62バイトのみ（実質空・異常終了の疑い）\n  -\
+    \ `0 * * * * dashboard_lifecycle.sh` ← 毎時稼働\n  - `0 * * * * semantic_update` ←\
+    \ 毎時稼働 → **毎回 YAML parse warning 検出**(ashigaru3/5.yaml line破損)\n\n結果:\n  - ashigaru1.yaml:\
+    \ 418行 / 12タスク残存（古task混在）\n  - tasks/ 合計1122行（自動 archive されていない）\n  - YAML破損が再発（本日\
+    \ ashigaru1/2/4.yaml で発生・将軍が手動修復・cmd_1473改修より前の構造的問題）\n  - queue/archive/tasks/\
+    \ には古いスナップショットだけ（定期 archive 機構なし）\n\n## 既存自動化スクリプト一覧（軍師は実測すべき）\n\n```\nscripts/slim_yaml_all.sh\
+    \ / scripts/slim_yaml.sh / scripts/slim_yaml.py\nscripts/nightly_audit.sh\nscripts/dashboard_lifecycle.sh\n\
+    scripts/posttool_yaml_check.sh\nscripts/posttool_cmd_check.sh\nscripts/cmd_intake_hook.sh\n\
+    scripts/pretool_check.sh / scripts/pretool_check_relpath.sh\nscripts/silent_fail_watcher.sh\n\
+    scripts/inbox_write.sh / scripts/inbox_watcher.sh / scripts/watcher_supervisor.sh\n\
+    scripts/cron_health_check.sh\nscripts/backup_full.sh\n```\n\nこれらのうち **SQLite化で廃止可能なもの**\
+    \ をリストアップせよ。\n\n## やること\n\n### 1. 既存自動化の効果実測\n- 各 cron スクリプトの直近1ヶ月のログサイズ・成功率・実効果を実測\n\
+    - 『動いている vs 効果が出ている』を区別して評価\n- 軍師 cmd_1480 で見落とした『効果検証』をやり直す\n\n### 2. SQLite\
+    \ Schema 詳細設計\n- `commands` テーブル（cmd_1480 で軍師が出した schema を baseline・改善余地検証）\n\
+    - `inbox_messages` テーブル\n- `tasks` テーブル\n- `reports` テーブル\n- 全 index 設計（既存 cmd_1480\
+    \ から拡張）\n- pragmas（WAL mode/synchronous/busy_timeout）\n- 制約（CHECK・FOREIGN KEY）\n\
+    \n### 3. Migration 計画\n- dual-path 1週間期間の運用設計\n- kill_switch（ENV: STORAGE_BACKEND={sqlite|yaml|auto}）\n\
+    - migration script（yaml→sqlite データ移行）\n- rollback 手順（SQLite 失敗時に YAML 即復帰）\n-\
+    \ soak period の SLO 監視項目\n\n### 4. 廃止すべき既存自動化\n各スクリプトについて:\n  - 廃止可: SQLite クエリ・トリガで代替可能なもの\n\
+    \  - 改修要: SQLite 対応で残すもの\n  - 不変: SQLite と独立で動くもの\n\n例: `slim_yaml_all.sh` → 廃止可\
+    \ (DELETE FROM commands WHERE status='done' AND timestamp < ...)\n例: `nightly_audit.sh`\
+    \ → 改修要 (audit対象が DB になる)\n例: `dashboard_lifecycle.sh` → 廃止可 (dashboard view を\
+    \ SELECT で動的生成)\n\n### 5. 安全策必須\n- WAL mode + Litestream（連続レプリケート）\n- 日次 sqlite3\
+    \ .dump > queue/cmds.dump.sql（git管理）\n- WAL チェックポイント cron（1時間毎）\n- 旧 .yaml ファイル群を\
+    \ 1ヶ月 .bak 保管\n- 全 hooks の dry-run mode\n- 殿/家老が直接 SQL 叩ける alias `dbcat` 等のヒューマンアクセス\n\
+    \n### 6. 人間直接編集の代替\n殿/家老が cat したいニーズへの対処:\n  - HTML+JS dashboard view (server.py\
+    \ 拡張)\n  - GET /api/cmd_list?format=yaml（後方互換 endpoint）\n  - sqlite3 -header -column\
+    \ のラッパー alias\n  - 既存 GET /cmds ページを SQL 化（既に存在）\n\n### 7. cmd_1480 判定の自己訂正\n\
+    軍師レポート末尾に独立セクションを設けて:\n  - 前回判定（『段階4 当面不要』）の盲点を認める\n  - agent観察に偏った観点を補正\n  -\
+    \ 人間側ニーズ・効果検証観点が抜けていたことを記録\n  - 観点を追加した結果として今回の設計が成立する論理整合\n\n### 8. cmd_1477b\
+    \ との統合\ncmd_1480 で軍師自身が指摘した『cmd_1477b (inbox_write 安全化) と段階1.5 を統合実装すべき』を本cmd_1481\
+    \ 設計でも踏襲。\nSQLite化に inbox_messages テーブル含むため、cmd_1477b の改修方向と整合させる。\n\n## 出力フォーマット\n\
+    queue/reports/gunshi_design_sqlite_migration_1481.yaml\n\n## 注意\n- 軍師は『反対の立場から進める立場』に転換する。前回判定の自己訂正を含めて堂々と書け。\n\
+    - 殿/将軍への忖度は要らぬ。技術的に最適な設計を出せ。\n- 殿が『軍師は壊れた自動化を見落としていた』と指摘した点を逃げずに認めよ。\n- 既存 cmd_1480\
+    \ の段階1+1.5+2（GET API + ETag + mark_read）は本設計の上位互換として残す。SQLite はその下のレイヤーで動く。\n\
+    - 完全 atomic な移行ではなく、段階的に進める設計を優先せよ。"
