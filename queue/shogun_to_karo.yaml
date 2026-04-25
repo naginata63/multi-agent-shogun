@@ -1674,3 +1674,47 @@ commands:
     \ Start手順を経て独立 context で開始したか>\n  bias_self_check: <前回 cmd_1475 結果 (5項目枠) に引きずられていないか・自己検証>\n\
     \  novel_insights: <将軍が想定外の観点を発見したか>\nsummary: <総括>\n```\n\n## 注意\n- 『前回 5項目を再現する』のは\
     \ bias 残留。**忘れて** 独立に発掘せよ\n- 軍師の観察眼を最大限信頼する。『改修要らず』結論も歓迎。\n- 将軍/家老/殿への忖度は要らぬ。"
+- id: cmd_1477
+  status: in_progress
+  started_at: '2026-04-25T18:39:00+09:00'
+  priority: high
+  purpose: 軍師cmd_1476独立評価で発掘されたHIGH 3件を即対応（advisor_proxy timeout根本対処+inbox_write安全化+logrotate導入）
+  timestamp: '2026-04-25T18:32:35+09:00'
+  lord_original: A+BだがまずAだけｃｍｄ発行BはTodo　ｍｄつくれ
+  project: multi-agent-shogun
+  north_star: 9エージェント協調system 24/7稼働の継続性を侵す進行中障害3件を根絶。advisor品質ゲート停止・dashboard信頼性低下・disk圧迫の3経路を封じる。
+  acceptance_criteria:
+  - 'subtask_1477a: advisor_proxy claude -p timeout根本対処（モデル分離 or 常駐化）→ logs/advisor_proxy.log
+    で timeout 0件/1時間 を確認'
+  - 'subtask_1477b: scripts/inbox_write.sh の YAML auto-update を PyYAML/atomic化＋silent_fail必ずログ化（logs/inbox_write_silent_fail.log
+    新設）'
+  - 'subtask_1477c: /etc/logrotate.d/multi-agent-shogun 追加（daily rotate 7・compress・size
+    50M）+ inbox_watcher Throttle行 DEBUG化'
+  - '全件: 軍師QC PASS + dashboard更新 + git commit + push'
+  - '完了通知: ntfy送信 + dashboard cmd_1477 done'
+  command: "## 殿命\n『A+BだがまずAだけｃｍｄ発行BはTodo　ｍｄつくれ』\n→ A=軍師cmd_1476 HIGH 3件を即cmd発令、B=読込API/SQLite化はTODO\
+    \ md化（将軍が shared_context/todo_storage_migration.md に記載済）\n\n## 軍師cmd_1476 発掘 HIGH\
+    \ 3件\n軍師レポート queue/reports/gunshi_design_review_1476.yaml を必ず参照せよ。3件の詳細・evidence・proposed_change\
+    \ が記載されている。\n\n### subtask_1477a: advisor_proxy claude -p timeout根本対処\n軍師指摘: cmd_1473\
+    \ で 90→120s 延長は対症療法。当日 18:19 にも timeout発火・grep -c 152件。\n提案 (軍師原文):\n  (a) advisor\
+    \ 用には軽量モデル（haiku/sonnet 4.6）を別系統で専用化し、Opus 1M は明示要求時のみ\n  (b) claude -p をプロセス常駐\
+    \ (REPL/JSON-RPC) 化して CLI 起動コストを排除\n  (c) timeout 延長は最終手段として温存\n対象ファイル: scripts/advisor_proxy.py\n\
+    軍師QC観点: logs/advisor_proxy.log の timeout 件数が改修前後で減少していること\n\n### subtask_1477b:\
+    \ inbox_write.sh の安全化\n軍師指摘: L118/L158 'return 0 # Never fail'・L80-115 mawk regex\
+    \ で shogun_to_karo.yaml を直接書換。\nダッシュボードと実体の食い違いリスク。\n提案 (軍師原文):\n  (a) regex編集を廃しPyYAML経由（POST\
+    \ /api/cmd_update endpoint or 専用 cmd_status_update.py）に置換\n  (b) 'Never fail'\
+    \ は維持しつつ、失敗時は logs/inbox_write_silent_fail.log に必ず一行残す\n  (c) flock 取得失敗を WARN\
+    \ ログ化（現状サイレント）\n対象ファイル: scripts/inbox_write.sh + 必要なら server.py に新endpoint追加\n\
+    軍師QC観点: silent_fail ログが正常に出力されること・YAML破損が発生しないこと\nリスク注意: PyYAML経由化はコメント/順序を破壊しがち→ruamel.yaml\
+    \ or 既存atomic write+rename パターン (inbox_write.sh L213-219) を踏襲\n\n### subtask_1477c:\
+    \ logs/ logrotate導入\n軍師指摘: logs/ 187MB・inbox_watcher_*.log が15-23MB/個・無回転。\n提案\
+    \ (軍師原文):\n  (a) /etc/logrotate.d/multi-agent-shogun を追加。daily rotate 7、compress、size\
+    \ 50M\n  (b) inbox_watcher 側で 'Throttling nudge ... < 60s' の頻発行は DEBUG レベル化＋ENV\
+    \ LOG_LEVEL=INFO 既定で抑制\n  (c) cron で月次 logs/archive/{YYYY-MM}/ への移動も可\n対象ファイル:\
+    \ /etc/logrotate.d/multi-agent-shogun（新規）+ scripts/inbox_watcher.sh\n軍師QC観点: logrotate\
+    \ -d でドライラン成功・cron 配信確認・実ログサイズ抑制\nリスク注意: rotation中のinotifywaitはSIGHUP不要だが、rotation直後のwrite競合検証（copytruncate\
+    \ or createモード）が必要\n\n## 推奨配分\n軍師提案: 半日工程 + 1足軽分。家老の判断で 1足軽逐次 or 3足軽並列を選べ。並列なら速い\
+    \ (3足軽が同時実装+それぞれ軍師QC通過後に統合commit)。\n\n## 関連TODO\nshared_context/todo_storage_migration.md\
+    \ (B: 読込API/SQLite化計画) 既存。cmd_1477完遂後に段階1から着手予定。\n\n## 注意\n- 軍師QCは各subtaskに必須。軍師レポートで発掘された問題ゆえ、軍師自身がQC適任。\n\
+    - 修正範囲は軍師指摘箇所に限定し、関連箇所のリファクタは別cmd化せよ（scope creep禁止）。\n- subtask_1477b で server.py\
+    \ に POST /api/cmd_update を追加する場合、cmd_1474 のpass-through実装を踏襲し flock+atomic+lord_original対応を保つ。"

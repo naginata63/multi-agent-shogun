@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 18:29
+最終更新: 2026-04-25 18:40
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -12,12 +12,12 @@
 - **cmd_1348**: 309h放置 DingTalk QC → done/cancel どちら? (2026-04-25 殿確認待ち)
 - **cmd_1450**: done_ng(07:24)済・note下書き削除subtask_1450_cleanup完了? cleanup完了確認→statusを正式done化
 
-### 🔴 cmd_1476 軍師独立評価 HIGH 3件（殿の采配要）
+### 🔴 cmd_1476 軍師独立評価 HIGH 3件 → cmd_1477で対処中
 報告: queue/reports/gunshi_design_review_1476.yaml（前回レポート未参照・11件独立発掘）
 
-- **[HIGH-1] advisor_proxy タイムアウト恒常化**: 120s 延長後も当日 152件 timeout。claude -p常駐化 or モデル分離の根本対処が要。品質ゲート機能停止中。
-- **[HIGH-2] inbox_write.sh YAML silent failure**: "Never fail" + regex 編集でサイレント不整合。PyYAML経由化+fail ログ化が必要。ダッシュボード信頼性の根幹。
-- **[HIGH-3] logs/ 無回転 187MB**: inbox_watcher_*.log が 15-23MB/個で増加中。logrotate 導入が必要。ディスク圧迫の確定経路。
+- **[HIGH-1] advisor_proxy タイムアウト恒常化** → **subtask_1477a 足軽4号 対処中(18:39〜)**
+- **[HIGH-2] inbox_write.sh YAML silent failure** → **subtask_1477b Stage 2(1477a+1477c完了後に発令)**
+- **[HIGH-3] logs/ 無回転 187MB** → **subtask_1477c 足軽5号 対処中(18:39〜)**
 
 MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML archive自動化・shogun_to_karo atomic write・hook chain計測・プロセス supervisor導入
 
@@ -57,6 +57,7 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 | cmd | 担当 | 状態 |
 |-----|------|------|
 | cmd_1476 | 軍師 | ✅ **完遂(18:27)** /clear後 独立評価 HIGH3件 MEDIUM5件 LOW3件 発掘 |
+| cmd_1477 | 足軽4/5号 | 🔄 **Stage1 進行中(18:39〜)** 1477a=advisor_proxy timeout(足軽4) / 1477c=logrotate(足軽5)。Stage2=1477b inbox_write安全化は1a+1c完了後 |
 
 ---
 
@@ -67,8 +68,8 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 | 1号 | GLM | ✅ idle | subtask_1464b ✅完了(17:59)・Day6 4視点MIX final.mp4 YouTube非公開アップ 軍師PASS |
 | 2号 | GLM | ✅ idle | subtask_1467b ✅完了(15:25)・cmd_1467完遂(案2確定 15:55) |
 | 3号 | Opus[1m] | ✅ idle | subtask_1473a ✅完了(17:24)・pretool_check CHK2改修(73e7a9a)・軍師QC中 |
-| 4号 | GLM | ✅ idle | subtask_1471a ✅完了(16:01)・軍師QC PASS(17:05)・cmd_1471完遂 |
-| 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
+| 4号 | GLM | 🔄 稼働中 | subtask_1477a 着手中(18:39〜) advisor_proxy timeout根本対処 |
+| 5号 | GLM | 🔄 稼働中 | subtask_1477c 着手中(18:39〜) logrotate導入+inbox_watcher DEBUG化 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1466a ✅完了(14:56)・curriculum_v2.html LAN公開 軍師PASS |
 | 軍師 | Opus[1m] | ✅ idle | design_review_1476 ✅完了(18:27) HIGH3/MEDIUM5/LOW3発掘 |
