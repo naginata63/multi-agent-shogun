@@ -56,6 +56,13 @@ _release_lock() {
     fi
 }
 
+# Silent fail logger — records failures without blocking message delivery
+_log_silent_fail() {
+    local log_file="$SCRIPT_DIR/logs/inbox_write_silent_fail.log"
+    mkdir -p "$(dirname "$log_file")"
+    echo "[$(date '+%Y-%m-%dT%H:%M:%S')] WARN inbox_write: $1" >> "$log_file"
+}
+
 # === cmd status auto-update (task_assigned時) ===
 # type="task_assigned"の場合、メッセージからcmd_XXXを抽出し、
 # shogun_to_karo.yamlの該当cmd: pending → in_progress に更新
@@ -73,7 +80,7 @@ _update_cmd_status() {
     local tmp_file="${yaml_file}.tmp.$$"
 
     (
-        flock -w 5 200 || exit 0
+        flock -w 5 200 || { _log_silent_fail "flock failed for _update_cmd_status: $yaml_file"; exit 0; }
 
         # Find "- id: cmd_XXX" block, replace next "status: pending" → "status: in_progress"
         # If no status line exists, insert "  status: in_progress" after the id line
@@ -112,6 +119,7 @@ _update_cmd_status() {
             mv "$tmp_file" "$yaml_file"
         else
             rm -f "$tmp_file"
+            _log_silent_fail "mawk cmd_status update failed for $cmd_id in $yaml_file"
         fi
     ) 200>"$lock_file" 2>/dev/null
 
@@ -133,7 +141,7 @@ _update_task_done() {
 
     local lock_file="${task_file}.lock"
     (
-        flock -w 5 200 || exit 0
+        flock -w 5 200 || { _log_silent_fail "flock failed for _update_task_done: $task_file"; exit 0; }
 
         local target_line=""
 
@@ -150,7 +158,7 @@ _update_task_done() {
         # Fallback: last "status: assigned" in file
         [ -z "$target_line" ] && target_line=$(grep -n "status: assigned" "$task_file" | tail -1 | cut -d: -f1)
 
-        [ -z "$target_line" ] && exit 0
+        [ -z "$target_line" ] && { _log_silent_fail "no matching task found in $task_file for cmd=$cmd_id"; exit 0; }
 
         sed -i "${target_line}s/status: assigned/status: done/" "$task_file"
     ) 200>"$lock_file" 2>/dev/null
