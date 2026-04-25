@@ -1483,7 +1483,7 @@ commands:
   - 優先度 medium (運用効率化・実害は dashboard 肥大化)
   project: multi-agent-shogun
 - id: cmd_1464
-  status: pending
+  status: in_progress
   timestamp: '2026-04-25T11:42:00+09:00'
   revised_at: '2026-04-25T11:52:00+09:00'
   priority: high
@@ -1539,3 +1539,56 @@ commands:
   - 既存 GET /api/dashboard 等 regression 0件
   - 軍師QC PASS
   - git commit + push
+- id: cmd_1472
+  status: cancelled
+  cancelled_at: '2026-04-25T17:15:00+09:00'
+  cancelled_reason: 殿の御意は「将軍自ら手を動かせ」（17:14選択肢1）。家老投げは将軍の誤解釈。撤回し将軍直接実行へ切替。
+  lord_original: "おおはらMENは中央下部はいち将軍がやれ"
+  priority: high
+  purpose: Day6 ECHIDNA回サムネ再生成・おおはらMEN立ち絵を中央下部に配置・3案出し→殿選択→thumbnail_final.png更新
+  timestamp: '2026-04-25T17:13:00+09:00'
+  command: '## 殿原文
+
+    「おおはらMENは中央下部はいち将軍がやれ」
+
+    （将軍解釈: おおはらMENを中央下部に配置せよ・将軍主導で進めよ）
+
+
+    ## 背景
+
+    cmd_1467で案2確定済（thumbnail_final.png commit 0c3518c push済）だが、殿がおおはらMEN（oo_men）を中央下部に配置する構図で再生成希望。
+
+
+    ## やること
+
+    1. 現 thumbnail_final.png を thumbnail_v2_案2_backup.png として退避（破壊禁止）
+
+    2. cmd_1467 v2(--ref-limit 0) と同じ生成方式で、おおはらMEN立ち絵を中央下部にした構図で3案生成
+
+    3. LAN公開（http://192.168.2.7:8081/）してntfy通知
+
+    4. 殿の案番号選択待ち
+
+    5. 選択後、thumbnail_final.png を更新+commit+push
+
+
+    ## 注意
+
+    - おおはらMEN中央下部配置のレイアウト指定は make_thumbnail_auto.py または合成スクリプトのオプションで対応
+
+    - character/selected/oo_men_*.png を使用（expression_index.json参照）
+
+    - 他キャラ（ECHIDNA等）との被りに注意
+
+    - 文字（Day6/エキドナ等）の可読性確保
+
+    - 進捗は将軍に逐次報告（dashboard更新）'
+  project: dozle_kirinuki
+  north_star: Day6 ECHIDNA回サムネをおおはらMEN主役構図に最適化し、視聴クリック率向上を狙う。前案2は退避保存し、新案を3案出して殿選択。
+  acceptance_criteria:
+  - おおはらMENの立ち絵が中央下部に配置されたサムネ3案が生成済（thumb_v3_1.png〜thumb_v3_3.png）
+  - LAN公開（http://192.168.2.7:8081/）で殿スマホレビュー可能
+  - 現 thumbnail_final.png（cmd_1467案2 commit 0c3518c）は thumbnail_v2_案2_backup.png として退避してから新案配置（破壊禁止）
+  - 殿が案番号選択後、thumbnail_final.png を選択案で更新+commit+push
+  - 'ntfy通知: 3案完成時 + 案確定時の2回'
+  - 軍師QC PASS（おおはらMEN中央下部配置の確認・他キャラ被り確認・文字可読性）
