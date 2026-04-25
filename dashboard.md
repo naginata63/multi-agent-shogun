@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 19:07
+最終更新: 2026-04-25 19:32
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -12,10 +12,21 @@
 - **cmd_1348**: 309h放置 DingTalk QC → done/cancel どちら? (2026-04-25 殿確認待ち)
 - **cmd_1450**: done_ng(07:24)済・note下書き削除subtask_1450_cleanup完了? cleanup完了確認→statusを正式done化
 
-### 🔧 cmd_1477 Stage1 完了 → プロセス再起動が必要（要対応）
-- **[HIGH-1] advisor_proxy**: subtask_1477a ✅PASS(18:48) モデル切替完了。**★advisor_proxy 再起動が必要** (PID 388911 停止→再起動でSonnet 4.6 default反映)。kill権限要確認。
-- **[HIGH-2] inbox_write.sh YAML silent failure**: **subtask_1477b 足軽3号 対処中(18:52〜)**
-- **[HIGH-3] logs/ 無回転**: subtask_1477c ✅PASS(18:48) logrotate/cron代替+DEBUG化完了。**★inbox_watcher 再起動推奨** (DEBUG gating完全反映)
+### 🎬 cmd_1478 CONDITIONAL_PASS → 殿のmpv視聴確認が必要！
+軍師QC(19:30): 構造/規格/drawtext/sync_record 全PASS。残課題1件:
+- **★人手視聴必須**: `mpv` で **1戦目 4画面grid (45-110s)** を視聴し charlotte 同期を目視確認
+  - 理由: sync_record で check2=-42.75s(conf=1.00)採用だが check3=-59.26s(diff=16.5s>>threshold0.5s)の乖離あり
+  - LLM軍師は動画再生不可のため人間ゲートが必要
+- **YouTube差替え(private)**: EVfo4W7jCIc → 殿の視覚OK後に差替え実施
+  - OK → 家老に通知 → 足軽に差替え依頼
+  - NG → 3視点grid再生成が必要
+- **動画パス**: `projects/dozle_kirinuki/work/20260416_.../final.mp4` (2.7GB・2295s)
+- **報告書**: `queue/reports/gunshi_report_qc_1478a.yaml`
+
+### 🔧 cmd_1477完遂 → プロセス再起動が必要（要対応）
+- **[HIGH-1] advisor_proxy**: ✅完遂(19:05)。**★再起動が必要** (Sonnet 4.6 default反映には現行プロセス再起動が必要)
+- **[HIGH-2] inbox_write.sh silent_fail log化**: ✅完遂(19:03 軍師PASS)。観察: 正常no-opがWARNログとして記録されるnoiseあり（将来改善候補）
+- **[HIGH-3] logrotate**: ✅完遂(19:03)。**★inbox_watcher 再起動推奨** (DEBUG gating完全反映)
 
 MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML archive自動化・shogun_to_karo atomic write・hook chain計測・プロセス supervisor導入
 
@@ -62,8 +73,8 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 
 | cmd | 担当 | 状態 |
 |-----|------|------|
+| cmd_1478 | 軍師 | ⚠️ **CONDITIONAL_PASS(19:30)** 殿mpv視聴待ち。1戦目4画面grid(45-110s)charlotte同期確認要。視覚OK→YouTube差替え |
 | cmd_1476 | 軍師 | ✅ **完遂(18:27)** /clear後 独立評価 HIGH3件 MEDIUM5件 LOW3件 発掘 |
-| cmd_1478 | 足軽1号 | 🔄 **進行中(18:51〜)** Day6 Echidna 4視点MIX規格修正(seg1再生成+テロップ+sync_record+YouTube差替) |
 
 ---
 
@@ -71,7 +82,7 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | GLM | 🔄 稼働中 | subtask_1478a 着手中(18:51〜) Day6 Echidna MIX規格修正・seg1再生成+テロップ |
+| 1号 | GLM | ✅ idle | subtask_1478a ✅完了(19:30)・軍師QC CONDITIONAL_PASS・殿mpv視聴待ち |
 | 2号 | GLM | ✅ idle | subtask_1479a ✅完了(19:01)・軍師QC PASS(19:01)・動画系QC規格化5ファイル |
 | 3号 | Opus[1m] | ✅ idle | subtask_1477b ✅完了(19:01)・軍師QC PASS(19:03)・inbox_write.sh silent_fail log化 |
 | 4号 | GLM | ✅ idle | subtask_1477a ✅完了(18:46)・軍師QC PASS(18:48)・advisor_proxy Sonnet切替 |
