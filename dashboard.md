@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 17:16
+最終更新: 2026-04-25 17:29
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -39,7 +39,7 @@
 | cmd | 担当 | 状態 |
 |-----|------|------|
 | cmd_1464 | 足軽1号 | 🔄 **seg8sen再生成中(17:14)** seg8sen.mp4破損→Steps 2-5再実行→transition→concat→YouTube |
-| cmd_1473 | 足軽3号 | 🔄 **発令(17:13)** subtask_1473a: pretool_check CHK2改修(L96/L109両分岐・+12/-4行) |
+| cmd_1473 | 軍師 | 🔄 **軍師QC中(17:28)** subtask_1473a完了(73e7a9a push済)・qc_1473a発令 |
 | cmd_1472 | 将軍 | ✅ **将軍直接実行(17:16)** サムネ再生成・おおはらMEN中央下部配置・3案→殿選択（家老手出し無用） |
 
 ---
@@ -50,7 +50,7 @@
 |------|-----|------|---------|
 | 1号 | GLM | 🔄 busy | subtask_1464b: seg8sen.mp4破損→Steps 2-5再実行中(seg8sen再生成)→その後Steps 6-12 |
 | 2号 | GLM | ✅ idle | subtask_1467b ✅完了(15:25)・cmd_1467完遂(案2確定 15:55) |
-| 3号 | Opus[1m] | 🔄 busy | subtask_1473a in_progress(17:13)・pretool_check CHK2改修(L96/L109) |
+| 3号 | Opus[1m] | ✅ idle | subtask_1473a ✅完了(17:24)・pretool_check CHK2改修(73e7a9a)・軍師QC中 |
 | 4号 | GLM | ✅ idle | subtask_1471a ✅完了(16:01)・軍師QC PASS(17:05)・cmd_1471完遂 |
 | 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |

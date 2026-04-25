@@ -56,7 +56,9 @@ tasks:
   priority: medium
   title: pretool_check CHK2改修 設計レビュー
   project: multi-agent-shogun
-  status: assigned
+  status: done
+  completed_at: '2026-04-25T17:30:00+09:00'
+  report_path: queue/reports/gunshi_report_design_1472a.yaml
   timestamp: '2026-04-25T17:10:00+09:00'
   target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_design_1472a.yaml
   procedure: shared_context/qc_template.md
@@ -71,3 +73,27 @@ tasks:
   - "エラーメッセージの改善案(正しい格納場所を明示)を提示"
   - "実装変更量の見積もり(行数)"
   steps: "advisor()→scripts/pretool_check.sh全体読む→現行CHK1/CHK2/CHK8のBLOCK条件把握→改修設計案作成→advisor()→queue/reports/gunshi_report_design_1472a.yaml作成→inbox_write karo"
+- task_id: qc_1473a
+  parent_cmd: cmd_1473
+  assigned_to: gunshi
+  bloom_level: L5
+  status: assigned
+  timestamp: '2026-04-25T17:35:00+09:00'
+  target_path: /home/murakami/multi-agent-shogun/scripts/pretool_check.sh
+  procedure: shared_context/qc_template.md
+  title: pretool_check CHK2改修 QC検証
+  project: multi-agent-shogun
+  description: "足軽3号(subtask_1473a)が pretool_check.sh CHK2を改修した(commit 73e7a9a)。改修内容: 両分岐(L96-97, L114-115)に `&&! grep -qE '/projects/[^/]+/work/'` 除外条件追加。リポジトリルート直下work/cmd_*/のみBLOCK・projects/*/work/*はOKへ変更。QCにてコード確認+テスト全通過を検証せよ。"
+  context_files:
+  - scripts/pretool_check.sh
+  - queue/reports/ashigaru3_report_subtask_1473a.yaml
+  - queue/reports/gunshi_report_design_1472a.yaml
+  acceptance_criteria:
+  - "L96-97(branch_a): 除外条件 `&&! grep -qE '/projects/[^/]+/work/'` が正しく追加されているか目視確認"
+  - "L114-115(branch_b): 同様の除外条件が正しく追加されているか目視確認"
+  - "エラー文に正しい格納場所例 (projects/{project}/work/...) が明記されているか"
+  - "テストcase1: work/cmd_1471/x.txt → BLOCK (exit=2)"
+  - "テストcase2: projects/dozle_kirinuki/work/cmd_1260/x.md → OK (exit=0)"
+  - "テストcase3: projects/dozle_kirinuki/work/20260417_TITLE/x.json → OK (exit=0)"
+  - "edge case: work/cmd_1441/notes.md → BLOCK (exit=2) (whitelist除外のみの場合)"
+  steps: "advisor()→shared_context/qc_template.md参照→scripts/pretool_check.sh L90-120読む→両分岐の除外条件を目視確認→テスト4ケース実行→queue/reports/gunshi_report_qc_1473a.yaml作成→inbox_write karo"
