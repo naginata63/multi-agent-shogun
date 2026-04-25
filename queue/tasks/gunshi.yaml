@@ -3742,7 +3742,7 @@ tasks:
 - task_id: qc_subtask_1469a
   parent_cmd: cmd_1469
   bloom_level: L3
-  status: assigned
+  status: done
   timestamp: "2026-04-25T13:35:00+09:00"
   target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1469a.yaml
   description: "cmd_1469 QC: server.py R1 タイムスタンプparse修正・fresh cmd age 416日誤算定バグ解消確認。shared_context/qc_template.md 参照してQCせよ。"
@@ -3758,3 +3758,26 @@ tasks:
     - "shared_context/qc_template.md 必須参照"
     - "advisor()必須"
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1469a完了(判定)。' qc_result gunshi"
+- task_id: qc_subtask_1465a
+  parent_cmd: cmd_1465
+  bloom_level: L5
+  status: assigned
+  timestamp: "2026-04-25T13:39:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1465a.yaml
+  description: "cmd_1465 QC: Udemy curriculum_v2.md マーケ強化版(5AC全項目補完確認)。shared_context/qc_template.md 参照してQCせよ。"
+  steps: "shared_context/qc_template.md 参照→projects/udemy_course/drafts/curriculum_v2.md 実読→5AC各項目確認(ペルソナ3-5詳述/ハンズオン具体化/マーケ戦略/競合対決表/ストーリー設計)→必須参照ファイル活用確認→v1との差分確認→PASS/FAIL判定→report作成→inbox karo"
+  acceptance_criteria:
+    - "curriculum_v2.md 実在・40KB/672行前後"
+    - "ペルソナ 3-5件 詳述あり(年代/職種/業界/年収/困りごと/購買動機)"
+    - "ハンズオン具体化: 各章で何を作るか・完成品・所要時間明記"
+    - "マーケティング戦略: LPコピー案/無料プレビュー設計/購買心理フック/タイトル候補5案"
+    - "競合直接対決表: 既存ベストセラー講座名 vs 本講座(受講者目線比較)"
+    - "ストーリー設計: emotional hook ポイント章別記載"
+    - "必須参照(work/cmd_1444/marketing_trip_videos_summary.md 等)の内容が反映されている"
+    - "git commit + push 済み確認"
+  notes:
+    - "足軽7号レポート: queue/reports/ashigaru7_report_subtask_1465a.yaml (存在確認要)"
+    - "v1との比較: projects/udemy_course/drafts/curriculum_v1.md (578行・cmd_1445作)"
+    - "shared_context/qc_template.md 必須参照"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1465a完了(判定)。' qc_result gunshi"
