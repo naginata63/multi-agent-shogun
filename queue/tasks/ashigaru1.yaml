@@ -397,3 +397,22 @@ tasks:
   - YouTube差替: youtube_uploader.py のupdate mode or 新規アップ→旧削除のいずれか判断
   - 参照: cmd_1424 zephyrus_v3.sh(テロップ実装例)/work/cmd_1464/(transition.mp4等)
   - 軍師QC: mpv --speed=2.0 で実視聴必須(ffprobe単独不可)
+- task_id: subtask_1478b
+  parent_cmd: cmd_1478
+  assigned_to: ashigaru1
+  bloom_level: L3
+  status: in_progress
+  timestamp: '2026-04-25T20:01:00+09:00'
+  description: 'cmd_1478 YouTube差替え。subtask_1478a完成のfinal.mp4(2295s/2.7GB)をEVfo4W7jCIcに差替え。殿判断: mpv視聴スキップでOK・即非公開アップ進めよ(private維持)。'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260416_【#DoZ】6日目 腹から声が出ないヒーラーに命を任せれられるとでも？【ドズル社／おおはらMEN視点】/final.mp4
+  procedure: shared_context/procedures/youtube_upload.md
+  steps: 'shared_context/procedures/youtube_upload.md参照→final.mp4のパス確認(/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260416_.../final.mp4)→YouTube動画ID: EVfo4W7jCIc→youtube_uploader.pyのupdate modeまたはYouTube APIでfinal.mp4を差替えアップ(private維持)→アップ完了確認(URLがEVfo4W7jCIcであること)→inbox_write karo完了報告'
+  acceptance_criteria:
+  - YouTube動画ID EVfo4W7jCIc にfinal.mp4(2.7GB・2295s)が差替えアップされていること
+  - 公開設定: private維持(unlisted/publicに変更しないこと)
+  - final.mp4パス: projects/dozle_kirinuki/work/20260416_【#DoZ】6日目.../final.mp4
+  notes:
+  - 殿判断: mpv視聴スキップOK・即アップ
+  - 差替えはupdate mode(同一URLを維持)が望ましい。不可なら新規アップ→旧削除も可
+  - title/description等は既存動画のものを維持
+  - アップ完了後 inbox_write karo のみ(軍師QCは不要・殿判断済み)

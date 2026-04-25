@@ -258,7 +258,9 @@ commands:
 - id: cmd_1348
   timestamp: '2026-04-12T18:50:00+09:00'
   north_star: DingTalk QC案件の権限剥奪・報酬遅延リスクを回避する
-  status: in_progress
+  status: done
+  completed_at: '2026-04-25T20:00:00+09:00'
+  completion_note: '殿判断: DingTalk QCループ修正を完了扱い(2026-04-25 20:00)'
   purpose: dingtalk_qc_loop.pyの「エラーあり」使用を完全廃止し、正しいフロー（無効→修正→承認）に変更する
   acceptance_criteria:
   - スクリプト内に「エラーあり」を押す処理が一切ないこと
