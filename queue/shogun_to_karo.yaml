@@ -741,10 +741,9 @@ commands:
   project: multi-agent-shogun
 - id: cmd_1453
   status: done
-  completed_at: '2026-04-25T10:29:00+09:00'
+  completed_at: '2026-04-25T07:00:00+09:00'
   timestamp: '2026-04-25T06:55:00+09:00'
   priority: high
-  completed_at: '2026-04-25T07:00:00+09:00'
   notes:
   - 殿指示『やれ』(06:55)受理・切替副作用の根本対処
   - scripts/inbox_watcher.sh の is_valid_cli_type 漏れが原因
@@ -991,7 +990,6 @@ commands:
   completed_at: '2026-04-25T10:41:46+09:00'
   timestamp: '2026-04-25T10:05:00+09:00'
   started_at: '2026-04-25T10:24:54+09:00'
-  completed_at: '2026-04-25T10:41:46+09:00'
   priority: medium
   lord_original: なんで完了したものにマークしてのこすの・どうゆう仕組みでやっているんだ・仕組み化しろ
   north_star: '家老が完了済 cmd を dashboard.md に「✅完了」マーク付きで残し続ける慣行で、
@@ -1382,3 +1380,23 @@ commands:
     \ 並行発令 cmd: cmd_1487 (本スキル必要性の実証元) / cmd_1488 (SQLite p2) / cmd_1489 (master-telop\
     \ skill) / cmd_1491 (server.py inbox統合)\n- 関連手順: shared_context/qc_template.md\
     \ (cmd_1479で動画QC追加項目セクション既存)\n- 教訓元: cmd_1485 CONDITIONAL_PASSスキップ → 殿実視聴NG"
+- id: cmd_1492
+  status: done
+  completed_at: '2026-04-26T00:03:00+09:00'
+  priority: medium
+  purpose: POST /api/inbox_write エンドポイントをserver.pyに追加。任意エージェントへHTTP経由でinboxメッセージを送信できる汎用API。
+  timestamp: '2026-04-25T23:25:00+09:00'
+  lord_original: 部下に作らせて
+  project: system
+  notify_karo: false
+  command: 'server.py の do_POST に POST /api/inbox_write を追加せよ。body: {"to": "<agent_id>",
+    "message": "<内容>", "type": "<type>", "from": "<from>"}。実装はscripts/inbox_write.shをsubprocess.runで呼ぶ（既存スクリプト再利用必須・新規.py禁止）。レスポンス:
+    {"success": true, "msg_id": "...", "timestamp": "..."}。SQLite dual-pathはinbox_write.shが自動処理。curlテスト必須。target_path:
+    /home/murakami/multi-agent-shogun/scripts/dashboard/server.py'
+  acceptance_criteria:
+  - POST /api/inbox_write が server.py に実装済み
+  - 'body: to/message/type/from の4フィールドを受け付ける'
+  - 内部で scripts/inbox_write.sh を subprocess.run で呼ぶ（新規スクリプト禁止）
+  - 'レスポンス: {success: true, msg_id: ..., timestamp: ...}'
+  - curlテストで実際にinboxにメッセージが届くこと確認済み
+  - git commit済み（push は家老が実施）
