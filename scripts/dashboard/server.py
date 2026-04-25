@@ -92,19 +92,34 @@ def _parse_stk_regex(text):
 
 
 def parse_shogun_to_karo():
+    """Commands を SQLite から読む (cmd_1488 dual-path read source・cmd_1494 切替)。
+    キャッシュは DB mtime で判定。SQLite 失敗時は空リストを返す。"""
     global _stk_cache
     try:
-        mtime = os.path.getmtime(SHOGUN_TO_KARO)
+        mtime = os.path.getmtime(DB_PATH)
         if mtime == _stk_cache["mtime"] and _stk_cache["data"]:
             return _stk_cache["data"]
-        with open(SHOGUN_TO_KARO) as f:
-            text = f.read()
+        conn = sqlite3.connect(DB_PATH, timeout=5)
+        conn.row_factory = sqlite3.Row
         try:
-            raw = yaml.safe_load(text)
-            cmds = raw.get("commands", []) if isinstance(raw, dict) else []
-        except yaml.YAMLError:
-            # Fallback: regex-based parsing
-            cmds = _parse_stk_regex(text)
+            cmds = []
+            for r in conn.execute("SELECT * FROM commands"):
+                d = {k: v for k, v in dict(r).items() if v is not None}
+                for k_json, k_clean in [
+                    ('acceptance_criteria_json', 'acceptance_criteria'),
+                    ('depends_on_json', 'depends_on'),
+                    ('notes_json', 'notes'),
+                ]:
+                    if d.get(k_json):
+                        try:
+                            d[k_clean] = json.loads(d[k_json])
+                        except Exception:
+                            pass
+                        d.pop(k_json, None)
+                d.pop('full_yaml_blob', None)
+                cmds.append(d)
+        finally:
+            conn.close()
         _stk_cache = {"mtime": mtime, "data": cmds}
         return cmds
     except Exception:
