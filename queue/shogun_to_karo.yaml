@@ -1462,7 +1462,7 @@ commands:
     - 1人+1AIで完結しているか（マルチ要素・特殊HW要件なし）\n- 中級編 v3 と重複が薄いか・送客導線が明確か\n- ペルソナQ1-Q4 の購買動機が章別ハンズオンで満たされるか\n\
     - LPコピーが初心者に刺さるか（『Claude Code 触ったが業務組込み未経験』の悩みに応えているか）"
 - id: cmd_1484
-  status: in_progress
+  status: done
   priority: high
   purpose: SQLite migration p0+p1 実装（dependencies install確認 + schema作成 + migration
     script dry-run・本番影響ゼロ・rollback容易な実害なし段階）

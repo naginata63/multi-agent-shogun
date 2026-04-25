@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 21:52
+最終更新: 2026-04-25 21:55
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -27,9 +27,9 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 ### 📐 cmd_1475 設計レビュー結果
 - **item_3 改修推奨（HIGH）**: cmd_create+inbox自動通知統合。報告: queue/reports/gunshi_design_review_1475.yaml
 
-### 🗄️ cmd_1484 SQLite migration p0+p1 → 軍師QC CONDITIONAL_PASS・dryrun修正中
-subtask_1484a 完了(21:33)・軍師QC CONDITIONAL_PASS(21:44)。軽微: dryrun_log.txt(250)とdryrun_output.sql(255)が別run由来で乖離→subtask_1484b(単発再生成)を足軽4号に発令(21:48)。
-p2 dual-pathは殿再判断待ち。
+### 🗄️ cmd_1484 SQLite migration p0+p1 完遂(21:55) → p2 dual-path 殿の御判断必要
+subtask_1484a+1484b 完了・log/SQL/grep 三点一致(Total 156件)。YAML破損4件残存(report系・影響なし)。
+**p2 dual-path(本番書込)着手には殿の再判断が必要。** 詳細: queue/reports/gunshi_design_sqlite_migration_1481.yaml
 
 ### 📐 cmd_1481 SQLite化詳細設計完了(20:22) → 殿の御判断必要
 軍師設計完了(20:22)。報告: `queue/reports/gunshi_design_sqlite_migration_1481.yaml` (710行)
@@ -81,7 +81,6 @@ p2 dual-pathは殿再判断待ち。
 | cmd | 担当 | 状態 |
 |-----|------|------|
 | cmd_1485 | 足軽1号 | 🔄 **稼働中(21:32)** Day6 Echidna 1戦目限定修正(charlotte sync再測定+master/telop二段) |
-| cmd_1484 | 足軽4号 | 🔧 **dryrun修正中(21:48)** subtask_1484b: log.txt/output.sql統一run再生成 |
 
 ---
 
@@ -92,7 +91,7 @@ p2 dual-pathは殿再判断待ち。
 | 1号 | GLM | 🔄 **稼働中** | subtask_1485a Day6 Echidna 1戦目修正(cmd_1485)・charlotte sync+master/telop二段 |
 | 2号 | GLM | ✅ idle | subtask_1483a_fix ✅完了(21:41) cmd_1483完遂 |
 | 3号 | Opus[1m] | ✅ idle | subtask_1486a ✅完了(21:40) cmd_1486完遂(軍師PASS 21:46) |
-| 4号 | GLM | 🔄 **稼働中** | subtask_1484b dryrun統一run再生成(cmd_1484) |
+| 4号 | GLM | ✅ idle | subtask_1484b ✅完了(21:54) cmd_1484完遂 |
 | 5号 | GLM | ✅ idle | subtask_1477c ✅完了(18:46)・軍師QC PASS(18:48) |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1482a_fix ✅完了(21:44) cmd_1482完遂 |
@@ -106,6 +105,7 @@ p2 dual-pathは殿再判断待ち。
 |-----|------|
 | cmd_1486 | ✅ **完遂(21:50)** master/telop二段方式恒久ルール化。4ファイル113行追記(削除0)+軍師PASS+git push済 |
 | cmd_1483 | ✅ **完遂(21:50)** Udemy初級編v1設計(curriculum+marketing 2ファイル)+表崩れfix+軍師PASS+git push済 |
+| cmd_1484 | ✅ **完遂(21:55)** SQLite p0+p1 干渉ゼロdry-run完了(Total 156件・log/SQL/grep三点一致)。p2 dual-path殿判断待ち |
 | cmd_1482 | ✅ **完遂(21:50)** Udemy中級編v3改訂(3ファイル分割+マルチ要素上級編分離+所要時間修正)+軍師PASS+git push済 |
 | cmd_1478 | ✅ **完遂(20:10)** Day6 Echidna 4視点MIX 規格修正+YouTube差替え 新URL: M7UKrqiI3Eo |
 | cmd_1481 | ✅ **完遂(20:22)** SQLite化詳細設計(710行)+廃止候補3件+削減1295行見込 |

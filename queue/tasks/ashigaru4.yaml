@@ -246,8 +246,9 @@ tasks:
   parent_cmd: cmd_1484
   assigned_to: ashigaru4
   bloom_level: L1
-  status: in_progress
+  status: done
   timestamp: '2026-04-25T21:48:00+09:00'
+  completed_at: '2026-04-25T21:53:40'
   description: 'cmd_1484 CONDITIONAL_PASS解消: dryrun_log.txt(Total250)とdryrun_output.sql(Total255)の乖離を単一run再生成で修正。軍師指摘(gunshi_report_qc_1484a.yaml)対応。'
   target_path: /home/murakami/multi-agent-shogun/work/cmd_1484/dryrun_log.txt
   procedure: shared_context/qc_template.md
