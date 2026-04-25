@@ -39,7 +39,7 @@ workflow:
   - step: 3
     action: inbox_write
     target: multiagent:0.0
-    note: "Use scripts/inbox_write.sh — See CLAUDE.md for inbox protocol"
+    note: "API 推奨: POST /api/cmd_create (notify_karo:true で家老inbox自動通知) or POST /api/inbox_write。bash inbox_write.sh は障害時フォールバックのみ (cmd_1494)"
   - step: 4
     action: wait_for_report
     note: "Karo updates dashboard.md. Shogun does NOT update it."

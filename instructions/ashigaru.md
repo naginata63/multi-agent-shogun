@@ -184,11 +184,33 @@ Always use `date` command. Never guess.
 date "+%Y-%m-%dT%H:%M:%S"
 ```
 
-## Report Notification Protocol
+## Report Notification Protocol (API 推奨・cmd_1494)
 
-After writing report YAML, notify Gunshi (NOT Karo):
+レポート YAML 書込 + 軍師通知は **API 経由を推奨**:
 
+**API 一発 (report YAML 作成 + SQLite dual-path + 軍師通知 ※notify は別 API):**
 ```bash
+# Step 1: レポート起票 (queue/reports/{report_id}.yaml + SQLite reports INSERT)
+curl -s -X POST http://192.168.2.7:8770/api/report_create \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "report_id":"ashigaru3_report_subtask_001",
+    "worker_id":"ashigaru3",
+    "task_id":"subtask_001",
+    "parent_cmd":"cmd_035",
+    "status":"done",
+    "summary":"任務完遂・QC待ち"
+  }'
+
+# Step 2: 軍師に通知
+curl -s -X POST http://192.168.2.7:8770/api/inbox_write \
+  -H 'Content-Type: application/json' \
+  -d '{"to":"gunshi","from":"ashigaru3","type":"report_received","message":"足軽3号、任務完了でござる。品質チェックを仰ぎたし"}'
+```
+
+**bash 直叩き (障害時フォールバックのみ):**
+```bash
+# YAML 自分で書いて
 bash scripts/inbox_write.sh gunshi "足軽{N}号、任務完了でござる。品質チェックを仰ぎたし。" report_received ashigaru{N}
 ```
 

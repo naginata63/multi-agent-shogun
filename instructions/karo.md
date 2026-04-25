@@ -305,21 +305,41 @@ date "+%Y-%m-%dT%H:%M:%S"    # For YAML (ISO 8601)
 
 ## Inbox Communication Rules
 
-### Sending Messages to Ashigaru
+### Sending Messages to Ashigaru (API 推奨・cmd_1494)
 
+**API 経由 (推奨):**
+```bash
+curl -s -X POST http://192.168.2.7:8770/api/inbox_write \
+  -H 'Content-Type: application/json' \
+  -d '{"to":"ashigaru3","from":"karo","type":"task_assigned","message":"タスクYAMLを読んで作業開始せよ"}'
+```
+
+**bash 直叩き (障害時フォールバックのみ):**
 ```bash
 bash scripts/inbox_write.sh ashigaru{N} "<message>" task_assigned karo
 ```
 
 **No sleep interval needed.** No delivery confirmation needed. Multiple sends can be done in rapid succession — flock handles concurrency.
 
-Example:
+Example (API一発で複数足軽通知):
 ```bash
-bash scripts/inbox_write.sh ashigaru1 "タスクYAMLを読んで作業開始せよ。" task_assigned karo
-bash scripts/inbox_write.sh ashigaru2 "タスクYAMLを読んで作業開始せよ。" task_assigned karo
-bash scripts/inbox_write.sh ashigaru3 "タスクYAMLを読んで作業開始せよ。" task_assigned karo
-# No sleep needed. All messages guaranteed delivered by inbox_watcher.sh
+for AID in ashigaru1 ashigaru2 ashigaru3; do
+  curl -s -X POST http://192.168.2.7:8770/api/inbox_write \
+    -H 'Content-Type: application/json' \
+    -d "{\"to\":\"$AID\",\"from\":\"karo\",\"type\":\"task_assigned\",\"message\":\"タスクYAMLを読んで作業開始せよ\"}"
+done
 ```
+
+### タスク起票・状態確認も API 経由
+
+| 用途 | API |
+|------|-----|
+| タスク起票 (queue/tasks/{agent}.yaml + SQLite dual-path) | `POST /api/task_create` (cmd_1494で実装) |
+| 他足軽の状態確認 | `GET /api/task_list?agent=ashigaruN&status=assigned` |
+| 進行中cmd一覧 | `GET /api/cmd_list?status=in_progress` |
+| dashboard 集計 | `GET /api/dashboard` |
+
+詳細・curl 実例は `shared_context/procedures/dashboard_api_usage.md`。
 
 ### No Inbox to Shogun
 

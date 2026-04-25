@@ -360,10 +360,30 @@ skill_candidate:
   found: false
 ```
 
-## Report Notification Protocol
+## Report Notification Protocol (API 推奨・cmd_1494)
 
-After writing report YAML, notify Karo:
+レポート YAML 作成 + 家老通知は **API 経由を推奨**:
 
+```bash
+# Step 1: QC レポート起票 (queue/reports/ + SQLite reports INSERT)
+curl -s -X POST http://192.168.2.7:8770/api/report_create \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "report_id":"gunshi_report_qc_cmd_XXX",
+    "worker_id":"gunshi",
+    "parent_cmd":"cmd_XXX",
+    "status":"done",
+    "qa_decision":"PASS",
+    "summary":"AC 6項目すべて充足・push 推奨"
+  }'
+
+# Step 2: 家老に通知
+curl -s -X POST http://192.168.2.7:8770/api/inbox_write \
+  -H 'Content-Type: application/json' \
+  -d '{"to":"karo","from":"gunshi","type":"report_received","message":"軍師、策を練り終えたり。報告書を確認されよ"}'
+```
+
+**bash 直叩き (障害時フォールバックのみ):**
 ```bash
 bash scripts/inbox_write.sh karo "軍師、策を練り終えたり。報告書を確認されよ。" report_received gunshi
 ```
