@@ -273,6 +273,7 @@ except Exception as e:
         if [ $STATUS -eq 0 ]; then
             _update_cmd_status
             _update_task_done
+            echo "$MSG_ID"
             exit 0
         fi
         attempt=$((attempt + 1))

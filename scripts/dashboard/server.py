@@ -2123,11 +2123,11 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps({'error': result.stderr.strip()[:500]}).encode('utf-8'))
                     return
 
+                actual_msg_id = result.stdout.strip()
                 now_jst = datetime.now(timezone(timedelta(hours=9)))
-                msg_id = f"msg_{now_jst.strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
                 resp = json.dumps({
                     'success': True,
-                    'msg_id': msg_id,
+                    'msg_id': actual_msg_id,
                     'timestamp': now_jst.strftime('%Y-%m-%dT%H:%M:%S')
                 }, ensure_ascii=False).encode('utf-8')
 
