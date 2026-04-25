@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 15:07
+最終更新: 2026-04-25 15:26
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -37,7 +37,7 @@
 | cmd_1464 | 足軽1号 | 🔄 **発令(12:10)** Day6 4視点MIX seg独立+wipeleft SE→final.mp4+YouTube非公開 |
 | cmd_1466 | 軍師 | ✅ **完遂(14:58)** curriculum_v2.html 38スライド LAN公開 http://192.168.2.7:8082/ 軍師PASS |
 | cmd_1465 | 軍師 | ✅ **完遂(13:41)** curriculum_v2.md 672行 5AC全項目PASS 軍師PASS_with_finding |
-| cmd_1467 | 足軽2号 | 🔄 **再生成(15:06)** --ref-limit 0 competitor完全cut v2 3案再生成中 |
+| cmd_1467 | 足軽2号 | ⏳ **殿レビュー待ち(15:25)** v2 3案完了(--ref-limit 0) http://192.168.2.7:8081/ ntfy通知済 |
 | cmd_1468 | 軍師 | ✅ **完遂(13:32)** cron再発真因究明 offset追跡実装・13:30 hit=0確認 軍師PASS |
 | cmd_1469 | 軍師 | ✅ **完遂(13:37)** server.py R1 タイムスタンプparse修正 fresh cmd age正常化 軍師PASS |
 
@@ -48,7 +48,7 @@
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
 | 1号 | GLM | 🔄 busy | subtask_1464a 発令(12:10)・Day6 4視点MIX final.mp4生成 |
-| 2号 | GLM | 🔄 busy | subtask_1467b 発令(15:06)・cmd_1467 v2 --ref-limit 0 再生成 |
+| 2号 | GLM | ✅ idle | subtask_1467b ✅完了(15:25)・v2 3案生成 殿選択待ち |
 | 3号 | Opus[1m] | ✅ idle | subtask_1468a ✅完了(13:16)・cron再発真因究明+offset修正 |
 | 4号 | GLM | ✅ idle | subtask_1469a ✅完了(13:34)・server.py R1 タイムスタンプparse修正 |
 | 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
