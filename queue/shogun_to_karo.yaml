@@ -1633,3 +1633,43 @@ commands:
     \ <推奨時のみ>\n    risk: <最大リスク>\n  - id: 2_inbox_write_api\n    ...\n  - ...\noverall_priority_ranking:\n\
     \  - 1位: <itemId>\n  - 2位: <itemId>\n  ...\nsummary: <総括3-5行>\n```\n\n## 注意\n\
     - 軍師の自由判断。将軍へ忖度するな。\n- 既存設計の擁護（『現状維持で十分』）も改修推奨も両方が選択肢。\n- 軍師が『改修不要』と判断するなら、その理由を堂々と述べよ。"
+- id: cmd_1476
+  status: in_progress
+  priority: high
+  purpose: multi-agent-shogun cmd系設計の完全オープン独立評価（軍師の問題発見能力を活かす・前回cmd_1475は将軍が評価項目を渡してしまったbias含み）
+  timestamp: '2026-04-25T18:16:48+09:00'
+  lord_original: A　クリアしてもっかいかんがえなおさせろ
+  assigned_to: gunshi
+  redo_of: cmd_1475
+  project: multi-agent-shogun
+  north_star: 前回cmd_1475の中立性は『結論レベル』では確保したが『問題提起レベル』で将軍biasが混入した。今回は context /clear
+    後、評価項目すら提示せず軍師が独自に問題発見・優先順位付けする。
+  acceptance_criteria:
+  - 軍師が context /clear 後、Session Start手順を経て新task読み込みから開始する
+  - 前回レポート (queue/reports/gunshi_design_review_1475.yaml) を一切参照しない（biasを引きずらない）
+  - 軍師が独自に問題を発見・優先順位付け（数・観点の制約なし）
+  - 「現状で問題なし」「将軍が想定外の観点」も結論として許容
+  - '出力: queue/reports/gunshi_design_review_1476.yaml'
+  - meta_judgment セクションに『前回biasに引きずられていないか』の自己検証を含む
+  command: "## 殿命（原文）\n『A　クリアしてもっかいかんがえなおさせろ』\n\n## 背景（軍師は読んでよい・bias情報ではなく経緯）\n前回\
+    \ cmd_1475 で将軍が『5評価項目』を軍師に提示した。\n→ これは将軍の問題認識の枠組み = bias混入。\n→ 殿『将軍設計はつたえるな』命を完全には守れていなかった。\n\
+    \n## 今回の制約\n1. **前回レポート参照禁止**: queue/reports/gunshi_design_review_1475.yaml は読むな（軍師がdone判定した内容も忘れよ）\n\
+    2. **将軍の主張・設計案・問題提起は一切渡されていない**\n3. **評価項目すら指定しない**: 何を問題と見るか自体を軍師が決める\n4. **数・観点の制約なし**:\
+    \ 1問題でも10問題でも軍師の発見次第\n5. **『現状で問題なし』結論も許容**: 改修ありきではない\n\n## 前提情報（客観事実のみ・観察対象を提示）\n\
+    multi-agent-shogun は 将軍/家老/足軽1-7/軍師 の9エージェント協調system。\n\n観察対象（軍師が ps/ls/grep/wc/tail\
+    \ で実測すべき）:\n- scripts/dashboard/server.py (port 8770 MCPダッシュボード+API)\n- scripts/inbox_write.sh\
+    \ / scripts/inbox_watcher.sh\n- scripts/pretool_check.sh + .claude/settings.json\
+    \ (hooks)\n- scripts/advisor_proxy.py (port 8780)\n- queue/shogun_to_karo.yaml\n\
+    - queue/inbox/*.yaml (9 agents分)\n- queue/tasks/*.yaml\n- queue/reports/*.yaml\n\
+    - shared_context/procedures/\n- logs/*.log\n\n## やること\n1. context /clear 後、CLAUDE.md+instructions/gunshi.md\
+    \ を読み直し（Session Start）\n2. 上記観察対象のうち軍師が必要と判断したものを実測\n3. 軍師自身が『この設計には何が問題か』を発見\n\
+    4. 各問題に改修要否判定 + 優先順位\n5. 将軍に渡されていない観点（hooks層・logs層・並行性・Failure mode・観測性等）も自由に発掘してよい\n\
+    6. 結果を queue/reports/gunshi_design_review_1476.yaml に出力\n\n## 出力フォーマット（最低限）\n\
+    ```yaml\nreview_id: gunshi_design_review_1476\ngunshi: gunshi_opus\nevaluated_at:\
+    \ <ISO8601>\nissues_found:  # 軍師が発見した問題（数任意）\n  - id: issue_X\n    title: <短い表題>\n\
+    \    evidence: <実測値・ファイル参照>\n    judgment: <改修推奨/現状維持/再評価必要>\n    priority: <HIGH/MEDIUM/LOW/REJECTED>\n\
+    \    rationale: <理由>\n    proposed_change: <推奨時のみ>\n    risk_if_changed: <リスク>\n\
+    overall_priority_ranking: [...]\nmeta_judgment:\n  clear_recovery_check: <Session\
+    \ Start手順を経て独立 context で開始したか>\n  bias_self_check: <前回 cmd_1475 結果 (5項目枠) に引きずられていないか・自己検証>\n\
+    \  novel_insights: <将軍が想定外の観点を発見したか>\nsummary: <総括>\n```\n\n## 注意\n- 『前回 5項目を再現する』のは\
+    \ bias 残留。**忘れて** 独立に発掘せよ\n- 軍師の観察眼を最大限信頼する。『改修要らず』結論も歓迎。\n- 将軍/家老/殿への忖度は要らぬ。"
