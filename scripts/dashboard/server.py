@@ -1047,6 +1047,106 @@ setInterval(refresh, 10000);
 </html>"""
 
 
+CMDS_HTML = """<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>📋 cmd 一覧</title>
+<style>
+body{margin:0;padding:12px;background:#1a1a1a;color:#eee;font-family:-apple-system,sans-serif;font-size:14px}
+h1{margin:0 0 8px;font-size:1.3em}
+.counts{font-size:12px;color:#888;margin-bottom:8px}
+.bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.pill{padding:4px 12px;border-radius:14px;border:1px solid #444;background:#2a2a2a;color:#eee;cursor:pointer;font-size:13px;user-select:none}
+.pill.active{background:#FCC700;color:#000;border-color:#FCC700;font-weight:bold}
+.q{flex:1;min-width:180px;padding:6px 10px;background:#222;color:#eee;border:1px solid #444;border-radius:4px;font-size:14px}
+.cmd{margin-bottom:10px;padding:10px 12px;background:#222;border-radius:6px;border-left:3px solid #555}
+.cmd.pending{border-left-color:#FCC700}
+.cmd.done{border-left-color:#4CAF50}
+.cmd.cancelled{border-left-color:#f55}
+.cmd.superseded{border-left-color:#888}
+.cmd.testing{border-left-color:#5af}
+.id{font-weight:bold;font-size:1.05em;color:#fff}
+.status{display:inline-block;padding:1px 8px;border-radius:8px;font-size:10px;background:#333;margin-left:6px;color:#eee;letter-spacing:0.5px}
+.status.pending{background:#665b00;color:#FCC700}
+.status.done{background:#1d4422;color:#7be090}
+.status.cancelled{background:#5a1818;color:#ffaaaa}
+.status.superseded{background:#444;color:#aaa}
+.purpose{color:#bbb;margin:4px 0;line-height:1.4}
+.lord{color:#FCC700;font-size:13px;margin:4px 0;border-left:2px solid #FCC700;padding-left:8px;background:rgba(252,199,0,0.05)}
+.meta{color:#666;font-size:11px;margin-top:4px}
+.empty{text-align:center;color:#666;padding:40px}
+</style>
+</head>
+<body>
+<h1>📋 cmd 一覧</h1>
+<div class="counts" id="counts">loading…</div>
+<div class="bar">
+  <input type="text" class="q" id="q" placeholder="ID / purpose / lord_original / assigned_to で検索…">
+  <span class="pill active" data-s="">全て</span>
+  <span class="pill" data-s="pending">pending</span>
+  <span class="pill" data-s="done">done</span>
+  <span class="pill" data-s="cancelled">cancelled</span>
+  <span class="pill" data-s="superseded">superseded</span>
+</div>
+<div id="list"></div>
+<script>
+let curStatus = '';
+let curQ = '';
+function escapeHtml(s){return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+async function load() {
+  const params = new URLSearchParams();
+  if (curStatus) params.set('status', curStatus);
+  if (curQ) params.set('q', curQ);
+  params.set('limit', '300');
+  const r = await fetch('/api/cmd_list?' + params);
+  const d = await r.json();
+  const countParts = Object.entries(d.counts || {}).map(([k,v])=>`${k}:${v}`).join(' / ');
+  document.getElementById('counts').textContent = `total ${d.total} / shown ${d.shown} | ${countParts}`;
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  if (!d.cmds || d.cmds.length === 0) {
+    list.innerHTML = '<div class="empty">該当なし</div>';
+    return;
+  }
+  d.cmds.forEach(c => {
+    const div = document.createElement('div');
+    const status = c.status || '';
+    div.className = 'cmd ' + status;
+    let html = `<div><span class="id">${escapeHtml(c.id||'')}</span><span class="status ${status}">${status}</span> <span class="meta">${escapeHtml(c.priority||'')} / ${escapeHtml(c.timestamp||c.issued_at||'')}</span></div>`;
+    if (c.purpose) html += `<div class="purpose">${escapeHtml(c.purpose)}</div>`;
+    if (c.lord_original) html += `<div class="lord">殿: ${escapeHtml(c.lord_original)}</div>`;
+    const metaItems = [];
+    if (c.assigned_to) metaItems.push('→ ' + escapeHtml(c.assigned_to));
+    if (c.project) metaItems.push('proj: ' + escapeHtml(c.project));
+    if (c.depends_on) metaItems.push('depends: ' + escapeHtml(c.depends_on));
+    if (c.cancelled_reason) metaItems.push('reason: ' + escapeHtml(c.cancelled_reason));
+    if (metaItems.length) html += `<div class="meta">${metaItems.join(' | ')}</div>`;
+    div.innerHTML = html;
+    list.appendChild(div);
+  });
+}
+document.querySelectorAll('.pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+    curStatus = p.dataset.s;
+    load();
+  });
+});
+document.getElementById('q').addEventListener('input', e => {
+  curQ = e.target.value;
+  clearTimeout(window._qt);
+  window._qt = setTimeout(load, 300);
+});
+load();
+setInterval(load, 30000);
+</script>
+</body>
+</html>"""
+
+
 # ─── Async Job Workers ────────────────────────────────────────────────────────────
 
 def _run_suggest_director_notes(job_id, payload):
@@ -1374,6 +1474,64 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             self.send_header('Content-Length', str(len(body)))
             self.end_headers()
             self.wfile.write(body)
+        elif self.path in ('/cmds', '/cmds.html'):
+            body = CMDS_HTML.encode()
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        elif self.path.startswith('/api/cmd_list'):
+            try:
+                from urllib.parse import urlparse, parse_qs
+                qs = parse_qs(urlparse(self.path).query)
+                status_filter = qs.get('status', [None])[0]
+                keyword = qs.get('q', [None])[0]
+                limit = int(qs.get('limit', ['200'])[0])
+
+                with open(SHOGUN_TO_KARO, 'r', encoding='utf-8') as f:
+                    data = yaml.safe_load(f) or {}
+                cmds = data.get('commands', []) or []
+
+                # Counts (全件)
+                counts = {}
+                for c in cmds:
+                    s = c.get('status', 'unknown')
+                    counts[s] = counts.get(s, 0) + 1
+
+                # Filter
+                filtered = cmds
+                if status_filter:
+                    filtered = [c for c in filtered if c.get('status') == status_filter]
+                if keyword:
+                    kw = keyword.lower()
+                    filtered = [c for c in filtered
+                                if kw in str(c.get('id', '')).lower()
+                                or kw in str(c.get('purpose', '')).lower()
+                                or kw in str(c.get('lord_original', '')).lower()
+                                or kw in str(c.get('assigned_to', '')).lower()]
+
+                # Newest first (timestamp/issued_at desc)
+                filtered.sort(key=lambda c: c.get('timestamp', '') or c.get('issued_at', ''), reverse=True)
+                filtered = filtered[:limit]
+
+                resp_data = {
+                    'total': len(cmds),
+                    'counts': counts,
+                    'shown': len(filtered),
+                    'cmds': filtered,
+                }
+                body = json.dumps(resp_data, ensure_ascii=False, indent=2).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         elif self.path.startswith('/work/'):
             # 静的ファイル配信: /work/ → projects/dozle_kirinuki/work/
             import mimetypes
