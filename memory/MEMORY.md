@@ -291,6 +291,10 @@ mcp__memory__create_relations([{
 ## 情報ソース
 - [Shogun系譜+note情報ソース](reference_sasuu_note.md) — 元祖=おしお(Zenn)、upstream=yohey-w、sasuu=利用者。note有料会員 [2026-04-01]
 
+## ナレッジ管理ルール（2026-04-25）
+- [memory vs ナレッジ区分ルール](feedback_memory_vs_knowledge_rule.md) — memoryは殿好み/激怒のみ・技術はprocedures/・実証後にナレッジ化
+- ナレッジ化TODO一覧: `shared_context/knowledge_todo.md`
+
 ## TODO
 
 - cmd_193 QC完了後、EC説明シートを出品

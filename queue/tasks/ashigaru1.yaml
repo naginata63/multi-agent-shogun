@@ -2493,7 +2493,7 @@ tasks:
 - task_id: subtask_1464a
   parent_cmd: cmd_1464
   bloom_level: L4
-  status: assigned
+  status: in_progress
   timestamp: "2026-04-25T12:10:00+09:00"
   target_path: /home/murakami/multi-agent-shogun/work/cmd_1464/final.mp4
   procedure: shared_context/procedures/day6_mix_video.md
