@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 18:40
+最終更新: 2026-04-25 18:55
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -57,7 +57,10 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 | cmd | 担当 | 状態 |
 |-----|------|------|
 | cmd_1476 | 軍師 | ✅ **完遂(18:27)** /clear後 独立評価 HIGH3件 MEDIUM5件 LOW3件 発掘 |
-| cmd_1477 | 足軽4/5号 | 🔄 **Stage1 進行中(18:39〜)** 1477a=advisor_proxy timeout(足軽4) / 1477c=logrotate(足軽5)。Stage2=1477b inbox_write安全化は1a+1c完了後 |
+| cmd_1477 | 足軽3号 | 🔄 **Stage2 進行中(18:52〜)** Stage1(1477a/1477c) 軍師QC PASS(18:48)。Stage2=1477b inbox_write安全化(足軽3号) |
+| cmd_1478 | 足軽1号 | 🔄 **進行中(18:51〜)** Day6 Echidna 4視点MIX規格修正(seg1再生成+テロップ+sync_record+YouTube差替) |
+| cmd_1479 | 足軽2号 | 🔄 **進行中(18:51〜)** 動画系QC規格化5ファイル編集(multi_view_sync/scene_switch/qc_template/karo.md/gunshi_video_qc) |
+| cmd_1480 | 軍師 | 🔄 **進行中(18:53〜)** TODO B ストレージ移行計画妥当性チェック+詳細設計 |
 
 ---
 
@@ -65,14 +68,14 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | GLM | ✅ idle | subtask_1464b ✅完了(17:59)・Day6 4視点MIX final.mp4 YouTube非公開アップ 軍師PASS |
-| 2号 | GLM | ✅ idle | subtask_1467b ✅完了(15:25)・cmd_1467完遂(案2確定 15:55) |
-| 3号 | Opus[1m] | ✅ idle | subtask_1473a ✅完了(17:24)・pretool_check CHK2改修(73e7a9a)・軍師QC中 |
-| 4号 | GLM | 🔄 稼働中 | subtask_1477a 着手中(18:39〜) advisor_proxy timeout根本対処 |
-| 5号 | GLM | 🔄 稼働中 | subtask_1477c 着手中(18:39〜) logrotate導入+inbox_watcher DEBUG化 |
+| 1号 | GLM | 🔄 稼働中 | subtask_1478a 着手中(18:51〜) Day6 Echidna MIX規格修正・seg1再生成+テロップ |
+| 2号 | GLM | 🔄 稼働中 | subtask_1479a 着手中(18:51〜) 動画系QC規格化5ファイル編集 |
+| 3号 | Opus[1m] | 🔄 稼働中 | subtask_1477b 着手中(18:52〜) inbox_write.sh silent_fail log化 |
+| 4号 | GLM | ✅ idle | subtask_1477a ✅完了(18:46)・軍師QC PASS(18:48)・advisor_proxy Sonnet切替 |
+| 5号 | GLM | ✅ idle | subtask_1477c ✅完了(18:46)・軍師QC PASS(18:48)・logrotate/cron代替+DEBUG化 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1466a ✅完了(14:56)・curriculum_v2.html LAN公開 軍師PASS |
-| 軍師 | Opus[1m] | ✅ idle | design_review_1476 ✅完了(18:27) HIGH3/MEDIUM5/LOW3発掘 |
+| 軍師 | Opus[1m] | 🔄 稼働中 | design_storage_migration_1480 着手中(18:53〜) TODO B ストレージ移行設計レビュー |
 
 ---
 

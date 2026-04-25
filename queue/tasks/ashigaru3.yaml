@@ -2,7 +2,7 @@ tasks:
 - task_id: subtask_1473a
   parent_cmd: cmd_1473
   bloom_level: L3
-  status: in_progress
+  status: done
   timestamp: '2026-04-25T17:35:00+09:00'
   target_path: /home/murakami/multi-agent-shogun/scripts/pretool_check.sh
   procedure: queue/reports/gunshi_report_design_1472a.yaml
@@ -21,3 +21,27 @@ tasks:
   - "advisor()必須(作業前・完了前)"
   - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo\
     \ '足軽3号、subtask_1472a完了。pretool_check CHK2改修+テスト3ケースPASS。' report_completed ashigaru3"
+- task_id: subtask_1477b
+  parent_cmd: cmd_1477
+  assigned_to: ashigaru3
+  bloom_level: L4
+  status: in_progress
+  timestamp: '2026-04-25T18:52:00+09:00'
+  description: inbox_write.sh の安全化。軍師指摘(gunshi_design_review_1476.yaml): L118/L158「return 0 # Never fail」+L80-115 mawk regex でshogun_to_karo.yamlを直接書換→サイレント不整合リスク。(a)失敗時にlogs/inbox_write_silent_fail.logへ必ず1行残す (b)flock取得失敗をWARNログ化。PyYAML化は別caseとして見送り(リスク大)。
+  target_path: /home/murakami/multi-agent-shogun/scripts/inbox_write.sh
+  procedure: shared_context/qc_template.md
+  steps: 'advisor()実装前→queue/reports/gunshi_design_review_1476.yaml の issue_inbox_write_silent_failure読む→scripts/inbox_write.sh全文読む(L118/L158 return0/L80-115 mawk確認)→[実装]: (a)silent_fail発生時にlogs/inbox_write_silent_fail.logへ1行追記(タイムスタンプ+エラー内容) (b)flock取得失敗時にWARNをlogs/inbox_write_silent_fail.logに追記 → 既存atomic write+rename(L213-219)は変更不要→テスト: 意図的にflockを確認するテスト実行→advisor()完了前→git add scripts/inbox_write.sh && git commit→inbox_write gunshi QC依頼→inbox_write karo完了報告'
+  acceptance_criteria:
+  - scripts/inbox_write.sh にsilent_fail log追記が実装されていること(logs/inbox_write_silent_fail.log)
+  - flock失敗時のWARNログが実装されていること
+  - 「return 0 # Never fail」の挙動は維持しつつ失敗記録が追加されていること
+  - 既存のatomic write+rename(L213-219)は変更されていないこと
+  - テスト: 意図的なエラーでsilent_fail.logに出力が出ること確認
+  - 完了報告YAML: queue/reports/ashigaru3_report_subtask_1477b.yaml
+  - git commit済み
+  notes:
+  - 修正範囲: scripts/inbox_write.sh のみ(PyYAML化・API化はスコープ外・別cmd)
+  - CRITICAL: inbox_write.shはライブ通信基盤→変更後もエージェント間通信が正常動作することを確認
+  - 既存の「Never fail」ポリシーは維持(通信は止めない・ただしログは残す)
+  - ruamel.yaml やPyYAML化は今回不要(atomic write+renameはそのまま)
+  - Stage1(1477a/1477c) QC PASS後の発令ゆえ最優先で着手せよ

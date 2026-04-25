@@ -125,7 +125,9 @@ tasks:
   parent_cmd: cmd_1476
   assigned_to: gunshi
   bloom_level: L5
-  status: assigned
+  status: done
+  completed_at: '2026-04-25T18:32:00+09:00'
+  report_path: queue/reports/gunshi_design_review_1476.yaml
   timestamp: '2026-04-25T18:18:00+09:00'
   target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_design_review_1476.yaml
   procedure: shared_context/qc_template.md
@@ -142,3 +144,48 @@ tasks:
   - "meta_judgment セクションに『前回biasに引きずられていないか』の自己検証を含む"
   command: "## 殿命（原文）\n『A　クリアしてもっかいかんがえなおさせろ』\n\n## 背景（軍師は読んでよい・bias情報ではなく経緯）\n前回 cmd_1475 で将軍が『5評価項目』を軍師に提示した。\n→ これは将軍の問題認識の枠組み = bias混入。\n→ 殿『将軍設計はつたえるな』命を完全には守れていなかった。\n\n## 今回の制約\n1. **前回レポート参照禁止**: queue/reports/gunshi_design_review_1475.yaml は読むな（軍師がdone判定した内容も忘れよ）\n2. **将軍の主張・設計案・問題提起は一切渡されていない**\n3. **評価項目すら指定しない**: 何を問題と見るか自体を軍師が決める\n4. **数・観点の制約なし**: 1問題でも10問題でも軍師の発見次第\n5. **『現状で問題なし』結論も許容**: 改修ありきではない\n\n## 前提情報（客観事実のみ・観察対象を提示）\nmulti-agent-shogun は 将軍/家老/足軽1-7/軍師 の9エージェント協調system。\n\n観察対象（軍師が ps/ls/grep/wc/tail で実測すべき）:\n- scripts/dashboard/server.py (port 8770 MCPダッシュボード+API)\n- scripts/inbox_write.sh / scripts/inbox_watcher.sh\n- scripts/pretool_check.sh + .claude/settings.json (hooks)\n- scripts/advisor_proxy.py (port 8780)\n- queue/shogun_to_karo.yaml\n- queue/inbox/*.yaml (9 agents分)\n- queue/tasks/*.yaml\n- queue/reports/*.yaml\n- shared_context/procedures/\n- logs/*.log\n\n## やること\n1. context /clear 後、CLAUDE.md+instructions/gunshi.md を読み直し（Session Start）\n2. 上記観察対象のうち軍師が必要と判断したものを実測\n3. 軍師自身が『この設計には何が問題か』を発見\n4. 各問題に改修要否判定 + 優先順位\n5. 将軍に渡されていない観点（hooks層・logs層・並行性・Failure mode・観測性等）も自由に発掘してよい\n6. 結果を queue/reports/gunshi_design_review_1476.yaml に出力\n\n## 注意\n- 『前回 5項目を再現する』のは bias 残留。**忘れて** 独立に発掘せよ\n- 軍師の観察眼を最大限信頼する。『改修要らず』結論も歓迎。\n- 将軍/家老/殿への忖度は要らぬ。"
   steps: "Session Start(CLAUDE.md+instructions/gunshi.md読む)→観察対象を実測(ps/ls/grep/wc/tail)→問題を独自発見→advisor()→優先順位付け→queue/reports/gunshi_design_review_1476.yaml作成→inbox_write karo"
+- task_id: qc_1477_stage1
+  parent_cmd: cmd_1477
+  assigned_to: gunshi
+  bloom_level: L3
+  status: done
+  qa_decision: pass
+  completed_at: '2026-04-25T18:53:00+09:00'
+  report_path: queue/reports/gunshi_report_qc_1477_stage1.yaml
+  timestamp: '2026-04-25T18:47:00+09:00'
+  description: cmd_1477 Stage1 QC。subtask_1477a(advisor_proxy モデル切替)とsubtask_1477c(logrotate/cron代替+inbox_watcher DEBUG化)の両方をQCせよ。報告は1ファイル。
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1477_stage1.yaml
+  procedure: shared_context/qc_template.md
+  steps: 'shared_context/qc_template.md参照→[1477a QC]: queue/reports/ashigaru4_report_subtask_1477a.yaml読む→scripts/advisor_proxy.py読んでモデル変更箇所確認→logs/advisor_proxy.logでtimeout件数確認→[1477c QC]: queue/reports/ashigaru5_report_subtask_1477c.yaml読む→scripts/inbox_watcher.sh読んでDEBUG化箇所確認→ユーザーcron代替の妥当性判定(sudo拒否環境制約として許容か)→advisor()→両subtask PASS/FAIL判定→queue/reports/gunshi_report_qc_1477_stage1.yaml作成→inbox_write karo QC結果報告'
+  acceptance_criteria:
+  - scripts/advisor_proxy.py のモデル変更が確認できること(旧モデル→軽量モデルの変更箇所を目視)
+  - logs/advisor_proxy.logでtimeout件数の改善傾向を確認
+  - scripts/inbox_watcher.sh のDEBUG化箇所が正しく追加されていること
+  - logrotateのユーザーcron代替が環境制約(sudo拒否)に対する妥当な解であること
+  - 完了報告YAML: queue/reports/gunshi_report_qc_1477_stage1.yaml
+  notes:
+  - 1477c: /etc/logrotate.d/はsudo拒否→ユーザーcron代替は軽微obsとして記録し、動作上は妥当と判定してよい
+  - Stage2(subtask_1477b inbox_write.sh安全化)はQC PASS後に家老が発令する
+- task_id: design_storage_migration_1480
+  parent_cmd: cmd_1480
+  assigned_to: gunshi
+  bloom_level: L5
+  status: in_progress
+  started_at: '2026-04-25T18:54:30+09:00'
+  timestamp: '2026-04-25T18:47:00+09:00'
+  description: TODO B (読込API/SQLite化計画) の妥当性チェック+詳細設計。背景全体像(殿のcontext経済性指摘・将軍経緯・軍師cmd_1476独立判定との乖離)を開示済。独立判断で設計レビューせよ。
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_design_storage_migration_1480.yaml
+  procedure: shared_context/qc_template.md
+  steps: 'qc_1477_stage1完了後に着手(家老がstatus:assignedに更新してから)→shared_context/todo_storage_migration.md全文読む→queue/reports/gunshi_design_review_1476.yaml参照→queue/shogun_to_karo.yaml cmd_1480 command全文読む→各段階(1:GET API/2:agent行動切替/3:JSON Lines化/4:SQLite化/5:旧Read廃止)の妥当性判定+詳細設計+抜け観点発掘+実装優先順位再評価→advisor()→queue/reports/gunshi_design_storage_migration_1480.yaml作成→inbox_write karo'
+  acceptance_criteria:
+  - shared_context/todo_storage_migration.md 全文を読んでいること
+  - 段階1〜5の妥当性判定を全て記載
+  - 各段階の詳細設計(schema/migration手順/error handling/rollback策)
+  - 抜け観点の独立発掘
+  - 実装優先順位の再評価
+  - meta_judgment: 前回判定と殿命の整合点
+  - 出力: queue/reports/gunshi_design_storage_migration_1480.yaml
+  notes:
+  - 優先度: qc_1477_stage1完了後に着手(家老がステータス更新したら開始)
+  - 殿命「背景理由も含めておけ」→queue/shogun_to_karo.yaml cmd_1480 commandに全背景記載済
+  - 「進めるべきでない」と判断する場合も堂々と述べてよい

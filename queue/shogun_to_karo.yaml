@@ -1718,3 +1718,166 @@ commands:
     \ (B: 読込API/SQLite化計画) 既存。cmd_1477完遂後に段階1から着手予定。\n\n## 注意\n- 軍師QCは各subtaskに必須。軍師レポートで発掘された問題ゆえ、軍師自身がQC適任。\n\
     - 修正範囲は軍師指摘箇所に限定し、関連箇所のリファクタは別cmd化せよ（scope creep禁止）。\n- subtask_1477b で server.py\
     \ に POST /api/cmd_update を追加する場合、cmd_1474 のpass-through実装を踏襲し flock+atomic+lord_original対応を保つ。"
+- id: cmd_1478
+  status: in_progress
+  started_at: '2026-04-25T18:51:00+09:00'
+  priority: high
+  purpose: cmd_1464 Day6 Echidna 4視点MIX final.mp4 (YouTube EVfo4W7jCIc) の規格逸脱を修正・sync_record.yaml生成必須化
+  timestamp: '2026-04-25T18:41:54+09:00'
+  lord_original: MEN→4画面→MENは１戦目だけよ　並列発行OK / ちゃんと時刻調整したかも記録のこすようにせよ　各動画で時間ぴったりじゃないから
+    / １戦目はMEN視点４画面MEN視点のじゅんでおわれ　右上テロップが標準とちがう　ナレッジがあるはず
+  project: dozle_kirinuki
+  redo_of: cmd_1464
+  north_star: Day6 Echidna 4視点MIX動画を multi_view_scene_switch.md 鉄則3/4準拠に修正し、sync調整の証跡を残してダッシュボード信頼性を回復する。
+  acceptance_criteria:
+  - '1戦目seg: MEN視点 → 4画面grid → MEN視点 の3段構成で終わる（殿指示・1戦目限定パターン）'
+  - '8戦目seg: 通常の視点切替パターン (最初MEN→中間charlotte/hendy/tsurugi→たまに4画面grid→最後MEN固定・鉄則3準拠)'
+  - '右上テロップ: 「エキドナ(初戦)」「エキドナ(8戦目)」 ffmpeg drawtext 形式（鉄則4準拠）'
+  - 'sync_record.yaml 生成必須 (殿要件): measurements/consistency_check/applied_to_mix/visual_verification
+    4セクション'
+  - 既存 sync_offsets_8sen{,_check2,_check3}.json を sync_record.yaml の measurements
+    に統合
+  - YouTube動画 EVfo4W7jCIc を差替え (再アップロード or update) ・URL 殿に通知
+  - '軍師QC: 視覚的検証必須 (mpv --speed=2.0 で seg境界 4箇所 + 1戦目視点パターン + 8戦目視点パターン + 右上テロップ実視聴)'
+  - git commit + push (sync_record.yaml + 修正済 final.mp4 への参照含む)
+  command: "## 殿指摘\n『１戦目はMEN視点→4画面→MEN視点のじゅんでおわれ』\n『右上テロップが標準とちがう　ナレッジがあるはず』\n『ちゃんと時刻調整したかも記録のこすようにせよ　各動画で時間ぴったりじゃないから』\n\
+    『MEN→4画面→MENは１戦目だけよ』\n\n## 標準仕様（既存ナレッジ）\n参照必須: shared_context/procedures/multi_view_scene_switch.md\n\
+    \n### 鉄則3（視点切替パターン）\n- 最初/最後: 基準視点固定 (例: MEN)\n- 中間: 他視点バリエーション (charlotte/hendy/tsurugi)\n\
+    - たまに 4画面 grid (盛り上がりシーン)\n\n### 鉄則4（右上テロップ）\n- ffmpeg drawtext で「エキドナ(初戦)」「エキドナ(8戦目)」を\
+    \ seg ごと\n- 視点名テロップは不要（鉄則6）\n\n## 1戦目の特例（殿指示・本cmd限定）\n1戦目は短い (142秒) ゆえ MEN視点 →\
+    \ 4画面grid → MEN視点 の3段シンプルパターンで終わる。\n中間に charlotte/hendy/tsurugi 単独切替は入れない（短いseg\
+    \ ゆえ視点切替過多を避ける）。\nこの特例は『短いseg は MEN→4画面→MEN シンプルパターンでOK』として multi_view_scene_switch.md\
+    \ に追記要 (cmd_1479で対応)。\n\n## 8戦目（通常パターン）\n2150秒の長尺ゆえ鉄則3 通常パターン適用:\n- 最初: MEN固定\
+    \ (~30秒)\n- 中間: charlotte/hendy/tsurugi を 30-60秒で機械的切替+盛り上がりシーン判断\n- たまに 4画面grid\
+    \ (盛り上がり時)\n- 最後: MEN固定 (~30秒)\n\n## sync_record.yaml 生成必須 (殿要件)\n出力先: work/cmd_1478/sync_record.yaml\n\
+    フォーマット:\n```yaml\nsync_record:\n  cmd_id: cmd_1478\n  generated_at: <ISO8601>\n\
+    \  reference_video: oo_men_8sen.mp4\n  view_videos: [charlotte_8sen.mp4, hendy_8sen.mp4,\
+    \ tsurugi_8sen.mp4]\n  measurements:\n    primary:   {ref_start_sec: 1000, sample_sec:\
+    \ 60, offsets: {charlotte: ..., hendy: ..., tsurugi: ...}}\n    check1:    {ref_start_sec:\
+    \  500, sample_sec: 120, offsets: {...}}\n    check2:    {ref_start_sec: 2000,\
+    \ sample_sec: 60, offsets: {...}}\n  consistency_check:\n    pass: true\n    max_diff_sec:\
+    \ 0.02       # 全check間の最大差分\n    threshold_sec: 0.5\n  applied_to_mix:\n    ffmpeg_inputs:\n\
+    \      - {file: oo_men_8sen.mp4,    ss: 0}\n      - {file: charlotte_8sen.mp4,\
+    \ ss: <offset値>}\n      - {file: hendy_8sen.mp4,     ss: <offset値>}\n      - {file:\
+    \ tsurugi_8sen.mp4,   ss: <offset値>}\n    output_files: [seg1戦目.mp4, seg8戦目.mp4]\n\
+    \  visual_verification:\n    method: \"amix=inputs=4 で 60秒サンプル抽出 → 耳echo確認 + 視覚同期±1frame確認\"\
+    \n    verifier: ashigaru1\n    result: pass\n    sample_files: [verify_60s_pos1000s.mp4,\
+    \ verify_60s_pos2000s.mp4]\n    notes: \"...\"\n```\n既存 sync_offsets_8sen.json\
+    \ / sync_offsets_8sen_check2.json / sync_offsets_8sen_check3.json は measurements\
+    \ に統合参照。\n\n## YouTube差替え\n対象: https://youtu.be/EVfo4W7jCIc (cmd_1464で非公開アップ済)\n\
+    方法: youtube_uploader.py の update mode or 新規アップ→旧削除のいずれか家老判断。privacyStatus=private\
+    \ 維持。defaultLanguage=ja 維持。\n\n## 軍師QC厳守事項 (cmd_1464でのQC形骸化反省)\n- ffprobe・API確認だけでなく\
+    \ **視覚的検証必須**\n- mpv --speed=2.0 で 38分動画を 4-5分でスキャン\n- 確認項目: (1)1戦目seg MEN→4画面→MEN\
+    \ 順序確認 (2)8戦目seg 鉄則3パターン確認 (3)右上テロップ「エキドナ(初戦)」「エキドナ(8戦目)」表記確認 (4)seg境界 wipeleft+sceneswitch1\
+    \ SE\n- sync_record.yaml の consistency_check.pass=true / visual_verification.result=pass\
+    \ 検証\n\n## 実装の参考\n- cmd_1464 work/cmd_1464/ の生成スクリプト・transition.mp4・sync_offsets\
+    \ を流用\n- cmd_1424 zephyrus_v3.sh (Day5 Zephyrus) のテロップ実装を参照"
+- id: cmd_1479
+  status: in_progress
+  started_at: '2026-04-25T18:51:00+09:00'
+  priority: high
+  purpose: 動画系QC規格化（QC形骸化対策）+ sync_record.yaml フォーマット標準化（殿要件）
+  timestamp: '2026-04-25T18:41:55+09:00'
+  lord_original: MEN→4画面→MENは１戦目だけよ　並列発行OK / ちゃんと時刻調整したかも記録のこすようにせよ　各動画で時間ぴったりじゃないから
+  project: multi-agent-shogun
+  north_star: cmd_1464でのQC形骸化（軍師PASS後に殿が規格逸脱発見）を再発させぬよう、動画系cmdの acceptance_criteria
+    標準テンプレと軍師QC視覚検証必須化と sync_record.yaml規格を確立する。
+  acceptance_criteria:
+  - shared_context/procedures/multi_view_sync.md に Step 7「sync_record.yaml 生成必須」+
+    鉄則5「sync_record.yaml なき MIX は完了とみなさない」追加
+  - shared_context/procedures/multi_view_scene_switch.md に『acceptance_criteria 標準テンプレ』セクション追加（鉄則3/4の検証条件を必須項目化）+
+    1戦目シンプルパターン（短いseg=MEN→4画面→MEN）を補足
+  - shared_context/qc_template.md に『動画タスクQC追加項目』セクション追加（mpv視覚検証・seg境界・視点パターン・テロップ規格・sync_record検証）
+  - instructions/karo.md または別の家老向けチェックリストに『動画系cmd起票時の必須項目（sync_record必須・視覚検証必須・ナレッジ参照必須）』追加
+  - 軍師の qc 手順（既存があれば更新・なければ shared_context/procedures/gunshi_video_qc.md として新規）に視覚検証ステップを追加
+  - 全変更ファイルを git commit + push
+  - 既存 cmd_1478 (Day6 Echidna 修正) はこの規格適用1号として走る
+  command: "## 殿指摘\n『ちゃんと時刻調整したかも記録のこすようにせよ　各動画で時間ぴったりじゃないから』\n『右上テロップが標準とちがう　ナレッジがあるはず』\
+    \ → ナレッジは存在したが acceptance_criteria に組込まれていなかった (cmd_1464教訓)\n『並列発行OK』\n\n## 背景:\
+    \ cmd_1464 QC形骸化\n軍師 qc_1464b は ffprobe/API/git 検証のみで PASS 6/6 を出した。動画の中身（視点切替・右上テロップ）は\
+    \ obs_transition_visual_unverified で 『家老が殿確認時に2x速で軽くスキャン推奨』と責任転嫁。\n→ 殿が動画再生して規格逸脱2点発見。再発防止策が本cmd。\n\
+    \n## やること\n\n### 1. shared_context/procedures/multi_view_sync.md 改訂\n追加内容:\n-\
+    \ **Step 7（新規）**: sync_record.yaml 生成必須セクション (cmd_1478 commandで定めたフォーマット転載)\n\
+    - **鉄則5（新規）**: sync_record.yaml が無ければ MIX完了と認めない\n- **既知ケース表更新**: cmd_1464 の sync_offsets_8sen.json\
+    \ 群への参照追加\n\n### 2. shared_context/procedures/multi_view_scene_switch.md 改訂\n\
+    追加内容:\n- **新セクション『acceptance_criteria 標準テンプレ』**: 動画系cmd発令時に家老が必ず含める検証条件\n  ```\n\
+    \  - 視点切替パターン: 鉄則3（最初/最後 基準視点固定 + 中間バリエーション）準拠の視覚確認\n  - 右上テロップ: 鉄則4「<ボス名>(<戦闘番号>)」形式の視覚確認\n\
+    \  - seg境界: wipeleft+sceneswitch1 等 selected_json_v2_spec.md 準拠\n  - 軍師QC: mpv\
+    \ --speed=2.0 で実視聴必須 (ffprobe単独不可)\n  - sync_record.yaml: multi_view_sync.md Step\
+    \ 7 準拠で提出\n  ```\n- **1戦目特例追記**: 短いseg (≤200秒目安) は『MEN→4画面→MEN』のシンプルパターンOK (cmd_1478殿指示の恒久化)\n\
+    - **既知ケース表更新**: cmd_1478 (Day6 Echidna 修正版) を追加\n\n### 3. shared_context/qc_template.md\
+    \ 改訂\n追加セクション『動画タスクQC追加項目』:\n```\n動画系cmd の場合、以下を必須実行:\n- [ ] mpv --speed=2.0 でフル視聴\
+    \ (38分動画なら 4-5分)\n- [ ] seg境界の transition (wipeleft等) 視認\n- [ ] 視点切替パターンの鉄則3準拠視認\n\
+    - [ ] 右上テロップ規格 (鉄則4) 視認\n- [ ] sync_record.yaml 存在＋consistency_check.pass=true\
+    \ 確認\n- [ ] visual_verification.result=pass 確認\n- [ ] verify_60s_*.mp4 サンプル動画を実再生して\
+    \ echo無し確認\n軍師は ffprobe/API確認だけでQC PASSを出してはならない (cmd_597/cmd_1464 教訓)。\n```\n\
+    \n### 4. 家老向け動画cmd起票チェックリスト\ninstructions/karo.md の Karo Task Assignment Checklist\
+    \ に動画系cmd向け追加項目:\n- 動画系cmd の場合、acceptance_criteria に必ず multi_view_scene_switch.md\
+    \ 標準テンプレを含めよ\n- sync_record.yaml の target_path を必ず付与\n- mpv視覚検証を軍師QCタスクに必須化（task\
+    \ YAML steps に明記）\n\n### 5. 軍師QC手順 (gunshi向け)\n既存に動画qc手順がなければ shared_context/procedures/gunshi_video_qc.md\
+    \ を新規作成し、上記 qc_template.md 動画追加項目を参照する形で簡潔にまとめる。\n\n## 実装範囲外 (別cmd)\n- 過去動画(cmd_1424\
+    \ Day5 Zephyrus等)の遡及検証は本cmd範囲外。本cmdは未来cmdへの規格適用のみ。\n- cmd_1478 (Day6 Echidna 修正)\
+    \ は本cmd_1479規格適用1号として走るが、cmd_1478の実装は別cmd。\n\n## 軍師QC観点\n- 4ファイル変更 (multi_view_sync.md\
+    \ / multi_view_scene_switch.md / qc_template.md / karo.md or gunshi_video_qc.md)\n\
+    - 各ファイルが diff で適切に追記されているか\n- 既存内容の破壊がないか\n- cmd_1478 のacceptance_criteriaが本規格を満たすか相互検証"
+- id: cmd_1480
+  status: in_progress
+  priority: medium
+  purpose: 'shared_context/todo_storage_migration.md (TODO B: 読込API/SQLite化計画) の妥当性チェック+詳細設計を軍師に依頼。背景理由（殿のcontext経済性指摘・将軍の段階移行案・軍師cmd_1476独立判定との乖離）も全て開示。'
+  timestamp: '2026-04-25T18:43:57+09:00'
+  lord_original: ToDolistチェックと設計を　軍師に　そのためには背景理由も含めておけ
+  project: multi-agent-shogun
+  assigned_to: gunshi
+  north_star: 殿命の context経済性改善（YAML全文Read→GET API化）を確実かつ安全に実装するため、軍師の独立判定（cmd_1476で読込API化は不要と結論）と殿命の整合点を見出し、計画の抜け・リスク・優先順位を再設計する。
+  acceptance_criteria:
+  - TODO B md (shared_context/todo_storage_migration.md) 全文を Read
+  - 軍師が前回 cmd_1476 で『読込API化は不要』と独立判定した経緯と、殿命『read側もget実装すべき』の対立点を整理
+  - '各段階（1: GET API / 2: agent行動切替 / 3: JSON Lines化 / 4: SQLite化 / 5: 旧Read廃止）の妥当性判定'
+  - 各段階の詳細設計（schema・migration手順・API design・エラーハンドリング・rollback策）
+  - TODO md に抜けている観点の発掘（軍師の独立判断）
+  - 実装優先順位の再評価（殿命下で進める前提で何を最優先にすべきか）
+  - '出力: queue/reports/gunshi_design_storage_migration_1480.yaml'
+  - 'meta_judgment: 軍師の前回判定（不要）と殿命（進める）の整合点と妥協点'
+  - 「殿命でも進めるべきでない」と軍師が判断する場合はその根拠を堂々と述べてよい
+  command: "## 殿命\n『ToDolistチェックと設計を　軍師に　そのためには背景理由も含めておけ』\n→ TODO B (読込API/SQLite化計画)\
+    \ を軍師がチェック+詳細設計する。背景理由を全て開示せよ。\n\n## 背景の全体像（軍師は判断材料として全て読め）\n\n### A. 出発点: 殿の\
+    \ context経済性指摘 (2026-04-25 18:18会話)\n殿原文:\n  『わしはread側もget実装すべきだとおもう　いまだにテキストファイルを全読み込みしているんだろ\n\
+    \   それってコンテキスト消費毎ターンしてるんだろ』\n  『ｓｑｌがいいだろ　検索するなら』\n  『textかもやめたいんだが』\n→ 殿は context\
+    \ window 経済性の観点で 全文Read 廃止を判断。\n\n### B. 将軍の経緯\n将軍は当初 cmd_1475 で軍師に『読込API化すべきか』を含む5項目を提示\
+    \ (これが将軍biasと殿に指摘され cmd_1476でやり直し)。\n将軍自身は cmd_1475 段階では『読込API化は不要・YAML直Readで十分』と主張していた\
+    \ (殿に否定された)。\n殿の指摘後、将軍は context経済性試算（73KB全文Read = 20,000 tokens vs API 0.5KB =\
+    \ 100 tokens = 200倍差）に納得。\n\n### C. 軍師の独立判定 (cmd_1476)\n軍師は context完全リセット+評価項目提示なしで11問題を独立発掘。\n\
+    読込API/SQLite化は HIGH に発掘されず、shogun_to_karo.yaml は MEDIUM (atomic write のみ要対応)。\n\
+    軍師の独立判断は『現状の運用で重大な pain は出ていない』『抜本改修不要』。\n軍師レポート: queue/reports/gunshi_design_review_1476.yaml\n\
+    \n### D. 乖離の構造\n殿: context経済性（20,000 token削減）の観点 → 改修すべき\n軍師: 運用 pain ベース（unread=0、健全稼働）の観点\
+    \ → 改修不要\n→ 観点が違うため『どちらが正しい』ではなく『何を優先するか』の問題。\n殿命優先（『根幹システムは将軍がやれ』『read側もget実装すべき』）で進める前提。\n\
+    \n### E. TODO B の位置付け\nshared_context/todo_storage_migration.md を将軍が起票。段階1〜5の移行計画。\n\
+    殿命を反映した「中期施策」として永続記録。HIGH 3件 (cmd_1477) 完遂後着手予定。\n\n## やること\n\n### 1. TODO B md\
+    \ 全文 Read\n対象: shared_context/todo_storage_migration.md (108行)\nファイル全文を読み、各段階の意図・規模感・リスクを把握。\n\
+    \n### 2. 各段階の妥当性判定\n各段階に対し:\n- 妥当: そのまま進めてよい\n- 要修正: 論理破綻・抜けあり・修正案を提示\n- 順序入替:\
+    \ より安全な順序があれば提示\n- 不要: そもそも実施すべきでない理由\n判定対象:\n- 段階1: GET API 3本 (cmd_pending/inbox/task)\n\
+    - 段階2: agent行動切替 (Read→curl GET)\n- 段階3: ストレージJSON Lines化\n- 段階4: SQLite化\n- 段階5:\
+    \ 旧Read方式廃止\n\n### 3. 各段階の詳細設計\n軍師が『この設計で実装すれば壊れにくい』と判定する詳細を出せ:\n- API schema\
+    \ (request/response の正確な型)\n- migration手順 (dual-path期間の設計)\n- error handling /\
+    \ rollback策\n- 既存hooks (pretool_check.sh等) との互換性\n- index 設計 (SQLite段階で何にindex貼るか)\n\
+    - 認証・atomic性・並列性\n\n### 4. 抜けている観点の発掘\n将軍の TODO md には記載されていないが軍師が重要と思う観点を独立に発掘:\n\
+    - 例: 監視 / 性能測定 / DR (disaster recovery) / 監査ログ / etc.\n- 軍師の cmd_1476 で見つけた11問題との連動\
+    \ (例: logs/ 187MB問題が SQLite WAL log でも再発しないか)\n\n### 5. 実装優先順位の再評価\n殿命下で進める前提で、何を最優先にすべきか軍師の独立判断:\n\
+    - まず段階1だけ実装→運用観察→次に段階2、の段階リリースか\n- 段階1〜5を一気にやるリスクと利点\n- HIGH 3件 (cmd_1477) との並走リスク\n\
+    \n### 6. 「進めるべきでない」結論も歓迎\n軍師が独立判断で『殿命とはいえこの計画は壊れる』と思うなら堂々と述べよ。\nその場合は具体的に何が壊れるか、代替案は何か、まで出せ。\n\
+    \n## 出力フォーマット\nqueue/reports/gunshi_design_storage_migration_1480.yaml\n\n```yaml\n\
+    review_id: gunshi_design_storage_migration_1480\ngunshi: gunshi_opus\nevaluated_at:\
+    \ <ISO8601>\nparent_cmd: cmd_1480\nbackground_understood: |\n  殿のcontext経済性指摘\
+    \ / 将軍経緯 / 軍師cmd_1476判定 / 乖離構造 を理解した上で本レビュー実施。\nstage_evaluations:\n  stage_1_get_apis:\n\
+    \    verdict: <妥当/要修正/順序入替/不要>\n    detailed_design:\n      schemas: [...]\n \
+    \     migration: ...\n      error_handling: ...\n      rollback: ...\n    risks:\
+    \ [...]\n    recommendations: [...]\n  stage_2_agent_switch: {...}\n  stage_3_jsonl:\
+    \ {...}\n  stage_4_sqlite: {...}\n  stage_5_legacy_removal: {...}\nmissing_perspectives:\n\
+    \  - id: ...\n    title: ...\n    rationale: ...\nrevised_priority_ranking: [...]\n\
+    integration_with_high_3:\n  cmd_1477_advisor_proxy: <連動・干渉なし>\n  cmd_1477_inbox_write:\
+    \ <干渉あり: inbox_write改修と段階1のGET inbox APIが衝突可能性>\n  cmd_1477_logrotate: <連動・干渉なし>\n\
+    meta_judgment:\n  prior_judgment_alignment: |\n    cmd_1476 で『改修不要』と判定したが、殿命下で進める前提で本レビューでは『進めるための設計』に注力。\n\
+    \    殿命を否定する論拠が新たに見つかった場合のみ『進めるべきでない』結論を出す。\n  novel_insights: [...]\nsummary:\
+    \ ...\n```\n\n## 注意\n- 前回 cmd_1476 と異なり、本cmdは『将軍の計画を軍師がレビュー』。完全独立評価ではない。\n- 軍師の前回判定\
+    \ (改修不要) は記録として残るが、本cmdは『殿命下でやるならどう設計するか』が主目的。\n- 軍師が『やるべきでない』と判断するなら堂々と述べよ。殿/将軍への忖度は要らぬ。\n\
+    - TODO B md は将軍起票ゆえ将軍biasを含む。軍師は批判的に読み・誤りを指摘してよい。"

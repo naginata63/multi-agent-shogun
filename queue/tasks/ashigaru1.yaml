@@ -347,7 +347,7 @@ tasks:
 - task_id: subtask_1464b
   parent_cmd: cmd_1464
   bloom_level: L4
-  status: assigned
+  status: done
   timestamp: '2026-04-25T17:02:00+09:00'
   target_path: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260416_【#DoZ】6日目 腹から声が出ないヒーラーに命を任せれられるとでも？【ドズル社／おおはらMEN視点】/final.mp4"
   procedure: shared_context/procedures/day6_mix_video.md
@@ -370,3 +370,30 @@ tasks:
   - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
     \ gunshi '足軽1号、subtask_1464b完了(final.mp4+YouTube URL)。QC依頼。'\
     \ report_completed ashigaru1"
+- task_id: subtask_1478a
+  parent_cmd: cmd_1478
+  assigned_to: ashigaru1
+  bloom_level: L4
+  status: assigned
+  timestamp: '2026-04-25T18:48:00+09:00'
+  description: Day6 Echidna 4視点MIX規格修正(cmd_1464 redo)。3点: (1)1戦目seg再生成=MEN→4画面grid→MEN(work/cmd_1464/seg1sen.mp4は旧パターンゆえ再利用禁止) (2)8戦目seg=鉄則3通常パターン(seg8sen.mp4ファイル確認+drawtext追加) (3)右上テロップ「エキドナ(初戦)」「エキドナ(8戦目)」。concat→YouTube差替(EVfo4W7jCIc)。sync_record.yaml必須。
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260416_【#DoZ】6日目 腹から声が出ないヒーラーに命を任せれられるとでも？【ドズル社／おおはらMEN視点】/sync_record.yaml
+  procedure: shared_context/qc_template.md
+  steps: 'advisor()実装前→queue/shogun_to_karo.yaml cmd_1478全文読む→shared_context/procedures/multi_view_scene_switch.md(鉄則3/4)+multi_view_sync.md読む→work/cmd_1464/内容確認(seg1sen.mp4/seg8sen.mp4/sync_offsets*.json存在+破損確認)→[1戦目]:MEN→4画面grid→MEN の filter_complex設計+drawtext「エキドナ(初戦)」(鉄則4)+h264_nvenc実行→[8戦目]:seg8sen.mp4破損確認→問題なければdrawtext「エキドナ(8戦目)」追加/破損なら再生成→sync_record.yaml生成(projects/dozle_kirinuki/work/DAY6_DIR/sync_record.yaml・既存offsets統合)→concat(wipeleft+sceneswitch1 SE)→ffprobe確認→YouTube差替(youtube_uploader.py update/新規・EVfo4W7jCIc private維持)→advisor()完了前→git commit→inbox_write gunshi QC依頼→inbox_write karo完了報告'
+  acceptance_criteria:
+  - 1戦目seg: MEN視点→4画面grid→MEN視点 の3段構成(目視確認必須)
+  - 8戦目seg: 鉄則3通常パターン(最初/最後MEN固定・中間charlotte/hendy/tsurugi)
+  - 右上テロップ「エキドナ(初戦)」「エキドナ(8戦目)」 ffmpeg drawtext形式
+  - sync_record.yaml: DAY6_DIR/sync_record.yaml に生成(4セクション+consistency_check.pass=true)
+  - YouTube EVfo4W7jCIc 差替完了・privacyStatus=private・defaultLanguage=ja維持
+  - 完了報告YAML: queue/reports/ashigaru1_report_subtask_1478a.yaml
+  - git commit + push
+  notes:
+  - 重要: work/cmd_1464/seg1sen.mp4は旧パターン(MEN単独etc)→再利用禁止・必ず再生成
+  - work/cmd_1464/seg8sen.mp4はffprobe確認必須(cmd_1464でmoov atom not foundの破損歴あり→最終的には再生成or修復済のはず)
+  - 出力先は全てprojects/dozle_kirinuki/work/DAY6_DIR/(pretool_check BLOCK回避)
+  - ffmpeg h264_nvenc必須(libx264禁止)
+  - sync_record.yaml: 既存 sync_offsets_8sen.json/.._check2/.._check3 を measurements に統合参照
+  - YouTube差替: youtube_uploader.py のupdate mode or 新規アップ→旧削除のいずれか判断
+  - 参照: cmd_1424 zephyrus_v3.sh(テロップ実装例)/work/cmd_1464/(transition.mp4等)
+  - 軍師QC: mpv --speed=2.0 で実視聴必須(ffprobe単独不可)
