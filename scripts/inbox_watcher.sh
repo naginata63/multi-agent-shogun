@@ -234,7 +234,7 @@ should_throttle_nudge() {
     if [ "${LAST_NUDGE_COUNT:-}" = "$unread_count" ] && [ "${LAST_NUDGE_TS:-0}" -gt 0 ]; then
         local age=$((now - LAST_NUDGE_TS))
         if [ "$age" -lt "${cooldown_sec}" ]; then
-            echo "[$(date)] [SKIP] Throttling nudge for $AGENT_ID: inbox${unread_count} (${age}s < ${cooldown_sec}s, cli=$effective_cli)" >&2
+            [ "${LOG_LEVEL:-INFO}" = "DEBUG" ] && echo "[$(date)] [DEBUG] [SKIP] Throttling nudge for $AGENT_ID: inbox${unread_count} (${age}s < ${cooldown_sec}s, cli=$effective_cli)" >&2
             return 0
         fi
     fi
