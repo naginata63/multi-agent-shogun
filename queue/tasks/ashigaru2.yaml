@@ -2029,3 +2029,24 @@ tasks:
     - "殿選択inbox到着まで final.png 確定を保留。中間報告で3案URLを inbox_write karo"
     - "advisor()必須(作業前・完了前)"
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽2号、subtask_1467a完了(Day6サムネ3案+final確定)。QC依頼。' report_completed ashigaru2"
+- task_id: subtask_1467b
+  parent_cmd: cmd_1467
+  bloom_level: L3
+  status: assigned
+  timestamp: "2026-04-25T15:06:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/ashigaru2_report_subtask_1467b.yaml
+  description: "cmd_1467 v2 サムネ再生成: --ref-limit 0 追加でcompetitor_thumbs完全カット。殿選択(15:01)=前者(--ref-limit 0)。ぼんじゅうる中央配置解消を期待。"
+  steps: "Step1: thumbnail_echidna/ に移動→旧3案を _v1 にrename→Step2: source config/vertex_api_key.env→Step3: python3 generate_thumbnail.py [コマンド通り] --ref-limit 0 で再生成→Step4: 3案生成完了確認→Step5: ntfy殿に http://192.168.2.7:8081/ 通知→Step6: inbox karo報告"
+  acceptance_criteria:
+    - "thumbnail_energetic_1/2/3.png 新版生成完了"
+    - "旧版 _v1 にrename済み(backup)"
+    - "ntfy殿スマホ通知済み"
+    - "LAN公開 http://192.168.2.7:8081/ で新3案閲覧可能"
+    - "inbox karo 報告"
+  notes:
+    - "dir: projects/dozle_kirinuki/work/20260416_…/thumbnail_echidna/"
+    - "コマンド全文: shogun inbox msg_20260425_150511_aab37942 参照"
+    - "--ref-limit 0 が今回の核心(competitor_thumbs完全カット)"
+    - "source config/vertex_api_key.env 必須"
+    - "軍師QCは最終final.png確定後。今回は3案生成+ntfy殿通知まで"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1467b完了。新3案 http://192.168.2.7:8081/ ntfy通知済み。' report_completed ashigaru2"
