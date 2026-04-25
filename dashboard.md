@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 09:55
+最終更新: 2026-04-25 11:35
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -8,29 +8,8 @@
 
 ## 🚨 要対応（殿の御判断必要）
 
-### ✅ 解決済み YouTubeオートダビング件 完全close（殿判断 09:48）
-
-- cmd_1458 ✅ 新版(zP_j7NRg9Lw)public化・旧版(8M31MYOlRgY)private化完了
-- cmd_1460 ✅ 残19本: private 18本(視聴者0)＋unlisted 1本(殿判断で放置)・全件対処不要
-- YouTubeオートダビング問題: 完全close
-
-### ✅ 解決済み cmd_1452 disk掃除（殿判断(07:52): Option C 84%妥協確定）
-
-Tier-A 35GB回収 88%→84%で完了扱い。Tier-B追加削除なし。
-Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
-
-### ✅ 解決済み cmd_1451 HIGH Finding（advisor_proxy対応完了・genai_daily要確認）
-
-1. **advisor_proxy INFO行** → ✅ **cmd_1457 QC PASS_with_finding(08:33)** 30分観察FP 0件達成
-2. **genai_daily.log 403/404/429** → 別cmdで追加検討推奨（Finding INFO: WARN flush 1172件/30min）
-
-### ℹ️ スキル化候補（殿承認済・発令済）
-- ~~**skill-candidate-tracker**~~: ✅ **完遂 02:54** commit ccd613e・qc_1447発令中
-- ~~**H_post_step_completion_detector**~~: ✅ **殿承認(07:19)→cmd_1455発令済** 足軽4号着手中
-- ~~**cmd_1449_d follow-up 2件**~~: ✅ **殿判断(07:17) 対応不要** 両件close
-
 ### ⚠️ 技術的残課題（将来対処）
-- **Day6 4視点MIX codec混在**: charlotte=vp9 / 他=h264 → concat -c copy不可・事前トランスコード必須（Day6 MIX cmd起票時に明示必要）
+- **Day6 4視点MIX codec混在**: charlotte=vp9 / 他=h264 → concat -c copy不可（cmd_1463で1戦目+8戦目をh264統一DL中・完遂後に本課題解決予定）
 
 ### 📌 技術知見: YouTube音声不調の真因（cmd_1458発見・08:31）
 
@@ -47,37 +26,17 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 - **.gitignore work/配下**: git add -f で強制追加運用中（足軽4号指摘）→ work/ は.gitignoreから除外 or 運用見直し
 - **git add . 事故(cmd_1443_p05 commit 1440284)**: 足軽2号が git add . で p02 成果物(足軽1号 dashboard_lifecycle.sh)+nightly_audit.sh+dashboard.md を巻込みcommit。以後 **全足軽で git add -p or 明示パス指定を徹底** 必須。H11 lord-angry slash(p08) 完成後に feedback_git_safety.md 自動生成予定
 
-### ✅ cmd_1443_p04 H4 silent_fail_watcher 常駐化完遂（殿20:23承認）
-- systemctl --user daemon-reload + enable + start + status で **active (running) since 2026-04-24 20:23:50 JST** 確認
-- Main PID: 1665670 / Memory: 1.4M / enabled (preset: enabled)
-- Gemini 22K円課金事故型の予防ハーネス**稼働開始**
-- 誤検知頻発時は exclusion pattern tune or 家老判断で一時 stop 可（殿委任）
-
 ### 🔧 cmd_1443_p09 軍師QCで検出した incidental 3件（別cmd化推奨）
 - **C02 Traceback**: 既存スクリプトのどこかで例外処理未整備
 - **C08 /tmp 禁止違反**: CLAUDE.md ルール違反の /tmp 使用スクリプトあり(work/配下に移行要)
 - **C09 slim_yaml 連結**: scripts/slim_yaml.sh の連結ロジックに不具合。別cmdで cleanup 要
 
-### ✅ nightly_audit_20260425_infra MEDIUM 対処完了(cmd_1456)
-- ~~**(a) inbox_watcher.sh .venv hardcoded**~~: **✅ PASS(07:47・軍師QC)** subtask_1456a完遂(eb5820b)
-- ~~**(b) capability_tiers karo=sonnet 不在**~~: **殿判断(07:23) 対応不要** (家老はbloom_routing対象外)
-- ~~**(c) /home/murakami hardcoded 11箇所**~~: **✅ 完遂(07:49)** subtask_1456c 24ファイル51箇所・軍師QC中
-- ~~**(d) task_yaml_schema.md post_steps未記載**~~: **✅ PASS** subtask_1456d完遂(ed199ab)
-
-### ℹ️ nightly_audit_20260425_infra INFO 4件(対処不要)
-- MCP Phase 4 dead code 解消(H1→解消)
-- CHK8 git add BLOCK hook 配線済
-- ntfy.sh LAN IP 自動置換
-- karo→gunshi nudge storm は mechanism 解明のみ対処不要
-
----
-
 ## 🔄 進行中
 
 | cmd | 担当 | 状態 |
 |-----|------|------|
-| cmd_1461 | 足軽2号→軍師 | ✅ **PASS(10:41)** Logic A=19件/Logic B=2件自動削除・1hcron設定・memory化完了 |
-| cmd_1462 | 足軽2号→軍師 | 🔄 **Phase1発令(11:07)** Logic C/D/E実装+dry-run候補確認中 |
+| cmd_1462 | 足軽2号→軍師QC | 🔄 **production完了(11:25)** 146→104行削減・軍師QC待ち |
+| cmd_1463 | 足軽1号 | 🔄 **発令(11:35)** Day6 1戦目+8戦目 4視点h264 DL・切出 |
 
 ---
 
@@ -85,14 +44,14 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | GLM | ✅ idle | subtask_1453a_observe ✅完了(10:29)・WARN 0件全確認 |
-| 2号 | GLM | 🔄 busy | subtask_1462a 発令(11:07)・Logic C/D/E実装+dry-run Phase1 |
+| 1号 | GLM | 🔄 busy | subtask_1463a 発令(11:35)・Day6 4視点h264 DL・切出 |
+| 2号 | GLM | ✅ idle | subtask_1462a ✅production完了(11:25)・Logic C/D/E 41行削除 |
 | 3号 | Opus[1m] | ✅ idle | subtask_1458b ✅完了(08:39)・新版public+旧版private確認 |
 | 4号 | GLM | ✅ idle | cmd_1455 ✅PASS(07:57・軍師QC) |
 | 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1456d ✅PASS(軍師QC) |
-| 軍師 | Opus[1m] | ✅ idle | qc_subtask_1461a ✅PASS(10:41) / 全QC完了 |
+| 軍師 | Opus[1m] | 🔄 busy | qc_subtask_1462a 発令(11:35)・Logic C/D/E 誤削除0件確認 |
 
 ---
 

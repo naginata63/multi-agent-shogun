@@ -1,0 +1,3694 @@
+tasks:
+- bloom_level: L6
+  description: '## 漫画ショート汎用構図ナレッジ文書作成
+
+
+    ### 目的
+
+    cmd_1197の分析結果をTNT固有の修正案ではなく、今後の全漫画ショート制作に使える
+
+    汎用ナレッジ文書として整理する。「次に誰が漫画パネルを作っても同じ品質が出せる」が目標。
+
+
+    ### 参照: cmd_1197分析レポート
+
+    /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_cmd1197.yaml に5つの主要改善点が記録済み。これを出発点にせよ。
+
+
+    ### 分析対象パネルJSONファイル（15件）
+
+    1. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260224_ニンジンしかない世界で進捗10個クリア【マイクラ】/panels_ninjin.json
+
+    2. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260214_寝ないと死ぬ世界でエンドラ討伐/panels_932_hanauta_orafu.json
+
+    3. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260225_エンドラ30体分！？レベル250になるまで終われません！【マイクラ】/panels_level250.json
+
+    4. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260303_超巨大ちらし寿司から異物を100個見つけるまで終われません！！【マイクラ】/output/cmd_988/panels_988_chirashi.json
+
+    5. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260314_一番乗りを目指せ！天空ブロック早乗り選手権！/panels_sh4_seeno.json
+
+    6. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260316_？がついた進捗早抜け選手権！【マイクラ】/output/cmd_772/panels_shB.json
+
+    7. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260319_都道府県が使える世界でエンドラ討伐！/output/cmd_837_kazu_head/panels_kazu_head_842a.json
+
+    8. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260320_凍ったおじいちゃんをちゃちゃっと溶かすぞ！/approved/panels_datsuzei.json
+
+    9. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260322_100万ブロックのお城を作れるまで終われません！【マイクラ】/output/cmd_895/panels_895_v2.json
+
+    10. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260326_『アスレ』しかない世界でエンドラ討伐！/output/cmd_986/panels_986_clip_a.json
+
+    11. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260329_MBTIの能力を使ってエンドラ討伐！【マイクラ】/output/cmd_1029/panels_1029.json
+
+    12. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260107_極小おおはらMENを捕まえろ！！！【マイクラ】/output/cmd_934/panels_934.json
+
+    13. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260111_オウムガイの鎧/output/cmd_995/panels_995_oumugai.json
+
+    14. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260320_おらふイングリッシュ翻訳してくだサーイ！！【マイクラ】/panels_855_ika_jibaku.json
+
+    15. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260405_TNTしかないネザーから脱出できるまで終われません！【マイクラ】/panels_tnt_haguki.json（失敗例）
+
+
+    ### 出力ファイル
+
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/context/manga_composition_knowledge.md
+
+
+    ### 必須セクション構成
+
+    1. director_notesの書き方（要素・文字数・Good/Bad例）
+
+    2. 2コマ構成の使い方（いつ使うか・比率・Good/Bad例）
+
+    3. 表情指定のルール（感情アーク・r1/r2/r3使い分け・Good/Bad例）
+
+    4. 禁止事項テンプレート（常時必須・キャラ固有・過去混入オブジェクト事例集）
+
+    5. 背景・構図のルール（ref_images・背景一貫性・カメラ距離）
+
+    6. セリフ配置（YouTube UI被り回避・下部20%・右下禁止）
+
+    7. チェックリスト（panels JSON作成前確認項目）
+
+
+    ### 殿の原文指示
+
+    「汎用的なナレッジきたいしていた」「どこのナレッジいんようとか例もかかせろ」
+
+
+    ### 重要ルール
+
+    - 各ルールに引用元を付けよ（「panels_ninjin.json P1のdirector_notesより」のように）
+
+    - Good/Bad例は実際のテキストをそのまま引用（要約するな）
+
+    - cdp_manga_rules.yamlと矛盾するルールを書くな。既にあるルールは「cdp_manga_rules.yaml参照」でポインタだけ置け
+
+    - cdp_manga_rules.yamlのパス: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/context/cdp_manga_rules.yaml
+
+    - 10件以上のパネルJSONから帰納的にルールを抽出すること
+
+
+    ### QC確認項目（shared_context/qc_template.mdを参照）
+
+    殿が特に重視: 引用がない・要約されている・矛盾がある 場合はNG
+
+
+    ### テスト手順
+
+    1. manga_composition_knowledge.md が存在すること
+
+    2. 10件以上のJSONからの引用が含まれていること
+
+    3. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/context/cdp_manga_rules.yaml
+    を読んで矛盾がないこと
+
+
+    ### 完了後
+
+    ```
+
+    cd /home/murakami/multi-agent-shogun
+
+    git add /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/context/manga_composition_knowledge.md
+
+    git commit -m "feat(cmd_1201): 漫画構図汎用ナレッジ文書作成"
+
+    /home/murakami/multi-agent-shogun/scripts/ntfy.sh "📚 漫画構図ナレッジ完成 cmd_1201"
+
+    /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、subtask_1201a完了。manga_composition_knowledge.md作成済み。"
+    report_done gunshi
+
+    ```
+
+    '
+  parent_cmd: cmd_1201
+  report_to: karo
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/context/manga_composition_knowledge.md
+  task_id: subtask_1201a
+  timestamp: '2026-04-05T21:19:00'
+- bloom_level: L6
+  description: '## 購入済み漫画システム記事の分析 + うちのパイプラインへの改善提案
+
+
+    ### 前提
+
+    subtask_1204aで配布ファイルのDL・解凍が完了している。
+
+    DLファイル: /home/murakami/multi-agent-shogun/work/vast_lily4547_downloads/
+
+    記事PDF: /home/murakami/multi-agent-shogun/work/vast_lily4547_article.pdf（33ページ）
+
+
+    まず ls -la /home/murakami/multi-agent-shogun/work/vast_lily4547_downloads/ でファイル一覧を確認してから読み始めよ。
+
+
+    ### 分析対象
+
+    A. メインシステム（カスタム指示テキスト .txt）— Claudeプロジェクトに貼るプロンプト
+
+    B. 演出ナレッジ各種（カラー/白黒/リネン白/4色パーティー）— スタイル制御ルール
+
+    C. コマ割りテンプレート（あれば）— レイアウトパターン
+
+    D. 統合自動漫画生成（あれば）— 自動化構造
+
+    E. 記事PDF — システム全体の設計思想
+
+
+    ### うちのパイプラインとの比較対象
+
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/context/cdp_manga_rules.yaml
+
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/context/manga_composition_knowledge.md（本日作成）
+
+    - /home/murakami/multi-agent-shogun/skills/cdp-manga-gen/SKILL.md
+
+    - panels JSONの形式（任意の1件を参照）
+
+
+    ### 将軍が特定した注目ポイント
+
+    1. セルフチェック2段階（構造チェック + 演出チェック）の自動実行
+
+    2. 左右バイアス対策（AIの癖に対する多重ルール）
+
+    3. セリフ順序の自動修正
+
+    4. コマ割り参照画像出力
+
+    5. 演出ナレッジの分離・切替可能設計
+
+
+    ### 出力形式
+
+    差分比較表（各項目）:
+
+    | 優先度 | 改善項目 | 現状の問題 | 斉川システムのアプローチ | うちへの適用案 | 実装コスト |
+
+
+    優先度: 高/中/低
+
+
+    ### QC基準（shared_context/qc_template.mdを参照）
+
+    - 「うちへの適用案」が具体的であること（「参考にする」ではなく「cdp_manga_rules.yamlに○○を追加」等）
+
+    - 実装コストが現実的に見積もられていること
+
+
+    ### 著作権注意
+
+    - 引用は分析・改善提案のために最小限に
+
+    - git commitするな（work/配下はgitignore済み）
+
+
+    ### 完了後
+
+    /home/murakami/multi-agent-shogun/scripts/ntfy.sh "📊 cmd_1204完了: 漫画システム改善提案"
+
+    /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、subtask_1204b完了。改善提案レポート作成済み。"
+    report_done gunshi
+
+    '
+  parent_cmd: cmd_1204
+  report_to: karo
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_cmd1204.yaml
+  task_id: subtask_1204b
+  timestamp: '2026-04-05T21:55:00'
+- bloom_level: L5
+  description: "## note投稿パイプライン整備 — 設計フェーズ（軍師担当）\n\n### 目的\n足軽が実装する前に、現状調査・設計・リスク洗い出しを行う。\n\
+    設計書を出力し、家老が足軽への実装タスクを組む材料にする。\n\n---\n\n### 調査対象ファイル（必ず全て読め）\n\n**メインスクリプト:**\n\
+    - /home/murakami/multi-agent-shogun/projects/note_mcp_server/scripts/note-edit.js\n\
+    \  → --body-fileオプションの現在の実装を確認。markdownをどう処理しているか特定。\n- /home/murakami/multi-agent-shogun/projects/note_mcp_server/scripts/insert_images_gemini_article.js\n\
+    \  → 汎用化のベース。画像挿入の仕組みを把握。\n\n**散乱スクリプト一覧:**\nls /home/murakami/multi-agent-shogun/projects/note_mcp_server/\
+    \ | grep note_fix\nls /home/murakami/multi-agent-shogun/projects/note_mcp_server/scripts/\
+    \ | grep insert_images\n\n**記事本文（変換が必要なmarkdown要素の特定用）:**\n- /home/murakami/multi-agent-shogun/projects/note_mcp_server/articles/multi_agent_shogun_system.md\n\
+    \n---\n\n### 設計書に含める内容\n\n#### 1. note-edit.js markdown変換修正の設計\n- 現在の --body-file\
+    \ 処理コードの該当行を引用（コピペ）\n- 実際の記事から抽出した変換が必要なmarkdown要素の完全リスト\n- ProseMirrorへの変換ロジック案（既存のplaywright/CDP操作コードを参考）\n\
+    - 変更すべき関数名・行番号の特定\n\n#### 2. insert_images.js 汎用化の設計\n- insert_images_gemini_article.js\
+    \ のハードコード箇所を全て特定・列挙\n- 汎用化で変数化すべきパラメータのリスト\n- CLI引数仕様（--url, --images または --images-json）\n\
+    \n#### 3. archive整理の手順\n- 対象ファイルの完全リスト（ls結果から）\n- mkdir archive/ → git mv の手順コマンド列\n\
+    \n#### 4. 記事再投入手順（Phase 4）\n- 本文クリア方法（Ctrl+A→Delete or ProseMirror別手段）\n- 再投入→挿絵挿入→カバー画像設定の順序と各コマンド\n\
+    - QC確認方法\n\n#### 5. リスクと注意事項\n- note-edit.js変更で既存の使い方が壊れるリスク\n- archive移動後に他スクリプトが依存している可能性\n\
+    - 公開ボタン誤押下リスク対策\n\n---\n\n### 出力先\n/home/murakami/multi-agent-shogun/queue/reports/gunshi_report_cmd1209.yaml\n\
+    \n```yaml\nworker_id: gunshi\ntask_id: subtask_1209a\nparent_cmd: cmd_1209\ntimestamp:\
+    \ \"...\"\nstatus: done\ndesign:\n  phase1_note_edit_js:\n    current_code: |\n\
+    \      # 該当コードを引用\n    required_changes: |\n      # 変更内容\n    target_lines: \"\
+    XX-YY行目\"\n  phase2_insert_images_js:\n    hardcoded_parts: |\n      # ハードコード箇所リスト\n\
+    \    cli_spec: |\n      # CLI引数仕様\n  phase3_archive:\n    file_list: |\n     \
+    \ # 対象ファイル完全リスト\n    commands: |\n      # 実行コマンド\n  phase4_reinsertion:\n    steps:\
+    \ |\n      # 手順\n  risks: |\n    # リスクと対策\n```\n\n### テスト手順\n/home/murakami/multi-agent-shogun/queue/reports/gunshi_report_cmd1209.yaml\
+    \ が存在し内容が完全であること\n\n### 完了後\n/home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
+    \ karo \"軍師、subtask_1209a完了。note投稿パイプライン設計書作成済み。gunshi_report_cmd1209.yaml参照。\"\
+    \ report_done gunshi\n"
+  parent_cmd: cmd_1209
+  report_to: karo
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_cmd1209.yaml
+  task_id: subtask_1209a
+  timestamp: '2026-04-05T22:52:00'
+- bloom_level: L5
+  description: "## cmd_1209 note記事 QC検査\n\n### 目的\n足軽1号が撮影したnoteエディタのスクリーンショットを確認し、\n\
+    5項目のQC判定（PASS/FAIL）を行う。\n\n### 成果物（確認対象）\nスクリーンショット: /home/murakami/ピクチャ/Screenshots/note_editor_cmd1209_qc.png\n\
+    記事本文ファイル: /home/murakami/multi-agent-shogun/projects/note_mcp_server/articles/multi_agent_shogun_system.md\n\
+    \nスクリーンショットをReadツールで読み込んで目視確認せよ。\n\n### QC基準（5項目）\nshared_context/qc_template.md\
+    \ を参照してQCせよ。\n\n1. **H2/H3見出し**: `## 見出し` や `### 見出し` が生テキストでなく、\n   エディタ上で見出しブロックとして表示されているか\n\
+    2. **段落・リスト・太字**: `- リスト項目` や `**太字**` が生テキスト表示でなく\n   正しくフォーマットされているか\n3. **挿絵4枚**:\
+    \ 以下4枚がそれぞれ適切な見出しの後に配置されているか\n   - naginata_agents_working（8体のAIエージェント関連）\n  \
+    \ - naginata_48commands（48コマンド関連）\n   - naginata_harness（ハーネスエンジニアリング関連）\n   -\
+    \ naginata_achievement（1,000人達成関連）\n4. **カバー画像**: naginata_cover.jpgが設定されているか\n\
+    5. **HTMLコメント・markdown記法の生表示なし**:\n   `<!-- -->` や `##` や `**` や `---` が本文テキストとして表示されていないか\n\
+    \n### 判定ルール（CLAUDE.md QCルール準拠）\n- 実ファイル（スクリーンショット）を自分の目で読む。報告値鵜呑み禁止\n- 「問題なし」ではなく「Xを確認しYだった」と書く\n\
+    - 1項目でもFAILがあれば総合判定FAIL → 修正内容を具体的に報告\n\n### 出力先\n/home/murakami/multi-agent-shogun/queue/reports/gunshi_report_cmd1209_qc.yaml\n\
+    \n```yaml\nworker_id: gunshi\ntask_id: subtask_1209e\nparent_cmd: cmd_1209\ntimestamp:\
+    \ \"...\"\nstatus: done\nqc_result:\n  overall: \"PASS or FAIL\"\n  items:\n \
+    \   headings: \"PASS/FAIL: 確認内容\"\n    formatting: \"PASS/FAIL: 確認内容\"\n    images_4:\
+    \ \"PASS/FAIL: 確認内容\"\n    cover_image: \"PASS/FAIL: 確認内容\"\n    no_raw_markup:\
+    \ \"PASS/FAIL: 確認内容\"\n  issues: |\n    # FAILの場合: 問題点と修正方法\n  screenshot_path:\
+    \ \"/home/murakami/ピクチャ/Screenshots/note_editor_cmd1209_qc.png\"\n```\n\n### 完了後\n\
+    /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \"軍師、subtask_1209e完了。QC判定:\
+    \ PASS/FAIL。gunshi_report_cmd1209_qc.yaml参照。\" report_done gunshi\n"
+  parent_cmd: cmd_1209
+  report_to: karo
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_cmd1209_qc.yaml
+  task_id: subtask_1209e
+  timestamp: '2026-04-05T23:22:00'
+- bloom_level: L5
+  description: "## cmd_1209 再QC（是正後・厳格版）\n\n### 前提\nsubtask_1209fで以下の修正が実施された:\n-\
+    \ note-edit.js: H1（# タイトル）スキップ追加\n- HTMLコメントスキップ確認\n- 記事完全クリア→再投入→挿絵4枚→カバー画像再設定\n\
+    \n前回QCは形骸化してFAILを見逃した。今回は**拡大確認必須**。\n\n### スクリーンショット（確認対象）\n/home/murakami/ピクチャ/Screenshots/note_editor_cmd1209_qc2.png\n\
+    \n### QC方法（拡大目視確認）\nスクリーンショットをReadツールで読み込み、以下の3箇所を重点的に確認:\n1. **冒頭部分（上1/3）**:\
+    \ タイトル二重表示・`# 記号`生テキスト・`<!-- アイキャッチ -->`生テキスト\n2. **中間部分**: 見出し（H2/H3）のフォーマット・本文テキスト・挿絵画像の配置\n\
+    3. **末尾部分**: 残りのHTMLコメント・markdown記法生テキスト・最後の挿絵\n\n### QC判定5項目（全てPASSが必要）\n1. **headings**:\
+    \ H2/H3は見出しブロック、H1（# タイトル）は本文に表示されていないこと\n2. **formatting**: 段落・リスト・太字が正しく変換されていること\n\
+    3. **images_4**: 挿絵4枚が適切な位置に配置されていること\n4. **cover_image**: カバー画像が設定されており、解像度が正常（つぶれていない）こと\n\
+    5. **no_raw_markup**: `<!--`, `##`, `**`, `---`, `# ` が本文テキストとして表示されていないこと\n\n\
+    ### shared_context/qc_template.md を参照してQCせよ\n\n### 判定ルール\n- 実際のスクショを目視確認。「たぶん大丈夫」は禁止\n\
+    - 1項目でもFAILなら全体FAIL\n- FAILの場合: 具体的な問題箇所（行や場所）を特定して報告\n\n### 出力先\n/home/murakami/multi-agent-shogun/queue/reports/gunshi_report_cmd1209_qc3.yaml\n\
+    \n```yaml\nworker_id: gunshi\ntask_id: subtask_1209g\nparent_cmd: cmd_1209\ntimestamp:\
+    \ \"...\"\nstatus: done\nqc_result:\n  overall: \"PASS or FAIL\"\n  items:\n \
+    \   headings: \"PASS/FAIL: 具体的に確認した内容\"\n    formatting: \"PASS/FAIL: 具体的に確認した内容\"\
+    \n    images_4: \"PASS/FAIL: 具体的に確認した内容\"\n    cover_image: \"PASS/FAIL: 具体的に確認した内容\"\
+    \n    no_raw_markup: \"PASS/FAIL: 具体的に確認した内容\"\n  issues: |\n    FAILの場合: 問題箇所と修正方法\n\
+    \  screenshot_path: \"/home/murakami/ピクチャ/Screenshots/note_editor_cmd1209_qc2.png\"\
+    \n```\n\n### 完了後\n/home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo\
+    \ \"軍師、subtask_1209g完了。QC再判定: PASS/FAIL。gunshi_report_cmd1209_qc3.yaml参照。\" report_done\
+    \ gunshi\n"
+  parent_cmd: cmd_1209
+  report_to: karo
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_cmd1209_qc3.yaml
+  task_id: subtask_1209g
+  timestamp: '2026-04-05T23:43:00'
+- bloom_level: L5
+  description: 'TNT漫画生成パイプラインのVertex AI画像生成で429 RESOURCE_EXHAUSTED頻発。
+
+    原因調査と改善設計をせよ。
+
+    '
+  parent_cmd: cmd_1212
+  report_to: karo
+  status: done
+  steps: "### 調査内容\n(1) Vertex AI Gemini画像生成のレート制限正確な上限（RPM/RPD/TPM）を調査\n    - projects/dozle_kirinuki/内のgenerate_manga_short.pyまたは関連スクリプトを確認\n\
+    \    - エラーログがあれば確認\n    - Vertex AIのImagen/Gemini画像生成のrate limitドキュメントを記憶から参照\n\
+    \n(2) レート制限以外の原因がないか調査\n    - 429エラーのメッセージ内容（RESOURCE_EXHAUSTED の詳細）\n    - 同一セッションで複数リクエストが重複していないか\n\
+    \    - プロジェクトクォータ設定の問題\n\n(3) リトライロジックの設計\n    - 指数バックオフ（exponential backoff）の実装仕様\n\
+    \    - 429受信時のwait時間計算式\n    - 最大リトライ回数の推奨値\n\n(4) 失敗パネルだけ再生成する仕組みの提案\n    - 生成済みパネルをスキップする条件（ファイル存在確認等）\n\
+    \    - --skip-gen オプションとの組み合わせ\n\n### 出力\nqueue/reports/gunshi_report_cmd1212.yaml\
+    \ に設計書を保存。\n以下を含めること:\n- rate_limit_findings: レート制限の実態\n- root_cause_analysis:\
+    \ 429頻発の根本原因\n- retry_logic_design: リトライロジック仕様（疑似コード含む）\n- partial_regen_proposal:\
+    \ 失敗パネル再生成仕組みの提案\n- implementation_priority: 実装優先順位（1-4）\n\n### 完了後\n/home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
+    \ karo \"軍師、subtask_1212a完了。TNT漫画レート制限分析完了。gunshi_report_cmd1212.yaml参照。\" report_done\
+    \ gunshi\n"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_cmd1212.yaml
+  task_id: subtask_1212a
+  timestamp: '2026-04-05T23:56:00'
+- bloom_level: L5
+  description: '夜間矛盾検出: STTパイプライン（vocal_stt_pipeline.py, stt_merge.py, speaker_id系,
+    成果物）。
+
+    読んで報告するだけ。テストを書くな。コードを修正するな。
+
+    '
+  parent_cmd: nightly_audit
+  report_to: karo
+  status: done
+  steps: "### 対象ファイル（読むだけ）\n1. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py\n\
+    2. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/stt_merge.py\n\
+    3. /home/murakami/multi-agent-shogun/scripts/gemini_speaker_pipeline.py（廃止済みのはず\
+    \ — 実態確認）\n4. speaker_id関連ファイルを glob/grep で探して読む:\n   grep -rn \"speaker_id\\\
+    |speaker_label\\|AssemblyAI\\|assemblyai\" /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/\
+    \ | head -30\n\n### 調査項目（矛盾・問題の検出）\n以下を確認して矛盾・問題を列挙せよ:\n(1) vocal_stt_pipeline.py\
+    \ と stt_merge.py の連携: 入出力フォーマットが一致しているか\n(2) AssemblyAI話者ラベルの処理: A/B/C形式のまま実名変換されているか、または変換ロジックが存在するか\n\
+    (3) gemini_speaker_pipeline.py の使用状況: 廃止済みならimport/呼び出し箇所が残っていないか\n(4) 成果物パス:\
+    \ 出力先が /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/ に統一されているか\n\
+    (5) ハードコードパス・APIキー: GEMINI_API_KEY直書き等が残っていないか\n(6) エラーハンドリング: 音声ファイル不在・API失敗時の処理が適切か\n\
+    \n### 矛盾なし → 「問題なし」と明記\n### 矛盾あり → CRITICAL/HIGH/MEDIUMで分類\n\n### 出力\n/home/murakami/multi-agent-shogun/queue/reports/gunshi_report_nightly_stt.yaml\
+    \ に保存。\n形式:\nworker_id: gunshi\ntask_id: subtask_nightly_stt\ntimestamp: ...\n\
+    category: STTパイプライン\nfindings:\n  - severity: CRITICAL/HIGH/MEDIUM/INFO\n    file:\
+    \ ファイルパス\n    issue: 問題の説明\n    recommendation: 修正方針\nsummary: 全体所見（1-3文）\n\n\
+    ### 完了後\n/home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \"軍師、夜間矛盾検出(STT)完了。gunshi_report_nightly_stt.yaml参照。\"\
+    \ report_done gunshi\n"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_nightly_stt.yaml
+  task_id: subtask_nightly_stt
+  timestamp: '2026-04-06T02:03:00'
+- bloom_level: L5
+  description: "## 集合知集約 — _whtyCALBBI HL/SH候補選定\n\n### 概要\n足軽5人の独立分析結果を集約し、投票ベースでHL/SH最終候補を選定せよ。\n\
+    殿が選択できる候補リストを作成すること（AIが勝手に決めるな）。\n\n### インプットファイル（5件全部読め）\n/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_whtyCALBBI/collective_1.md\n\
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_whtyCALBBI/collective_2.md\n\
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_whtyCALBBI/collective_3.md\n\
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_whtyCALBBI/collective_4.md\n\
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_whtyCALBBI/collective_6.md\n\
+    \n### 集約手順\n1. 各ファイルのHL候補・SH候補を一覧化\n2. 重複する候補（同一シーン・近いタイムスタンプ）を統合\n3. 投票数（何人が選んだか）でランキング\n\
+    4. HL: 上位4〜6件を最終候補とする\n5. SH: 上位2〜4件を最終候補とする\n6. 各候補に「投票数/5人」「推薦理由のまとめ」を付ける\n\n\
+    ### 出力形式\nqueue/reports/gunshi_report_cmd1218_collective.yaml に以下を保存:\n```yaml\n\
+    video_id: _whtyCALBBI\ntitle: 一粒の種から億万長者になるまで終われません！\nhl_candidates:\n  - rank:\
+    \ 1\n    scene_name: シーン名（10文字以内）\n    timestamp: MM:SS〜MM:SS\n    votes: N/5\n\
+    \    speakers: [member_key]\n    summary: 推薦理由まとめ\nsh_candidates:\n  - rank: 1\n\
+    \    title: タイトル案\n    timestamp: MM:SS〜MM:SS\n    votes: N/5\n    summary: 推薦理由まとめ\n\
+    collective_note: 全体所感（任意）\n```\n\n### 注意\n- 候補は殿に提示して殿が選ぶ。軍師が「これにしよう」と決めるな\n-\
+    \ AIが勝手にシーンを選ぶな（候補リスト提示のみ）\n\n### 完了後\nbash /home/murakami/multi-agent-shogun/scripts/ntfy.sh\
+    \ \"\U0001F5F3️ HL/SH候補選定完了 _whtyCALBBI cmd_1218\"\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
+    \ karo \"軍師、subtask_1218c完了。集合知集約済み。gunshi_report_cmd1218_collective.yaml参照。\"\
+    \ report_done gunshi\n"
+  parent_cmd: cmd_1218
+  report_to: karo
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_cmd1218_collective.yaml
+  task_id: subtask_1218c
+  timestamp: '2026-04-06T11:27:00'
+- bloom_level: L5
+  description: '## 集合知集約 — IKu8Dad0YyY HL/SH候補選定
+
+
+    ### インプットファイル（5件全部読め）
+
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_IKu8Dad0YyY/collective_1.md
+
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_IKu8Dad0YyY/collective_2.md
+
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_IKu8Dad0YyY/collective_3.md
+
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_IKu8Dad0YyY/collective_4.md
+
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_IKu8Dad0YyY/collective_6.md
+
+
+    ### 集約手順
+
+    1. 各ファイルのHL/SH候補を一覧化
+
+    2. 重複する候補を統合
+
+    3. 投票数でランキング
+
+    4. HL: 上位4〜6件、SH: 上位2〜4件を最終候補とする
+
+    5. 各候補に「投票数/5人」「推薦理由まとめ」を付ける
+
+
+    ### 出力先
+
+    queue/reports/gunshi_report_cmd1221_collective.yaml
+
+    （cmd_1218のgunshi_report_cmd1218_collective.yamlと同フォーマット）
+
+
+    ### 注意
+
+    - 候補は殿に提示して殿が選ぶ。軍師が「これにしよう」と決めるな
+
+
+    ### 完了後
+
+    bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "🗳️ HL/SH候補選定完了 IKu8Dad0YyY
+    cmd_1221"
+
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、subtask_1221c完了。集合知集約済み。gunshi_report_cmd1221_collective.yaml参照。"
+    report_done gunshi
+
+    '
+  parent_cmd: cmd_1221
+  report_to: karo
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_cmd1221_collective.yaml
+  task_id: subtask_1221c
+  timestamp: '2026-04-06T11:47:00'
+- bloom_level: L5
+  description: '## 集合知集約 — -F9M99oe7fY HL/SH候補選定
+
+
+    ### インプットファイル（5件全部読め）
+
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_F9M99oe7fY/collective_1.md
+
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_F9M99oe7fY/collective_2.md
+
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_F9M99oe7fY/collective_3.md
+
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_F9M99oe7fY/collective_4.md
+
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_F9M99oe7fY/collective_6.md
+
+
+    ### 集約手順
+
+    1. 各ファイルのHL/SH候補を一覧化
+
+    2. 重複する候補を統合
+
+    3. 投票数でランキング（HL: 上位4〜6件、SH: 上位2〜4件）
+
+    4. 各候補に「投票数/5人」「推薦理由まとめ」を付ける
+
+
+    ### 出力先
+
+    queue/reports/gunshi_report_cmd1222_collective.yaml
+
+    （cmd_1218/1221と同フォーマット）
+
+
+    ### 注意
+
+    - 候補は殿に提示して殿が選ぶ。軍師が決めるな
+
+
+    ### 完了後
+
+    bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "🗳️ HL/SH候補選定完了 -F9M99oe7fY
+    cmd_1222"
+
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、subtask_1222c完了。集合知集約済み。gunshi_report_cmd1222_collective.yaml参照。"
+    report_done gunshi
+
+    '
+  parent_cmd: cmd_1222
+  report_to: karo
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_cmd1222_collective.yaml
+  task_id: subtask_1222c
+  timestamp: '2026-04-06T12:13:00'
+- bloom_level: L5
+  description: "## 集合知集約 — yEtn5xGWVK4 cmd_1232\n\n### インプット（5件読め）\n- `/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_10000メートルの超長い線路を繋げるまで終われません！【マイクラ】/collective_2.md`\n\
+    - `/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_10000メートルの超長い線路を繋げるまで終われません！【マイクラ】/collective_3.md`\n\
+    - `/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_10000メートルの超長い線路を繋げるまで終われません！【マイクラ】/collective_4.md`\n\
+    - `/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_10000メートルの超長い線路を繋げるまで終われません！【マイクラ】/collective_6.md`\n\
+    - `/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_10000メートルの超長い線路を繋げるまで終われません！【マイクラ】/collective_7.md`\n\
+    \n### タスク\n5人の独立分析を統合し、投票集計でHL/SH最終候補リストを作成せよ。\n\n### 出力先\n`queue/reports/gunshi_report_cmd1232_collective.yaml`\n\
+    \n### 出力形式\n```yaml\nworker_id: gunshi\ntask_id: subtask_1232c\nparent_cmd: cmd_1232\n\
+    timestamp: \"...\"\nstatus: done\nvideo_id: yEtn5xGWVK4\ntitle: \"10000メートルの超長い線路を繋げるまで終われません！【マイクラ】\"\
+    \nanalysts: [ashigaru2, ashigaru3, ashigaru4, ashigaru6, ashigaru7]\nanalyst_count:\
+    \ 5\n\nhl_candidates:\n  - rank: 1\n    scene_name: ...\n    timestamp: \"...\"\
+    \n    votes: X/5\n    voters: [...]\n    hook: true/false\n    summary: |\n  \
+    \    ...\n\nsh_candidates:\n  - rank: 1\n    title: \"...\"\n    timestamp: \"\
+    ...\"\n    votes: X/5\n    voters: [...]\n    summary: |\n      ...\n\ncollective_note:\
+    \ |\n  全体所感・HL構成案・SH最有力候補\n\nskill_candidate:\n  found: true/false\n```\n\n###\
+    \ 完了後\n```\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo\
+    \ \"軍師、subtask_1232c完了。集合知集約済み。HL候補X件・SH候補X件。殿の選定待ち。\" report_done gunshi\n```\n"
+  parent_cmd: cmd_1232
+  report_to: karo
+  status: done
+  task_id: subtask_1232c
+  timestamp: '2026-04-06T20:39:33'
+- bloom_level: L5
+  description: "## 集合知集約 — 9bK6yDYwHng cmd_1233\n\n### インプット（5件読め）\n- `/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/collective_2.md`\n\
+    - `/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/collective_3.md`\n\
+    - `/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/collective_4.md`\n\
+    - `/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/collective_6.md`\n\
+    - `/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/collective_7.md`\n\
+    \n### ⭐ 重点集約ポイント\nお題シーン（12箇所）の漫画ショート向き評価を特にまとめよ。\n足軽全員が推薦している共通シーンを上位に持ってくること。\n\
+    \n### 出力先\n`queue/reports/gunshi_report_cmd1233_collective.yaml`\n\n### 出力形式（cmd_1232と同様）\n\
+    ```yaml\nworker_id: gunshi\ntask_id: subtask_1233c\nparent_cmd: cmd_1233\nstatus:\
+    \ done\nvideo_id: 9bK6yDYwHng\ntitle: \"仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】\"\n\
+    analysts: [ashigaru2, ashigaru3, ashigaru4, ashigaru6, ashigaru7]\nanalyst_count:\
+    \ 5\n\nhl_candidates:\n  - rank: 1\n    scene_name: ...\n    timestamp: \"...\"\
+    \n    votes: X/5\n    ...\n\nsh_candidates:\n  - rank: 1\n    ...\n\nmanga_short_candidates:\
+    \  # お題シーン専用枠\n  - rank: 1\n    scene_name: ...\n    odai_timestamp: \"...\"\n\
+    \    votes: X/5\n    summary: |\n      漫画ショートとして何が面白いか\n\ncollective_note: |\n\
+    \  全体所感・漫画ショート最推薦シーン\n\nskill_candidate:\n  found: true/false\n```\n\n### 完了後\n\
+    ```\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \"軍師、subtask_1233c完了。HL候補X件・SH候補X件・漫画ショート候補X件。殿の選定待ち。\"\
+    \ report_done gunshi\n```\n"
+  parent_cmd: cmd_1233
+  report_to: karo
+  status: done
+  task_id: subtask_1233c
+  timestamp: '2026-04-06T21:13:40'
+- bloom_level: L5
+  description: "## 夜間監査 2026-04-07 — 動画制作スクリプト群の矛盾検出\n\n### 概要\n動画制作カテゴリのスクリプト群を読んで、矛盾・問題点・廃止候補を検出し報告せよ。\n\
+    **テストを書くな。コードを修正するな。読んで報告するだけ。**\n\n### 対象ファイル（必ず全部読め）\n\n#### メインスクリプト\n- `projects/dozle_kirinuki/scripts/main.py`\n\
+    - `projects/dozle_kirinuki/scripts/make_expression_shorts.py`\n- `projects/dozle_kirinuki/scripts/vertical_convert.py`\n\
+    \n#### アーカイブ（make_shorts系）\n- `projects/dozle_kirinuki/scripts/archive/make_shorts_complex_v17.py`（最新版のみでよい）\n\
+    \n#### Remotionコンポーネント\n- `projects/dozle_kirinuki/remotion-overlay/src/components/ShortsComposition.tsx`\n\
+    - `projects/dozle_kirinuki/remotion-overlay/src/components/MangaComposition.tsx`（パス確認して読め）\n\
+    - `projects/dozle_kirinuki/remotion-overlay/src/types.ts`\n\n### 矛盾検出の観点（CLAUDE.md\
+    \ / MEMORY.md の鉄則と照合）\n1. **APIキー**: GEMINI_API_KEY（廃止）参照がないか。VERTEX_API_KEY/ADC未使用はないか\n\
+    2. **ライブラリ**: google.generativeai（旧）使用。google.genai（新）が正\n3. **ffmpegコーデック**:\
+    \ libx264使用はないか（h264_nvenc必須）\n4. **ハードコードパス**: /home/murakami/ 等の絶対パスハードコード\n\
+    5. **廃止スクリプト**: 最新版に置き換え済みなのに残っているファイル\n6. **Remotion型定義**: remotion-overlay/src/types.ts\
+    \ とスクリプト間でインターフェース不一致がないか\n7. **インポート整合性**: make_expression_shorts.pyがvertical_convert.pyやmain.pyを正しく呼び出しているか\n\
+    8. **テキスト→テキスト処理**: Claude CLI Opus 4.6が正（GeminiにテキストLLM処理させるな）\n\n### 出力先\n`queue/reports/gunshi_report_nightly_audit_20260407.yaml`\n\
+    \n### 出力形式（gunshi_report_nightly_audit_20260405.yamlと同フォーマット）\n```yaml\nreport_id:\
+    \ nightly_audit_20260407\nparent_cmd: nightly_audit\nagent: gunshi\ntimestamp:\
+    \ \"2026-04-07T...\"\ncategory: 動画制作（main.py/make_expression_shorts.py/Remotion/vertical_convert.py/make_shorts系）\n\
+    status: done\n\nsummary: |\n  概要文\n\nfindings:\n  - id: C1\n    severity: CRITICAL/HIGH/MEDIUM/LOW/INFO\n\
+    \    title: \"...\"\n    files: [...]\n    detail: |\n      ...\n    recommendation:\
+    \ \"...\"\n\n  ...（件数分）\n\noverall_risk: CRITICAL/HIGH/MEDIUM/LOW\naction_items:\n\
+    \  - priority: HIGH/MEDIUM/LOW\n    item: \"...\"\n```\n\n### 完了後\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
+    \ karo \"軍師、nightly_audit_20260407完了。queue/reports/gunshi_report_nightly_audit_20260407.yaml参照。\"\
+    \ report_done gunshi\n"
+  parent_cmd: nightly_audit
+  purpose: 動画制作スクリプト群（main.py/make_expression_shorts.py/Remotion/vertical_convert.py/make_shorts系）の矛盾検出
+  report_to: karo
+  status: done
+  task_id: nightly_audit_20260407
+  timestamp: '2026-04-07T02:03:00'
+- bloom_level: L4
+  description: "## 漫画吹き出しフォント調査\n\n### 調査項目\n1. 日本の漫画で標準的に使われるフォント（セリフ用・ツッコミ用・ナレーション用）\n\
+    2. フリーで使える漫画フォント一覧（商用利用可）\n3. Linux環境で使えるもの（apt or ダウンロード）\n4. 推奨フォントの組み合わせ提案\n\
+    \n### 出力先\n`queue/reports/gunshi_report_manga_fonts.yaml`\n\n### 出力形式\n```yaml\n\
+    report_id: manga_fonts\nagent: gunshi\ntimestamp: \"...\"\nsummary: |\n  ...\n\
+    \nstandard_fonts:\n  serif:\n    - name: \"...\"\n      usage: \"セリフ用\"\n    \
+    \  notes: \"...\"\n  tsukkomi:\n    - name: \"...\"\n      usage: \"ツッコミ用\"\n\
+    \      notes: \"...\"\n  narration:\n    - name: \"...\"\n      usage: \"ナレーション用\"\
+    \n      notes: \"...\"\n\nfree_commercial_fonts:\n  - name: \"...\"\n    license:\
+    \ \"...\"\n    download: \"...\"\n    linux_install: \"apt install ... / wget\
+    \ ...\"\n    usage: \"...\"\n\nrecommended_combination:\n  primary: \"...\"\n\
+    \  tsukkomi: \"...\"\n  narration: \"...\"\n  rationale: \"...\"\n```\n\n### 完了後\n\
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \"軍師、漫画フォント調査完了。queue/reports/gunshi_report_manga_fonts.yaml参照。\"\
+    \ report_done gunshi\n"
+  parent_cmd: shogun_direct
+  purpose: 漫画吹き出しフォント調査（標準フォント・フリー商用可・Linux環境・推奨組み合わせ）
+  report_to: karo
+  status: done
+  task_id: subtask_manga_fonts
+  timestamp: '2026-04-07T08:02:00'
+- bloom_level: L4
+  description: "## 漫画吹き出し素材調査\n\n### 調査項目\n1. イラスト系ソフト（CLIP STUDIO PAINT, MediBang,\
+    \ FireAlpaca等）の吹き出し素材をCLIやAPIで利用できるか\n2. フリーの漫画吹き出し素材集（PNG透過・SVG）で商用利用可のもの（いらすとや的なもの）\n\
+    3. Pythonライブラリで漫画吹き出しを生成できるもの\n4. ImageMagickやInkscapeのCLIで漫画品質の吹き出しを生成する方法\n\n\
+    ### 要件\n- Linux CLI環境で自動化可能であること\n- フォント調査（gunshi_report_manga_fonts.yaml）と合わせた報告\n\
+    \n### 出力先\n`queue/reports/gunshi_report_manga_bubbles.yaml`\n\n### 出力形式\n```yaml\n\
+    report_id: manga_bubbles\nagent: gunshi\ntimestamp: \"...\"\nsummary: |\n  ...\n\
+    \ncli_tools:\n  - name: \"...\"\n    type: \"CLI/Python/API\"\n    availability:\
+    \ \"apt install / pip install / download\"\n    cli_usage: \"例: inkscape --export-png=...\"\
+    \n    quality: \"漫画品質への評価\"\n    license: \"...\"\n    notes: \"...\"\n\nfree_assets:\n\
+    \    # PNG透過・SVG素材集\n  - name: \"...\"\n    url: \"...\"\n    license: \"...\"\
+    \n    format: \"PNG/SVG/etc\"\n    notes: \"...\"\n\npython_libraries:\n  - name:\
+    \ \"...\"\n    pip_install: \"pip install ...\"\n    bubble_generation: \"コード例\"\
+    \n    notes: \"...\"\n\nrecommended_approach:\n  method: \"...\"\n  rationale:\
+    \ \"...\"\n  sample_command: |\n    # Linuxコマンド例\n    ...\n\nintegration_with_fonts:\n\
+    \  # gunshi_report_manga_fonts.yamlの推奨フォントとの組み合わせ方\n  notes: \"...\"\n```\n\n\
+    ### 完了後\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \"\
+    軍師、漫画吹き出し素材調査完了。queue/reports/gunshi_report_manga_bubbles.yaml参照。\" report_done\
+    \ gunshi\n"
+  parent_cmd: shogun_direct
+  purpose: 漫画吹き出し素材調査（CLI自動化可能なもの）
+  report_to: karo
+  status: done
+  task_id: subtask_manga_bubbles
+  timestamp: '2026-04-07T08:06:00'
+- bloom_level: L4
+  description: "## 漫画吹き出し素材 深掘り調査\n\n### 背景\n自前SVGでは品質が不足。プロが作った吹き出し素材を使いたい。\nCLI自動化可能なものを優先して調査せよ。\n\
+    \n### 調査項目（実際にWebFetchでサイトを見て調査せよ）\n1. **フキダシデザイン** (https://fukidesign.com/)\
+    \ — 素材形式・DL方法・自動化可否\n2. **漫画素材工房** (https://mangasozai.com/) — 吹き出しカテゴリの素材\n3.\
+    \ **CLIP STUDIO ASSETS** — フリー吹き出し素材（.clip形式→PNG変換可能か）\n4. **Canva等フリー素材サイト**\
+    \ — 漫画吹き出しPNG/SVGテンプレート\n5. **GitHub検索** — オープンソースの漫画吹き出し素材集・ライブラリ\n\n### 判断基準（各素材に明記せよ）\n\
+    - CLI/Pythonで一括DL・自動化可能か？\n- PNG透過 or SVGで使えるか？\n- 商用利用可か？\n- ライセンス条件は？\n\n###\
+    \ 出力先\n`queue/reports/gunshi_report_bubble_deep.yaml`\n\n### 出力形式\n```yaml\nreport_id:\
+    \ bubble_deep\nagent: gunshi\ntimestamp: \"...\"\nsummary: |\n  調査結果まとめ。CLI自動化可能な最有力素材を明示。\n\
+    \nsources:\n  - name: \"フキダシデザイン\"\n    url: \"https://fukidesign.com/\"\n   \
+    \ format: \"PNG/SVG/etc\"\n    license: \"...\"\n    cli_automatable: true/false\n\
+    \    dl_method: \"...\"\n    notes: \"...\"\n\n  - name: \"漫画素材工房\"\n    ...\n\
+    \n  - name: \"CLIP STUDIO ASSETS\"\n    ...\n\n  - name: \"GitHub: xxx/yyy\"\n\
+    \    ...\n\nbest_option:\n  name: \"...\"\n  reason: \"...\"\n  integration_plan:\
+    \ \"Pythonでどう使うか（コード例含む）\"\n```\n\n### 完了後\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
+    \ karo \"軍師、吹き出し深掘り調査完了。queue/reports/gunshi_report_bubble_deep.yaml参照。\" report_done\
+    \ gunshi\n"
+  parent_cmd: shogun_direct
+  purpose: 漫画吹き出し素材の深掘り調査（プロ素材のCLI自動化可否）
+  report_to: karo
+  status: done
+  task_id: subtask_bubble_deep
+  timestamp: '2026-04-07T08:16:00'
+- bloom_level: L5
+  description: "## 漫画フォント・吹き出し調査 差し戻し — Web検索必須\n\n### 差し戻し理由\n前回の調査は手元の知識だけで不十分。以下が漏れていた:\n\
+    1. font910.jp「新コミック体」（Apache 2.0・無料・アンチック体）\n2. 「縦書きくん」のような吹き出し自動生成実例\n3. Web検索なしで知識だけで済ませた\n\
+    \n### MANDATORY: 必ずWebSearchツールを使え\n\n### 調査1: 日本語漫画フォント（フリー・商用可）\n以下のキーワードでWebSearchせよ:\n\
+    - 「漫画 フォント フリー 商用」\n- 「comic font free japanese」\n- 「アンチック体 フリーフォント」\n- 「新コミック体\
+    \ font910」\n\n**特に確認せよ**:\n- font910.jp「新コミック体」（Apache 2.0ライセンスか確認）\n- 前回レポートに漏れているフォントを全て追加\n\
+    \n### 調査2: 漫画吹き出し自動生成ツール・ライブラリ\n以下のキーワードでWebSearchせよ:\n- 「漫画 吹き出し 自動生成 Python」\n\
+    - 「manga balloon generator」\n- 「縦書きくん 吹き出し PNG」\n- 「comic speech bubble generator\
+    \ open source」\n- GitHub検索: \"manga bubble\" \"speech bubble generator\" \"comic\
+    \ balloon\"\n\n### 出力形式\n`queue/reports/gunshi_report_font_bubble_v2.yaml`\n\n\
+    ```yaml\nreport_id: font_bubble_v2\nagent: gunshi\ntimestamp: \"...\"\nsearch_queries_used:\
+    \ [実際に使ったクエリ一覧]\n\nfonts_complete:  # 前回リスト + 今回追加分\n  - name: \"新コミック体\"\n  \
+    \  url: \"https://font910.jp/...\"\n    license: \"Apache 2.0\"\n    dl_command:\
+    \ \"wget ...\"\n    notes: \"...\"\n  - ... (全フォント)\n\nbubbles_complete:  # 前回リスト\
+    \ + 今回追加分\n  - name: \"縦書きくん\"\n    url: \"...\"\n    method: \"...\"\n    cli_automatable:\
+    \ true/false\n    notes: \"...\"\n  - ...\n\ndl_commands:  # 全フォントの wget/pip コマンド一覧（実行可能な形式で）\n\
+    \  - \"wget -O ~/.local/share/fonts/XXX.ttf https://...\"\n  - \"pip install ...\"\
+    \n\nsummary: \"前回との差分・新発見\"\n```\n\n### 完了後\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
+    \ karo \"軍師、フォント・吹き出し再調査完了。queue/reports/gunshi_report_font_bubble_v2.yaml参照。\"\
+    \ report_done gunshi\n"
+  parent_cmd: shogun_direct
+  purpose: 漫画フォント・吹き出し調査 Web検索必須で網羅的再調査
+  redo_of: subtask_manga_fonts + subtask_manga_bubbles + subtask_bubble_deep
+  report_to: karo
+  status: done
+  task_id: subtask_font_bubble_redo
+  timestamp: '2026-04-07T08:24:00'
+- bloom_level: L5
+  description: "## 吹き出しオーバーレイシステム 設計書作成\n\n### 概要\n以下の情報源を全て読み込み、統合設計書を作成する。\n**成果物は\
+    \ DESIGN.md として保存すること。テストや実装は不要。設計書のみ。**\n\n### 必読インプット（全部読め）\n1. `/home/murakami/ダウンロード/deep-research-report.md`\n\
+    \   — GPT Deep Researchレポート（HTML+Playwright透過スクショ方式、フォント一覧、ライセンス分析、サンプルコード付き）\n\
+    2. `queue/reports/gunshi_report_manga_fonts.yaml` — フォント調査\n3. `queue/reports/gunshi_report_manga_bubbles.yaml`\
+    \ — 吹き出し調査（svg_bubbles.py等）\n4. `projects/dozle_kirinuki/scripts/bubble_overlay/svg_bubbles.py`\
+    \ — 既存SVG実装\n5. `projects/dozle_kirinuki/scripts/bubble_overlay/bubble_samples.py`\
+    \ — 既存Pillow実装\n6. `memory/project_bubble_overlay_system.md` — プロジェクト概要\n\n###\
+    \ 設計要件（殿の指示原文）\n- Gemini画像（吹き出しなし）+ 吹き出し透過PNGを合成する方式\n- 吹き出し本体: フキダシデザイン(fukidesign.com)のSVG素材をテンプレートとして使用\n\
+    - しっぽ: 本体と分離。自前Bezier曲線で任意方向に生成。接合部は描画順で処理（枠→しっぽ→枠線→しっぽ外周）\n- テキスト: CSS writing-mode:\
+    \ vertical-rl で縦書き。@font-faceでローカルフォント埋め込み\n- PNG化: Playwright omit_background\
+    \ で透過スクショ\n- 合成: Pillow alpha_composite\n- フォント3種使い分け: 通常セリフ=源暎アンチック or 新コミック体、ツッコミ=ラノベPOP、ナレーション=Noto\
+    \ Serif\n- テキスト量に応じてSVGを動的リサイズ\n- panels JSONにbubble_overlaysフィールドを追加（形状・テキスト・位置・フォント種別・しっぽ方向）\n\
+    \n### 成果物\n`projects/dozle_kirinuki/scripts/bubble_overlay/DESIGN.md`\n\n以下を全て含めること:\n\
+    1. **アーキテクチャ図**（テキストAsciiアートで）\n2. **データフォーマット**（bubble_overlays JSONフィールド仕様）\n\
+    3. **実装計画**（ファイル一覧・依存関係・実装順序）\n4. **フォントDL手順**（コマンド付き）\n5. **素材DL手順**（フキダシデザインから何をどうDLするか具体的に）\n\
+    6. **既存コードとの統合方法**（svg_bubbles.py・bubble_samples.pyをどう拡張するか）\n\n### 完了後\nbash\
+    \ /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \"軍師、subtask_bubble_design完了。DESIGN.md作成済み。\"\
+    \ report_done gunshi\n"
+  parent_cmd: shogun_direct
+  purpose: 吹き出しオーバーレイシステム設計書作成（DESIGN.md）
+  report_to: karo
+  status: done
+  task_id: subtask_bubble_design
+  timestamp: '2026-04-07T09:52:00'
+- task_id: subtask_1255g
+  parent_cmd: cmd_1255
+  timestamp: '2026-04-07T21:35:00'
+  project: crowdworks_china_shorts
+  purpose: 中国系ショート動画制作パイプラインの設計書を作成し、実装可能なタスク仕様を家老に返す
+  status: done
+  report_to: karo
+  steps: |
+    ## ミッション
+    以下のパイプラインを足軽1人が実装できるレベルの設計書（実装手順）を作成せよ。
+    設計書を karo に inbox_write で返送すること。
+
+    ## パイプライン全体フロー
+    URL → ① DL → ② Gemini翻訳解析 → ③ 構成案生成 → ④ COEIROINKナレーション → ⑤ ffmpeg編集 → MP4出力
+
+    ## 既知情報
+    - テスト素材: projects/crowdworks_china_shorts/work/4pPGM62Rb18.mkv（4.6MB、DL済み）
+    - COEIROINK: tools/COEIROINK_LINUX_GPU_v.2.13.0/COEIROINKv2 にインストール済み
+      → APIサーバー: http://localhost:50032（VOICEVOX互換）
+      → 起動コマンド確認: ./COEIROINKv2 --help or プロセス確認
+    - Gemini API: source ~/.bashrc && で GEMINI_API_KEY 読み込み
+      → モデル: gemini-2.0-flash（動画マルチモーダル対応）
+      → ライブラリ: google.genai（projects/dozle_kirinuki/CLAUDE.md参照）
+    - スクリプト出力先: scripts/china_shorts_pipeline.py
+    - 中間成果物: projects/crowdworks_china_shorts/work/{video_id}/配下
+
+    ## 設計で検討すべき点
+    1. **Gemini動画アップロード**: File API経由（google.genai.upload_file）か直接バイト渡しか
+       - 4.6MBの小さなファイルなので直接バイト渡しでも可
+    2. **COEIROINK起動確認**: ポート50032が応答するか確認→未起動なら subprocess.Popen で起動
+       - スピーカーID確認: GET /speakers でリスト取得
+    3. **構成案のナレーション分割**: gemini_analysis.txt → 日本語ナレーション台本 → センテンスごとに音声生成
+    4. **ffmpeg合成**: 素材動画の音声を下げる or ミュート + ナレーション重ねる + 縦長クロップ
+    5. **スキップ機能**: 中間成果物が存在すれば再生成しない（--skip-dl, --skip-analysis 等）
+
+    ## 設計書フォーマット
+    以下の項目を含む実装手順書（Markdown）を作成:
+    - スクリプト構造（関数/クラス一覧）
+    - 各ステップの実装方針と使用するAPIの具体的なコード例
+    - COEIROINKの起動確認コード
+    - ffmpegコマンド（縦長クロップ + ナレーション合成）
+    - コマンドライン引数仕様
+
+    ## 確認作業
+    設計書作成前に以下を実行して実態を確認せよ:
+    ```bash
+    # COEIROINK起動確認
+    curl -s http://localhost:50032/speakers 2>&1 | head -5 || echo "not running"
+    # テスト素材の解像度確認
+    ffprobe -v quiet -show_streams -of json \
+      projects/crowdworks_china_shorts/work/4pPGM62Rb18.mkv 2>/dev/null | python3 -c "
+    import json,sys; d=json.load(sys.stdin)
+    for s in d['streams']:
+      if s['codec_type']=='video':
+        print(s['width'],'x',s['height'])
+    "
+    ```
+
+    ## 完了後
+    設計書を `projects/crowdworks_china_shorts/pipeline_design.md` に保存し、以下で家老に通知:
+    ```bash
+    bash scripts/inbox_write.sh karo \
+      "軍師、subtask_1255g完了。パイプライン設計書作成済み: projects/crowdworks_china_shorts/pipeline_design.md。実装可能状態。" \
+      report_completed gunshi
+    ```
+- task_id: nightly_audit_20260408_infra
+  parent_cmd: nightly_audit
+  timestamp: '2026-04-08T02:03:00'
+  project: multi-agent-shogun
+  purpose: インフラ系スクリプト群（inbox_write/watcher・ntfy・cron・agent管理・context_monitor等）の矛盾検出・報告
+  status: done
+  report_to: karo
+  steps: |
+    ## ミッション
+    コードを修正するな。テストを書くな。読んで報告するだけ。
+
+    ## 対象ファイル（優先順）
+    1. scripts/inbox_write.sh — メッセージ書き込み・ロック処理
+    2. scripts/inbox_watcher.sh — ファイル監視・tmux送信
+    3. scripts/ntfy.sh — ntfy通知送信
+    4. scripts/sessionstart_hook.sh — セッション開始フック
+    5. scripts/pretool_check.sh / pretool_check_relpath.sh — PreToolUseフック
+    6. config/settings.yaml — cron設定・エージェント設定
+    7. scripts/start_ashigaru_glm.sh — 足軽起動スクリプト
+    8. scripts/context_monitor.sh（存在すれば）
+    9. scripts/dashboard/ — ダッシュボードサーバー
+
+    ## 検査項目
+    各ファイルについて以下を確認:
+    - ハードコードパス（/home/murakami等）の有無
+    - 存在しないファイル/コマンドへの参照
+    - 設定値の矛盾（CLAUDE.mdの仕様と実装の乖離）
+    - 並行実行時の競合リスク（flock漏れ等）
+    - ntfyのIPアドレス（100.66.15.93 使用・192.168.2.7禁止）
+    - inbox_watcherの起動確認スクリプト連携
+
+    ## 重要度分類
+    - CRITICAL: 即時対応必要（システム停止・データ消失リスク）
+    - HIGH: 近日中対応必要（動作異常・セキュリティリスク）
+    - MEDIUM: 余裕があれば対応（非効率・軽微な不整合）
+    - INFO: 情報提供のみ
+
+    ## 報告書出力先
+    queue/reports/gunshi_report_nightly_audit_20260408_infra.yaml
+
+    ## 報告書フォーマット（cmd_828準拠）
+    ```yaml
+    audit_date: '2026-04-08'
+    category: インフラ
+    summary:
+      critical: 0
+      high: 0
+      medium: 0
+      info: 0
+    findings:
+      - severity: HIGH
+        file: scripts/xxx.sh
+        line: 42
+        issue: "説明"
+        detail: "具体的な問題"
+    ```
+
+    ## 完了後
+    ```bash
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+      "軍師、nightly_audit_20260408_infra完了。CRITICAL={N}件 HIGH={N}件 MEDIUM={N}件。queue/reports/gunshi_report_nightly_audit_20260408_infra.yaml参照。" \
+      report_completed gunshi
+    ```
+
+- task_id: nightly_audit_20260409_stt
+  parent_cmd: nightly_audit
+  timestamp: '2026-04-09T02:02:37'
+  project: dozle_kirinuki
+  purpose: STTパイプライン（vocal_stt_pipeline.py, stt_merge.py, speaker_id系）の矛盾・問題検出・報告
+  status: done
+  bloom_level: L5
+  report_to: karo
+  steps: |
+    ## ミッション
+    コードを修正するな。テストを書くな。読んで報告するだけ。
+    STTパイプライン関連ファイルを精読し、矛盾・バグ・設計上の問題を検出して報告せよ。
+
+    ## 対象ファイル（優先順）
+    1. /home/murakami/multi-agent-shogun/scripts/vocal_stt_pipeline.py
+    2. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py
+    3. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/stt_merge.py
+    4. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/speaker_id.py
+    5. /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/speaker_id_srt_based.py
+    6. /home/murakami/multi-agent-shogun/scripts/stt_merge.py.bak_1000（差分確認用）
+
+    ## 検査観点
+    1. **引数・インターフェース矛盾**: 呼び出し側と定義側で引数が食い違っていないか
+    2. **パス矛盾**: ハードコードパス・存在しないファイル参照
+    3. **重複実装**: scripts/直下とdozle_kirinuki/scripts/に同名ファイル。差分・どちらが正式か
+    4. **廃止済みAPI使用**: Gemini STT廃止（AssemblyAIに移行済み）→古いGemini STT呼び出しが残っていないか
+    5. **話者ID変換の完全性**: 全メンバー（dozle/bon/qnly/orafu/oo_men/nekooji）が変換対象になっているか
+    6. **成果物パス**: 出力先がwork/配下に統一されているか（/tmp禁止）
+    7. **エラーハンドリング**: 重要エラーが握りつぶされていないか
+
+    ## 報告書フォーマット（cmd_828準拠）
+    出力先: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_nightly_audit_20260409_stt.yaml
+    ```yaml
+    audit_date: '2026-04-09'
+    category: STTパイプライン
+    summary:
+      critical: 0
+      high: 0
+      medium: 0
+      info: 0
+    findings:
+      - severity: HIGH
+        file: scripts/xxx.py
+        line: 42
+        issue: "説明"
+        detail: "具体的な問題"
+    ```
+
+    ## 完了後
+    ```bash
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+      "軍師、nightly_audit_20260409_stt完了。CRITICAL={N}件 HIGH={N}件 MEDIUM={N}件。queue/reports/gunshi_report_nightly_audit_20260409_stt.yaml参照。" \
+      report_completed gunshi
+    ```
+
+- task_id: nightly_audit_20260410_video
+  parent_cmd: nightly_audit
+  status: done
+  assigned_to: gunshi
+  bloom_level: L5
+  steps: |
+    Step1: 動画制作スクリプト群（main.py, make_expression_shorts.py, Remotion関連, vertical_convert.py, make_shorts系）の矛盾・不整合を検出して報告せよ。テストを書くな。コードを修正するな。読んで報告するだけ。
+
+    ## 対象ファイル（優先順位順）
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/main.py
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/make_expression_shorts.py
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/vertical_convert.py
+    - make_shorts系スクリプト（ls /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/make_shorts* で確認）
+    - Remotion関連ファイル（ls /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/remotion/ で確認）
+
+    ## 検出観点（cmd_828と同じ形式）
+    - CRITICAL: 実行すると確実に失敗するバグ（パスエラー、未定義変数、import不足等）
+    - HIGH: 設計上の矛盾（引数の型不一致、関数シグネチャの不整合、依存関係の循環等）
+    - MEDIUM: 潜在的な問題（廃止APIの使用、未使用変数、不明確な処理フロー等）
+
+    ## 報告形式
+    ```yaml
+    audit_target: "動画制作スクリプト群（main.py/make_expression_shorts.py/vertical_convert.py/make_shorts系/Remotion）"
+    audit_date: "2026-04-10"
+    issues:
+      - severity: CRITICAL/HIGH/MEDIUM
+        file: "ファイルパス"
+        line: 行番号（わかる場合）
+        issue: "問題の概要"
+        detail: "具体的な問題"
+    ```
+
+    ## 完了後
+    ```bash
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+      "軍師、nightly_audit_20260410_video完了。CRITICAL={N}件 HIGH={N}件 MEDIUM={N}件。queue/reports/gunshi_report_nightly_audit_20260410_video.yaml参照。" \
+      report_completed gunshi
+    ```
+
+- task_id: nightly_audit_20260411_infra
+  parent_cmd: nightly_audit
+  status: done
+  assigned_to: gunshi
+  bloom_level: L5
+  steps: |
+    Step1: インフラ系スクリプト群（inbox_write.sh/inbox_watcher.sh/ntfy.sh/cron関連/agent管理系/context_monitor等）の矛盾・不整合・潜在バグを検出して報告。テスト禁止・コード修正禁止・読んで報告するだけ。
+
+    ## 対象ファイル
+    - /home/murakami/multi-agent-shogun/scripts/inbox_write.sh
+    - /home/murakami/multi-agent-shogun/scripts/inbox_watcher.sh（存在すれば）
+    - /home/murakami/multi-agent-shogun/scripts/ntfy.sh
+    - /home/murakami/multi-agent-shogun/scripts/pretool_check.sh
+    - /home/murakami/multi-agent-shogun/scripts/pretool_check_relpath.sh（存在すれば）
+    - /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh（存在すれば）
+    - /home/murakami/multi-agent-shogun/scripts/slim_yaml.py
+    - cron関連（.claude/settings.jsonのhooks、cronファイル等）
+    - agent管理系（shogun_to_karo.yaml処理フロー等）
+    - context_monitor系（存在すれば）
+
+    ## 検出すべき問題
+    - CRITICAL: データ消失・システム停止・セキュリティ問題
+    - HIGH: エラーハンドリング欠如・競合状態・誤動作の可能性
+    - MEDIUM: 廃止APIの使用・未使用変数・不明確な処理フロー
+
+    ## 報告形式
+    ```yaml
+    audit_target: "インフラスクリプト群（inbox_write/watcher/ntfy/cron/agent管理系）"
+    audit_date: "2026-04-11"
+    issues:
+      - severity: CRITICAL/HIGH/MEDIUM
+        file: "ファイルパス"
+        line: 行番号（わかる場合）
+        issue: "問題の概要"
+        detail: "具体的な問題"
+    ```
+
+    ## 完了後
+    ```bash
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+      "軍師、nightly_audit_20260411_infra完了。CRITICAL={N}件 HIGH={N}件 MEDIUM={N}件。queue/reports/gunshi_report_nightly_audit_20260411_infra.yaml参照。" \
+      report_completed gunshi
+    ```
+- task_id: nightly_audit_20260412_youtube_api
+  parent_cmd: nightly_audit_auto
+  bloom_level: L5
+  description: 夜間矛盾検出 - YouTube/外部連携スクリプト群（読んで報告のみ。テスト・修正禁止）
+  status: done
+  timestamp: "2026-04-12T02:02:44"
+  steps: |
+    shared_context/qc_template.mdを参照してQCせよ。以下のファイルを読んで矛盾・問題を検出・報告するだけ。テストを書くな。コードを修正するな。
+
+    ## 対象ファイル
+    - projects/dozle_kirinuki/scripts/youtube_uploader.py
+    - projects/dozle_kirinuki/scripts/downloader.py
+    - projects/dozle_kirinuki/scripts/download.sh
+    - scripts/youtube_analytics_snapshot.py
+    - scripts/generate_dashboard.py
+    - projects/note_mcp_server/scripts/（*.js / *.py 全て）
+    - scripts/note_visual_qc.py
+
+    ## 検出すべき問題
+    - CRITICAL: データ消失・認証失敗・アップロード先誤設定（public/unlisted誤投稿リスク）
+    - HIGH: エラーハンドリング欠如・API仕様変更による破壊的変更・競合状態
+    - MEDIUM: 廃止APIの使用・ハードコードされたID/トークン・不整合なエラー処理
+
+    ## 報告形式（queue/reports/gunshi_report_nightly_audit_20260412_youtube_api.yaml）
+    ```yaml
+    audit_target: "YouTube/外部連携スクリプト群"
+    audit_date: "2026-04-12"
+    issues:
+      - severity: CRITICAL/HIGH/MEDIUM
+        file: "ファイルパス"
+        line: 行番号（わかる場合）
+        issue: "問題の概要"
+        detail: "具体的な問題"
+    ```
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、nightly_audit_20260412_youtube_api完了。CRITICAL={N}件 HIGH={N}件 MEDIUM={N}件。queue/reports/gunshi_report_nightly_audit_20260412_youtube_api.yaml参照。" report_completed gunshi
+- task_id: nightly_audit_20260413_stt
+  parent_cmd: nightly_audit_auto
+  bloom_level: L5
+  description: 夜間矛盾検出 - STTパイプライン（vocal_stt_pipeline.py, stt_merge.py, speaker_id系）読んで報告のみ。テスト・修正禁止。
+  status: done
+  timestamp: "2026-04-13T02:03:00"
+  steps: |
+    shared_context/qc_template.mdを参照してQCせよ。以下のファイルを読んで矛盾・問題を検出・報告するだけ。テストを書くな。コードを修正するな。
+
+    ## 対象ファイル
+    - projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py
+    - projects/dozle_kirinuki/scripts/stt_merge.py
+    - scripts/（speaker_id, assemblyai関連を grep で特定してから読む）
+      grep -rn "speaker_id\|speaker_label\|AssemblyAI\|assemblyai" /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/ | head -30
+      grep -rn "speaker_id\|speaker_label\|AssemblyAI\|assemblyai" /home/murakami/multi-agent-shogun/scripts/ | head -30
+    - gemini_speaker_pipeline.py（廃止済みのはず — 存在・import箇所を確認）
+
+    ## 検出すべき問題
+    - CRITICAL: データ消失・話者ラベル実名変換漏れ・パイプライン連携破断
+    - HIGH: A/B/C形式の話者ラベルがそのまま成果物に残る・エラーハンドリング欠如
+    - MEDIUM: 廃止済みスクリプト(gemini_speaker_pipeline.py)のimport残存・ハードコードパス・GEMINI_API_KEY直書き
+
+    ## 調査項目
+    (1) vocal_stt_pipeline.py と stt_merge.py の連携: 入出力フォーマットが一致しているか
+    (2) AssemblyAI話者ラベルの処理: A/B/C形式→実名変換ロジックが存在・機能しているか
+    (3) gemini_speaker_pipeline.py の使用状況: 廃止済みならimport/呼び出し箇所が残っていないか
+    (4) 成果物パス: 出力先が work/ に統一されているか（/tmp禁止ルール準拠）
+    (5) ハードコードパス・APIキー: GEMINI_API_KEY直書き等が残っていないか
+    (6) エラーハンドリング: 音声ファイル不在・API失敗時の処理が適切か
+
+    ## 報告形式（queue/reports/gunshi_report_nightly_audit_20260413_stt.yaml）
+    ```yaml
+    audit_target: "STTパイプライン"
+    audit_date: "2026-04-13"
+    issues:
+      - severity: CRITICAL/HIGH/MEDIUM
+        file: "ファイルパス"
+        line: 行番号（わかる場合）
+        issue: "問題の概要"
+        detail: "具体的な問題"
+    summary: "全体所見（1-3文）"
+    ```
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、nightly_audit_20260413_stt完了。CRITICAL={N}件 HIGH={N}件 MEDIUM={N}件。queue/reports/gunshi_report_nightly_audit_20260413_stt.yaml参照。" report_completed gunshi
+- task_id: nightly_audit_20260414_video
+  parent_cmd: nightly_audit_auto
+  bloom_level: L5
+  description: 夜間矛盾検出 - 動画制作（main.py, make_expression_shorts.py, Remotion, vertical_convert.py, make_shorts系）読んで報告のみ。テスト・修正禁止。
+  status: done
+  timestamp: "2026-04-14T02:02:00"
+  steps: |
+    shared_context/qc_template.mdを参照してQCせよ。以下のファイルを読んで矛盾・問題を検出・報告するだけ。テストを書くな。コードを修正するな。
+
+    ## 対象ファイル
+    - projects/dozle_kirinuki/scripts/main.py
+    - projects/dozle_kirinuki/scripts/make_expression_shorts.py
+    - projects/dozle_kirinuki/scripts/vertical_convert.py
+    - projects/dozle_kirinuki/scripts/generate_shorts_bg.py
+    - projects/dozle_kirinuki/scripts/shorts_qc.py
+    - projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py
+    - remotion-project/（package.json, src/配下の主要ファイルを調査）
+
+    ## 検出すべき問題
+    - CRITICAL: データ消失リスク・パイプライン連携破断・廃止スクリプト参照
+    - HIGH: ffmpegコーデック設定ミス（CPUエンコード使用）・パス不整合・エラーハンドリング欠如
+    - MEDIUM: ハードコードパス・廃止API参照・未使用コード・設計上の矛盾
+
+    ## 調査項目
+    (1) main.py: ハイライト/ショート生成フローの整合性。廃止スクリプトへの参照がないか
+    (2) make_expression_shorts.py: 表情差分アセットのパス（selected/ディレクトリ参照になっているか）
+    (3) vertical_convert.py: ffmpegエンコードがNVENC（h264_nvenc）を使っているか。libx264禁止
+    (4) generate_shorts_bg.py/shorts_qc.py: 他スクリプトとの入出力フォーマット整合性
+    (5) generate_manga_short.py: GCS URI方式準拠か（Part.from_bytes禁止）。VERTEX_API_KEY参照か
+    (6) remotion-project: Remotionのバージョン・依存関係の整合性。package.jsonと実装の矛盾
+
+    ## 報告形式（queue/reports/gunshi_report_nightly_audit_20260414_video.yaml）
+    ```yaml
+    audit_target: "動画制作パイプライン"
+    audit_date: "2026-04-14"
+    issues:
+      - severity: CRITICAL/HIGH/MEDIUM
+        file: "ファイルパス"
+        line: 行番号（わかる場合）
+        issue: "問題の概要"
+        detail: "具体的な問題"
+    summary: "全体所見（1-3文）"
+    ```
+
+    ## 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、nightly_audit_20260414_video完了。CRITICAL={N}件 HIGH={N}件 MEDIUM={N}件。queue/reports/gunshi_report_nightly_audit_20260414_video.yaml参照。" report_completed gunshi
+- task_id: qc_1377a
+  parent_cmd: cmd_1377
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-14T20:39:57"
+  project_root: /home/murakami/multi-agent-shogun
+  description: "subtask_1377a（P6b吹き出し禁止強化）のQC"
+  steps: /home/murakami/multi-agent-shogun/shared_context/qc_template.md を参照してQCせよ。実ファイルを読んで確認。PASS/FAIL判定後inbox_write報告。
+  target_file: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai/manga_odai_railgun/panels_railgun.json"
+  acceptance_criteria:
+    - p6b_orafu_revive_and_dieのdirector_notesの冒頭に「【最重要禁止】空の吹き出し・セリフなし吹き出し・テキストなし吹き出しを絶対に描くな。吹き出し形状そのものを一切画面に入れるな。」が追記されていること
+    - p6b以外のパネルが変更されていないこと
+  notes:
+    - "work/はgitignore対象のためgit commitなし。ファイル内容のみ確認すること"
+    - "足軽2号の報告: 2箇所追記・JSONパースOK"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1377a QC完了。PASS/FAIL。' report_received gunshi"
+- task_id: qc_1379a
+  parent_cmd: cmd_1379
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-14T20:44:30"
+  project_root: /home/murakami/multi-agent-shogun
+  description: "subtask_1379a（tono_edit.mkv縦型クロップ+YouTube非公開アップ）のQC"
+  steps: /home/murakami/multi-agent-shogun/shared_context/qc_template.md を参照してQCせよ。report YAMLを読んで各acceptance_criteriaを確認。PASS/FAIL判定後inbox_write報告。
+  report_file: "/home/murakami/multi-agent-shogun/queue/reports/ashigaru3_report_subtask_1379a.yaml"
+  output_file: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai/manga_odai_arasowanaide/selected/tono_edit_vertical.mp4"
+  acceptance_criteria:
+    - tono_edit_vertical.mp4が1080x1920で存在すること
+    - h264_nvencで変換済みであること（report記載のコーデック確認）
+    - YouTube非公開アップ済みでURLが取得できていること（URL: https://www.youtube.com/watch?v=Hx2QqTAesLo）
+    - 説明欄に元動画リンク・ドズル社公式リンク・AI注記・ハッシュタグが含まれること
+    - タイトルに「ドズル社」「切り抜き」が含まれること
+  notes:
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1379a QC完了。PASS/FAIL。YouTube URL: Hx2QqTAesLo' report_received gunshi"
+- task_id: qc_1376a
+  parent_cmd: cmd_1376
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-14T20:45:31"
+  project_root: /home/murakami/multi-agent-shogun
+  description: "subtask_1376a（panels_odai_05_edited.json全8パネル背景バラエティ演出差し替え）のQC"
+  steps: /home/murakami/multi-agent-shogun/shared_context/qc_template.md を参照してQCせよ。実ファイルを読んでマイクラ参照が除去され各パネルにバラエティ演出背景が設定されていること確認。PASS/FAIL判定後inbox_write報告。
+  report_file: "/home/murakami/multi-agent-shogun/queue/reports/ashigaru1_report_subtask_1376a.yaml"
+  target_file: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai/panels_odai_05_edited.json"
+  acceptance_criteria:
+    - 全8パネルのdirector_notesから「マインクラフト」「マイクラ」「ブロック」等のゲーム世界背景指示が除去されていること
+    - 全8パネルに新しいバラエティ演出の背景指示が追加されていること
+    - JSONパースが正常であること
+    - 既存のキャラクター配置・セリフ・吹き出し情報が破壊されていないこと
+  notes:
+    - "work/はgitignore対象のためgit commitなし。ファイル内容のみ確認"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1376a QC完了。PASS/FAIL。' report_received gunshi"
+- task_id: qc_1380a
+  parent_cmd: cmd_1380
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-14T21:03:33"
+  project_root: /home/murakami/multi-agent-shogun
+  description: "subtask_1380a（おまたせしましたtono_edit.mkv縦型クロップ+YouTube非公開アップ）のQC"
+  steps: /home/murakami/multi-agent-shogun/shared_context/qc_template.md を参照してQCせよ。report YAMLを読んで各acceptance_criteriaを確認。PASS/FAIL判定後inbox_write報告。
+  report_file: "/home/murakami/multi-agent-shogun/queue/reports/ashigaru1_report_subtask_1380a.yaml"
+  acceptance_criteria:
+    - tono_edit_vertical.mp4が1080x1920で存在すること
+    - h264_nvencで変換済みであること
+    - YouTube非公開アップ済み（URL: https://www.youtube.com/watch?v=MtT856uoUUM）
+    - 説明欄に元動画リンク・ドズル社公式リンク・AI注記・ハッシュタグが含まれること
+    - タイトルに「ドズル社」「切り抜き」が含まれること
+  notes:
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1380a QC完了。PASS/FAIL。' report_received gunshi"
+- task_id: qc_1382a
+  parent_cmd: cmd_1382
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-14T21:29:26"
+  project_root: /home/murakami/multi-agent-shogun
+  description: "subtask_1382a（お題04早く寝なさいtono_edit.mkv縦型クロップ+YouTube非公開アップ）のQC"
+  steps: /home/murakami/multi-agent-shogun/shared_context/qc_template.md を参照してQCせよ。report YAMLを読んで各acceptance_criteriaを確認。PASS/FAIL判定後inbox_write報告。
+  report_file: "/home/murakami/multi-agent-shogun/queue/reports/ashigaru3_report_subtask_1382a.yaml"
+  acceptance_criteria:
+    - tono_edit_vertical.mp4が1080x1920で存在すること
+    - h264_nvencで変換済みであること
+    - YouTube非公開アップ済み（URL: https://www.youtube.com/watch?v=zUOfksVGAV0）
+    - 説明欄に元動画リンク・ドズル社公式リンク・AI注記・ハッシュタグが含まれること
+    - タイトルに「ドズル社」「切り抜き」が含まれること
+  notes:
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1382a QC完了。PASS/FAIL。' report_received gunshi"
+- task_id: qc_1381a
+  parent_cmd: cmd_1381
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-14T21:35:49"
+  project_root: /home/murakami/multi-agent-shogun
+  description: "subtask_1381a（panels_odai_05_edited.json全8枚漫画パネルAPI生成）のQC"
+  steps: /home/murakami/multi-agent-shogun/shared_context/qc_template.md を参照してQCせよ。実ファイルを目視確認（冒頭・中盤・終盤）。PASS/FAIL判定後inbox_write報告。
+  report_file: "/home/murakami/multi-agent-shogun/queue/reports/ashigaru1_report_subtask_1381a.yaml"
+  output_dir: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai/manga_odai_05/v2"
+  acceptance_criteria:
+    - 全8パネル（p1〜p8）のPNG画像がoutput_dirに存在すること
+    - 各PNGが0バイトでないこと
+    - 生成画像に明らかな品質問題（空吹き出し・キャラ混入等）がないこと
+  notes:
+    - "画像内容（バラエティ演出背景）の最終確認は殿の目視判断が必要"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1381a QC完了。PASS/FAIL。' report_received gunshi"
+- task_id: qc_1383a
+  parent_cmd: cmd_1383
+  bloom_level: L5
+  status: done
+  priority: high
+  timestamp: "2026-04-14T21:52:00"
+  description: "subtask_1383a（お題05 v2ギャラリーHTML）のQC検査"
+  target_file: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai/manga_odai_05/v2/gallery.html"
+  steps: shared_context/qc_template.mdを参照してQCせよ。target_fileを読んで全8枚のimgタグ・ダークテーマCSS・セリフpタグを確認。HTTPアクセス確認も実施。
+  acceptance_criteria:
+    - gallery.htmlが存在すること
+    - 全8パネル（p1〜p8）のimgタグが含まれていること
+    - ダークテーマ（背景#1a1a2eまたは同等のダーク色）が適用されていること
+    - パネルIDがh2タグで表示されていること
+    - セリフ情報がpタグで表示されていること
+    - "http://100.66.15.93:8770/ 経由でHTTP 200が返ること"
+  notes:
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1383a QC完了。PASS/FAIL。' report_received gunshi"
+- task_id: qc_1378a
+  parent_cmd: cmd_1378
+  bloom_level: L5
+  status: done
+  priority: high
+  timestamp: "2026-04-14T21:54:00"
+  description: "subtask_1378a（panels_railgun.json P6b_orafu_revive_and_die API再生成）のQC検査"
+  target_file: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_railgun/out/p6b_orafu_revive_and_die.png"
+  steps: shared_context/qc_template.mdを参照してQCせよ。target_fileの存在・サイズ確認→目視確認（空吹き出しなし・キャラ識別可能）→結果報告。
+  acceptance_criteria:
+    - p6b_orafu_revive_and_die.pngが存在し0バイトでないこと
+    - 画像に空の吹き出しが含まれていないこと（目視確認）
+    - おらふくんのキャラが識別可能であること
+  notes:
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1378a QC完了。PASS/FAIL。' report_received gunshi"
+- task_id: qc_1384a
+  parent_cmd: cmd_1384
+  bloom_level: L5
+  status: done
+  priority: high
+  timestamp: "2026-04-14T22:13:00"
+  description: "subtask_1384a（P6b v1/v2/v3 ガチャ3回生成）のQC検査"
+  target_dir: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_railgun/out"
+  gallery_url: "http://100.66.15.93:8770/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_railgun/out/gallery_p6b.html"
+  steps: shared_context/qc_template.mdを参照してQCせよ。p6b_v1.png/p6b_v2.png/p6b_v3.pngの存在・サイズ・空吹き出しなし確認→gallery_p6b.htmlで3枚表示確認→結果報告。
+  acceptance_criteria:
+    - p6b_v1.png, p6b_v2.png, p6b_v3.pngが全て存在し0バイトでないこと
+    - 3枚全てに空の吹き出しが含まれていないこと（目視確認）
+    - gallery_p6b.htmlで3枚が並んで表示されていること
+    - ntfyが送信済みであること（足軽報告で確認）
+  notes:
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1384a QC完了。PASS/FAIL。3枚の品質コメントも添えよ。' report_received gunshi"
+- task_id: nightly_audit_20260415_infra
+  parent_cmd: nightly_audit
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-15T02:10:00"
+  description: "夜間矛盾検出 - インフラスクリプト群（inbox_write/watcher, ntfy, cron, agent管理系, context_monitor等）。テスト禁止・コード修正禁止・読んで報告のみ"
+  steps: |
+    advisor()を分析前に必ず呼べ。
+
+    ## 対象ファイル
+    - /home/murakami/multi-agent-shogun/scripts/inbox_write.sh
+    - /home/murakami/multi-agent-shogun/scripts/inbox_watcher.sh
+    - /home/murakami/multi-agent-shogun/scripts/watcher_supervisor.sh
+    - /home/murakami/multi-agent-shogun/scripts/ntfy.sh
+    - /home/murakami/multi-agent-shogun/scripts/ntfy_listener.sh
+    - /home/murakami/multi-agent-shogun/scripts/ntfy_voice.sh
+    - /home/murakami/multi-agent-shogun/scripts/userprompt_ntfy_check.sh
+    - /home/murakami/multi-agent-shogun/scripts/context_monitor.sh
+    - /home/murakami/multi-agent-shogun/scripts/context_watcher.sh
+    - /home/murakami/multi-agent-shogun/scripts/nightly_audit.sh
+    - /home/murakami/multi-agent-shogun/scripts/precompact_hook.sh
+    - /home/murakami/multi-agent-shogun/scripts/sessionstart_hook.sh
+    - /home/murakami/multi-agent-shogun/scripts/stop_hook_inbox.sh
+    - /home/murakami/multi-agent-shogun/scripts/stop_karo_check.sh
+    - /home/murakami/multi-agent-shogun/scripts/pretool_check.sh
+    - /home/murakami/multi-agent-shogun/scripts/posttool_yaml_check.sh
+    - /home/murakami/multi-agent-shogun/scripts/slim_yaml.py
+    - /home/murakami/multi-agent-shogun/scripts/slim_yaml.sh
+    - /home/murakami/multi-agent-shogun/scripts/start_ashigaru_glm.sh
+    - /home/murakami/multi-agent-shogun/.claude/settings.json（hooksセクション）
+
+    ## 検出すべき問題
+    - CRITICAL: データ消失・システム停止・セキュリティ問題・競合状態
+    - HIGH: エラーハンドリング欠如・誤動作の可能性・廃止スクリプト参照
+    - MEDIUM: 廃止APIの使用・未使用変数・不明確な処理フロー・ハードコード値
+
+    ## 報告形式
+    ```yaml
+    audit_target: "インフラスクリプト群（inbox_write/watcher/ntfy/cron/agent管理系）"
+    audit_date: "2026-04-15"
+    issues:
+      - severity: CRITICAL/HIGH/MEDIUM
+        file: "ファイルパス"
+        line: 行番号（わかる場合）
+        issue: "問題の概要"
+        detail: "具体的な問題"
+        recommendation: "推奨対処"
+    ```
+
+    ## 完了後
+    1. 報告YAMLを queue/reports/gunshi_report_nightly_audit_20260415_infra.yaml に保存
+    2. bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、nightly_audit_20260415_infra完了。CRITICAL={N}件 HIGH={N}件 MEDIUM={N}件。queue/reports/gunshi_report_nightly_audit_20260415_infra.yaml参照。" report_completed gunshi
+  acceptance_criteria:
+    - queue/reports/gunshi_report_nightly_audit_20260415_infra.yaml が存在すること
+    - CRITICAL/HIGH/MEDIUMが分類されていること
+    - 各問題にfile・line・issue・detail・recommendationが記載されていること
+  notes:
+    - "テスト実行禁止・コード修正禁止。読んで報告するだけ"
+    - "前回インフラ監査: nightly_audit_20260411_infra（4日前）"
+    - "新規追加スクリプトも対象（watcher_supervisor.sh等）"
+- task_id: qc_1386a
+  parent_cmd: cmd_1386
+  bloom_level: L5
+  status: done
+  priority: high
+  timestamp: "2026-04-15T06:03:00"
+  description: "subtask_1386aのQC検査（インフラHIGH×2+MEDIUM×3修正）。commit f526239。git diffで5ファイルを検証。"
+  commit: "f526239"
+  steps: |
+    shared_context/qc_template.md を参照してQCせよ。
+    git diff HEAD~1 -- scripts/ntfy_listener.sh scripts/posttool_yaml_check.sh scripts/userprompt_ntfy_check.sh scripts/context_watcher.sh scripts/slim_yaml.py で差分確認。
+
+    ## 重点確認事項（家老が発見した懸念）
+    ntfy_listener.sh HIGH-1の修正が不完全の疑い:
+    変更後コード: ${NTFY_TOKEN:+configured}${NTFY_USER:+configured}${NTFY_TOKEN:-${NTFY_USER:-none}}
+    ケース「NTFY_TOKEN空 + NTFY_USER設定」のとき ${NTFY_TOKEN:-${NTFY_USER:-none}} がNTFY_USERの実値を展開する可能性あり。
+    実際にこの展開が漏洩を引き起こすか検証し、PASS/FAILを判定せよ。
+    修正が不完全な場合はFAILとしてashigaru2に差し戻す。
+
+    ## その他確認
+    - posttool_yaml_check.sh: INPUT=$(cat)方式、tool_input.file_pathの正しい抽出
+    - userprompt_ntfy_check.sh: queue/.flags/使用（/tmp除去）
+    - context_watcher.sh: PROJECT_DIR動的解決
+    - slim_yaml.py: slim_shogun_to_karo（2箇所）
+  acceptance_criteria:
+    - "5ファイル全ての修正内容が意図通りであること"
+    - "ntfy_listener.sh: 全ケースで認証情報の実値がログに出力されないこと"
+    - "posttool_yaml_check.sh: stdinからJSON読み取り・FILE_PATHが正しく抽出されること"
+    - "userprompt_ntfy_check.sh: /tmp除去・queue/.flags/使用"
+    - "context_watcher.sh: ハードコードパス除去"
+    - "slim_yaml.py: typo2箇所修正済み"
+  notes:
+    - "PASS判定時: 家老がgit pushを実施する（軍師はpushしない）"
+    - "FAIL判定時: ashigaru2に差し戻しタスクを明記して報告"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1386a QC完了。PASS/FAIL。' report_received gunshi"
+- task_id: qc_1387a
+  parent_cmd: cmd_1387
+  bloom_level: L5
+  status: done
+  priority: high
+  timestamp: "2026-04-15T06:08:00"
+  description: "subtask_1387aのQC検査（動画パイプラインHIGH×2+MEDIUM×2修正）。commit 10005027（dozle_kirinukiリポジトリ）"
+  commit: "10005027"
+  steps: |
+    shared_context/qc_template.md を参照してQCせよ。
+    git diff HEAD~1 で差分確認。
+    （savepoint dfccfba3との比較でもよい）
+
+    ## 確認対象（HIGH×2 + MEDIUM×2）
+    HIGH-1: main.py L333 esc()エスケープ順序
+      バックスラッシュ置換が最初（先頭）になっているか。make_expression_shorts.py・vertical_convert.pyと同じ順序か。
+
+    HIGH-2: make_expression_shorts.py L295 ffmpeg -ss位置
+      -ssが-iの後に移動しているか（CLAUDE.mdルール）
+
+    MEDIUM-1: generate_manga_short.py BASE_DIR
+      os.path.dirname(__file__)等で動的解決になっているか
+
+    MEDIUM-2: main.py selected_check_hook.sh絶対パス
+      動的解決になっているか
+
+    ## python構文確認
+    python3 -c "import ast; ast.parse(open('scripts/main.py').read())" エラーなし
+    python3 -c "import ast; ast.parse(open('scripts/make_expression_shorts.py').read())" エラーなし
+    python3 -c "import ast; ast.parse(open('scripts/manga_poc/generate_manga_short.py').read())" エラーなし
+    （上記はprojects/dozle_kirinuchiディレクトリ内で実行）
+  acceptance_criteria:
+    - "main.py esc(): バックスラッシュ置換が先頭であること"
+    - "make_expression_shorts.py: ffmpeg -ss が -i の後であること"
+    - "generate_manga_short.py: BASE_DIR 動的解決"
+    - "main.py: selected_check_hook.sh パス動的解決"
+    - "python構文エラーなし"
+  notes:
+    - "dozle_kirinukiはgit push不可（gcloud SDK 194MB問題）。commit確認のみ"
+    - "PASS判定時: 家老に報告（push不要）"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1387a QC完了。PASS/FAIL。' report_received gunshi"
+- task_id: qc_1385a
+  parent_cmd: cmd_1385
+  bloom_level: L5
+  status: done
+  priority: high
+  timestamp: "2026-04-15T06:37:00"
+  description: "subtask_1385aのQC検査（generate_manga_short.pyによるP6b×3ガチャ再生成＋お題05v3全8枚）"
+  report_ref: "queue/reports/ashigaru1_report_subtask_1385a.yaml"
+  output_p6b_base: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_railgun/out"
+  output_odai05_v3: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai/manga_odai_05/v3"
+  steps: |
+    shared_context/qc_template.md を参照してQCせよ。実ファイルを目視確認（冒頭・中盤・終盤）。
+
+    ## 確認1: P6b ガチャ3枚（核心確認）
+    p6b_v1/p6b_orafu_revive_and_die.png, p6b_v2/, p6b_v3/ の3ファイルを画像として読み込む。
+    最重要: 各画像に「OKワード：あちらのお客様からです」「NGワード：かしこまりました」のテキストが一切ないこと。
+    （これが今回の修正目的。描画されていればFAIL）
+
+    ## 確認2: お題05 v3 全8枚
+    p1〜p8の8枚PNGが全て存在し、0バイトでないこと。
+    うち2〜3枚を目視確認してOKワード/NGワードテキストがないこと。
+
+    ## 確認3: ギャラリーHTMLアクセス
+    http://100.66.15.93:8770/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_railgun/out/gallery_p6b_gacha.html
+    http://100.66.15.93:8770/work/20260406_仲間の気持ちがわかればチートになる世界でエンドラ討伐！【マイクラ】/output/manga_odai/manga_odai_05/v3/gallery.html
+    curl で HTTP 200 を確認。
+  acceptance_criteria:
+    - "p6b_v1/v2/v3 各ディレクトリにPNGが存在・0バイトでないこと"
+    - "P6b 3枚全てにOKワード/NGワードテキストが描画されていないこと（目視必須）"
+    - "お題05 v3 8枚全て存在・うち2〜3枚目視でOKワード/NGワードなし"
+    - "両ギャラリーHTMLにHTTP 200でアクセス可能"
+    - "P6bギャラリー: 3枚（v1/v2/v3）が並んで表示されていること"
+  notes:
+    - "PASS判定時: 既存 cmd_1384 🚨要対応（P6b選択）とともに殿レビュー依頼を家老に報告"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1385a QC完了。PASS/FAIL。' report_received gunshi"
+- task_id: nightly_audit_20260416_stt
+  parent_cmd: nightly_audit
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-16T02:05:00"
+  description: "夜間矛盾検出 - STTパイプライン（vocal_stt_pipeline.py, stt_merge.py, speaker_id系, 成果物）。テスト禁止・コード修正禁止・読んで報告のみ"
+  steps: |
+    advisor()を分析前に必ず呼べ。
+
+    ## 対象ファイル
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/stt_merge.py
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/speaker_id_srt_based.py
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/speaker_id.py
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/compare_speaker_srt.py
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/speaker_profiles/speaker_identification.py
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/speaker_profiles/speaker_id_wachawacha.py
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/speaker_profiles/speaker_id_wachawacha_v3.py
+    - /home/murakami/multi-agent-shogun/skills/gemini-video-transcribe/transcribe.py
+    - /home/murakami/multi-agent-shogun/scripts/gemini_transcribe.py
+    - /home/murakami/multi-agent-shogun/scripts/gemini_speaker_pipeline.py（廃止済み。他スクリプトからの参照が残っていないか確認）
+
+    ## 既知の修正済み事項（再指摘不要）
+    - vocal_stt_pipeline.py + stt_merge.py: PROJECT_DIRバグ（cmd_1272修正済み）
+    - transcribe.py: gemini_speaker_pipeline.py廃止参照（cmd_1374修正済み）
+    - speaker_id_srt_based.py: MEMBERSハードコード→動的ロード（cmd_1277修正済み）
+
+    ## 検出すべき問題
+    - CRITICAL: データ消失・STT出力の整合性破壊・廃止スクリプト参照
+    - HIGH: エラーハンドリング欠如・競合状態・話者識別の誤動作可能性
+    - MEDIUM: ハードコード値・廃止API・未使用変数・不明確なフロー
+
+    ## 報告形式
+    ```yaml
+    audit_target: "STTパイプライン（vocal_stt_pipeline.py/stt_merge.py/speaker_id系）"
+    audit_date: "2026-04-16"
+    issues:
+      - severity: CRITICAL/HIGH/MEDIUM
+        file: "ファイルパス"
+        line: 行番号
+        issue: "問題の概要"
+        detail: "具体的な問題"
+        recommendation: "推奨対処"
+    ```
+
+    ## 完了後
+    1. 報告YAMLを queue/reports/gunshi_report_nightly_audit_20260416_stt.yaml に保存
+    2. bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、nightly_audit_20260416_stt完了。CRITICAL={N}件 HIGH={N}件 MEDIUM={N}件。queue/reports/gunshi_report_nightly_audit_20260416_stt.yaml参照。" report_completed gunshi
+  acceptance_criteria:
+    - "queue/reports/gunshi_report_nightly_audit_20260416_stt.yaml が存在すること"
+    - "CRITICAL/HIGH/MEDIUMが分類されていること"
+    - "各問題にfile・line・issue・detail・recommendationが記載されていること"
+  notes:
+    - "テスト実行禁止・コード修正禁止。読んで報告するだけ"
+    - "前回STT監査: nightly_audit_20260409_stt（1週間前）"
+    - "既知修正済み事項は再指摘不要（上記参照）"
+- task_id: qc_1388a
+  parent_cmd: cmd_1388
+  worker_id: gunshi
+  status: done
+  priority: high
+  timestamp: "2026-04-16T09:27:00"
+  description: "pretool_check.shの二段構えチェック実装（subtask_1388d）のQC検査。blacklist BLOCKED + 未登録WARNING + キーワードマッチ候補表示"
+  report_yaml: "queue/reports/ashigaru2_report_subtask_1388d.yaml"
+  steps: |
+    shared_context/qc_template.md を参照してQCせよ。
+
+    ## 検査対象ファイル
+    - scripts/pretool_check.sh（追加ブロックを目視確認）
+    - config/script_blacklist.txt（内容確認）
+
+    ## 検査観点（全て実ファイルを読んで確認せよ）
+    1. config/script_blacklist.txt が存在し、generate_odai_panels.py と generate_qnly_agree.py が記載されているか
+    2. bash -n scripts/pretool_check.sh がエラーなしか（構文検証）
+    3. pretool_check.shに追加ブロックが存在し、以下の構造か確認:
+       - AGENT_ID == ashigaru* のみ対象
+       - python3 -c, venv/, pip 除外
+       - 1段目: blacklist一致 → BLOCKED (exit 2)
+       - 2段目: script_index.md未登録 → WARNING + 候補表示 (exit 0)
+    4. hotfix_notesに記載の「AGENT_ID取得をスクリプト共通部に抽出すべき」問題が実装に影響していないか確認（動作するなら許容）
+
+    ## PASS条件
+    - blacklist.txt存在・内容正確
+    - bash -n エラーなし
+    - 追加ブロックの構造が仕様通り
+    - AGENT_ID取得が動作上問題ない実装になっている
+
+    ## 完了後
+    1. 報告YAML: queue/reports/gunshi_report_qc_1388a.yaml
+    2. bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、qc_1388a QC完了。PASS/FAIL。queue/reports/gunshi_report_qc_1388a.yaml参照。" report_received gunshi
+  acceptance_criteria:
+    - "queue/reports/gunshi_report_qc_1388a.yaml が存在すること"
+    - "PASS/FAIL判定と根拠が記載されていること"
+  notes:
+    - "テスト実行禁止。ファイルを読んで検査するだけ"
+    - "hotfix_notes: AGENT_ID取得ワークアラウンドが動作上問題ないか確認すること"
+    - "git pushはQC PASS後に家老が実施"
+- task_id: qc_1389a
+  parent_cmd: cmd_1389
+  worker_id: gunshi
+  status: done
+  priority: high
+  timestamp: "2026-04-16T09:50:00"
+  description: "subtask_1389a完了後にGLM+Advisor難問テスト5問を評価。cmd_1049ベースライン（GLM単体4.3/Sonnet4.4/Opus4.9）との比較表を作成。"
+  trigger: "subtask_1389a完了報告受信後に家老が status: done に変更してinbox通知"
+  steps: |
+    shared_context/qc_template.md を参照してQCせよ。
+
+    ## 評価対象
+    work/cmd_1389/glm_advisor_hard_test.md を読んで5問を評価せよ。
+
+    ## 評価基準（各問 1-5点）
+    - **正確性** (1-5): 事実と合っているか、コードを正確に読めているか
+    - **深さ** (1-5): 表面的な回答か、本質的・洞察的な回答か
+    - **実用性** (1-5): そのまま使えるか、具体性があるか
+    - **advisor効果**: advisorなしでは得られなかったであろう改善点（あれば記述）
+
+    ## ベースライン（cmd_1049）
+    - GLM単体: 4.3/5.0
+    - Sonnet: 4.4/5.0
+    - Opus: 4.9/5.0
+
+    ## 出力形式
+    ```yaml
+    scores:
+      q1: {accuracy: X, depth: X, usefulness: X, avg: X.X}
+      q2: {accuracy: X, depth: X, usefulness: X, avg: X.X}
+      q3: {accuracy: X, depth: X, usefulness: X, avg: X.X}
+      q4: {accuracy: X, depth: X, usefulness: X, avg: X.X}
+      q5: {accuracy: X, depth: X, usefulness: X, avg: X.X}
+    overall: X.X/5.0
+    baseline_comparison:
+      glm_solo: 4.3
+      sonnet: 4.4
+      opus: 4.9
+      glm_with_advisor: X.X
+      improvement: +X.X
+    advisor_effect_observed: [yes/no + 具体例]
+    ```
+
+    ## 完了後
+    1. 報告YAML: queue/reports/gunshi_report_qc_1389a.yaml
+    2. bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、qc_1389a評価完了。GLM+Advisor総合: X.X/5.0（ベースライン比+X.X）。queue/reports/gunshi_report_qc_1389a.yaml参照。" report_received gunshi
+  acceptance_criteria:
+    - "5問全ての採点（正確性・深さ・実用性）が記録されていること"
+    - "ベースライン比較表があること"
+    - "advisor効果の所見が記録されていること"
+  notes:
+    - "足軽の自己評価ではなく第三者評価を行うこと"
+    - "Q1: pretool_check.shのパス処理が正しいか検証した上で採点すること"
+
+- task_id: qc_1391a
+  parent_cmd: cmd_1391
+  bloom_level: L5
+  assigned_to: gunshi
+  timestamp: "2026-04-16T10:45:00"
+  status: done
+  title: GLM+Advisor難問テスト5問 第三者評価（cmd_1391）
+  description: |
+    subtask_1391a完了後に実施。work/cmd_1391/glm_advisor_hard_test_v2.md を読んで5問の回答品質を評価せよ。
+    shared_context/qc_template.md を参照してQCせよ。
+
+    ## 評価基準（cmd_1049と同一）
+    各問ごとに5段階評価:
+    - 正確性 (1-5): 事実と合っているか
+    - 深さ (1-5): 表面的 vs 本質的な回答か
+    - 実用性 (1-5): そのまま使えるか
+    - 応答速度（秒数記録）
+
+    ## 比較対象（cmd_1049結果）
+    - GLM単体: 4.3/5.0
+    - Sonnet: 4.4/5.0
+    - Opus: 4.9/5.0
+    - GLM+Advisor(cmd_1389 差替版): 4.7/5.0
+
+    ## 報告形式
+    queue/reports/gunshi_report_qc_1391a.yaml に以下を記録:
+    - 各問の採点（正確性・深さ・実用性・avg）
+    - overall スコア
+    - baseline_comparison（上記4つと比較）
+    - advisor_effect_observed
+
+  steps: |
+    Step1: subtask_1391a完了待ち（家老がassignedに変更するまで待機）
+    Step2: work/cmd_1391/glm_advisor_hard_test_v2.md を読んで採点
+    Step3: 各問で実ファイル参照が正確かを検証（Q1はsubtitle_semantic_index.py実在確認等）
+    Step4: 報告YAMLを queue/reports/gunshi_report_qc_1391a.yaml に書く
+    Step5: 完了報告
+  acceptance_criteria:
+    - "5問全ての採点（正確性・深さ・実用性）が記録されていること"
+    - "cmd_1049・cmd_1389との比較表があること"
+    - "advisor効果の所見が記録されていること"
+  notes:
+    - "足軽の自己評価ではなく第三者評価を行うこと"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1391a評価完了。GLM+Advisor総合: X.X/5.0。queue/reports/gunshi_report_qc_1391a.yaml参照。' report_received gunshi"
+
+- task_id: qc_1390a
+  parent_cmd: cmd_1390
+  bloom_level: L5
+  assigned_to: gunshi
+  timestamp: "2026-04-16T10:45:00"
+  status: done
+  title: pretool_check.sh バグ2件修正 QC検査
+  description: |
+    subtask_1390aの成果物を検査せよ。shared_context/qc_template.md を参照してQCせよ。
+
+    ## チェック項目
+    1. bash -n scripts/pretool_check.sh → エラーなし
+    2. Bug1修正確認: head -1 → 全.pyループ構造になっているか（L117周辺）
+    3. Bug2修正確認: target_path: → grep -E 'target_path:|output_file:' になっているか（L56周辺）
+    4. テスト実施（実際に動作確認）:
+       a. python3 safe.py generate_odai_panels.py → BLOCKED (exit 2)
+       b. python3 generate_odai_panels.py → BLOCKED (exit 2)
+       c. python3 generate_manga_short.py → 通過
+       d. python3 generate_manga_short.py --config something.py → 通過
+    5. git logで修正コミットが存在すること
+
+  steps: |
+    Step1: scripts/pretool_check.sh を Read して修正箇所（L56とL108-162）を確認
+    Step2: bash -n scripts/pretool_check.sh で構文チェック
+    Step3: テスト4件を実行して動作確認（テスト用コマンドはフックをシミュレートして確認）
+    Step4: 報告YAML作成（queue/reports/gunshi_report_qc_1390a.yaml）
+    Step5: 完了報告
+  acceptance_criteria:
+    - "bash -n が通ること"
+    - "Bug1（ループ化）が正しく実装されていること"
+    - "Bug2（output_file追加）が正しく実装されていること"
+    - "テスト4件全てパスしていること"
+  notes:
+    - "実ファイルを読んで目視確認すること。報告値を鵜呑みにするな"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1390a QC完了。PASS/FAIL。queue/reports/gunshi_report_qc_1390a.yaml参照。' report_received gunshi"
+
+- task_id: analysis_1392a
+  parent_cmd: cmd_1392
+  bloom_level: L6
+  assigned_to: gunshi
+  timestamp: "2026-04-16T11:00:00"
+  status: done
+  title: 将軍の指示拡大解釈防止策 ハーネスエンジニアリング提案
+  description: |
+    以下の問題に対するハーネスエンジニアリングの解決策を提案せよ。
+
+    ### 問題
+    殿（人間）が将軍に短い指示を出す。将軍がそれをcmd（shogun_to_karo.yaml）に変換して家老に流す。
+    この変換時に、将軍が殿の意図を超えた内容をcmdに含めてしまうことがある。
+
+    ### 実例3件
+    1. cmd_633: 殿「把握して整理」→ 将軍がcmdに「マージせよ」を追加 → 21コミットmerge+push実行
+    2. cmd_1029: 殿「JSONに背景追加」→ 将軍がcmdに「再生成」を追加 → 殿が指示していない再生成が実行された
+    3. cmd_1389: 殿「難問を今の足軽GLMにやらせる」→ 将軍がcmdに「問題を更新済み」と記載 → cmd_1049と同一問題で比較すべきだったのに3問が差し替えられた
+
+    ### 制約
+    - 殿の手間を増やす解決策は不可（殿は全cmdをレビューする時間がない）
+    - 「ルールを追加する」「memoryに記録する」だけでは不可（過去3回ルールがあっても再発している）
+    - Claude Code のハーネス機能（hooks, settings, skills, CLAUDE.md）を活用した仕組みの提案を求める
+    - 殿の発言は常に短く平易（「やれ」「同じく」「回して」等）、将軍のcommandは常に技術的で長い
+
+    ### 提案に含めること
+    - 問題の構造分析（なぜ繰り返すのか）
+    - 解決策3案以上（それぞれメリット・デメリット・実装難易度）
+    - 推奨案の選定と根拠
+
+    ### 提案に含めないこと
+    - 「将軍が気をつける」系の精神論
+    - ルール追加だけの対策（守られないことが実証済み）
+
+  steps: |
+    Step1: advisor()を呼んで分析フレームワークを確認
+    Step2: 実例3件の構造的パターンを分析（殿の指示 vs 将軍のcmd の乖離点を整理）
+    Step3: Claude Codeハーネス機能（hooks, settings, skills, CLAUDE.md）の活用可能性を調査
+    Step4: 解決策3案以上を設計（各案のメリット・デメリット・実装難易度を整理）
+    Step5: 推奨案を1つ選定（根拠付き）
+    Step6: advisor()を呼んで提案内容の品質確認
+    Step7: 報告YAMLを queue/reports/gunshi_report_cmd1392.yaml に書く
+    Step8: 完了報告
+  acceptance_criteria:
+    - "問題の構造分析があること"
+    - "解決策が3案以上あること"
+    - "各案のメリット・デメリット・実装難易度が整理されていること"
+    - "推奨案が1つ選定されていること"
+    - "queue/reports/gunshi_report_cmd1392.yaml に保存されていること"
+  notes:
+    - "「将軍が気をつける」系の精神論は不可"
+    - "ルール追加だけの対策は不可（守られないことが実証済み）"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、analysis_1392a完了。将軍拡大解釈防止策N案提案。queue/reports/gunshi_report_cmd1392.yaml参照。' report_received gunshi"
+
+- task_id: design_1393a
+  parent_cmd: cmd_1393
+  bloom_level: L6
+  assigned_to: gunshi
+  timestamp: "2026-04-16T11:18:00"
+  status: done
+  title: 将軍指示拡大解釈防止フック 詳細設計（Phase1）
+  description: |
+    cmd_1393 Phase1。以下2つのフックの詳細設計を行い、設計書をwork/cmd_1393/design.mdに保存せよ。
+
+    ## 設計対象
+
+    ### 1. PreToolUseフック追加（pretool_check.sh）
+    - 対象: 将軍paneのみ（agent_id == shogun）
+    - トリガー: Write/Editツールでファイルパスがshogun_to_karo.yaml
+    - チェック: new_string/contentに新規cmdブロック（"- id: cmd_"パターン）が含まれる場合、lord_original:フィールドが存在するか
+    - なければBLOCKED: "lord_original必須。殿の発言原文を記載せよ。"
+
+    ### 2. PostToolUseフック新規作成（scripts/posttool_cmd_check.sh）
+    - 対象: 将軍paneのみ
+    - トリガー: Write/Editツールでshogun_to_karo.yaml更新後
+    - 処理: lord_originalとcommandを抽出 → claude -p に照合
+    - claude -pプロンプト（50語以内制限）:
+      「以下の殿の指示と将軍のcommandを比較せよ。commandに殿が指示していない判断・変更・追加はあるか？あれば指摘せよ。なければ『OK』とだけ答えよ。50語以内。殿の指示: {lord_original}　将軍のcommand: {command}」
+    - 結果がOK以外ならstderrにWARNING表示
+    - タイムアウト: 30秒（超えたらスキップ）
+
+    ## 設計書に含めること
+    1. pretool_check.shへの追加コード（実装可能なbash）
+    2. posttool_cmd_check.sh全体（実装可能なbash）
+    3. .claude/settings.jsonへのPostToolUseフック登録方法
+    4. cmd_template.mdへのlord_originalフィールド追加案
+    5. テストケース3件（lord_original未記載BLOCKED / 忠実なcmd OK / 拡大解釈cmd WARNING）
+    6. エッジケース考慮（複数cmdを一度にWrite、commandが長い場合のトークン制限等）
+
+    ## 既存ファイルを必ず読め
+    - scripts/pretool_check.sh（現在の実装を把握してからコードを書け）
+    - .claude/settings.json（現在のフック登録状況を確認）
+    - context/cmd_template.md（lord_originalフィールド追加箇所を確認）
+
+  steps: |
+    Step1: advisor()を呼んで設計方針確認 Step2: pretool_check.sh, settings.json, cmd_template.mdを読む Step3: PreToolUseフック追加コード設計 Step4: posttool_cmd_check.sh設計（claude -pプロンプト含む） Step5: advisor()で設計品質確認 Step6: work/cmd_1393/design.mdに設計書を保存 Step7: 完了報告
+  acceptance_criteria:
+    - "work/cmd_1393/design.mdが存在すること"
+    - "pretool_check.shへの追加コードが実装可能なbashで書かれていること"
+    - "posttool_cmd_check.shの全体コードが書かれていること"
+    - "settings.jsonへの登録方法が明記されていること"
+    - "テストケース3件が書かれていること"
+    - "エッジケース考慮が含まれていること"
+  notes:
+    - "設計のみ。実装は足軽がPhase2で行う"
+    - "実装可能なコードを書くこと（コンセプトだけでは不可）"
+    - "mkdir -p work/cmd_1393 を最初に実行すること"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、design_1393a完了。設計書: work/cmd_1393/design.md' report_received gunshi"
+
+- task_id: qc_1393a
+  parent_cmd: cmd_1393
+  bloom_level: L5
+  assigned_to: gunshi
+  timestamp: "2026-04-16T11:55:00"
+  status: done
+  title: 将軍指示拡大解釈防止フック QC検査
+  description: |
+    subtask_1393aの成果物を検査せよ。shared_context/qc_template.md を参照してQCせよ。
+
+    ## チェック項目（全件目視確認必須）
+    1. scripts/pretool_check.sh — チェック4（lord_original必須）が追加されているか
+       - shogun agent のみ対象か
+       - 新規cmdブロック検出ロジックが正しいか
+       - BLOCKED メッセージが適切か
+    2. scripts/posttool_cmd_check.sh — 新規作成されているか
+       - stdin から INPUT を読み取っているか（posttool_yaml_check.sh パターン）
+       - shogun agent のみ対象か
+       - timeout 30 で claude -p を呼んでいるか
+       - exit 0 固定（block しない）か
+    3. .claude/settings.json — PostToolUse に posttool_cmd_check.sh が登録されているか
+    4. context/cmd_template.md — lord_original フィールドが追加されているか
+    5. instructions/karo.md — lord_original 検証チェックが追加されているか
+    6. bash -n scripts/pretool_check.sh → エラーなし
+    7. bash -n scripts/posttool_cmd_check.sh → エラーなし
+    8. git log で 5ファイル変更コミットが存在すること
+
+  steps: |
+    Step1: 上記8項目を全て目視確認 Step2: bash -n 2件実行 Step3: git log --name-only で変更ファイル確認 Step4: 報告YAML作成（queue/reports/gunshi_report_qc_1393a.yaml） Step5: 完了報告
+  acceptance_criteria:
+    - "全8項目がPASSであること"
+    - "FAIL項目があれば詳細を報告すること"
+  notes:
+    - "実ファイルを読んで目視確認すること。bash -nだけでPASS判定するな"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1393a QC完了。PASS/FAIL。queue/reports/gunshi_report_qc_1393a.yaml参照。' report_received gunshi"
+
+- task_id: qc_1395a
+  parent_cmd: cmd_1395
+  bloom_level: L5
+  assigned_to: gunshi
+  timestamp: "2026-04-16T13:57:00"
+  status: done
+  title: pretool_check.sh / posttool_cmd_check.sh Bashバイパス修正 QC
+  description: |
+    subtask_1395aの成果物を検査せよ。shared_context/qc_template.md を参照してQCせよ。
+
+    ⚠️ 重要: 追加指示が完了報告の2分前に送信されたため、以下の追加修正が含まれているか特に注意して確認すること。
+
+    ## チェック項目（全件目視確認必須）
+
+    ### 必須（元指示）
+    1. scripts/pretool_check.sh チェック4: Bashツールでshogun_to_karo.yamlに書く場合にlord_originalチェックが発動するか
+    2. scripts/posttool_cmd_check.sh: BashツールでshogunToKaro操作を検出するよう修正されているか
+    3. Write/Editの既存チェック（チェック4）が引き続き動作するか
+
+    ### 追加指示分（タイミング的に含まれていない可能性あり — 必ず確認）
+    4. scripts/pretool_check.sh チェック2（work/cmd_*禁止+/tmp禁止）: Bashでecho/catでwork/cmd_*や/tmp/に書く場合もチェックされるか
+    5. scripts/pretool_check.sh チェック3（stepsYAML行数）: Bashでcat >>でqueue/tasks/*.yamlに追記する場合もチェックされるか
+
+    ### 共通
+    6. bash -n scripts/pretool_check.sh → エラーなし
+    7. bash -n scripts/posttool_cmd_check.sh → エラーなし
+    8. git log で修正コミットが存在すること
+
+    ## 判定基準
+    - 必須（1-3）がPASS かつ 追加指示分（4-5）もPASS → QC PASS
+    - 必須PASSだが追加指示分（4-5）が未対応 → QC FAIL（追加指示の取り込み漏れ）
+
+  steps: |
+    Step1: scripts/pretool_check.sh を Read して全チェック箇所を確認 Step2: scripts/posttool_cmd_check.sh を Read Step3: 各チェック項目を目視確認（特に4/5の追加指示分） Step4: bash -n 2件実行 Step5: git log --name-only で修正コミット確認 Step6: 報告YAML作成（queue/reports/gunshi_report_qc_1395a.yaml） Step7: 完了報告
+  acceptance_criteria:
+    - "全8項目が実ファイルで確認されていること"
+    - "追加指示分（チェック2/3のBashバイパス対応）の有無が明記されていること"
+  notes:
+    - "実ファイルを目視確認すること。bash -nだけでPASS判定するな"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1395a QC完了。PASS/FAIL。queue/reports/gunshi_report_qc_1395a.yaml参照。' report_received gunshi"
+
+- task_id: qc_1395a2
+  parent_cmd: cmd_1395
+  bloom_level: L5
+  assigned_to: gunshi
+  timestamp: "2026-04-16T14:02:00"
+  status: done
+  title: pretool_check.sh チェック2/3 Bashバイパス修正 QC（再確認）
+  description: |
+    足軽2号が「チェック2/3のBashバイパス修正は第2コミット(7ec2df8)で既に対応済みだった」と報告。
+    qc_1395aでは commit 4e5433a のみ確認し、チェック2/3未対応でFAIL判定した。
+
+    今回は現時点の実際のpretool_check.shを読んで、チェック2/3が本当に対応済みかを確認せよ。
+
+    ## チェック項目
+
+    1. scripts/pretool_check.sh の L40-106 付近を実際に Read する（grep等でなく目視）
+    2. チェック2（L40-74付近）: `TOOL_NAME == "Bash"` の条件と、リダイレクト先パス抽出ロジックが存在するか
+    3. チェック3（L76-106付近）: 同様にBash対応が存在するか
+    4. bash -n scripts/pretool_check.sh → エラーなし
+    5. git log --oneline -5 で最新コミット一覧確認（7ec2df8を含むか）
+
+    ## 判定基準
+    - チェック2/3にBash条件が実際に存在 → PASS
+    - まだWrite/Editのみ → FAIL
+
+  steps: |
+    Step1: scripts/pretool_check.sh を Read（L40-110付近） Step2: チェック2/3のBash対応を目視確認 Step3: bash -n実行 Step4: git log確認 Step5: 報告（queue/reports/gunshi_report_qc_1395a2.yaml） Step6: 完了報告
+  acceptance_criteria:
+    - "実ファイルを目視確認してPASS/FAIL判定すること"
+  notes:
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1395a2 QC完了。PASS/FAIL。queue/reports/gunshi_report_qc_1395a2.yaml参照。' report_received gunshi"
+
+- task_id: nightly_audit_20260417_video
+  parent_cmd: nightly_audit
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-17T02:05:00"
+  description: "夜間矛盾検出 - 動画制作（main.py, make_expression_shorts.py, vertical_convert.py, generate_shorts_bg.py, shorts_qc.py, Remotion）。テスト禁止・コード修正禁止・読んで報告のみ"
+  steps: "advisor()を分析前に呼ぶ→対象ファイルをRead→CRITICAL/HIGH/MEDIUMを分類→報告YAMLを保存→完了報告"
+  target_files:
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/main.py
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/make_expression_shorts.py
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/vertical_convert.py
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/generate_shorts_bg.py
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/shorts_qc.py
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/remotion-overlay/src/MangaRoot.tsx
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/remotion-overlay/src/Root.tsx
+  known_fixes_skip:
+    - "main.py generate_thumbnail esc()順序バグ → cmd_1387修正済み"
+    - "make_expression_shorts.py ffmpeg -ss位置 → cmd_1387修正済み"
+    - "main.py selected_check_hook.sh絶対パス → cmd_1387修正済み"
+    - "main.py BASE_DIRハードコード → cmd_1387修正済み"
+  detection_targets: |
+    CRITICAL: データ消失・動画破損・廃止API/スクリプト参照・クラッシュ確実なバグ
+    HIGH: エラーハンドリング欠如・ffmpegパラメータ誤用（-ss/-i順序等）・ハードコードパス・NVENCルール違反
+    MEDIUM: 未使用変数・不明確なフロー・重複コード・設定値ハードコード
+  report_format: |
+    audit_target: "動画制作スクリプト（main.py/make_expression_shorts.py/vertical_convert.py等）"
+    audit_date: "2026-04-17"
+    issues:
+      - severity: CRITICAL/HIGH/MEDIUM
+        file: ファイルパス
+        line: 行番号
+        issue: 問題の概要
+        detail: 具体的な問題
+        recommendation: 推奨対処
+  acceptance_criteria:
+    - "queue/reports/gunshi_report_nightly_audit_20260417_video.yaml が存在すること"
+    - "CRITICAL/HIGH/MEDIUMが分類されていること"
+    - "各問題にfile・line・issue・detail・recommendationが記載されていること"
+  notes:
+    - "テスト実行禁止・コード修正禁止。読んで報告するだけ"
+    - "前回動画監査: nightly_audit_20260414_video（3日前）"
+    - "既知修正済み事項（known_fixes_skip参照）は再指摘不要"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、nightly_audit_20260417_video完了。CRITICAL={N}件 HIGH={N}件 MEDIUM={N}件。queue/reports/gunshi_report_nightly_audit_20260417_video.yaml参照。' report_completed gunshi"
+
+- task_id: subtask_1399a
+  parent_cmd: cmd_1399
+  bloom_level: L4
+  assigned_to: gunshi
+  timestamp: "2026-04-17T08:42:00"
+  status: done
+  title: "条件A: Claude Opus 4.7単体（advisorなし）性能評価テスト 5問"
+  description: |
+    cmd_1399 条件A: Opus 4.7単体の実力評価テスト。
+    advisor()を一切呼ぶな（呼び出し0回が必須要件）。自力で5問全てに回答せよ。
+
+    mkdir -p work/cmd_1399
+
+    Q1: pretool_check.shのblacklistチェックで、パス付きスクリプト名（python3 /full/path/to/banned.py）がすり抜ける問題の原因分析+修正案。scripts/pretool_check.shを読んで回答せよ。
+    Q2: inbox_write.sh + inbox_watcher.sh の統合案を設計せよ。両ファイルを読んで統合設計を出せ。
+    Q3: shogun_to_karo.yamlの最新10 cmdの依存関係・優先度・進捗を分析せよ（末尾100行を読んで回答）。
+    Q4: generate_manga_short.pyでVertex API 504 DEADLINE_EXCEEDEDが頻発する問題の根本対策を設計せよ。scripts/generate_manga_short.pyを探して読んで回答せよ。
+    Q5: note記事ドラフトを書け。テーマ:「AIに漫画を描かせてYouTubeショートを量産した話」（1500字程度）
+
+    各問の回答フォーマット:
+    ## Q[N]: [タイトル]
+    - 開始時刻: [YYYY-MM-DD HH:MM:SS]
+    - advisor呼び出し: 0回（禁止）
+    - 回答: [回答本文]
+    - 所要時間: [X秒]
+
+    末尾メタ情報:
+    - 実行モデル: Claude Opus 4.7
+    - 総advisor呼び出し回数: 0回（必須）
+    - 総所要時間: X秒
+  steps: "Step1: mkdir -p work/cmd_1399 Step2: Q1回答（scripts/pretool_check.sh読む、advisor禁止） Step3: Q2回答（scripts/inbox_write.sh+inbox_watcher.sh読む、advisor禁止） Step4: Q3回答（queue/shogun_to_karo.yaml末尾読む、advisor禁止） Step5: Q4回答（generate_manga_short.py探して読む、advisor禁止） Step6: Q5回答（創作、advisor禁止） Step7: git add work/cmd_1399/condition_a.md && git commit -m 'test(cmd_1399): 条件A Opus4.7単体 5問解答' Step8: 完了報告"
+  acceptance_criteria:
+    - "work/cmd_1399/condition_a.md が存在し5問全て回答済み"
+    - "advisor()呼び出し回数が0回（メタ情報に記録）"
+    - "各問に開始時刻・所要時間が記録されている"
+    - "git commit済み"
+  notes:
+    - "advisor()を呼ぶな。これが条件Aの最重要制約"
+    - "バグ発見時は記録のみ・修正禁止"
+    - "git pushは家老が実施。commitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、subtask_1399a完了。条件A 5問解答済み。work/cmd_1399/condition_a.md' report_completed gunshi"
+
+- task_id: subtask_1399d
+  parent_cmd: cmd_1399
+  bloom_level: L5
+  assigned_to: gunshi
+  blocked_by: [subtask_1399b]
+  timestamp: "2026-04-17T08:55:00"
+  status: done
+  title: "条件A・B比較表＋考察をopus47_vs_glm_advisor.mdに出力（統合評価）"
+  description: |
+    subtask_1399b（条件B: ashigaru1）完了後に実行せよ（家老から通知が来る）。
+    条件AとBの解答を読み込み、比較表・考察を含む統合レポートを軍師本人が作成せよ。
+    ※自己評価バイアスに注意（条件Aは軍師自身の回答）。客観的に採点せよ。
+
+    入力:
+    - work/cmd_1399/condition_a.md （軍師自身の回答 = 条件A: Opus4.7単体）
+    - work/cmd_1399/condition_b.md （足軽1号の回答 = 条件B: GLM+Advisor Opus4.7）
+
+    出力: work/cmd_1399/opus47_vs_glm_advisor.md
+
+    レポート構造:
+    1. ヘッダー: 評価概要（実行日・条件A/B概要）
+    2. Q1-Q5 各問: 条件Aと条件Bの回答を並列掲載
+    3. 評価表（軍師が採点）: 正確性/深さ/実用性/応答速度 × 条件A/条件B（1-5点）
+    4. 前回比較表: Opus4.6=4.9 / Sonnet=4.4 / GLM単体=4.3 / GLM+Advisor4.6=4.7 / 今回条件A=? / 今回条件B=?
+    5. 考察（軍師が記入）: Opus4.7は4.6から何が改善したか / GLM+Advisor差は縮まったか
+  steps: "Step1: condition_a.md読取 Step2: condition_b.md読取 Step3: opus47_vs_glm_advisor.md作成（各問並列掲載+評価採点1-5+前回比較表+考察） Step4: git add work/cmd_1399/opus47_vs_glm_advisor.md && git commit -m 'test(cmd_1399): Opus4.7 vs GLM+Advisor 統合評価レポート完成' Step5: 完了報告"
+  acceptance_criteria:
+    - "work/cmd_1399/opus47_vs_glm_advisor.md が存在すること"
+    - "Q1-Q5の各問に条件A・条件B両方の回答が掲載されていること"
+    - "評価表に実際のスコア（1-5）が記入されていること"
+    - "前回結果との比較表が含まれること"
+    - "考察が記述されていること"
+    - "git commit済み"
+  notes:
+    - "自己評価バイアスに注意。条件Aは軍師自身の回答。できるだけ客観的に採点すること"
+    - "git pushは家老が実施。commitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、subtask_1399d完了。Opus4.7 vs GLM+Advisor統合レポート完成。work/cmd_1399/opus47_vs_glm_advisor.md' report_completed gunshi"
+
+- task_id: subtask_1401a
+  parent_cmd: cmd_1401
+  bloom_level: L4
+  assigned_to: gunshi
+  timestamp: "2026-04-17T09:11:00"
+  status: done
+  title: "条件A Q3_fixed: cmd_1380〜1389 依存関係分析（Opus 4.7単体・advisor禁止）"
+  description: |
+    cmd_1401 条件A。Q3のみ再実行。advisor()呼出し禁止（0回必須）。
+
+    Q3_fixed問題文:
+    「shogun_to_karo.yamlの cmd_1380〜cmd_1389 の10 cmdの依存関係・優先度・進捗を分析せよ。
+    必ずこの10件の範囲内で回答すること（cmd_1390以降を含めるな）。」
+
+    手順:
+    1. queue/shogun_to_karo.yamlからcmd_1380〜cmd_1389の部分を読み取れ（grep等で10件を特定）
+    2. 10件の依存関係・優先度・進捗を分析して回答
+    3. advisor()を呼ぶな（条件Aの必須要件）
+
+    出力フォーマット:
+    ## Q3_fixed: cmd_1380〜cmd_1389 依存関係・優先度・進捗分析
+    - 開始時刻: [YYYY-MM-DD HH:MM:SS]
+    - advisor呼び出し: 0回（禁止）
+    - 回答: [回答本文]
+    - 所要時間: [X秒]
+
+    出力ファイル: work/cmd_1399/condition_a_q3_fixed.md
+  steps: "Step1: grep 'id: cmd_138[0-9]' queue/shogun_to_karo.yaml でcmd_1380-1389を特定 Step2: 該当範囲のYAMLを読み取り Step3: 依存関係・優先度・進捗を分析（advisor禁止） Step4: work/cmd_1399/condition_a_q3_fixed.md に保存 Step5: git add work/cmd_1399/condition_a_q3_fixed.md && git commit -m 'test(cmd_1401): 条件A Q3_fixed完了' Step6: 完了報告"
+  acceptance_criteria:
+    - "work/cmd_1399/condition_a_q3_fixed.md が存在すること"
+    - "分析対象が cmd_1380〜1389 の10件であること"
+    - "advisor()呼び出し0回"
+    - "git commit済み"
+  notes:
+    - "advisor()を呼ぶな（条件Aの最重要制約）"
+    - "cmd_1390以降を含めないこと"
+    - "git pushは家老が実施。commitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、subtask_1401a完了。条件A Q3_fixed完了。work/cmd_1399/condition_a_q3_fixed.md' report_completed gunshi"
+
+- task_id: subtask_1401c
+  parent_cmd: cmd_1401
+  bloom_level: L4
+  assigned_to: gunshi
+  blocked_by: [subtask_1401b]
+  timestamp: "2026-04-17T09:11:00"
+  status: done
+  title: "opus47_vs_glm_advisor.mdのQ3を固定版に更新（統合レポート更新）"
+  description: |
+    subtask_1401b（条件B Q3_fixed）完了後に実行せよ（家老から通知が来る）。
+    condition_a_q3_fixed.mdとcondition_b_q3_fixed.mdを読み、
+    opus47_vs_glm_advisor.mdのQ3セクションを固定版に差し替えよ。
+
+    入力:
+    - work/cmd_1399/condition_a_q3_fixed.md
+    - work/cmd_1399/condition_b_q3_fixed.md
+    - work/cmd_1399/opus47_vs_glm_advisor.md（既存、Q3セクションを更新）
+
+    作業:
+    1. opus47_vs_glm_advisor.mdのQ3セクションを固定版の回答に差し替え
+    2. 評価スコアもQ3_fixedに基づき再採点
+    3. 元Q3は「参考: 元版Q3回答」として末尾に付録掲載
+
+    出力: work/cmd_1399/opus47_vs_glm_advisor.md（上書き更新）
+  steps: "Step1: condition_a_q3_fixed.md読取 Step2: condition_b_q3_fixed.md読取 Step3: opus47_vs_glm_advisor.mdのQ3セクションを固定版に差し替え（元版は付録へ） Step4: git add work/cmd_1399/opus47_vs_glm_advisor.md && git commit -m 'test(cmd_1401): Q3固定版採用・比較レポート更新' Step5: 完了報告"
+  acceptance_criteria:
+    - "opus47_vs_glm_advisor.mdのQ3が固定版（cmd_1380〜1389）に更新されていること"
+    - "元版Q3が付録として掲載されていること"
+    - "git commit済み"
+  notes:
+    - "git pushは家老が実施。commitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、subtask_1401c完了。Q3固定版採用・比較レポート更新済み。work/cmd_1399/opus47_vs_glm_advisor.md' report_completed gunshi"
+- task_id: subtask_1402a
+  parent_cmd: cmd_1402
+  assigned_to: gunshi
+  status: done
+  bloom_level: L5
+  description: |
+    ## cmd_1402 条件A: Opus 4.7 単体 — 再現性検証
+
+    cmd_1399条件Aの完全再現実施。同一5問に解答し、work/cmd_1402/condition_a/ に記録する。
+
+    **厳守事項**:
+    - advisor()を一切呼ばないこと（0回厳守。1回でも呼んだら条件A失格）
+    - 問題文は一字一句変えないこと（再現性検証のため）
+    - 各問の開始時刻・所要時間を記録すること
+
+    **5問（verbatim from cmd_1399）**:
+
+    Q1: pretool_check.shのblacklistチェックで、パス付きスクリプト名がすり抜ける問題の原因分析+修正案
+
+    Q2: inbox_write.sh + inbox_watcher.sh の統合案設計
+
+    Q3: shogun_to_karo.yamlの最新10 cmdの依存関係・優先度・進捗分析
+
+    Q4: generate_manga_short.pyでVertex API 504 DEADLINE_EXCEEDEDが頻発する問題の根本対策設計
+
+    Q5: note記事ドラフト「AIに漫画を描かせてYouTubeショートを量産した話」
+
+    **出力フォーマット（各問）**:
+    ## Q{N}: {問題タイトル}
+    - 開始時刻: [YYYY-MM-DD HH:MM:SS]
+    - advisor呼び出し: 0回
+    - 回答: [回答本文]
+    - 所要時間: [X秒]
+
+    出力ファイル: work/cmd_1402/condition_a/condition_a_result.md
+  steps: |
+    Step1: work/cmd_1402/condition_a/condition_a_result.md を新規作成（ヘッダー記載）
+    Step2: Q1〜Q5を順番に解答（advisor()呼び出し厳禁）
+    Step3: 各問の開始時刻・所要時間を記録しながら回答を追記
+    Step4: 全5問完了後、git add work/cmd_1402/condition_a/ && git commit -m 'test(cmd_1402): 条件A完了（Opus 4.7単体再現）'
+    Step5: 完了報告: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、subtask_1402a完了。条件A（Opus 4.7単体）5問全回答。work/cmd_1402/condition_a/condition_a_result.md' report_completed gunshi
+  acceptance_criteria:
+    - "work/cmd_1402/condition_a/condition_a_result.md が存在すること"
+    - "5問全問に回答が記載されていること"
+    - "advisor()呼び出し回数: 0回"
+    - "各問に開始時刻・所要時間が記録されていること"
+    - "git commit済み"
+  notes:
+    - "advisor()を呼んではならない（条件A の本質的制約）"
+    - "git pushは家老が実施。commitのみ可"
+- task_id: subtask_1402c
+  parent_cmd: cmd_1402
+  assigned_to: gunshi
+  status: done
+  blocked_by:
+    - subtask_1402b
+  bloom_level: L5
+  description: |
+    ## cmd_1402 報告書: 条件A vs 条件B 再現性検証レポート
+
+    条件A・Bの結果を統合し、再現性検証レポートを作成する。
+
+    入力:
+    - work/cmd_1402/condition_a/condition_a_result.md
+    - work/cmd_1402/condition_b/condition_b_result.md
+    - work/cmd_1399/opus47_vs_glm_advisor.md（cmd_1399との比較用）
+
+    出力: work/cmd_1402/opus47_vs_glm_advisor_retest.md
+
+    レポート構成: 1)実施概要 2)条件A結果 3)条件B結果 4)cmd_1399との比較（再現性検証）5)評価スコア欄（殿が記入） 6)総合評価欄（殿が記入）
+    スコア欄は空欄のまま出力すること（殿が後から記入）。
+  steps: "Step1: condition_a_result.md・condition_b_result.md・opus47_vs_glm_advisor.md読取 Step2: advisor()呼んでレポート構成レビュー Step3: opus47_vs_glm_advisor_retest.md作成（スコア欄空欄） Step4: git add work/cmd_1402/ && git commit -m 'test(cmd_1402): 再現性検証レポート作成' Step5: 完了報告"
+  acceptance_criteria:
+    - "work/cmd_1402/opus47_vs_glm_advisor_retest.md が存在すること"
+    - "条件A・B両方の5問結果が掲載されていること"
+    - "cmd_1399との比較セクションが存在すること"
+    - "スコア欄が空欄（殿記入待ち）"
+    - "git commit済み"
+  notes:
+    - "スコア欄は空欄のまま出力すること（殿が記入）"
+    - "git pushは家老が実施。commitのみ可"
+    - "subtask_1402a・1402b両方完了後に開始すること"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、subtask_1402c完了。再現性検証レポート作成。work/cmd_1402/opus47_vs_glm_advisor_retest.md' report_completed gunshi"
+- task_id: subtask_1405b
+  parent_cmd: cmd_1405
+  assigned_to: gunshi
+  status: done
+  bloom_level: L5
+  description: |
+    ## cmd_1405 全世代マトリクス更新: cmd_1402レポートに Opus 4.6 / Sonnet 4.6 結果を追記
+
+    subtask_1405aのデータ収集完了後、work/cmd_1402/opus47_vs_glm_advisor_retest.md に
+    Opus 4.6・Sonnet 4.6の結果を追記し、全世代マトリクスを完成させる。
+
+    **既存データ（cmd_1402）**:
+    - 条件A: Opus 4.7単体 → work/cmd_1402/condition_a/condition_a_result.md
+    - 条件B: GLM+Adv 4.7 → work/cmd_1402/condition_b/condition_b_result.md
+
+    **追加データ（cmd_1405）**:
+    - Opus 4.6単体 → work/cmd_1405/condition_opus46/q{1..5}.md
+    - Sonnet 4.6単体 → work/cmd_1405/condition_sonnet46/q{1..5}.md
+
+    **全世代マトリクス（スコア欄は殿記入待ち空欄のまま）**:
+    | モデル | Q1 | Q2 | Q3 | Q4 | Q5 | 平均 |
+    |--------|----|----|----|----|----|----|
+    | Opus 4.6単体 | TBD | ... |
+    | Sonnet 4.6単体 | TBD | ... |
+    | Opus 4.7単体（cmd_1402条件A） | TBD | ... |
+    | GLM+Adv 4.7（cmd_1402条件B） | TBD | ... |
+  steps: "Step1: subtask_1405aの全10ファイルを読み取る Step2: opus47_vs_glm_advisor_retest.mdを読み取る Step3: advisor()呼んで全世代マトリクスの統合方針をレビュー Step4: レポートに全世代マトリクスセクションを追記（スコア欄空欄） Step5: git add work/cmd_1402/ work/cmd_1405/ && git commit -m 'test(cmd_1405): 全世代マトリクス完成' Step6: 完了報告"
+  acceptance_criteria:
+    - "opus47_vs_glm_advisor_retest.md に全世代マトリクスセクションが追記されていること"
+    - "Opus 4.6・Sonnet 4.6の解答内容が記載されていること"
+    - "スコア欄が空欄（殿記入待ち）"
+    - "git commit済み"
+  notes:
+    - "スコア欄は空欄。殿が後から記入"
+    - "git pushは家老が実施。commitのみ可"
+- task_id: qc_1406c
+  parent_cmd: cmd_1406
+  assigned_to: gunshi
+  status: done
+  bloom_level: L3
+  description: |
+    ## QC: subtask_1406c（advisor_proxy.py continuation failure記録追加）
+
+    足軽3号が完了報告。commit f23aa97。以下を検証せよ。
+
+    ### 確認項目
+    1. /home/murakami/multi-agent-shogun/scripts/advisor_proxy.py の L540付近（continuation loop）に
+       `metrics.record_failure()` + `circuit_breaker.record_failure()` が追加されているか
+    2. `if resp.status != 200:` ブランチと `except Exception as e:` ブランチの両方に追加されているか
+    3. `python3 -m py_compile /home/murakami/multi-agent-shogun/scripts/advisor_proxy.py` で構文エラーなしか
+    4. `git show f23aa97 --stat` でファイル修正が確認できるか
+    5. /ultrareview指摘の「circuit breakerが永遠に閉じる問題」が構造的に解消されているか
+
+    ### QC template
+    shared_context/qc_template.md を参照してQCせよ
+  steps: "Step1: Read /home/murakami/multi-agent-shogun/scripts/advisor_proxy.py L535-555確認。Step2: 両ブランチにrecord_failure追加を目視確認。Step3: python3 -m py_compile 実行。Step4: git show f23aa97確認。Step5: PASS/FAIL判定と報告"
+  acceptance_criteria:
+    - "if resp.status != 200 ブランチに metrics.record_failure() が追加されていること"
+    - "except Exception ブランチに circuit_breaker.record_failure() が追加されていること"
+    - "python3 -m py_compile でエラーなし"
+    - "git commit f23aa97 確認済み"
+  notes:
+    - "shared_context/qc_template.md を参照してQCせよ"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1406c QC完了。PASS/FAIL報告。' qc_result gunshi"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、subtask_1405b完了。全世代マトリクス更新。work/cmd_1402/opus47_vs_glm_advisor_retest.md' report_completed gunshi"
+- task_id: qc_1407a
+  parent_cmd: cmd_1407
+  assigned_to: gunshi
+  status: done
+  bloom_level: L3
+  description: |
+    ## QC: subtask_1407a（GLM+Advisor 4.6 改変5問）
+
+    足軽1号が完了報告。commit 89c5f21。以下を検証せよ。
+
+    確認項目:
+    1. /home/murakami/multi-agent-shogun/work/cmd_1407/condition_glm_adv46/q1.md〜q5.md が5件存在するか
+    2. 各ファイル冒頭に「advisor model: claude-opus-4-6[1m]」と実測時刻が記載されているか
+    3. 各問でadvisor()呼び出しが実施されているか（本文中にadvisor応答の痕跡があるか）
+    4. 内容がcmd_1402条件Bと比較可能な品質か（5問の解答として成立しているか）
+    5. advisor_proxy再起動スキップの件: 足軽1号がADVISOR_MODEL=claude-opus-4-6[1m]で稼働中と確認したと報告。advisor()が実際にOpus 4.6経由で動作しているかログ確認推奨（/home/murakami/multi-agent-shogun/logs/advisor_proxy_stdout.log）
+
+    shared_context/qc_template.md を参照してQCせよ
+  steps: "Step1: shared_context/qc_template.md参照。Step2: Read work/cmd_1407/condition_glm_adv46/q1.md〜q5.md 冒頭・中盤確認。Step3: advisor呼び出し痕跡確認。Step4: advisor_proxy log確認（claude-opus-4-6[1m]使用確認）。Step5: PASS/FAIL判定と報告"
+  acceptance_criteria:
+    - "/home/murakami/multi-agent-shogun/work/cmd_1407/condition_glm_adv46/q1.md〜q5.md が5件存在すること"
+    - "各ファイルにadvisor model記載があること"
+    - "各問でadvisor()が呼ばれた痕跡があること"
+    - "解答内容が5問として成立していること"
+  notes:
+    - "shared_context/qc_template.md を参照してQCせよ"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1407a QC完了。PASS/FAIL報告。' qc_result gunshi"
+
+- task_id: qc_1407a2
+  parent_cmd: cmd_1407
+  bloom_level: L5
+  description: |
+    subtask_1407a2（cmd_1407 GLM+Advisor4.6体制 改変5問・proxy再起動後正規版）のQC。
+    proxy再起動確認済み（PID 732461・ADVISOR_MODEL=claude-opus-4-6[1m]・commit 4bb0171）。
+
+    確認項目:
+    1. /home/murakami/multi-agent-shogun/work/cmd_1407/condition_glm_adv46/q1.md〜q5.md が5件存在するか
+    2. 各ファイル冒頭に「advisor model: claude-opus-4-6[1m]」と実測時刻が記載されているか
+    3. 各問でadvisor()呼び出し痕跡があるか（本文中に応答の記録があるか）
+    4. /home/murakami/multi-agent-shogun/logs/advisor_proxy_stdout.log でclaude-opus-4-6[1m]が実際に呼ばれた記録があるか（North Star検証）
+    5. 内容がcmd_1402条件Bと比較可能な品質か（5問の解答として成立しているか）
+
+    shared_context/qc_template.md を参照してQCせよ
+  steps: "Step1: shared_context/qc_template.md参照。Step2: Read q1〜q5.md冒頭・中盤確認。Step3: advisor呼び出し痕跡確認。Step4: advisor_proxy_stdout.logでclaude-opus-4-6[1m]実使用確認（最重要）。Step5: PASS/FAIL判定と報告YAML作成。Step6: inbox_write"
+  acceptance_criteria:
+    - "q1.md〜q5.md 5件存在"
+    - "各ファイルにadvisor model: claude-opus-4-6[1m]記載"
+    - "advisor()呼び出し痕跡が各問にある"
+    - "proxy logにclaude-opus-4-6[1m]が記録されている（apples-to-apples保証）"
+    - "解答内容が5問として成立している"
+  notes:
+    - "North Star基準: proxy logでモデル確認必須。足軽の申告のみに頼るな"
+    - "shared_context/qc_template.md を参照してQCせよ"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1407a2 QC完了。PASS/FAIL報告。' qc_result gunshi"
+  status: done
+  timestamp: "2026-04-17T14:12:21"
+
+- task_id: subtask_1408c
+  parent_cmd: cmd_1408
+  assigned_to: gunshi
+  status: done
+  bloom_level: L4
+  project: multi-agent-shogun
+  description: |
+    ## cmd_1408 構成1: Opus 4.7 [1m] 単体（原初5問）
+
+    軍師は現在 opus[1m]（Claude Opus 4.7 + extended thinking）で稼働中。
+    advisor() 呼出 0回厳守（単体構成の純粋性維持のため）。
+
+    ### 実行指示
+    出力先: /home/murakami/multi-agent-shogun/work/cmd_1408/condition_opus47/
+    各回答ファイル冒頭に必ず記載: `モデル: Claude Opus 4.7 [1m] / 開始時刻: YYYY-MM-DDTHH:MM:SS / advisor呼出回数: 0`
+
+    ### 原初5問（1文字も改変禁止）
+
+    **Q1**: subtitle_semantic_index.pyのmmap化で検索が壊れた件の原因分析+修正案を提示させよ。実際のファイルを読ませて回答させる
+    入力ファイル: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/subtitle_semantic_index.py を Read して解答
+
+    **Q2**: inbox_write.sh + inbox_watcher.sh の統合案を設計させよ。両ファイルの内容を渡して統合設計を出させる
+    入力ファイル: /home/murakami/multi-agent-shogun/scripts/inbox_write.sh と inbox_watcher.sh を Read して解答
+
+    **Q3**: shogun_to_karo.yamlから最新5 cmdの依存関係を分析させよ（YAMLの一部を入力として渡す）
+    入力ファイル: /home/murakami/multi-agent-shogun/queue/shogun_to_karo.yaml の末尾（最新5 cmd分）を Read して解答
+
+    **Q4**: ffmpegサンプルレート不一致問題（44100Hz vs 48000Hz concat）の根本対策設計
+
+    **Q5**: ドズル社切り抜きチャンネルのnote記事ドラフト作成（テーマ: AIエージェント7体で動画編集した話）
+
+    ### git commit
+    全5問完了後: git add work/cmd_1408/condition_opus47/ && git commit -m "test(cmd_1408): Opus4.7単体 原初5問"
+  steps: "Step1: mkdir -p work/cmd_1408/condition_opus47/。Step2-6: Q1-Q5を入力ファイルRead→解答→q{n}.md保存（冒頭メタデータ記載、advisor()呼出禁止）。Step7: git commit。Step8: inbox_write karo 完了報告"
+  acceptance_criteria:
+    - "work/cmd_1408/condition_opus47/q1.md〜q5.md が5件存在すること"
+    - "各ファイル冒頭にモデル・時刻・advisor呼出回数:0が記載されていること"
+    - "advisor()が0回であること（単体条件の純粋性）"
+    - "問題文が原初5問と完全一致（改変なし）であること"
+    - "git commit 済み"
+  notes:
+    - "advisor()呼出禁止（単体構成。呼んだら失敗扱い）"
+    - "問題文を1文字も書き換えるな"
+    - "git pushは家老が実施。commitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、subtask_1408c完了。Opus4.7単体 原初5問解答。' report_completed gunshi"
+  target_path: /home/murakami/multi-agent-shogun/work/cmd_1408/condition_opus47/
+  timestamp: "2026-04-17T15:23:54"
+
+- task_id: qc_1408_all
+  parent_cmd: cmd_1408
+  assigned_to: gunshi
+  status: done
+  bloom_level: L3
+  project: multi-agent-shogun
+  description: |
+    ## cmd_1408 全4構成 一括QC
+
+    以下4ディレクトリの解答ファイル（q1.md〜q5.md）を検査せよ。
+    必ず shared_context/qc_template.md を参照してQCせよ。
+
+    ### 検査対象
+    1. /home/murakami/multi-agent-shogun/work/cmd_1408/condition_opus47/    (subtask_1408c / Opus4.7[1m]単体)
+    2. /home/murakami/multi-agent-shogun/work/cmd_1408/condition_opus46/    (subtask_1408d / Opus4.6[1m]単体)
+    3. /home/murakami/multi-agent-shogun/work/cmd_1408/condition_sonnet46/  (subtask_1408e / Sonnet4.6[1m]単体)
+    4. /home/murakami/multi-agent-shogun/work/cmd_1408/condition_glm_adv46/ (subtask_1408b / GLM+Advisor4.6)
+
+    ### 受入基準（各構成共通）
+    1. q1.md〜q5.mdが5件存在すること
+    2. 各ファイル冒頭にモデル・開始時刻・advisor呼出回数が記載されていること
+    3. 問題文が原初5問（cmd_1049 subtask_1049f）と完全一致していること（1文字も改変なし）
+    4. git commit済みであること（git log --oneline で確認）
+    5. Advisor条件（condition_glm_adv46）: advisor呼出回数 ≥1 であること
+    6. 単体条件（opus47/opus46/sonnet46）: advisor呼出回数 = 0 であること
+
+    ### QC手順
+    1. shared_context/qc_template.md を必ず参照
+    2. 各構成のq1-q5を実際に読み、冒頭・中盤・末尾の3箇所を目視確認
+    3. 問題文の改変チェック: subtask_1408cのdescriptionに記載の原初5問と照合
+    4. git log で各constructionのcommit確認
+    5. 各構成をPASS/FAIL判定し、所見を記録
+    6. 総合判定（全4構成PASS = cmd_1408 Phase1完了）
+
+    ### 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、qc_1408_all完了。4構成QC結果: {PASS/FAIL}。詳細は報告YAML参照。" qc_result gunshi
+
+    ### テスト方法
+    - ls で5ファイル存在確認
+    - git log --oneline -5 で各構成commit確認
+  steps: "Step0: shared_context/qc_template.md参照。Step1: advisor()呼ぶ（QC前）。Step2: 4構成×q1-q5=20ファイルを実際に読んで受入基準チェック。Step3: 問題文改変チェック（原初5問との照合）。Step4: git log確認。Step5: 各構成PASS/FAIL判定+所見記録。Step6: 報告YAML作成。Step7: advisor()完了前。Step8: inbox_write karo 完了報告"
+  acceptance_criteria:
+    - "全4構成のPASS/FAIL判定が明記されていること"
+    - "問題文改変チェックの証跡があること（原初5問との照合）"
+    - "git commit確認済みであること"
+    - "所見（前提乖離・品質差等）が記録されていること"
+  target_path: /home/murakami/multi-agent-shogun/work/cmd_1408/
+  notes:
+    - "「問題なし」ではなく「Xを確認しYだった」と書け（QCルール4）"
+    - "実ファイルを自分の目で読め。ファイルカウントだけでPASS禁止"
+    - "advisor()をQC前・完了前の2回必ず呼ぶこと"
+    - "QC後に家老に報告。git pushは家老が実施"
+  timestamp: "2026-04-17T15:48:00"
+
+- task_id: qc_1408f
+  parent_cmd: cmd_1408
+  assigned_to: gunshi
+  bloom_level: L5
+  status: done
+  description: |
+    ## cmd_1408 構成5（GLM+Adv4.7）QC
+
+    subtask_1408f 完了報告受領（17:24）。commit d5c1082。
+    work/cmd_1408/condition_glm_adv47/q1〜q5.md の5ファイルをQCせよ。
+
+    ### 受入基準
+    1. q1〜q5の5ファイルが存在すること
+    2. 各Qに対してadvisor()が呼ばれていること（proxy log に "X-Advisor-Model: claude-opus-4-7[1m]" override確認 — 足軽1号報告では27回確認済み）
+    3. 問題文が原初5問（cmd_1049 subtask_1049f）から1文字も改変されていないこと
+    4. git commit d5c1082 が存在し、5ファイルが含まれていること
+    5. 各Q答案の品質（他構成との比較可能な形式・実質的内容あり）
+
+    ### 参照ファイル
+    - 成果物: /home/murakami/multi-agent-shogun/work/cmd_1408/condition_glm_adv47/q{1..5}.md
+    - 原初5問: work/cmd_1408/condition_opus47/q1.md 冒頭（問題文参照）
+    - 他構成: work/cmd_1408/condition_glm_adv46/q1.md（GLM+Adv4.6との比較）
+    - proxy log: /home/murakami/multi-agent-shogun/logs/advisor_proxy.log（X-Advisor-Model override確認）
+
+    ### 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、qc_1408f完了。GLM+Adv4.7 QC結果: {PASS/FAIL}。詳細は報告YAML参照。" qc_result gunshi
+  steps: "Step0: shared_context/qc_template.md参照。Step1: advisor()呼ぶ（QC前）。Step2: 5ファイル実読・受入基準5項目チェック。Step3: proxy log で X-Advisor-Model override確認。Step4: 問題文改変チェック。Step5: git log d5c1082確認。Step6: PASS/FAIL判定+所見記録。Step7: 報告YAML作成。Step8: advisor()完了前。Step9: inbox_write karo完了報告"
+  acceptance_criteria:
+    - "q1〜q5の5ファイルが存在すること"
+    - "proxy logにX-Advisor-Model: claude-opus-4-7[1m]のoverride記録があること"
+    - "問題文が原初5問から無改変であること"
+    - "git commit d5c1082確認済みであること"
+  notes:
+    - "「問題なし」ではなく「Xを確認しYだった」と書け（QCルール4）"
+    - "advisor()をQC前・完了前の2回必ず呼ぶこと"
+    - "QC後に家老に報告。git pushは家老が実施"
+  timestamp: "2026-04-17T17:24:42"
+  status: done
+
+- task_id: qc_1410a2
+  parent_cmd: cmd_1410
+  bloom_level: L5
+  assigned_to: gunshi
+  status: done
+  description: |
+    subtask_1410a2（DoZ素材準備 区間訂正版）のQC。shared_context/qc_template.md参照。
+
+    ### 成果物
+    - clip: projects/dozle_kirinuki/work/20260417_【DoZ】5日目ヒーラーは絶対に仲間を見捨てちゃいけねぇのさ【ドズル社おおはらMEN視点】/clip_15309_15489.mp4
+    - SRT: 同ディレクトリ/clip_15309_15489.srt
+    - 無効旧クリップ: 同ディレクトリ/clip_2138_2318_invalid.mp4
+
+    ### 受入基準（全て目視確認）
+    1. clip_15309_15489.mp4 が存在し duration≈180s、h264_nvenc使用
+    2. clip_15309_15489.srt に「ヒーラー」が1件以上含まれること
+    3. SRTの話者がドズル社メンバー実名（dozle/bon/oo_men/orafu/qnly/nekooji）であること
+    4. git commit が実施されていること（git log で確認）
+    5. hotfix_notes記載の-ss before -i変更が正当か技術的評価
+
+    ### 懸念点（重点確認）
+    - 話者IDが「手動推定」（Gemini API期限切れ）→ 推定根拠の評価
+    - C2問題（反復STT誤認識）が解消されているか
+    - C3問題（word-level空白分離）が解消されているか
+
+    ### 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、qc_1410a2完了。QC結果: {PASS/FAIL}。詳細は報告YAML参照。" qc_result gunshi
+  steps: "Step0: shared_context/qc_template.md参照。Step1: advisor()呼ぶ（QC前）。Step2: ffprobe でclip確認。Step3: SRT実読（冒頭・中盤・終盤3箇所）。Step4: 「ヒーラー」grep確認。Step5: 話者実名確認。Step6: git log確認。Step7: C2/C3問題解消確認。Step8: hotfix技術評価。Step9: PASS/FAIL判定+所見記録。Step10: 報告YAML作成。Step11: advisor()完了前。Step12: inbox_write karo完了報告"
+  acceptance_criteria:
+    - "clip_15309_15489.mp4 が存在しduration≈180sであること"
+    - "SRTに「ヒーラー」が1件以上含まれること"
+    - "話者がドズル社メンバー実名であること"
+    - "git commit済みであること"
+  notes:
+    - "「問題なし」ではなく「Xを確認しYだった」と書け（QCルール4）"
+    - "advisor()をQC前・完了前の2回必ず呼ぶこと"
+    - "QC後に家老に報告。git pushは家老が実施"
+    - "話者ID手動推定の評価は厳しすぎず——6名全メンバー名が揃っているか確認すればよい"
+  timestamp: "2026-04-17T18:27:53"
+  status: done
+
+- task_id: nightly_audit_20260418_infra
+  parent_cmd: nightly_audit
+  bloom_level: L5
+  assigned_to: gunshi
+  status: done
+  description: |
+    夜間矛盾検出（インフラカテゴリ）。**読んで報告するだけ。コード修正禁止。テスト禁止。**
+
+    対象: scripts/inbox_write.sh, scripts/inbox_watcher.sh(ntfy_listener.sh), scripts/ntfy.sh,
+    scripts/context_watcher.sh, config/settings.yaml(cron), fix_panes.sh, shutsujin_departure.sh等インフラ系。
+
+    観点（cmd_828準拠）: CRITICAL/HIGH/MEDIUM/LOWの4段階。
+    既知問題（再確認のみ）: ntfy_listener.sh L238認証情報漏洩(HIGH)、posttool_yaml_check.sh方式不一致(HIGH)は「既報」として扱い新規発見に集中せよ。
+
+    報告形式: queue/reports/gunshi_report_nightly_audit_20260418_infra.yaml（findings: - id/severity/file/line/title/detail/remedy）
+
+    完了後: bash scripts/inbox_write.sh karo "軍師、nightly_audit_20260418_infra完了。CRITICAL×N HIGH×N MEDIUM×N。" qc_result gunshi
+  steps: "Step0: advisor()呼ぶ。Step1: 対象ファイルを読む。Step2: CRITICAL/HIGH/MEDIUM/LOWで分類。Step3: 既知・新規を区別。Step4: reportYAML作成。Step5: advisor()完了前。Step6: inbox_write karo"
+  acceptance_criteria:
+    - "reportYAMLが作成されていること"
+    - "CRITICAL/HIGH/MEDIUM/LOW件数が明記されていること"
+    - "コード修正・テスト実行がないこと"
+  notes:
+    - "読んで報告するだけ。絶対にコードを変えるな"
+    - "advisor()を2回（調査前・完了前）呼ぶこと"
+  timestamp: "2026-04-18T02:02:21"
+
+- task_id: qc_1411a
+  parent_cmd: cmd_1411
+  type: qc
+  bloom_level: L5
+  priority: high
+  title: "subtask_1411a QC: 20分クリップ+SRT+panels_doz_healer_20min.json 品質検査"
+  project: dozle_kirinuki
+  status: done
+  timestamp: '2026-04-18T09:04:30'
+  target_report: queue/reports/ashigaru5_report_subtask_1411a.yaml
+  acceptance_criteria:
+    - "clip_14889_16089.mp4 が存在・duration ~1200s 確認"
+    - "clip_14889_16089.srt にoo_men発話が実名ラベルで含まれること（ヒーラー等キーワード確認）"
+    - "panels_doz_healer_20min.json が存在・Geminiフォールバックなし・start_sec が20分全体に分散"
+    - "git commit済み確認"
+  steps: "shared_context/qc_template.md を参照してQC実施。予備所見: panels 6/10枚Geminiフォールバック疑い・start_sec偏在疑い→実ファイルで確認してPASS/FAIL判定。advisor()を実施前後に呼べ。完了後 bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo 'QC結果{PASS/FAIL}: qc_1411a...' qc_result gunshi"
+
+- task_id: qc_1413a
+  parent_cmd: cmd_1413
+  assigned_to: gunshi
+  bloom_level: L5
+  priority: high
+  title: "panels_doz_healer_15331_16531.json 品質検査（捏造・話者・分布）"
+  project: dozle_kirinuki
+  status: pending
+  blocked_by: subtask_1413a
+  timestamp: '2026-04-18T09:20:00+09:00'
+  target_files:
+    - "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260417_【DoZ】5日目ヒーラーは絶対に仲間を見捨てちゃいけねぇのさ【ドズル社おおはらMEN視点】/panels_doz_healer_15331_16531_raw.json"
+    - "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260417_【DoZ】5日目ヒーラーは絶対に仲間を見捨てちゃいけねぇのさ【ドズル社おおはらMEN視点】/clip_15331_16531.srt"
+  acceptance_criteria:
+    - "panels 10枚全て存在（panel_count=10）"
+    - "各 panel.lines[].text が SRT同時刻±5秒以内の実発話に部分一致（捏造ゼロ）"
+    - "start_sec が 0-1200 全域に分散（均一200s分割でないこと）"
+    - "全パネルの話者ラベルが SRT同時刻の実話者と一致（oo_men/bon/nekooji/orafu/qnly/dozle/unknown のみ）"
+    - "フォールバック痕跡なし（均一200.2s刻みの start_sec が存在しないこと）"
+  steps: "shared_context/qc_template.md を参照してQC実施。実ファイルを自分の目で読め（数値報告だけでPASS禁止）。advisor()を実施前後に呼べ。完了後 bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo 'QC結果{PASS/FAIL}: qc_1413a。{所見}' qc_result gunshi"
+  status: superseded
+  superseded_by: qc_1414a
+
+- task_id: qc_1414a
+  parent_cmd: cmd_1414
+  assigned_to: gunshi
+  bloom_level: L5
+  priority: high
+  title: "panels_doz_healer_15331_16531_split.json 品質検査（捏造・話者・分布・SRT照合）"
+  project: dozle_kirinuki
+  status: done
+  timestamp: '2026-04-18T10:26:00+09:00'
+  target_files:
+    - "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260417_【DoZ】5日目ヒーラーは絶対に仲間を見捨てちゃいけねぇのさ【ドズル社おおはらMEN視点】/panels_doz_healer_15331_16531_split.json"
+    - "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260417_【DoZ】5日目ヒーラーは絶対に仲間を見捨てちゃいけねぇのさ【ドズル社おおはらMEN視点】/clip_15331_16531.srt"
+  red_flags:
+    - "⚠️ 足軽報告: パネル34枚（想定12枚と大幅乖離）→実ファイルの panel_count を必ず確認"
+    - "⚠️ --srt なしで生成（SRT自動検証未実施）→ 各 lines.text を SRT 実文字列と手動照合せよ"
+    - "⚠️ generate_panel_candidates.py に c15b7860 修正あり（テキスト形式パース対応）→ フォールバック再導入の有無を確認"
+  acceptance_criteria:
+    - "実ファイルを自分の目で読む（冒頭・中盤・終盤3箇所目視確認必須）"
+    - "panel_count 確認（34枚なら理由を調査）"
+    - "各 panel.lines[].text が SRT clip_15331_16531.srt の同時刻±5秒以内の実発話に部分一致（捏造ゼロ）"
+    - "start_sec が 0-1200 全域に分散（各5分区間から均等にサンプリングされているか）"
+    - "全パネルの話者ラベルが SRT同時刻の実話者と一致（oo_men/bon/nekooji/orafu/qnly/dozle/unknown のみ）"
+    - "均一 start_sec 間隔（フォールバック再発）の有無確認"
+    - "c15b7860 の修正内容確認（テキストフォールバック再導入がないことを verify）"
+  steps: "shared_context/qc_template.md を参照してQC実施。⚠️red_flags を最優先で確認せよ。実ファイルを自分の目で読め（数値報告だけでPASS禁止）。advisor()を実施前後に呼べ。PASS/FAILを明確に判定し完了後 bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo 'QC結果{PASS/FAIL}: qc_1414a。{所見詳細}' qc_result gunshi"
+
+- task_id: nightly_audit_20260419_youtube_api
+  parent_cmd: nightly_audit_auto
+  assigned_to: gunshi
+  bloom_level: L5
+  priority: medium
+  title: "夜間矛盾検出 - YouTube/外部連携スクリプト群（2026-04-19）"
+  status: done
+  timestamp: '2026-04-19T02:02:01'
+  steps: |
+    shared_context/qc_template.md を参照してQCせよ。以下のファイルを読んで矛盾・問題を検出・報告するだけ。テストを書くな。コードを修正するな。
+
+    ## 対象ファイル
+    - projects/dozle_kirinuki/scripts/youtube_uploader.py
+    - projects/dozle_kirinuki/scripts/downloader.py
+    - projects/dozle_kirinuki/scripts/download.sh
+    - scripts/youtube_analytics_snapshot.py
+    - scripts/generate_dashboard.py
+    - projects/note_mcp_server/scripts/（*.js / *.py 全て）
+    - scripts/note_visual_qc.py
+
+    ## 検出すべき問題
+    - CRITICAL: データ消失・認証失敗・アップロード先誤設定（public/unlisted誤投稿リスク）
+    - HIGH: エラーハンドリング欠如・API仕様変更による破壊的変更・競合状態
+    - MEDIUM: 廃止APIの使用・ハードコードされたID/トークン・不整合なエラー処理
+
+    ## 注意
+    - コードを修正するな（読んで報告のみ）
+    - テストを書くな
+    - advisor()を実施前後に呼べ
+
+    ## 報告書フォーマット（cmd_828準拠）
+    出力先: queue/reports/gunshi_report_nightly_audit_20260419_youtube_api.yaml
+    ```yaml
+    audit_date: '2026-04-19'
+    category: YouTube/外部連携
+    summary:
+      critical: 0
+      high: 0
+      medium: 0
+      info: 0
+    findings:
+      - severity: CRITICAL/HIGH/MEDIUM
+        file: "ファイルパス"
+        line: 行番号
+        issue: "問題タイトル"
+        detail: "具体的な問題"
+        remedy: "推奨対処"
+    ```
+
+    ## 完了報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+      "軍師、nightly_audit_20260419_youtube_api完了。CRITICAL={N}件 HIGH={N}件 MEDIUM={N}件。queue/reports/gunshi_report_nightly_audit_20260419_youtube_api.yaml参照。" \
+      report_completed gunshi
+
+- task_id: qc_1421a
+  parent_cmd: cmd_1421
+  bloom_level: L5
+  type: qc
+  status: done
+  timestamp: "2026-04-19T15:14:37"
+  description: |
+    cmd_1421 subtask_1421a QC。DoZセマンティック検索基盤の品質検査。
+    shared_context/qc_template.md を参照してQCせよ。
+    検査対象: BQ dataset gen-lang-client-0119911773.doz_subtitle_semantic（7,853チャンク）
+    改修スクリプト: projects/dozle_kirinuki/scripts/subtitle_semantic_index.py（commit ffce837a）
+    acceptance_criteria: BQデータセット作成・chunks table作成・8本SRT登録完了・拡張スクリプト動作・3クエリ検索PASS・ntfy・git commit。
+    手順: queue/reports/ashigaru5_report_subtask_1421a.yaml読む→subtitle_semantic_index.py拡張箇所確認→検索テスト3本スコア確認→PASS/FAIL判定。
+    出力: queue/reports/gunshi_report_qc_1421a.yaml
+    完了報告: bash scripts/inbox_write.sh karo "軍師、qc_1421a完了。PASS/FAIL判定。詳細: queue/reports/gunshi_report_qc_1421a.yaml。" qc_result gunshi
+
+- task_id: nightly_audit_20260420_stt
+  parent_cmd: nightly_audit
+  bloom_level: L5
+  type: analysis
+  status: done
+  timestamp: "2026-04-20T02:02:23"
+  description: |
+    【夜間矛盾検出】カテゴリ: STTパイプライン
+    対象: vocal_stt_pipeline.py, stt_merge.py, speaker_id系, 成果物
+
+    cmd_828と同じ形式で矛盾・バグ・設計欠陥を検出・報告せよ。
+    テストを書くな。コードを修正するな。読んで報告するだけ。
+
+    ## 対象ファイル（優先）
+    - projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py
+    - projects/dozle_kirinuki/scripts/stt_merge.py
+    - projects/dozle_kirinuki/scripts/speaker_id_srt_based.py
+    - projects/dozle_kirinuki/scripts/compare_speaker_srt.py
+    - projects/dozle_kirinuki/scripts/assemblyai_stt.py（存在すれば）
+    - 関連する成果物・SRTファイルの命名規則・保存先
+
+    ## 検出観点
+    - CRITICAL: 実行時クラッシュ・データ破壊・廃止API使用
+    - HIGH: ハードコード（MEMBERSリスト等）・パス不一致・エラー未処理
+    - MEDIUM: 非推奨パターン・コード重複・設定値ハードコード
+    - LOW: スタイル・軽微な不整合
+
+    ## 参考: 過去の既知問題（再確認）
+    - compare_speaker_srt.py L18 MEMBERSハードコード（nekooji欠落）→ cmd_1415cで修正済み要確認
+    - vocal_stt_pipeline.py のdozle逆引き副作用（qc_1418a所見）
+
+    ## 報告書フォーマット（cmd_828準拠）
+    出力先: queue/reports/gunshi_report_nightly_audit_20260420_stt.yaml
+    ```yaml
+    audit_date: '2026-04-20'
+    category: STTパイプライン
+    summary:
+      critical: 0
+      high: 0
+      medium: 0
+      low: 0
+    findings:
+      - severity: CRITICAL/HIGH/MEDIUM/LOW
+        file: "ファイルパス"
+        line: 行番号
+        issue: "問題タイトル"
+        detail: "具体的な問題"
+        remedy: "推奨対処"
+    ```
+
+    ## 完了報告
+    bash scripts/inbox_write.sh karo \
+      "軍師、nightly_audit_20260420_stt完了。CRITICAL={N}件 HIGH={N}件 MEDIUM={N}件。queue/reports/gunshi_report_nightly_audit_20260420_stt.yaml参照。" \
+      report_completed gunshi
+
+- task_id: nightly_audit_20260421_video
+  parent_cmd: nightly_audit
+  bloom_level: L5
+  type: analysis
+  status: done
+  timestamp: "2026-04-21T02:02:30"
+  description: |
+    【夜間矛盾検出】カテゴリ: 動画制作
+    対象: main.py, make_expression_shorts.py, Remotion, vertical_convert.py, make_shorts系
+
+    cmd_828と同じ形式で矛盾・バグ・設計欠陥を検出・報告せよ。
+    テストを書くな。コードを修正するな。読んで報告するだけ。
+
+    ## 対象ファイル（優先）
+    - projects/dozle_kirinuki/scripts/main.py
+    - projects/dozle_kirinuki/scripts/make_expression_shorts.py
+    - projects/dozle_kirinuki/scripts/vertical_convert.py
+    - projects/dozle_kirinuki/scripts/make_shorts*.py（存在するもの全て）
+    - remotion-project/（存在すれば）
+
+    ## 検出観点
+    - CRITICAL: 実行時クラッシュ・データ破壊・廃止API使用
+    - HIGH: ハードコード・パス不一致・ffmpegルール違反（libx264使用等）・/tmp使用
+    - MEDIUM: 非推奨パターン・コード重複・設定値ハードコード
+    - LOW: スタイル・軽微な不整合
+
+    ## 参考: 過去の既知問題（再確認）
+    - main.py L1156 logger→print置換済み（cmd_1415a）→残存なし確認
+    - vertical_convert.py /tmp→work_dir置換済み（cmd_1415a）→残存なし確認
+    - make_expression_shorts.py L295 ffmpeg -ss が -i の前（cmd_1414_video HIGH）→修正済み確認
+    - main.py L333 generate_thumbnail esc()順序バグ（cmd_1414_video HIGH）→修正済み確認
+
+    ## 報告書フォーマット（cmd_828準拠）
+    出力先: queue/reports/gunshi_report_nightly_audit_20260421_video.yaml
+    ```yaml
+    audit_date: '2026-04-21'
+    category: 動画制作
+    summary:
+      critical: 0
+      high: 0
+      medium: 0
+      low: 0
+    findings:
+      - severity: CRITICAL/HIGH/MEDIUM/LOW
+        file: "ファイルパス"
+        line: 行番号
+        issue: "問題タイトル"
+        detail: "具体的な問題"
+        remedy: "推奨対処"
+    ```
+
+    ## 完了報告
+    bash scripts/inbox_write.sh karo \
+      "軍師、nightly_audit_20260421_video完了。CRITICAL={N}件 HIGH={N}件 MEDIUM={N}件。queue/reports/gunshi_report_nightly_audit_20260421_video.yaml参照。" \
+      report_completed gunshi
+
+- task_id: nightly_audit_20260422_infra
+  parent_cmd: nightly_audit
+  bloom_level: L5
+  type: analysis
+  status: done
+  timestamp: "2026-04-22T02:02:30"
+  description: |
+    【夜間矛盾検出】カテゴリ: インフラ（04-22）
+    対象: inbox_write.sh, inbox_watcher.sh, ntfy.sh, ntfy_listener.sh, cron設定, agent管理系, context_monitor等
+
+    cmd_828と同じ形式で矛盾・バグ・設計欠陥を検出・報告せよ。
+    テストを書くな。コードを修正するな。読んで報告するだけ。
+
+    ## 対象ファイル（優先）
+    - scripts/inbox_write.sh
+    - scripts/inbox_watcher.sh
+    - scripts/ntfy.sh
+    - scripts/ntfy_listener.sh
+    - scripts/fix_panes.sh
+    - scripts/shutsujin_departure.sh
+    - scripts/context_monitor.sh（存在すれば）
+    - .claude/settings.json（cron/hooks設定）
+
+    ## 検出観点
+    - CRITICAL: 実行時クラッシュ・メッセージロスト・agent起動失敗
+    - HIGH: 未修正の既知問題・設計欠陥・ハードコード
+    - MEDIUM: 非推奨パターン・冗長処理・設定値ハードコード
+    - LOW: スタイル・軽微な不整合
+
+    ## 参考: 04-18監査の既知HIGH（修正済み確認すること）
+    - fix_panes.sh CLI Adapter連携（cmd_1415bで修正済み→残存確認）
+    - shutsujin_departure.sh clean mode list形式統一（cmd_1415bで修正済み→残存確認）
+    - ntfy_listener.sh L238 認証タイプstderr出力（cmd_1415bで修正済み→残存確認）
+    - posttool_yaml_check.sh python3→.venv/bin/python3（cmd_1415bで修正済み→残存確認）
+
+    ## 報告書フォーマット（cmd_828準拠）
+    出力先: queue/reports/gunshi_report_nightly_audit_20260422_infra.yaml
+    ```yaml
+    audit_date: '2026-04-22'
+    category: インフラ
+    summary:
+      critical: 0
+      high: 0
+      medium: 0
+      low: 0
+    findings:
+      - severity: CRITICAL/HIGH/MEDIUM/LOW
+        file: "ファイルパス"
+        line: 行番号
+        issue: "問題タイトル"
+        detail: "具体的な問題"
+        remedy: "推奨対処"
+    ```
+
+    ## 完了報告
+    bash scripts/inbox_write.sh karo \
+      "軍師、nightly_audit_20260422_infra完了。CRITICAL={N}件 HIGH={N}件 MEDIUM={N}件。queue/reports/gunshi_report_nightly_audit_20260422_infra.yaml参照。" \
+      report_completed gunshi
+- task_id: nightly_audit_20260423_stt
+  parent_cmd: nightly_audit
+  bloom_level: L5
+  type: analysis
+  status: done
+  timestamp: "2026-04-23T02:10:00+09:00"
+  description: |
+    【夜間矛盾検出】カテゴリ: STTパイプライン（04-23）
+    対象: vocal_stt_pipeline.py, stt_merge.py, speaker_id系, 成果物
+
+    cmd_828と同じ形式で矛盾・バグ・設計欠陥を検出・報告せよ。
+    テストを書くな。コードを修正するな。読んで報告するだけ。
+
+  target_files:
+    - "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py"
+    - "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/stt_merge.py"
+    - "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/speaker_id.py"
+    - "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/compare_speaker_srt.py"
+    - "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/auto_fetch.py"
+
+  procedure: "shared_context/procedures/nightly_audit_template.md"
+  steps: "対象ファイルを全てRead→矛盾・バグ・設計欠陥をCRITICAL/HIGH/MEDIUM/LOWで分類→report YAML書き込み→完了報告"
+
+  report_path: "/home/murakami/multi-agent-shogun/queue/reports/gunshi_report_nightly_audit_20260423_stt.yaml"
+
+  detection_categories:
+    CRITICAL: "実行時クラッシュ・メッセージロスト・データ破壊"
+    HIGH: "未修正の既知問題・設計欠陥・ハードコード・AssemblyAI必須ルール違反"
+    MEDIUM: "非推奨パターン・冗長処理・設定値ハードコード"
+    LOW: "スタイル・軽微な不整合"
+
+  reference_context:
+    - "cmd_1429aで修正済み: --disable-speaker-id追加(L918/L1029)・ECAPA_THRESHOLD env化(L44)・pipeline.sh削除・auto_fetch廃止警告追加・SKILL.md更新"
+    - "04-20監査HIGH×3は全解消確認済み（重複検出しても再報告不要）"
+    - "STTはAssemblyAI必須・WhisperX/faster-whisper/Gemini STT禁止"
+    - "SPEAKER_ID_THRESHOLD: デフォルト0.25・ECAPA_THRESHOLD環境変数で上書き可"
+
+  completion_report: |
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+      "軍師、nightly_audit_20260423_stt完了。CRITICAL={N}件 HIGH={N}件 MEDIUM={N}件。queue/reports/gunshi_report_nightly_audit_20260423_stt.yaml参照。" \
+      report_completed gunshi
+
+- task_id: nightly_audit_20260424_video
+  parent_cmd: nightly_audit
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-24T02:02:24+09:00"
+  description: "夜間矛盾検出 2026-04-24 カテゴリ: 動画制作系（main.py/make_expression_shorts/vertical_convert/generate_outro/Remotion）。テスト/修正禁止。読んで報告のみ。"
+  procedure: shared_context/procedures/nightly_audit_video.md
+  steps: "手順はprocedure参照。完了後inbox_write karoで報告。"
+  acceptance_criteria:
+    - "前回MEDIUM×4のregression-free確認（M1/M2解消・M3/M4継続確認）"
+    - "新規CRITICAL/HIGH/MEDIUM/LOW全件記録"
+    - "queue/reports/gunshi_report_nightly_audit_20260424_video.yaml 作成"
+  completion_report: |
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、nightly_audit_20260424_video完了。CRITICAL={N}件 HIGH={N}件 MEDIUM={N}件。queue/reports/gunshi_report_nightly_audit_20260424_video.yaml参照。" report_completed gunshi
+
+- task_id: design_1434_phase0
+  parent_cmd: cmd_1434
+  bloom_level: L6
+  status: done
+  timestamp: "2026-04-24T06:36:00+09:00"
+  description: "cmd_1434 Phase0設計: YouTube Analytics Dashboard大幅拡張の設計レビュー。将軍の設計詳細を参考資料として改訂提案・QC観点リスト作成。"
+  steps: "queue/shogun_to_karo.yaml cmd_1434のpurpose/acceptance_criteria/commandを読み設計する。改訂提案あれば優先採用。"
+  acceptance_criteria:
+    - "API指標選定の優先順位+取得可否評価（YouTube Analytics APIの制約確認）"
+    - "data.json拡張スキーマ詳細（keynames/型/graceful degradation方針）"
+    - "dashboard UIワイヤーフレーム/レイアウト案（既存セクションとの配置整合）"
+    - "既存機能とのregressionリスク特定（data.json互換性/Chart.js依存等）"
+    - "Phase分割の妥当性確認（Phase1/2/3の粒度・依存関係・並列可否）"
+    - "軍師QC観点リスト（Phase1/2/3それぞれのQCポイント）"
+    - "queue/reports/gunshi_report_design_1434_phase0.yaml 作成"
+  notes:
+    - "将軍が書いたAPI指標リスト/data.json keys/UI構成は参考資料。軍師の改訂提案を優先採用"
+    - "設計完了後は家老が殿or家老レビュー→OKでPhase1実装着手の流れ"
+  completion_report: |
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、design_1434_phase0完了。設計レビュー・改訂提案・QC観点リスト作成済み。queue/reports/gunshi_report_design_1434_phase0.yaml参照。" report_completed gunshi
+
+- task_id: gunshi_1436a
+  parent_cmd: cmd_1436
+  bloom_level: L6
+  status: done
+  timestamp: "2026-04-24T09:00:00+09:00"
+  description: "claude-mem活用余地の5観点分析。queue/shogun_to_karo.yaml cmd_1436のcommandを読み、gunshi_analysis.mdを作成する。将軍提案A〜Hに軍師判定付与必須。mem-search skill実機試打必須。"
+  steps: "Step0: queue/shogun_to_karo.yaml の cmd_1436 commandを読む。Step1: advisor()呼ぶ（分析前）。Step2: ~/.claude-mem/settings.json確認。Step3: curl http://localhost:37777/api/stats等でWebUI棚卸し。Step4: WebFetch https://github.com/thedotmack/claude-mem でREADME確認。Step5: mem-search skill を1〜3クエリ実試打（例:yt-dlp/シャルロット/FAIL）。Step6: 5観点分析をwork/cmd_1436/gunshi_analysis.mdに書く。Step7: advisor()呼ぶ（完了前）。Step8: inbox_write karo 完了報告"
+  acceptance_criteria:
+    - "work/cmd_1436/gunshi_analysis.md が出力される"
+    - "5観点全カバー: (1)観察傾向 (2)ツール活用余地(実試打結果含む) (3)WebUI機能 (4)ワークフロー組込 (5)リスク"
+    - "将軍提案A〜H（cmd_1436参照）に対し軍師判定（推奨/条件付き/非推奨）＋根拠あり"
+    - "mem-search実機試打の結果が報告に含まれる（動作確認必須）"
+  notes:
+    - "新規.py禁止。既存ツール(mem-search skill, WebFetch, Bash)のみ使用"
+    - "中間成果物は work/cmd_1436/ 配下"
+    - "推測でなく実機検証必須。mem-search試打なしのレポートは不可"
+  completion_report: |
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、gunshi_1436a完了。work/cmd_1436/gunshi_analysis.md作成済み。5観点+mem-search試打+将軍提案A〜H評価含む。" report_completed gunshi
+
+- task_id: qc_1438a
+  parent_cmd: cmd_1438
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-24T09:26:00+09:00"
+  description: "subtask_1438aのQC。ダッシュボードpolish4件の品質確認。generate_dashboard.py + index.html実ファイルを確認。"
+  steps: "Step0:shared_context/qc_template.md参照。Step1:advisor()呼ぶ(QC前)。Step2:/home/murakami/multi-agent-shogun/scripts/generate_dashboard.py をReadし(1)メンバー名日本語化(dozle/bon/qnly/orafu/oo_men/nekooji→日本語)全セクション確認(2)命名衝突解消(この動画の日次再生数/この動画のAI分析)確認(3)updated_at:None修正確認(4)subs_3mo等のcaption表記確認(5)by_duration日本語ラベル確認(6)Chart destroy全グラフ実装確認。Step3:curl http://127.0.0.1:8080/ で動作確認。Step4:git log確認(commit済みか)。Step5:advisor()呼ぶ(完了前)。Step6:PASS/FAIL判定+inbox_write karo報告"
+  acceptance_criteria:
+    - "メンバー名が全セクションで日本語表記（ドズル/ぼんじゅうる/おんりー/おらふくん/おおはらMEN/ネコおじ）"
+    - "動画詳細ラベルが命名衝突解消済み（この動画の日次再生数/この動画のAI分析）"
+    - "data.json updated_at が None でない"
+    - "予測セクションに caption 表記あり（3ヶ月後登録者予測 等）"
+    - "by_duration ラベルが日本語（30秒未満/30〜60秒/60〜120秒/120秒以上）"
+    - "Chart destroy() が全グラフに実装済み"
+    - "git commit済み"
+  notes:
+    - "generate_dashboard.py が主要修正ファイル。冪等性も確認せよ（再実行後も正常か）"
+    - "足軽2号報告: メンバー名/命名衝突/by_duration/Chart destroy完了・commit済みと報告あり。updated_atとcaptionの確認を重点チェックせよ"
+
+- task_id: subtask_1441j
+  parent_cmd: cmd_1441
+  bloom_level: L4
+  status: done
+  timestamp: "2026-04-24T12:55:00+09:00"
+  description: "cmd_1441 Phase A カテゴリ(j) その他横断課題のアイデア出し。足軽a-i 9カテゴリに収まらない整理余地(プロセス改善・観測性・cron一元化・テスト文化・アラート設計等)を work/cmd_1441/ideas/gunshi_j.md に整理"
+  steps: "advisor()→CLAUDE.md・instructions/*.md・scripts/・queue/全体を俯瞰→横断課題の現状/やれてないこと/アイデア3セクションでmd作成→advisor()→git add commit→inbox_write karo報告(Phase B準備の合図)"
+  acceptance_criteria:
+    - "work/cmd_1441/ideas/gunshi_j.md 作成(現状/やれてないこと/アイデア3セクション・最低5アイデア)"
+    - "git commit済み"
+  notes:
+    - "Phase B(integrity_audit+execution_plan)は別タスクsubtask_1441_phaseBで全足軽完了後に起動。今はPhase A (j)のみ"
+    - "新規.py禁止・md作成のみ"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、subtask_1441j完了。' report_completed gunshi"
+
+- task_id: subtask_1441_phaseB
+  parent_cmd: cmd_1441
+  bloom_level: L6
+  status: done
+  timestamp: "2026-04-24T12:55:00+09:00"
+  description: "cmd_1441 Phase B 統合: 全足軽のideas/*.md(a-j)を読み work/cmd_1441/integrity_audit.md(全カテゴリ棚卸し+優先度付け3軸評価) と execution_plan.md(subtask分解・担当候補・所要時間・依存関係・並列可能フラグ)を作成。家老に提出"
+  steps: "advisor()→work/cmd_1441/ideas/*.md全件Read→integrity_audit.md作成(高/中/低×緊急度・実装コスト/効果/リスク3軸)→execution_plan.md作成(subtask_1441-N単位分解・並列可能性明示)→advisor()→git add commit→inbox_write karo 'Phase B完了・execution_plan提出'"
+  acceptance_criteria:
+    - "work/cmd_1441/integrity_audit.md 作成(9カテゴリ網羅・優先度付け・3軸評価)"
+    - "work/cmd_1441/execution_plan.md 作成(subtask単位・並列可能性明示・advisor/git push仕様含む)"
+    - "git commit済み"
+  notes:
+    - "blocked_by 全8タスク完了まで作業禁止・家老が unblock する"
+    - "Phase C(家老分散実行)はexecution_plan受領後に家老側で別subtask群起票"
+
+- task_id: subtask_1441_phaseB2
+  parent_cmd: cmd_1441
+  bloom_level: L6
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/work/cmd_1441/execution_plan_v2.md
+  timestamp: "2026-04-24T15:10:00+09:00"
+  description: |
+    cmd_1441 Phase B 差し戻し改訂v2（殿2重指示反映）:
+    (A) D4訂正(A1-a復活=bloom_routing復活) + D1-D9の中で『全Opus[1m]統一』前提項目を GLM/Sonnet混在運用前提で再評価
+    (B) 殿方針『仕組みの改善が優先・動画編集は今どうでもいい』反映。動画系を Wave から脱落/保留、仕組み改善系を最優先化
+  steps: "advisor()→execution_plan.md+integrity_audit.md再読→(1)動画系除外(p06 TNT/p12 Day6 MIX/F-1 charlotte vp9→h264/D1 Day6 MIX区間)→保留タグ、p11 Opus観測は残す(2)仕組み改善系優先順位付け: D3 skills tracked/D4 bloom_routing(A1-a復活)/D5 instructions archive/D6 MEMORY.md整理/D7 MCP 3D entity/D9 submodule履歴書換/B-1 status一括更新/B-2 cmd_1348救出/A-4 target_path checklist恒久化/A-7 skill-creator whitelist/A-8 dashboard lifecycle自動化/J-5 ntfy wrapper統一/S17 instructions archive化/S19 memory archive新設/claude-mem Phase2-3/PreCompact snapshot強化(3)GLM/Sonnet混在運用前提で足軽割当・コスト・並列戦略再評価(4)execution_plan_v2.md作成(改訂差分明示・動画系=保留/仕組み系=優先度A/B/C付)(5)decision_gates_v2.md作成(D4=A1-a復活確定・動画系(D1)=保留・D8 MCN=別軸継続・他D=優先度明示)→advisor()→git add commit→inbox_write karo 完了報告"
+  acceptance_criteria:
+    - "/home/murakami/multi-agent-shogun/work/cmd_1441/execution_plan_v2.md 作成（動画系=保留タグ・仕組み系=優先度A/B/C付・モデル混在運用前提）"
+    - "/home/murakami/multi-agent-shogun/work/cmd_1441/decision_gates_v2.md 作成（D4 A1-a復活確定・D1動画保留・D8 MCN別軸・他D優先度明示）"
+    - "動画系subtaskが『保留』マーク付きで明示されている（p06/p12/F-1/D1）"
+    - "仕組み改善系(D3/D4/D5/D6/D7/D9/B-1/B-2/A-4/A-7/A-8/J-5/S17/S19/claude-mem Phase2-3/PreCompact)が最優先Wave(A)に再編成されている"
+    - "git commit済み"
+  notes:
+    - "殿判断(A): D4は A1-a復活(bloom_routing復活)確定。settings.yamlに bloom_routing キー追加が実装内容"
+    - "殿判断(B): 仕組みの改善が優先・動画編集は今どうでもいい。p11 Opus観測のみ動画系除外から免除(監視系のため)"
+    - "全Opus[1m]は今夜限定特例・明日以降はGLM/Sonnet混在・足軽CLI別々"
+    - "D8 MCN は別軸(殿アクション要)・継続でOK"
+    - "advisor()必須(作業前+完了前)"
+    - "Phase C Wave1着手は本subtask_1441_phaseB2 QC後"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、subtask_1441_phaseB2完了。' report_completed gunshi"
+
+- task_id: qc_1441_p20
+  parent_cmd: cmd_1441
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1441_p20.yaml
+  timestamp: "2026-04-24T15:58:00+09:00"
+  description: "足軽5号 subtask_1441_p20(D7訂正A実装)QC: MCP 10件削除(expression_index.json温存)・残8件・archive冒頭温存注記確認"
+  steps: "advisor()→Step1:mcp__memory__read_graph で残8件確認→Step2:expression_index.json 残存確認→Step3:archive/3d_pipeline_2026q1.md 冒頭温存注記確認→Step4:archive内容物理検証→Step5:MEMORY.md archive参照確認→Step6:advisor()→Step7:QC判定→Step8:inbox_write karo qc_result"
+  acceptance_criteria:
+    - "mcp__memory__read_graph entity=8件"
+    - "expression_index.json 残存"
+    - "3D化石10件削除"
+    - "archive冒頭温存注記あり"
+    - "MEMORY.md archive参照あり"
+  notes:
+    - "殿判断D7訂正A実装のQC・advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1441_p20完了(判定)。' qc_result gunshi"
+
+- task_id: subtask_1441_p10_memory_slim
+  parent_cmd: cmd_1441
+  bloom_level: L6
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/work/cmd_1441/memory_md_slim_proposal.md
+  timestamp: "2026-04-24T15:58:00+09:00"
+  description: "cmd_1441 D6(Option c スリム化案): MEMORY.md 292行→200行以下スリム化『案』作成し殿再提示。直接編集ではなく案提示のみ"
+  steps: "advisor()→Step1:Read /home/murakami/.claude/projects/-home-murakami-multi-agent-shogun/memory/MEMORY.md 全行レビュー→Step2:重要度/陳腐化/重複分類→Step3:削除/統合/残存リスト化→Step4:work/cmd_1441/memory_md_slim_proposal.md 作成(行単位具体案・残基準=殿激怒/現役技術/繰返事故)→Step5:advisor()→Step6:git commit→Step7:inbox_write karo 完了報告"
+  acceptance_criteria:
+    - "work/cmd_1441/memory_md_slim_proposal.md 作成"
+    - "292行→200行以下スリム化案が行単位で列挙"
+    - "削除/統合/残存候補が理由付きで明示"
+    - "殿が承認/却下できる粒度"
+    - "git commit済み"
+  notes:
+    - "殿判断D6 Option c確定(2026-04-24 15:56): 直接スリム化のみ・統合(a)/分割(b)不採用"
+    - "残す基準: 殿激怒事案・現役技術ルール・繰り返し発生する事故"
+    - "実Edit実行は殿承認後・本タスクは案作成のみ"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、subtask_1441_p10_memory_slim完了(案)。' report_completed gunshi"
+
+- task_id: qc_1441_p04
+  parent_cmd: cmd_1441
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1441_p04.yaml
+  timestamp: "2026-04-24T16:02:00+09:00"
+  description: "足軽1号 subtask_1441_p04(D3 skill-creator自動化)のQC: SKILL.md Step13追記+冪等シェル例・deviation(/** vs !skills/<n>/SKILL.md)判定"
+  steps: "advisor()→Step1:Read /home/murakami/multi-agent-shogun/skills/skill-creator/SKILL.md で Step13存在+冪等シェル例確認→Step2:deviation評価(/**から !skills/<n>/SKILL.md 明示への変更が D3理由『機密混入防止』と整合するか判断)→Step3:commit 9061910 確認→Step4:advisor()→Step5:QC判定(PASS/CONDITIONAL/FAIL)→Step6:inbox_write karo qc_result"
+  acceptance_criteria:
+    - "SKILL.md Step13追記あり"
+    - "冪等シェル例が適切"
+    - "deviation評価(機密混入防止との整合性)明示"
+    - "commit 9061910確認"
+  notes:
+    - "足軽deviationは保守的な方向(明示形式)なので受容可能と思われる・軍師最終判定"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1441_p04完了(判定)。' qc_result gunshi"
+
+- task_id: subtask_1442a
+  parent_cmd: cmd_1442
+  bloom_level: L6
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/work/cmd_1442/harness_proposal.md
+  timestamp: "2026-04-24T16:02:00+09:00"
+  description: "cmd_1442 ハーネス設計(3 Phase): Phase1 失敗事例cluster化/Phase2 既存ハーネス棚卸し/Phase3 提案書作成。将軍H1-H9起点+軍師独自追加案・mem-search必須"
+  steps: "advisor()→Phase1: scripts/cmem_search.sh で 'FAIL'/'殿激怒'/'silent fail'/'hotfix'/'車輪'/'再発'/'残骸'/'blocked' 検索+memory/feedback_*.md全件+dashboard.md history+ntfy log網羅分析→work/cmd_1442/failure_clusters.md作成(5cluster+各代表事例3件)→Phase2: scripts/pretool_check.sh/precompact_hook.sh/inbox_watcher.sh/claude-mem 5hooks/qc_template.md/cmem_search.sh等棚卸し→work/cmd_1442/existing_harness.md作成(カバー範囲マトリックス)→Phase3: H1-H9評価(防げる失敗/実装コスト/効果/リスク4軸)+軍師独自追加案→work/cmd_1442/harness_proposal.md作成→advisor()→git add commit→inbox_write karo 完了報告"
+  acceptance_criteria:
+    - "work/cmd_1442/failure_clusters.md 作成(5cluster・各代表事例3件以上)"
+    - "work/cmd_1442/existing_harness.md 作成(カバー範囲マトリックス)"
+    - "work/cmd_1442/harness_proposal.md 作成(H1-H9評価+独自追加案・事例→ハーネス→効果の3点セット)"
+    - "mem-search 実行ログが報告に含まれる(根拠提示)"
+    - "動画編集系除外(cmd_1441方針継続)"
+    - "advisor 2回呼出済"
+    - "git commit済み"
+  notes:
+    - "殿指示原文(2026-04-24 16:00): 『過去失敗から新しいハーネス考えろ・他にもあるかも含めて』"
+    - "将軍提案H1-H9: H1完了後curl自動/H2 dashboard残骸clean/H3 mem-search自動/H4 silent fail検知/H5 cmd YAML lint/H6 LLM選定/H7 hotfix3回→skill提案/H8 mem-search hit0警告/H9 Phase間殿ゲート"
+    - "mem-search必須(claude-mem 12K観察活用)・advisor()必須(分析前+提案前)"
+    - "新規.py禁止(shellスクリプト・hook設定はOK)"
+    - "足軽分散依頼可(claude-mem検索結果集計等の単純作業)"
+    - "ntfy: bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh '✅cmd_1442完了: ハーネス提案N件 殿提示準備完'"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、subtask_1442a完了(ハーネス3ファイル提出)。' report_completed gunshi"
+
+- task_id: qc_1441_p05
+  parent_cmd: cmd_1441
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1441_p05.yaml
+  timestamp: "2026-04-24T16:06:00+09:00"
+  reopened_at: "2026-04-24T19:10:00+09:00"
+  reopen_reason: "report未作成のまま done 化されていた(軍師query 18:41指摘)。家老判断で assigned に戻し正式QC実施。"
+  description: "足軽4号 subtask_1441_p05(D10 bloom_routing復活)QC: config/settings.yaml に bloom_routing:auto + capability_tiers(L1-4=glm/L5-6=opus[1m]) + bloom_model_preference 追加(commit 1c8bb06)"
+  steps: "advisor()→Step1:Read config/settings.yaml で bloom_routing+capability_tiers 記載確認→Step2:yaml構文確認→Step3:Read lib/cli_adapter.sh で動作確認→Step4:purpose_gap評価(L5-L6振り先=軍師専用と既存karo.md L4境界設計の整合)→Step5:advisor()→Step6:QC判定→Step7:inbox_write karo qc_result"
+  acceptance_criteria:
+    - "config/settings.yaml bloom_routing:auto"
+    - "capability_tiers L1-4=glm/L5-6=opus[1m]"
+    - "yaml構文OK"
+    - "lib/cli_adapter.sh 動作確認"
+    - "L5-L6振り先判断(軍師専用で妥当)"
+  notes:
+    - "殿判断D10 Option β実装QC"
+    - "purpose_gap: cli.agents opus[1m]足軽不在→家老判断で軍師専用維持・ashigaru側追加不要"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1441_p05完了(判定)。' qc_result gunshi"
+
+- task_id: subtask_1442_execplan_v3
+  parent_cmd: cmd_1442
+  bloom_level: L6
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/work/cmd_1442/execution_plan_v3.md
+  timestamp: "2026-04-24T18:40:00+09:00"
+  description: "cmd_1442 全12ハーネス採用確定(A5/B4/C2・H6除外)→execution_plan_v3 まとめ。家老が cmd_1443 起票用の発令形式も含める"
+  steps: "advisor()→Step1:殿承認履歴全件(18:23-18:38)+殿追加指示(H2拡張/H3+H8登録自動化/H10改H1統合/H11レビュー方式/H12透明性)再読→Step2:各ハーネス担当候補/所要時間/依存関係/Wave分配確定→Step3:work/cmd_1442/execution_plan_v3.md作成+cmd_1443起票テンプレ添付→Step4:advisor()→Step5:git commit→Step6:inbox_write karo"
+  acceptance_criteria:
+    - "/home/murakami/multi-agent-shogun/work/cmd_1442/execution_plan_v3.md 作成"
+    - "全12ハーネス(H1/H2/H3+H8/H4/H5/H7/H9/H10改/H11/H12/H13)実装計画"
+    - "H2拡張/H3+H8登録自動化/H10改H1統合/H11レビュー/H12透明性 殿追加指示全反映"
+    - "担当候補・所要時間・依存・Wave分配明示"
+    - "cmd_1443起票テンプレ"
+    - "git commit済み"
+  notes:
+    - "殿号令(2026-04-24 18:39): 全タスク即着手・進軍せよ"
+    - "本task=計画。実装はcmd_1443発令後に家老が足軽分散"
+    - "既存harness_proposal.md(95895ce)起点・v3で上書き更新"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、subtask_1442_execplan_v3完了。cmd_1443起票可能。' report_completed gunshi"
+
+- task_id: qc_1443_p05
+  parent_cmd: cmd_1443
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1443_p05.yaml
+  timestamp: "2026-04-24T19:32:00+09:00"
+  description: "足軽2号 cmd_1443_p05 (H7 hotfix3回→skill 自動提案 cron) QC。scripts/hotfix_trend_detector.sh 352行+weekly cron+殿開示事項3件(commit巻込/ntfy誤発火/初回cron挙動)の妥当性判定含む"
+  steps: "advisor()→Read queue/reports/ashigaru2_report_cmd_1443_p05.yaml→scripts/hotfix_trend_detector.sh 全行レビュー(shell+Jaccard+signature+dashboard insertion+ntfy)→fixture+idempotency検証→weekly cron確認→殿開示事項3件評価(commit巻込=reset不可ゆえ許容/ntfy誤発火=安全化済/初回cron=仕様)→advisor()→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "shell構文OK+Jaccard実装正当性"
+    - "fixture test+idempotency+signature dedup動作確認"
+    - "dashboard insertion位置+marker二重追記防止"
+    - "weekly cron(Mon 06:00)登録確認"
+    - "殿開示事項3件妥当性評価"
+    - "commit 1440284 の p02混入部分は p02 QC時に再評価する前提で許容判定"
+  notes:
+    - "報告: queue/reports/ashigaru2_report_cmd_1443_p05.yaml"
+    - "cron_inventory登録は p09責務ゆえ本QCでtouchせず"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1443_p05完了(判定)。' qc_result gunshi"
+
+- task_id: qc_1443_p02
+  parent_cmd: cmd_1443
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1443_p02.yaml
+  timestamp: "2026-04-24T19:32:00+09:00"
+  description: "足軽1号 cmd_1443_p02 (H2拡張 dashboard+MCPダッシュボード lifecycle hook) QC。commit 1440284 に p05 と一緒にバンドル済(ashigaru2 の git add . 事故)・hotfix_notes に詳細あり"
+  steps: "advisor()→Read queue/reports/ashigaru1_report_cmd_1443_p02.yaml→scripts/dashboard_lifecycle.sh 全行レビュー(🚨解決済みclean+MCP port 8770 curl疎通+nightly_audit統合)→MCPダッシュボード(http://192.168.2.7:8770/)実疎通確認→既存nightly_audit統合動作確認→commit巻込整合性評価(p05と同一commit 1440284)→advisor()→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "scripts/dashboard_lifecycle.sh shell構文OK+ロジック正当性"
+    - "dashboard.md 🚨解決済み自動clean動作確認"
+    - "MCP ダッシュボード(http://192.168.2.7:8770/) curl疎通+status=done残骸検出"
+    - "既存 nightly_audit 統合 or 新規 cron 追加"
+    - "ntfy通知動作確認"
+    - "commit 1440284 p02成果物整合性評価+足軽1号 hotfix_notes 内容検証"
+    - "新規.py禁止遵守"
+  notes:
+    - "報告: queue/reports/ashigaru1_report_cmd_1443_p02.yaml"
+    - "commit 1440284 に p05(hotfix_trend)+p02(dashboard_lifecycle)+nightly_audit+dashboard混在・p02 QC時に混入整合性評価"
+    - "足軽1号 hotfix_notes に git add . 事故詳細記録済"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1443_p02完了(判定)。' qc_result gunshi"
+
+- task_id: qc_1443_p09
+  parent_cmd: cmd_1443
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1443_p09.yaml
+  timestamp: "2026-04-24T19:32:00+09:00"
+  description: "足軽6号 cmd_1443_p09 (H12 cron_inventory+health_check+drift検知+quarterly review) QC。commit 67a63b6・実failure 3件検知動作確認済報告"
+  steps: "advisor()→Read queue/reports/ashigaru6_report_cmd_1443_p09.yaml→shared_context/cron_inventory.md レビュー(全cron棚卸し+3必須フィールド 目的/所管/停止影響)→scripts/cron_health_check.sh 全行レビュー→nightly_audit cron_inventory↔crontab drift検知動作確認→instructions/gunshi.md quarterly review追記確認→ダミーERROR→ntfy到達動作確認→殿透明性要件(『いま初めて知った』対策)充足評価→advisor()→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "shared_context/cron_inventory.md 全cron棚卸し(crontab + systemd timer)+3必須フィールド記載"
+    - "scripts/cron_health_check.sh shell構文OK+ERROR検知→ntfy動作確認"
+    - "nightly_audit に drift 整合チェック統合"
+    - "instructions/gunshi.md に quarterly review 追記確認"
+    - "ダミーERROR→ntfy 到達確認"
+    - "殿透明性要件充足(各cron目的/所管/停止影響)"
+    - "新規.py禁止遵守"
+  notes:
+    - "報告: queue/reports/ashigaru6_report_cmd_1443_p09.yaml (commit 67a63b6)"
+    - "本subtaskの cron登録で p05(hotfix weekly)+将来 p10(monthly feedback) も cron_inventory.md 記載対象"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1443_p09完了(判定)。' qc_result gunshi"
+
+- task_id: qc_1443_p01
+  parent_cmd: cmd_1443
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1443_p01.yaml
+  timestamp: "2026-04-24T19:35:00+09:00"
+  description: "足軽4号 subtask_1442_h1 (cmd_1443_p01・H1 verify harness + H10改 advisor gate統合) QC。unit test 13/13 pass・commit b66cfbc"
+  steps: "advisor()→Read queue/reports/ashigaru4_report_subtask_1442_h1.yaml→done_gate.sh+pretool_check.sh CHK5+cmd_template verify欄+hook+shogun-screenshot+後方互換+H10改 advisor 2回未満BLOCK 検証→既存regression確認→unit test 13件網羅性評価→advisor()→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "shell構文OK+ロジック正当性"
+    - "verify成功/失敗/欠落・advisor <2回BLOCK 等 unit test 13/13 網羅"
+    - "後方互換: verify欄不在subtask従来通り done 許可"
+    - "既存 subtask regression なし"
+    - "shogun-screenshot 連携・PostToolUse hook 動作確認"
+    - "H10改 H1統合即時阻止型動作確認"
+  notes:
+    - "報告: queue/reports/ashigaru4_report_subtask_1442_h1.yaml (commit b66cfbc)"
+    - "Wave A 最難関・scope_extension(H10改吸収)全反映"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1443_p01完了(判定)。' qc_result gunshi"
+
+- task_id: qc_1443_p08
+  parent_cmd: cmd_1443
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1443_p08.yaml
+  timestamp: "2026-04-24T19:38:30+09:00"
+  description: "足軽5号 cmd_1443_p08 (H11 lord-angry slash レビュー方式) QC。commit 2efa017・worked_sample 紙上デモあり・e分岐 vi→会話型の仕様逸脱1件 report明記"
+  steps: "advisor()→Read queue/reports/ashigaru5_report_cmd_1443_p08.yaml→.claude/commands/lord-angry.md レビュー(殿激怒引数→LLM推論→feedback_{slug}.md草稿+MEMORY.md追記1行→y/e/n 3選択肢)→worked_sample動作確認(紙上デモ評価)→e分岐仕様逸脱(vi→会話型)の評価(機能相当+安全性維持か)→auto-commit抑止(F002違反回避)確認→advisor()→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - ".claude/commands/lord-angry.md slash command 新設(markdown)"
+    - "殿激怒発言→feedback_*.md草稿生成(frontmatter含む)"
+    - "MEMORY.md 追記1行候補生成"
+    - "y/e/n 3選択肢レビュー動作(紙上デモ or 実動作)"
+    - "auto-commit抑止"
+    - "e分岐 vi→会話型の仕様逸脱評価(家老判断: 機能相当かつ安全性維持なら許容)"
+  notes:
+    - "報告: queue/reports/ashigaru5_report_cmd_1443_p08.yaml (commit 2efa017)"
+    - "仕様逸脱1件(e分岐): 家老としては会話型も安全性同等ゆえ許容方向・最終判定は軍師"
+    - "本skill完成で今後の殿激怒事案は半自動化される・重要成果"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1443_p08完了(判定)。' qc_result gunshi"
+
+- task_id: qc_1443_p03
+  parent_cmd: cmd_1443
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1443_p03.yaml
+  timestamp: "2026-04-24T19:42:00+09:00"
+  description: "足軽7号 cmd_1443_p03 (H3+H8拡張 4系統自動 add_observations + fallback 3点承認版) QC。commit 55afdbf・scripts/cmd_intake_hook.sh + PreToolUse(timeout 8s) + instructions 3ファイル SessionStart ingest + pending_mcp_obs.yaml(flock) + archive初期化"
+  steps: "advisor()→Read queue/reports/ashigaru7_report_cmd_1443_p03.yaml→scripts/cmd_intake_hook.sh 全行レビュー(shell・キーワード抽出awk・cmem_search.sh呼出・hit=0警告注入)→fallback 3点実装確認: (i)logs/cmd_intake_obs.jsonl 監査ログ (ii)queue/pending_mcp_obs.yaml キュー(flock保護) (iii)(iv)feedback_*.md検出+dashboard archive→instructions/{shogun,karo,gunshi}.md SessionStart ingest 手順追加確認→.claude/settings.json PreToolUse hook(timeout 8s)登録確認→regression(shogun_to_karo.yaml編集)なし確認→advisor()→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "scripts/cmd_intake_hook.sh 新設(shell・新規.py禁止)"
+    - "mem-search自動+hit=0警告動作確認"
+    - "fallback 3点全動作確認(監査JSONL/pending queue flock/SessionStart ingest)"
+    - "instructions 3ファイル SessionStart ingest 手順追加確認"
+    - ".claude/settings.json PreToolUse hook(timeout 8s)登録"
+    - "既存 shogun_to_karo.yaml 編集 regression なし"
+    - "advisor前後遵守確認"
+    - "git commit 済み(55afdbf)"
+  notes:
+    - "報告: queue/reports/ashigaru7_report_cmd_1443_p03.yaml (commit 55afdbf)"
+    - "fallback採用経緯: cmem POST不可+MCP shell呼出不可→家老scope_approved"
+    - "今後の家老/軍師 SessionStart で pending_mcp_obs.yaml ingest 必須(agents実装要)"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1443_p03完了(判定)。' qc_result gunshi"
+
+- task_id: qc_1445
+  parent_cmd: cmd_1445
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1445.yaml
+  timestamp: "2026-04-24T20:35:00+09:00"
+  description: "足軽7号 cmd_1445 (Udemy講座『AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全実践』カリキュラム設計v1) QC。curriculum_v1.md 578行・commit c80fa7a"
+  steps: "advisor()→Read projects/udemy_course/drafts/curriculum_v1.md 全行(578行)→Read queue/shogun_to_karo.yaml L5536 cmd_1445 定義照合→memory/project_udemy_3engineering.md + work/cmd_1444/marketing_trip_videos_summary.md + udemy_strategy.txt + udemy_engineering.json との整合性検証→acceptance_criteria 7点逐一チェック(章立て+学習目標+演習課題+成果物定義/L1-L2-L3 3階層/cmd_1443 12ハーネス実装例L3教材化/cmd_1441-1442 L1-L2教材化/差別化ポイント明記/cmd_1444マーケ戦略反映/git commit済)→市場性評価(3階層統合の市場ゼロ確認・9体並列+13ハーネス差別化妥当性)→advisor()→QC判定(PASS/CONDITIONAL_PASS/FAIL)→inbox_write karo"
+  acceptance_criteria:
+    - "projects/udemy_course/drafts/curriculum_v1.md 578行確認(章立て+学習目標+演習課題+成果物定義)"
+    - "L1プロンプト/L2コンテキスト/L3ハーネス 3階層の章構成が明確"
+    - "cmd_1443 12ハーネス実装例をL3教材化(H1-H13 H6除外の実装が教材に反映)"
+    - "cmd_1441/1442 経験のL1プロンプト・L2コンテキスト教材化"
+    - "差別化ポイント明記(3階層統合の市場ゼロ・9体並列実運用・13ハーネス実装の具体記述)"
+    - "work/cmd_1444 マーケ戦略+既存講座分析の反映"
+    - "git commit 済み(c80fa7a)"
+    - "学習者視点の完成度評価(章構成の論理性・演習難易度勾配・成果物の測定可能性)"
+  notes:
+    - "報告: queue/reports/ashigaru7_report_cmd_1445.yaml (commit c80fa7a・curriculum_v1.md 578行)"
+    - "殿発令 cmd_1445 Option B 即起票(2026-04-24 20:17)"
+    - "F003越権配慮済・家老正式発令ゆえQC実施可"
+    - "Udemy講座は対外公開成果物・殿レビュー必須ゆえQC厳格に"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1445完了(判定)。' qc_result gunshi"
+
+- task_id: qc_1446
+  parent_cmd: cmd_1446
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1446.yaml
+  timestamp: "2026-04-24T21:00:00+09:00"
+  description: "cmd_1446 D9 dozle_kirinuki submodule履歴書換 QC。destructive操作ゆえ家老主導実行・gcloud系278MB除去+殿B採択(mp4温存)+force-with-lease push完遂+fresh clone検証PASS"
+  steps: "advisor()→Step1:Read work/cmd_1446/{backup_path,backup_size,big_blobs,filter_repo,post_size,push}.log 全行確認→Step2:git log --oneline -5 projects/dozle_kirinuki(HEAD 0e0afbad確認)→Step3:git submodule status projects/dozle_kirinuki (space prefix で一致確認)→Step4:fresh clone test 結果確認(2.9G・blob >50MB mp4 1件のみ・gcloud working tree不在)→Step5:/tmp/dozle_kirinuki.backup.1777030230 mirror backup 存在+復元可能性→Step6:殿B採択の遵守確認(google-cloud-sdk/** + google-cloud-cli-linux-x86_64.tar.gz 除去・mp4温存)→Step7:CLAUDE.md D003(force-with-lease使用) 遵守確認→advisor()→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "filter-repo 実行成功(762 commits・56.66秒)"
+    - "push c576d6b..0e0afba force-with-lease 成功"
+    - ".git size 3.8G→3.5G削減確認"
+    - "fresh clone 2.9G・blob >50MB は mp4 1件のみ(gcloud系不在)確認"
+    - "殿B採択遵守(gcloud系2件削除・54.8MB mp4温存)"
+    - "親リポsubmodule pointer 0e0afbad 一致"
+    - "Step1 backup(3.8G mirror)の復元可能性確認"
+    - "CLAUDE.md D003 (force-with-lease使用・force禁止) 遵守"
+    - "advisor前後遵守確認"
+  notes:
+    - "成果物: projects/dozle_kirinuki submodule (HEAD 0e0afbad・push済)"
+    - "殿明示承認(A・今夜着手・家老主導): 2026-04-24 20:28 cmd_1446発令"
+    - "殿B採択(2026-04-24 20:37): gcloud系278MBのみ削除・mp4温存"
+    - "backup 3.8G は当面残置(殿判断で削除可)"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1446完了(判定)。' qc_result gunshi"
+
+- task_id: subtask_1449_e
+  parent_cmd: cmd_1449
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/work/cmd_1449/H_post_step_completion_detector_design.md
+  timestamp: "2026-04-24T23:24:00+09:00"
+  description: "cmd_1449 領域E H_post_step_completion_detector 設計doc作成。cmd_1446 軍師qc_1446_resume で登録された新ハーネス候補。役割: 複数Step構成cmdの各Step完了検知+次Step自動進行 (Phase間ゲートと対をなす)。設計docのみ・実装は別cmd"
+  steps: "advisor()→Step1:cmd_1446 qc_1446_resume 報告書(queue/reports/gunshi_report_qc_1446_resume.yaml)の process 改善指摘箇所確認→Step2:既存 H9 Phase間殿ゲート(scripts/phase_gate_checker.sh) と H1 verify harness(scripts/done_gate.sh) との関係整理→Step3:設計doc 作成 work/cmd_1449/H_post_step_completion_detector_design.md 構成: (a)背景と目的(cmd_1446 QC発出タイミング尚早事案)・(b)要件定義(gc完了/packfile rename/systemd active 等 process状態まで確認)・(c)アーキテクチャ(Step完了検知→次Step自動進行)・(d)H9/H1 との関係(Phase間ゲート=殿承認/post_step_completion=自動検知)・(e)実装方針(shell+pretool hook案)・(f)AC・(g)implementation checklist→Step4:verify: 設計の3方針トレードオフ比較(同期監視/非同期 callback/polling+inotify)・明確な推奨→advisor()→Step5:git commit(明示パス)→Step6:完了報告 karo"
+  acceptance_criteria:
+    - "work/cmd_1449/H_post_step_completion_detector_design.md 作成(a-g 7セクション構成)"
+    - "cmd_1446 事案との関連明記(QC発出タイミング尚早の再発防止)"
+    - "H9 Phase間殿ゲート/H1 verify harness との位置付け明確化"
+    - "実装方針の3方針トレードオフ比較+推奨方針提示"
+    - "実装cmd発令時の AC/checklist 明示"
+    - "git commit 済み(明示パス)"
+  notes:
+    - "殿指示(2026-04-24 23:22)『やれるだけやれ』5領域並列一掃"
+    - "軍師選定: 設計L5・Phase間ゲート(H9)との関係性評価が必要ゆえ軍師の俯瞰視点が最適"
+    - "設計docのみ・実装は別cmd(殿承認後)"
+    - "本subtaskは軍師自主QC(karo直接報告でよい・本人の設計報告ゆえ)"
+    - "並列非干渉: 他領域A/B/C/D と別ファイル"
+    - "advisor() 最低1回(作業前+設計完成前推奨)"
+    - "git add . 禁止・明示パスのみ"
+    - "所要時間: MED 1-2h (設計docのみ・実装なし)"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、subtask_1449_e完了(H_post_step_completion_detector 設計doc)。' design_completed gunshi"
+
+- task_id: qc_1449_a
+  parent_cmd: cmd_1449
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1449_a.yaml
+  timestamp: "2026-04-24T23:45:00+09:00"
+  description: "足軽4号 subtask_1449_a QC(cmd_1441 技術負債4件 A1-A4 一掃・commit a8e2878)"
+  steps: "advisor()→Read queue/reports/ashigaru4_report_subtask_1449_a.yaml + commit a8e2878(CLAUDE.md 62行+karo.md 10行)→A1 target_path必須化/A2 bloom_routing verify/A3 git add -f 運用ルール/A4 feedback_git_safety.md の4点確認→verify: pretool_check.sh CHK1 動作+feedback_git_safety.md 内容妥当性→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "A1-A4 全4項目対応確認"
+    - "CLAUDE.md/instructions/karo.md 記述正確性"
+    - "feedback_git_safety.md 新設(4原則記載)"
+    - "git commit 済み(a8e2878)"
+  notes:
+    - "報告: commit a8e2878 + queue/reports/ashigaru4_report_subtask_1449_a.yaml"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1449_a完了(判定)。' qc_result gunshi"
+
+- task_id: qc_1449_b
+  parent_cmd: cmd_1449
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1449_b.yaml
+  timestamp: "2026-04-24T23:45:00+09:00"
+  description: "足軽2号 subtask_1449_b QC(C08 /tmp禁止違反+C09 slim_yaml連結修正・commit de29639)"
+  steps: "advisor()→Read commit de29639(scripts/slim_yaml_all.sh新設+8 scripts /tmp→logs移行+test 5 cases PASS)→C08 grep -r '/tmp' scripts/ でClaude harness外ゼロ確認→C09 slim_yaml_all.sh fixture テスト PASS確認→C02 cmd_1448 scope境界明記確認→verify定量条件→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "C08: /tmp使用の全8スクリプト移行確認"
+    - "C09: slim_yaml_all.sh 5ケーステスト PASS"
+    - "C02: cmd_1448 scope境界明記"
+    - "git commit 済み(de29639)"
+  notes:
+    - "報告: commit de29639(足軽2号inbox未着だが commit で AC 判定可)"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1449_b完了(判定)。' qc_result gunshi"
+
+- task_id: qc_1449_c
+  parent_cmd: cmd_1449
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1449_c.yaml
+  timestamp: "2026-04-24T23:45:00+09:00"
+  description: "足軽7号 subtask_1449_c QC(Udemy v1 curriculum minor 3件修正・commit 06ecb45)"
+  steps: "advisor()→Read queue/reports/ashigaru7_report_subtask_1449_c.yaml + commit 06ecb45(curriculum_v1.md 12行diff)→F1(18h尺vs1000円)/F2(既存講座固有名詞一般化)/F3(筆者third-person→本プロジェクト)3点確認→verify前回qc_1445 minor findings 全解消+v2 6件スコープ外維持→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "F1-F3 全3項目対応確認"
+    - "curriculum_v1.md 整合性維持"
+    - "v2 6件は本subtask対象外(U1 rubric含む)"
+    - "git commit 済み(06ecb45)"
+  notes:
+    - "報告: commit 06ecb45 + queue/reports/ashigaru7_report_subtask_1449_c.yaml"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1449_c完了(判定)。' qc_result gunshi"
+
+- task_id: qc_1449_d
+  parent_cmd: cmd_1449
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1449_d.yaml
+  timestamp: "2026-04-24T23:45:00+09:00"
+  description: "足軽1号 subtask_1449_d QC(part_info.json 誤記修正・レポート commit dd69042+c9bfb89・家老apply commit b9d05b6)"
+  steps: "advisor()→Read queue/reports/ashigaru1_report_subtask_1449_d.yaml + work/cmd_1449/part_info_fix_report.md + 家老apply commit b9d05b6 → oo_men 10 parts反映確認+jq validity+hotfix_notes (hook制約→家老apply) 妥当性評価→follow-up 別cmd化推奨 2件の必要性評価→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "work/cmd_1425/part_info.json oo_men 10 parts追記確認(jq OK・total_parts=10・duration 09:01:48.43)"
+    - "レポート証跡(ls+ffprobe)妥当性"
+    - "hotfix_notes (target_path単一化の運用課題) 妥当性"
+    - "follow-up 別cmd化推奨(oo_men 10parts未processing+part_info生成器fallback)必要性評価"
+    - "commit b9d05b6(家老apply)+dd69042/c9bfb89(レポート) 整合性"
+  notes:
+    - "報告: commit b9d05b6+dd69042/c9bfb89+queue/reports/ashigaru1_report_subtask_1449_d.yaml"
+    - "家老apply経緯: hook制約(cmd_1443 p06 scope guard)で足軽 work/cmd_1425/ 書換不可→家老apply実施"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1449_d完了(判定)。' qc_result gunshi"
+
+- task_id: nightly_audit_20260425_infra
+  parent_cmd: nightly_audit
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_nightly_audit_20260425_infra.yaml
+  timestamp: "2026-04-25T02:05:00+09:00"
+  description: "インフラ系スクリプト群(inbox_write/watcher・ntfy・cron・agent管理・context_monitor+cmd_1443 12ハーネス新設分) の矛盾検出・報告。cmd_828形式準拠・nightly_audit_20260408_infra 類似。★コード修正禁止・テスト作成禁止・読んで報告のみ★"
+  steps: "## ミッション: コードを修正するな。テストを書くな。読んで報告するだけ。 ## 対象ファイル優先順: 1.scripts/inbox_write.sh 2.scripts/inbox_watcher.sh 3.scripts/ntfy.sh 4.scripts/sessionstart_hook.sh 5.scripts/pretool_check.sh/pretool_check_relpath.sh 6.config/settings.yaml 7.scripts/start_ashigaru_glm.sh 8.scripts/context_monitor.sh 9.scripts/dashboard/ 10.cmd_1443 12ハーネス新設(silent_fail_watcher+cron_health_check+monthly_feedback_review+cmd_intake_hook+phase_gate_checker+done_gate+hotfix_trend_detector+dashboard_lifecycle+slim_yaml_all) ## 検査項目: ハードコードパス/存在しない参照/CLAUDE.md乖離/並行競合(flock漏れ)/ntfy IP/inbox_watcher連携 ## 重要度: CRITICAL/HIGH/MEDIUM/INFO ## 出力: queue/reports/gunshi_report_nightly_audit_20260425_infra.yaml (cmd_828準拠フォーマット)"
+  acceptance_criteria:
+    - "cmd_828/nightly_audit_20260408_infra 準拠yamlフォーマット報告書作成"
+    - "対象10カテゴリ全件検査(cmd_1443 12ハーネス新設分 含む)"
+    - "重要度分類(CRITICAL/HIGH/MEDIUM/INFO) 付与"
+    - "findings リスト(severity/file/line/issue/detail) 完備"
+    - "summary 集計(各重要度件数)"
+    - "★コード修正禁止・テスト作成禁止・読んで報告のみ★"
+    - "朝までに完遂(dashboard反映時間確保)"
+  notes:
+    - "殿指示(2026-04-25 02:02) 夜間矛盾検出・自動発令インフラカテゴリ"
+    - "cmd_828 原典+nightly_audit_20260408_infra 類似形式準拠"
+    - "cmd_1443 12ハーネス新設分も検査対象(silent_fail_watcher/done_gate/phase_gate_checker等)"
+    - "advisor() 最低1回(作業前推奨)"
+    - "朝までに完遂(dashboard反映)"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、nightly_audit_20260425_infra完了。' report_completed gunshi"
+
+- task_id: qc_1447
+  parent_cmd: cmd_1447
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1447.yaml
+  timestamp: "2026-04-25T03:00:00+09:00"
+  description: "足軽6号 cmd_1447 skill-candidate-tracker スキル化 QC。commit ccd613e・7ファイル・inventory=PENDING 2/IMPLEMENTED 2/NAMELESS 5 の既知集計確認"
+  steps: "advisor()→Read queue/reports/ashigaru6_report_cmd_1447.yaml + commit ccd613e 7ファイル詳細→skills/skill-candidate-tracker/SKILL.md 既存パターン(skill-creator/senkyou/note-article)準拠確認→inventory生成 shell 実装確認→context/skill_candidates_inventory.md 内容(PENDING 2/IMPLEMENTED 2/NAMELESS 5)→weekly cron+/skill-inventory slash 両対応確認→shared_context/cron_inventory.md 新cron追記確認→verify実データ(cmd_1439 yt-dlp/cmd_1441ghi self/直近1週間)→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "skills/skill-candidate-tracker/SKILL.md 完成(既存パターン準拠)"
+    - "全 queue/reports/*.yaml スキャン実装"
+    - "context/skill_candidates_inventory.md 集約(PENDING 2/IMPLEMENTED 2/NAMELESS 5)"
+    - "weekly cron + /skill-inventory slash 両対応"
+    - "shared_context/cron_inventory.md 追記"
+    - "verify実データ検証"
+    - "git commit 済み(ccd613e)"
+  notes:
+    - "報告: commit ccd613e + queue/reports/ashigaru6_report_cmd_1447.yaml"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1447完了(判定)。' qc_result gunshi"
+
+- task_id: qc_1448
+  parent_cmd: cmd_1448
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1448.yaml
+  timestamp: "2026-04-25T03:00:00+09:00"
+  description: "足軽3号 cmd_1448 cron 4エラー根本修正 QC。C01 Vertex AI Embedding 404+C02/C04 Traceback+C10 rsync code 23 根本対処+00:30 cron観察後検証"
+  steps: "advisor()→Read queue/reports/ashigaru3_report_cmd_1448.yaml + work/cmd_1448/root_cause_report.md→C01 Vertex AI 404 NOT_FOUND 根本対処(memory feedback_vertex_location_by_model.md 整合性)→C02/C04 Traceback 発生元特定+例外処理妥当性→C10 rsync error code 23 原因特定+修正→verify: logs/cron_health_check.log 直近30分(02:30 hit=1 は C05 別件)→cmd_1451 と scope境界(C01-C10 は cmd_1448担当)確認→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "C01 Vertex AI Embedding 404 根本原因特定+修正"
+    - "C02 Traceback 発生元特定+例外処理追加"
+    - "C04 Traceback 発生元特定+例外処理追加"
+    - "C10 rsync error code 23 原因特定+修正"
+    - "次cronサイクル ERROR追加ゼロ確認(直近30分 C01-C10 hit=0)"
+    - "work/cmd_1448/root_cause_report.md 作成・証跡完備"
+    - "verify: cron_health_check.log 直近30分 C01-C10 ERROR 0件"
+    - "git commit 済み"
+  notes:
+    - "報告: queue/reports/ashigaru3_report_cmd_1448.yaml"
+    - "cron_health_check.log 直近(00:30-02:30) hit=0 主流・02:30 hit=1 は C05(cmd_1448 scope外)"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1448完了(判定)。' qc_result gunshi"
+
+- task_id: qc_1451
+  parent_cmd: cmd_1451
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1451.yaml
+  timestamp: "2026-04-25T03:00:00+09:00"
+  description: "足軽2号 cmd_1451 silent_fail_watcher 通知汚染一掃 QC。3系統対処(A)semantic_search.py 429根治(B)is_noise_line 4pattern(C)gunshi.yaml 構造修正 commit 877b53e+01108a6・AC5 30分cron観察 軍師独立verify(家老裁定・足軽は自実装観察まで)"
+  steps: "advisor()→Read work/cmd_1451/noise_analysis_report.md + commit 877b53e+01108a6→(A)semantic_search.py BATCH_SIZE 100→50+sleep 0.5→4s 妥当性+memory feedback_vertex_location_by_model.md 整合性→(B)is_noise_line() 4pattern exclusion の既知noise カバー+cmd_1448 scope(C01-C10) 境界確認→(C)gunshi.yaml L2107-2108 block_by 構造修正+yaml.safe_load PASS→AC5 軍師独立verify: logs/cron_health_check.log 直近30分 C01-C10 ERROR 0件+その他 ERROR/WARN 件数→13件通知分類の妥当性→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "(A) semantic_search.py 429 RESOURCE_EXHAUSTED 根本対処妥当性"
+    - "(B) is_noise_line() 4pattern の既知noise全カバー+cmd_1448 scope重複なし"
+    - "(C) gunshi.yaml L2107-2108 block_by構造 yaml.safe_load PASS"
+    - "work/cmd_1451/noise_analysis_report.md 13件分類の妥当性"
+    - "AC5 軍師独立verify: silent_fail_watcher 直近30分 ERROR件数 N件以下(家老裁定認可)"
+    - "cmd_1448 scope境界明確(C01-C10 は cmd_1448担当)"
+    - "git commit 済み(877b53e+01108a6)"
+  notes:
+    - "報告: commit 877b53e+01108a6(足軽2号 report yaml 未作成・commit で AC 判定可)"
+    - "AC5 軍師独立verify=家老裁定(2026-04-24 23:56) 足軽『軍師責務引継ぎ』越権扱いせず"
+    - "cron_health_check.log 直近(00:30-02:30) hit=0 主流で通知汚染一掃確認可能"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_1451完了(判定)。' qc_result gunshi"
+
+- task_id: qc_subtask_1456a
+  parent_cmd: cmd_1456
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-25T07:43:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1456a.yaml
+  description: "subtask_1456a inbox_watcher.sh .venv/bin/python3 → ${VENV_PYTHON:-.venv/bin/python3} 環境変数化7箇所 QC。commit eb5820b。nightly_audit MEDIUM finding対応。bash -n syntax確認済・nudge test確認必須"
+  steps: "advisor()→Read commit eb5820b diff(git show eb5820b)→grep '.venv/bin/python3' scripts/inbox_watcher.sh = 0件確認→bash -n scripts/inbox_watcher.sh syntax PASS確認→work/cmd_1456/infra_cleanup_report.md 領域a記録確認→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "commit eb5820b diff: .venv/bin/python3 → ${VENV_PYTHON:-.venv/bin/python3} 7箇所置換確認"
+    - "grep '.venv/bin/python3' scripts/inbox_watcher.sh 0件"
+    - "bash -n scripts/inbox_watcher.sh syntax PASS"
+    - "work/cmd_1456/infra_cleanup_report.md 領域a記録存在"
+    - "nightly_audit 該当finding再現なし(hardcoded 0件)"
+  notes:
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1456a完了(判定)。' qc_result gunshi"
+
+- task_id: qc_cmd_1452_p3
+  parent_cmd: cmd_1452
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-25T07:43:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_cmd_1452_p3.yaml
+  description: "cmd_1452 Phase3 Tier-A disk掃除 QC。足軽1号 35GB回収 88%→84%。殿承認Tier-A 7件対象。rm_log.log確認・D001禁忌回避確認・df結果確認。80%未達(84%)の詳細と原因確認"
+  steps: "advisor()→Read /home/murakami/multi-agent-shogun/work/cmd_1452/rm_log.log→df -h 現在値確認→各target: before_du/rm/after_du記録確認→D001禁忌パス(/ /mnt/c /home/)に解決してないこと確認→lsof /tmp/remotion-*確認有無→Tier-B/C未削除確認→88%→84%: 目標80%未達の原因分析→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "work/cmd_1452/rm_log.log 存在・各target記録確認"
+    - "各rm前 realpath検証でD001禁忌パスに解決しないこと確認"
+    - "df -h 現在値(84%)と回収量(35GB)の整合性確認"
+    - "Tier-B/Cへの誤削除なし確認"
+    - "目標80%未達の原因: どのTier-A項目が削除できなかったか明記"
+    - "殿判断要否の判定(80%未達の場合追加削除検討か)"
+  notes:
+    - "advisor()必須"
+    - "目標80%未達(84%)は要注意項目: 原因と残課題を明確に"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_cmd_1452_p3完了(判定・df結果・原因分析)。' qc_result gunshi"
+
+- task_id: qc_subtask_1450_cleanup
+  parent_cmd: cmd_1450
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-25T07:43:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1450_cleanup.yaml
+  description: "subtask_1450_cleanup note下書き2件削除QC。両URL 404確認済・ntfy送信済・学習データ(work/cmd_1450/)保持。殿判断(07:24)破棄対応確認"
+  steps: "advisor()→cleanup_log.md確認→両URL(https://note.com/n/ncc16d996a760 + https://note.com/n/n6c9869e71668) アクセス不可/404確認→ntfy送信ログ確認→work/cmd_1450/ 学習データ保持確認(rm禁止)→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "https://note.com/n/ncc16d996a760 アクセス不可/削除済み確認"
+    - "https://note.com/n/n6c9869e71668 アクセス不可/削除済み確認"
+    - "ntfy通知 '🗑️ note draft 2件削除完了...' 送信確認"
+    - "/home/murakami/multi-agent-shogun/work/cmd_1450/ 学習データ保持(削除なし)"
+    - "cleanup_log.md 記録確認"
+  notes:
+    - "advisor()必須"
+    - "URLアクセス確認はWebFetch or curl で実施"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1450_cleanup完了(判定)。' qc_result gunshi"
+
+- task_id: qc_cmd_1455
+  parent_cmd: cmd_1455
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-25T07:51:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_cmd_1455.yaml
+  description: "cmd_1455 H_post_step_completion_detector (done_gate.sh拡張) QC。足軽4号 diff≤20行・unit test 4ケース PASS。AC 11項目verify必須。"
+  steps: "advisor()→git show HEAD scripts/done_gate.sh差分確認(≤20行)→unit test 4ケース実行確認→post_steps BLOCK動作確認→既存H1 regression確認→report作成→inbox_write karo"
+  acceptance_criteria:
+    - "done_gate.sh diff ≤20行"
+    - "post_steps フィールド存在時: marker file全存在=pass / 1件でも欠如=BLOCK出力"
+    - "post_steps フィールド不在時: 従来動作維持(regression 0)"
+    - "unit test 4ケース全PASS"
+    - "commit済み・report YAML作成済み"
+  notes:
+    - "設計doc: work/cmd_1449/H_post_step_completion_detector_design.md (commit a312447)"
+    - "report: queue/reports/ashigaru4_report_cmd_1455.yaml 参照"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_cmd_1455完了(判定)。' qc_result gunshi"
+
+- task_id: qc_subtask_1456c
+  parent_cmd: cmd_1456
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-25T07:51:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1456c.yaml
+  description: "subtask_1456c scripts横断24ファイル51箇所 /home/murakami hardcoded → $HOME/$SCRIPT_DIR/Path(__file__)化 QC。bash -n/py_compile全PASS確認。nightly_audit MEDIUM(c)対応。"
+  steps: "advisor()→grep -rn '/home/murakami' scripts/ 残存0件確認→bash -n shell 11ファイル全PASS確認→py_compile python 13ファイル全PASS確認→動作テスト3件(start_ashigaru_glm.sh/kill_orphan_chrome.sh/fix_panes.sh)確認→commit確認→report作成→inbox_write karo"
+  acceptance_criteria:
+    - "grep -rn '/home/murakami' scripts/ 機能的ハードコード 0件"
+    - "bash -n scripts/*.sh 全ファイル syntax PASS"
+    - "py_compile scripts/*.py 全ファイル PASS"
+    - "start_ashigaru_glm.sh / kill_orphan_chrome.sh / fix_panes.sh 動作確認"
+    - "commit済み (51箇所環境対応化)"
+  notes:
+    - "report: queue/reports/ashigaru6_report_subtask_1456c.yaml 参照"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1456c完了(判定)。' qc_result gunshi"
+
+- task_id: qc_subtask_1457a
+  parent_cmd: cmd_1457
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-25T08:02:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1457a.yaml
+  description: "subtask_1457a silent_fail_watcher.sh is_noise_line() 4パターン追加(Advisor context/Advisor response/System prompt excerpt/x-anthropic-billing-header) QC。30分観察AC必須。"
+  steps: "advisor()→Read scripts/silent_fail_watcher.sh is_noise_line()差分確認→4パターン追加確認→false positive test(advisor_proxy.log既存行でis_noise_line=true確認)→真ERROR regression test→work/cmd_1457/noise_pattern_report.md確認→30分観察(08:01~08:31)で advisor_proxy false positive 0件確認→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "is_noise_line() に 4パターン追加済み(Advisor context/Advisor response/System prompt excerpt/x-anthropic-billing-header)"
+    - "advisor_proxy.log 既存行に対してis_noise_line()=true確認(false positive除外)"
+    - "真ERROR(advisor失敗等)はis_noise_line()=false(regression 0)"
+    - "30分観察(08:01~08:31): advisor_proxy false positive 通知 0件"
+    - "work/cmd_1457/noise_pattern_report.md 作成済み"
+    - "git commit + push完了"
+  notes:
+    - "30分観察が完了するまでQC判定を出してはならない(08:31以降)"
+    - "report: queue/reports/ashigaru3_report_subtask_1457a.yaml 参照"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1457a完了(判定・30分観察結果)。' qc_result gunshi"
+
+- task_id: qc_subtask_1458a
+  parent_cmd: cmd_1458
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-25T08:10:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1458a.yaml
+  description: "subtask_1458a tono_edit2縦長クロップ+h264_nvenc+YouTube非公開アップ QC。音声不調解決確認・縦長1080x1920確認・説明欄確認。URL: https://www.youtube.com/watch?v=zP_j7NRg9Lw"
+  steps: "advisor()→report確認(ashigaru1_report_subtask_1458a.yaml)→ffprobe出力mp4確認(1080x1920/h264/aac 192k)→YouTube URL確認(非公開/音声正常)→説明欄確認(cmd_1397/1398フォーマット)→ntfy確認→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "出力mp4: 1080x1920 h264_nvenc aac 192k stereo確認"
+    - "YouTube 非公開アップ成功(URL: https://www.youtube.com/watch?v=zP_j7NRg9Lw)"
+    - "音声正常再生(元flacと同等品質・音声不調解決)"
+    - "説明欄設定完了(cmd_1397/1398同フォーマット)"
+    - "ntfy送信済"
+    - "libx264不使用確認(h264_nvenc必須)"
+  notes:
+    - "qc_subtask_1457a 30分観察と並行可(独立タスク)"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1458a完了(判定・音声確認結果)。' qc_result gunshi"
+
+- task_id: qc_subtask_1459b
+  parent_cmd: cmd_1459
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-25T08:38:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1459b.yaml
+  description: "subtask_1459b (cmd_1459 Phase B) QC。youtube_uploader.py --language option追加(default=ja)確認。shared_context/qc_template.md を参照してQCせよ。"
+  steps: "advisor()→shared_context/qc_template.md参照→projects/dozle_kirinuki/scripts/youtube_uploader.py読込確認(defaultLanguage='ja'+defaultAudioLanguage='ja'設定箇所確認)→py_compile確認→videos().insert呼出全経路確認(upload_youtube.py/skills/経由全て)→ashigaru5_report_subtask_1459b.yaml確認→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "youtube_uploader.py にdefaultLanguage='ja'+defaultAudioLanguage='ja'設定確認"
+    - "--language CLIオプション追加確認(default=ja・上書き可)"
+    - "全upload経路が youtube_uploader.py 経由であること確認"
+    - "py_compile PASS"
+    - "submodule commit 9615905 確認"
+  notes:
+    - "report: queue/reports/ashigaru5_report_subtask_1459b.yaml 参照"
+    - "唯一のupload経路= youtube_uploader.py (skills/highlight/manga-short等は全てCLI経由)"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1459b完了(判定)。' qc_result gunshi"
+
+- task_id: qc_subtask_1459a
+  parent_cmd: cmd_1459
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-25T08:43:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1459a.yaml
+  description: "subtask_1459a (cmd_1459 Phase A) QC。YouTube全100本 defaultLanguage+defaultAudioLanguage=ja 一括update確認。ACは74本指定だったが実態は100本(private/unlisted込み)。shared_context/qc_template.md を参照してQCせよ。"
+  steps: "advisor()→shared_context/qc_template.md参照→work/cmd_1459/lang_update_report.md確認(変更件数・quota記録)→work/cmd_1459/lang_before.json/lang_after.json確認(50更新+50既ja内訳)→scripts/youtube_lang_batch_update.py存在確認→API quota 2500units/10000記録確認→git commit+push確認→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "work/cmd_1459/lang_update_report.md 存在・変更件数+quota記録あり"
+    - "lang_before.json / lang_after.json 存在・50更新+50既ja確認"
+    - "失敗0件確認"
+    - "API quota 2500units/10000消費記録確認(25%)"
+    - "git commit + push完了確認(scripts/ work/cmd_1459/)"
+    - "注: ACの『全74本』は実態100本(private/unlisted込み)で更に網羅的・問題なし"
+  notes:
+    - "report: queue/reports/ashigaru2_report_subtask_1459a.yaml 参照"
+    - "100本 = 74本public + 26本private/unlisted (YouTube API mine=Trueで全取得)"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1459a完了(判定)。' qc_result gunshi"
+
+- task_id: qc_subtask_1460a
+  parent_cmd: cmd_1460
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-25T09:30:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1460a.yaml
+  description: "subtask_1460a (cmd_1460) QC。cmd_1459 Phase A revert 49本。背景: cmd_1459でdefaultAudioLanguage=jaにしたことでAI吹替がデフォルト再生(裏目)→殿判断でrevert指示(09:18)。shared_context/qc_template.md を参照してQCせよ。"
+  steps: "advisor()→shared_context/qc_template.md参照→work/cmd_1460/after_revert.json確認(en-US:27本全復元確認)→work/cmd_1460/revert_log.md確認(quota 2450units記録)→api_failures:0確認→19本API制限(None unset不可)の実害評価(auto-dubbing OFF済→安全)→QC判定→inbox_write karo"
+  acceptance_criteria:
+    - "en-US 27本: defaultLanguage=en-US / defaultAudioLanguage=en-US 復元確認"
+    - "API failures: 0件確認"
+    - "quota 2450units記録確認"
+    - "work/cmd_1460/revert_log.md 存在・before/after記録あり"
+    - "git commit + push確認"
+    - "19本API制限(None unset不可)の実害評価: auto-dubbing OFF済のため視聴者影響なし"
+  notes:
+    - "背景: cmd_1459でdefaultAudioLanguage=ja化→AI吹替がデフォルト再生(裏目)→殿判断revert"
+    - "19本はYouTube APIのunset制限によりja固定→実害なし(オートダビングOFF済・殿08:31対処)"
+    - "en-US 27本が最重要(revert成功確認必須)"
+    - "report: queue/reports/ashigaru2_report_subtask_1460a.yaml 参照"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1460a完了(判定・19本API制限影響評価)。' qc_result gunshi"
+
+- task_id: qc_subtask_1461a
+  parent_cmd: cmd_1461
+  type: qc
+  bloom_level: L5
+  status: done
+  timestamp: "2026-04-25T10:39:06+09:00"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1461a.yaml
+  description: "subtask_1461a(dashboard_lifecycle.sh拡張 Logic A/B + cron 1h + memory化)のQC。shared_context/qc_template.md 参照"
+  steps: "qc_template.md参照→実ファイル目視確認→crontab確認→アーカイブ確認→PASS/FAIL判定→report作成→inbox_write karo"
+  acceptance_criteria:
+    - "Logic A(clean_inprogress_table)が進行中セクションのみ対象・足軽/軍師ステータス行除外を確認"
+    - "Logic B(clean_daily_completed_section)の24h超過行削除ロジックが正確"
+    - "既存 clean_dashboard_md(strikethrough+解決済)が破壊されていない"
+    - "flock 保護が継続されている"
+    - "/home/murakami/multi-agent-shogun/dashboard_archive/2026-04.md に19件+2件がアーカイブされている"
+    - "crontab -l に 0 * * * * の dashboard_lifecycle.sh 行が存在する"
+    - "/home/murakami/multi-agent-shogun/memory/feedback_dashboard_completed_cleanup.md 作成済み"
+    - "/home/murakami/multi-agent-shogun/memory/MEMORY.md に dashboard完了cmd自動削除の1行が追記済み"
+  notes:
+    - "git push は家老が QC PASS 後に実施する(commit 074028c は家老がpush)"
+    - "context_files: queue/reports/ashigaru2_report_subtask_1461a.yaml / scripts/dashboard_lifecycle.sh / dashboard.md / memory/ / dashboard_archive/2026-04.md"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1461a完了(判定)。' qc_result gunshi"
+
+- task_id: qc_subtask_1462a
+  parent_cmd: cmd_1462
+  type: qc
+  bloom_level: L5
+  status: assigned
+  timestamp: "2026-04-25T11:34:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1462a.yaml
+  description: "subtask_1462a(dashboard_lifecycle.sh拡張 Logic C/D/E production実行)のQC。足軽2号が dashboard.md 146→104行削減(41行削除)・保護項目全残存を報告。shared_context/qc_template.md を参照してQCせよ。"
+  steps: "advisor()→qc_template.md参照→scripts/dashboard_lifecycle.sh 実ファイル目視(Logic C/D/E関数実装確認)→dashboard.md確認(保護項目⚠️/📌/🔧x2全残存)→dashboard_archive/2026-04.md確認(41行アーカイブ済)→行数削減評価(146→104: 50%未満だが cmd_1461 先行クリーンアップの影響を考慮)→git commit a029d9b存在確認→PASS/FAIL判定→report作成→inbox_write karo"
+  acceptance_criteria:
+    - "Logic C 関数 clean_action_required_resolved() が scripts/dashboard_lifecycle.sh に実装されている"
+    - "Logic D 関数 clean_info_sections() が実装されている"
+    - "Logic E 関数 clean_resolved_subsections() が実装されている"
+    - "dashboard.md に ⚠️ 技術的残課題(Day6 4視点codec) が残存している"
+    - "dashboard.md に 📌 技術知見セクション が残存している"
+    - "dashboard.md に 🔧 cmd_1441 セクション が残存している"
+    - "dashboard.md に 🔧 cmd_1443_p09 セクション が残存している"
+    - "dashboard_archive/2026-04.md に Logic C/D/E アーカイブ(計41行)が存在する"
+    - "git commit a029d9b が存在する(scripts/dashboard_lifecycle.sh 変更)"
+  notes:
+    - "行数削減は 146→104 (28%削減)。cmd_1461 が先行して大量削除済のため 50%未達は許容範囲と判断すること"
+    - "git push は家老が QC PASS 後に実施する"
+    - "context_files: queue/reports/ashigaru2_report_subtask_1462a.yaml / scripts/dashboard_lifecycle.sh / dashboard.md / dashboard_archive/2026-04.md"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1462a完了(判定)。' qc_result gunshi"
