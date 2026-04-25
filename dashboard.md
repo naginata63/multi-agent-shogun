@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-26 02:09
+最終更新: 2026-04-26 07:09
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -17,22 +17,23 @@
 subtask_1484a+1484b 完了・log/SQL/grep 三点一致(Total 156件)。YAML破損4件残存(report系・影響なし)。
 **✅ cmd_1491完遂により技術干渉解消。cmd_1488(p2 dual-path 本番書込) → 殿の「すすめろ」指示により足軽4号 subtask_1488a 発令済(22:40)。1週間soak後にp3判断。** 詳細: queue/reports/gunshi_design_sqlite_migration_1481.yaml
 
-### 🌙 nightly_audit_20260426_youtube 結果（軍師・02:09完了）
+### 🌙 nightly_audit_20260426_youtube（軍師02:09完了 → 将軍07:09深夜対処）
 
 **CRITICAL 0 / HIGH 5 / MEDIUM 5 / INFO 4（計14 finding）**
 
-HIGH 3件が殿の直接指示違反（2026-04-25）:
-1. `youtube_lang_batch_update.py` L36/L161 — **work/root直下固定**（feedback_work_dir_rule違反・殿激怒ルール）
-2. `downloader.py` — **DL時 source.json 未生成**（feedback_video_source_metadata_preserve違反）
-3. `youtube_uploader.py` — **アップロード前 description.md draft 未生成**（同上）
+✅ **将軍が深夜に HIGH 5/5 + MEDIUM#2 + INFO#2 を直接修正**（commit 5551ec9 + e19a462）:
+- HIGH: youtube_lang_batch_update.py work/root違反 修正済み
+- HIGH: downloader.py source.json 生成実装済み
+- HIGH: youtube_uploader.py description.md draft 生成実装済み
+- HIGH: CTA文言2ファイル重複 DRY修正済み
+- HIGH: X-Goog-AuthUser コメント整合済み
+- MEDIUM#2: CHANNEL_ID重複 修正済み
+- INFO#2 修正済み
 
-HIGH 2件（長期DRY違反）:
-4. `youtube_uploader.py` + `cta_comment.py` — CTA文言2ファイル重複（文言更新時整合リスク）
-5. `youtube_uploader.py` L75-76 — X-Goog-AuthUser コメント vs 実装乖離（メンテナ誤解温床）
-
+⚠️ **残課題（別cmd対処判断）**: MEDIUM 4件（cta_comment quota非効率 / TOKEN_PATH重複 / vertex hardcode / claude model hardcode）+ INFO 3件
 詳細: `queue/reports/gunshi_report_nightly_audit_20260426_youtube.yaml`
 
-👉 **殿の判断要**: 上記HIGH 5件をどのcmdで対処するか。2+3は1cmd同時修正可能（軍師指摘）。
+🚨 **dozle_kirinuki submodule push失敗**: GitHub 100MB制限超過（work/cmd_1485/*.mp4が最大202MB）。コミット履歴書換えが必要。**将軍判断要**。
 
 ### ⚠️ 技術的残課題（将来対処）
 - **pretool_check: /tmp/work/cmd_* でメッセージ誤表示** (軍師qc_1473a観察・動作は正常): /tmpパス下のwork/cmd_*にも「リポジトリルート直下」エラー文が出る。別cmd起票推奨。
@@ -61,10 +62,10 @@ HIGH 2件（長期DRY違反）:
 
 | cmd | 担当 | 状態 |
 |-----|------|------|
-| cmd_1487 | 将軍引継 | ❌ **殿NG(23:07)・cancelled** → 将軍が直接対処 |
+| cmd_1487 | 将軍直接 | 🔥 **final_v2.mp4結合+YouTube非公開アップ実行中**（PID 2993724・07:09〜） |
+| nightly_audit_youtube | 将軍深夜 | ✅ **HIGH5/5+MEDIUM#2+INFO#2 対処済(07:09)** commit 5551ec9+e19a462。残MEDIUM4/INFO3は別cmd |
 | cmd_1493 | 足軽2号→軍師 | ✅ **完遂(00:19)** msg_id整合修正・curl実機確認PASS・commit ff723a0 push済 |
 | cmd_1492 | 足軽2号→軍師 | ✅ **PASS(00:02)** POST /api/inbox_write 実装完遂。commit 52dc11b push済 |
-| nightly_audit_youtube | 軍師 | ✅ **完遂(02:09)** HIGH 5/MEDIUM 5/INFO 4 計14件。HIGH 3件殿指示違反。詳細🚨要対応参照 |
 | cmd_1488 | 足軽4号→軍師 | ✅ **軍師QC PASS(23:18)** dual-path実装完遂・soak監視中(1週間) |
 
 ---
