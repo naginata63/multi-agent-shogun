@@ -34,7 +34,7 @@ result:
         reports: 117 ok, 7 YAML-broken skipped
         total_inserts: 255
         schema_mismatches: 0
-      sql_validation: PASS (sqlite3 :memory: full execution OK)
+      sql_validation: "PASS (sqlite3 :memory: full execution OK)"
       fk_handling: "PRAGMA foreign_keys=OFF during migration (orphan refs from archived data)"
     broken_yaml_files:
       tasks:
