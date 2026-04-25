@@ -1453,9 +1453,27 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
         return '\n'.join(result) if result else gemini_text[:2000]
 
     def do_GET(self):
-        if self.path == '/api/dashboard':
+        if self.path.startswith('/api/dashboard') and not self.path.startswith('/api/dashboard_md') and not self.path.startswith('/api/dashboard_update'):
             try:
+                from urllib.parse import urlparse, parse_qs
+                qs = parse_qs(urlparse(self.path).query)
+                slim = qs.get('slim', ['0'])[0] == '1'
                 data = get_dashboard_data()
+                if slim:
+                    # 家老 context 削減用 slim 版: stats + active_cmds + action_required + agents のみ
+                    data = {
+                        'stats': data.get('stats', {}),
+                        'active_cmds': [
+                            {k: c.get(k) for k in ('id', 'status', 'priority', 'purpose', 'timestamp')}
+                            for c in (data.get('active_cmds') or [])
+                        ],
+                        'action_required': data.get('action_required', []),
+                        'agents': [
+                            {k: a.get(k) for k in ('agent_id', 'status', 'current_task', 'last_inbox_update')}
+                            for a in (data.get('agents') or [])
+                        ],
+                        'source': 'sqlite_slim',
+                    }
                 body = json.dumps(data, default=str).encode()
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
@@ -1503,7 +1521,8 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 qs = parse_qs(urlparse(self.path).query)
                 status_filter = qs.get('status', [None])[0]
                 keyword = qs.get('q', [None])[0]
-                limit = int(qs.get('limit', ['200'])[0])
+                limit = int(qs.get('limit', ['20'])[0])  # default 200→20 (家老 context 削減)
+                slim = qs.get('slim', ['0'])[0] == '1'
 
                 conn = sqlite3.connect(DB_PATH, timeout=5)
                 conn.row_factory = sqlite3.Row
@@ -1534,21 +1553,29 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     sql += " ORDER BY COALESCE(timestamp, issued_at) DESC LIMIT ?"
                     params.append(limit)
 
+                    slim_drop = {'command_text', 'acceptance_criteria_json', 'depends_on_json',
+                                 'notes_json', 'full_yaml_blob', 'north_star',
+                                 'implementation_flow', 'verify_guidance'}
                     cmds = []
                     for r in conn.execute(sql, params):
                         d = {k: v for k, v in dict(r).items()
                              if v is not None and k != 'full_yaml_blob'}
-                        for k_json, k_clean in [
-                            ('acceptance_criteria_json', 'acceptance_criteria'),
-                            ('depends_on_json', 'depends_on'),
-                            ('notes_json', 'notes'),
-                        ]:
-                            if d.get(k_json):
-                                try:
-                                    d[k_clean] = json.loads(d[k_json])
-                                except Exception:
-                                    pass
-                                d.pop(k_json, None)
+                        if slim:
+                            for k in list(d.keys()):
+                                if k in slim_drop:
+                                    d.pop(k, None)
+                        else:
+                            for k_json, k_clean in [
+                                ('acceptance_criteria_json', 'acceptance_criteria'),
+                                ('depends_on_json', 'depends_on'),
+                                ('notes_json', 'notes'),
+                            ]:
+                                if d.get(k_json):
+                                    try:
+                                        d[k_clean] = json.loads(d[k_json])
+                                    except Exception:
+                                        pass
+                                    d.pop(k_json, None)
                         cmds.append(d)
                 finally:
                     conn.close()
@@ -1558,9 +1585,9 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     'counts': counts,
                     'shown': len(cmds),
                     'cmds': cmds,
-                    'source': 'sqlite',
+                    'source': 'sqlite_slim' if slim else 'sqlite',
                 }
-                body = json.dumps(resp_data, ensure_ascii=False, indent=2,
+                body = json.dumps(resp_data, ensure_ascii=False,
                                   default=str).encode('utf-8')
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
