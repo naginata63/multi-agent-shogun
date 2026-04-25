@@ -374,7 +374,7 @@ tasks:
   parent_cmd: cmd_1478
   assigned_to: ashigaru1
   bloom_level: L4
-  status: assigned
+  status: done
   timestamp: '2026-04-25T18:48:00+09:00'
   description: Day6 Echidna 4視点MIX規格修正(cmd_1464 redo)。3点: (1)1戦目seg再生成=MEN→4画面grid→MEN(work/cmd_1464/seg1sen.mp4は旧パターンゆえ再利用禁止) (2)8戦目seg=鉄則3通常パターン(seg8sen.mp4ファイル確認+drawtext追加) (3)右上テロップ「エキドナ(初戦)」「エキドナ(8戦目)」。concat→YouTube差替(EVfo4W7jCIc)。sync_record.yaml必須。
   target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260416_【#DoZ】6日目 腹から声が出ないヒーラーに命を任せれられるとでも？【ドズル社／おおはらMEN視点】/sync_record.yaml

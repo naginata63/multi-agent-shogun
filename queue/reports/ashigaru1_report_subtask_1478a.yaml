@@ -1,0 +1,50 @@
+worker_id: ashigaru1
+task_id: subtask_1478a
+parent_cmd: cmd_1478
+timestamp: "2026-04-25T19:21:29"
+status: done
+result:
+  summary: "Day6 Echidna 4視点MIX規格修正完了。1戦目(MEN→4画面grid→MEN)再生成+8戦目drawtext追加+concat+YouTube非公開アップ(samne設定済)"
+  files_modified:
+    - "projects/dozle_kirinuki/work/20260416_.../cmd_1478/seg1_part1_men.mp4"
+    - "projects/dozle_kirinuki/work/20260416_.../cmd_1478/seg1_part2_grid.mp4"
+    - "projects/dozle_kirinuki/work/20260416_.../cmd_1478/seg1_part3_men.mp4"
+    - "projects/dozle_kirinuki/work/20260416_.../cmd_1478/seg1sen_new.mp4"
+    - "projects/dozle_kirinuki/work/20260416_.../cmd_1478/seg8sen_new.mp4"
+    - "projects/dozle_kirinuki/work/20260416_.../cmd_1478/final.mp4"
+    - "projects/dozle_kirinuki/work/20260416_.../sync_record.yaml"
+  notes: |
+    ## 実装内容
+    ### 1戦目seg再生成 (142s)
+    - パターン: MEN単独(0-45s) → 4画面grid(45-110s, 65s) → MEN単独(110-142s)
+    - 右上テロップ: 「エキドナ(初戦)」drawtext
+    - 音声: 常にMEN音声(鉄則2準拠)
+    - 1戦目sync offsets: charlotte=-42.75s(conf=1.00), hendy=+2.48s(conf=1.00), tsurugi=+29.51s(conf=0.83-0.94)
+    - charlotte offsetは3回計測で不一致(check2 conf=1.00を採用)
+
+    ### 8戦目seg drawtext追加
+    - seg8sen.mp4(2150.4s)は正常(破損なし)
+    - drawtext「エキドナ(8戦目)」右上追加(h264_nvenc再エンコード)
+    - 8戦目sync offsets: charlotte=-365.69s, hendy=+269.03s, tsurugi=-309.91s (check2/3共にconf=1.00, max_diff=0.02s)
+
+    ### concat→final.mp4
+    - 1戦目(142.05s) + transition(3.08s) + 8戦目(2150.40s) = final(2295.54s)
+    - video=h264, audio=aac, resolution=1920x1080
+
+    ### YouTube差替
+    - 新規アップ: https://www.youtube.com/watch?v=wj-YHVTBNgg (private)
+    - サムネイル設定済: thumbnail_final.png
+    - defaultLanguage=ja確認済
+    - 旧動画 EVfo4W7jCIc は残置(殿判断待ち)
+
+    ### sync_record.yaml
+    - DAY6DIR/sync_record.yaml に生成
+    - measurements: 1sen×3check + 8sen×3check 記録
+    - consistency_check: 8sen pass(max_diff=0.02s), 1sen charlotte note付記
+
+    ## 注意事項
+    - 1戦目charlotte offsetは不安定。軍師QC時に4画面grid内charlotte同期ズレの視覚確認推奨
+    - 旧EVfo4W7jCIcの削除は殿判断待ち
+skill_candidate:
+  found: false
+hotfix_notes: null
