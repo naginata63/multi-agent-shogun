@@ -93,8 +93,13 @@ except Exception:
         :  # target_pathと一致 → 許可（次のチェックへ）
       else
         # work/cmd_* パターン検出
-        if echo "$_CK2_FILE_PATH" | grep -qE '/work/cmd_[0-9]+/'; then
-          echo "BLOCKED: 足軽はwork/cmd_*に直接書き込み禁止。タスクYAMLのtarget_pathに出力せよ。パス: $_CK2_FILE_PATH" >&2
+        if echo "$_CK2_FILE_PATH" | grep -qE '/work/cmd_[0-9]+/' && \
+           ! echo "$_CK2_FILE_PATH" | grep -qE '/projects/[^/]+/work/'; then
+          echo "BLOCKED: リポジトリルート直下の work/cmd_*/ には書き込み禁止。" >&2
+          echo "正しい格納場所: projects/{project}/work/{動画タイトル or cmd_xxx}/ 配下、" >&2
+          echo "もしくはタスクYAML target_path で指定された場所。" >&2
+          echo "現在のパス: $_CK2_FILE_PATH" >&2
+          echo "例: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260417_TITLE/output.json" >&2
           exit 2
         fi
 
@@ -106,8 +111,13 @@ except Exception:
       fi
     else
       # タスクYAMLなし（通常ありえないが念のため）
-      if echo "$_CK2_FILE_PATH" | grep -qE '/work/cmd_[0-9]+/'; then
-        echo "BLOCKED: 足軽はwork/cmd_*に直接書き込み禁止。パス: $_CK2_FILE_PATH" >&2
+      if echo "$_CK2_FILE_PATH" | grep -qE '/work/cmd_[0-9]+/' && \
+         ! echo "$_CK2_FILE_PATH" | grep -qE '/projects/[^/]+/work/'; then
+        echo "BLOCKED: リポジトリルート直下の work/cmd_*/ には書き込み禁止。" >&2
+        echo "正しい格納場所: projects/{project}/work/{動画タイトル or cmd_xxx}/ 配下、" >&2
+        echo "もしくはタスクYAML target_path で指定された場所。" >&2
+        echo "現在のパス: $_CK2_FILE_PATH" >&2
+        echo "例: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260417_TITLE/output.json" >&2
         exit 2
       fi
       if [[ "$_CK2_FILE_PATH" == /tmp/* ]]; then
