@@ -1040,3 +1040,16 @@ source ~/.bashrc && python3 scripts/semantic_search.py query "テスト" --json
 ```
 
 インデックスはgit commit時に自動更新される。手動更新: `python3 scripts/semantic_search.py update`
+
+## Dashboard API 利用 (cmd_1494)
+
+家老の cmd 状態確認・inbox 通知は **HTTP API 経由を第一選択**。詳細: `shared_context/procedures/dashboard_api_usage.md`
+
+| 用途 | 旧 | 新 (推奨) |
+|------|----|-----------|
+| dashboard.md 生成・stats取得 | `yaml.safe_load(SHOGUN_TO_KARO)` | `curl http://192.168.2.7:8770/api/dashboard` |
+| in_progress な cmd 確認 | YAML 全件 grep | `curl '...:8770/api/cmd_list?status=in_progress'` |
+| 特定 cmd 詳細 | YAML 部分 parse | `curl '...:8770/api/cmd_detail?id=cmd_XXX'` |
+| 足軽/軍師への通知 | `bash scripts/inbox_write.sh karo "msg"` | `curl -X POST '...:8770/api/inbox_write' -d '{"to":"...",...}'` |
+
+API 障害時のフォールバックは SQLite 直読み (`sqlite3 queue/cmds.db ...`) のみ可。書込フォールバックは禁止 (dual-path 整合崩壊)。

@@ -463,6 +463,24 @@ When processing large datasets (30+ items requiring individual web search, API c
 
 既存の whitelist 例: `work/cmd_1039/`, `work/cmd_1408/`, `work/cmd_1441/`, `work/archive/20260417_wrong_questions/`。新規 cmd の成果物を残す必要がある場合、家老が cmd 完了時に `.gitignore` 追記を判断する。
 
+# Dashboard API 利用ルール (all agents・cmd_1494)
+
+cmd/inbox/task 系の操作は **HTTP API 経由を第一選択**。YAML直読み・bash inbox_write.sh 直叩きは段階的廃止。
+背景: cmd_1488 で SQLite dual-path 完成・cmd_1494 で read 側も SQLite 切替。整合性は API が一元担保する。
+
+主な curl エントリ (LAN内・192.168.2.7:8770・認証なし):
+
+| 動作 | エンドポイント |
+|------|----------------|
+| cmd 一覧 (filter/keyword) | `GET /api/cmd_list?status=&q=&limit=` |
+| cmd 詳細 (1件) | `GET /api/cmd_detail?id=cmd_XXX` |
+| 戦況集計 + 検出ルール | `GET /api/dashboard` |
+| エージェント生存 | `GET /api/agent_health` |
+| cmd 起票 (家老inbox自動通知) | `POST /api/cmd_create` |
+| inbox メッセージ送信 | `POST /api/inbox_write` |
+
+詳細・curl 実例・部下別シナリオ: `shared_context/procedures/dashboard_api_usage.md`
+
 # Advisor Tool Usage (all agents)
 
 You have access to an `advisor` tool backed by a stronger reviewer model. It takes NO parameters — when you call advisor(), your entire conversation history is automatically forwarded. They see the task, every tool call you've made, every result you've seen.

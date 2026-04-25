@@ -331,3 +331,15 @@ source ~/.bashrc && python3 scripts/semantic_search.py query "テスト" --json
 ```
 
 インデックスはgit commit時に自動更新される。手動更新: `python3 scripts/semantic_search.py update`
+
+## Dashboard API 利用 (cmd_1494)
+
+足軽の cmd 詳細取得・履歴検索は **HTTP API 経由を第一選択**。詳細: `shared_context/procedures/dashboard_api_usage.md`
+
+| 用途 | 推奨コマンド |
+|------|--------------|
+| 親 cmd の lord_original / acceptance_criteria 確認 | `curl 'http://192.168.2.7:8770/api/cmd_detail?id=$PARENT_CMD'` |
+| 類似 cmd の検索 (実装パターン参照) | `curl 'http://192.168.2.7:8770/api/cmd_list?q=keyword&limit=5'` |
+| 軍師への完了報告 | `curl -X POST 'http://192.168.2.7:8770/api/inbox_write' -d '{"to":"gunshi","from":"ashigaruN","type":"report_done","message":"..."}'` |
+
+inbox 直叩き (`bash scripts/inbox_write.sh ...`) は緊急/障害時のフォールバックのみ。通常運用は API 経由。

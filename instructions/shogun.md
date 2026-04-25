@@ -421,3 +421,17 @@ source ~/.bashrc && python3 scripts/semantic_search.py query "テスト" --json
 ```
 
 インデックスはgit commit時に自動更新される。手動更新: `python3 scripts/semantic_search.py update`
+
+## Dashboard API 利用 (cmd_1494)
+
+将軍の cmd 起票・戦況確認は **HTTP API 経由を第一選択**。詳細: `shared_context/procedures/dashboard_api_usage.md`
+
+| 用途 | 推奨コマンド |
+|------|--------------|
+| cmd 起票 (家老inbox自動通知込み) | `curl -X POST 'http://192.168.2.7:8770/api/cmd_create' -d '{"id":"cmd_XXX","priority":"high","purpose":"...","lord_original":"...","notify_karo":true}'` |
+| 戦況確認 (HTML) | ブラウザで http://192.168.2.7:8770/ |
+| 戦況確認 (JSON集計) | `curl 'http://192.168.2.7:8770/api/dashboard'` |
+| 進行中 cmd 一覧 | `curl 'http://192.168.2.7:8770/api/cmd_list?status=in_progress'` |
+| 殿判断後の家老通知 | `curl -X POST 'http://192.168.2.7:8770/api/inbox_write' -d '{"to":"karo","from":"shogun","type":"cmd_new","message":"..."}'` |
+
+将軍が直接 YAML を書く運用は **F001 例外** の根幹システム改修時のみ。通常 cmd 起票は API 経由が筋。

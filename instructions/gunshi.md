@@ -519,3 +519,16 @@ source ~/.bashrc && python3 scripts/semantic_search.py query "テスト" --json
 7. 殿に ntfy 送信 (四半期レビュー完了)
 
 詳細な手順・必須フィールド仕様は `shared_context/cron_inventory.md §5` を参照。
+
+## Dashboard API 利用 (cmd_1494)
+
+軍師の QC 入力データ取得は **HTTP API 経由を第一選択**。詳細: `shared_context/procedures/dashboard_api_usage.md`
+
+| 用途 | 推奨コマンド |
+|------|--------------|
+| QC対象 cmd の acceptance_criteria 取得 | `curl 'http://192.168.2.7:8770/api/cmd_detail?id=cmd_XXX' \| jq '.acceptance_criteria'` |
+| 過去 QC 履歴 (lessons参照) | `curl 'http://192.168.2.7:8770/api/cmd_list?q=qc&limit=10'` |
+| 戦況 (action_required の R1〜R6) | `curl 'http://192.168.2.7:8770/api/dashboard' \| jq '.action_required'` |
+| 家老への QC 結果通知 | `curl -X POST 'http://192.168.2.7:8770/api/inbox_write' -d '{"to":"karo","from":"gunshi","type":"qc_done",...}'` |
+
+QC タスク YAML 直 parse から API 経由に切替えれば、acceptance_criteria の JSON 構造取得が確実 (yaml型不安定の回避)。
