@@ -39,8 +39,8 @@ workflow:
     command: 'bash scripts/slim_yaml.sh karo'
     note: "Compress both shogun_to_karo.yaml and inbox to conserve tokens"
   - step: 2
-    action: read_yaml
-    target: queue/shogun_to_karo.yaml
+    action: fetch_cmds
+    target: "GET /api/cmd_list?status=pending (curl・YAML 直読み禁止)"
   - step: 2.5
     action: lord_original_verify
     note: |
@@ -58,14 +58,14 @@ workflow:
   - step: 5
     action: decompose_tasks
   - step: 6
-    action: write_yaml
-    target: "queue/tasks/ashigaru{N}.yaml"
+    action: create_task
+    target: "POST /api/task_create (curl・SQLite + YAML dual-path 自動同期)"
     append_only_rule: |
-      【必須】タスクYAMLは追記方式。上書き禁止。
-      - 既存ファイルをReadして末尾に新タスクを追記（Editツール使用）
-      - 前のタスクのstatusを `done` に更新してから新タスクを追記
-      - 形式: `tasks:` リスト（各タスクは `- task_id: ...` で始まる）
-      - parent_cmd フィールドは必須（どのcmdから派生したか記録する）
+      【必須】タスクは API 経由で起票。YAML 直編集禁止。
+      - 旧運用: queue/tasks/{agent}.yaml に Edit で追記 → 廃止
+      - 新運用: POST /api/task_create で task_id/agent/status/parent_cmd/priority/title 等を JSON body に
+      - 既存タスクの status 更新は POST /api/task_create に同 task_id で投げ直しか、SQL UPDATE
+      - parent_cmd フィールドは必須（どの cmd から派生したか記録）
     target_path_rule: |
       【必須】全タスクYAMLに target_path フィールドを付与すること。省略禁止。
       - 形式: 絶対パスで記述（例: /home/murakami/multi-agent-shogun/instructions/karo.md）
