@@ -335,9 +335,18 @@ done
 | 用途 | API |
 |------|-----|
 | タスク起票 (queue/tasks/{agent}.yaml + SQLite dual-path) | `POST /api/task_create` (cmd_1494で実装) |
-| 他足軽の状態確認 | `GET /api/task_list?agent=ashigaruN&status=assigned` |
+| 全足軽の最新タスク状態 (status filter 無し・**推奨**) | `GET /api/task_list?limit=20` |
+| 特定足軽の全 task 履歴 | `GET /api/task_list?agent=ashigaruN&limit=10` |
+| 特定 cmd の関連タスク | `GET /api/task_list?cmd=cmd_XXX` |
+| 進行中タスクのみ | `GET /api/task_list?status=in_progress` |
 | 進行中cmd一覧 | `GET /api/cmd_list?status=in_progress` |
-| dashboard 集計 | `GET /api/dashboard` |
+| dashboard 集計 (active_cmds/agents/messages) | `GET /api/dashboard` |
+| 各エージェント生存・inbox状態 | `GET /api/agent_health` |
+
+**重要 (cmd_1494 殿指摘):** `?status=assigned` 等で絞り込んで「0件 → 足軽idle」と早合点して `Read queue/tasks/{agent}.yaml` 直読みに fallback するな。
+- まず `/api/task_list?limit=20` で全 status (assigned/in_progress/done/blocked) を取得し全体把握する
+- 個別足軽の細部は `/api/task_list?agent=ashigaruN` で
+- それでも YAML 直読みが必要なケースは API 障害時のみ
 
 詳細・curl 実例は `shared_context/procedures/dashboard_api_usage.md`。
 
