@@ -17,10 +17,9 @@ tasks:
     明記確認→[QC5]context/skill_candidates_inventory.md 登録確認→PASS/CONDITIONAL_PASS/FAIL判定→完了報告YAML(/home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1489a.yaml)→inbox_write
     karo 判定結果'
   acceptance_criteria:
-  - frontmatter: name=master-telop-two-stage / description 1024文字以内 / トリガー語句6種以上 / argument-hint
-    / allowed-tools 完備
-  - 本文: shared_context/procedures/master_telop_two_stage.md 参照形式・重複定義なし
-  - Do NOT use for: 漫画ショート(panels JSONベース) / 表情ショート(別workflow) 明記
+  - 'frontmatter: name=master-telop-two-stage / description 1024文字以内 / トリガー語句6種以上 / argument-hint / allowed-tools 完備'
+  - '本文: shared_context/procedures/master_telop_two_stage.md 参照形式・重複定義なし'
+  - 'Do NOT use for: 漫画ショート(panels JSONベース) / 表情ショート(別workflow) 明記'
   - context/skill_candidates_inventory.md に IMPLEMENTED として登録済み
   - git commit f2741e2 push済み確認
 - task_id: qc_1413a
@@ -50,7 +49,7 @@ tasks:
   parent_cmd: nightly_audit
   assigned_to: gunshi
   bloom_level: L4
-  status: assigned
+  status: done
   timestamp: '2026-04-26T02:03:00+09:00'
   target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_nightly_audit_20260426_youtube.yaml
   description: '夜間矛盾検出: YouTube/外部連携カテゴリ(youtube_uploader.py/downloader.py/note系/API連携)の矛盾・不整合をコードリーディングで発見し報告。テスト禁止・コード修正禁止・読んで報告するだけ。'
