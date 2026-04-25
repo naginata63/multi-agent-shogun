@@ -26,7 +26,10 @@ tasks:
   parent_cmd: cmd_1485
   assigned_to: gunshi
   bloom_level: L5
-  status: assigned
+  status: done
+  qa_decision: conditional_pass
+  completed_at: '2026-04-25T22:00:30+09:00'
+  report_path: queue/reports/gunshi_report_qc_1485a.yaml
   timestamp: '2026-04-25T21:56:00+09:00'
   title: 'cmd_1485 Day6 Echidna 1戦目修正 QC'
   target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1485a.yaml
