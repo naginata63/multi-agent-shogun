@@ -4830,9 +4830,10 @@ commands:
   depends_on: cmd_1463
 
 - id: cmd_1465
-  status: in_progress
+  status: done
   timestamp: "2026-04-25T12:08:00+09:00"
   started_at: "2026-04-25T12:08:00+09:00"
+  done_at: "2026-04-25T13:40:50+09:00"
   priority: medium
   lord_original: "Udemy講座カリキュラム v1→v2 マーケ強化版。殿指摘『具体化してくれ・マーケティング考えているか・どんな層でどういうハンズオンか』。ペルソナ3-5詳述・ハンズオン具体化・マーケ戦略・競合対決表・ストーリー設計の5項目補完。"
   purpose: "curriculum_v1.md の5項目補完でマーケ強化版 curriculum_v2.md を生成。殿指摘の具体化・ペルソナ・マーケ戦略を反映。"
