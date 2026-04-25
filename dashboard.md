@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 17:33
+最終更新: 2026-04-25 17:41
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -40,8 +40,6 @@
 | cmd | 担当 | 状態 |
 |-----|------|------|
 | cmd_1464 | 足軽1号 | 🔄 **seg8sen再生成中(17:14)** seg8sen.mp4破損→Steps 2-5再実行→transition→concat→YouTube |
-| cmd_1473 | 軍師 | ✅ **完遂(17:31)** pretool_check CHK2改修 軍師QC PASS 6/6 push済(73e7a9a) |
-| cmd_1472 | 将軍 | ✅ **将軍直接実行(17:16)** サムネ再生成・おおはらMEN中央下部配置・3案→殿選択（家老手出し無用） |
 
 ---
 
@@ -85,7 +83,8 @@
 | cmd_1450 | ✅ **done_ng(07:24)** 殿判断「面白くない・なぎなた不在」→note下書き2件削除中(subtask_1450_cleanup/足軽2号) |
 | cmd_1466 | ✅ **完遂(14:58)** curriculum_v2.html 38スライド Marp+LAN公開(8082) 軍師PASS・slide_lan_publish手順確立 |
 | cmd_1465 | ✅ **完遂(13:41)** Udemy curriculum_v2.md 672行 5ペルソナ/18章ハンズオン/競合4領域対決 軍師PASS_with_finding |
-| cmd_1467 | ✅ **完遂(15:55)** Day6 ECHIDNA サムネ 案2確定(--ref-limit 0)・thumbnail_final.png commit 0c3518c cmd_1464完了後YouTube適用 |
+| cmd_1472 | ✅ **完遂(17:36)** Day6 ECHIDNAサムネ v3案1確定・将軍直接実行・thumbnail_final.png commit df61381+f252122 push済 |
+| cmd_1467 | ✅ **完遂(17:36更新)** Day6 ECHIDNA サムネ v3案1確定・thumbnail_final.png commit df61381 (submodule) push済 |
 | cmd_1470 | ✅ **完遂(15:49)** pretool_check CHK3 procedure:必須化 7/7AC commit d8764ad 軍師PASS |
 | cmd_1473 | ✅ **完遂(17:31)** pretool_check CHK2 work/cmd_* BLOCK→projects/*/work/* OK化 commit 73e7a9a 軍師PASS 6/6 |
 | cmd_1471 | ✅ **完遂(17:05)** POST /api/cmd_create+flock排他制御 74行 commit 67f76d6 push済 軍師PASS |
