@@ -255,49 +255,9 @@ commands:
   project: dozle_kirinuki
   priority: medium
   status: superseded
-       - id: タイトルからスラッグ自動生成
-       - common_rules: 固定テンプレート自動付与（ゴーグル・サングラス・丸メガネルール含む）
-       - director_notes: Gemini出力のdirector_notes案をベースに「添付画像の説明:」ヘッダーを自動付与
-    5. JSON出力
-
-    ### メンバー名→キー変換テーブル
-    ドズル→dozle, ぼんじゅうる→bon, おんりー→qnly, おらふくん→orafu,
-    おおはらMEN→oo_men, ネコおじ→nekooji
-
-    ### 表情フォールバックテーブル
-    selected/フォルダをスキャンして存在確認。なければ以下で代用:
-    troubled_r2→troubled_r1, troubled_r3→troubled_r1,
-    hype_r3→cheer_scream, angry_r3→battle_shout(bon用),
-    tsukkomi→scheming_r1, commanding→angry_r1,
-    analytical→skeptical_r2, gap_moe→embarrassed_r1,
-    scared→panic_scream, sparkle→smile_r3,
-    proud_builder→smug_r2, airhead→smile_r1, insight→scheming_r1
-
-    ### common_rules固定テンプレート
-    "全キャラクターの身長はだいたい同じくらいに描くこと。極端な身長差をつけるな。
-    【最重要】おおはらMENは必ずゴーグルを目を覆うように装着（目が隠れる位置。額に上げるな）して描け。
-    ゴーグルなしのMENは絶対に描くな。リファレンス画像のゴーグルをそのまま再現せよ。
-    サングラスではなくゴーグルである。ぼんじゅうるはサングラス必須。おんりーは丸メガネ必須。
-    デフォルメ・SD・ちびキャラ禁止。等身大のアニメ風キャラクターとして描くこと。武器・盾・バケツ禁止。"
-
-    ### 構成表生成プロンプト（スクリプトに組み込め）
-    殿が作成した以下のプロンプトをそのまま使え（改変禁止）:
-    ※長いため別ファイルに保存: projects/dozle_kirinuki/context/panel_candidate_prompt.txt
-    → このファイルを新規作成し、殿のプロンプト全文を格納せよ。
-    プロンプト全文はshogun_to_karo.yamlの直前のユーザーメッセージに記載されている。
-    家老はそのメッセージを参照して正確にコピーすること。
-
-    ### Gemini API呼び出し仕様
-    - モデル: gemini-2.5-flash（動画のマルチモーダル解析に適切）
-    - Vertex AI経由: source config/vertex_api_key.env
-    - 動画はGCSにアップ→GCS URI渡し
-    - タイムアウト: 5分（動画解析は時間がかかる）
-
-    ## 共通ルール
-    - スクリプトは projects/dozle_kirinuki/scripts/ に保存
-    - 中間成果物はwork/配下に保存（/tmp禁止）
-    - ffmpegはh264_nvenc。libx264禁止
-    - git commit & push済みであること
+- id: cmd_recovered_20260425
+  timestamp: '2026-04-25T13:00:00+09:00'
+  purpose: "(YAML corruption recovery by ashigaru3 cmd_1468 — original id/timestamp/purpose lost; panel candidate prompt generation for dozle_kirinuki, status was done)"
   project: dozle_kirinuki
   priority: high
   status: done
@@ -669,7 +629,7 @@ commands:
     - bug_026（advisor_proxy continuation failure）: 539-548行のerror branchに`metrics.record_failure()` + `circuit_breaker.record_failure()`追加
     - merged_bug_001（pretool_check CHK4）: L274-303を削除、.claude/settings.jsonのPreToolUse timeoutを5秒に戻す（scripts/extract_cmd_fields.pyがない死にコードのため）
     - merged_bug_017（Advisor Proxy fail-open）: shutsujin_departure.sh 656-660を`curl -sf http://localhost:8780/health`でreadiness検証に差替。失敗時は `exit 1` で明示停止
-    - bug_010（backup mountpoint）: scripts/backup_secrets.sh と backup_queue.sh の冒頭に`mountpoint -q /mnt/backup || { echo "ERROR: /mnt/backup is not mounted" >&2; exit 1; }`追加
+    - 'bug_010（backup mountpoint）: scripts/backup_secrets.sh と backup_queue.sh の冒頭に`mountpoint -q /mnt/backup || { echo "ERROR: /mnt/backup is not mounted" >&2; exit 1; }`追加'
     - merged_bug_002（FileChanged hook）: .claude/settings.json L100-110のFileChangedブロックを削除（scripts/filechanged_cmd_check.shが存在しないため）
     - 各修正後、対応する実機テスト or dry-run検証を実施
     - git commit & push済み（修正ごとにcommit分割）
@@ -4860,7 +4820,9 @@ commands:
   notes:
     - "依存: cmd_1463 (4視点素材8本) 完了が前提→完了後に足軽1号(cmd_1424経験者)へ発令"
     - "参考: cmd_1424 zephyrus_v3.sh / shared_context/procedures/multi_view_sync.md"
-    - "amix不要 (音声は切替ゆえ)"\n    - "境界トランジション: wipeleft + sceneswitch1 SE (C選択・selected_json_v2_spec.md準拠)"\n    - "SE: projects/dozle_kirinuki/assets/bgm/sfx/sceneswitch1.mp3"
+    - "amix不要 (音声は切替ゆえ)"
+    - "境界トランジション: wipeleft + sceneswitch1 SE (C選択・selected_json_v2_spec.md準拠)"
+    - "SE: projects/dozle_kirinuki/assets/bgm/sfx/sceneswitch1.mp3"
     - "opening/outro なし (殿確定)"
     - "殿レビューPhase Gate: 将軍が殿に確認中(各seg後 or final.mp4のみ)→判明次第dashboard更新"
     - "殿経験則: 一気エンコは時間かかる→seg独立方式で失敗時の影響限定"

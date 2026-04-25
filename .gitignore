@@ -373,6 +373,10 @@ tests/specs/osato_lms_*
 !work/cmd_1448/
 !work/cmd_1448/**
 
+# cmd_1468 cron再発真因究明レポート (2026-04-25)
+!work/cmd_1468/
+!work/cmd_1468/**
+
 # note visual QC script (cmd_1211)
 !scripts/note_visual_qc.py
 !scripts/backup_secrets.sh

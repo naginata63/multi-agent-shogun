@@ -1,22 +1,24 @@
 #!/usr/bin/env bash
 # cron_health_check.sh - cron silent fail 検知 (cmd_1443_p09 / H12)
 # 毎時 30 分に実行され、shared_context/cron_inventory.md 記載の全 cron ログを
-# tail→grep で検査し、ERROR/FAIL/Traceback を検知したら ntfy で 1 通集約通知する。
+# offset-based scan で検査し、ERROR/FAIL/Traceback を検知したら ntfy で 1 通集約通知する。
 #
 # 設計原則:
 #   - 自身のログ (logs/cron_health_check.log) は scan 対象から除外 (再帰 ntfy 防止)
 #   - 1 回の実行で複数 cron のエラーを 1 通の ntfy に集約 (rate limit)
 #   - 欠損ログファイルはスキップ (新規 cron で未出力の場合あり)
-#   - 直近 1 時間分の末尾のみ検査 (tail -n 200) で過去エラーの再通知を防ぐ
+#   - バイトオフセット追跡で前回 scan 以降の新規追記分のみ検査 (cmd_1468 改修)
+#     初回実行時(オフセットなし)は従来通り tail -n 200 でスキャン
 
 set -u
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOG_FILE="$SCRIPT_DIR/logs/cron_health_check.log"
 NTFY_SCRIPT="$SCRIPT_DIR/scripts/ntfy.sh"
-TAIL_LINES=200
+OFFSET_DIR="$SCRIPT_DIR/queue/.flags/cron_health_offsets"
+TAIL_LINES_FALLBACK=200
 
-mkdir -p "$(dirname "$LOG_FILE")"
+mkdir -p "$(dirname "$LOG_FILE")" "$OFFSET_DIR"
 
 # 検査対象ログファイル一覧
 # cron_inventory.md の「ログ」フィールドと同期すること
@@ -41,6 +43,11 @@ TARGETS=(
 # - 例: "0FAIL" → \b 前後なしで不一致、"rsync error:" → \b ある両端で一致
 PATTERN='\bERROR\b|\bFAIL(ED)?\b|\bFATAL\b|\bException\b|\bTraceback\b|\bCRITICAL\b'
 
+# offset_key: ログパスから一意なファイル名を生成
+offset_key() {
+  echo -n "$1" | md5sum | cut -d' ' -f1
+}
+
 # 結果集約バッファ
 SUMMARY=""
 HIT_COUNT=0
@@ -50,19 +57,48 @@ for entry in "${TARGETS[@]}"; do
   path="${entry#*:}"
 
   if [ ! -f "$path" ]; then
-    # ログ不在はスキップ (新規 cron で未出力の場合あり)
     continue
   fi
 
-  # 直近 TAIL_LINES 行を検査 (単語境界 + 大文字小文字無視)
-  matches=$(tail -n "$TAIL_LINES" "$path" 2>/dev/null | grep -iE "$PATTERN" | tail -n 3 || true)
+  key=$(offset_key "$path")
+  offset_file="$OFFSET_DIR/$key"
+  current_size=$(stat -c '%s' "$path" 2>/dev/null || echo 0)
+
+  if [ -f "$offset_file" ]; then
+    prev_offset=$(cat "$offset_file" 2>/dev/null || echo 0)
+  else
+    prev_offset=""
+  fi
+
+  # 新規追記分のみを抽出
+  if [ -n "$prev_offset" ] && [ "$prev_offset" -gt 0 ] 2>/dev/null; then
+    if [ "$current_size" -gt "$prev_offset" ]; then
+      new_bytes=$((current_size - prev_offset))
+      content=$(dd if="$path" bs=1 skip="$prev_offset" count="$new_bytes" 2>/dev/null)
+    elif [ "$current_size" -lt "$prev_offset" ]; then
+      # ログがローテされた(小さくなった) → 全件スキャン
+      content=$(cat "$path")
+    else
+      # 変化なし → skip
+      echo "$current_size" > "$offset_file"
+      continue
+    fi
+  else
+    # 初回: 従来通り tail -n 200
+    content=$(tail -n "$TAIL_LINES_FALLBACK" "$path" 2>/dev/null)
+  fi
+
+  # pattern 検査
+  matches=$(echo "$content" | grep -iE "$PATTERN" | tail -n 3 || true)
 
   if [ -n "$matches" ]; then
     HIT_COUNT=$((HIT_COUNT + 1))
-    # 各 hit は 1 cron 最大 3 行まで要約
     first_line=$(echo "$matches" | head -n 1)
     SUMMARY+="[$id] ${first_line:0:120}"$'\n'
   fi
+
+  # offset 更新
+  echo "$current_size" > "$offset_file"
 done
 
 # 自身のログに常に記録 (成功/失敗問わず)

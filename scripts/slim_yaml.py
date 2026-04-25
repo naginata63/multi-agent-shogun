@@ -364,7 +364,10 @@ def migration(dry_run=False):
     candidates = sorted(legacy_archive_dir.glob('*.yaml'))
     if not candidates:
         if not dry_run:
-            legacy_archive_dir.rmdir()
+            try:
+                legacy_archive_dir.rmdir()
+            except OSError:
+                pass  # non-YAML files remain; keep directory
         return True
 
     if dry_run:
