@@ -324,8 +324,9 @@ commands:
   project: dingtalk_qc
   priority: high
 - id: cmd_1443
-  status: in_progress
+  status: done
   timestamp: '2026-04-24T18:50:00+09:00'
+  completed_at: '2026-04-24T20:16:00+09:00'
   priority: high
   lord_original: 進軍せよ・全タスク即着手
   north_star: cmd_1442 採用12ハーネス分散発令(H6除外・H10=H1統合・H3+H8=1 subtask・実装10件)
