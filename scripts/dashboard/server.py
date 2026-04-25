@@ -2373,6 +2373,171 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path == '/api/task_create':
+            # POST /api/task_create — 家老が tasks YAML 追記 + SQLite tasks INSERT (dual-path)
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length).decode('utf-8'))
+                required = ['agent', 'task_id', 'status']
+                missing = [f for f in required if not body.get(f)]
+                if missing:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(
+                        {'error': f'Missing required: {missing}'}, ensure_ascii=False
+                    ).encode('utf-8'))
+                    return
+
+                agent = body['agent']
+                task_id = body['task_id']
+                yaml_path = os.path.join(TASKS_DIR, f'{agent}.yaml')
+                lock_path = yaml_path + '.lock'
+                now_jst = datetime.now(timezone(timedelta(hours=9))).isoformat()
+                task_entry = {k: v for k, v in body.items() if v is not None}
+                task_entry.setdefault('timestamp', now_jst)
+
+                import fcntl as _fc
+                with open(lock_path, 'w') as _lf:
+                    _fc.flock(_lf, _fc.LOCK_EX)
+                    if os.path.exists(yaml_path):
+                        with open(yaml_path, 'r', encoding='utf-8') as f:
+                            ydata = yaml.safe_load(f) or {}
+                    else:
+                        ydata = {}
+                    tlist = ydata.setdefault('tasks', [])
+                    if any(t.get('task_id') == task_id for t in tlist):
+                        self.send_response(409)
+                        self.send_header('Content-Type', 'application/json')
+                        self.end_headers()
+                        self.wfile.write(json.dumps(
+                            {'error': f'task_id exists: {task_id}'}
+                        ).encode('utf-8'))
+                        return
+                    tlist.append(task_entry)
+                    with open(yaml_path, 'w', encoding='utf-8') as f:
+                        yaml.safe_dump(ydata, f, allow_unicode=True,
+                                       sort_keys=False, default_flow_style=False)
+
+                # SQLite dual-path
+                try:
+                    _conn = sqlite3.connect(DB_PATH, timeout=5)
+                    _conn.execute('''INSERT OR REPLACE INTO tasks
+                        (task_id, agent, parent_cmd, status, priority, title,
+                         project, description, target_path, procedure, steps,
+                         acceptance_criteria_json, notes_json, params_json,
+                         assigned_to, assignee, report_to, safety, redo_of,
+                         timestamp, full_yaml_blob)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', (
+                        task_id, agent, body.get('parent_cmd'), body['status'],
+                        body.get('priority'), body.get('title'), body.get('project'),
+                        body.get('description'), body.get('target_path'),
+                        body.get('procedure'), body.get('steps'),
+                        json.dumps(body.get('acceptance_criteria', []), ensure_ascii=False),
+                        json.dumps(body.get('notes', []), ensure_ascii=False),
+                        json.dumps(body.get('params', {}), ensure_ascii=False),
+                        body.get('assigned_to'), body.get('assignee'),
+                        body.get('report_to'), body.get('safety'),
+                        body.get('redo_of'),
+                        task_entry['timestamp'],
+                        yaml.safe_dump(task_entry, allow_unicode=True),
+                    ))
+                    _conn.commit()
+                    _conn.close()
+                except Exception as _e:
+                    print(f"[Dashboard] WARN sqlite tasks INSERT failed: {_e}")
+
+                resp = json.dumps({
+                    'success': True, 'task_id': task_id, 'agent': agent,
+                    'yaml_path': os.path.relpath(yaml_path, BASE_DIR),
+                    'timestamp': task_entry['timestamp'],
+                }, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp)))
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path == '/api/report_create':
+            # POST /api/report_create — 足軽/軍師が reports YAML 作成 + SQLite INSERT
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length).decode('utf-8'))
+                required = ['report_id', 'worker_id', 'status']
+                missing = [f for f in required if not body.get(f)]
+                if missing:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(
+                        {'error': f'Missing required: {missing}'}, ensure_ascii=False
+                    ).encode('utf-8'))
+                    return
+
+                report_id = body['report_id']
+                reports_dir = os.path.join(BASE_DIR, 'queue', 'reports')
+                os.makedirs(reports_dir, exist_ok=True)
+                yaml_path = body.get('report_path') or os.path.join(
+                    reports_dir, f'{report_id}.yaml'
+                )
+                # 絶対パス禁止 (パストラバーサル防止) と queue/reports/ 配下強制
+                yaml_abs = os.path.realpath(yaml_path)
+                if not yaml_abs.startswith(os.path.realpath(reports_dir) + os.sep):
+                    yaml_path = os.path.join(reports_dir, f'{report_id}.yaml')
+                    yaml_abs = os.path.realpath(yaml_path)
+                if os.path.exists(yaml_abs):
+                    self.send_response(409)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(
+                        {'error': f'report exists: {os.path.relpath(yaml_abs, BASE_DIR)}'}
+                    ).encode('utf-8'))
+                    return
+                now_jst = datetime.now(timezone(timedelta(hours=9))).isoformat()
+                report_entry = {k: v for k, v in body.items() if v is not None}
+                report_entry.setdefault('timestamp', now_jst)
+
+                with open(yaml_abs, 'w', encoding='utf-8') as f:
+                    yaml.safe_dump(report_entry, f, allow_unicode=True,
+                                   sort_keys=False, default_flow_style=False)
+
+                # SQLite dual-path
+                try:
+                    _conn = sqlite3.connect(DB_PATH, timeout=5)
+                    _conn.execute('''INSERT OR REPLACE INTO reports
+                        (report_id, worker_id, task_id, parent_cmd, status,
+                         qa_decision, timestamp, report_path, summary)
+                        VALUES (?,?,?,?,?,?,?,?,?)''', (
+                        report_id, body['worker_id'], body.get('task_id'),
+                        body.get('parent_cmd'), body['status'],
+                        body.get('qa_decision'), report_entry['timestamp'],
+                        os.path.relpath(yaml_abs, BASE_DIR),
+                        body.get('summary'),
+                    ))
+                    _conn.commit()
+                    _conn.close()
+                except Exception as _e:
+                    print(f"[Dashboard] WARN sqlite reports INSERT failed: {_e}")
+
+                resp = json.dumps({
+                    'success': True, 'report_id': report_id,
+                    'yaml_path': os.path.relpath(yaml_abs, BASE_DIR),
+                    'timestamp': report_entry['timestamp'],
+                }, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp)))
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         else:
             self.send_response(404)
             self.end_headers()
