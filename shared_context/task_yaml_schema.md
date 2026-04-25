@@ -26,9 +26,10 @@ tasks:
   acceptance_criteria:
     - "具体・検証可能な条件1"
     - "具体・検証可能な条件2"
+  procedure: shared_context/procedures/xxx.md  # 新規 task_id 必須 (CHK3拡張)
 ```
 
-**9 項目全て必須**。1 つでも欠けると pretool_check CHK7 が新規 task_id を BLOCK する (既存 task は素通り)。
+**10 項目全て必須** (procedure: 含む)。1 つでも欠けると pretool_check CHK7/CHK3 が新規 task_id を BLOCK する (既存 task は素通り)。
 
 ### 1.2 任意フィールド
 
@@ -189,7 +190,7 @@ cmd.command 内に "Phase N" キーワードが現れる場合 (cmd_1434 等)、
 |----|------|------|--------------------------|
 | CHK1 | Bash tmux capture-pane | `-S -100` 以上必須 | 対象外 |
 | CHK2 | 足軽の Write/Edit/Bash | work/cmd_* 直書込・/tmp 書込 BLOCK (target_path 一致は許可) | 常時 |
-| CHK3 | task YAML Write/Edit | steps 多行 BLOCK | 常時 |
+| CHK3 | task YAML Write/Edit | steps 多行 BLOCK + 新規 task_id の procedure: 不在 BLOCK | 常時 (procedure: は新規 task_id のみ) |
 | CHK4 | shogun_to_karo.yaml 将軍編集 | 新規 cmd 起票に lord_original 欄必須 | 新規 cmd のみ |
 | CHK5 | task YAML 編集 | verify: 宣言済 task の status:done 遷移を verify_result:pass 未達なら BLOCK (verify_exempt: true 宣言済は免除) | verify: 欄なし・verify_exempt ありは素通り |
 | CHK6 | advisor tool 呼出 | logs/advisor_calls.log 追記 (side-effect のみ・BLOCK しない) | 対象外 |
@@ -216,3 +217,4 @@ cmd.command 内に "Phase N" キーワードが現れる場合 (cmd_1434 等)、
 |------|------|-------------|
 | 2026-04-24 | 初版作成 (verify:/phase_gate: 統合・CHK7/CHK8 文書化) | cmd_1443_p07 (ashigaru4) |
 | 2026-04-25 | §1.4 post_steps / §1.5 verify_exempt 追記・CHK5 注記更新 | cmd_1456 subtask_1456d (ashigaru7) |
+| 2026-04-25 | CHK3拡張: 新規task_idのprocedure:必須・§1.1必須フィールドにprocedure:追加 | cmd_1470 subtask_1470a (ashigaru3) |

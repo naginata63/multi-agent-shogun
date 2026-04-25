@@ -159,6 +159,77 @@ else:
   fi
 fi
 
+# ── チェック3 拡張: 新規 task_id の procedure: 必須 (cmd_1470) ──
+# steps 1行化済の新規 task に procedure: がなければ BLOCK。
+# CHK7 と同じ new_id 判定 (post_ids - pre_ids)。Write/Edit のみ対象。
+if [[ "$_CK3_MATCH" == "true" ]] && { [[ "$TOOL_NAME" == "Write" ]] || [[ "$TOOL_NAME" == "Edit" ]]; }; then
+  _CK3_PROC_RESULT=$(PRETOOL_INPUT_JSON="$INPUT" python3 <<'PYEOF_PROC' 2>/dev/null
+import os, json, re, sys
+try:
+    data = json.loads(os.environ.get('PRETOOL_INPUT_JSON', ''))
+except Exception:
+    sys.exit(0)
+ti = data.get('tool_input', {})
+tool = data.get('tool_name', '')
+file_path = ti.get('file_path', '')
+try:
+    with open(file_path) as f:
+        pre = f.read()
+except Exception:
+    pre = ''
+if tool == 'Edit':
+    old_s = ti.get('old_string', '')
+    new_s = ti.get('new_string', '')
+    if ti.get('replace_all'):
+        post = pre.replace(old_s, new_s)
+    else:
+        post = pre.replace(old_s, new_s, 1)
+elif tool == 'Write':
+    post = ti.get('content', '')
+else:
+    sys.exit(0)
+def ids_in(content):
+    out = set()
+    for m in re.finditer(r'^- task_id:\s*(\S+)', content, re.MULTILINE):
+        v = m.group(1).strip().strip('"').strip("'")
+        out.add(v)
+    return out
+pre_ids = ids_in(pre)
+post_ids = ids_in(post)
+new_ids = post_ids - pre_ids
+if not new_ids:
+    sys.exit(0)
+blocks = re.split(r'(?=^- task_id:)', post, flags=re.MULTILINE)
+missing = []
+for block in blocks:
+    if not block.strip().startswith('- task_id:'):
+        continue
+    m = re.search(r'^- task_id:\s*(\S+)', block, re.MULTILINE)
+    if not m:
+        continue
+    tid = m.group(1).strip().strip('"').strip("'")
+    if tid not in new_ids:
+        continue
+    if not re.search(r'^\s+procedure:', block, re.MULTILINE):
+        missing.append(tid)
+if missing:
+    print('BLOCKED: 新規 task_id に procedure: フィールドがありません (CHK3拡張)')
+    for tid in missing:
+        print(f'  - {tid}')
+    print('具体的手順は shared_context/procedures/ に外出しし、procedure: で参照せよ。')
+    print('例: procedure: shared_context/procedures/xxx.md')
+    print('既存 task の編集は対象外 (新規 task_id のみ)。')
+    sys.exit(2)
+sys.exit(0)
+PYEOF_PROC
+)
+  _CK3_PROC_EXIT=$?
+  if [ $_CK3_PROC_EXIT -eq 2 ]; then
+    echo "$_CK3_PROC_RESULT" >&2
+    exit 2
+  fi
+fi
+
 # ── チェック: スクリプトblacklist + 未登録警告（足軽のみ）──
 if [[ "$TOOL_NAME" == "Bash" ]]; then
   _AGENT_ID_BK=""

@@ -39,7 +39,7 @@ workflow:
   - step: 2
     action: read_yaml
     target: "queue/tasks/ashigaru{N}.yaml"
-    note: "Own file ONLY. YAMLはリスト形式（tasks: [...]）。末尾のstatus:assignedタスクを探して実行せよ。複数assignedがある場合は最新（末尾）を優先。"
+    note: "Own file ONLY. YAMLはリスト形式（tasks: [...]）。末尾のstatus:assignedタスクを探して実行せよ。複数assignedがある場合は最新（末尾）を優先。procedure: がある場合は参照先の手順に従え。"
   - step: 3
     action: update_status
     value: in_progress
@@ -47,8 +47,18 @@ workflow:
     action: set_current_task
     command: 'tmux set-option -p @current_task "{task_id_short}"'
     note: "Extract task_id short form (e.g., subtask_155b → 155b, max ~15 chars)"
+  - step: 3.8
+    action: call_advisor_before
+    command: "advisor()"
+    mandatory: true
+    note: "実装開始前にadvisorを必ず呼べ。タスクの難易度・規模に関わらず必須。「簡単だから不要」という判断は禁止。advisorの助言を踏まえて実装すること。GLM環境ではadvisor proxyが自動的にadvisorツールを提供する。特別な手順は不要。"
   - step: 4
     action: execute_task
+  - step: 4.8
+    action: call_advisor_after
+    command: "advisor()"
+    mandatory: true
+    note: "実装完了後、報告前にadvisorを必ず呼べ。タスクの難易度・規模に関わらず必須。「簡単だから不要」という判断は禁止。advisorのフィードバックがあれば反映してから報告すること。GLM環境ではadvisor proxyが自動的にadvisorツールを提供する。特別な手順は不要。"
   - step: 5
     action: write_report
     target: "queue/reports/ashigaru{N}_report_{task_id}.yaml"

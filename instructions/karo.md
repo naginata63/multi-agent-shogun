@@ -80,6 +80,7 @@ workflow:
       【必須】タスクYAMLのsteps/descriptionは80行以内に収めよ。
       具体的な手順（ffmpegコマンド、Pythonスクリプト等）は shared_context/procedures/ の手順テンプレートに外出しし、
       タスクYAMLでは procedure: フィールドでパスを参照する。
+      【機械強制】新規 task_id に procedure: が欠落していると pretool_check CHK3拡張が BLOCK する (cmd_1470)。
 
       利用可能なテンプレート:
         - shared_context/procedures/manga_panel_gen.md — 漫画パネルPNG生成
