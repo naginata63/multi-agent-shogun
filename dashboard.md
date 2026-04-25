@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 15:57
+最終更新: 2026-04-25 17:10
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -7,6 +7,10 @@
 ---
 
 ## 🚨 要対応（殿の御判断必要）
+
+### 🗂️ 古cmd確認依頼（殿の判断要）
+- **cmd_1348**: 309h放置 DingTalk QC → done/cancel どちら? (2026-04-25 殿確認待ち)
+- **cmd_1450**: done_ng(07:24)済・note下書き削除subtask_1450_cleanup完了? cleanup完了確認→statusを正式done化
 
 ### ⚠️ 技術的残課題（将来対処）
 
@@ -34,14 +38,8 @@
 
 | cmd | 担当 | 状態 |
 |-----|------|------|
-| cmd_1464 | 足軽1号 | 🔄 **発令(12:10)** Day6 4視点MIX seg独立+wipeleft SE→final.mp4+YouTube非公開 |
-| cmd_1466 | 軍師 | ✅ **完遂(14:58)** curriculum_v2.html 38スライド LAN公開 http://192.168.2.7:8082/ 軍師PASS |
-| cmd_1465 | 軍師 | ✅ **完遂(13:41)** curriculum_v2.md 672行 5AC全項目PASS 軍師PASS_with_finding |
-| cmd_1467 | 足軽2号 | ✅ **完遂(15:55)** 案2確定→thumbnail_final.png commit 0c3518c push済 |
-| cmd_1468 | 軍師 | ✅ **完遂(13:32)** cron再発真因究明 offset追跡実装・13:30 hit=0確認 軍師PASS |
-| cmd_1469 | 軍師 | ✅ **完遂(13:37)** server.py R1 タイムスタンプparse修正 fresh cmd age正常化 軍師PASS |
-| cmd_1470 | 足軽3号 | ✅ **完遂(15:49)** pretool_check CHK3 procedure:必須化 7/7AC 軍師PASS |
-| cmd_1471 | 足軽4号 | 🔄 **発令(15:51)** server.py POST /api/cmd_create 追加 yaml直接Edit廃止 |
+| cmd_1464 | 足軽1号 | 🔄 **再発令(17:05)** subtask_1464b: transition→concat→DAY6DIR/final.mp4→YouTube非公開→thumbnail設定 |
+| cmd_1472 | 軍師 | 🔄 **発令(17:07)** pretool_check CHK2改修設計レビュー(work/cmd_* BLOCK簡素化) |
 
 ---
 
@@ -49,14 +47,14 @@
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | GLM | 🔄 busy | subtask_1464a 発令(12:10)・Day6 4視点MIX final.mp4生成 |
+| 1号 | GLM | 🔄 busy | subtask_1464b 再発令(17:05)・Day6後半 transition→concat→YouTube→thumbnail |
 | 2号 | GLM | ✅ idle | subtask_1467b ✅完了(15:25)・cmd_1467完遂(案2確定 15:55) |
-| 3号 | Opus[1m] | ✅ idle | subtask_1470a ✅完了(15:46)・pretool_check CHK3 procedure:必須化 軍師QC中 |
-| 4号 | GLM | 🔄 busy | subtask_1471a 発令(15:51)・server.py POST /api/cmd_create追加 |
+| 3号 | Opus[1m] | ✅ idle | subtask_1470a ✅完了(15:46)・pretool_check CHK3 procedure:必須化 軍師PASS |
+| 4号 | GLM | ✅ idle | subtask_1471a ✅完了(16:01)・軍師QC PASS(17:05)・cmd_1471完遂 |
 | 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
-| 7号 | GLM | ✅ idle | subtask_1466a ✅完了(14:56)・curriculum_v2.html LAN公開 軍師QC中 |
-| 軍師 | Opus[1m] | ✅ idle | qc_subtask_1470a ✅PASS(15:49)・cmd_1470完遂 |
+| 7号 | GLM | ✅ idle | subtask_1466a ✅完了(14:56)・curriculum_v2.html LAN公開 軍師PASS |
+| 軍師 | Opus[1m] | 🔄 busy | design_1472a 発令(17:07)・pretool_check CHK2改修設計レビュー |
 
 ---
 
@@ -87,6 +85,7 @@
 | cmd_1465 | ✅ **完遂(13:41)** Udemy curriculum_v2.md 672行 5ペルソナ/18章ハンズオン/競合4領域対決 軍師PASS_with_finding |
 | cmd_1467 | ✅ **完遂(15:55)** Day6 ECHIDNA サムネ 案2確定(--ref-limit 0)・thumbnail_final.png commit 0c3518c cmd_1464完了後YouTube適用 |
 | cmd_1470 | ✅ **完遂(15:49)** pretool_check CHK3 procedure:必須化 7/7AC commit d8764ad 軍師PASS |
+| cmd_1471 | ✅ **完遂(17:05)** POST /api/cmd_create+flock排他制御 74行 commit 67f76d6 push済 軍師PASS |
 | cmd_1469 | ✅ **完遂(13:37)** server.py R1 タイムスタンプparse修正 fresh cmd age正常化(416日→0.12h) 軍師PASS |
 | cmd_1468 | ✅ **完遂(13:32)** cron再発真因究明 古いログ再検知→offset追跡実装 13:30 hit=0確認 軍師PASS |
 | cmd_1463 | ✅ **完遂(12:10)** Day6 4視点h264統一8本(1sen+8sen)生成 軍師PASS 8/8 codec混在解消 |
