@@ -27,6 +27,7 @@ import argparse
 import asyncio
 import json
 import os
+import os
 import signal
 import subprocess
 import sys
@@ -43,8 +44,8 @@ from playwright.async_api import async_playwright, BrowserContext, Page
 # ============================================================
 # 設定（セレクタはDOM変更に備えて先頭で定義）
 # ============================================================
-CDP_ENDPOINT = "http://localhost:9222"
-DISPLAY_ENV = ":0"
+CDP_ENDPOINT = os.environ.get("CDP_ENDPOINT", "http://localhost:9222")
+DISPLAY_ENV = os.environ.get("DISPLAY", ":0")
 STUDIO_BASE = "https://studio.youtube.com/video"
 PAGE_TIMEOUT = 30_000  # ms
 ACTION_DELAY = 2.0  # seconds (ToS対策: 操作間の最小ウェイト)

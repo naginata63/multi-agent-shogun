@@ -616,8 +616,10 @@ def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, vid
             return "[Claude CLI が見つかりません: `which claude` で確認してください]"
 
     try:
+        # env var で model upgrade 容易化 (audit MEDIUM#5)
+        claude_model = os.environ.get("CLAUDE_MODEL", "claude-opus-4-6")
         result = subprocess.run(
-            [claude_path, "-p", prompt, "--model", "claude-opus-4-6"],
+            [claude_path, "-p", prompt, "--model", claude_model],
             capture_output=True, text=True, timeout=120
         )
         if result.returncode == 0:

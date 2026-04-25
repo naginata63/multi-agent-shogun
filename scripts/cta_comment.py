@@ -63,27 +63,31 @@ def get_service():
 
 
 def get_public_videos(youtube) -> list[str]:
-    """チャンネルの全公開済み動画 video_id 一覧を返す（最新順）"""
+    """チャンネルの全公開済み動画 video_id 一覧を返す（最新順）
+
+    playlistItems API 経由 (1 quota / 50件) で取得。旧 search API (100 quota) から
+    100倍効率化 (audit MEDIUM#1)。
+    """
+    ch_res = youtube.channels().list(part="contentDetails", id=CHANNEL_ID).execute()
+    items = ch_res.get("items", [])
+    if not items:
+        return []
+    uploads_pl = items[0]["contentDetails"]["relatedPlaylists"]["uploads"]
+
     video_ids = []
     page_token = None
-
     while True:
-        res = youtube.search().list(
-            part="id",
-            channelId=CHANNEL_ID,
-            type="video",
-            order="date",
+        res = youtube.playlistItems().list(
+            part="contentDetails",
+            playlistId=uploads_pl,
             maxResults=50,
             pageToken=page_token,
         ).execute()
-
         for item in res.get("items", []):
-            video_ids.append(item["id"]["videoId"])
-
+            video_ids.append(item["contentDetails"]["videoId"])
         page_token = res.get("nextPageToken")
         if not page_token:
             break
-
     return video_ids
 
 

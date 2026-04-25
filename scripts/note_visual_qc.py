@@ -22,15 +22,16 @@ from pathlib import Path
 from google import genai
 from playwright.sync_api import sync_playwright
 
-# --- Config ---
-CDP_URL = "http://localhost:9222"
-PROJECT = "gen-lang-client-0119911773"
-LOCATION = "global"
-MODEL = "gemini-2.5-flash"
+# --- Config (env var override 可) ---
+import os as _os
+CDP_URL = _os.environ.get("CDP_ENDPOINT", "http://localhost:9222")
+PROJECT = _os.environ.get("GEMINI_VERTEX_PROJECT", "gen-lang-client-0119911773")
+LOCATION = _os.environ.get("GEMINI_VERTEX_LOCATION", "global")
+MODEL = _os.environ.get("GEMINI_VISION_MODEL", "gemini-2.5-flash")
 VIEWPORT_WIDTH = 800
 SECTION_HEIGHT = 1200
 REPORT_DIR = Path(__file__).parent.parent / "queue" / "reports"
-GCS_BUCKET = "shogun-manga-refs"
+GCS_BUCKET = _os.environ.get("VERTEX_GCS_BUCKET", "shogun-manga-refs")
 
 QC_PROMPT = """このnote記事エディタのスクリーンショットを厳しくQCせよ。
 以下の問題がないか確認:
@@ -121,7 +122,7 @@ def main():
     with sync_playwright() as pw:
         browser = pw.chromium.connect_over_cdp(args.cdp)
         context = browser.contexts[0] if browser.contexts else browser.new_context()
-        page = context.new_page() if not browser.contexts else context.pages[0]
+        page = context.pages[0] if context.pages else context.new_page()
 
         print(f"Navigating: {args.url}")
         page.goto(args.url, wait_until="networkidle", timeout=30000)
