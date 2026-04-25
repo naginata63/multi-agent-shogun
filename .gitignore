@@ -91,6 +91,7 @@
 !shared_context/cron_inventory.md
 !shared_context/crontab.snapshot.txt
 !shared_context/task_yaml_schema.md
+!shared_context/todo_storage_migration.md
 !shared_context/procedures/
 !shared_context/procedures/*.md
 
