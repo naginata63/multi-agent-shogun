@@ -1594,7 +1594,8 @@ commands:
   - 'ntfy通知: 3案完成時 + 案確定時の2回'
   - 軍師QC PASS（おおはらMEN中央下部配置の確認・他キャラ被り確認・文字可読性）
 - id: cmd_1475
-  status: pending
+  status: done
+  completed_at: '2026-04-25T18:09:00+09:00'
   priority: high
   purpose: cmd読込側システム設計の中立評価（軍師の独立判断・将軍の主張は意図的に伝えていない）
   timestamp: '2026-04-25T17:59:49+09:00'

@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 18:02
+最終更新: 2026-04-25 18:10
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -11,6 +11,10 @@
 ### 🗂️ 古cmd確認依頼（殿の判断要）
 - **cmd_1348**: 309h放置 DingTalk QC → done/cancel どちら? (2026-04-25 殿確認待ち)
 - **cmd_1450**: done_ng(07:24)済・note下書き削除subtask_1450_cleanup完了? cleanup完了確認→statusを正式done化
+
+### 📐 cmd_1475 設計レビュー結果（殿の判断要）
+- **item_3 改修推奨（HIGH）**: POST /api/cmd_create に家老inbox自動通知を統合。現在はcmd_create後に inbox_write.sh 別呼出が必要→タイミングずれ事故あり(memory事例3件)。新cmd起票推奨。報告: queue/reports/gunshi_design_review_1475.yaml
+- **現状維持（4項目）**: 読込API GET化(Read tool native優位)・inbox_write API化(pain無し)・YAML archive(年254件ペース・将来判断)・inbox slim(unread=0健全)
 
 ### 🎬 cmd_1464 完遂後・殿の判断要
 - **skill_candidate: multi-view-mix-generator** (軍師qc_1464b推奨) → 殿承認でスキル化すべきか?
@@ -44,7 +48,7 @@
 
 | cmd | 担当 | 状態 |
 |-----|------|------|
-| cmd_1475 | 軍師 | 🔄 **設計レビュー発令(18:01)** cmd読込側システム5項目 中立評価 |
+| cmd_1475 | 軍師 | ✅ **完遂(18:09)** cmd読込側設計 中立評価 改修推奨=item_3のみ 殿判断要 |
 
 ---
 
@@ -59,7 +63,7 @@
 | 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1466a ✅完了(14:56)・curriculum_v2.html LAN公開 軍師PASS |
-| 軍師 | Opus[1m] | 🔄 busy | design_review_1475 in_progress(18:01) cmd読込側システム設計 中立評価 |
+| 軍師 | Opus[1m] | ✅ idle | design_review_1475 ✅完了(18:09)・cmd読込側設計5項目評価 改修推奨1件(item_3) |
 
 ---
 
@@ -89,6 +93,7 @@
 | cmd_1466 | ✅ **完遂(14:58)** curriculum_v2.html 38スライド Marp+LAN公開(8082) 軍師PASS・slide_lan_publish手順確立 |
 | cmd_1465 | ✅ **完遂(13:41)** Udemy curriculum_v2.md 672行 5ペルソナ/18章ハンズオン/競合4領域対決 軍師PASS_with_finding |
 | cmd_1464 | ✅ **完遂(17:59)** Day6 4視点MIX final.mp4(2291s/1080p) YouTube非公開 EVfo4W7jCIc サムネ設定済 軍師PASS 6/6 |
+| cmd_1475 | ✅ **完遂(18:09)** cmd読込側システム設計 軍師中立評価 5問・改修推奨1(item_3) 報告: gunshi_design_review_1475.yaml |
 | cmd_1472 | ✅ **完遂(17:36)** Day6 ECHIDNAサムネ v3案1確定・将軍直接実行・thumbnail_final.png commit df61381+f252122 push済 |
 | cmd_1467 | ✅ **完遂(17:36更新)** Day6 ECHIDNA サムネ v3案1確定・thumbnail_final.png commit df61381 (submodule) push済 |
 | cmd_1470 | ✅ **完遂(15:49)** pretool_check CHK3 procedure:必須化 7/7AC commit d8764ad 軍師PASS |
