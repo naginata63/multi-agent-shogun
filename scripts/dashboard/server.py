@@ -1791,8 +1791,8 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 length = int(self.headers.get('Content-Length', 0))
                 body = json.loads(self.rfile.read(length).decode('utf-8'))
 
-                # --- Required field validation ---
-                required = ['id', 'purpose']
+                # --- Required field validation (lord_original 必須化 cmd_1474) ---
+                required = ['id', 'purpose', 'lord_original']
                 missing = [f for f in required if not body.get(f)]
                 if missing:
                     self.send_response(400)
@@ -1824,7 +1824,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                             self.wfile.write(json.dumps({'error': f'Duplicate cmd id: {cmd_id}'}).encode('utf-8'))
                             return
 
-                        # Build new entry
+                        # Build entry: defaults first
                         entry = {
                             'id': cmd_id,
                             'status': body.get('status', 'pending'),
@@ -1832,11 +1832,15 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                             'purpose': body['purpose'],
                             'timestamp': body.get('timestamp', datetime.now(timezone(timedelta(hours=9))).strftime('%Y-%m-%dT%H:%M:%S+09:00')),
                         }
-                        if body.get('issued_at'):
-                            entry['issued_at'] = body['issued_at']
-                        for opt_field in ('command', 'project', 'north_star', 'acceptance_criteria', 'assigned_to'):
-                            if body.get(opt_field):
-                                entry[opt_field] = body[opt_field]
+                        # Pass-through: body の任意キーを entry に透過 (cmd_1474)
+                        # depends_on / notes / redo_of / cancelled_at / cancelled_reason /
+                        # implementation_flow / lord_original / command / project /
+                        # north_star / acceptance_criteria / assigned_to / issued_at 等
+                        # 全て自動で entry に反映される（API改修不要で拡張可能）
+                        RESERVED = {'id', 'status', 'priority', 'purpose', 'timestamp'}
+                        for k, v in body.items():
+                            if k not in RESERVED and v is not None:
+                                entry[k] = v
 
                         commands.append(entry)
                         data['commands'] = commands
@@ -1849,7 +1853,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     finally:
                         fcntl.flock(lock_f, fcntl.LOCK_UN)
 
-                resp = json.dumps({'ok': True, 'cmd_id': cmd_id, 'entry_line': entry_line}, ensure_ascii=False).encode('utf-8')
+                resp = json.dumps({'ok': True, 'cmd_id': cmd_id, 'entry_line': entry_line, 'fields': list(entry.keys())}, ensure_ascii=False).encode('utf-8')
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self.send_header('Content-Length', str(len(resp)))
