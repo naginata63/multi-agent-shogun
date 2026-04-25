@@ -1,67 +1,66 @@
 tasks:
-- task_id: qc_1489a
-  parent_cmd: cmd_1489
-  assigned_to: gunshi
-  bloom_level: L5
-  status: done
-  timestamp: '2026-04-25T22:44:16+09:00'
-  procedure: /home/murakami/multi-agent-shogun/shared_context/qc_template.md
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1489a.yaml
-  description: 'cmd_1489 /master-telop-two-stage スキルQC。.claude/commands/master-telop-two-stage.md
-    のfrontmatter妥当性・procedures参照整合・トリガー語句網羅性・Do NOT use for明記を検証。PASS/FAIL判定。'
-  steps: '/home/murakami/multi-agent-shogun/shared_context/qc_template.md 読む→/home/murakami/multi-agent-shogun/.claude/commands/master-telop-two-stage.md
-    読む→/home/murakami/multi-agent-shogun/shared_context/procedures/master_telop_two_stage.md
-    読む→/home/murakami/multi-agent-shogun/.claude/commands/skill-creator.md 読む(frontmatter品質基準確認)→[QC1]frontmatter:
-    name/description/argument-hint/allowed-tools 完備確認→[QC2]descriptionに具体的トリガー語句6種以上明記確認→[QC3]本文:
-    procedures/master_telop_two_stage.md を参照する薄いwrapper形式・重複定義なし確認→[QC4]Do NOT use for: 漫画ショート/表情ショート
-    明記確認→[QC5]context/skill_candidates_inventory.md 登録確認→PASS/CONDITIONAL_PASS/FAIL判定→完了報告YAML(/home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1489a.yaml)→inbox_write
-    karo 判定結果'
-  acceptance_criteria:
-  - 'frontmatter: name=master-telop-two-stage / description 1024文字以内 / トリガー語句6種以上 / argument-hint / allowed-tools 完備'
-  - '本文: shared_context/procedures/master_telop_two_stage.md 参照形式・重複定義なし'
-  - 'Do NOT use for: 漫画ショート(panels JSONベース) / 表情ショート(別workflow) 明記'
-  - context/skill_candidates_inventory.md に IMPLEMENTED として登録済み
-  - git commit f2741e2 push済み確認
 - task_id: qc_1413a
+  agent: gunshi
   parent_cmd: cmd_1413
-  assigned_to: gunshi
-  bloom_level: L5
+  status: superseded
   priority: high
   title: panels_doz_healer_15331_16531.json 品質検査（捏造・話者・分布）
   project: dozle_kirinuki
-  status: superseded
-  blocked_by: subtask_1413a
+  steps: 'shared_context/qc_template.md を参照してQC実施。実ファイルを自分の目で読め（数値報告だけでPASS禁止）。advisor()を実施前後に呼べ。完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo ''QC結果{PASS/FAIL}:
+    qc_1413a。{所見}'' qc_result gunshi'
+  assigned_to: gunshi
   timestamp: '2026-04-18T09:20:00+09:00'
-  target_files:
-  - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260417_【DoZ】5日目ヒーラーは絶対に仲間を見捨てちゃいけねぇのさ【ドズル社おおはらMEN視点】/panels_doz_healer_15331_16531_raw.json
-  - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260417_【DoZ】5日目ヒーラーは絶対に仲間を見捨てちゃいけねぇのさ【ドズル社おおはらMEN視点】/clip_15331_16531.srt
   acceptance_criteria:
   - panels 10枚全て存在（panel_count=10）
   - 各 panel.lines[].text が SRT同時刻±5秒以内の実発話に部分一致（捏造ゼロ）
   - start_sec が 0-1200 全域に分散（均一200s分割でないこと）
   - 全パネルの話者ラベルが SRT同時刻の実話者と一致（oo_men/bon/nekooji/orafu/qnly/dozle/unknown のみ）
   - フォールバック痕跡なし（均一200.2s刻みの start_sec が存在しないこと）
-  steps: 'shared_context/qc_template.md を参照してQC実施。実ファイルを自分の目で読め（数値報告だけでPASS禁止）。advisor()を実施前後に呼べ。完了後
-    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo ''QC結果{PASS/FAIL}:
-    qc_1413a。{所見}'' qc_result gunshi'
-  superseded_by: qc_1414a
-- task_id: nightly_audit_20260426_youtube
-  parent_cmd: nightly_audit
-  assigned_to: gunshi
-  bloom_level: L4
+- task_id: qc_1489a
+  agent: gunshi
+  parent_cmd: cmd_1489
   status: done
-  timestamp: '2026-04-26T02:03:00+09:00'
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_nightly_audit_20260426_youtube.yaml
-  description: '夜間矛盾検出: YouTube/外部連携カテゴリ(youtube_uploader.py/downloader.py/note系/API連携)の矛盾・不整合をコードリーディングで発見し報告。テスト禁止・コード修正禁止・読んで報告するだけ。'
-  steps: 'shared_context/qc_template.md参照→対象ファイル特定(scripts/youtube_*.py scripts/note_*.py scripts/*downloader*.py scripts/*uploader*.py projects/note_mcp_server/配下)→各ファイルを目視確認→矛盾・不整合・デッドコード・未使用変数・設計乖離を列挙→CRITICAL/HIGH/MEDIUM/INFO分類→報告YAML(target_path)に書く→inbox_write karo'
+  description: cmd_1489 /master-telop-two-stage スキルQC。.claude/commands/master-telop-two-stage.md
+    のfrontmatter妥当性・procedures参照整合・トリガー語句網羅性・Do NOT use for明記を検証。PASS/FAIL判定。
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1489a.yaml
+  procedure: /home/murakami/multi-agent-shogun/shared_context/qc_template.md
+  steps: '/home/murakami/multi-agent-shogun/shared_context/qc_template.md 読む→/home/murakami/multi-agent-shogun/.claude/commands/master-telop-two-stage.md
+    読む→/home/murakami/multi-agent-shogun/shared_context/procedures/master_telop_two_stage.md
+    読む→/home/murakami/multi-agent-shogun/.claude/commands/skill-creator.md 読む(frontmatter品質基準確認)→[QC1]frontmatter:
+    name/description/argument-hint/allowed-tools 完備確認→[QC2]descriptionに具体的トリガー語句6種以上明記確認→[QC3]本文:
+    procedures/master_telop_two_stage.md を参照する薄いwrapper形式・重複定義なし確認→[QC4]Do NOT use
+    for: 漫画ショート/表情ショート 明記確認→[QC5]context/skill_candidates_inventory.md 登録確認→PASS/CONDITIONAL_PASS/FAIL判定→完了報告YAML(/home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1489a.yaml)→inbox_write
+    karo 判定結果'
+  assigned_to: gunshi
+  timestamp: '2026-04-25T22:44:16+09:00'
   acceptance_criteria:
-    - 対象カテゴリのファイルを全て確認済み
-    - CRITICAL/HIGH/MEDIUM/INFO で分類した findings を報告
-    - テスト実行なし・コード修正なし（読んで報告のみ）
-    - 報告書を target_path に保存済み
-    - dashboard に結果掲載（家老が実施）
+  - 'frontmatter: name=master-telop-two-stage / description 1024文字以内 / トリガー語句6種以上
+    / argument-hint / allowed-tools 完備'
+  - '本文: shared_context/procedures/master_telop_two_stage.md 参照形式・重複定義なし'
+  - 'Do NOT use for: 漫画ショート(panels JSONベース) / 表情ショート(別workflow) 明記'
+  - context/skill_candidates_inventory.md に IMPLEMENTED として登録済み
+  - git commit f2741e2 push済み確認
+- task_id: nightly_audit_20260426_youtube
+  agent: gunshi
+  parent_cmd: nightly_audit
+  status: done
+  description: '夜間矛盾検出: YouTube/外部連携カテゴリ(youtube_uploader.py/downloader.py/note系/API連携)の矛盾・不整合をコードリーディングで発見し報告。テスト禁止・コード修正禁止・読んで報告するだけ。'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_nightly_audit_20260426_youtube.yaml
+  steps: shared_context/qc_template.md参照→対象ファイル特定(scripts/youtube_*.py scripts/note_*.py
+    scripts/*downloader*.py scripts/*uploader*.py projects/note_mcp_server/配下)→各ファイルを目視確認→矛盾・不整合・デッドコード・未使用変数・設計乖離を列挙→CRITICAL/HIGH/MEDIUM/INFO分類→報告YAML(target_path)に書く→inbox_write
+    karo
+  assigned_to: gunshi
+  timestamp: '2026-04-26T02:03:00+09:00'
+  acceptance_criteria:
+  - 対象カテゴリのファイルを全て確認済み
+  - CRITICAL/HIGH/MEDIUM/INFO で分類した findings を報告
+  - テスト実行なし・コード修正なし（読んで報告のみ）
+  - 報告書を target_path に保存済み
+  - dashboard に結果掲載（家老が実施）
   notes:
-    - 参考フォーマット: queue/reports/gunshi_report_nightly_audit_20260425_infra.yaml
-    - 対象: YouTube/外部連携（youtube_uploader.py, downloader.py, note系, API連携）
-    - 朝までにdashboard掲載
-    - '完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、nightly_audit_20260426_youtube完了。報告書確認されたし。" report_completed gunshi'
+  - 参考フォーマット: queue/reports/gunshi_report_nightly_audit_20260425_infra.yaml
+  - 対象: YouTube/外部連携（youtube_uploader.py, downloader.py, note系, API連携）
+  - 朝までにdashboard掲載
+  - '完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "軍師、nightly_audit_20260426_youtube完了。報告書確認されたし。"
+    report_completed gunshi'

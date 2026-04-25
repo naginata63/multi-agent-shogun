@@ -1,226 +1,18 @@
 tasks:
-- task:
-    bloom_level: L1
-    description: "レベル250クリップをYouTubeからDLして保存。\n\n## 対象\n- 動画ID: _cLsvqd23GQ\n- URL:\
-      \ https://www.youtube.com/watch?v=_cLsvqd23GQ\n\n## 手順\n1. yt-dlpでダウンロード:\n\
-      \   ```bash\n   yt-dlp -o \"projects/dozle_kirinuki/work/20260225_エンドラ30体分！？レベル250になるまで終われません！【マイクラ】/clip.mp4\"\
-      \ \"https://www.youtube.com/watch?v=_cLsvqd23GQ\"\n   ```\n2. ファイル確認（サイズ、再生時間）\n\
-      \n## テスト手順\n1. clip.mp4が存在し、ffprobeで正常な動画であること\n\n## 完了後\nbash scripts/inbox_write.sh\
-      \ karo \"足軽4号、subtask_1141a完了。レベル250クリップDL保存。\" report_done ashigaru4\n"
-    parent_cmd: cmd_1141
-    report_to: karo
-    status: done
-    task_id: subtask_1141a
-    timestamp: '2026-04-04T21:25:18'
-- task:
-    bloom_level: L1
-    description: "Z7RBudX581Yの元動画を1080pでDL。\n\n## 対象\n- 動画ID: Z7RBudX581Y\n- URL:\
-      \ https://www.youtube.com/watch?v=Z7RBudX581Y\n\n## 手順\n1. 保存先ディレクトリ作成:\n  \
-      \ ```bash\n   mkdir -p \"projects/dozle_kirinuki/work/20260225_エンドラ30体分！？レベル250になるまで終われません！【マイクラ】/input/\"\
-      \n   ```\n   ※ work/直下にYYYYMMDD_タイトル命名。level250_Z7RBudX581Yからのリネームは後で実施\n2.\
-      \ yt-dlpで1080p DL:\n   ```bash\n   yt-dlp -f \"bestvideo[height<=1080]+bestaudio/best[height<=1080]\"\
-      \ --merge-output-format mp4 -o \"projects/dozle_kirinuki/work/20260225_エンドラ30体分！？レベル250になるまで終われません！【マイクラ】/input/full.mp4\"\
-      \ \"https://www.youtube.com/watch?v=Z7RBudX581Y\"\n   ```\n3. ファイル確認（サイズ、ffprobeで1080p確認）\n\
-      \n## テスト手順\n1. full.mp4が存在し1080pであること（ffprobeでheight=1080確認）\n2. ファイルサイズが合理的であること\n\
-      \n## 完了後\nbash scripts/inbox_write.sh karo \"足軽4号、subtask_1142a完了。Z7RBudX581Y元動画1080p\
-      \ DL保存。\" report_done ashigaru4\n"
-    parent_cmd: cmd_1142
-    report_to: karo
-    status: done
-    task_id: subtask_1142a
-    timestamp: '2026-04-04T22:12:40'
-- task:
-    bloom_level: L1
-    completed_at: '2026-04-04T22:16:00'
-    description: "Z7RBudX581Yの元動画を1080pでDL。2つの指示を統合。\n\n## 対象\n- 動画ID: Z7RBudX581Y\n\
-      - URL: https://www.youtube.com/watch?v=Z7RBudX581Y\n\n## 手順\n1. 保存先ディレクトリ作成:\n\
-      \   ```bash\n   mkdir -p \"projects/dozle_kirinuki/work/20260225_エンドラ30体分！？レベル250になるまで終われません！【マイクラ】/input/\"\
-      \n   ```\n2. yt-dlpで1080p DL:\n   ```bash\n   yt-dlp -f \"bestvideo[height<=1080]+bestaudio/best[height<=1080]\"\
-      \ --merge-output-format mp4 -o \"projects/dozle_kirinuki/work/20260225_エンドラ30体分！？レベル250になるまで終われません！【マイクラ】/input/full.mp4\"\
-      \ \"https://www.youtube.com/watch?v=Z7RBudX581Y\"\n   ```\n3. ffprobeで1080p確認\n\
-      \n## テスト手順\n1. full.mp4が存在しheight=1080であること（ffprobe確認）\n\n## 完了後\nbash scripts/inbox_write.sh\
-      \ karo \"足軽4号、subtask_1142a完了。Z7RBudX581Y元動画1080p DL保存。\" report_done ashigaru4\n"
-    parent_cmd: cmd_1142
-    report_to: karo
-    result: DL complete. full.mp4 1.4GB 1920x1080 63m52s
-    status: done
-    task_id: subtask_1142a
-    timestamp: '2026-04-04T22:14:00'
-- task:
-    bloom_level: L2
-    description: "レベル250 tono_edit.mkv（3412x1918横長）を9:16縦クロップ→unlisted非公開アップ。\n\n\
-      ## 入力\nprojects/dozle_kirinuki/work/20260225_エンドラ30体分！？レベル250になるまで終われません！【マイクラ】/tono_edit.mkv\n\
-      ※ 3412x1918の横長動画\n\n## 手順\n1. ffprobeで解像度確認\n2. ffmpeg 9:16縦クロップ+NVENCエンコード:\n\
-      \   ```bash\n   ffmpeg -i \"<input>\" -vf \"crop=1079:1918:1166:0,scale=1080:1920\"\
-      \ -c:v h264_nvenc -preset p4 -c:a aac -b:a 192k \"<output>\"\n   ```\n   crop計算:\
-      \ height=1918, width=1918*9/16=1079, x=(3412-1079)/2=1166, y=0\n3. youtube_uploader.pyでunlistedアップ\n\
-      \n## テスト手順\n1. 出力動画が1080x1920であること（ffprobe確認）\n2. YouTube URLが返ること\n\n## 完了後\n\
-      bash scripts/inbox_write.sh karo \"ashigaru4, subtask_1148a done. Level250 tono_edit\
-      \ 9:16 vertical crop uploaded.\" report_done ashigaru4\n"
-    parent_cmd: cmd_1148
-    report_to: karo
-    status: done
-    task_id: subtask_1148a
-    timestamp: '2026-04-04T22:56:49'
-- task:
-    bloom_level: L2
-    completed_at: '2026-04-04T23:01:00'
-    description: 'レベル250 tono_edit.mkv（3412x1918横長）を9:16縦クロップ→unlisted非公開アップ。
-
-      '
-    parent_cmd: cmd_1148
-    report_to: karo
-    result: 'Crop done 1080x1920 h264 7.5MB. Uploaded unlisted: https://www.youtube.com/watch?v=JwRaLdZ6Ghc'
-    status: done
-    task_id: subtask_1148a
-    timestamp: '2026-04-04T22:56:49'
-- task:
-    bloom_level: L1
-    completed_at: '2026-04-04T23:42:00'
-    description: "YouTube動画 JwRaLdZ6Ghc のタイトル・概要欄更新。\n\n## 対象\n- 動画ID: JwRaLdZ6Ghc\n\
-      - URL: https://www.youtube.com/watch?v=JwRaLdZ6Ghc\n- 現在: レベル250tono_edit 9:16縦クロップ（cmd_1148でアップ済み）\n\
-      \n## 手順\n```bash\npython3 projects/dozle_kirinuki/scripts/youtube_uploader.py\
-      \ \\\n  --video-id JwRaLdZ6Ghc \\\n  --update-metadata \\\n  --title \"レベル250になるまで終われません！編集版\"\
-      \ \\\n  --description \"マイクラでエンドラ30体分！？レベル250になるまで終われません！の編集版ショート\n\nチャンネル登録・高評価よろしくお願いします！\n\
-      \n#マインクラフト #マイクラ #ショート\"\n```\n※ youtube_uploader.pyに--update-metadata/--title/--descriptionオプションがない場合は、直接YouTube\
-      \ APIを使って更新\n\n## テスト手順\n1. ブラウザでhttps://www.youtube.com/watch?v=JwRaLdZ6Ghcを開いてタイトル・概要欄が更新されているか確認\n\
-      \n## 完了後\nbash scripts/inbox_write.sh karo \"ashigaru4, subtask_1151a done.\
-      \ JwRaLdZ6Ghc title/description updated.\" report_done ashigaru4\n"
-    parent_cmd: cmd_1151
-    report_to: karo
-    result: 'Title: レベル250になるまで終われません！編集版, Description updated (87 chars). Verified
-      via API.'
-    status: done
-    task_id: subtask_1151a
-    timestamp: '2026-04-04T23:40:37'
-- task:
-    bloom_level: L1
-    completed_at: '2026-04-05T06:24:00'
-    description: "JwRaLdZ6Ghcのタイトル・概要欄を既存ショートと同じフォーマットに修正。\n\n## 対象\n- 動画ID: JwRaLdZ6Ghc\n\
-      - URL: https://www.youtube.com/watch?v=JwRaLdZ6Ghc\n\n## 手順\n1. 既存公開ショートのタイトル・概要欄フォーマットを確認:\n\
-      \   ```bash\n   python3 projects/dozle_kirinuki/scripts/youtube_uploader.py\
-      \ --list-recent 2>/dev/null || python3 -c \"\n   import json, subprocess\n \
-      \  result = subprocess.run(['python3', 'projects/dozle_kirinuki/scripts/youtube_uploader.py',\
-      \ '--video-id', 'JwRaLdZ6Ghc', '--get-info'], capture_output=True, text=True)\n\
-      \   print(result.stdout)\n   \"\n   ```\n2. 既存ショートのフォーマットに合わせてタイトル・概要欄を更新\n\n\
-      ## 完了後\nbash scripts/inbox_write.sh karo \"ashigaru4, subtask_1152a done. JwRaLdZ6Ghc\
-      \ title/description updated to match short format.\" report_done ashigaru4\n"
-    parent_cmd: cmd_1152
-    report_to: karo
-    result: 'Title: レベル250になるまで終われません！編集版【ドズル社切り抜き】@dozle #shorts. Description: 357
-      chars with 元動画/本家/出演者/hashtags. Verified via API.'
-    status: done
-    task_id: subtask_1152a
-    timestamp: '2026-04-05T06:22:37'
-- task:
-    bloom_level: L3
-    completed_at: '2026-04-05T06:30:00'
-    description: "ntfy.shに✅ cmd完了送信時の自動done更新機能を追加。\n\n## 背景\ncmd_1112でinbox_write.shにcmd\
-      \ status自動更新機能を追加済み。\n同じ手法でntfy.shにも追加。\n\n## 対象\nscripts/ntfy.sh\n\n## 手順\n\
-      1. 現在のntfy.shを読む\n2. scripts/inbox_write.sh のcmd status自動更新ロジック（task_assigned時pending→in_progress）を確認\n\
-      3. ntfy.shに以下を追加:\n   - メッセージが「✅ cmd_XXXX完了」パターンにマッチした場合\n   - 対応するcmdのstatusをshogun_to_karo.yamlでdoneに更新\n\
-      \   - inbox_write.shと同じsed-based approach\n4. テスト: dry-runでパターンマッチ確認\n\n## テスト手順\n\
-      1. bash scripts/ntfy.sh \"✅ cmd_TEST完了: テスト\" を実行\n2. ログでパターンマッチとsed実行を確認（実際のファイルは変更しないdry-runで）\n\
-      3. git commit（push禁止）\n\n## 完了後\nbash scripts/inbox_write.sh karo \"ashigaru4,\
-      \ subtask_1153a done. ntfy.sh auto-done update added.\" report_done ashigaru4\n"
-    parent_cmd: cmd_1153
-    report_to: karo
-    result: 'ntfy.sh _update_cmd_done() added. Matches ✅ cmd_XXXX完了 pattern → updates
-      shogun_to_karo.yaml in_progress→done. Anchored regex /^  status: in_progress$/
-      avoids false matches in quoted strings. Dry-run verified with cmd_1153. Committed.'
-    status: done
-    task_id: subtask_1153a
-    timestamp: '2026-04-05T06:25:48'
-- task:
-    acceptance_criteria:
-    - タイトルが原文と完全一致
-    - 概要欄が原文と完全一致（改行含む）
-    - 1文字も改変していないこと
-    bloom_level: L2
-    description: "JwRaLdZ6Ghc（レベル250編集版）のタイトル・概要欄を以下の**原文そのまま**に書き換えろ。\n\n## 【絶対厳守】1文字も変えるな。改変禁止。\n\
-      \n## タイトル（これをそのまま使え）\nおんりーの経験値トラップが大崩壊！？【ドズル社切り抜き】@dozle #shorts #漫画動画\n\n##\
-      \ 概要欄（これをそのまま使え。改行も含めて完全コピー）\nドズル社の切り抜きショート動画です。\n\nおんりーが自信満々で説明した経験値トラップ装置。\n\
-      アルマジロ×シルバーフィッシュの完璧な理論…のはずが\n丸石で作ったのが運の尽き。\n\n▼ 元動画\nエンドラ30体分！？レベル250になるまで終われません！【マイクラ】\n\
-      https://www.youtube.com/watch?v=Z7RBudX581Y\n\n▼ 本家チャンネル\nドズル社\nhttps://www.youtube.com/@dozle_jp\n\
-      \n#ドズル社 #マイクラ #切り抜き #shorts #AI漫画\n\n※漫画パネルはAI画像生成で制作しています\n\n## 実行コマンド\n```bash\n\
-      cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki\nsource venv/bin/activate\n\
-      python3 scripts/youtube_uploader.py update JwRaLdZ6Ghc \\\n  --title 'おんりーの経験値トラップが大崩壊！？【ドズル社切り抜き】@dozle\
-      \ #shorts #漫画動画' \\\n  --description 'ドズル社の切り抜きショート動画です。\n\nおんりーが自信満々で説明した経験値トラップ装置。\n\
-      アルマジロ×シルバーフィッシュの完璧な理論…のはずが\n丸石で作ったのが運の尽き。\n\n▼ 元動画\nエンドラ30体分！？レベル250になるまで終われません！【マイクラ】\n\
-      https://www.youtube.com/watch?v=Z7RBudX581Y\n\n▼ 本家チャンネル\nドズル社\nhttps://www.youtube.com/@dozle_jp\n\
-      \n#ドズル社 #マイクラ #切り抜き #shorts #AI漫画\n\n※漫画パネルはAI画像生成で制作しています'\n```\n\nyoutube_uploader.pyにupdate機能がない場合は、YouTube\
-      \ Data API videos.updateを直接使え。\n\n## テスト手順\n1. https://www.youtube.com/watch?v=JwRaLdZ6Ghc\
-      \ でタイトル・概要欄確認\n2. タイトルが「おんりーの経験値トラップが大崩壊！？【ドズル社切り抜き】@dozle #shorts #漫画動画」と完全一致\n\
-      3. 概要欄が上記原文と完全一致（改行含む）\n\n## 完了後\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
-      \ karo \"ashigaru4, subtask_1155a done. JwRaLdZ6Ghc title/description updated\
-      \ to exact copy.\" report_done ashigaru4\n"
-    important_notes:
-    - 【最重要】1文字も変えるな。前回cmd_1151/1152で勝手に改変した件、殿が激怒している
-    - 句読点、スペース、改行位置も完全に一致させること
-    parent_cmd: cmd_1155
-    project: dozle_kirinuki
-    report_to: karo
-    status: done
-    task_id: subtask_1155a
-    timestamp: '2026-04-05T06:35:00'
-- task:
-    acceptance_criteria:
-    - GEMINI_API_KEY参照がVERTEX_API_KEY優先に変更
-    - python3構文エラーなし
-    - git commit済み
-    bloom_level: L3
-    description: "vertex_api_key.envを主要APIキー設定として全スクリプトで標準化する。\n\n## 殿指示\nvertex_api_key.envを「めいん」にしろ。GEMINI_API_KEY（~/.bashrc）は期限切れ。\n\
-      config/vertex_api_key.env の VERTEX_API_KEY のみが有効なGemini系キー。\n\n## 対象ファイル（夜間監査で特定済み）\n\
-      projects/dozle_kirinuki/scripts/ 以下:\n- auto_expression_selector.py\n- build_competitor_centroid.py\n\
-      - detect_faces_gemini.py\n- embedding_analytics.py\n- expression_matcher.py\n\
-      - make_thumbnail_auto.py\n- scene_search.py\n- generate_thumbnail.py\n- その他\
-      \ GEMINI_API_KEY を参照するファイル\n\n## 修正内容\n各ファイルで:\n```python\n# Before（禁止パターン）\n\
-      api_key = os.environ.get(\"GEMINI_API_KEY\")\n# or\nsource ~/.bashrc  # GEMINI_API_KEY期限切れ\n\
-      \n# After（標準パターン）\napi_key = os.environ.get(\"VERTEX_API_KEY\") or os.environ.get(\"\
-      GEMINI_API_KEY\")\n```\nまたは実行時に:\n```bash\nsource /home/murakami/multi-agent-shogun/config/vertex_api_key.env\n\
-      ```\n\n## 手順\n1. grep -rn \"GEMINI_API_KEY\" projects/dozle_kirinuki/scripts/\
-      \ で全対象を特定\n2. grep -rn \"GEMINI_API_KEY\" scripts/ でメインscripts/も確認\n3. 各ファイルで\
-      \ os.environ.get(\"GEMINI_API_KEY\") → os.environ.get(\"VERTEX_API_KEY\") or\
-      \ os.environ.get(\"GEMINI_API_KEY\") に置換\n   （フォールバック付きで安全に移行）\n4. source ~/.bashrc\
-      \ のみに依存している箇所に source config/vertex_api_key.env も追加\n5. 各ファイルの構文チェック: python3\
-      \ -c \"import ast; ast.parse(open('FILE').read())\"\n\n## git safety protocol\n\
-      1. git add projects/dozle_kirinuki/scripts/ scripts/ && git commit -m \"chore:\
-      \ pre-batch save\"\n2. 5ファイル修正 → git diff --name-status 確認（D=即STOP）\n3. 残り修正\n\
-      4. 最終確認 → git commit\n\n## テスト手順\n1. grep -rn \"GEMINI_API_KEY\" projects/dozle_kirinuki/scripts/\
-      \ で残余確認\n2. 各ファイルのpython3構文チェック\n3. source config/vertex_api_key.env && python3\
-      \ -c \"import os; print(os.environ.get('VERTEX_API_KEY','')[:10])\" でキー読み込み確認\n\
-      \n## 完了後\ngit add projects/dozle_kirinuki/scripts/ scripts/\ngit commit -m \"\
-      feat(vertex_main): GEMINI_API_KEY→VERTEX_API_KEY標準化（10+ファイル）\"\nbash /home/murakami/multi-agent-shogun/scripts/ntfy.sh\
-      \ \"✅ vertex_api_key.env標準化完了: Nファイル修正\"\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
-      \ karo \"足軽4号、vertex_main完了。GEMINI_API_KEY→VERTEX_API_KEY標準化Nファイル。\" report_done\
-      \ ashigaru4\n"
-    parent_cmd: cmd_vertex_main
-    project: multi-agent-shogun
-    report_to: karo
-    safety: batch_modify
-    status: done
-    task_id: subtask_vertex_main_01
-    timestamp: '2026-04-05T07:55:00'
 - task_id: subtask_1425c
+  agent: ashigaru4
   parent_cmd: cmd_1425
   bloom_level: L2
   status: blocked
-  timestamp: '2026-04-22T20:52:00'
-  blocked_reason: YouTube bot detection. yt-dlp --cookies-from-browser chrome/firefox不可（ブラウザcookieなし）。denoインストール済みも全player_client(android/tv/ios/mweb)でbot検知。認証cookie必要。
-  blocked_at: '2026-04-23T11:47:00'
   description: DoZ6日目 シャルロット(youtube live v19JAnVjZ_c) DL+1時間分割。保存先 DAY6_DIR/raw/
     → DAY6_DIR/multi/day6_charlotte_part_XX.mp4
-  params:
-    url: https://www.youtube.com/live/v19JAnVjZ_c
-    day6_dir: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260416_【#DoZ】6日目
-      腹から声が出ないヒーラーに命を任せれられるとでも？【ドズル社／おおはらMEN視点】
-    raw_out: day6_charlotte_full.mp4
-    prefix: day6_charlotte
-    work_dir: /home/murakami/multi-agent-shogun/work/cmd_1425
   steps: mkdir -p work/cmd_1425 DAY6_DIR/raw DAY6_DIR/multi → yt-dlp 'https://www.youtube.com/live/v19JAnVjZ_c'
     -f 'bv*+ba/best' -o DAY6_DIR/raw/day6_charlotte_full.mp4 --write-info-json → ffmpeg
     -i raw/day6_charlotte_full.mp4 -c copy -f segment -segment_time 3600 -reset_timestamps
     1 multi/day6_charlotte_part_%02d.mp4 → ffprobe各partで尺/codec確認→結果をwork/cmd_1425/charlotte_parts.json保存→完了報告
+  blocked_reason: YouTube bot detection. yt-dlp --cookies-from-browser chrome/firefox不可（ブラウザcookieなし）。denoインストール済みも全player_client(android/tv/ios/mweb)でbot検知。認証cookie必要。
+  blocked_at: '2026-04-23T11:47:00'
+  timestamp: '2026-04-22T20:52:00'
   acceptance_criteria:
   - day6_charlotte_full.mp4 DL成功（音声付き）
   - day6_charlotte_part_00.mp4〜 が DAY6_DIR/multi/ に存在
@@ -232,33 +24,57 @@ tasks:
   - /tmp禁止。中間ファイルはwork/cmd_1425/配下
   - '完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo ''足軽4号、subtask_1425c完了。シャルロットDL+分割完了。''
     report_completed ashigaru4'
-- task_id: subtask_1484a
-  parent_cmd: cmd_1484
+  params:
+    url: https://www.youtube.com/live/v19JAnVjZ_c
+    day6_dir: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260416_【#DoZ】6日目
+      腹から声が出ないヒーラーに命を任せれられるとでも？【ドズル社／おおはらMEN視点】
+    raw_out: day6_charlotte_full.mp4
+    prefix: day6_charlotte
+    work_dir: /home/murakami/multi-agent-shogun/work/cmd_1425
+- task_id: subtask_1488a
+  agent: ashigaru4
+  parent_cmd: cmd_1488
+  bloom_level: L4
+  status: in_progress
+  description: 'cmd_1488: SQLite p2 dual-path writes実装。inbox_write.sh + server.py
+    POST /api/cmd_create にSQLite INSERT dual-path追加(YAML正・SQLite並走・kill_switch=STORAGE_BACKEND)。本番DB初期化(queue/cmds.db)+全YAML初期投入+Litestream設定+日次dumpバックアップcron+audit
+    script(sqlite_yaml_audit.py)新規作成+kill_switch動作確認+1週間soak開始。p3 dual-path readsには進まない。cmd_1491完遂(commit
+    863bb19)済みゆえserver.py干渉なし。'
+  target_path: /home/murakami/multi-agent-shogun/scripts/sqlite_yaml_audit.py
+  procedure: /home/murakami/multi-agent-shogun/queue/reports/gunshi_design_sqlite_migration_1481.yaml
+  steps: /home/murakami/multi-agent-shogun/queue/shogun_to_karo.yaml(id:cmd_1488)全文読む
+    + /home/murakami/multi-agent-shogun/queue/reports/gunshi_design_sqlite_migration_1481.yaml
+    rank_2_dual_pathセクション読む→advisor()→[Step1]sqlite3 /home/murakami/multi-agent-shogun/queue/cmds.db
+    < /home/murakami/multi-agent-shogun/queue/schema_v1.sql → cd /home/murakami/multi-agent-shogun
+    && python3 /home/murakami/multi-agent-shogun/scripts/migrate_yaml_to_sqlite.py
+    --output-db /home/murakami/multi-agent-shogun/queue/cmds.db --no-dry-run --verbose
+    2>&1 | tee /home/murakami/multi-agent-shogun/logs/migration_initial.log(件数確認)→[Step2]/home/murakami/multi-agent-shogun/scripts/inbox_write.sh
+    dual-path改修(YAML書込後SQLite INSERT追加/STORAGE_BACKEND=yaml時はSQLite skip/flock必須)→[Step3]/home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+    dual-path改修(cmd_1491実装を継承しSQLite INSERT追加・STORAGE_BACKEND制御)→[Step4]Litestream
+    config設定+nohup起動+/home/murakami/multi-agent-shogun/logs/litestream.log確認→[Step5]crontab設定(0
+    3 * * * 日次dump → /home/murakami/multi-agent-shogun/queue/backup/配下)→[Step6]/home/murakami/multi-agent-shogun/scripts/sqlite_yaml_audit.py
+    新規作成(4テーブル件数+内容ハッシュ比較・差分時exit1+ntfy)+cron設定(0 4 * * *)→[Step7]kill_switch動作確認(STORAGE_BACKEND=yaml
+    でinbox_write.sh実行→SQLite未更新確認)→[Step8]初回audit手動実行(差分0件確認)→soak開始→advisor()→完了報告YAML(/home/murakami/multi-agent-shogun/queue/reports/ashigaru4_report_subtask_1488a.yaml)→git
+    add /home/murakami/multi-agent-shogun/scripts/sqlite_yaml_audit.py /home/murakami/multi-agent-shogun/scripts/inbox_write.sh
+    /home/murakami/multi-agent-shogun/scripts/dashboard/server.py→commit→push→inbox_write
+    gunshi QC依頼→inbox_write karo 完了報告
   assigned_to: ashigaru4
-  bloom_level: L5
-  status: done
-  timestamp: '2026-04-25T21:20:00+09:00'
-  completed_at: '2026-04-25T21:33:00+09:00'
-  description: 'cmd_1484 SQLite migration p0+p1: install検証+schema_v1.sql作成+migrate_yaml_to_sqlite.py作成+dry-run実行。完了。報告: queue/reports/ashigaru4_report_subtask_1484a.yaml'
-  target_path: /home/murakami/multi-agent-shogun/queue/schema_v1.sql
-  procedure: queue/reports/gunshi_design_sqlite_migration_1481.yaml
-- task_id: subtask_1484b
-  parent_cmd: cmd_1484
-  assigned_to: ashigaru4
-  bloom_level: L1
-  status: done
-  timestamp: '2026-04-25T21:48:00+09:00'
-  completed_at: '2026-04-25T21:53:40'
-  description: 'cmd_1484 CONDITIONAL_PASS解消: dryrun_log.txt(Total250)とdryrun_output.sql(Total255)の乖離を単一run再生成で修正。軍師指摘(gunshi_report_qc_1484a.yaml)対応。'
-  target_path: /home/murakami/multi-agent-shogun/work/cmd_1484/dryrun_log.txt
-  procedure: shared_context/qc_template.md
-  steps: 'python3 scripts/migrate_yaml_to_sqlite.py --dry-run --verbose --output-db work/cmd_1484/dryrun_output.sql 2>&1 | tee work/cmd_1484/dryrun_log.txtを単発実行→dryrun_log.txt末尾のSUMMARY数値(Commands/Inbox/Tasks/Reports/Total)をgrep→dryrun_output.sqlの各テーブルINSERT数をgrep -c で確認→両者が一致するか検証→queue/reports/ashigaru4_report_subtask_1484b.yamlに結果記録→git add work/cmd_1484/ queue/reports/→git commit→inbox_write karo完了報告'
+  timestamp: '2026-04-25T22:39:00+09:00'
   acceptance_criteria:
-  - dryrun_log.txt SUMMARY と dryrun_output.sql のINSERT数が一致すること
-  - '検証コマンド: grep -E "Total:" work/cmd_1484/dryrun_log.txt と grep -c "^INSERT" work/cmd_1484/dryrun_output.sql で同数確認'
-  - 完了報告YAML: queue/reports/ashigaru4_report_subtask_1484b.yaml
-  - git commit済み(work/cmd_1484/ + 報告YAML)
+  - scripts/inbox_write.sh dual-path改修: YAML書込後SQLite INSERT / STORAGE_BACKEND=yaml時skip動作確認
+  - server.py POST /api/cmd_create dual-path改修: cmd_1491実装を継承・SQLite INSERT追加・互換性維持
+  - kill_switch(STORAGE_BACKEND=yaml)でSQLite書込完全スキップ動作確認済み
+  - queue/cmds.db 本番DB初期化完了 + 既存YAML全データ初期投入完了(件数確認)
+  - Litestream稼働確認(logs/litestream.log存在・ERROR 0)
+  - 日次dumpバックアップcron設定完了(queue/backup/cmds_YYYYMMDD.sql.gz)
+  - scripts/sqlite_yaml_audit.py 新規作成・4テーブル件数+ハッシュ比較・差分時exit1+ntfy
+  - 初回audit実行: 差分0件確認済み
+  - 毎日4:00 audit cronを設定済み
+  - p3 dual-path readsには進んでいない
+  - 軍師QC依頼済み
+  - git commit + push完了
   notes:
-  - 軍師レポート queue/reports/gunshi_report_qc_1484a.yaml のissues_found > fix_instructionを参照
-  - このコマンド1本だけ。p2 dual-pathには進まない
-  - '完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo ''足軽4号、subtask_1484b完了。dryrun再生成・log/sql一致確認。'' report_completed ashigaru4'
+  - cmd_1491完遂(22:32 commit 863bb19)済み・server.py干渉なし
+  - YAML書込失敗時はSQLite書込もスキップ(YAMLが正・SQLiteは並走)
+  - rollback: STORAGE_BACKEND=yaml + queue/cmds.db削除でp1以前に即戻し可
+  - 1週間soak中差分1件でも出れば即STORAGE_BACKEND=yaml + 軍師調査cmd発令

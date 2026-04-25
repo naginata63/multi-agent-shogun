@@ -1,209 +1,28 @@
 tasks:
-- task_id: subtask_1428c_prep
-  parent_cmd: cmd_1428
-  bloom_level: L2
-  status: done
-  timestamp: "2026-04-23T11:25:00+09:00"
-  description: "cmd_1428 Phase2 事前準備: panels JSON確認 + manga-short環境確認（画像生成はまだしない）"
-  steps: "panels_asobunokinshi.json / panels_960_1080.json の内容確認（panel数・話者ラベル・lineがSRT一致か）→manga-shortスキル動作確認(SKILL.md読む)→出力ディレクトリ準備→確認レポートを inbox_write で家老に報告"
-  params:
-    panels1: "projects/dozle_kirinuki/work/20260421_TNTしか使えない世界でエンドラ討伐/manga_asobunokinshi/panels_asobunokinshi.json"
-    panels2: "projects/dozle_kirinuki/work/20260421_TNTしか使えない世界でエンドラ討伐/manga_960_1080/panels_960_1080.json"
-    clip1: "projects/dozle_kirinuki/work/20260421_TNTしか使えない世界でエンドラ討伐/clip_asobunokinshi.mp4"
-    clip2: "projects/dozle_kirinuki/work/20260421_TNTしか使えない世界でエンドラ討伐/clip_960_1080.mp4"
-    skill_doc: "skills/manga-short/SKILL.md"
-  acceptance_criteria:
-    - "両panels JSONのpanel数・話者ラベル確認済み（アルファベットラベルがないか確認）"
-    - "manga-short スキルの必須引数・動作フロー把握済み"
-    - "出力ディレクトリ work/cmd_1428/ 存在確認・なければ mkdir"
-    - "確認レポートをkaro inboxに報告（パネル数・話者ラベル・準備OK/NG）"
-  notes:
-    - "【重要】画像生成はまだしない。殿のパネルレビューOK待ちのため"
-    - "panels_asobunokinshi_edited.json が存在する（殿が既に編集済みかもしれない）→ こちらを優先して確認"
-    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽7号、subtask_1428c_prep完了。panels確認結果: [報告内容]' report_completed ashigaru7"
-
-- task_id: subtask_1441ghi
-  parent_cmd: cmd_1441
-  bloom_level: L4
-  status: done
-  target_path: /home/murakami/multi-agent-shogun/work/cmd_1441/ideas/ashigaru7_ghi.md
-  timestamp: "2026-04-24T12:55:00+09:00"
-  description: "cmd_1441 Phase A カテゴリ(g)MCN申請文v1→v2 + (h)スキル化候補積残 + (i)cmem todolist Phase2/3整理 の3カテゴリ統合アイデア出し。work/cmd_1441/ideas/ashigaru7_ghi.md に3セクション(g/h/i)で整理"
-  steps: "advisor()→work/dozle_application/(g)+dashboard.md🚨スキル化候補(h)+work/cmd_1436/todolist.md(i) を読む→g/h/i 3セクションそれぞれ現状/やれてないこと/アイデアでmd作成→advisor()→git add commit→inbox_write karo報告"
-  acceptance_criteria:
-    - "work/cmd_1441/ideas/ashigaru7_ghi.md 作成(3カテゴリ各々 現状/やれてないこと/アイデア・最低各3アイデア)"
-    - "git commit済み"
-  notes:
-    - "新規.py禁止・md作成のみ・3カテゴリ1ファイル統合"
-    - "(g)MCN=ドズル社加入申請・v1ドラフト未送信。(h)スキル化=yt-dlp-js-runtimes(承認済cmd_1439進行中)等。(i)cmem=C/J/D完了後のPhase2/3未着手"
-    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽7号、subtask_1441ghi完了。' report_completed ashigaru7"
-
-- task_id: cmd_1443_p03
-  parent_cmd: cmd_1443
-  bloom_level: L5
-  status: done
-  target_path: /home/murakami/multi-agent-shogun/scripts/cmd_intake_hook.sh
-  timestamp: "2026-04-24T19:15:00+09:00"
-  description: "cmd_1443 Wave A/p03 H3+H8拡張: cmd起票時 mem-search 自動実行 + 4系統自動 add_observations。殿追加指示で書き側も自動化"
-  steps: "advisor()→Step1:Read /home/murakami/multi-agent-shogun/work/cmd_1442/execution_plan_v3.md §3 Δ3→Step2:scripts/cmd_intake_hook.sh新設(shell)で shogun_to_karo.yaml PreToolUseでcmd本文からキーワード抽出(awk・日本語名詞+英単語)→Step3:scripts/cmem_search.sh呼出し hit>0なら結果をcmdコメント挿入/hit=0なら警告注入→Step4:4系統自動add_observations実装 (i)cmem obs POST /api/observations (ii)mcp__memory__add_observations rule_yaml_first (iii)feedback_*.md:殿激怒キーワード検出でlord-angry slash呼出予約 (iv)dashboard_archive/にcmd追記→Step5:.claude/settings.json PreToolUse hook登録(shogun_to_karo.yaml編集時)→Step6:動作確認(サンプルcmdで4系統全動作確認)→advisor()→Step7:git commit→Step8:inbox_write karo報告"
-  acceptance_criteria:
-    - "scripts/cmd_intake_hook.sh 新設(shell・新規.py禁止)"
-    - "mem-search 自動実行・hit 0 件時 警告コメント注入動作確認"
-    - "4系統自動 add_observations 全動作確認(cmem obs/MCP entity/feedback_*.md検出/dashboard archive)"
-    - ".claude/settings.json PreToolUse hook 登録"
-    - "既存 shogun_to_karo.yaml 編集 regression なし"
-    - "git commit 済み"
-  notes:
-    - "殿判断H3+H8採用+登録自動化(2026-04-24 18:25): 4系統自動add_observations追加"
-    - "参考設計: work/cmd_1442/execution_plan_v3.md §3 Δ3"
-    - "既存 scripts/cmem_search.sh 活用・拡張"
-    - "新規.py禁止・shellのみ・advisor()必須(作業前+完了前)・軍師QC必須"
-    - "所要時間: MED 2-3h"
-    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽7号、cmd_1443_p03完了(H3+H8拡張 4系統自動add_obs)。' report_completed ashigaru7"
-
-- task_id: cmd_1445
-  parent_cmd: cmd_1445
-  bloom_level: L6
-  status: done
-  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/curriculum_v1.md
-  timestamp: "2026-04-24T20:18:00+09:00"
-  description: "Udemy講座『AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全実践』カリキュラム設計v1。L1プロンプト+L2コンテキスト(claude-mem/MCP/instructions)+L3ハーネス(hook/done_gate/silent_fail/lord-angry等13種)統合コース設計"
-  steps: "advisor()→Step1:Read memory/project_udemy_3engineering.md(実パス /home/murakami/.claude/projects/-home-murakami-multi-agent-shogun/memory/project_udemy_3engineering.md)→Step2:Read work/cmd_1444/marketing_trip_videos_summary.md+udemy_strategy.txt+udemy_engineering.json(マーケ戦略と既存講座分析)→Step3:cmd_1443実装成果(12ハーネス)をL3教材化・cmd_1442/1441経験をL1/L2教材化→Step4:projects/udemy_course/drafts/curriculum_v1.md作成(章立て: L1プロンプト基礎→L2コンテキスト実装→L3ハーネス実装13例→総合演習・各章に学習目標/演習課題/成果物定義)→Step5:差別化ポイント明記(9体並列実運用+13ハーネス実装実例+3階層統合は市場ゼロ)→Step6:advisor()→Step7:git add 明示パス(projects/udemy_course/drafts/curriculum_v1.md のみ)+commit→Step8:inbox_write gunshi QC依頼"
-  acceptance_criteria:
-    - "projects/udemy_course/drafts/curriculum_v1.md 作成(章立て+学習目標+演習課題+成果物定義)"
-    - "L1/L2/L3 3階層の章構成"
-    - "cmd_1443 12ハーネス実装例をL3教材化"
-    - "cmd_1441/1442 経験をL1プロンプト・L2コンテキスト教材化"
-    - "差別化ポイント明記(3階層統合は市場ゼロ・9体並列実運用・13ハーネス実装)"
-    - "work/cmd_1444 マーケ戦略+既存講座分析の反映"
-    - "git commit 済み(明示パスで add)"
-  notes:
-    - "殿発令 cmd_1445(2026-04-24 20:17・Option B 即起票)"
-    - "必須参照: memory/project_udemy_3engineering.md + work/cmd_1444/* (特に marketing_trip_videos_summary.md + udemy_strategy.txt + udemy_engineering.json)"
-    - "足軽7号選定理由: cmd_1443_p03で三層アーキ(cmd_intake_hook.sh+fallback 3点+SessionStart ingest)を実装した張本人・理解度最高"
-    - "新規.py禁止・markdown作成のみ"
-    - "advisor()必須(作業前+完了前)"
-    - "git add . 禁止(CHK8 絶対BLOCK)・明示パス `git add projects/udemy_course/drafts/curriculum_v1.md` のみ"
-    - "軍師QC必須"
-    - "所要時間: MED-HIGH 3-5h (大型設計タスク)"
-    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽7号、cmd_1445完了(Udemy講座カリキュラム設計v1)。QC依頼。' report_completed ashigaru7"
-
-- task_id: subtask_1449_c
-  parent_cmd: cmd_1449
-  bloom_level: L4
-  status: done
-  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/curriculum_v1.md
-  timestamp: "2026-04-24T23:24:00+09:00"
-  description: "cmd_1449 領域C Udemy v1 カリキュラム minor 3件修正(軍師 qc_1445 指摘): (1)18h尺vs1000円不整合 (2)既存講座固有名詞引用 (3)筆者third-person L343-L570残存。v2 課題 6件は殿レビュー後ゆえ本subtaskではスコープ外"
-  steps: "advisor()→Step1:Read queue/reports/gunshi_report_qc_1445.yaml の minor findings 3件の具体指摘箇所確認→Step2:Read projects/udemy_course/drafts/curriculum_v1.md 該当L343-L570+他該当箇所→Step3:(1)18h尺vs1000円の不整合解消(価格or時間どちらか整合化・軍師指摘の根拠確認)→Step4:(2)既存講座固有名詞引用を一般化 or 出典明記で対応→Step5:(3)筆者third-person L343-L570 を著者自身が一人称で書く記述に統一→Step6:verify: 修正前後の diff 確認+minor 3件 finding が解消されているか自己確認→Step7:git commit(明示パス)→Step8:inbox_write gunshi QC依頼"
-  acceptance_criteria:
-    - "minor finding (1) 18h尺vs1000円不整合解消"
-    - "minor finding (2) 既存講座固有名詞引用を一般化 or 出典明記"
-    - "minor finding (3) 筆者third-person L343-L570 一人称統一"
-    - "v2 課題 6件(U1 rubric含む)は本subtaskスコープ外明記"
-    - "curriculum_v1.md 全体整合性維持(修正で破綻しないこと)"
-    - "verify: 自己 diff レビュー+軍師 minor 3件 解消確認"
-    - "git commit 済み(明示パス curriculum_v1.md のみ)"
-  notes:
-    - "殿指示(2026-04-24 23:22)『やれるだけやれ』5領域並列一掃"
-    - "足軽7号選定: cmd_1445 curriculum_v1 作成者・全体把握+整合修正に最適"
-    - "v2 課題 6件(U1 rubric最優先BLOCKING含む)は殿レビュー後別cmdで継続"
-    - "並列非干渉: 他領域A/B/D/E と別ファイル群"
-    - "advisor() 最低1回(作業前推奨)"
-    - "git add . 禁止・明示パスのみ(curriculum_v1.md)"
-    - "所要時間: LOW 30min-1h (minor修正3件)"
-    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽7号、subtask_1449_c完了(Udemy v1 minor 3件修正)。QC依頼。' report_completed ashigaru7"
-
-- task_id: subtask_1456d
-  parent_cmd: cmd_1456
-  bloom_level: L2
-  status: done
-  timestamp: "2026-04-25T07:27:00+09:00"
-  target_path: /home/murakami/multi-agent-shogun/shared_context/task_yaml_schema.md
-  description: |
-    cmd_1456 領域d: shared_context/task_yaml_schema.md に post_steps / verify_exempt フィールド仕様を追記。
-    cmd_1455 H_post_step_completion_detector 実装と整合。
-    参照: work/cmd_1449/H_post_step_completion_detector_design.md (R1/R4のschema spec)。
-    cmd_1443_p07 (task_yaml_schema.md 単一正典化実装)の形式に倣って記述。
-    完了後 work/cmd_1456/infra_cleanup_report.md に領域d 結果追記。
-  steps: "advisor()→Step1:shared_context/task_yaml_schema.md 現状読解(既存セクション構造確認)→Step2:設計doc R1/R4のpost_steps spec熟読→Step3:post_steps フィールド仕様追記(型/意味/サンプルYAML/marker選定contract)→Step4:verify_exempt フィールド仕様追記→Step5:yaml.safe_load等でschema doc形式確認→Step6:work/cmd_1456/infra_cleanup_report.md に領域d追記→commit→advisor()→Step7:inbox_write karo報告"
-  acceptance_criteria:
-    - "shared_context/task_yaml_schema.md に post_steps フィールド仕様追記(型/意味/サンプル/marker contract)"
-    - "shared_context/task_yaml_schema.md に verify_exempt フィールド仕様追記"
-    - "cmd_1455 done_gate.sh実装と整合(field名/型が一致)"
-    - "既存セクション構造を壊さない(cmd_1443_p07形式踏襲)"
-    - "work/cmd_1456/infra_cleanup_report.md に領域d diff記録"
-    - "git commit 済み"
-  notes:
-    - "advisor()最低2回(作業前・完了前)"
-    - "新規.py禁止"
-    - "cmd_1455(ashigaru4)との整合必須→done_gate.sh実装のfield仕様を先に確認してから追記"
-    - "work/cmd_1456/ディレクトリ: mkdir -p で冪等"
-    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽7号、subtask_1456d完了(task_yaml_schema post_steps/verify_exempt追記)。' report_completed ashigaru7"
-
-- task_id: subtask_1465a
-  parent_cmd: cmd_1465
-  bloom_level: L4
-  status: done
-  timestamp: "2026-04-25T12:08:00+09:00"
-  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/curriculum_v2.md
-  description: |
-    Udemy講座カリキュラム v2 (マーケ強化版) 作成。
-    cmd_1445 で作成した curriculum_v1.md をベースに、殿指摘の5項目を補完した v2 を別ファイルで生成。
-
-    【必須参照ファイル】
-    - projects/udemy_course/drafts/curriculum_v1.md (ベース)
-    - work/cmd_1444/marketing_trip_videos_summary.md (Marketing Tripメソッド・ペルソナ設計指針)
-    - work/cmd_1444/udemy_strategy_summary.md (LP/オプトイン/購買心理ナレッジ)
-    - work/cmd_1444/udemy_engineering.json (60件競合分析データ・対決表素材)
-    - /home/murakami/.claude/projects/-home-murakami-multi-agent-shogun/memory/project_udemy_3engineering.md
-    - memory/feedback_note_article_composition.md (3本柱思想応用)
-
-    【5 AC 項目 (全て必須)】
-    1. ペルソナ 3-5 詳述: 年代/職種/業界/年収/具体困りごと/購買動機
-    2. ハンズオン具体化: 各章で何を作る・どう作る・完成品見た目・所要時間
-    3. マーケ戦略: LPコピー案・無料プレビュー設計・購買心理フック・タイトル候補5案
-    4. 競合直接対決表: udemy_engineering.jsonの実講座名を使ってvs比較 (受講者目線)
-    5. ストーリー設計: 各章のemotional hook・受講者の『これだ』ポイント
-
-    出力: projects/udemy_course/drafts/curriculum_v2.md (v1は保持・上書き禁止)
-  steps: "advisor()→必須参照6ファイル全読込→v1構成把握→5項目AC補完しcurriculum_v2.md作成→advisor()→git add/commit/push→report作成→inbox_write gunshi"
-  acceptance_criteria:
-    - "projects/udemy_course/drafts/curriculum_v2.md 新規作成 (v1別ファイル保持)"
-    - "ペルソナ 3-5 詳述済み"
-    - "ハンズオン: 各章で完成品・所要時間明記"
-    - "タイトル候補 5案・LPコピー案・無料プレビュー設計あり"
-    - "競合対決表: 実講座名を使った比較表あり"
-    - "emotional hook ポイント (章別) あり"
-    - "git push 完了"
-  notes:
-    - "v1は projects/udemy_course/drafts/curriculum_v1.md (上書き厳禁)"
-    - "競合対決表はudemy_engineering.jsonの実際の講座名を使うこと(架空不可)"
-    - "advisor()必須(作業前・完了前)"
-    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽7号、subtask_1465a完了(curriculum_v2.md生成)。QC依頼。' report_completed ashigaru7"
-- task_id: subtask_1466a
-  parent_cmd: cmd_1466
+- task_id: subtask_1490a
+  agent: ashigaru7
+  parent_cmd: cmd_1490
   bloom_level: L3
-  status: assigned
-  timestamp: "2026-04-25T14:46:00+09:00"
-  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/curriculum_v2.html
-  description: |
-    curriculum_v2.md を Marp HTML 化 + LAN公開(8082) で殿スマホレビュー可能にせよ。
-    殿指示『Udemy は HTML にしておくれ』(13:43)。
-  steps: "advisor()→Step1:curriculum_v2.md確認→Step2:Marp frontmatter追加+章境界---区切り変換→Step3:npx @marp-team/marp-cli でHTML生成→Step4:python3 -m http.server 8082 --bind 0.0.0.0 バックグラウンド起動→Step5:curl http://localhost:8082/curriculum_v2.html で動作確認→Step6:ntfy殿に http://192.168.2.7:8082/curriculum_v2.html 通知→advisor()→Step7:git commit+push→Step8:inbox gunshi QC→Step9:inbox karo報告"
+  status: done
+  description: 'cmd_1490: /video-qc-llm-mode スキル正式化。.claude/commands/video-qc-llm-mode.md
+    を新規作成。LLM軍師が動画QCする際の4点セット(ffprobe+sync_record+drawtext_params_diff+bitrate分析)を必須化。CONDITIONAL_PASS判定基準明記。shared_context/qc_template.md参照形式。context/skill_candidates_inventory.md登録。軍師QC後git
+    push。'
+  target_path: /home/murakami/multi-agent-shogun/.claude/commands/video-qc-llm-mode.md
+  procedure: .claude/commands/skill-creator.md
+  steps: 'queue/shogun_to_karo.yaml(id:cmd_1490)全文読む→.claude/commands/skill-creator.md読む→既存スキル(.claude/commands/manga-short.md)のfrontmatter確認→.claude/commands/video-qc-llm-mode.md作成(frontmatter完備+本文:4点チェックリスト+CONDITIONAL_PASS判定基準+shared_context/qc_template.md参照)→context/skill_candidates_inventory.md確認+登録→advisor()→完了報告YAML(queue/reports/ashigaru7_report_subtask_1490a.yaml)→git
+    add .claude/commands/video-qc-llm-mode.md context/skill_candidates_inventory.md→commit→push→inbox_write
+    gunshi "QC依頼: subtask_1490a cmd_1490 /video-qc-llm-mode スキル" qc_request ashigaru7→inbox_write
+    karo 完了報告'
+  assigned_to: ashigaru7
+  timestamp: '2026-04-25T22:25:09+09:00'
   acceptance_criteria:
-    - "curriculum_v2.html ビルド成功(Marp warning 0件)"
-    - "LAN公開 http://192.168.2.7:8082/ accessible"
-    - "章境界が適切にスライド分割されている"
-    - "ntfy殿スマホにURL通知済み"
-    - "軍師QC PASS"
-    - "git commit + push完了"
-  notes:
-    - "ソース: projects/udemy_course/drafts/curriculum_v2.md (672行・cmd_1465完了)"
-    - "出力: projects/udemy_course/drafts/curriculum_v2.html"
-    - "LAN公開ポート: 8082 (8081は cmd_1467 thumbnail用で使用中の可能性)"
-    - "Marp変換: frontmatter(marp: true)追加+章ごとに---スライド区切り"
-    - "新規.py禁止・/tmp禁止・git add . 禁止(CHK8)"
-    - "advisor()必須(作業前・完了前)"
-    - "ナレッジ化: 成功後 shared_context/procedures/slide_lan_publish.md 化(knowledge_todo.md既登録)"
-    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽7号、subtask_1466a完了(curriculum_v2.html LAN公開)。QC依頼。' report_completed ashigaru7"
+  - .claude/commands/video-qc-llm-mode.md 作成済み
+  - frontmatter: name=video-qc-llm-mode / description に具体的トリガー語句明記 (動画QC・video QC・LLM動画チェック・ffprobe検証・軍師動画QC・動画QC形骸化対策)
+  - 本文: 4点チェックリスト (1)ffprobe数値検証 (2)sync_record.yaml整合 (3)drawtext_params_diff.md過去比較
+      (4)bitrate分析(元素材vs中間vs最終) 明記
+  - CONDITIONAL_PASS判定基準明記 (殿への選択肢フォーマット含む)
+  - shared_context/qc_template.md 参照形式・重複定義なし
+  - Do NOT use for: 漫画ショートQC / サムネQC / 音声QC を明記
+  - context/skill_candidates_inventory.md 登録済み
+  - git commit + push 完了
+  - 軍師QC依頼済み (inbox_write gunshi)

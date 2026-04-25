@@ -1,47 +1,25 @@
 tasks:
-- task_id: subtask_1473a
-  parent_cmd: cmd_1473
+- task_id: subtask_1489a
+  agent: ashigaru3
+  parent_cmd: cmd_1489
   bloom_level: L3
   status: done
-  timestamp: '2026-04-25T17:35:00+09:00'
-  target_path: /home/murakami/multi-agent-shogun/scripts/pretool_check.sh
-  procedure: queue/reports/gunshi_report_design_1472a.yaml
-  description: "pretool_check.sh CHK2 改修。改修対象はL96-99(branch_a)とL109-112(branch_b)の2箇所。現行: work/cmd_*/のみBLOCK。改修後: リポジトリルート直下のwork/cmd_*/のみBLOCK・projects/*/work/*はOK。除外条件 `&&!grep /projects/[^/]+/work/` を追加しエラー文も改善。"
-  steps: "advisor()→queue/reports/gunshi_report_design_1472a.yaml読む→scripts/pretool_check.sh L90-120読む→L96-99をbash_diff_sketch通り編集→L109-112を同様に編集→テスト3ケース実行→git add commit→inbox_write karo"
-  acceptance_criteria:
-  - "L96-99(branch_a): `&&! grep -qE '/projects/[^/]+/work/'` 除外条件追加"
-  - "L109-112(branch_b): 同様に除外条件追加"
-  - "エラー文に正しい格納場所(projects/{project}/work/)の例を明記"
-  - "テストcase1(work/cmd_1471/)→BLOCK・case2(projects/*/work/cmd_xxx/)→OK・case3(projects/*/work/TITLE/)→OK"
-  - "git commit完了"
-  notes:
-  - "改修対象はCHK2のみ(CHK1/CHK8は無関係・軍師確認済)"
-  - "両分岐(L96-99とL109-112)を必ず同時に修正すること"
-  - "bash_diff_sketchはgunshi報告書のredesign.bash_diff_sketchを参照"
-  - "advisor()必須(作業前・完了前)"
-  - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo\
-    \ '足軽3号、subtask_1472a完了。pretool_check CHK2改修+テスト3ケースPASS。' report_completed ashigaru3"
-- task_id: subtask_1477b
-  parent_cmd: cmd_1477
+  description: 'cmd_1489: /master-telop-two-stage スキル正式化。.claude/commands/master-telop-two-stage.md
+    を新規作成。shared_context/procedures/master_telop_two_stage.md を参照する薄いwrapper形式。トリガー語句明記・Do
+    NOT use for明記。context/skill_candidates_inventory.md に登録。軍師QC後git push。'
+  target_path: /home/murakami/multi-agent-shogun/.claude/commands/master-telop-two-stage.md
+  procedure: .claude/commands/skill-creator.md
+  steps: 'queue/shogun_to_karo.yaml(id:cmd_1489)全文読む→.claude/commands/skill-creator.md読む→既存スキル(.claude/commands/manga-short.md)のfrontmatter確認→.claude/commands/master-telop-two-stage.md作成(frontmatter:name/description/argument-hint/allowed-tools+本文:procedures/master_telop_two_stage.md参照形式)→context/skill_candidates_inventory.md確認+登録→advisor()→完了報告YAML(queue/reports/ashigaru3_report_subtask_1489a.yaml)→git
+    add .claude/commands/master-telop-two-stage.md context/skill_candidates_inventory.md→commit→push→inbox_write
+    gunshi "QC依頼: subtask_1489a cmd_1489 /master-telop-two-stage スキル" qc_request ashigaru3→inbox_write
+    karo 完了報告'
   assigned_to: ashigaru3
-  bloom_level: L4
-  status: in_progress
-  timestamp: '2026-04-25T18:52:00+09:00'
-  description: inbox_write.sh の安全化。軍師指摘(gunshi_design_review_1476.yaml): L118/L158「return 0 # Never fail」+L80-115 mawk regex でshogun_to_karo.yamlを直接書換→サイレント不整合リスク。(a)失敗時にlogs/inbox_write_silent_fail.logへ必ず1行残す (b)flock取得失敗をWARNログ化。PyYAML化は別caseとして見送り(リスク大)。
-  target_path: /home/murakami/multi-agent-shogun/scripts/inbox_write.sh
-  procedure: shared_context/qc_template.md
-  steps: 'advisor()実装前→queue/reports/gunshi_design_review_1476.yaml の issue_inbox_write_silent_failure読む→scripts/inbox_write.sh全文読む(L118/L158 return0/L80-115 mawk確認)→[実装]: (a)silent_fail発生時にlogs/inbox_write_silent_fail.logへ1行追記(タイムスタンプ+エラー内容) (b)flock取得失敗時にWARNをlogs/inbox_write_silent_fail.logに追記 → 既存atomic write+rename(L213-219)は変更不要→テスト: 意図的にflockを確認するテスト実行→advisor()完了前→git add scripts/inbox_write.sh && git commit→inbox_write gunshi QC依頼→inbox_write karo完了報告'
+  timestamp: '2026-04-25T22:25:09+09:00'
   acceptance_criteria:
-  - scripts/inbox_write.sh にsilent_fail log追記が実装されていること(logs/inbox_write_silent_fail.log)
-  - flock失敗時のWARNログが実装されていること
-  - 「return 0 # Never fail」の挙動は維持しつつ失敗記録が追加されていること
-  - 既存のatomic write+rename(L213-219)は変更されていないこと
-  - テスト: 意図的なエラーでsilent_fail.logに出力が出ること確認
-  - 完了報告YAML: queue/reports/ashigaru3_report_subtask_1477b.yaml
-  - git commit済み
-  notes:
-  - 修正範囲: scripts/inbox_write.sh のみ(PyYAML化・API化はスコープ外・別cmd)
-  - CRITICAL: inbox_write.shはライブ通信基盤→変更後もエージェント間通信が正常動作することを確認
-  - 既存の「Never fail」ポリシーは維持(通信は止めない・ただしログは残す)
-  - ruamel.yaml やPyYAML化は今回不要(atomic write+renameはそのまま)
-  - Stage1(1477a/1477c) QC PASS後の発令ゆえ最優先で着手せよ
+  - .claude/commands/master-telop-two-stage.md 作成済み
+  - frontmatter: name=master-telop-two-stage / description に具体的トリガー語句明記 (master/telop二段・動画にテロップ後加工・マスター動画+テロップ別・master_telop)
+  - 本文: shared_context/procedures/master_telop_two_stage.md を参照する形式・重複定義なし
+  - Do NOT use for: 漫画ショート / 表情ショート を明記
+  - context/skill_candidates_inventory.md に登録済み
+  - git commit + push 完了
+  - 軍師QC依頼済み (inbox_write gunshi)

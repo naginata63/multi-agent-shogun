@@ -1,14 +1,15 @@
 tasks:
 - task_id: subtask_1467a
+  agent: ashigaru2
   parent_cmd: cmd_1467
   bloom_level: L3
-  status: done
-  timestamp: '2026-04-25T13:15:00+09:00'
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/ashigaru2_report_subtask_1467a.yaml
+  status: in_progress
   description: 'Day6 エキドナ サムネ生成: ブザービーター6人・energetic style 3案生成→殿LAN preview通知→選択後
     thumbnail_final.png 確定→軍師QC。'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/ashigaru2_report_subtask_1467a.yaml
   steps: advisor()→thumbnail_echidna/作成→Day5スクリプトcp→コマンド実行(3案生成)→viabilityスコア計測→LANサーバー起動+ntfy通知→家老に報告→殿選択待ち→家老inbox経由で選択番号受信後
     thumbnail_final.png 確定→advisor()→commit+push→inbox gunshi
+  timestamp: '2026-04-25T13:15:00+09:00'
   acceptance_criteria:
   - thumbnail_echidna/energetic_1.png / 2.png / 3.png 生成済み
   - viability スコア3案比較をレポートに記載
@@ -30,41 +31,3 @@ tasks:
   - advisor()必須(作業前・完了前)
   - '完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi ''足軽2号、subtask_1467a完了(Day6サムネ3案+final確定)。QC依頼。''
     report_completed ashigaru2'
-- task_id: subtask_1492a
-  parent_cmd: cmd_1492
-  assigned_to: ashigaru2
-  bloom_level: L2
-  status: done
-  timestamp: '2026-04-25T23:26:00+09:00'
-  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
-  description: 'server.py の do_POST に POST /api/inbox_write エンドポイントを追加。任意エージェントへHTTP経由でinboxメッセージを送れる汎用API。'
-  steps: 'cmd_1492読む→server.py do_POST(/api/cmd_create参考)読む→advisor()→do_POST に elif /api/inbox_write 追加(body:to/message/type/from、subprocess.run inbox_write.sh、レスポンス{success/msg_id/timestamp})→curlテスト→inbox到達確認→advisor()→完了YAML→git commit→inbox_write karo'
-  acceptance_criteria:
-    - POST /api/inbox_write が server.py に実装済み
-    - body: to/message/type/from の4フィールドを受け付ける
-    - 内部で scripts/inbox_write.sh を subprocess.run で呼ぶ（新規スクリプト禁止）
-    - 'レスポンス: {"success": true, "msg_id": "...", "timestamp": "..."}'
-    - curlテストで実際にinboxにメッセージが届くこと確認済み
-    - git commit済み（push は家老が実施）
-  notes:
-    - /api/cmd_create の実装（L1947〜）を参考にせよ
-    - advisor()必須（作業前・完了前）
-    - '完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1492a完了。/api/inbox_write実装済み。" report_completed ashigaru2'
-- task_id: subtask_1493a
-  parent_cmd: cmd_1493
-  assigned_to: ashigaru2
-  bloom_level: L2
-  status: assigned
-  timestamp: '2026-04-26T00:05:00+09:00'
-  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
-  description: 'POST /api/inbox_write のレスポンスmsg_idとYAML実際のmsg_idを一致させる修正。'
-  steps: 'cmd_1493読む→scripts/inbox_write.sh を読む(msg_id出力有無確認)→server.py /api/inbox_write実装(L2096〜)読む→advisor()→inbox_write.shがmsg_idをstdout出力しなければ出力追加→server.pyでsubprocess.run(capture_output=True)に変更しstdoutからmsg_id取得→レスポンスに使う→curlテスト(レスポンスmsg_idとinbox YAML msg_id一致確認)→advisor()→完了YAML→git commit→inbox_write karo'
-  acceptance_criteria:
-    - POST /api/inbox_write レスポンスmsg_idとinbox YAML実際のmsg_idが一致する
-    - subprocess.run の stdout からmsg_idを取得している
-    - curlテストで一致を確認済み
-    - git commit済み（push は家老が実施）
-  notes:
-    - 前回実装(subtask_1492a)の延長。server.py L2096〜と scripts/inbox_write.sh を両方修正する可能性あり
-    - advisor()必須（作業前・完了前）
-    - '完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1493a完了。msg_id整合修正済み。" report_completed ashigaru2'
