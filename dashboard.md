@@ -29,10 +29,7 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 - ~~**H_post_step_completion_detector**~~: ✅ **殿承認(07:19)→cmd_1455発令済** 足軽4号着手中
 - ~~**cmd_1449_d follow-up 2件**~~: ✅ **殿判断(07:17) 対応不要** 両件close
 
-### ⚠️ 技術的残課題（優先度低）
-- ~~**dozle_kirinukiサブモジュール push不可**~~: ✅ **解決(20:55)** cmd_1446 filter-repo で gcloud 278MB 履歴ごと除去・force-with-lease push完遂・fresh clone 2.9G検証済
-- **disk使用率84%（殿判断: Tier-B削除なし妥協）**: Day6 MIX時は「disk タイト運用」前提で cmd 起票要
-- **cmd_1425d2 part_info.json誤記**: 『oo_men不在』は誤り・実態は `t7JJlTDACyc_part_*` 10本存在（軍師qc_1425d2見落とし・Phase Bで修正）
+### ⚠️ 技術的残課題（将来対処）
 - **Day6 4視点MIX codec混在**: charlotte=vp9 / 他=h264 → concat -c copy不可・事前トランスコード必須（Day6 MIX cmd起票時に明示必要）
 
 ### 📌 技術知見: YouTube音声不調の真因（cmd_1458発見・08:31）
@@ -41,12 +38,6 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 **殿対処**: オートダビング機能を手動でOFF(08:31)
 **cmd_1459 位置付け**: 機能OFF+言語ja二重防御として継続価値あり
 **memory化進行中**: memory/feedback_youtube_autodubbing_pitfall.md (将軍作成中)
-
-### ⚠️ 再発防止策（殿指摘: active_cmds残骸再発・cmd status更新漏れ）
-
-**根本問題**: 全subtask完遂→親cmd status:done化が手動依存・ループ漏れ発生。
-**提案**: karo.md ワークフロー step11 に「全subtask done確認→shogun_to_karo.yaml 親cmd status:done更新」を必須明記。
-**対処済**: cmd_1447/1448/1449/1450/1451/1452/1453/1455/1456 status一括更新完了(07:59)。進行中: cmd_1453/1457のみ。
 
 ---
 
