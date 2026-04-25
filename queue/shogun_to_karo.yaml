@@ -4934,9 +4934,10 @@ commands:
   priority: high
   purpose: "curriculum_v2.md Marp HTML化+LAN公開(8082)で殿スマホレビュー可能に。殿指示『Udemy は HTML にしておくれ』(13:43)"
 - id: cmd_1470
-  status: in_progress
+  status: done
   assigned_to: ashigaru3
   issued_at: "2026-04-25T15:29:00+09:00"
+  done_at: "2026-04-25T15:49:09+09:00"
   purpose: "pretool_check.sh CHK3 拡張: procedure: フィールド不在を BLOCK。cmd_1467 title化け事故の根本対策（指示書md強制で伝達失敗を構造的防止）。新規task_idのみ規制・後方互換必須。"
   acceptance_criteria:
     - "CHK3にprocedure:不在BLOCK追加"
@@ -4946,3 +4947,17 @@ commands:
     - "instructions/karo.md+ashigaru.md更新"
     - "git commit + push"
     - "軍師QC PASS"
+- id: cmd_1471
+  status: in_progress
+  assigned_to: ashigaru4
+  issued_at: "2026-04-25T15:51:00+09:00"
+  priority: high
+  purpose: "scripts/dashboard/server.py に POST /api/cmd_create 追加。将軍の shogun_to_karo.yaml 直接Edit廃止→MCP API化で競合・失敗根本解決。flock排他制御付き。"
+  acceptance_criteria:
+    - "POST /api/cmd_create endpoint追加(必須フィールドvalidation・id重複チェック)"
+    - "flock で shogun_to_karo.yaml 排他制御"
+    - "yaml entry append正常動作"
+    - "curl テスト: curl -X POST http://127.0.0.1:8770/api/cmd_create -d @cmd.json 動作確認"
+    - "既存 GET /api/dashboard 等 regression 0件"
+    - "軍師QC PASS"
+    - "git commit + push"

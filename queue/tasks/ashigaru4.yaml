@@ -1,0 +1,1266 @@
+tasks:
+- task:
+    bloom_level: L1
+    description: "レベル250クリップをYouTubeからDLして保存。\n\n## 対象\n- 動画ID: _cLsvqd23GQ\n- URL:\
+      \ https://www.youtube.com/watch?v=_cLsvqd23GQ\n\n## 手順\n1. yt-dlpでダウンロード:\n\
+      \   ```bash\n   yt-dlp -o \"projects/dozle_kirinuki/work/20260225_エンドラ30体分！？レベル250になるまで終われません！【マイクラ】/clip.mp4\"\
+      \ \"https://www.youtube.com/watch?v=_cLsvqd23GQ\"\n   ```\n2. ファイル確認（サイズ、再生時間）\n\
+      \n## テスト手順\n1. clip.mp4が存在し、ffprobeで正常な動画であること\n\n## 完了後\nbash scripts/inbox_write.sh\
+      \ karo \"足軽4号、subtask_1141a完了。レベル250クリップDL保存。\" report_done ashigaru4\n"
+    parent_cmd: cmd_1141
+    report_to: karo
+    status: done
+    task_id: subtask_1141a
+    timestamp: '2026-04-04T21:25:18'
+- task:
+    bloom_level: L1
+    description: "Z7RBudX581Yの元動画を1080pでDL。\n\n## 対象\n- 動画ID: Z7RBudX581Y\n- URL:\
+      \ https://www.youtube.com/watch?v=Z7RBudX581Y\n\n## 手順\n1. 保存先ディレクトリ作成:\n  \
+      \ ```bash\n   mkdir -p \"projects/dozle_kirinuki/work/20260225_エンドラ30体分！？レベル250になるまで終われません！【マイクラ】/input/\"\
+      \n   ```\n   ※ work/直下にYYYYMMDD_タイトル命名。level250_Z7RBudX581Yからのリネームは後で実施\n2.\
+      \ yt-dlpで1080p DL:\n   ```bash\n   yt-dlp -f \"bestvideo[height<=1080]+bestaudio/best[height<=1080]\"\
+      \ --merge-output-format mp4 -o \"projects/dozle_kirinuki/work/20260225_エンドラ30体分！？レベル250になるまで終われません！【マイクラ】/input/full.mp4\"\
+      \ \"https://www.youtube.com/watch?v=Z7RBudX581Y\"\n   ```\n3. ファイル確認（サイズ、ffprobeで1080p確認）\n\
+      \n## テスト手順\n1. full.mp4が存在し1080pであること（ffprobeでheight=1080確認）\n2. ファイルサイズが合理的であること\n\
+      \n## 完了後\nbash scripts/inbox_write.sh karo \"足軽4号、subtask_1142a完了。Z7RBudX581Y元動画1080p\
+      \ DL保存。\" report_done ashigaru4\n"
+    parent_cmd: cmd_1142
+    report_to: karo
+    status: done
+    task_id: subtask_1142a
+    timestamp: '2026-04-04T22:12:40'
+- task:
+    bloom_level: L1
+    completed_at: '2026-04-04T22:16:00'
+    description: "Z7RBudX581Yの元動画を1080pでDL。2つの指示を統合。\n\n## 対象\n- 動画ID: Z7RBudX581Y\n\
+      - URL: https://www.youtube.com/watch?v=Z7RBudX581Y\n\n## 手順\n1. 保存先ディレクトリ作成:\n\
+      \   ```bash\n   mkdir -p \"projects/dozle_kirinuki/work/20260225_エンドラ30体分！？レベル250になるまで終われません！【マイクラ】/input/\"\
+      \n   ```\n2. yt-dlpで1080p DL:\n   ```bash\n   yt-dlp -f \"bestvideo[height<=1080]+bestaudio/best[height<=1080]\"\
+      \ --merge-output-format mp4 -o \"projects/dozle_kirinuki/work/20260225_エンドラ30体分！？レベル250になるまで終われません！【マイクラ】/input/full.mp4\"\
+      \ \"https://www.youtube.com/watch?v=Z7RBudX581Y\"\n   ```\n3. ffprobeで1080p確認\n\
+      \n## テスト手順\n1. full.mp4が存在しheight=1080であること（ffprobe確認）\n\n## 完了後\nbash scripts/inbox_write.sh\
+      \ karo \"足軽4号、subtask_1142a完了。Z7RBudX581Y元動画1080p DL保存。\" report_done ashigaru4\n"
+    parent_cmd: cmd_1142
+    report_to: karo
+    result: DL complete. full.mp4 1.4GB 1920x1080 63m52s
+    status: done
+    task_id: subtask_1142a
+    timestamp: '2026-04-04T22:14:00'
+- task:
+    bloom_level: L2
+    description: "レベル250 tono_edit.mkv（3412x1918横長）を9:16縦クロップ→unlisted非公開アップ。\n\n\
+      ## 入力\nprojects/dozle_kirinuki/work/20260225_エンドラ30体分！？レベル250になるまで終われません！【マイクラ】/tono_edit.mkv\n\
+      ※ 3412x1918の横長動画\n\n## 手順\n1. ffprobeで解像度確認\n2. ffmpeg 9:16縦クロップ+NVENCエンコード:\n\
+      \   ```bash\n   ffmpeg -i \"<input>\" -vf \"crop=1079:1918:1166:0,scale=1080:1920\"\
+      \ -c:v h264_nvenc -preset p4 -c:a aac -b:a 192k \"<output>\"\n   ```\n   crop計算:\
+      \ height=1918, width=1918*9/16=1079, x=(3412-1079)/2=1166, y=0\n3. youtube_uploader.pyでunlistedアップ\n\
+      \n## テスト手順\n1. 出力動画が1080x1920であること（ffprobe確認）\n2. YouTube URLが返ること\n\n## 完了後\n\
+      bash scripts/inbox_write.sh karo \"ashigaru4, subtask_1148a done. Level250 tono_edit\
+      \ 9:16 vertical crop uploaded.\" report_done ashigaru4\n"
+    parent_cmd: cmd_1148
+    report_to: karo
+    status: done
+    task_id: subtask_1148a
+    timestamp: '2026-04-04T22:56:49'
+- task:
+    bloom_level: L2
+    completed_at: '2026-04-04T23:01:00'
+    description: 'レベル250 tono_edit.mkv（3412x1918横長）を9:16縦クロップ→unlisted非公開アップ。
+
+      '
+    parent_cmd: cmd_1148
+    report_to: karo
+    result: 'Crop done 1080x1920 h264 7.5MB. Uploaded unlisted: https://www.youtube.com/watch?v=JwRaLdZ6Ghc'
+    status: done
+    task_id: subtask_1148a
+    timestamp: '2026-04-04T22:56:49'
+- task:
+    bloom_level: L1
+    completed_at: '2026-04-04T23:42:00'
+    description: "YouTube動画 JwRaLdZ6Ghc のタイトル・概要欄更新。\n\n## 対象\n- 動画ID: JwRaLdZ6Ghc\n\
+      - URL: https://www.youtube.com/watch?v=JwRaLdZ6Ghc\n- 現在: レベル250tono_edit 9:16縦クロップ（cmd_1148でアップ済み）\n\
+      \n## 手順\n```bash\npython3 projects/dozle_kirinuki/scripts/youtube_uploader.py\
+      \ \\\n  --video-id JwRaLdZ6Ghc \\\n  --update-metadata \\\n  --title \"レベル250になるまで終われません！編集版\"\
+      \ \\\n  --description \"マイクラでエンドラ30体分！？レベル250になるまで終われません！の編集版ショート\n\nチャンネル登録・高評価よろしくお願いします！\n\
+      \n#マインクラフト #マイクラ #ショート\"\n```\n※ youtube_uploader.pyに--update-metadata/--title/--descriptionオプションがない場合は、直接YouTube\
+      \ APIを使って更新\n\n## テスト手順\n1. ブラウザでhttps://www.youtube.com/watch?v=JwRaLdZ6Ghcを開いてタイトル・概要欄が更新されているか確認\n\
+      \n## 完了後\nbash scripts/inbox_write.sh karo \"ashigaru4, subtask_1151a done.\
+      \ JwRaLdZ6Ghc title/description updated.\" report_done ashigaru4\n"
+    parent_cmd: cmd_1151
+    report_to: karo
+    result: 'Title: レベル250になるまで終われません！編集版, Description updated (87 chars). Verified
+      via API.'
+    status: done
+    task_id: subtask_1151a
+    timestamp: '2026-04-04T23:40:37'
+- task:
+    bloom_level: L1
+    completed_at: '2026-04-05T06:24:00'
+    description: "JwRaLdZ6Ghcのタイトル・概要欄を既存ショートと同じフォーマットに修正。\n\n## 対象\n- 動画ID: JwRaLdZ6Ghc\n\
+      - URL: https://www.youtube.com/watch?v=JwRaLdZ6Ghc\n\n## 手順\n1. 既存公開ショートのタイトル・概要欄フォーマットを確認:\n\
+      \   ```bash\n   python3 projects/dozle_kirinuki/scripts/youtube_uploader.py\
+      \ --list-recent 2>/dev/null || python3 -c \"\n   import json, subprocess\n \
+      \  result = subprocess.run(['python3', 'projects/dozle_kirinuki/scripts/youtube_uploader.py',\
+      \ '--video-id', 'JwRaLdZ6Ghc', '--get-info'], capture_output=True, text=True)\n\
+      \   print(result.stdout)\n   \"\n   ```\n2. 既存ショートのフォーマットに合わせてタイトル・概要欄を更新\n\n\
+      ## 完了後\nbash scripts/inbox_write.sh karo \"ashigaru4, subtask_1152a done. JwRaLdZ6Ghc\
+      \ title/description updated to match short format.\" report_done ashigaru4\n"
+    parent_cmd: cmd_1152
+    report_to: karo
+    result: 'Title: レベル250になるまで終われません！編集版【ドズル社切り抜き】@dozle #shorts. Description: 357
+      chars with 元動画/本家/出演者/hashtags. Verified via API.'
+    status: done
+    task_id: subtask_1152a
+    timestamp: '2026-04-05T06:22:37'
+- task:
+    bloom_level: L3
+    completed_at: '2026-04-05T06:30:00'
+    description: "ntfy.shに✅ cmd完了送信時の自動done更新機能を追加。\n\n## 背景\ncmd_1112でinbox_write.shにcmd\
+      \ status自動更新機能を追加済み。\n同じ手法でntfy.shにも追加。\n\n## 対象\nscripts/ntfy.sh\n\n## 手順\n\
+      1. 現在のntfy.shを読む\n2. scripts/inbox_write.sh のcmd status自動更新ロジック（task_assigned時pending→in_progress）を確認\n\
+      3. ntfy.shに以下を追加:\n   - メッセージが「✅ cmd_XXXX完了」パターンにマッチした場合\n   - 対応するcmdのstatusをshogun_to_karo.yamlでdoneに更新\n\
+      \   - inbox_write.shと同じsed-based approach\n4. テスト: dry-runでパターンマッチ確認\n\n## テスト手順\n\
+      1. bash scripts/ntfy.sh \"✅ cmd_TEST完了: テスト\" を実行\n2. ログでパターンマッチとsed実行を確認（実際のファイルは変更しないdry-runで）\n\
+      3. git commit（push禁止）\n\n## 完了後\nbash scripts/inbox_write.sh karo \"ashigaru4,\
+      \ subtask_1153a done. ntfy.sh auto-done update added.\" report_done ashigaru4\n"
+    parent_cmd: cmd_1153
+    report_to: karo
+    result: 'ntfy.sh _update_cmd_done() added. Matches ✅ cmd_XXXX完了 pattern → updates
+      shogun_to_karo.yaml in_progress→done. Anchored regex /^  status: in_progress$/
+      avoids false matches in quoted strings. Dry-run verified with cmd_1153. Committed.'
+    status: done
+    task_id: subtask_1153a
+    timestamp: '2026-04-05T06:25:48'
+- task:
+    acceptance_criteria:
+    - タイトルが原文と完全一致
+    - 概要欄が原文と完全一致（改行含む）
+    - 1文字も改変していないこと
+    bloom_level: L2
+    description: "JwRaLdZ6Ghc（レベル250編集版）のタイトル・概要欄を以下の**原文そのまま**に書き換えろ。\n\n## 【絶対厳守】1文字も変えるな。改変禁止。\n\
+      \n## タイトル（これをそのまま使え）\nおんりーの経験値トラップが大崩壊！？【ドズル社切り抜き】@dozle #shorts #漫画動画\n\n##\
+      \ 概要欄（これをそのまま使え。改行も含めて完全コピー）\nドズル社の切り抜きショート動画です。\n\nおんりーが自信満々で説明した経験値トラップ装置。\n\
+      アルマジロ×シルバーフィッシュの完璧な理論…のはずが\n丸石で作ったのが運の尽き。\n\n▼ 元動画\nエンドラ30体分！？レベル250になるまで終われません！【マイクラ】\n\
+      https://www.youtube.com/watch?v=Z7RBudX581Y\n\n▼ 本家チャンネル\nドズル社\nhttps://www.youtube.com/@dozle_jp\n\
+      \n#ドズル社 #マイクラ #切り抜き #shorts #AI漫画\n\n※漫画パネルはAI画像生成で制作しています\n\n## 実行コマンド\n```bash\n\
+      cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki\nsource venv/bin/activate\n\
+      python3 scripts/youtube_uploader.py update JwRaLdZ6Ghc \\\n  --title 'おんりーの経験値トラップが大崩壊！？【ドズル社切り抜き】@dozle\
+      \ #shorts #漫画動画' \\\n  --description 'ドズル社の切り抜きショート動画です。\n\nおんりーが自信満々で説明した経験値トラップ装置。\n\
+      アルマジロ×シルバーフィッシュの完璧な理論…のはずが\n丸石で作ったのが運の尽き。\n\n▼ 元動画\nエンドラ30体分！？レベル250になるまで終われません！【マイクラ】\n\
+      https://www.youtube.com/watch?v=Z7RBudX581Y\n\n▼ 本家チャンネル\nドズル社\nhttps://www.youtube.com/@dozle_jp\n\
+      \n#ドズル社 #マイクラ #切り抜き #shorts #AI漫画\n\n※漫画パネルはAI画像生成で制作しています'\n```\n\nyoutube_uploader.pyにupdate機能がない場合は、YouTube\
+      \ Data API videos.updateを直接使え。\n\n## テスト手順\n1. https://www.youtube.com/watch?v=JwRaLdZ6Ghc\
+      \ でタイトル・概要欄確認\n2. タイトルが「おんりーの経験値トラップが大崩壊！？【ドズル社切り抜き】@dozle #shorts #漫画動画」と完全一致\n\
+      3. 概要欄が上記原文と完全一致（改行含む）\n\n## 完了後\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
+      \ karo \"ashigaru4, subtask_1155a done. JwRaLdZ6Ghc title/description updated\
+      \ to exact copy.\" report_done ashigaru4\n"
+    important_notes:
+    - 【最重要】1文字も変えるな。前回cmd_1151/1152で勝手に改変した件、殿が激怒している
+    - 句読点、スペース、改行位置も完全に一致させること
+    parent_cmd: cmd_1155
+    project: dozle_kirinuki
+    report_to: karo
+    status: done
+    task_id: subtask_1155a
+    timestamp: '2026-04-05T06:35:00'
+- task:
+    acceptance_criteria:
+    - GEMINI_API_KEY参照がVERTEX_API_KEY優先に変更
+    - python3構文エラーなし
+    - git commit済み
+    bloom_level: L3
+    description: "vertex_api_key.envを主要APIキー設定として全スクリプトで標準化する。\n\n## 殿指示\nvertex_api_key.envを「めいん」にしろ。GEMINI_API_KEY（~/.bashrc）は期限切れ。\n\
+      config/vertex_api_key.env の VERTEX_API_KEY のみが有効なGemini系キー。\n\n## 対象ファイル（夜間監査で特定済み）\n\
+      projects/dozle_kirinuki/scripts/ 以下:\n- auto_expression_selector.py\n- build_competitor_centroid.py\n\
+      - detect_faces_gemini.py\n- embedding_analytics.py\n- expression_matcher.py\n\
+      - make_thumbnail_auto.py\n- scene_search.py\n- generate_thumbnail.py\n- その他\
+      \ GEMINI_API_KEY を参照するファイル\n\n## 修正内容\n各ファイルで:\n```python\n# Before（禁止パターン）\n\
+      api_key = os.environ.get(\"GEMINI_API_KEY\")\n# or\nsource ~/.bashrc  # GEMINI_API_KEY期限切れ\n\
+      \n# After（標準パターン）\napi_key = os.environ.get(\"VERTEX_API_KEY\") or os.environ.get(\"\
+      GEMINI_API_KEY\")\n```\nまたは実行時に:\n```bash\nsource /home/murakami/multi-agent-shogun/config/vertex_api_key.env\n\
+      ```\n\n## 手順\n1. grep -rn \"GEMINI_API_KEY\" projects/dozle_kirinuki/scripts/\
+      \ で全対象を特定\n2. grep -rn \"GEMINI_API_KEY\" scripts/ でメインscripts/も確認\n3. 各ファイルで\
+      \ os.environ.get(\"GEMINI_API_KEY\") → os.environ.get(\"VERTEX_API_KEY\") or\
+      \ os.environ.get(\"GEMINI_API_KEY\") に置換\n   （フォールバック付きで安全に移行）\n4. source ~/.bashrc\
+      \ のみに依存している箇所に source config/vertex_api_key.env も追加\n5. 各ファイルの構文チェック: python3\
+      \ -c \"import ast; ast.parse(open('FILE').read())\"\n\n## git safety protocol\n\
+      1. git add projects/dozle_kirinuki/scripts/ scripts/ && git commit -m \"chore:\
+      \ pre-batch save\"\n2. 5ファイル修正 → git diff --name-status 確認（D=即STOP）\n3. 残り修正\n\
+      4. 最終確認 → git commit\n\n## テスト手順\n1. grep -rn \"GEMINI_API_KEY\" projects/dozle_kirinuki/scripts/\
+      \ で残余確認\n2. 各ファイルのpython3構文チェック\n3. source config/vertex_api_key.env && python3\
+      \ -c \"import os; print(os.environ.get('VERTEX_API_KEY','')[:10])\" でキー読み込み確認\n\
+      \n## 完了後\ngit add projects/dozle_kirinuki/scripts/ scripts/\ngit commit -m \"\
+      feat(vertex_main): GEMINI_API_KEY→VERTEX_API_KEY標準化（10+ファイル）\"\nbash /home/murakami/multi-agent-shogun/scripts/ntfy.sh\
+      \ \"✅ vertex_api_key.env標準化完了: Nファイル修正\"\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
+      \ karo \"足軽4号、vertex_main完了。GEMINI_API_KEY→VERTEX_API_KEY標準化Nファイル。\" report_done\
+      \ ashigaru4\n"
+    parent_cmd: cmd_vertex_main
+    project: multi-agent-shogun
+    report_to: karo
+    safety: batch_modify
+    status: done
+    task_id: subtask_vertex_main_01
+    timestamp: '2026-04-05T07:55:00'
+- assigned_to: ashigaru4
+  bloom_level: L4
+  parent_cmd: cmd_1275
+  priority: high
+  project: dozle_kirinuki
+  status: done
+  steps: "## 目的\n殿がpanels_bon_trick.jsonを修正済み（P3: S2_B追加+MEN爆笑追加 / P4: ダイヤ装備禁止追加 /\
+    \ P5: 変更なしだがセットで再生成）。\nP3/P4/P5の3枚だけVertex AIで再生成する。他のパネルは絶対に触るな。\n\n## パス定義\n\
+    WORK=\"/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】\"\
+    \nPANELS_JSON=\"$WORK/panels_bon_trick.json\"\nPNG_DIR=\"$WORK/manga_bon_trick\"\
+    \nGALLERY=\"/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/gallery_cmd1263.html\"\
+    \n\n## 手順\n\n### Step1: panels_bon_trick.jsonを読む\nP3/P4/P5の id・director_notes・ref_images・characters・common_rules\
+    \ を確認する。\n修正内容（P3=コマ割りテンプレートS2_B+MEN爆笑、P4=ダイヤ装備禁止）を把握してから生成すること。\n\n### Step2:\
+    \ Vertex AI APIでP3/P4/P5を順番に生成\n- APIキー: source /home/murakami/multi-agent-shogun/config/vertex_api_key.env（VERTEX_API_KEY）\n\
+    - モデル: gemini-2.0-flash-preview-image-generation\n- 画像サイズ: 768x1376（縦長）\n- ref_imagesが使える場合は使う。クォータ制限エラー時はテキストプロンプトのみで継続\n\
+    - 1枚ずつ順番に生成（並列禁止・APIレート制限回避）\n\n出力ファイル（上書き）:\n- $PNG_DIR/p3_dozle_suiri.png  ←\
+    \ P3\n- $PNG_DIR/p4_bon_reveal.png   ← P4\n- $PNG_DIR/p5_dozle_tsukkomi.png ←\
+    \ P5\n\n※ panels JSONのpanel idを確認して正しいファイル名に出力すること\n\n### Step3: ギャラリーHTML更新\n\
+    $GALLERY の該当PNGのURLにタイムスタンプクエリ（?t=YYYYMMDDHHMMSS）を追加して\nブラウザキャッシュを破棄させる。\n\n###\
+    \ Step4: 家老に報告\n```bash\nbash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh\
+    \ karo \\\n  \"足軽4号、subtask_1275a完了。bon_trick P3/P4/P5 再生成完了（または失敗パネルを報告）。ギャラリー:\
+    \ work/gallery_cmd1263.html\" \\\n  report_completed ashigaru4\n```\n\n## テスト確認\n\
+    - $PNG_DIR/p3_*.png / p4_*.png / p5_*.png のタイムスタンプが新しいこと（今日の日付）\n- ギャラリーHTMLが更新されていること（?t=クエリ追加）\n\
+    \n## 注意\n- P1/P2/P6/P7 は絶対に触るな（変更指示なし）\n- git commitは不要（work/はgit-ignored）\n-\
+    \ ntfyは不要（karoが通知する）\n- ガチャ上限: P3/P4/P5各1回まで。個別NGは殿の指示が必要\n- backup_r2/はバックアップ済みなのでそのまま上書きしてよい\n"
+  task_id: subtask_1275a
+  timestamp: '2026-04-09T07:48:00'
+  title: bon_trick P3/P4/P5 再生成（第3反復・panels修正版）
+
+- task_id: subtask_1283a
+  parent_cmd: cmd_1283
+  status: done
+  assigned_to: ashigaru4
+  bloom_level: L4
+  priority: high
+  title: "bon_trick P3/P5 再生成（ドズルsmile_r2変更・R4版）"
+  project: dozle_kirinuki
+  timestamp: '2026-04-09T12:24:00'
+  steps: |
+    ## 目的
+    殿がpanels_bon_trick.jsonを修正済み。P3/P5の2枚だけ再生成する。他は触るな。
+
+    ## 変更内容
+    - P3: ドズルをsmile_r2に変更 + 吹き出しMEN向き修正
+    - P5: ドズルをsmile_r2に変更
+
+    ## パス定義
+    WORK="/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260407_体力と手持ちが共有の『地下世界』で全員合流するまで終われません！【マイクラ】"
+    PANELS_JSON="$WORK/panels_bon_trick.json"
+    PNG_DIR="$WORK/manga_bon_trick"
+    GALLERY="/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/gallery_cmd1263.html"
+
+    ## 手順
+
+    ### Step1: panels_bon_trick.jsonを読む
+    P3・P5の id・director_notes・ref_images・characters を確認する。
+    ドズルがsmile_r2になっていることを確認してから生成。
+
+    ### Step2: Vertex AI APIでP3/P5を順番に生成
+    - APIキー: source /home/murakami/multi-agent-shogun/config/vertex_api_key.env（VERTEX_API_KEY）
+    - モデル: gemini-2.0-flash-preview-image-generation
+    - 画像サイズ: 768x1376（縦長）
+    - ref_imagesが使える場合は使う
+    - backup_r3/にバックアップ済みなので上書きしてよい
+
+    出力（上書き）:
+    - $PNG_DIR/p3_dozle_suiri.png  ← P3のpanel idを確認して正しいファイル名に
+    - $PNG_DIR/p5_dozle_tsukkomi.png ← P5のpanel idを確認して正しいファイル名に
+
+    ### Step3: ギャラリーHTML更新
+    $GALLERY の該当PNGのURLにタイムスタンプ（?t=YYYYMMDDHHMMSS）を追加。
+
+    ### Step4: 家老に報告
+    ```bash
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+      "足軽4号、subtask_1283a完了。bon_trick P3/P5再生成完了（または失敗パネルを報告）。ギャラリー: work/gallery_cmd1263.html" \
+      report_completed ashigaru4
+    ```
+
+    ## テスト確認
+    - $PNG_DIR/p3_*.png / p5_*.png のタイムスタンプが新しいこと
+    - ギャラリーHTMLが更新されていること
+
+    ## 注意
+    - P1/P2/P4/P6/P7 は絶対に触るな
+    - git commitは不要（work/はgit-ignored）
+    - ntfyは不要（karoが通知する）
+    - ガチャ上限: P3/P5各1回まで
+
+- task_id: subtask_1287a
+  parent_cmd: cmd_1287
+  status: done
+  assigned_to: ashigaru4
+  bloom_level: L3
+  steps: |
+    Step1: 以下のコマンドを実行して3パターンのサムネを生成し、karoへ報告。
+
+    ```bash
+    mkdir -p /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/pink_sheep_clips
+    source ~/.bashrc
+    python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/generate_thumbnail.py \
+      --title 'ピンク羊発見シーン総集編' \
+      --style energetic \
+      --characters dozle,bon,qnly \
+      --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/pink_sheep_clips/
+    ```
+
+    ## テスト確認
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/pink_sheep_clips/ に3パターンのサムネ画像が生成されていること
+    - 各ファイルパスを報告に含めること
+
+    ## 注意
+    - スクリプトがエラーで停止した場合はエラーメッセージをそのまま報告（修正しようとするな）
+    - git commitは不要（work/はgit-ignored）
+    - ntfyは不要（karoが通知する）
+
+    ## 報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+      "足軽4号、subtask_1287a完了。ピンク羊サムネ3パターン生成完了。{ファイルパス一覧}" \
+      report_completed ashigaru4
+
+- task_id: subtask_1289a
+  parent_cmd: cmd_1289
+  status: done
+  assigned_to: ashigaru4
+  bloom_level: L3
+  steps: |
+    Step1: 以下のコマンドでピンク羊サムネを全員分（6名）で3パターン再生成してkaroへ報告。
+
+    ```bash
+    mkdir -p /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/pink_sheep_clips
+    source ~/.bashrc
+    python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/generate_thumbnail.py \
+      --title 'ピンク羊発見シーン総集編' \
+      --style energetic \
+      --characters dozle,bon,qnly,orafu,oo_men \
+      --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/pink_sheep_clips/ \
+      --count 3
+    ```
+
+    ※ キャラは5人（ネコおじ除外）。スクリプトはassets/dozle_jp/character/selected/ からキャラ立ち絵を自動取得する。
+    ※ 旧3パターン（thumbnail_energetic*.png）は上書きされる。
+
+    ## テスト確認
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/pink_sheep_clips/ に3パターンのサムネ画像が生成されていること
+    - 各ファイルパスを報告に含めること
+    - スクリプトエラーの場合はエラーメッセージをそのまま報告（修正しようとするな）
+
+    ## 注意
+    - git commitは不要（work/はgit-ignored）
+    - ntfyは不要（karoが通知する）
+
+    ## 報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+      "足軽4号、subtask_1289a完了。ピンク羊サムネ全員版3パターン再生成完了。{ファイルパス一覧}" \
+      report_completed ashigaru4
+
+- task_id: subtask_1290a
+  parent_cmd: cmd_1290
+  status: done
+  assigned_to: ashigaru4
+  bloom_level: L3
+  steps: |
+    Step1: 旧サムネを削除してからVertexAI ADC認証で5人版3パターン再生成し、karoへ報告。
+
+    ```bash
+    # Step1: 旧ファイルを削除（SKIPを防ぐ）
+    rm -f /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/pink_sheep_clips/thumbnail_energetic*.png
+
+    # Step2: ADC認証確認
+    gcloud auth application-default print-access-token | head -c 20
+
+    # Step3: Vertex AI経由で5人版3パターン再生成
+    source ~/.bashrc
+    python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/generate_thumbnail.py \
+      --title 'ピンク羊発見シーン総集編' \
+      --style energetic \
+      --characters dozle,bon,qnly,orafu,oo_men \
+      --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/pink_sheep_clips/ \
+      --count 3
+    ```
+
+    ※ generate_thumbnail.pyはvertexai=True設定済み（ADC自動使用）。GEMINI_API_KEYは不要。
+    ※ 429エラーが再発した場合はエラーをそのまま報告（修正しようとするな）。
+
+    ## テスト確認
+    - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/pink_sheep_clips/ に thumbnail_energetic_1.png, _2.png, thumbnail_energetic.png が生成されていること
+    - SKIPではなくSAVEと表示されること
+
+    ## 注意
+    - git commitは不要（work/はgit-ignored）
+    - ntfyは不要（karoが通知する）
+
+    ## 報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+      "足軽4号、subtask_1290a完了。ピンク羊サムネ5人版3パターン再生成完了。{ファイルパス一覧}" \
+      report_completed ashigaru4
+
+- task_id: subtask_1291a
+  parent_cmd: cmd_1291
+  status: done
+  assigned_to: ashigaru4
+  bloom_level: L3
+  steps: |
+    Step1: 60秒待ってからthumbnail_energetic_2.pngとthumbnail_energetic.pngの2枚を再生成してkaroへ報告。
+
+    ```bash
+    # Step1: 60秒待つ（RPM制限回避）
+    sleep 60
+
+    # Step2: 既存の_1.png以外を削除
+    rm -f /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/pink_sheep_clips/thumbnail_energetic_2.png
+    rm -f /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/pink_sheep_clips/thumbnail_energetic.png
+
+    # Step3: 残り2枚生成（--count 3 だが_1は既存なのでSKIP、_2と_3を生成）
+    source ~/.bashrc
+    python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/expression_gen/generate_thumbnail_retry.py \
+      --title 'ピンク羊発見シーン総集編' \
+      --style energetic \
+      --characters dozle,bon,qnly,orafu,oo_men \
+      --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/pink_sheep_clips/ \
+      --count 3
+    ```
+
+    ※ generate_thumbnail_retry.pyが存在しない場合は、オリジナルのgenerate_thumbnail.pyで実行:
+    ```bash
+    python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/generate_thumbnail.py \
+      --title 'ピンク羊発見シーン総集編' \
+      --style energetic \
+      --characters dozle,bon,qnly,orafu,oo_men \
+      --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/pink_sheep_clips/ \
+      --count 3
+    ```
+
+    ## テスト確認
+    - thumbnail_energetic_1.png, thumbnail_energetic_2.png, thumbnail_energetic.png の3枚が存在すること
+    - 429エラーが再発した場合はそのまま報告
+
+    ## 注意
+    - git commitは不要（work/はgit-ignored）
+    - ntfyは不要（karoが通知する）
+
+    ## 報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+      "足軽4号、subtask_1291a完了。ピンク羊サムネ残り2枚生成完了（または失敗報告）。{ファイルパス}" \
+      report_completed ashigaru4
+
+- task_id: subtask_1292a
+  parent_cmd: cmd_1292
+  status: done
+  assigned_to: ashigaru4
+  bloom_level: L3
+  steps: |
+    Step1: 以下のコマンドをそのまま実行してkaroへ報告。
+
+    ```bash
+    source ~/.bashrc
+    python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/generate_thumbnail.py \
+      --title 'ピンク羊発見シーン総集編' \
+      --characters dozle,bon,qnly,orafu,oo_men \
+      --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/pink_sheep_clips/ \
+      --count 3 \
+      --style energetic
+    ```
+
+    ※ スクリプトはVertex AI ADC認証を使う。GEMINI_API_KEYは使うな。スクリプト内のコードを改変するな。
+    ※ thumbnail_energetic_1.pngは既存なのでSKIPされる。_2.pngとthumbnail_energetic.pngの2枚が生成される。
+    ※ 429エラーが再発した場合はそのまま報告。
+
+    ## テスト確認
+    - thumbnail_energetic_1.png, thumbnail_energetic_2.png, thumbnail_energetic.png の3枚が存在すること
+
+    ## 注意
+    - git commitは不要（work/はgit-ignored）
+    - ntfyは不要（karoが通知する）
+
+    ## 報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+      "足軽4号、subtask_1292a完了。ピンク羊サムネ5人版3パターン完成。{ファイルパス一覧}" \
+      report_completed ashigaru4
+
+- task_id: subtask_1293a
+  parent_cmd: cmd_1293
+  status: done
+  assigned_to: ashigaru4
+  bloom_level: L3
+  steps: |
+    Step1: 以下のコマンドをそのまま実行してkaroへ報告。（殿がgenerate_thumbnail.pyをPart.from_bytes方式に修正済み）
+
+    ```bash
+    source ~/.bashrc
+    python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/generate_thumbnail.py \
+      --title 'ピンク羊発見シーン総集編' \
+      --characters dozle,bon,qnly,orafu,oo_men \
+      --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/pink_sheep_clips/ \
+      --count 3 \
+      --style energetic
+    ```
+
+    ※ 既存のthumbnail_energetic*.pngは上書きされる。
+    ※ スクリプトを改変するな。ADC認証を使う。GEMINI_API_KEYは使うな。
+    ※ 429エラーが再発した場合はそのまま報告。
+
+    ## テスト確認
+    - thumbnail_energetic_1.png, thumbnail_energetic_2.png, thumbnail_energetic.png の3枚が存在すること
+
+    ## 注意
+    - git commitは不要（work/はgit-ignored）
+    - ntfyは不要（karoが通知する）
+
+    ## 報告
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+      "足軽4号、subtask_1293a完了。ピンク羊サムネ5人版3パターン生成完了。{ファイルパス一覧}" \
+      report_completed ashigaru4
+- task_id: subtask_1317a
+  parent_cmd: cmd_1317
+  assigned_to: ashigaru4
+  status: done
+  bloom_level: L3
+  project: multi-agent-shogun
+  purpose: fix_panes.shにCLI新規起動後 /clear → /advisor opus を自動送信する処理を追加
+  steps: |
+    対象: scripts/fix_panes.sh を読んでStep4（bashのpaneにCLI起動）の箇所を特定。
+
+    新規起動したpaneのみ（既存CLI起動済みpaneには送らない）に対して、CLI起動後:
+    1. 数秒待つ（CLI起動完了を待つ）
+    2. /clear を tmux send-keys で送る
+    3. 数秒待つ
+    4. /advisor opus を tmux send-keys で送る
+
+    既存の「CLI起動済み」判定ロジックを活用して条件分岐すること。
+
+    テスト: スクリプトを読んで追加箇所が正しいか確認。git commit & push。
+
+    報告: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽4号、subtask_1317a完了。fix_panes.sh修正完了。{変更内容}" report_completed ashigaru4
+- task_id: subtask_1317b
+  parent_cmd: cmd_1317
+  assigned_to: ashigaru4
+  status: done
+  bloom_level: L2
+  project: multi-agent-shogun
+  purpose: shutsujin_departure.sh にCLI起動後 /advisor opus を全paneに送る処理を追加
+  steps: |
+    対象: scripts/shutsujin_departure.sh を読んでCLI起動箇所を特定。
+    CLI起動後（全pane起動完了後）に全paneへ /advisor opus + Enter を送る処理を追加。
+    /clearは不要。/advisor opusのみ。適切な待機（数秒）をおいて送ること。
+    git commit & push (pushが失敗する場合はcommitのみで報告)。
+
+    報告: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽4号、subtask_1317b完了。shutsujin_departure.sh修正完了。{変更内容}" report_completed ashigaru4
+- task_id: subtask_1328c
+  parent_cmd: cmd_1328
+  bloom_level: L3
+  description: analytics/dashboard/data.jsonを全raw.jsonから再構築（2026-03-23で止まっている→2026-04-11まで更新）
+  status: done
+- task_id: subtask_1366a
+  parent_cmd: cmd_1366
+  bloom_level: L4
+  description: "scripts/dashboard/server.py にAdvisor Proxyパネル追加（_get_advisor_proxy_stats()新設・HTMLパネル追加）"
+  status: done
+  timestamp: "2026-04-13T09:32:00"
+  blocked_by: subtask_1364a
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+  procedure: shared_context/procedures/mcp_advisor_proxy_panel.md
+  steps: 必ずgit pull後に着手せよ（cmd_1364が同じserver.pyを修正済み）。procedure記載の手順に従い実施。
+  timestamp: "2026-04-11T16:40:00"
+  steps: |
+    python3 scripts/generate_dashboard.py --skip-video-analysis
+    確認: python3 -c "import json; d=json.load(open('projects/dozle_kirinuki/analytics/dashboard/data.json')); print('generated_at:', d['generated_at']); dates=d['daily_series']['dates']; print('dates範囲:', dates[0], '〜', dates[-1], '件数:', len(dates))"
+    git add projects/dozle_kirinuki/analytics/dashboard/data.json projects/dozle_kirinuki/analytics/dashboard/index.html && git commit -m "feat(cmd_1328): analyticsダッシュボードdata.json再構築 3/23→4/11"
+- task_id: subtask_1406d
+  parent_cmd: cmd_1406
+  assigned_to: ashigaru4
+  status: done
+  bloom_level: L3
+  project: multi-agent-shogun
+  description: |
+    ## cmd_1406 task4: shutsujin_departure.sh Advisor Proxy readiness検証強化
+
+    /ultrareviewが発見: kill -0はプロセス存在のみ確認、port bindは未検証。失敗時も警告のみで継続→GLM足軽がECONNREFUSEDで死亡。
+
+    ### 修正対象: /home/murakami/multi-agent-shogun/shutsujin_departure.sh L656-660
+
+    現在のコード（L656-660）: kill -0でプロセス確認のみ。portがbindしていなくても成功扱い。失敗時もwarning+継続。
+
+    修正後（curl healthcheck方式）:
+      _proxy_ready=false
+      for _i in $(seq 1 20); do
+        curl -sf http://localhost:8780/health >/dev/null 2>&1 && _proxy_ready=true && break
+        sleep 0.5
+      done
+      if [ "$_proxy_ready" = true ]; then
+        log_success "  └─ Advisor Proxy (port 8780) 起動完了 — PID $(cat ./logs/advisor_proxy.pid)"
+      else
+        log_info "  └─ ❌ Advisor Proxy起動失敗 (port 8780にbindせず)"
+        exit 1
+      fi
+
+    ### テスト（本スクリプト自体は絶対に実行しない）
+    - `bash -n /home/murakami/multi-agent-shogun/shutsujin_departure.sh` → 構文エラーなし
+    - `grep -n "_proxy_ready\|curl.*8780\|exit 1" /home/murakami/multi-agent-shogun/shutsujin_departure.sh` → 修正確認
+  steps: "Step0: advisor()を呼ぶ。Step1: Read /home/murakami/multi-agent-shogun/shutsujin_departure.sh L650-670確認。Step2: L656-660をcurl healthcheck方式に差し替え。Step3: bash -n で構文確認。Step4: grep -n _proxy_ready で修正確認。Step5: git add /home/murakami/multi-agent-shogun/shutsujin_departure.sh && git commit -m 'fix(cmd_1406): Advisor Proxy readiness検証をkill -0からcurl healthcheckに強化'。Step6: 完了報告"
+  acceptance_criteria:
+    - "/home/murakami/multi-agent-shogun/shutsujin_departure.sh L656付近に curl -sf http://localhost:8780/health が追加されていること"
+    - "kill -0 による起動確認が削除されていること"
+    - "失敗時に exit 1 で明示停止されていること"
+    - "bash -n で構文エラーなしであること"
+    - "git commit 済み"
+  notes:
+    - "advisor()を実装前に必ず呼ぶこと"
+    - "shutsujin_departure.sh 本体を絶対に実行するな（pane全体が再起動される）"
+    - "bash -n のみで構文チェック。それ以上の実機テストは禁止"
+    - "git pushは家老が実施。commitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽4号、subtask_1406d完了。shutsujin Proxy readiness curl強化。' report_completed ashigaru4"
+
+- task_id: subtask_1408a
+  parent_cmd: cmd_1408
+  assigned_to: ashigaru4
+  status: done
+  bloom_level: L1
+  project: multi-agent-shogun
+  description: |
+    ## cmd_1408 破棄作業: 誤問題セット成果物のアーカイブ移動
+
+    本日のcmd_1402/1405/1407は問題改変版（将軍ミス）で無効。
+    以下3ディレクトリを work/archive/20260417_wrong_questions/ に移動せよ。
+
+    移動対象:
+    - /home/murakami/multi-agent-shogun/work/cmd_1402
+    - /home/murakami/multi-agent-shogun/work/cmd_1405
+    - /home/murakami/multi-agent-shogun/work/cmd_1407
+
+    コマンド:
+    ```bash
+    mkdir -p /home/murakami/multi-agent-shogun/work/archive/20260417_wrong_questions
+    mv /home/murakami/multi-agent-shogun/work/cmd_1402 \
+       /home/murakami/multi-agent-shogun/work/cmd_1405 \
+       /home/murakami/multi-agent-shogun/work/cmd_1407 \
+       /home/murakami/multi-agent-shogun/work/archive/20260417_wrong_questions/
+    git add /home/murakami/multi-agent-shogun/work/archive/
+    git commit -m "chore: archive wrong_questions cmd_1402/1405/1407 (改変版・scoring無効化)"
+    ```
+    注意: git履歴は保全される。ファイルを削除するな。
+
+    ### テスト方法
+    - ls work/archive/20260417_wrong_questions/ で3ディレクトリ存在確認
+    - git log --oneline -1 でcommit確認
+  steps: "Step0: advisor()呼ぶ。Step1: mkdir -p work/archive/20260417_wrong_questions。Step2: mv 3ディレクトリ実行確認。Step3: git add work/archive/ && git commit。Step4: ls確認。Step5: 完了報告"
+  acceptance_criteria:
+    - "work/archive/20260417_wrong_questions/{cmd_1402,cmd_1405,cmd_1407} が存在すること"
+    - "元の work/cmd_1402, work/cmd_1405, work/cmd_1407 が存在しないこと"
+    - "git commit 済み"
+  notes:
+    - "advisor()を実装前に必ず呼ぶこと（L1タスクでも形式上必須）"
+    - "git pushは家老が実施。commitのみ可"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽4号、subtask_1408a完了。誤問題成果物アーカイブ済。' report_completed ashigaru4"
+  timestamp: "2026-04-17T15:23:54"
+
+- task_id: subtask_1409a
+  parent_cmd: cmd_1409
+  assigned_to: ashigaru4
+  status: done
+  bloom_level: L1
+  project: dozle_kirinuki
+  description: |
+    ## tono_edit.mkv → 1080x1920クロップ + YouTube非公開アップロード
+
+    入力ファイル:
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_railgun/tono_edit.mkv
+
+    ### Step 1: ffprobeで解像度確認
+    ```bash
+    ffprobe -v error -select_streams v:0 -show_entries stream=width,height \
+      -of default=noprint_wrappers=1 \
+      "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_railgun/tono_edit.mkv"
+    ```
+
+    ### Step 2: ffmpegでクロップ（1080x1920 縦動画）
+    出力先: /home/murakami/multi-agent-shogun/work/cmd_1409/tono_edit_1080x1920.mp4
+    ```bash
+    mkdir -p /home/murakami/multi-agent-shogun/work/cmd_1409
+    ffmpeg -i "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_railgun/tono_edit.mkv" \
+      -vf "crop=1080:1918:((in_w-1080)/2):0,pad=1080:1920:0:1" \
+      -c:v h264_nvenc -preset p4 -c:a aac -b:a 192k \
+      /home/murakami/multi-agent-shogun/work/cmd_1409/tono_edit_1080x1920.mp4
+    ```
+
+    ### Step 3: YouTube非公開アップロード
+    ```bash
+    python3 /home/murakami/multi-agent-shogun/scripts/youtube_uploader.py upload \
+      --file /home/murakami/multi-agent-shogun/work/cmd_1409/tono_edit_1080x1920.mp4 \
+      --title "おらふくんレールガン事件【ドズル社/マイクラ/切り抜き】" \
+      --privacy private
+    ```
+
+    ### Step 4: 説明欄フォーマット（/home/murakami/.claude/projects/-home-murakami-multi-agent-shogun/memory/feedback_manga_short_description.md の専用フォーマット準拠）
+    ```
+    おらふくんのレールガン事件、マイクラ史に残るとんでもないやつをどうぞ。
+
+    📌 元動画
+    いろんな時代の人になってエンドラ討伐！【マイクラ】
+    https://youtu.be/（元動画ID: ディレクトリ名から特定、不明なら省略）
+
+    🎮 ドズル社本家チャンネル
+    https://www.youtube.com/@dozle
+
+    ※ドズル社公式ガイドラインに基づいて運営しています
+    https://www.dozle.jp/rule/
+
+    ※漫画パネルはAI画像生成で制作しています
+
+    #ドズル社 #切り抜き #マイクラ #shorts #おらふくん #レールガン #漫画動画 #AI漫画
+    ```
+    upload後に説明欄を更新すること（youtube_uploader.pyのupdateサブコマンドまたは同等手段）。
+
+    ### テスト方法
+    1. /home/murakami/multi-agent-shogun/work/cmd_1409/tono_edit_1080x1920.mp4 が存在すること
+    2. ffprobe で解像度が 1080x1920 であること
+    3. YouTube非公開URLが取得できること
+
+    ### 完了時
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽4号、subtask_1409a完了。YouTube非公開URL: {URL}" report_completed ashigaru4
+  steps: "Step0: advisor()呼ぶ。Step1: ffprobe解像度確認。Step2: ffmpegクロップ(h264_nvenc)→/home/murakami/multi-agent-shogun/work/cmd_1409/tono_edit_1080x1920.mp4。Step3: ffprobe出力確認。Step4: youtube_uploader.pyでprivate upload→URL取得。Step5: 説明欄設定(feedback_manga_short_description.mdフォーマット)。Step6: advisor()完了前。Step7: inbox_write完了報告"
+  acceptance_criteria:
+    - "/home/murakami/multi-agent-shogun/work/cmd_1409/tono_edit_1080x1920.mp4 が存在し解像度1080x1920であること"
+    - "YouTube非公開URLが取得できること"
+    - "説明欄にAI画像生成注記が含まれること"
+  target_path: /home/murakami/multi-agent-shogun/work/cmd_1409/
+  notes:
+    - "ffmpegは必ずh264_nvenc使用（libx264禁止）"
+    - "git pushは家老が実施。commitは不要"
+    - "advisor()を実装前・完了前の2回必ず呼ぶこと"
+    - "元動画IDはディレクトリ名から特定。不明なら説明欄のURL省略で続行"
+  timestamp: "2026-04-17T15:45:00"
+
+- task_id: subtask_1410a
+  parent_cmd: cmd_1410
+  assigned_to: ashigaru4
+  status: done
+  redo_note: "区間誤り（2138s→正しくは15309s）。subtask_1410a2で再実行"
+  bloom_level: L3
+  project: dozle_kirinuki
+  description: |
+    ## DoZ動画素材準備: gszoq-2br2o 2138s〜2318s クリップ＋SRT生成
+
+    元動画URL: https://www.youtube.com/watch?v=gszoq-2br2o
+    対象区間: 2138秒〜2318秒（35:38〜38:38、180秒＝3分）
+    目的: おおはらMENが「ヒーラー」と叫ぶシーンの素材準備
+
+    ### Step 1: 保存先ディレクトリ確認/作成
+    既存の命名規則（YYYYMMDD_タイトル/）を確認してから作成。
+    ```bash
+    ls /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/ | grep -i "doz\|ドズ\|gszoq" | head -5
+    ```
+    既存なければ動画タイトルをyt-dlpで取得してディレクトリ名を決定。
+
+    ### Step 2: 元動画DL（1080p以下）
+    ```bash
+    yt-dlp -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --merge-output-format mp4 \
+      -o "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/{YYYYMMDD_タイトル}/full.mp4" \
+      "https://www.youtube.com/watch?v=gszoq-2br2o"
+    ```
+    ※ 既にDL済みなら再DLしない。
+
+    ### Step 3: 3分クリップ切り出し
+    ```bash
+    ffmpeg -i /home/.../full.mp4 -ss 2138 -t 180 \
+      -c:v h264_nvenc -preset p4 -c:a aac -b:a 192k \
+      /home/.../clip_2138_2318.mp4
+    ```
+    **-ss は -i の後に置くこと**（memory/feedback_ffmpeg_ss_after_i.md 音ズレ回避）
+    **h264_nvenc必須**（libx264禁止）
+
+    ### Step 4: Demucs ボーカル分離
+    既存パイプライン使用。vocal/ 配下に出力。
+
+    ### Step 5: AssemblyAI 文字起こし
+    既存 /home/murakami/multi-agent-shogun/scripts/vocal_stt_pipeline.py を使用（Gemini STT廃止済）。
+    出力: clip_2138_2318.srt
+
+    ### Step 6: 話者ID実名化
+    A/B/C等のアルファベット不可。
+    定義ファイル: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/context/member_profiles.yaml
+    ドズル社メンバー実名（dozle/bon/qnly/orafu/oo_men/nekooji）に変換。
+
+    ### Step 7: git commit
+    ```bash
+    git add /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/{ディレクトリ}/
+    git commit -m "feat(cmd_1410): gszoq-2br2o 3分クリップ+SRT生成完了"
+    ```
+
+    ### テスト方法
+    1. clip_2138_2318.mp4 が存在し ffprobe で duration≈180s であること
+    2. SRTファイルが存在し話者がメンバー実名であること
+    3. git commit済みであること
+
+    ### 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "✅ cmd_1410完了: 3分クリップ＋SRT生成完了。殿レビュー待ち"
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽4号、subtask_1410a完了。DoZ素材準備完了。clip+SRT作成済。" report_completed ashigaru4
+  steps: "Step0: advisor()呼ぶ。Step1: 保存先ディレクトリ確認（既存命名規則）。Step2: yt-dlp元動画DL（1080p以下）。Step3: ffmpegクリップ切り出し(h264_nvenc、-ss は -i の後)。Step4: Demucsボーカル分離。Step5: vocal_stt_pipeline.pyでAssemblyAI文字起こし。Step6: 話者ID実名化。Step7: git commit。Step8: advisor()完了前。Step9: ntfy+inbox_write完了報告"
+  acceptance_criteria:
+    - "/home/murakami/.../clip_2138_2318.mp4 が存在しduration≈180sであること"
+    - "SRTファイルが存在し話者がドズル社メンバー実名であること"
+    - "git commit済みであること"
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/
+  notes:
+    - "新規.py禁止（既存scripts/使用）"
+    - "h264_nvenc必須（libx264禁止）"
+    - "-ssは-iの後に置け（音ズレ回避）"
+    - "/tmp禁止。成果物はprojects/dozle_kirinuki/work/配下"
+    - "Gemini STT廃止済。必ずAssemblyAI（vocal_stt_pipeline.py）を使え"
+    - "git pushは家老が実施。commitのみ可"
+    - "advisor()を実装前・完了前の2回必ず呼ぶこと"
+  timestamp: "2026-04-17T16:15:00"
+
+- task_id: subtask_1410a2
+  parent_cmd: cmd_1410
+  redo_of: subtask_1410a
+  assigned_to: ashigaru4
+  bloom_level: L3
+  project: dozle_kirinuki
+  status: done
+  description: |
+    ## 【やり直し】DoZ動画素材準備: gszoq-2br2o 15309s〜15489s 再クリップ＋SRT生成
+
+    前回(subtask_1410a)は区間誤り（2138s→殿訂正: 15309s）。元動画はDL済み。
+
+    ### 元動画パス（DL済み・再DL不要）
+    WORK="/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260417_【DoZ】5日目ヒーラーは絶対に仲間を見捨てちゃいけねぇのさ【ドズル社おおはらMEN視点】"
+    FULL="$WORK/full.mp4"
+
+    ### Step 1: 旧クリップを無効化
+    mv "$WORK/clip_2138_2318.mp4" "$WORK/clip_2138_2318_invalid.mp4" 2>/dev/null || true
+
+    ### Step 2: 正しい区間で再クリップ（15309s〜15489s、180秒=3分）
+    ffmpeg -i "$FULL" -ss 15309 -t 180 \
+      -c:v h264_nvenc -preset p4 -c:a aac -b:a 192k \
+      "$WORK/clip_15309_15489.mp4"
+    ※ **-ss は -i の後に置くこと**（音ズレ回避）
+
+    ### Step 3: Demucs ボーカル分離
+    既存パイプライン使用。vocal/ 配下に出力。
+
+    ### Step 4: AssemblyAI STT（3分クリップのみ）
+    python3 /home/murakami/multi-agent-shogun/scripts/vocal_stt_pipeline.py \
+      --input "$WORK/clip_15309_15489.mp4" --output "$WORK/"
+    出力: clip_15309_15489.srt
+
+    ### Step 5: 話者ID実名化
+    A/B/C等のアルファベット不可。メンバー実名（dozle/bon/qnly/orafu/oo_men/nekooji）に変換。
+    定義: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/context/member_profiles.yaml
+
+    ### Step 6: 検証
+    grep -i "ヒーラー\|healer" "$WORK/clip_15309_15489.srt" → **1件以上ヒットすること**
+
+    ### Step 7: git commit
+    git add "$WORK/"
+    git commit -m "feat(cmd_1410): gszoq-2br2o 15309s-15489s 再クリップ+SRT生成（区間訂正版）"
+
+    ### テスト方法
+    1. clip_15309_15489.mp4 が存在し ffprobe で duration≈180s
+    2. SRTに「ヒーラー」が1件以上含まれること
+    3. 話者がメンバー実名であること
+
+    ### 完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽4号、subtask_1410a2完了。区間訂正版クリップ+SRT。ヒーラーHIT件数: {N}件" report_completed ashigaru4
+  steps: "Step0: advisor()呼ぶ。Step1: 旧clip_2138_2318.mp4を_invalidリネーム。Step2: ffmpegで15309s〜15489sクリップ(-ssは-iの後)。Step3: Demucsボーカル分離。Step4: vocal_stt_pipeline.pyでSTT(3分クリップのみ)。Step5: 話者ID実名化。Step6: grep「ヒーラー」1件以上確認。Step7: git commit。Step8: advisor()完了前。Step9: inbox_write完了報告"
+  acceptance_criteria:
+    - "clip_15309_15489.mp4 が存在しduration≈180sであること"
+    - "SRTに「ヒーラー」が1件以上含まれること"
+    - "話者がドズル社メンバー実名であること"
+    - "git commit済みであること"
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260417_【DoZ】5日目ヒーラーは絶対に仲間を見捨てちゃいけねぇのさ【ドズル社おおはらMEN視点】/
+  notes:
+    - "元動画 full.mp4 はDL済み。再DL不要"
+    - "9時間フル動画にSTTをかけるな。3分クリップのみ"
+    - "-ssは-iの後に置け（音ズレ回避）"
+    - "h264_nvenc必須（libx264禁止）"
+    - "advisor()を実装前・完了前の2回必ず呼ぶこと"
+    - "git pushは家老が実施。commitのみ可"
+  timestamp: "2026-04-17T17:35:24"
+- task_id: subtask_1415a
+  parent_cmd: cmd_1415
+  assigned_to: ashigaru4
+  bloom_level: L2
+  status: done
+  description: |
+    ## 夜間監査修正 - 動画制作パイプライン CRITICAL/HIGH修正
+
+    対象: gunshi_report_nightly_audit_20260417_video.yaml
+
+    ### CRITICAL: main.py L1156 logger未定義 → print()置換
+
+    対象ファイル: projects/dozle_kirinuki/scripts/main.py
+
+    L1156の以下の行を:
+      logger.warning(f"clip_timestamps_raw 境界外アクセス: index {i + _tc_offset}, len={len(clip_timestamps_raw)} — chapters生成を中断")
+
+    以下に置換（選択肢A・推奨）:
+      print(f"[main] WARNING: clip_timestamps_raw 境界外アクセス: index {i + _tc_offset}, len={len(clip_timestamps_raw)} — chapters生成を中断")
+
+    ### HIGH: vertical_convert.py L174 /tmp → work_dir配下
+
+    対象ファイル: projects/dozle_kirinuki/scripts/vertical_convert.py
+
+    L174の以下の行を:
+      tmp_fd, temp_clip_path = tempfile.mkstemp(suffix=".mp4")
+
+    以下に変更（work_dir配下に出力）:
+      import uuid  # 追加（冒頭importがなければ）
+      temp_clip_path = os.path.join(work_dir, f"_tmp_clip_{uuid.uuid4().hex[:8]}.mp4")
+      tmp_fd = None  # mkstempのtmp_fdをNoneにし、以降のos.close(tmp_fd)がある場合は削除
+
+    ※ vertical_convert.pyのwork_dir変数の確認をしてから修正すること。
+    ※ tempfileのimportが不要になる場合は削除。
+
+    ### テスト手順
+    1. python3 -c "import ast; ast.parse(open('projects/dozle_kirinuki/scripts/main.py').read()); print('OK')"
+    2. python3 -c "import ast; ast.parse(open('projects/dozle_kirinuki/scripts/vertical_convert.py').read()); print('OK')"
+    3. grep "logger\." projects/dozle_kirinuki/scripts/main.py → 0件であること
+    4. grep "/tmp" projects/dozle_kirinuki/scripts/vertical_convert.py → mkstemp関連が0件であること
+
+    ### 完了後
+    git add projects/dozle_kirinuki/scripts/main.py projects/dozle_kirinuki/scripts/vertical_convert.py
+    git commit -m "fix(cmd_1415): main.py logger未定義→print置換・vertical_convert /tmp→work_dir"
+
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi \
+      "足軽4号、subtask_1415a完了。main.py logger→print・vertical_convert /tmp→work_dir修正。軍師QCせよ。commit: {hash}" \
+      qc_request ashigaru4
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+      "足軽4号、subtask_1415a完了。軍師QC依頼済。" \
+      report_completed ashigaru4
+  steps: "Step0: advisor()実装前。Step1: main.py L1156 logger→print()置換。Step2: vertical_convert.py L174 mkstemp→work_dir配下に変更。Step3: 構文確認（python3 -c ast.parse）。Step4: grepで残存確認。Step5: git commit。Step6: advisor()完了前。Step7: 軍師QC依頼+家老報告"
+  acceptance_criteria:
+    - "main.py に logger.warning が0件"
+    - "vertical_convert.py に /tmp mkstemp が0件"
+    - "両ファイルの構文確認OK"
+    - "git commit済み"
+  notes:
+    - "advisor()を実装前・完了前の2回必ず呼ぶこと"
+    - "git pushは家老が実施。commitのみ可"
+    - "勝手な設計変更禁止。軍師reportのremedyをそのまま適用"
+  timestamp: "2026-04-19T09:05:00"
+- task_id: subtask_1420a
+  parent_cmd: cmd_1420
+  assigned_to: ashigaru4
+  bloom_level: L2
+  status: done
+  timestamp: "2026-04-19T10:47:00"
+  completed_at: "2026-04-19T10:51:39"
+  description: "tono_edit.mkv（5日目ヒーラー）縦型クロップ→YouTube非公開アップ。vertical_convert.py+youtube_uploader.py使用。h264_nvenc必須・private固定。"
+  procedure: shared_context/procedures/video_vertical_crop_upload.md
+  steps: "procedureを読んで実行。入力: projects/dozle_kirinuki/work/20260417_【DoZ】5日目ヒーラー.../tono_edit.mkv。h264_nvenc・private必須。完了後ntfy+inbox_write karo。"
+  acceptance_criteria:
+    - "tono_edit_vertical.mp4（1080x1920・h264_nvenc）生成完了"
+    - "YouTube private アップロード完了・URL取得"
+    - "ntfy送信済み"
+    - "git commit済み（メタJSONのみ）"
+  notes:
+    - "libx264禁止・h264_nvenc必須"
+    - "privacy=private厳守（unlisted禁止）"
+    - "git pushは家老が実施"
+    - "入力ファイル: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260417_【DoZ】5日目ヒーラーは絶対に仲間を見捨てちゃいけねぇのさ【ドズル社おおはらMEN視点】/tono_edit.mkv"
+- task_id: subtask_1425c
+  parent_cmd: cmd_1425
+  bloom_level: L2
+  status: blocked
+  timestamp: "2026-04-22T20:52:00"
+  blocked_reason: "YouTube bot detection. yt-dlp --cookies-from-browser chrome/firefox不可（ブラウザcookieなし）。denoインストール済みも全player_client(android/tv/ios/mweb)でbot検知。認証cookie必要。"
+  blocked_at: "2026-04-23T11:47:00"
+  description: "DoZ6日目 シャルロット(youtube live v19JAnVjZ_c) DL+1時間分割。保存先 DAY6_DIR/raw/ → DAY6_DIR/multi/day6_charlotte_part_XX.mp4"
+  params:
+    url: "https://www.youtube.com/live/v19JAnVjZ_c"
+    day6_dir: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260416_【#DoZ】6日目 腹から声が出ないヒーラーに命を任せれられるとでも？【ドズル社／おおはらMEN視点】"
+    raw_out: "day6_charlotte_full.mp4"
+    prefix: "day6_charlotte"
+    work_dir: "/home/murakami/multi-agent-shogun/work/cmd_1425"
+  steps: "mkdir -p work/cmd_1425 DAY6_DIR/raw DAY6_DIR/multi → yt-dlp 'https://www.youtube.com/live/v19JAnVjZ_c' -f 'bv*+ba/best' -o DAY6_DIR/raw/day6_charlotte_full.mp4 --write-info-json → ffmpeg -i raw/day6_charlotte_full.mp4 -c copy -f segment -segment_time 3600 -reset_timestamps 1 multi/day6_charlotte_part_%02d.mp4 → ffprobe各partで尺/codec確認→結果をwork/cmd_1425/charlotte_parts.json保存→完了報告"
+  acceptance_criteria:
+    - "day6_charlotte_full.mp4 DL成功（音声付き）"
+    - "day6_charlotte_part_00.mp4〜 が DAY6_DIR/multi/ に存在"
+    - "charlotte_parts.json に各partの duration/size_mb/codec 記録"
+    - "day5_ prefix ファイルを上書きしていないこと"
+  notes:
+    - "YouTube Live: -f 'bv*+ba/best' で動画+音声マージDL"
+    - "分割は -c copy（再エンコード不要・h264_nvenc不要）"
+    - "/tmp禁止。中間ファイルはwork/cmd_1425/配下"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽4号、subtask_1425c完了。シャルロットDL+分割完了。' report_completed ashigaru4"
+- task_id: subtask_1425c2
+  parent_cmd: cmd_1425
+  redo_of: subtask_1425c
+  bloom_level: L3
+  status: done
+  timestamp: "2026-04-24T07:50:00+09:00"
+  completed_at: "2026-04-24T08:15:00+09:00"
+  description: "シャルロット(v19JAnVjZ_c) YouTube DL再試行（5手法順次試行）"
+  params:
+    url: "https://www.youtube.com/live/v19JAnVjZ_c"
+    day6_dir: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260416_【#DoZ】6日目 腹から声が出ないヒーラーに命を任せれられるとでも？【ドズル社／おおはらMEN視点】"
+    raw_out: "day6_charlotte_full.mp4"
+    log_file: "/home/murakami/multi-agent-shogun/work/cmd_1425/dl_charlotte_retry.log"
+  steps: "以下5手法を順次試行。成功したら即DL→分割→報告。全滅したら失敗報告"
+  acceptance_criteria:
+    - "day6_charlotte_full.mp4 DL成功（音声付き）"
+    - "day6_charlotte_part_00.mp4〜 が DAY6_DIR/multi/ に存在（1時間分割）"
+    - "charlotte_parts.json に各part duration/size_mb/codec 記録"
+  notes:
+    - "【手法1】yt-dlp --cookies-from-browser chrome:Default -f 'bv*+ba/best' URL -o raw_out"
+    - "【手法2】yt-dlp --cookies-from-browser chrome:$HOME/.chrome-cdp (CDPブラウザにYouTubeログイン要)"
+    - "【手法3】yt-dlp --cookies-from-browser firefox"
+    - "【手法4】yt-dlp --impersonate chrome -f 'bv*+ba/best' URL -o raw_out"
+    - "【手法5】/home/murakami/multi-agent-shogun/直下にcookies.txtが存在すれば --cookies cookies.txt で試行"
+    - "全手法失敗時: 失敗内容をlog_fileに記録してkaro報告（家老から殿へOption_A/C再選択依頼）"
+    - "DL成功後: ffmpeg -i raw_out -c copy -f segment -segment_time 3600 -reset_timestamps 1 multi/day6_charlotte_part_%02d.mp4"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽4号、subtask_1425c2完了。シャルロットDL+分割完了。' report_completed ashigaru4"
+    - "全滅時: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽4号、subtask_1425c2 BLOCKED。5手法全滅。' report_blocked ashigaru4"
+
+- task_id: subtask_1441d
+  parent_cmd: cmd_1441
+  bloom_level: L4
+  status: done
+  timestamp: "2026-04-24T12:55:00+09:00"
+  target_path: work/cmd_1441/ideas/ashigaru4_d.md
+  description: "cmd_1441 Phase A カテゴリ(d) 設計書/instructions古い記述のアイデア出し。cmd_1404 --max-tokens削除関連の書換漏れ・CLAUDE.md古参照・instructions/*.md・shared_context/procedures/*.md古記述を work/cmd_1441/ideas/ashigaru4_d.md に整理"
+  steps: "advisor()→CLAUDE.md/instructions/*.md/shared_context/procedures/*.md/memory/*.md を grep/Read走査→現状/やれてないこと/アイデア3セクションでmd作成→advisor()→git add commit→inbox_write karo報告"
+  acceptance_criteria:
+    - "work/cmd_1441/ideas/ashigaru4_d.md 作成(現状/やれてないこと/アイデア 3セクション・最低5アイデア)"
+    - "git commit済み"
+  notes:
+    - "新規.py禁止・md作成のみ"
+    - "cmd_1404/1435で--max-tokens削除済だが古い設計書・memoryに参照残存可能性あり。grep推奨"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽4号、subtask_1441d完了。' report_completed ashigaru4"
+
+- task_id: subtask_1441_p05
+  parent_cmd: cmd_1441
+  bloom_level: L4
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/config/settings.yaml
+  timestamp: "2026-04-24T15:53:00+09:00"
+  description: "cmd_1441 D10確定実装: bloom_routing 復活(A1-a)。殿判断Option β改訂版 L1-L4=GLM / L5-L6=Opus[1m]・Sonnet除外。config/settings.yaml に bloom_routing + capability_tiers キー追加・karo.md step 6.5 再稼働状態にする"
+  steps: "advisor()→Step1:Read config/settings.yaml 現状把握→Step2:Edit で bloom_routing: auto + capability_tiers: {L1: glm, L2: glm, L3: glm, L4: glm, L5: opus[1m], L6: opus[1m]} 追加→Step3:python3 -c で yaml.safe_load 構文確認→Step4:Read lib/cli_adapter.sh で get_recommended_model が capability_tiers 参照できるか確認(不足なら Edit)→Step5:advisor()→Step6:git add & commit→Step7:inbox_write karo 完了報告"
+  acceptance_criteria:
+    - "config/settings.yaml に bloom_routing: auto キー追加"
+    - "config/settings.yaml に capability_tiers L1-L4=glm/L5-L6=opus[1m] マッピング追加"
+    - "yaml構文エラーなし"
+    - "lib/cli_adapter.sh の get_recommended_model が capability_tiers 参照動作確認"
+    - "git commit済み"
+  notes:
+    - "殿判断D10 Option β確定(2026-04-24 15:52): GLMかOpusの二択・Sonnet除外"
+    - "L4境界はashigaru(GLM)・L5-L6はgunshi(Opus[1m])の従来設計維持"
+    - "advisor()必須(作業前+完了前)"
+    - "軍師QC必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽4号、subtask_1441_p05完了(D10 bloom_routing復活)。' report_completed ashigaru4"
+
+- task_id: subtask_1442_h1
+  parent_cmd: cmd_1442
+  bloom_level: L5
+  status: done
+  target_path: /home/murakami/multi-agent-shogun/scripts/pretool_check.sh
+  timestamp: "2026-04-24T18:26:00+09:00"
+  description: "cmd_1442 Wave A H1実装: 完了後curl/ブラウザ自動verify ハーネス。task YAML verify:必須化+PostToolUse hook+done機械的阻止+shogun-screenshot連携"
+  steps: "advisor()→Step1:Read /home/murakami/multi-agent-shogun/work/cmd_1442/harness_proposal.md §H1→Step2:context/cmd_template.md に verify:必須フィールド追加(URL/curl/grep基準)→Step3:scripts/pretool_check.sh 拡張: status:done時に verify field+verify_result:pass確認・未検証BLOCK→Step4:.claude/hooks/post_tool_use.sh 作成 or 拡張: task status:done遷移検出→verify command実行→verify_result:書込み→Step5:shogun-screenshot skill連携(URL verify時スクショ保存)→Step6:unit test 3ケース(verify成功/失敗/欠落)→Step7:advisor()→Step8:git commit→Step9:inbox_write karo報告"
+  acceptance_criteria:
+    - "context/cmd_template.md に verify: 必須フィールドのスキーマ+例示あり"
+    - "scripts/pretool_check.sh 拡張: status:done 時 verify有無+pass チェックBLOCK動作"
+    - ".claude/hooks/post_tool_use.sh が task status:done遷移時 verify command自動実行"
+    - "shogun-screenshot 連携: URL verify時スクショ保存パス明示"
+    - "unit test 3ケース通過"
+    - "git commit済み"
+  notes:
+    - "殿判断H1採用(2026-04-24 18:23): Wave A 1件目"
+    - "参考設計: /home/murakami/multi-agent-shogun/work/cmd_1442/harness_proposal.md §H1 (commit 95895ce)"
+    - "所要時間: MED 2-3h"
+    - "advisor()必須(作業前+完了前)・軍師QC必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽4号、subtask_1442_h1完了(H1 verify harness)。' report_completed ashigaru4"
+
+- task_id: cmd_1443_p06
+  parent_cmd: cmd_1443
+  bloom_level: L4
+  status: done
+  unblocked_at: "2026-04-24T19:34:00+09:00"
+  scope_extension: "家老追加要件(軍師qc_1443_p02 HIGH finding対応): yq必須フィールドチェックに加えて、git add/commit hook で `git add .` 絶対パターンを PreToolUse BLOCK する実装も含めよ。明示パス指定or `git add -p` のみ許可。root_cause: commit 1440284 巻込事故の恒久対策。"
+  target_path: /home/murakami/multi-agent-shogun/scripts/pretool_check.sh
+  timestamp: "2026-04-24T19:15:00+09:00"
+  description: "cmd_1443 Wave B/p06 H5: cmd YAML lint(PreToolUse)。yq+必須フィールドチェック+heredoc内status混入警告+write阻止。cmd_1441 全足軽 pretool_check BLOCK事案再発防止"
+  steps: "advisor()→Step1:Read /home/murakami/multi-agent-shogun/work/cmd_1442/execution_plan_v3.md §2 H5→Step2:scripts/pretool_check.sh拡張(CHK6 cmd YAML lint): shogun_to_karo.yaml/tasks/ashigaru*.yaml 編集時 yq で必須フィールド(task_id/parent_cmd/bloom_level/status/target_path/timestamp/description/steps/acceptance_criteria)チェック→Step3:heredoc内 status: in_progress/assigned 等の混入検知→Step4:missing時 BLOCK(exit 1)・対応メッセージ出力→Step5:動作確認(故意欠落YAML→BLOCK確認/正常YAML→通過確認)→advisor()→Step6:git commit→Step7:inbox_write karo報告"
+  acceptance_criteria:
+    - "scripts/pretool_check.sh 拡張(CHK6 cmd YAML lint・新規.py禁止)"
+    - "yq で必須8フィールドチェック動作確認"
+    - "heredoc内 status 混入警告動作確認"
+    - "missing時 BLOCK(exit 1)動作確認"
+    - "正常YAML regression なし"
+    - "git commit 済み"
+  notes:
+    - "殿判断H5採用(2026-04-24 18:29): cmd_1441 全足軽pretool_check BLOCK事案再発防止"
+    - "blocked_by: subtask_1442_h1 (H1 pretool_check.sh 拡張と整合のため H1 完了後着手)"
+    - "参考設計: work/cmd_1442/execution_plan_v3.md §2 H5"
+    - "新規.py禁止・shellのみ・advisor()必須(作業前のみ・LOW 30min)"
+    - "所要時間: LOW 30min"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽4号、cmd_1443_p06完了(H5 cmd YAML lint)。' report_completed ashigaru4"
+
+- task_id: cmd_1443_p07
+  parent_cmd: cmd_1443
+  bloom_level: L5
+  status: done
+  unblocked_at: "2026-04-24T19:45:00+09:00"
+  prior_blocked_by: [cmd_1443_p06]
+  target_path: /home/murakami/multi-agent-shogun/shared_context/task_yaml_schema.md
+  timestamp: "2026-04-24T19:15:00+09:00"
+  description: "cmd_1443 Wave B/p07 H9: Phase間殿ゲート必須化。cmd YAML自動解析→phase_gate:required挿入→Phase完了で殿確認待ち+ntfy+dashboard🚨。cmd_1434 Phase3 NG未反映事案防止"
+  steps: "advisor()→Step1:Read /home/murakami/multi-agent-shogun/work/cmd_1442/execution_plan_v3.md §2 H9→Step2:shogun_to_karo.yaml schema 拡張(lord_preconditions: or phase_gate:required フィールド追加)→Step3:shared_context/task_yaml_schema.md に phase_gate: 欄追加・例示→Step4:cmd YAML 自動解析スクリプト(scripts/phase_gate_checker.sh): Phase完了検知→殿確認待ち+scripts/ntfy.sh送信+dashboard.md 🚨追加→Step5:動作確認(サンプルcmdで Phase1完了検知→ntfy+🚨確認)→advisor()→Step6:git commit→Step7:inbox_write karo報告"
+  acceptance_criteria:
+    - "shared_context/task_yaml_schema.md に phase_gate: 欄追加+例示"
+    - "scripts/phase_gate_checker.sh 新設(shell・新規.py禁止)"
+    - "Phase完了検知→ntfy+dashboard🚨自動追加動作確認"
+    - "既存cmd regression なし"
+    - "git commit 済み"
+  notes:
+    - "殿判断H9採用(2026-04-24 18:30): cmd_1434 Phase3 NG未反映事案防止"
+    - "blocked_by: cmd_1443_p06 (task YAML schema変更と同期・p06後に shared_context/task_yaml_schema.md 更新)"
+    - "参考設計: work/cmd_1442/execution_plan_v3.md §2 H9"
+    - "新規.py禁止・shell+md のみ・advisor()必須(作業前+完了前)"
+    - "所要時間: LOW 1h"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽4号、cmd_1443_p07完了(H9 Phase間殿ゲート)。' report_completed ashigaru4"
+
+- task_id: subtask_1449_a
+  parent_cmd: cmd_1449
+  bloom_level: L4
+  status: done
+  completed_at: "2026-04-24T23:38:10+09:00"
+  commit: "a8e2878"
+  target_path: /home/murakami/multi-agent-shogun/instructions/karo.md
+  timestamp: "2026-04-24T23:24:00+09:00"
+  description: "cmd_1449 領域A cmd_1441 技術負債4件一掃: (A1)家老 task_design_checklist に target_path必須追加 (A2)bloom_routing 参照破綻修正 (A3).gitignore work/ 運用見直し (A4)git add . 事故予防 feedback_git_safety.md 自動生成 + 全足軽ルール周知"
+  steps: "advisor()→Step1:A1 instructions/karo.md の Karo Task Assignment Checklist に target_path必須 追加(pretool_check.sh CHK1 対策)→Step2:A2 CLAUDE.md + karo.md で settings.yaml bloom_routing 参照破綻を確認 → config/settings.yaml に bloom_routing キー追加 or 参照側を修正→Step3:A3 .gitignore work/ 運用見直し - work/ は .gitignore 維持+git add -f 明示ルール化 or 除外(既存運用維持で運用ルール明示化推奨)→Step4:A4 memory/feedback_git_safety.md 新設(git add . 禁止/git add -p 推奨/commit前 git diff --cached 確認/stash push 他者作業退避) + CLAUDE.md の Git Safety Protocol に追記→Step5:verify: pretool_check.sh CHK1 target_path BLOCK 動作確認+feedback_git_safety.md 記述妥当性確認→Step6:git commit(明示パス)→Step7:inbox_write gunshi QC依頼"
+  acceptance_criteria:
+    - "instructions/karo.md: Karo Task Assignment Checklist に 'target_path必須' 追加"
+    - "config/settings.yaml bloom_routing キー追加 or 参照側修正(bloom_routing 参照破綻解消)"
+    - ".gitignore work/ 運用ルール明示(CLAUDE.md or instructions/ashigaru.md に 'git add -f 明示ルール')"
+    - "memory/feedback_git_safety.md 新設(4原則記載)"
+    - "CLAUDE.md Git Safety Protocol 追記"
+    - "verify: pretool_check.sh CHK1 動作確認"
+    - "git commit 済み(明示パスのみ・git add . 禁止)"
+  notes:
+    - "殿指示(2026-04-24 23:22)『やれるだけやれ』5領域並列一掃"
+    - "足軽4号選定: cmd_1443_p01 H1 verify + p06 H5 lint + p07 H9 Phase gate 実装者・task_yaml_schema 単一正典化経験"
+    - "並列非干渉: 他領域B/C/D/E と別ファイル群ゆえ並列OK"
+    - "新規.py禁止"
+    - "advisor() 最低1回(作業前推奨)"
+    - "git add . 禁止(CHK8)・明示パスのみ"
+    - "所要時間: LOW-MED 1-2h (4小項目)"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽4号、subtask_1449_a完了(cmd_1441技術負債4件一掃)。QC依頼。' report_completed ashigaru4"
+
+- task_id: cmd_1452_p1
+  parent_cmd: cmd_1452
+  bloom_level: L3
+  status: done
+  completed_at: "2026-04-25T00:05:00+09:00"
+  commit: "9816032"
+  target_path: /home/murakami/multi-agent-shogun/work/cmd_1452/disk_cleanup_plan.md
+  timestamp: "2026-04-24T23:48:00+09:00"
+  description: "cmd_1452 Phase1 棚卸し(非破壊): disk 88%→80% 削減の削除候補リスト作成。全件抽出→各候補にパス/サイズ/最終更新日/削除根拠/リスク/推奨判定付与。★Phase2 殿承認ゲート前に rm 禁止★"
+  steps: "advisor()→Step1:df -h で現状確認→Step2:du -sh /home/murakami/multi-agent-shogun/work/ 配下を sort -hr で棚卸し→Step3:ls -la /tmp/dozle_kirinuki.backup.* および /tmp/ 他 cmd完遂済backup特定→Step4:du -sh /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/ と output/ 配下棚卸し(★投稿済動画は keep 推奨★)→Step5:du -sh /home/murakami/.cache/ 配下(uv/pip/chromium等の再生成可能 cache)→Step6:find /home -type d -size +1G でその他大容量dir抽出→Step7:各候補に属性(パス/サイズ/mtime/削除根拠/リスク/推奨判定)付与→Step8:/home/murakami/multi-agent-shogun/work/cmd_1452/disk_cleanup_plan.md 作成→Step9:各log を /home/murakami/multi-agent-shogun/work/cmd_1452/ 配下に保存→Step10:git commit(明示パス)→Step11:完了報告・家老は Phase2 殿承認要請準備"
+  acceptance_criteria:
+    - "Phase1 棚卸しreport work/cmd_1452/disk_cleanup_plan.md 完成(一覧表+合計回収見込みGB+目標達成性評価)"
+    - "全候補に属性6項目付与(パス/サイズ/mtime/削除根拠/リスク/推奨判定)"
+    - "既知候補2件(work/cmd_1424=9.4GB・/tmp/dozle_kirinuki.backup.1777030230=3.8GB)を必ず含む"
+    - "投稿済動画は keep or needs_lord_review(削除推奨しない)"
+    - "Tier1禁忌パス(rm -rf / /mnt/* /home/* ~)は候補リストに絶対含めない"
+    - "合計回収見込み 80GB 以上で目標達成可能性評価"
+    - "各Phase stdout/stderr work/cmd_1452/ 配下 log保存"
+    - "git commit 済み(明示パス)"
+    - "★rm は絶対に実行しない(Phase1 は棚卸しのみ)★"
+  notes:
+    - "殿承認(2026-04-24 23:45)『ダッシュボード乱立課題 1個ずつ解決 1件目=disk掃除』"
+    - "優先度 high (Day6 MIX blocker・4視点×50GB=200GB見込みゆえ80%以下必須)"
+    - "足軽4号選定: cmd_1443_p01 H1 verify + p06 H5 lint + p07 H9 Phase gate 実装者・Phase別ゲート運用の知見最適"
+    - "★Phase1のみ★ Phase2=殿承認ゲート/Phase3=承認済list rm/Phase4=df検証 は本subtask対象外"
+    - "Phase1完了後、家老が将軍経由で殿に plan提示→殿承認後に Phase3 発令"
+    - "CLAUDE.md D001 Tier1禁忌絶対遵守"
+    - "新規.py禁止・shell(du/df/find/ls)のみ"
+    - "/tmp禁止・work/cmd_1452/配下で中間保存"
+    - "advisor() 最低1回(作業前推奨)"
+    - "git add . 禁止(CHK8)・明示パスのみ"
+    - "所要時間: LOW 30min-1h (棚卸しのみ・rm なし)"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽4号、cmd_1452_p1完了(Phase1棚卸し・回収見込み XX GB)。Phase2殿承認待ち。' report_completed ashigaru4"
+
+- task_id: cmd_1455
+  parent_cmd: cmd_1455
+  bloom_level: L4
+  status: done
+  timestamp: "2026-04-25T07:27:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/scripts/done_gate.sh
+  description: |
+    H_post_step_completion_detector 実装。H1 done_gate.sh に post_steps marker 存在確認ロジックを追加。
+    設計doc必須参照: work/cmd_1449/H_post_step_completion_detector_design.md (commit a312447)。
+    新ファイル不要・diff≤20行。task YAML の post_steps: [marker_paths] を読み込み
+    全marker [[ -f ]] 確認→欠落時 exit 2+stderr missing list出力。後方互換(欄なし→skip)。
+    cmd_1455 H_post実装はcmd_1456d schema追記(ashigaru7)と整合させること。
+  steps: "advisor()→Step1:設計doc全文熟読→Step2:done_gate.sh読解+追加箇所特定→Step3:post_steps読取+existsループ+BLOCK出力(≤20行)→Step4:unit test 4ケース実行(有全存在/有一部欠落/なし/空)→Step5:既存H1 regression確認→Step6:report作成+commit+push→advisor()→Step7:inbox_write gunshi QC→Step8:inbox_write karo報告"
+  acceptance_criteria:
+    - "done_gate.sh に post_steps 全marker [[ -f ]]確認ロジック追加(diff≤20行)"
+    - "新ファイル不要(H1拡張のみ)"
+    - "post_steps欄なし/空 → skip(後方互換)"
+    - "BLOCK時: exit 2 + stderr にmissing marker list出力(R6設計doc形式)"
+    - "unit test 4ケースPASS: post_steps有全存在OK/有一部欠落BLOCK/なしskip/空リストskip"
+    - "既存H1 done_gate test 全regression PASS(件数明記)"
+    - "work/cmd_1455/implementation_report.md 完成(diff/テスト結果/設計doc参照)"
+    - "git commit + push 済み"
+    - "軍師 QC PASS"
+  notes:
+    - "advisor()最低2回(Step1前・Step6後)"
+    - "diff≤20行厳守"
+    - "新規.py禁止・done_gate.sh直接拡張のみ"
+    - "task_yaml_schema.md追記はcmd_1456d(ashigaru7)が担当→重複禁止"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽4号、cmd_1455完了(H_post done_gate.sh拡張/diff XX行)。QC依頼。' report_completed ashigaru4"
+- task_id: subtask_1469a
+  parent_cmd: cmd_1469
+  bloom_level: L3
+  status: done
+  timestamp: "2026-04-25T13:27:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+  description: "scripts/dashboard/server.py の R1 ロジック(L177-210)でタイムスタンプ parse 失敗により fresh cmd age が 416日と誤算定される問題を調査・修正。"
+  steps: "advisor()→server.py L177-210読解→shogun_to_karo.yaml timestamp format確認→parse失敗原因特定→fallback修正(epoch 0化→判定skip or now推定)→動作確認(fresh cmdのageが正常計算)→advisor()→commit+push→inbox gunshi"
+  acceptance_criteria:
+    - "R1 ロジックで ISO8601 timestamp が正しく parse される"
+    - "parse エラー時は epoch 0 化せず判定skip or 起票時刻推定を使用"
+    - "fresh cmd のage正常計算確認(416日問題解消)"
+    - "軍師QC PASS"
+    - "git commit + push完了"
+  notes:
+    - "調査対象: scripts/dashboard/server.py L177-210 detect_action_required R1 ロジック"
+    - "shogun_to_karo.yaml の issued_at / timestamp フォーマットも確認(ISO8601 TZ付き vs naive)"
+    - "diff最小化: R1ロジックの parse部分のみ修正。大改修禁止"
+    - "新規.py禁止・/tmp禁止・git add . 禁止(CHK8)"
+    - "advisor()必須(作業前・完了前)"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽4号、subtask_1469a完了(server.py R1 timestamp parse修正)。QC依頼。' report_completed ashigaru4"
+- task_id: subtask_1471a
+  parent_cmd: cmd_1471
+  bloom_level: L4
+  status: assigned
+  timestamp: "2026-04-25T15:51:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+  description: |
+    scripts/dashboard/server.py に POST /api/cmd_create endpoint 追加。
+    将軍の shogun_to_karo.yaml 直接Edit廃止→MCP API化。
+    flock排他制御で競合防止。
+  steps: "advisor()→Step1:server.py既存POSTエンドポイント(panels_json/director_notes等)パターン読解→Step2:POST /api/cmd_create実装(必須フィールドvalidation・id重複チェック・flock排他制御・yaml append)→Step3:server.py再起動→Step4:curl -X POST http://127.0.0.1:8770/api/cmd_create でcurlテスト→Step5:既存GET /api/dashboard regression確認→Step6:git commit+push→advisor()→Step7:inbox gunshi QC→Step8:inbox karo報告"
+  acceptance_criteria:
+    - "POST /api/cmd_create endpoint追加(request body: {id, timestamp, lord_original, north_star, purpose, acceptance_criteria, command, project, priority, status})"
+    - "flock で shogun_to_karo.yaml 排他制御(既存inbox_write.sh同様のlock方式)"
+    - "yaml entry append: id重複チェック・必須フィールド存在確認"
+    - "response: { ok: true, cmd_id: ..., entry_line: ... } or error"
+    - "curl -X POST http://127.0.0.1:8770/api/cmd_create -d @cmd.json 動作確認"
+    - "既存 GET /api/dashboard 等 regression 0件"
+    - "git commit + push完了"
+    - "軍師QC PASS"
+  notes:
+    - "server.pyは既存1808行。新規.py禁止・既存server.py拡張のみ"
+    - "参考: server.py内の既存POSTエンドポイント実装パターンを流用"
+    - "/tmp禁止・git add . 禁止(CHK8)"
+    - "advisor()必須(作業前・完了前)"
+    - "server.py再起動: scripts/start_dashboard.sh or python3 scripts/dashboard/server.py &"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽4号、subtask_1471a完了(POST /api/cmd_create追加)。QC依頼。' report_completed ashigaru4"
