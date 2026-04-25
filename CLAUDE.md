@@ -101,6 +101,20 @@ Step 6: Start work
 
 Forbidden after /clear: polling (F004), contacting humans directly (F002). Trust task YAML only — pre-/clear memory is gone.
 
+### API 利用の段階移行ポリシー (cmd_1494)
+
+/clear 後 instructions/*.md を再読みして「Dashboard API 利用」セクションが反映される。**API は新規・対外操作で使え。Session Start の自己回復 (Step 4 自分のtask.yaml / Step 4.5 自分のinbox.yaml) は YAML 直読みで継続**。
+
+| シナリオ | 推奨 |
+|---------|------|
+| 自分の状態回復 (Step 4/4.5) | YAML 直読み (Read tool・1ファイル開くだけ) |
+| 他人 cmd の状態確認 | `curl /api/cmd_list` / `/api/cmd_detail` |
+| dashboard 集計 / R1〜R6 検出 | `curl /api/dashboard` |
+| inbox メッセージ送信 | `curl -X POST /api/inbox_write` (旧 bash inbox_write.sh は障害時フォールバックのみ) |
+| cmd 起票 (将軍/家老) | `curl -X POST /api/cmd_create` (家老 inbox 自動通知込み) |
+
+既存 cron / hooks / スクリプトの YAML 直読み箇所は **段階移行**。新規実装は最初から API 経由で書け。書込フォールバック (SQLite 直書き) は禁止 (dual-path 整合崩壊)。
+
 ## Summary Generation (compaction)
 
 Always include: 1) Agent role (shogun/karo/ashigaru/gunshi) 2) Forbidden actions list 3) Current task ID (cmd_xxx)
