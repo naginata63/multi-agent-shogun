@@ -65,7 +65,7 @@ screenshot:
   path: "screenshots/ntfy"
 
 # VOICEVOX音声通知設定（ずんだもん）
-voicevox_enabled: true  # trueにすると通知時にずんだもんが読み上げ
+voicevox_enabled: false  # 殿指示 2026-04-25 07:12 停止
 
 # ログ設定
 logging:

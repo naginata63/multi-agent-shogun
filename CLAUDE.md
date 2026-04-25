@@ -276,14 +276,15 @@ System manages ALL white-collar work, not just self-improvement. Project folders
 # Karo Context Relief Trigger (条件トリガー/clear)
 
 家老は以下の条件のいずれかを満たした場合、**タスクとタスクの間で自発的に/clearを実施**せよ:
-- **(a)** 最後の/clearまたはSession Startから **3時間以上**経過
-- **(b)** `queue/precompact/karo.yaml` の `compaction_count` が **3以上**
+- **(a)** 最後の/clearまたはSession Startから **2時間以上**経過
+- **(b)** `queue/precompact/karo.yaml` の `compaction_count` が **2以上**
 - **(c)** 自身の手順に不確実性を感じた時（自己申告）
 
 **/clear後は必ず Session Start手順（フル）で回復**すること（`/clear Recovery`の軽量版ではなく）。
 `instructions/karo.md` を必ず読み直す。
 
 （2026-03-04 制定: 14時間36 cmd連続稼働でinbox_write漏れ発生。cmd_209/軍師分析より。）
+（2026-04-25 短縮: 3hr→2hr/3回→2回。家老compaction連発対策・standard Sonnet 200K context維持のため。）
 
 # Shogun Mandatory Rules
 
