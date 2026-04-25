@@ -1213,7 +1213,8 @@ commands:
     \ cmd_1486 (skill候補 video-qc-llm-mode) と統合検討\n- 過去Day5動画 (cmd_1424 zephyrus) も\
     \ VP9→h264変換時 bitrate劣化していないか別cmdで遡及確認推奨"
 - id: cmd_1488
-  status: in_progress
+  status: done
+  completed_at: '2026-04-25T23:19:00+09:00'
   priority: high
   purpose: cmd_1484 完遂(SQLite p0+p1 dry-run PASS)を受けて、p2 dual-path writes (YAML+SQLite両書き)
     に着手。1週間soak後にp3 dual-path reads・p4 SLO計測へ進む。本cmdはp2のみ・p3以降は再判断待ち。
