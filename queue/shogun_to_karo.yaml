@@ -1634,7 +1634,8 @@ commands:
     \  - 1位: <itemId>\n  - 2位: <itemId>\n  ...\nsummary: <総括3-5行>\n```\n\n## 注意\n\
     - 軍師の自由判断。将軍へ忖度するな。\n- 既存設計の擁護（『現状維持で十分』）も改修推奨も両方が選択肢。\n- 軍師が『改修不要』と判断するなら、その理由を堂々と述べよ。"
 - id: cmd_1476
-  status: in_progress
+  status: done
+  completed_at: '2026-04-25T18:27:00+09:00'
   priority: high
   purpose: multi-agent-shogun cmd系設計の完全オープン独立評価（軍師の問題発見能力を活かす・前回cmd_1475は将軍が評価項目を渡してしまったbias含み）
   timestamp: '2026-04-25T18:16:48+09:00'
