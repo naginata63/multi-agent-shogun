@@ -33,8 +33,8 @@ from aiohttp import web, ClientSession, ClientTimeout
 PROXY_PORT = 8780
 UPSTREAM_URL = "https://api.z.ai/api/anthropic"
 CLAUDE_CLI = os.path.expanduser("~/.local/bin/claude")
-ADVISOR_MODEL = os.environ.get("ADVISOR_MODEL", "claude-opus-4-6[1m]")  # 殿指示: advisorは4.6固定（4.7化で品質退化確認のため）
-ADVISOR_TIMEOUT = 120  # seconds for claude -p (2026-04-25 殿命: 90→120 重いadvise救済)
+ADVISOR_MODEL = os.environ.get("ADVISOR_MODEL", "claude-sonnet-4-6")  # cmd_1477: Opus 1M→Sonnet 4.6 (CLI起動+1M読込で120sタイムアウト恒常化の根本対処)
+ADVISOR_TIMEOUT = 120  # seconds for claude -p
 UPSTREAM_TIMEOUT = 300  # seconds for Z.AI responses
 MAX_ADVISOR_LOOPS = 3
 ADVISOR_TOOL_DEF = {
