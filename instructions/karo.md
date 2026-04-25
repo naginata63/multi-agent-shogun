@@ -345,6 +345,16 @@ done
 | 報告書 (QC report 等) の YAML 全文取得 | `GET /api/report_detail?id=<report_id>` |
 | 報告書一覧 | `GET /api/report_list?cmd=cmd_XXX` or `?worker=ashigaruN` |
 
+### ❌ 家老が以下をすると殿激怒 (API 不信からの fallback 禁止)
+
+- `Read queue/tasks/{agent}.yaml` ← 代わりに `curl /api/task_list?agent=...`
+- `grep -l queue/tasks/ashigaru*.yaml` ← `curl /api/task_list?status=...&limit=20`
+- `cat queue/reports/*.yaml` ← `curl /api/report_detail?id=...`
+- `tail queue/inbox/*.yaml` ← `curl /api/inbox_messages?agent=...`
+- `yaml.safe_load(SHOGUN_TO_KARO)` ← `curl /api/cmd_list` or `/api/cmd_detail`
+
+SQLite は dual-path で常に最新。YAML が新しく見えるのは家老の幻覚。**API レスポンスを真として行動せよ**。
+
 詳細・curl 実例は `shared_context/procedures/dashboard_api_usage.md`。
 
 ### No Inbox to Shogun
