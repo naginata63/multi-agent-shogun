@@ -1879,7 +1879,7 @@ tasks:
 - task_id: subtask_1450_cleanup
   parent_cmd: cmd_1450
   bloom_level: L1
-  status: in_progress
+  status: done
   timestamp: "2026-04-25T07:32:00+09:00"
   target_path: /home/murakami/multi-agent-shogun/work/cmd_1450/cleanup_log.md
   description: |
@@ -1899,3 +1899,133 @@ tasks:
     - "/home/murakami/multi-agent-shogun/work/cmd_1450/ の既存コミットデータは保持(rm禁止)"
     - "CDP起動: 既存--remote-debugging-port=9222プロセス確認またはChrome CDP起動(memory/feedback_chrome_cdp_startup.md参照)"
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1450_cleanup完了(note下書き2件削除・ntfy送信済)。' report_completed ashigaru2"
+
+- task_id: subtask_1459a
+  parent_cmd: cmd_1459
+  bloom_level: L4
+  status: done
+  timestamp: "2026-04-25T08:30:00+09:00"
+  started_at: "2026-04-25T08:31:00+09:00"
+  completed_at: "2026-04-25T08:41:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/work/cmd_1459/lang_update_report.md
+  description: "cmd_1459 Phase A: YouTube チャンネル UCiyY9PX64Nat6sd2vUhrTDQ 全74本の defaultLanguage + defaultAudioLanguage を ja 一括update。API quota記録必須。"
+  steps: "advisor()→YouTube API認証確認(scripts/またはskills/youtube-stats/参照)→videos.list全動画ID取得(チャンネルUCiyY9PX64Nat6sd2vUhrTDQ)→before記録(defaultLanguage/defaultAudioLanguage)→ja未設定動画抽出→videos.update snippet.defaultLanguage=ja+defaultAudioLanguage=ja(backoff retry)→全完了後after再確認→mkdir work/cmd_1459 && work/cmd_1459/lang_update_report.md記録(変更件数+quota消費)→git commit work/cmd_1459/ && git push→advisor()→inbox_write gunshi QC→inbox_write karo"
+  acceptance_criteria:
+    - "全74本 defaultLanguage=ja + defaultAudioLanguage=ja 確認"
+    - "before/after 記録 work/cmd_1459/lang_update_report.md 存在"
+    - "API quota消費量記録(videos.update 50units/本×変更件数)"
+    - "git commit + push完了"
+  notes:
+    - "チャンネルID: UCiyY9PX64Nat6sd2vUhrTDQ"
+    - "API quota: videos.update=50units/video・daily10000上限の37%消費想定"
+    - "参照: skills/youtube-stats/SKILL.md・scripts/ youtube関連スクリプト"
+    - "新規スクリプトはscripts/youtube_lang_batch_update.py として作成可"
+    - "/tmp禁止・work/cmd_1459/配下"
+    - "advisor()必須(作業前・完了前)"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽2号、subtask_1459a完了(Phase A 既存74本 ja一括update)。QC依頼。' report_completed ashigaru2"
+
+- task_id: subtask_1460a
+  parent_cmd: cmd_1460
+  bloom_level: L3
+  status: done
+  timestamp: "2026-04-25T09:20:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/work/cmd_1460/revert_log.md
+  safety: batch_modify
+  description: "cmd_1459 Phase A revert。lang_before.jsonのnon-ja 50本(QharlfIueqI除く49本)のdefaultLanguage/defaultAudioLanguageを元の値に書き戻す。en-US動画→en-US・None動画→None/unset。scripts/youtube_lang_batch_update.pyを流用。"
+  steps: "advisor()→work/cmd_1459/lang_before.json読込(non-ja 50本特定: en-US:27+None:23)→QharlfIueqI除外で49本revert対象確定→scripts/youtube_lang_batch_update.py確認(revertモード追加or修正)→videos.update各動画を元の値に書き戻し(en-US→en-US/None→unset)→backoff retry→完了後videos.list 49本現状確認(lang_before.jsonと一致確認)→mkdir work/cmd_1460/ && revert_log.md記録(before/after/quota消費)→ntfy→git commit work/cmd_1460/ && push→advisor()→inbox_write gunshi QC→inbox_write karo"
+  acceptance_criteria:
+    - "lang_before.json の non-ja 49本が元の値に戻っていること確認(en-US:27→en-US / None:23→None/unset)"
+    - "QharlfIueqI は対象外(元々タイミング問題・状態不明)"
+    - "videos.list で 49本の現状確認・lang_before.jsonと一致"
+    - "API quota消費記録(videos.update 50units×49本=2450units)"
+    - "work/cmd_1460/revert_log.md 存在・before/after/quota記録あり"
+    - "ntfy 送信済"
+    - "git commit + push完了"
+  notes:
+    - "lang_before.json: ja:49本(変更不要) / en-US:27本 + None:23本 = 50本がrevert対象"
+    - "QharlfIueqI(1本)はafter.json未確認・除外OK"
+    - "Phase B(upload script ja デフォルト化)は残す・触るな"
+    - "scripts/youtube_lang_batch_update.py を流用(新規.py禁止)"
+    - "Noneに戻す場合: snippet.defaultLanguage/defaultAudioLanguageをnullかkeyごと削除"
+    - "work/cmd_1460/ 配下に成果物 (/tmp禁止)"
+    - "advisor()必須(作業前・完了前)"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽2号、subtask_1460a完了(cmd_1459 Phase A revert 49本)。QC依頼。' report_completed ashigaru2"
+    - "gunshi QC後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1460a完了。' report_completed ashigaru2"
+
+- task_id: subtask_1461a
+  parent_cmd: cmd_1461
+  bloom_level: L3
+  status: done
+  started_at: "2026-04-25T10:29:00+09:00"
+  completed_at: "2026-04-25T10:37:15+09:00"
+  timestamp: "2026-04-25T10:24:54+09:00"
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard_lifecycle.sh
+  safety: batch_modify
+  procedure: /home/murakami/multi-agent-shogun/shared_context/procedures/dashboard_lifecycle_extend.md
+  description: "/home/murakami/multi-agent-shogun/scripts/dashboard_lifecycle.sh に Logic A/B 追加。殿指示(10:05)受理: 完了cmd自動削除仕組み化"
+  steps: "手順は procedure ファイルを参照し Step1〜13 を実行せよ"
+  acceptance_criteria:
+    - "dry-run でLogic A/B 検出件数がログに出力される"
+    - "production実行後、dashboard.md 進行中テーブルの完了行が削除されアーカイブに移動済み"
+    - "crontab -l に 1h おきの /home/murakami/multi-agent-shogun/scripts/dashboard_lifecycle.sh 呼び出し行が存在する"
+    - "/home/murakami/multi-agent-shogun/memory/feedback_dashboard_completed_cleanup.md が作成済み"
+    - "/home/murakami/multi-agent-shogun/memory/MEMORY.md に dashboard完了cmd自動削除の1行が追記済み"
+    - "git commit + push 完了"
+  notes:
+    - "既存の strikethrough+解決済 ロジック(clean_dashboard_md)は絶対に壊すな・拡張で追加のみ"
+    - "flock は既存実装を継承・dashboard.md への同時書き込み防止必須"
+    - "新規 .py ファイル禁止・.sh 拡張のみ"
+    - "/tmp 禁止・作業ファイルは /home/murakami/multi-agent-shogun/work/cmd_1461/ 配下"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽2号、subtask_1461a完了(dashboard_lifecycle拡張)。QC依頼。' report_completed ashigaru2"
+    - "gunshi QC後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1461a完了。' report_completed ashigaru2"
+
+- task_id: subtask_1462a
+  parent_cmd: cmd_1462
+  bloom_level: L3
+  status: done
+  timestamp: "2026-04-25T11:08:00+09:00"
+  started_at: "2026-04-25T11:08:21"
+  completed_at: "2026-04-25T11:25:22"
+  phase1_completed_at: "2026-04-25T11:13:19"
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard_lifecycle.sh
+  safety: batch_modify
+  procedure: /home/murakami/multi-agent-shogun/shared_context/procedures/dashboard_lifecycle_extend_cde.md
+  description: "/home/murakami/multi-agent-shogun/scripts/dashboard_lifecycle.sh に Logic C/D/E 追加。dry-run後に家老確認してから production 投入（2段階）。"
+  steps: "手順書 Step1〜7 を実行し dry-run 結果を phase1 report に記載して inbox_write karo せよ。Step 9以降は家老の「production実行せよ」inbox 待ち"
+  acceptance_criteria:
+    - "Logic C/D/E の実装が /home/murakami/multi-agent-shogun/scripts/dashboard_lifecycle.sh に追加されている"
+    - "dry-run 実行で削除候補が /home/murakami/multi-agent-shogun/work/cmd_1462/dryrun_output.txt に保存済み"
+    - "Day6 4視点codec/📌技術知見/🔧未解決2件 が dry-run の削除候補に含まれていない"
+    - "/home/murakami/multi-agent-shogun/queue/reports/ashigaru2_report_subtask_1462a_phase1.yaml 作成済み"
+    - "inbox_write karo で家老に dry-run 候補リスト報告済み"
+  notes:
+    - "既存 Logic A/B は絶対に壊すな・拡張で追加のみ"
+    - "絶対保護: Day6 4視点codec・📌技術知見・🔧 cmd_1441・🔧 cmd_1443_p09・⚠️ 技術的残課題"
+    - "phase1(dry-run)のみ実行し、production は家老inbox 確認後に実施"
+    - "/tmp 禁止・作業ファイルは /home/murakami/multi-agent-shogun/work/cmd_1462/ 配下"
+    - "phase1完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽2号、subtask_1462a phase1完了。dry-run候補確認依頼。' report_completed ashigaru2"
+- task_id: subtask_1467a
+  parent_cmd: cmd_1467
+  bloom_level: L3
+  status: assigned
+  timestamp: "2026-04-25T13:15:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/ashigaru2_report_subtask_1467a.yaml
+  description: "Day6 エキドナ サムネ生成: ブザービーター6人・energetic style 3案生成→殿LAN preview通知→選択後 thumbnail_final.png 確定→軍師QC。"
+  steps: "advisor()→thumbnail_echidna/作成→Day5スクリプトcp→コマンド実行(3案生成)→viabilityスコア計測→LANサーバー起動+ntfy通知→家老に報告→殿選択待ち→家老inbox経由で選択番号受信後 thumbnail_final.png 確定→advisor()→commit+push→inbox gunshi"
+  acceptance_criteria:
+    - "thumbnail_echidna/energetic_1.png / 2.png / 3.png 生成済み"
+    - "viability スコア3案比較をレポートに記載"
+    - "ntfy で殿に LAN URL 通知済み"
+    - "殿選択後 thumbnail_final.png 確定"
+    - "軍師QC PASS"
+    - "git commit + push完了"
+  notes:
+    - "DAY5スクリプト: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260415_【#DoZ】5日目 知ってるか？ヒーラーはな…絶対に仲間を見捨てちゃいけねぇのさ【ドズル社／おおはらMEN視点】/thumbnail_zephyrus/generate_thumbnail.py"
+    - "出力先: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260416_【#DoZ】6日目 腹から声が出ないヒーラーに命を任せれられるとでも？【ドズル社／おおはらMEN視点】/thumbnail_echidna/"
+    - "背景: /home/murakami/ピクチャ/Screenshots/Screenshot from 2026-04-25 11-32-31.png (ECHIDNA焼き込み済み・加工不要)"
+    - "oo_men立ち絵: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260411_【#DoZ】Doom or Zenithの世界にキターーーーーー！！！！！！！ 【ドズル社／おおはらMEN視点】/oo_men_goggle_on.png"
+    - "photo-keys: charlotte,tsurugi,itoi,hendy,haseshin (assets/collab/ 配下の実写画像)"
+    - "source config/vertex_api_key.env 必須(Gemini画像生成)"
+    - "殿選択inbox到着まで final.png 確定を保留。中間報告で3案URLを inbox_write karo"
+    - "advisor()必須(作業前・完了前)"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽2号、subtask_1467a完了(Day6サムネ3案+final確定)。QC依頼。' report_completed ashigaru2"

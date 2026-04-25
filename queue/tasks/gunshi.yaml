@@ -3697,7 +3697,7 @@ tasks:
   parent_cmd: cmd_1463
   type: qc
   bloom_level: L5
-  status: assigned
+  status: done
   timestamp: "2026-04-25T12:06:00+09:00"
   target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1463a.yaml
   description: "subtask_1463a(Day6 4視点h264 DL・切出し 8本生成)のQC。足軽1号報告: 全8本h264・duration正確・hotfix2件あり。shared_context/qc_template.md 参照してQCせよ。"
@@ -3719,3 +3719,23 @@ tasks:
     - "context: queue/reports/ashigaru1_report_subtask_1463a.yaml"
     - "advisor()必須"
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1463a完了(判定)。' qc_result gunshi"
+- task_id: qc_subtask_1468a
+  parent_cmd: cmd_1468
+  bloom_level: L4
+  status: assigned
+  timestamp: "2026-04-25T13:17:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1468a.yaml
+  description: "cmd_1468 QC: cron 4エラー再発真因究明・offset追跡実装・YAML修復・hit=0確認。13:30 cronサイクルで再発0件確認が必須AC。"
+  steps: "shared_context/qc_template.md 参照→work/cmd_1468/root_cause_2nd_round.md 実読→修正コード確認→13:30 cron後にlogs/cron_health_check.log 再読(C01/C02/C05/C09/C10/C14 hit=0確認)→PASS/FAIL判定→report作成→inbox karo"
+  acceptance_criteria:
+    - "work/cmd_1468/root_cause_2nd_round.md 存在・真因確定記録あり"
+    - "修正内容の実ファイル確認(offset管理 or cron修正)"
+    - "13:30 cronサイクル後に C01/C02/C05/C09/C10/C14 再発0件確認"
+    - "軍師QC PASS/FAIL 判定と根拠明記"
+  notes:
+    - "13:30 cron確認が核心AC: それまでは partial QC 可能(コード確認等)"
+    - "13:30 再確認のため軍師から nudge 要求があれば家老が対応"
+    - "context: queue/tasks/ashigaru3.yaml 末尾の subtask_1468a"
+    - "shared_context/qc_template.md 必須参照"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1468a完了(判定)。' qc_result gunshi"

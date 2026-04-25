@@ -4893,3 +4893,18 @@ commands:
     - "足軽3号推奨(cmd_1448担当・コンテキスト引継ぎ)"
     - "優先度 medium (実害は通知ノイズのみ・但し信頼度低下問題)"
     - "並列稼働: cmd_1464/1465 と並列可"
+- id: cmd_1467
+  status: in_progress
+  assigned_to: ashigaru2
+  issued_at: "2026-04-25T13:14:55+09:00"
+  purpose: "Day6 エキドナ サムネ生成: ブザービーター6人(MEN+charlotte/tsurugi/itoi/hendy/haseshin)・energetic style 3案→殿選択→thumbnail_final.png確定"
+  acceptance_criteria:
+    - "thumbnail_echidna/energetic_1.png / 2.png / 3.png 生成済み"
+    - "viability スコア3案分をレポートに記載"
+    - "LAN サーバー経由で殿レビュー用 URL 通知済み(ntfy)"
+    - "殿選択後 thumbnail_final.png 確定"
+    - "軍師QC PASS"
+    - "git commit + push"
+  notes:
+    - "足軽2号担当"
+    - "優先度 high (Day6 動画用サムネ)"
