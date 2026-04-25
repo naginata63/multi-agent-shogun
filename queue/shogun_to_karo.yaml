@@ -255,128 +255,6 @@ commands:
   project: dozle_kirinuki
   priority: medium
   status: superseded
-- id: cmd_1348
-  timestamp: '2026-04-12T18:50:00+09:00'
-  north_star: DingTalk QC案件の権限剥奪・報酬遅延リスクを回避する
-  status: done
-  completed_at: '2026-04-25T20:00:00+09:00'
-  completion_note: '殿判断: DingTalk QCループ修正を完了扱い(2026-04-25 20:00)'
-  purpose: dingtalk_qc_loop.pyの「エラーあり」使用を完全廃止し、正しいフロー（無効→修正→承認）に変更する
-  acceptance_criteria:
-  - スクリプト内に「エラーあり」を押す処理が一切ないこと
-  - 低品質タスク（類似度低・音割れ等）は「無効→理由選択→テキスト修正→承認」フローで処理されること
-  - 'テキスト修正ロジック: 聞き取れた範囲で文末を「。」で締める'
-  - git commit & push済み
-  - dashboard.mdが最新状態に更新されていること
-  command: '## 殿の指示（原文）
-
-    クライアントから全体通知:
-
-    「🚨「エラーあり」は押さないでください」
-
-    「正しい手順：無効 → 理由を選択 → 修正済み → 承認」
-
-    「「エラーあり」にすると提出ができなくなり、納期遅れにつながります」
-
-    「誤ったエラー判定を繰り返す場合、本部判断により即時権限を剥奪いたします」
-
-
-    ## 殿が気にしているポイント
-
-    - 権限剥奪リスクがある。即修正必須
-
-    - 「エラーあり」は絶対に押さない
-
-    - 音声途切れでも聞こえた範囲で修正→承認
-
-    - ノイズがあっても内容が聞き取れれば有効→承認
-
-
-    ## 修正内容
-
-    scripts/dingtalk_qc_loop.py の以下を変更:
-
-
-    ### 現状（NG）
-
-    - 低品質タスク → 「エラーあり[W]」を押す → 差し戻し
-
-
-    ### 修正後（正しいフロー）
-
-    - 低品質タスク → 「無効」を選択 → 理由を選択 → テキストを修正（聞き取れた範囲で。文末に「。」） → 「承認」
-
-
-    ### テキスト修正ルール（クライアント指示から）
-
-    1. 音声途切れ: 聞こえた範囲のテキストを残し、末尾を「。」で締める
-
-    2. 音割れ・ノイズ: 内容が聞き取れて文章として成立するなら有効。修正して承認
-
-    3. 修正後は「修正済み」状態にしてから承認
-
-
-    ## 共通ルール
-
-    - 既存スクリプト修正のみ
-
-    - git commit & push済みであること
-
-    '
-  project: dingtalk_qc
-  priority: high
-- id: cmd_1443
-  status: done
-  timestamp: '2026-04-24T18:50:00+09:00'
-  completed_at: '2026-04-24T20:16:00+09:00'
-  priority: high
-  lord_original: 進軍せよ・全タスク即着手
-  north_star: cmd_1442 採用12ハーネス分散発令(H6除外・H10=H1統合・H3+H8=1 subtask・実装10件)
-  purpose: 殿号令(2026-04-24 18:39)『進軍せよ』を受理し、軍師execution_plan_v3(commit 98e076a)に基づく10
-    subtask分散発令
-  acceptance_criteria:
-  - 10 subtask 全完了 (Wave A=5/B=4/C=1)
-  - 軍師 QC 全 subtask PASS
-  - 殿追加指示5件(H2拡張/H3+H8登録自動化/H10改H1統合/H11レビュー/H12透明性) 反映確認
-  - git commit+push 家老主導
-  command: '軍師 work/cmd_1442/execution_plan_v3.md 参照。以下10 subtask 順次発令。
-
-    【Wave A 5件(並列)】
-
-    - p01 H1+H10改統合(既発令 subtask_1442_h1・足軽4号に H10改 scope拡張追加)
-
-    - p02 H2拡張(dashboard+MCPダッシュボード残骸) → 足軽1号 3h
-
-    - p03 H3+H8拡張(mem-search+4系統自動add_observations) → 足軽7号 2-3h
-
-    - p04 H4 silent fail log watcher → 足軽3号 2-3h
-
-    - p05 H7 hotfix3回→skill提案 cron → 足軽2号 2-3h
-
-    【Wave B 4件】
-
-    - p06 H5 cmd YAML lint → 足軽4号(H1完了後) 30min
-
-    - p07 H9 Phase間殿ゲート → 足軽4号 or 別 1h
-
-    - p08 H11 lord-angry.md(レビュー方式) → 足軽5号 1h
-
-    - p09 H12 cron_inventory.md(透明性) → 足軽6号 1h
-
-    【Wave C 1件】
-
-    - p10 H13 月次feedbackレビューcron → 足軽5号(p08後) 30min
-
-    各subtask: target_path必須・advisor 2回・新規.py禁止・動画系除外
-
-    軍師QC 10 subtask都度+Wave完了時統括
-
-    '
-  notes:
-  - '発令順: Wave A→B→C・Wave内並列可'
-  - H10はH1統合(done_gate.sh)・独立subtask無・既発令H1(足軽4号)継続
-  - H6除外
-  project: multi-agent-shogun
 - id: cmd_1445
   status: pending
   timestamp: '2026-04-24T20:12:00+09:00'
@@ -1485,473 +1363,318 @@ commands:
   - memory化で運用ルール永続
   - 優先度 medium (運用効率化・実害は dashboard 肥大化)
   project: multi-agent-shogun
-- id: cmd_1464
+- id: cmd_1482
   status: done
-  completed_at: '2026-04-25T17:59:00+09:00'
-  timestamp: '2026-04-25T11:42:00+09:00'
-  revised_at: '2026-04-25T11:52:00+09:00'
   priority: high
-  lord_original: Day6 4視点 MIX 動画化。seg独立MIX→concat方式。seg1戦目(142秒)+seg8戦目(2150秒)を独立MIX後にffmpeg
-    concat -c copy結合。視点切替(MEN→charlotte/hendy/tsurugi バリエーション・たまに4画面grid)。音声はメイン視点追従。右上テロップ『エキドナ(初戦)』『エキドナ(8戦目)』。横長1080p
-    h264_nvenc 14Mbps。YouTube非公開先行。opening不要。
-  north_star: 'cmd_1463 でh264統一した4視点素材を使い、Day6 ボス戦の見応えあるMIX動画を生成する。
-
-    seg独立MIX方式で失敗時の再エンコ範囲を限定。concat -c copy で無劣化高速結合。
-
-    視点切替とたまの4画面gridでライブ感を演出。音声は表示視点に追従。
-
-    '
-  purpose: Day6 ボス1戦目+8戦目 4視点MIX動画 seg独立生成→concat結合→YouTube非公開アップ
-  implementation_flow: "1. seg1戦目.mp4 = 142秒 4視点 MIX 独立完成 (1:39:28〜1:41:50)\n2. seg8戦目.mp4\
-    \ = 2150秒 4視点 MIX 独立完成 (3:55:10〜4:31:00)\n3. transition.mp4 = seg1末尾1-2秒 + wipeleft\
-    \ xfade + sceneswitch1 SE + seg8冒頭1-2秒 (3-5秒)\n   SE: projects/dozle_kirinuki/assets/bgm/sfx/sceneswitch1.mp3\n\
-    4. concat結合 (h264_nvenc): seg1(末尾切除) + transition.mp4 + seg8(冒頭切除) → final.mp4\n\
-    \   ※ transition部分のみ再エンコ・境界以外は -c copy で高速\n5. YouTube非公開アップ\n"
+  purpose: curriculum_v2.md 分割 + 中級編 v3 改訂（マルチエージェント要素を上級編として将来別講座に分離・1人+1AI で完全再現可能な内容に再構成）
+  timestamp: '2026-04-25T21:03:05+09:00'
+  lord_original: マルチエージェントいらんとおもう / 将来でいい / 内容的にさ難易度どうなん？ / これなんなん？計画書なん？
+  project: udemy_course
+  north_star: 受講者が手元の1台で完全再現可能な中級講座にすることで、完走率と購買母集団を最大化する。マルチエージェント運用は知見を温存し将来上級編に分離することで、シリーズ縦展開のLTVを確保。
   acceptance_criteria:
-  - seg1戦目.mp4 生成 (~142秒・4視点MIX・h264_nvenc・14Mbps)
-  - seg8戦目.mp4 生成 (~2150秒・4視点MIX・h264_nvenc・14Mbps)
-  - final.mp4 生成 (seg1+transition+seg2 concat・合計~2295秒前後)
-  - '視点切替: MEN始まり→MEN終わり・中間でcharlotte/hendy/tsurugi・盛り上がりで4画面grid(2x2)'
-  - '音声: 表示視点の音声採用(4画面grid時はMEN音声)'
-  - '右上テロップ: 『エキドナ(初戦)』seg1戦目期間・『エキドナ(8戦目)』seg8戦目期間'
-  - YouTube非公開アップ完了 (URL報告)
-  - defaultLanguage=ja + defaultAudioLanguage=ja
-  - 軍師QC PASS
-  notes:
-  - '依存: cmd_1463 (4視点素材8本) 完了が前提→完了後に足軽1号(cmd_1424経験者)へ発令'
-  - '参考: cmd_1424 zephyrus_v3.sh / shared_context/procedures/multi_view_sync.md'
-  - amix不要 (音声は切替ゆえ)
-  - '境界トランジション: wipeleft + sceneswitch1 SE (C選択・selected_json_v2_spec.md準拠)'
-  - 'SE: projects/dozle_kirinuki/assets/bgm/sfx/sceneswitch1.mp3'
-  - opening/outro なし (殿確定)
-  - '殿レビューPhase Gate: 将軍が殿に確認中(各seg後 or final.mp4のみ)→判明次第dashboard更新'
-  - '殿経験則: 一気エンコは時間かかる→seg独立方式で失敗時の影響限定'
-  project: dozle_kirinuki
-  depends_on: cmd_1463
-- id: cmd_1471
-  status: done
-  assigned_to: ashigaru4
-  issued_at: '2026-04-25T15:51:00+09:00'
-  priority: high
-  purpose: scripts/dashboard/server.py に POST /api/cmd_create 追加。将軍の shogun_to_karo.yaml
-    直接Edit廃止→MCP API化で競合・失敗根本解決。flock排他制御付き。
-  acceptance_criteria:
-  - POST /api/cmd_create endpoint追加(必須フィールドvalidation・id重複チェック)
-  - flock で shogun_to_karo.yaml 排他制御
-  - yaml entry append正常動作
-  - 'curl テスト: curl -X POST http://127.0.0.1:8770/api/cmd_create -d @cmd.json 動作確認'
-  - 既存 GET /api/dashboard 等 regression 0件
-  - 軍師QC PASS
+  - projects/udemy_course/drafts/curriculum_intermediate_v3.md 生成（教育設計のみ・マルチエージェント要素削除・約400-500行想定）
+  - projects/udemy_course/drafts/marketing_plan_intermediate_v3.md 生成（ペルソナ/LP/競合分析/価格戦略・上級編予告含む）
+  - projects/udemy_course/drafts/competitor_analysis.md 生成（対決表4枚を独立ファイル化・将来更新可能に）
+  - '削除対象: ペルソナP5(マルチ前提)を P5''(SI企業のリードエンジニア等)に置換、競合対決表のマルチ行削除、章10-15の9体並列前提サンプルを1人版に書換、flagship
+    cmd_1443 の9体言及削除'
+  - '追加対象: マーケ計画書末尾に『上級編 (将来別講座) — 9体マルチエージェント運用 詳細』のティーザーセクション'
+  - '残す対象: 3階層統合(L1+L2+L3)・18本hook・コンテキスト永続化・失敗事例(マルチ起因抜き15件程度)'
+  - '完了報告YAML: queue/reports/ashigaru{N}_report_subtask_1482a.yaml'
+  - 軍師QC PASS（マルチエージェント言及が完全に削除or将来編に明記されているか・1人+1AI で再現可能か）
   - git commit + push
-- id: cmd_1472
-  status: cancelled
-  cancelled_at: '2026-04-25T17:15:00+09:00'
-  cancelled_reason: 殿の御意は「将軍自ら手を動かせ」（17:14選択肢1）。家老投げは将軍の誤解釈。撤回し将軍直接実行へ切替。
-  lord_original: おおはらMENは中央下部はいち将軍がやれ
+  command: "## 殿命\n『マルチエージェントいらんとおもう』『将来でいい』\n→ マルチエージェント運用は『上級編として将来別講座』に分離。中級編は1人+1AIで完全再現可能な内容に再構成。\n\
+    \n## 背景\n- cmd_1465 で curriculum_v2.md (672行・マーケ強化版) 完成済\n- 殿レビューで判明:\n  (1) v2\
+    \ はカリキュラム+マーケ計画書のhybrid文書で混乱を招く\n  (2) 9体マルチエージェント前提は受講者が再現困難・完走率を下げる\n  (3) シリーズ化戦略:\
+    \ 初級→中級→上級(将来) の縦展開で売上母集団最大化\n\n## やること\n\n### 1. curriculum_v2.md (672行) を 3ファイル分割\n\
+    \n#### A. curriculum_intermediate_v3.md (教育設計のみ)\n- v2 の Section 1-2 (カリキュラム本体)\
+    \ をベースに、マルチエージェント要素を全削除\n- 残す: 序章/L1章1-4/L2章5-9/L3章10-15/flagship cmd_1443/総合演習/附録\n\
+    - 改訂: 章10-15 (hook実装) は1人版で再構成\n- 削除: 9体並列前提のハンズオン例・成果物の queue/inbox/* 等は1人版に縮小\n\
+    - flagship cmd_1443 (90分): 殿指摘で長すぎ→『3層アーキ実装パターン (60分)』+『応用例 (30分付録)』に分割推奨\n\n\
+    #### B. marketing_plan_intermediate_v3.md (マーケ戦略書)\n- v2 の Section 0 (マーケティング基盤)\
+    \ をベースに改訂:\n  * ペルソナ P5 (AIスタCTO・マルチ前提) を P5'(SI企業のリードエンジニア・1AI主体)に置換\n  * タイトル候補から『9体マルチエージェント』『マルチエージェント』削除\n\
+    \  * 推奨タイトル候補: 『Claude Code 完全実践 — プロンプト/コンテキスト/ハーネス 3階層エンジニアリング』『AI開発の3階層 — Claude\
+    \ Codeで暴走しないAIを作る実装ガイド』\n  * LPコピーから『9体』『マルチエージェント並列』削除\n  * 競合対決表のマルチ行削除（3階層・18hook\
+    \ 軸で再競合分析）\n- 末尾に『上級編 (将来) — 9体マルチエージェント運用詳細』のティーザーセクション追加:\n  * 中級編完了者向けの送客導線\n\
+    \  * 上級編で扱う予定: 9体並列・cmd_1442/1443三層アーキ・inbox/inbox_watcher・queue設計\n\n#### C.\
+    \ competitor_analysis.md (対決表独立)\n- v2 の Section 0.5 競合直接対決表4枚を独立ファイル化\n- 将来 udemy_engineering.json\
+    \ 更新時にこのファイルだけ書換可能に\n- マルチエージェント比較行は削除（中級編コンセプト変更に整合）\n\n### 2. 既存 curriculum_v2.md\
+    \ / curriculum_v2_marp.md / curriculum_v2.html の扱い\n- curriculum_v2.md は drafts/legacy/\
+    \ に退避（参考保管）\n- v2_marp.md / v2.html は 退避 or 削除（v3 で再生成）\n- HTML LAN公開 (8082) は\
+    \ v3 完成後に再生成\n\n### 3. 削除前後の対照表を最終報告に含める\n軍師QC で確認しやすいように、足軽は最終報告YAMLに『削除箇所一覧』『置換箇所一覧』『追加箇所一覧』を表形式で含めよ。\n\
+    \n### 4. 1人+1AI で再現可能性チェック\n- 各章のハンズオンが個人PCで実行可能か\n- 『9体並列が必要』『RTX 4060 Ti必須』等の前提を全削除\n\
+    - macOS / Linux / Windows WSL2 のいずれでも動く想定\n\n### 5. 上級編予告のマーケ価値\nmarketing_plan_intermediate_v3.md\
+    \ に『上級編予告』を入れることで:\n- 殿の知見（9体運用）の価値を温存\n- 中級編受講者を将来上級編に送客\n- シリーズ全体のLTV向上\n\n\
+    ## 担当・範囲\n- 担当: 足軽7号 (cmd_1465 v2 担当者・流れを継承) または家老判断\n- scope: ドキュメント編集のみ・実装禁止\
+    \ (実コード hook 等は中級編収録時に作る)\n- 工数想定: 1日\n\n## 軍師QC観点\n- 3ファイルが意図通り分割されているか\n- マルチエージェント言及が完全削除\
+    \ or 将来編予告に明記されているか\n- 1人+1AI で再現可能な内容になっているか（章別ハンズオンを実証チェック）\n- 既存マーケ価値（3階層・18hook・コンテキスト・失敗事例）が保持されているか\n\
+    \n## 関連\n- cmd_1483 (初級編 v1 設計) と並行発令・上級編は将来別cmd"
+- id: cmd_1483
+  status: done
   priority: high
-  purpose: Day6 ECHIDNA回サムネ再生成・おおはらMEN立ち絵を中央下部に配置・3案出し→殿選択→thumbnail_final.png更新
-  timestamp: '2026-04-25T17:13:00+09:00'
-  command: '## 殿原文
-
-    「おおはらMENは中央下部はいち将軍がやれ」
-
-    （将軍解釈: おおはらMENを中央下部に配置せよ・将軍主導で進めよ）
-
-
-    ## 背景
-
-    cmd_1467で案2確定済（thumbnail_final.png commit 0c3518c push済）だが、殿がおおはらMEN（oo_men）を中央下部に配置する構図で再生成希望。
-
-
-    ## やること
-
-    1. 現 thumbnail_final.png を thumbnail_v2_案2_backup.png として退避（破壊禁止）
-
-    2. cmd_1467 v2(--ref-limit 0) と同じ生成方式で、おおはらMEN立ち絵を中央下部にした構図で3案生成
-
-    3. LAN公開（http://192.168.2.7:8081/）してntfy通知
-
-    4. 殿の案番号選択待ち
-
-    5. 選択後、thumbnail_final.png を更新+commit+push
-
-
-    ## 注意
-
-    - おおはらMEN中央下部配置のレイアウト指定は make_thumbnail_auto.py または合成スクリプトのオプションで対応
-
-    - character/selected/oo_men_*.png を使用（expression_index.json参照）
-
-    - 他キャラ（ECHIDNA等）との被りに注意
-
-    - 文字（Day6/エキドナ等）の可読性確保
-
-    - 進捗は将軍に逐次報告（dashboard更新）'
+  purpose: Udemy 初級編 v1 カリキュラム+マーケ計画書設計（Claude Code はじめての一歩・1人+1AI・約5h・初心者層拡大+中級編送客導線）
+  timestamp: '2026-04-25T21:03:05+09:00'
+  lord_original: 初級編出した方がいいと思う / マルチエージェントいらんとおもう / 将来でいい
+  project: udemy_course
+  north_star: Udemyシリーズの入口として初級編を新設し、新人BE/文系プログラマー/副業希望IT会社員/学生エンジニアの初心者層を獲得。完走者を中級編
+    v3 へ送客するファネルを構築することで、シリーズ全体の売上母集団を最大化する。
+  acceptance_criteria:
+  - projects/udemy_course/drafts/curriculum_beginner_v1.md 生成（教育設計・約300-400行想定）
+  - projects/udemy_course/drafts/marketing_plan_beginner_v1.md 生成（ペルソナQ1-Q4/LP/価格戦略/中級編送客導線）
+  - '構成: 序章 (15min・無料) + 第1-7章 (各30-45min) + 終章 (30min・無料) = 8レクチャー / 約5時間'
+  - 1人+1AIで完結（マルチエージェント要素ゼロ）
+  - 中級編 v3 への送客導線を明示（章8 終章で『次のステップ』として中級編紹介）
+  - '完了報告YAML: queue/reports/ashigaru{N}_report_subtask_1483a.yaml'
+  - 軍師QC PASS（初心者層が完走可能か・中級編との重複が薄いか）
+  - git commit + push
+  command: "## 殿命\n『初級編出した方がいいと思う』『マルチエージェントいらんとおもう』『将来でいい』\n→ Udemyシリーズ縦展開の入口として初級編を新設。1人+1AI完結。新規受講者層を中級編へ送客するファネル構築。\n\
+    \n## 背景\n- cmd_1465 で curriculum_v2.md (中級編・672行) 完成済\n- 殿レビューで:\n  (1) 中級編は中級〜上級向け・初心者は脱落必至\n\
+    \  (2) シリーズ化戦略: 初級→中級→上級(将来) でLTV最大化\n  (3) マルチエージェントは将来上級編に分離\n- cmd_1482 (中級編\
+    \ v3 改訂・マルチ抜き) と並行発令\n\n## やること\n\n### 1. curriculum_beginner_v1.md (教育設計)\n\n\
+    #### タイトル候補\n- T1: 『Claude Code はじめての一歩 — AI開発の基礎を1日で習得』\n- T2: 『ゼロから始める Claude\
+    \ Code — 開発者のためのAI実装入門』\n- T3: 『Claude Code 入門 — 文系プログラマーでも分かる AI開発の基礎』\n推奨: 足軽が市場検索（Udemy\
+    \ / Google / Twitter）で類似タイトル確認後決定\n\n#### 章構成 (8レクチャー / 約5時間)\n| # | 章 | 所要 |\
+    \ 内容 | 無料 |\n|---|---|---|---|---|\n| 0 | 序章: Claude Code とは | 15分 | 他AIとの違い・なぜ\
+    \ Claude Code か | ✅ |\n| 1 | インストール+初回起動 | 30分 | 環境構築・claude login・最初の会話 | ✅ |\n\
+    | 2 | プロンプト基礎 | 45分 | XMLタグ・関数化（中級編 第1章を圧縮） | -- |\n| 3 | CLAUDE.md ミニマム | 45分\
+    \ | 30行で動く設定（中級編 第3章を圧縮） | -- |\n| 4 | 簡単な自動化体験 | 45分 | 1ファイル編集タスクで自動化を実感 | --\
+    \ |\n| 5 | hookの入門 (1本だけ) | 45分 | PreToolUse 1本で安全装置を体感 | -- |\n| 6 | MCP 接続入門\
+    \ | 45分 | memory MCPを使うだけ（自前構築は中級編で） | -- |\n| 7 | 終章: 中級編への橋渡し | 30分 | 『次のステップ』プレビュー・中級編紹介\
+    \ | ✅ |\n\n#### 各章の構造（中級編v2 と同じフォーマット踏襲）\n- ストーリー (Emotional Hook)\n- 学習目標 (Bloom\
+    \ L1-L3 中心)\n- ハンズオン具体化 (何を作る/どう作る/完成品/所要時間)\n- 成果物\n\n#### 成果物 (受講後に持ち帰るもの・5点ではなく3点)\n\
+    1. CLAUDE.md (30行ミニマム版)\n2. PreToolUse hook 1本 (基礎安全装置)\n3. memory MCP接続済の Claude\
+    \ Code 環境（次のステップで使える状態）\n\n### 2. marketing_plan_beginner_v1.md (マーケ戦略書)\n\n####\
+    \ ペルソナ4タイプ (中級編 P1-P5 とは別層)\n- Q1: 新人BE (24歳・実務1-2年・年収400万・Claudeは触ったが業務組み込み未経験)\n\
+    - Q2: 文系出身プログラマー (28歳・転職組・年収500万・bash/git は分かるが Claude Code は未経験)\n- Q3: 副業希望IT会社員\
+    \ (32歳・年収550万・AI開発スキルで副業案件取りたい)\n- Q4: 学生エンジニア (22歳・大学院生・研究/卒業課題でAI活用したい)\n\n\
+    #### 価格戦略\n- 通常: 1,980円\n- セール: 980円\n- 中級編へのバンドル割引（中級編クーポン配布で実質割引）\n\n#### LPコピー\
+    \ (AIDAフレーム)\n- Attention: 『Claude Code、インストールしたまま放置していませんか？』\n- Interest: 5時間で\
+    \ AI開発の基礎が身につく実装入門\n- Desire: 受講後の3点成果物 + 中級編への橋渡し\n- Action: 1,980円・30日返金保証\n\
+    \n#### 中級編 v3 への送客導線\n- 章7 終章で中級編予告（30分）\n- LPに『次は中級編：3階層エンジニアリング完全実践』リンク\n- Udemy講座ページに『シリーズ次講座』として中級編リンク\n\
+    - 完走者にメール通知（Udemy機能活用）+ 中級編限定クーポン\n\n#### 競合対決表\n以下の競合と差別化:\n- 『Claude Code 入門』(他講師)\n\
+    - 『ChatGPT × VSCode 開発入門』\n- 『AI で開発を爆速化する』(初心者向けプロンプト中心)\n足軽は projects/udemy_course/context/\
+    \ または work/cmd_1465/ にある udemy_engineering.json を参照\n\n### 3. 重要な制約（中級編との重複回避）\n\
+    - 章2-3 は中級編 第1-3章の『圧縮版』であって完全な代替ではない\n- 18hook → **1hook だけ**触れて『中級編で全網羅』と予告\n\
+    - MCP → 『使う側』だけ・構築側は中級編へ\n- ハーネスエンジニアリング → 『hookという仕組みがある』までで止め、詳細は中級編へ\n- コンテキストエンジニアリング\
+    \ → CLAUDE.md ミニマムまで・永続化/MCP構築は中級編へ\n\n### 4. 1人+1AIで完結\n- マルチエージェント要素ゼロ\n- 個人PC（macOS/Linux/Windows\
+    \ WSL2）で完全再現可能\n- 特殊ハードウェア要件なし\n\n### 5. 想定完走率\n- 目標: 50%以上（5時間講座は完走しやすい）\n- 中級編への送客率:\
+    \ 完走者の20-30%（中級編クーポン配布効果）\n\n## 担当・範囲\n- 担当: 足軽（家老判断・cmd_1482 と別の足軽推奨で並列実施）\n\
+    - scope: ドキュメント設計のみ・実装禁止\n- 工数想定: 1日\n\n## 軍師QC観点\n- 8章構成が論理的か（前章の知識前提が次章で活きる）\n\
+    - 1人+1AIで完結しているか（マルチ要素・特殊HW要件なし）\n- 中級編 v3 と重複が薄いか・送客導線が明確か\n- ペルソナQ1-Q4 の購買動機が章別ハンズオンで満たされるか\n\
+    - LPコピーが初心者に刺さるか（『Claude Code 触ったが業務組込み未経験』の悩みに応えているか）"
+- id: cmd_1484
+  status: in_progress
+  priority: high
+  purpose: SQLite migration p0+p1 実装（dependencies install確認 + schema作成 + migration
+    script dry-run・本番影響ゼロ・rollback容易な実害なし段階）
+  timestamp: '2026-04-25T21:10:05+09:00'
+  lord_original: A / sqliteかが最適なのか？ / ということで設計いらいせよ / yamlの整理何度もやった、自動化もしたはずなのにできてない
+  project: multi-agent-shogun
+  north_star: 軍師cmd_1481 設計の rank_1（実害なし着手段階）を完遂し、p2 dual-path 移行の準備を整える。殿の sudo install
+    後の検証 + schema設計のdry-run実行で、本番影響なく rollback可能な状態でSQLite基盤を整備。
+  acceptance_criteria:
+  - 'p0 install 検証: sqlite3 CLI / Python ruamel.yaml / Litestream の install 状態を確認（殿手動
+    sudo 実行後の検証）'
+  - 'p1-a: schema作成: queue/schema_v1.sql ファイル作成（軍師cmd_1481 schema設計をSQL文として実装・commands/inbox_messages/tasks/reports/audit_log
+    5テーブル+全index+pragmas）'
+  - 'p1-b: migration script: scripts/migrate_yaml_to_sqlite.py 作成（--dry-run option必須・既存yaml→SQLite変換・atomic
+    rename）'
+  - 'p1-c: dry-run テスト: --dry-run で migration実行・ログ出力で『何件入る予定か・schema validation成否・dryrun_output.sql生成』を確認・本番DBには書込まない'
+  - 'p1-d: dry-run結果検証: queue/shogun_to_karo.yaml(28cmds)/inbox/*.yaml/tasks/*.yaml/reports/*.yaml
+    全件が schema に適合するか（不適合あれば schema 調整候補リスト）'
+  - '完了報告YAML: queue/reports/ashigaru{N}_report_subtask_1484a.yaml + dryrun結果ログ含む'
+  - 軍師QC PASS（schema/migration script が cmd_1481 設計準拠か・dry-run のみで本番影響ゼロ確認）
+  - '**本cmdでは p2 dual-path には進まない**（p1 dry-run までで殿の確認待ち）'
+  command: "## 殿命\n『A』(cmd_1481 結論への回答: 進める・rank_1 即着手・rank_2以降は再判断)\n\n## 軍師レポート参照\n\
+    \ queue/reports/gunshi_design_sqlite_migration_1481.yaml の rank_1_immediate セクション\
+    \ (p0+p1)。\n軍師cmd_1481 全文の schema/migration plan 設計に従って実装せよ。\n\n## 範囲（厳守）\n- p0:\
+    \ dependencies install 検証のみ（殿が手動 sudo 実行・本cmdは検証側）\n- p1: schema作成 + migration\
+    \ script(dry-run) + dry-run実行\n- p1 dry-run までで停止・**p2 dual-path には進まない**\n\n\
+    ## やること\n\n### p0-a: dependencies install 検証\n```bash\n# 殿が殿pane で以下を手動実行済の前提:\n\
+    # ! sudo apt-get install -y sqlite3\n# ! cd /home/murakami/multi-agent-shogun\
+    \ && source venv/bin/activate && pip install ruamel.yaml\n# ! curl -L https://github.com/benbjohnson/litestream/releases/latest/download/litestream-linux-amd64.deb\
+    \ -o /tmp/litestream.deb && sudo dpkg -i /tmp/litestream.deb\n\n# 足軽は install\
+    \ 状態を検証する\nwhich sqlite3 && sqlite3 --version\npython3 -c 'import ruamel.yaml;\
+    \ print(ruamel.yaml.__version__)'\nwhich litestream && litestream version\n```\n\
+    \ install 不足あれば 殿に報告（家老経由）して停止。\n\n### p1-a: schema_v1.sql 作成\n保存先: queue/schema_v1.sql\n\
+    内容: 軍師cmd_1481 schema セクションの SQL 文を完全実装\n  - CREATE TABLE commands (主キー・status\
+    \ CHECK・priority・purpose・lord_original・assigned_to・north_star・acceptance_criteria_json\
+    \ TEXT・command_text・timestamp・completed_at・parent_cmd・project)\n  - CREATE INDEX\
+    \ idx_cmd_status / idx_cmd_assigned / idx_cmd_timestamp / idx_cmd_parent\n  -\
+    \ CREATE TABLE inbox_messages (id・agent・from_agent・type・content・read INTEGER・timestamp)\n\
+    \  - CREATE INDEX idx_inbox_agent_unread\n  - CREATE TABLE tasks (task_id・agent・status・parent_cmd・description・target_path・acceptance_criteria_json・steps・timestamp・completed_at)\n\
+    \  - CREATE INDEX idx_task_agent_status / idx_task_parent\n  - CREATE TABLE reports\
+    \ (report_id・worker_id・task_id・parent_cmd・status・result_json・timestamp)\n  - CREATE\
+    \ INDEX idx_report_parent / idx_report_worker\n  - CREATE TABLE audit_log (id・action・table_name・record_id・actor・before_json・after_json・timestamp)\n\
+    \  - CREATE INDEX idx_audit_table_record / idx_audit_timestamp\n  - PRAGMA journal_mode=WAL\n\
+    \  - PRAGMA synchronous=NORMAL\n  - PRAGMA busy_timeout=5000\n\n### p1-b: migration\
+    \ script 作成\n保存先: scripts/migrate_yaml_to_sqlite.py\n要件:\n  - --dry-run option（必須・dry-runで実SQLite書込まない・代わりに\
+    \ dryrun_output.sql に INSERT文を出力）\n  - --verbose option（詳細ログ）\n  - --output-db\
+    \ <path>（dry-run時 dryrun_output.sql・本番時 queue/cmds.db.tmp）\n  - 入力: queue/shogun_to_karo.yaml（28cmds・全件）\n\
+    \  - 入力: queue/inbox/*.yaml（9 agents）\n  - 入力: queue/tasks/*.yaml（足軽1-7+gunshi+pending）\n\
+    \  - 入力: queue/reports/*.yaml（204 entries・主要なものから）\n  - 動作: yaml.safe_load → schema\
+    \ validation → INSERT文生成 → dry-run出力 or 本番write\n  - エラーハンドリング: schema 不適合の場合は\
+    \ warning ログ + skip（fail-fast せず全件処理）\n  - レポート出力: 何件成功 / 何件 schema不適合 / どのフィールドで不適合\n\
+    \n### p1-c: dry-run 実行\n```bash\ncd /home/murakami/multi-agent-shogun\nsource\
+    \ venv/bin/activate\npython3 scripts/migrate_yaml_to_sqlite.py --dry-run --verbose\
+    \ --output-db /tmp/dryrun_output.sql 2>&1 | tee logs/migration_dryrun_$(date +%Y%m%d_%H%M%S).log\n\
+    ```\nログから:\n  - 何件 commands 投入予定か\n  - 何件 inbox_messages 投入予定か\n  - 何件 tasks 投入予定か\n\
+    \  - 何件 reports 投入予定か\n  - schema 不適合件数（あれば）\n\n### p1-d: dry-run 結果検証\n軍師QC で:\n\
+    \  - 全件 schema 適合か\n  - 不適合があれば schema 改修案リストアップ（schema_v1.1.sql 候補）\n  - INSERT文が\
+    \ SQL 構文として valid か（sqlite3 :memory: で構文チェック）\n  - dryrun_output.sql ファイルサイズ・件数の妥当性\n\
+    \n## 重要な制約\n- **本番 SQLite DB には書込まない**（dry-runのみ）\n- **YAML 既存ファイルには触れない**（read-only）\n\
+    - **既存 hooks には影響なし**（migration script は独立・hook chain外）\n- **ロールバック: 不要**（dry-runゆえ何も変えていない）\n\
+    - p2 dual-path には進まない（殿の再判断待ち）\n\n## 担当\n家老判断（足軽4号がDB系経験あり推奨・cmd_1471 server.py\
+    \ POST /api/cmd_create 実装者）\n\n## 工数\n- p0-a 検証: 30分\n- p1-a schema: 1-2時間\n-\
+    \ p1-b migration script: 3-4時間\n- p1-c dry-run実行: 30分\n- p1-d 検証: 1時間\n計: 半日〜1日（軍師QC込み）\n\
+    \n## 軍師QC観点\n- schema_v1.sql が cmd_1481 設計準拠か\n- migration script の --dry-run\
+    \ が真に dry-run か（実SQLite書込まないこと）\n- dry-run 結果が全件適合か・不適合あれば改修案明示か\n- 本番影響ゼロが確認されているか\n\
+    - p2 dual-path に進んでいないか（範囲守られているか）\n\n## 関連\n- 軍師レポート: queue/reports/gunshi_design_sqlite_migration_1481.yaml\n\
+    - 並行進行 cmd: cmd_1482 (中級編v3) / cmd_1483 (初級編v1)"
+- id: cmd_1485
+  status: in_progress
+  priority: high
+  purpose: Day6 Echidna 4視点MIX動画の1戦目segを master.mp4(テロップなし) + with_telop.mp4 二段方式で再生成し、charlotte
+    sync不安定/MEN画質劣化/テロップフォーマット過去逸脱の3点を解消する。8戦目には進まない（殿明示・1戦目できた時点で停止）。
+  timestamp: '2026-04-25T21:29:16+09:00'
   project: dozle_kirinuki
-  north_star: Day6 ECHIDNA回サムネをおおはらMEN主役構図に最適化し、視聴クリック率向上を狙う。前案2は退避保存し、新案を3案出して殿選択。
+  redo_of: cmd_1478
+  lord_original: ６層どうがしてき　１戦目が時間同期ができていない　ログをみろ　８せんめ動画右上テロップがまえつくった動画にかさねてテロップつけられている　手順としては動画作成時テロップなしつくり　そのごテロップ加工するのがべすとな作成手順　それだとテロップみすってもとりかえせる？　あとテロップのフォーマットがかこと違う　なんで／あとMEN画面画質があらい／１せんめできたじてんでとめろ　Bもやれ　Cはほうち
+  north_star: 1戦目seg修正で殿の4指摘（同期失敗・テロップ二重・テロップフォーマット差・MEN画質劣化）を全解消し、master/telop二段方式の実証1号として
+    cmd_1486 のルール化に証跡を残す。
   acceptance_criteria:
-  - おおはらMENの立ち絵が中央下部に配置されたサムネ3案が生成済（thumb_v3_1.png〜thumb_v3_3.png）
-  - LAN公開（http://192.168.2.7:8081/）で殿スマホレビュー可能
-  - 現 thumbnail_final.png（cmd_1467案2 commit 0c3518c）は thumbnail_v2_案2_backup.png として退避してから新案配置（破壊禁止）
-  - 殿が案番号選択後、thumbnail_final.png を選択案で更新+commit+push
-  - 'ntfy通知: 3案完成時 + 案確定時の2回'
-  - 軍師QC PASS（おおはらMEN中央下部配置の確認・他キャラ被り確認・文字可読性）
-- id: cmd_1475
+  - 1戦目 charlotte sync を最低3手法で再測定（cross-correlation / 異なる ref_start_sec 3点 / mpv視覚同期±1frame確認）し、3点全て一致した値を採用
+  - 1戦目 master_1sen.mp4 = テロップなし4視点MIX動画（MEN→4画面grid→MEN・142秒）を生成
+  - 1戦目 with_telop_1sen.mp4 = master_1sen.mp4 に ffmpeg drawtext で右上テロップ「エキドナ(初戦)」を後付け
+  - 'テロップフォーマット調査: 過去動画 (Day5 zephyrus_with_telop.mp4 等) の drawtext パラメータ (font/fontsize/x/y/fontcolor/box/boxcolor)
+    を ffprobe + 視覚比較で抽出 → 1sen with_telop に同一パラメータ適用'
+  - 'MEN画質劣化原因特定: 元素材 oo_men_1sen.mp4 の解像度/bitrate/codec を ffprobe 確認 → seg1sen_new.mp4
+    と比較 → 劣化発生箇所 (scale/encode/concat) 特定 → 修正後の master_1sen.mp4 で MEN画質が他視点と同等に揃う'
+  - 'sync_record.yaml 1戦目セクション更新: measurements に再測定3手法 + adopted_offsets + visual_verification.result=pass
+    + master_telop_files セクション追加'
+  - '中間ファイル全保存: master_1sen.mp4 / with_telop_1sen.mp4 / sync再測定ログ / drawtext_params_diff.md
+    (過去比較) を work/cmd_1485/ 配下に'
+  - '軍師QC PASS: mpv --speed=1.0 で 1sen with_telop_1sen.mp4 全142秒視聴 + sync verify_60s_*.mp4
+    echo無し確認 + 過去テロップとの diff 視覚比較'
+  - 8戦目には進まない（殿明示・1戦目できた時点で停止）
+  - git commit + push
+  - dashboard.md 最新化
+  command: "## 殿原文\n『６層どうがしてき　１戦目が時間同期ができていない　ログをみろ』\n『８せんめ動画右上テロップがまえつくった動画にかさねてテロップつけられている』\n\
+    『手順としては動画作成時テロップなしつくり　そのごテロップ加工するのがべすとな作成手順　それだとテロップみすってもとりかえせる？』\n『あとテロップのフォーマットがかこと違う　なんで』\n\
+    『あとMEN画面画質があらい』\n『１せんめできたじてんでとめろ　Bもやれ　Cはほうち』\n\n## 範囲（厳守）\n- **1戦目seg のみ修正**・8戦目には進まない\n\
+    - 1戦目できた時点で停止し殿確認待ち\n- YouTube動画 (M7UKrqiI3Eo) は非公開のまま放置（殿命「Cはほうち」）\n\n## 既存資産（流用必須）\n\
+    - work/cmd_1464/sync_offsets_1sen{,_check2,_check3,_charlotte_full,_charlotte_v2}.json\
+    \ (charlotte 1sen が±60秒の振れ・要再測定)\n- work/cmd_1464/seg1sen.mp4 (cmd_1478の1戦目成果物・sync不安定/画質/テロップ問題あり)\n\
+    - projects/dozle_kirinuki/work/20260416_*/sync_record.yaml (cmd_1478生成・1戦目adopted_offsetsに「inconsistent\
+    \ with check2」note付きで採用してしもうた・要修正)\n- projects/dozle_kirinuki/work/20260415_*/multi/day5_zephyrus_with_telop.mp4\
+    \ (過去テロップフォーマット参考)\n\n## やること\n\n### Step 1: charlotte 1sen sync 再測定（3手法併用）\n\
+    ```bash\ncd projects/dozle_kirinuki\n# 既存 multi_view_sync.md Step 1-4 準拠で 3つの\
+    \ ref_start_sec で測定\n# 例:\npython scripts/measure_sync_offset.py --ref oo_men_1sen.mp4\
+    \ --target charlotte_1sen.mp4 --ref-start 30 --sample 60 -o work/cmd_1485/sync_charlotte_1sen_a.json\n\
+    python scripts/measure_sync_offset.py --ref oo_men_1sen.mp4 --target charlotte_1sen.mp4\
+    \ --ref-start 60 --sample 60 -o work/cmd_1485/sync_charlotte_1sen_b.json\npython\
+    \ scripts/measure_sync_offset.py --ref oo_men_1sen.mp4 --target charlotte_1sen.mp4\
+    \ --ref-start 90 --sample 60 -o work/cmd_1485/sync_charlotte_1sen_c.json\n```\n\
+    3点全て一致 (max_diff ≤0.5秒) なら採用。一致せねば mpv で視覚同期最終確認:\n- ffmpeg で oo_men_1sen と charlotte_1sen\
+    \ を side-by-side合成 (offset候補値を ss に適用) → mpv視聴 → echo/visual lag±1frame で適否判定\n\
+    \n### Step 2: master_1sen.mp4 生成（テロップなし）\nadopted offset で 4視点 MIX 生成（MEN→4画面grid→MEN・142秒）:\n\
+    ```bash\nffmpeg -i oo_men_1sen.mp4 -ss 0 -t 45 -c:v copy ... # MEN solo\nffmpeg\
+    \ -i oo_men_1sen.mp4 -i charlotte_1sen.mp4 -i hendy_1sen.mp4 -i tsurugi_1sen.mp4\
+    \ \\\n  -filter_complex \"... 4-grid layout ...\" -c:v h264_nvenc -preset p4 ...\
+    \ # grid\nffmpeg -i oo_men_1sen.mp4 -ss 110 -t 32 ... # MEN solo\nffmpeg -f concat\
+    \ -i list.txt -c:v h264_nvenc -preset p4 -c:a aac -b:a 192k work/cmd_1485/master_1sen.mp4\n\
+    ```\n**テロップは入れない**。\n\n### Step 3: 過去テロップフォーマット調査\n```bash\n# Day5 (cmd_1424)\
+    \ のテロップ動画から drawtext パラメータ抽出\nffprobe -hide_banner -i projects/dozle_kirinuki/work/20260415_*/multi/day5_zephyrus_with_telop.mp4\
+    \ 2>&1 | grep -i \"drawtext\\|font\\|filter\"\n# 視覚比較: 過去動画と cmd_1478 with_telop\
+    \ の同位置スクショ → diff\nffmpeg -i day5_zephyrus_with_telop.mp4 -ss 5 -frames:v 1 work/cmd_1485/past_telop_sample.png\n\
+    ffmpeg -i seg1sen.mp4 -ss 5 -frames:v 1 work/cmd_1485/cmd1478_telop_sample.png\n\
+    # 出力: work/cmd_1485/drawtext_params_diff.md (font/fontsize/x/y/fontcolor/box/boxcolor\
+    \ の過去 vs 現在の差分)\n```\n\n### Step 4: with_telop_1sen.mp4 生成（後加工・1パスのみ）\n過去フォーマットに合わせた\
+    \ drawtext で master_1sen.mp4 にテロップ後付け:\n```bash\nffmpeg -i work/cmd_1485/master_1sen.mp4\
+    \ \\\n  -vf \"drawtext=fontfile=<過去と同一パス>:text='エキドナ(初戦)':fontsize=<過去と同一>:fontcolor=<過去と同一>:x=<過去と同一>:y=<過去と同一>:box=<過去と同一>:boxcolor=<過去と同一>\"\
+    \ \\\n  -c:v h264_nvenc -preset p4 -c:a copy work/cmd_1485/with_telop_1sen.mp4\n\
+    ```\n**重要**: テロップミス時は master_1sen.mp4 から再drawtextで取り返す方針（殿命）。\n\n### Step 5: MEN画質劣化原因特定\n\
+    ```bash\nffprobe -hide_banner work/cmd_1464/seg1sen.mp4 2>&1 | grep -E \"Stream|Video\"\
+    \nffprobe -hide_banner oo_men_1sen.mp4 2>&1 | grep -E \"Stream|Video\"\nffprobe\
+    \ -hide_banner work/cmd_1485/master_1sen.mp4 2>&1 | grep -E \"Stream|Video\"\n\
+    # bitrate/resolution/codec 比較し master_1sen.mp4 で MEN画質が他視点と同等に揃うこと確認\n# 出力: work/cmd_1485/quality_analysis.md\n\
+    ```\n\n### Step 6: sync_record.yaml 更新（1戦目セクションのみ）\nprojects/dozle_kirinuki/work/20260416_*/sync_record.yaml\
+    \ の `measurements.1sen_*` と `adopted_offsets.1sen` を再測定値で上書き。`master_telop_files`\
+    \ セクション追加:\n```yaml\nmaster_telop_files:\n  master_1sen: work/cmd_1485/master_1sen.mp4\
+    \  # テロップなし\n  with_telop_1sen: work/cmd_1485/with_telop_1sen.mp4\n  drawtext_params_source:\
+    \ \"projects/dozle_kirinuki/work/20260415_*/multi/day5_zephyrus_with_telop.mp4\
+    \ と同一パラメータ\"\n```\n`visual_verification.1sen.result` を `pass` に更新（軍師QC後）。\n\n\
+    ### Step 7: 軍師QC（mpv視覚検証必須）\n- mpv --speed=1.0 で work/cmd_1485/with_telop_1sen.mp4\
+    \ 全142秒視聴\n- 確認項目: (1)MEN→4画面grid→MEN順序 (2)右上テロップ「エキドナ(初戦)」表記+過去フォーマット一致 (3)4画面grid\
+    \ section sync 視覚echo無し (4)MEN画質劣化なし\n- sync verify: ffmpeg amix=inputs=4 で grid\
+    \ section 60秒抽出 → 耳echo確認\n- 過去テロップ視覚比較: past_telop_sample.png vs with_telop_1sen.mp4\
+    \ frame の重ね合わせ\n\n## 共通ルール\n- 出力先: work/cmd_1485/ + projects/dozle_kirinuki/work/20260416_*/sync_record.yaml\
+    \ 更新\n- 新規.pyは projects/dozle_kirinuki/scripts/ に保存・既存 measure_sync_offset.py\
+    \ 等を流用\n- ffmpegは h264_nvenc（GPU）。libx264禁止\n- 中間成果物は work/cmd_1485/ 配下に全保存\n\
+    - git commit + push 必須\n\n## 担当\n家老判断（cmd_1478 担当者継続が知見継承上望ましい・足軽1号 or cmd_1424\
+    \ 経験者）\n\n## 工数目安\n- Step 1 sync再測定: 1時間\n- Step 2 master生成: 1-2時間\n- Step 3 過去フォーマット調査:\
+    \ 30分\n- Step 4 with_telop生成: 30分\n- Step 5 画質分析: 30分\n- Step 6 sync_record更新:\
+    \ 15分\n- Step 7 軍師QC: 1時間\n計: 半日\n\n## 軍師QC観点\n- master/with_telop 二段方式が成立しているか（master再drawtextで取り返し可能か）\n\
+    - charlotte sync 3手法一致 + mpv視覚echo無し\n- 過去テロップフォーマット (Day5 zephyrus) と一致\n- MEN画質が他視点と同等\n\
+    - 1戦目限定遵守（8戦目に手出していない）\n\n## 関連\n- 並列発令 cmd: cmd_1486 (master/telop二段ルール化)\n-\
+    \ 過去 cmd: cmd_1464 → cmd_1478 → 本cmd_1485 (1戦目のみ再修正)"
+- id: cmd_1486
   status: done
-  completed_at: '2026-04-25T18:09:00+09:00'
   priority: high
-  purpose: cmd読込側システム設計の中立評価（軍師の独立判断・将軍の主張は意図的に伝えていない）
-  timestamp: '2026-04-25T17:59:49+09:00'
-  lord_original: 本当かじじつか？軍師にも仰ごう　将軍設計はつたえるな
-  assigned_to: gunshi
+  purpose: 動画系MIXの『master.mp4(テロップなし) + with_telop.mp4 後加工』二段生成方式を恒久ルール化し、テロップミス時に
+    master から再drawtextで取り返し可能にする。multi_view_scene_switch.md 鉄則6追加 + master_telop_two_stage.md
+    新規作成。
+  timestamp: '2026-04-25T21:29:17+09:00'
   project: multi-agent-shogun
-  north_star: POST /api/cmd_create が cmd_1471/1474 で実装完了し書込側はAPI化された。読込側・inbox通知・履歴管理について改修すべきか中立に評価し、設計の妥当性を独立判断する。
+  lord_original: 手順としては動画作成時テロップなしつくり　そのごテロップ加工するのがべすとな作成手順　それだとテロップみすってもとりかえせる？／Bもやれ
+  north_star: テロップ修正のたびに重い4視点合成を再実行する無駄を撲滅し、修正コスト数時間→数十分に短縮。cmd_1485 (Day6 Echidna
+    1戦目修正) を実証1号として規格化。
   acceptance_criteria:
-  - 5評価項目それぞれに「改修推奨/現状維持」+ 理由 + リスクを記載
-  - 軍師が実際にプロセス(ps)・ファイル(Read)・サイズ(wc)を確認した上で判断
-  - '出力: queue/reports/gunshi_design_review_1475.yaml'
-  - 総括欄に設計改修の優先順位（5項目をrank付け）
-  - 将軍の主張・推奨が混入していない中立判定（意見の引きずりがない）
-  command: "## 殿命\n『本当かじじつか？軍師にも仰ごう　将軍設計はつたえるな』\n→ 将軍の設計判断・主張・推奨は本cmdに一切含まれていない。軍師自身が客観事実のみから独立判断せよ。\n\
-    \n## 客観事実（軍師は実際に検証して確認すること）\n1. 書込API: POST /api/cmd_create (cmd_1471実装+cmd_1474改修:\
-    \ lord_original必須化+pass-through)\n2. 読込方式: 各エージェントが Read tool で YAML 直接読み込み\n\
-    \   - 家老: queue/shogun_to_karo.yaml\n   - 足軽: queue/tasks/{agent}.yaml\n   - 全員:\
-    \ queue/inbox/{agent}.yaml\n3. 通知: inbox_write.sh → inotifywait → tmux send-keys\
-    \ 'inboxN'\n4. shogun_to_karo.yaml の現状: ファイルサイズ・件数を wc/grep で実測すること\n5. inbox\
-    \ YAML: read:false/true 件数を実測\n6. POST /api/cmd_create で投入後、家老inbox通知は別呼出 (inbox_write.sh)\n\
-    7. inbox_watcher プロセスを ps で確認 (常駐数・各エージェント分)\n\n## 評価項目（5問）中立判定\n1. 読み込み側を API\
-    \ GET 化すべきか？(GET /api/cmd_pending, GET /api/inbox/{agent} 等)\n2. inbox_write.sh\
-    \ を POST /api/inbox_write でAPI化すべきか？\n3. POST /api/cmd_create に家老inbox自動通知を統合すべきか？\n\
-    4. shogun_to_karo.yaml の archive機構は必要か？(append-only肥大化対策)\n5. inbox YAML スリム化（read済の自動退避）は必要か？\n\
-    \n## 評価軸（軍師が比較検討すべき観点）\n- 性能: HTTP overhead vs file syscall・prompt cache 効果\n\
-    - 整合性: 並列書込競合・atomicity・flock効果範囲\n- 保守性: 障害切り分け・デバッグ容易性\n- 拡張性: 新エージェント追加・新通知種別の柔軟性\n\
-    - Claude Code agent との親和性: Read tool vs Bash curl\n- 実装コスト vs リターン\n\n## 検証手順例\n\
-    - ps aux | grep inbox_watcher で常駐プロセス数\n- wc -l queue/shogun_to_karo.yaml でサイズ実測\n\
-    - grep -c 'read: false' queue/inbox/*.yaml で未読蓄積\n- shared_context/procedures/dozle_thumbnail_generation.md\
-    \ 等の既存procedureを参照\n- 過去事故事例（軍師の知見）を検索\n\n## 出力フォーマット\n queue/reports/gunshi_design_review_1475.yaml\
-    \ に以下構造で記載:\n```yaml\nreview_id: gunshi_design_review_1475\ngunshi: gunshi_opus\n\
-    evaluated_at: <ISO8601>\nfacts_verified:\n  shogun_to_karo_lines: <実測値>\n  inbox_watcher_count:\
-    \ <実測値>\n  ...\nitems:\n  - id: 1_read_api_get\n    question: 読み込み側を API GET 化すべきか？\n\
-    \    recommendation: <改修推奨 or 現状維持>\n    reasoning: |\n      <根拠を5行以内で>\n    proposed_change:\
-    \ <推奨時のみ>\n    risk: <最大リスク>\n  - id: 2_inbox_write_api\n    ...\n  - ...\noverall_priority_ranking:\n\
-    \  - 1位: <itemId>\n  - 2位: <itemId>\n  ...\nsummary: <総括3-5行>\n```\n\n## 注意\n\
-    - 軍師の自由判断。将軍へ忖度するな。\n- 既存設計の擁護（『現状維持で十分』）も改修推奨も両方が選択肢。\n- 軍師が『改修不要』と判断するなら、その理由を堂々と述べよ。"
-- id: cmd_1476
-  status: done
-  completed_at: '2026-04-25T18:27:00+09:00'
-  priority: high
-  purpose: multi-agent-shogun cmd系設計の完全オープン独立評価（軍師の問題発見能力を活かす・前回cmd_1475は将軍が評価項目を渡してしまったbias含み）
-  timestamp: '2026-04-25T18:16:48+09:00'
-  lord_original: A　クリアしてもっかいかんがえなおさせろ
-  assigned_to: gunshi
-  redo_of: cmd_1475
-  project: multi-agent-shogun
-  north_star: 前回cmd_1475の中立性は『結論レベル』では確保したが『問題提起レベル』で将軍biasが混入した。今回は context /clear
-    後、評価項目すら提示せず軍師が独自に問題発見・優先順位付けする。
-  acceptance_criteria:
-  - 軍師が context /clear 後、Session Start手順を経て新task読み込みから開始する
-  - 前回レポート (queue/reports/gunshi_design_review_1475.yaml) を一切参照しない（biasを引きずらない）
-  - 軍師が独自に問題を発見・優先順位付け（数・観点の制約なし）
-  - 「現状で問題なし」「将軍が想定外の観点」も結論として許容
-  - '出力: queue/reports/gunshi_design_review_1476.yaml'
-  - meta_judgment セクションに『前回biasに引きずられていないか』の自己検証を含む
-  command: "## 殿命（原文）\n『A　クリアしてもっかいかんがえなおさせろ』\n\n## 背景（軍師は読んでよい・bias情報ではなく経緯）\n前回\
-    \ cmd_1475 で将軍が『5評価項目』を軍師に提示した。\n→ これは将軍の問題認識の枠組み = bias混入。\n→ 殿『将軍設計はつたえるな』命を完全には守れていなかった。\n\
-    \n## 今回の制約\n1. **前回レポート参照禁止**: queue/reports/gunshi_design_review_1475.yaml は読むな（軍師がdone判定した内容も忘れよ）\n\
-    2. **将軍の主張・設計案・問題提起は一切渡されていない**\n3. **評価項目すら指定しない**: 何を問題と見るか自体を軍師が決める\n4. **数・観点の制約なし**:\
-    \ 1問題でも10問題でも軍師の発見次第\n5. **『現状で問題なし』結論も許容**: 改修ありきではない\n\n## 前提情報（客観事実のみ・観察対象を提示）\n\
-    multi-agent-shogun は 将軍/家老/足軽1-7/軍師 の9エージェント協調system。\n\n観察対象（軍師が ps/ls/grep/wc/tail\
-    \ で実測すべき）:\n- scripts/dashboard/server.py (port 8770 MCPダッシュボード+API)\n- scripts/inbox_write.sh\
-    \ / scripts/inbox_watcher.sh\n- scripts/pretool_check.sh + .claude/settings.json\
-    \ (hooks)\n- scripts/advisor_proxy.py (port 8780)\n- queue/shogun_to_karo.yaml\n\
-    - queue/inbox/*.yaml (9 agents分)\n- queue/tasks/*.yaml\n- queue/reports/*.yaml\n\
-    - shared_context/procedures/\n- logs/*.log\n\n## やること\n1. context /clear 後、CLAUDE.md+instructions/gunshi.md\
-    \ を読み直し（Session Start）\n2. 上記観察対象のうち軍師が必要と判断したものを実測\n3. 軍師自身が『この設計には何が問題か』を発見\n\
-    4. 各問題に改修要否判定 + 優先順位\n5. 将軍に渡されていない観点（hooks層・logs層・並行性・Failure mode・観測性等）も自由に発掘してよい\n\
-    6. 結果を queue/reports/gunshi_design_review_1476.yaml に出力\n\n## 出力フォーマット（最低限）\n\
-    ```yaml\nreview_id: gunshi_design_review_1476\ngunshi: gunshi_opus\nevaluated_at:\
-    \ <ISO8601>\nissues_found:  # 軍師が発見した問題（数任意）\n  - id: issue_X\n    title: <短い表題>\n\
-    \    evidence: <実測値・ファイル参照>\n    judgment: <改修推奨/現状維持/再評価必要>\n    priority: <HIGH/MEDIUM/LOW/REJECTED>\n\
-    \    rationale: <理由>\n    proposed_change: <推奨時のみ>\n    risk_if_changed: <リスク>\n\
-    overall_priority_ranking: [...]\nmeta_judgment:\n  clear_recovery_check: <Session\
-    \ Start手順を経て独立 context で開始したか>\n  bias_self_check: <前回 cmd_1475 結果 (5項目枠) に引きずられていないか・自己検証>\n\
-    \  novel_insights: <将軍が想定外の観点を発見したか>\nsummary: <総括>\n```\n\n## 注意\n- 『前回 5項目を再現する』のは\
-    \ bias 残留。**忘れて** 独立に発掘せよ\n- 軍師の観察眼を最大限信頼する。『改修要らず』結論も歓迎。\n- 将軍/家老/殿への忖度は要らぬ。"
-- id: cmd_1477
-  status: done
-  started_at: '2026-04-25T18:39:00+09:00'
-  completed_at: '2026-04-25T19:05:00+09:00'
-  priority: high
-  purpose: 軍師cmd_1476独立評価で発掘されたHIGH 3件を即対応（advisor_proxy timeout根本対処+inbox_write安全化+logrotate導入）
-  timestamp: '2026-04-25T18:32:35+09:00'
-  lord_original: A+BだがまずAだけｃｍｄ発行BはTodo　ｍｄつくれ
-  project: multi-agent-shogun
-  north_star: 9エージェント協調system 24/7稼働の継続性を侵す進行中障害3件を根絶。advisor品質ゲート停止・dashboard信頼性低下・disk圧迫の3経路を封じる。
-  acceptance_criteria:
-  - 'subtask_1477a: advisor_proxy claude -p timeout根本対処（モデル分離 or 常駐化）→ logs/advisor_proxy.log
-    で timeout 0件/1時間 を確認'
-  - 'subtask_1477b: scripts/inbox_write.sh の YAML auto-update を PyYAML/atomic化＋silent_fail必ずログ化（logs/inbox_write_silent_fail.log
-    新設）'
-  - 'subtask_1477c: /etc/logrotate.d/multi-agent-shogun 追加（daily rotate 7・compress・size
-    50M）+ inbox_watcher Throttle行 DEBUG化'
-  - '全件: 軍師QC PASS + dashboard更新 + git commit + push'
-  - '完了通知: ntfy送信 + dashboard cmd_1477 done'
-  command: "## 殿命\n『A+BだがまずAだけｃｍｄ発行BはTodo　ｍｄつくれ』\n→ A=軍師cmd_1476 HIGH 3件を即cmd発令、B=読込API/SQLite化はTODO\
-    \ md化（将軍が shared_context/todo_storage_migration.md に記載済）\n\n## 軍師cmd_1476 発掘 HIGH\
-    \ 3件\n軍師レポート queue/reports/gunshi_design_review_1476.yaml を必ず参照せよ。3件の詳細・evidence・proposed_change\
-    \ が記載されている。\n\n### subtask_1477a: advisor_proxy claude -p timeout根本対処\n軍師指摘: cmd_1473\
-    \ で 90→120s 延長は対症療法。当日 18:19 にも timeout発火・grep -c 152件。\n提案 (軍師原文):\n  (a) advisor\
-    \ 用には軽量モデル（haiku/sonnet 4.6）を別系統で専用化し、Opus 1M は明示要求時のみ\n  (b) claude -p をプロセス常駐\
-    \ (REPL/JSON-RPC) 化して CLI 起動コストを排除\n  (c) timeout 延長は最終手段として温存\n対象ファイル: scripts/advisor_proxy.py\n\
-    軍師QC観点: logs/advisor_proxy.log の timeout 件数が改修前後で減少していること\n\n### subtask_1477b:\
-    \ inbox_write.sh の安全化\n軍師指摘: L118/L158 'return 0 # Never fail'・L80-115 mawk regex\
-    \ で shogun_to_karo.yaml を直接書換。\nダッシュボードと実体の食い違いリスク。\n提案 (軍師原文):\n  (a) regex編集を廃しPyYAML経由（POST\
-    \ /api/cmd_update endpoint or 専用 cmd_status_update.py）に置換\n  (b) 'Never fail'\
-    \ は維持しつつ、失敗時は logs/inbox_write_silent_fail.log に必ず一行残す\n  (c) flock 取得失敗を WARN\
-    \ ログ化（現状サイレント）\n対象ファイル: scripts/inbox_write.sh + 必要なら server.py に新endpoint追加\n\
-    軍師QC観点: silent_fail ログが正常に出力されること・YAML破損が発生しないこと\nリスク注意: PyYAML経由化はコメント/順序を破壊しがち→ruamel.yaml\
-    \ or 既存atomic write+rename パターン (inbox_write.sh L213-219) を踏襲\n\n### subtask_1477c:\
-    \ logs/ logrotate導入\n軍師指摘: logs/ 187MB・inbox_watcher_*.log が15-23MB/個・無回転。\n提案\
-    \ (軍師原文):\n  (a) /etc/logrotate.d/multi-agent-shogun を追加。daily rotate 7、compress、size\
-    \ 50M\n  (b) inbox_watcher 側で 'Throttling nudge ... < 60s' の頻発行は DEBUG レベル化＋ENV\
-    \ LOG_LEVEL=INFO 既定で抑制\n  (c) cron で月次 logs/archive/{YYYY-MM}/ への移動も可\n対象ファイル:\
-    \ /etc/logrotate.d/multi-agent-shogun（新規）+ scripts/inbox_watcher.sh\n軍師QC観点: logrotate\
-    \ -d でドライラン成功・cron 配信確認・実ログサイズ抑制\nリスク注意: rotation中のinotifywaitはSIGHUP不要だが、rotation直後のwrite競合検証（copytruncate\
-    \ or createモード）が必要\n\n## 推奨配分\n軍師提案: 半日工程 + 1足軽分。家老の判断で 1足軽逐次 or 3足軽並列を選べ。並列なら速い\
-    \ (3足軽が同時実装+それぞれ軍師QC通過後に統合commit)。\n\n## 関連TODO\nshared_context/todo_storage_migration.md\
-    \ (B: 読込API/SQLite化計画) 既存。cmd_1477完遂後に段階1から着手予定。\n\n## 注意\n- 軍師QCは各subtaskに必須。軍師レポートで発掘された問題ゆえ、軍師自身がQC適任。\n\
-    - 修正範囲は軍師指摘箇所に限定し、関連箇所のリファクタは別cmd化せよ（scope creep禁止）。\n- subtask_1477b で server.py\
-    \ に POST /api/cmd_update を追加する場合、cmd_1474 のpass-through実装を踏襲し flock+atomic+lord_original対応を保つ。"
-- id: cmd_1478
-  status: done
-  started_at: '2026-04-25T18:51:00+09:00'
-  completed_at: '2026-04-25T20:09:39+09:00'
-  priority: high
-  purpose: cmd_1464 Day6 Echidna 4視点MIX final.mp4 (YouTube EVfo4W7jCIc) の規格逸脱を修正・sync_record.yaml生成必須化
-  timestamp: '2026-04-25T18:41:54+09:00'
-  lord_original: MEN→4画面→MENは１戦目だけよ　並列発行OK / ちゃんと時刻調整したかも記録のこすようにせよ　各動画で時間ぴったりじゃないから
-    / １戦目はMEN視点４画面MEN視点のじゅんでおわれ　右上テロップが標準とちがう　ナレッジがあるはず
-  project: dozle_kirinuki
-  redo_of: cmd_1464
-  north_star: Day6 Echidna 4視点MIX動画を multi_view_scene_switch.md 鉄則3/4準拠に修正し、sync調整の証跡を残してダッシュボード信頼性を回復する。
-  acceptance_criteria:
-  - '1戦目seg: MEN視点 → 4画面grid → MEN視点 の3段構成で終わる（殿指示・1戦目限定パターン）'
-  - '8戦目seg: 通常の視点切替パターン (最初MEN→中間charlotte/hendy/tsurugi→たまに4画面grid→最後MEN固定・鉄則3準拠)'
-  - '右上テロップ: 「エキドナ(初戦)」「エキドナ(8戦目)」 ffmpeg drawtext 形式（鉄則4準拠）'
-  - 'sync_record.yaml 生成必須 (殿要件): measurements/consistency_check/applied_to_mix/visual_verification
-    4セクション'
-  - 既存 sync_offsets_8sen{,_check2,_check3}.json を sync_record.yaml の measurements
-    に統合
-  - YouTube動画 EVfo4W7jCIc を差替え (再アップロード or update) ・URL 殿に通知
-  - '軍師QC: 視覚的検証必須 (mpv --speed=2.0 で seg境界 4箇所 + 1戦目視点パターン + 8戦目視点パターン + 右上テロップ実視聴)'
-  - git commit + push (sync_record.yaml + 修正済 final.mp4 への参照含む)
-  command: "## 殿指摘\n『１戦目はMEN視点→4画面→MEN視点のじゅんでおわれ』\n『右上テロップが標準とちがう　ナレッジがあるはず』\n『ちゃんと時刻調整したかも記録のこすようにせよ　各動画で時間ぴったりじゃないから』\n\
-    『MEN→4画面→MENは１戦目だけよ』\n\n## 標準仕様（既存ナレッジ）\n参照必須: shared_context/procedures/multi_view_scene_switch.md\n\
-    \n### 鉄則3（視点切替パターン）\n- 最初/最後: 基準視点固定 (例: MEN)\n- 中間: 他視点バリエーション (charlotte/hendy/tsurugi)\n\
-    - たまに 4画面 grid (盛り上がりシーン)\n\n### 鉄則4（右上テロップ）\n- ffmpeg drawtext で「エキドナ(初戦)」「エキドナ(8戦目)」を\
-    \ seg ごと\n- 視点名テロップは不要（鉄則6）\n\n## 1戦目の特例（殿指示・本cmd限定）\n1戦目は短い (142秒) ゆえ MEN視点 →\
-    \ 4画面grid → MEN視点 の3段シンプルパターンで終わる。\n中間に charlotte/hendy/tsurugi 単独切替は入れない（短いseg\
-    \ ゆえ視点切替過多を避ける）。\nこの特例は『短いseg は MEN→4画面→MEN シンプルパターンでOK』として multi_view_scene_switch.md\
-    \ に追記要 (cmd_1479で対応)。\n\n## 8戦目（通常パターン）\n2150秒の長尺ゆえ鉄則3 通常パターン適用:\n- 最初: MEN固定\
-    \ (~30秒)\n- 中間: charlotte/hendy/tsurugi を 30-60秒で機械的切替+盛り上がりシーン判断\n- たまに 4画面grid\
-    \ (盛り上がり時)\n- 最後: MEN固定 (~30秒)\n\n## sync_record.yaml 生成必須 (殿要件)\n出力先: work/cmd_1478/sync_record.yaml\n\
-    フォーマット:\n```yaml\nsync_record:\n  cmd_id: cmd_1478\n  generated_at: <ISO8601>\n\
-    \  reference_video: oo_men_8sen.mp4\n  view_videos: [charlotte_8sen.mp4, hendy_8sen.mp4,\
-    \ tsurugi_8sen.mp4]\n  measurements:\n    primary:   {ref_start_sec: 1000, sample_sec:\
-    \ 60, offsets: {charlotte: ..., hendy: ..., tsurugi: ...}}\n    check1:    {ref_start_sec:\
-    \  500, sample_sec: 120, offsets: {...}}\n    check2:    {ref_start_sec: 2000,\
-    \ sample_sec: 60, offsets: {...}}\n  consistency_check:\n    pass: true\n    max_diff_sec:\
-    \ 0.02       # 全check間の最大差分\n    threshold_sec: 0.5\n  applied_to_mix:\n    ffmpeg_inputs:\n\
-    \      - {file: oo_men_8sen.mp4,    ss: 0}\n      - {file: charlotte_8sen.mp4,\
-    \ ss: <offset値>}\n      - {file: hendy_8sen.mp4,     ss: <offset値>}\n      - {file:\
-    \ tsurugi_8sen.mp4,   ss: <offset値>}\n    output_files: [seg1戦目.mp4, seg8戦目.mp4]\n\
-    \  visual_verification:\n    method: \"amix=inputs=4 で 60秒サンプル抽出 → 耳echo確認 + 視覚同期±1frame確認\"\
-    \n    verifier: ashigaru1\n    result: pass\n    sample_files: [verify_60s_pos1000s.mp4,\
-    \ verify_60s_pos2000s.mp4]\n    notes: \"...\"\n```\n既存 sync_offsets_8sen.json\
-    \ / sync_offsets_8sen_check2.json / sync_offsets_8sen_check3.json は measurements\
-    \ に統合参照。\n\n## YouTube差替え\n対象: https://youtu.be/EVfo4W7jCIc (cmd_1464で非公開アップ済)\n\
-    方法: youtube_uploader.py の update mode or 新規アップ→旧削除のいずれか家老判断。privacyStatus=private\
-    \ 維持。defaultLanguage=ja 維持。\n\n## 軍師QC厳守事項 (cmd_1464でのQC形骸化反省)\n- ffprobe・API確認だけでなく\
-    \ **視覚的検証必須**\n- mpv --speed=2.0 で 38分動画を 4-5分でスキャン\n- 確認項目: (1)1戦目seg MEN→4画面→MEN\
-    \ 順序確認 (2)8戦目seg 鉄則3パターン確認 (3)右上テロップ「エキドナ(初戦)」「エキドナ(8戦目)」表記確認 (4)seg境界 wipeleft+sceneswitch1\
-    \ SE\n- sync_record.yaml の consistency_check.pass=true / visual_verification.result=pass\
-    \ 検証\n\n## 実装の参考\n- cmd_1464 work/cmd_1464/ の生成スクリプト・transition.mp4・sync_offsets\
-    \ を流用\n- cmd_1424 zephyrus_v3.sh (Day5 Zephyrus) のテロップ実装を参照"
-- id: cmd_1479
-  status: done
-  started_at: '2026-04-25T18:51:00+09:00'
-  priority: high
-  purpose: 動画系QC規格化（QC形骸化対策）+ sync_record.yaml フォーマット標準化（殿要件）
-  timestamp: '2026-04-25T18:41:55+09:00'
-  lord_original: MEN→4画面→MENは１戦目だけよ　並列発行OK / ちゃんと時刻調整したかも記録のこすようにせよ　各動画で時間ぴったりじゃないから
-  project: multi-agent-shogun
-  north_star: cmd_1464でのQC形骸化（軍師PASS後に殿が規格逸脱発見）を再発させぬよう、動画系cmdの acceptance_criteria
-    標準テンプレと軍師QC視覚検証必須化と sync_record.yaml規格を確立する。
-  acceptance_criteria:
-  - shared_context/procedures/multi_view_sync.md に Step 7「sync_record.yaml 生成必須」+
-    鉄則5「sync_record.yaml なき MIX は完了とみなさない」追加
-  - shared_context/procedures/multi_view_scene_switch.md に『acceptance_criteria 標準テンプレ』セクション追加（鉄則3/4の検証条件を必須項目化）+
-    1戦目シンプルパターン（短いseg=MEN→4画面→MEN）を補足
-  - shared_context/qc_template.md に『動画タスクQC追加項目』セクション追加（mpv視覚検証・seg境界・視点パターン・テロップ規格・sync_record検証）
-  - instructions/karo.md または別の家老向けチェックリストに『動画系cmd起票時の必須項目（sync_record必須・視覚検証必須・ナレッジ参照必須）』追加
-  - 軍師の qc 手順（既存があれば更新・なければ shared_context/procedures/gunshi_video_qc.md として新規）に視覚検証ステップを追加
+  - 'shared_context/procedures/multi_view_scene_switch.md に鉄則6追加: 『テロップは master.mp4
+    後加工のみ・元素材にテロップ入りは不可・master/telop二段保存必須・with_telop.mp4 アップ後も master.mp4 を保持し続けること』'
+  - 'shared_context/procedures/master_telop_two_stage.md 新規作成: master.mp4 生成手順 + with_telop.mp4
+    drawtext 後加工手順 + テロップミス時の取り返し手順 + 過去テロップフォーマット参照ルール (Day5 zephyrus_with_telop.mp4
+    等の既存資産活用)'
+  - shared_context/qc_template.md の動画タスクQC追加項目に『master.mp4 + with_telop.mp4 二段ファイル存在確認』を追加
+  - instructions/karo.md の Karo Task Assignment Checklist に『動画系cmd起票時 master/telop二段方式を
+    acceptance_criteria に必ず含める』を追加
+  - cmd_1485 (Day6 Echidna 1戦目修正) のacceptance_criteria が本規格を満たすか相互検証 (本cmdと cmd_1485
+    は並列発令ゆえ事後確認)
   - 全変更ファイルを git commit + push
-  - 既存 cmd_1478 (Day6 Echidna 修正) はこの規格適用1号として走る
-  command: "## 殿指摘\n『ちゃんと時刻調整したかも記録のこすようにせよ　各動画で時間ぴったりじゃないから』\n『右上テロップが標準とちがう　ナレッジがあるはず』\
-    \ → ナレッジは存在したが acceptance_criteria に組込まれていなかった (cmd_1464教訓)\n『並列発行OK』\n\n## 背景:\
-    \ cmd_1464 QC形骸化\n軍師 qc_1464b は ffprobe/API/git 検証のみで PASS 6/6 を出した。動画の中身（視点切替・右上テロップ）は\
-    \ obs_transition_visual_unverified で 『家老が殿確認時に2x速で軽くスキャン推奨』と責任転嫁。\n→ 殿が動画再生して規格逸脱2点発見。再発防止策が本cmd。\n\
-    \n## やること\n\n### 1. shared_context/procedures/multi_view_sync.md 改訂\n追加内容:\n-\
-    \ **Step 7（新規）**: sync_record.yaml 生成必須セクション (cmd_1478 commandで定めたフォーマット転載)\n\
-    - **鉄則5（新規）**: sync_record.yaml が無ければ MIX完了と認めない\n- **既知ケース表更新**: cmd_1464 の sync_offsets_8sen.json\
-    \ 群への参照追加\n\n### 2. shared_context/procedures/multi_view_scene_switch.md 改訂\n\
-    追加内容:\n- **新セクション『acceptance_criteria 標準テンプレ』**: 動画系cmd発令時に家老が必ず含める検証条件\n  ```\n\
-    \  - 視点切替パターン: 鉄則3（最初/最後 基準視点固定 + 中間バリエーション）準拠の視覚確認\n  - 右上テロップ: 鉄則4「<ボス名>(<戦闘番号>)」形式の視覚確認\n\
-    \  - seg境界: wipeleft+sceneswitch1 等 selected_json_v2_spec.md 準拠\n  - 軍師QC: mpv\
-    \ --speed=2.0 で実視聴必須 (ffprobe単独不可)\n  - sync_record.yaml: multi_view_sync.md Step\
-    \ 7 準拠で提出\n  ```\n- **1戦目特例追記**: 短いseg (≤200秒目安) は『MEN→4画面→MEN』のシンプルパターンOK (cmd_1478殿指示の恒久化)\n\
-    - **既知ケース表更新**: cmd_1478 (Day6 Echidna 修正版) を追加\n\n### 3. shared_context/qc_template.md\
-    \ 改訂\n追加セクション『動画タスクQC追加項目』:\n```\n動画系cmd の場合、以下を必須実行:\n- [ ] mpv --speed=2.0 でフル視聴\
-    \ (38分動画なら 4-5分)\n- [ ] seg境界の transition (wipeleft等) 視認\n- [ ] 視点切替パターンの鉄則3準拠視認\n\
-    - [ ] 右上テロップ規格 (鉄則4) 視認\n- [ ] sync_record.yaml 存在＋consistency_check.pass=true\
-    \ 確認\n- [ ] visual_verification.result=pass 確認\n- [ ] verify_60s_*.mp4 サンプル動画を実再生して\
-    \ echo無し確認\n軍師は ffprobe/API確認だけでQC PASSを出してはならない (cmd_597/cmd_1464 教訓)。\n```\n\
-    \n### 4. 家老向け動画cmd起票チェックリスト\ninstructions/karo.md の Karo Task Assignment Checklist\
-    \ に動画系cmd向け追加項目:\n- 動画系cmd の場合、acceptance_criteria に必ず multi_view_scene_switch.md\
-    \ 標準テンプレを含めよ\n- sync_record.yaml の target_path を必ず付与\n- mpv視覚検証を軍師QCタスクに必須化（task\
-    \ YAML steps に明記）\n\n### 5. 軍師QC手順 (gunshi向け)\n既存に動画qc手順がなければ shared_context/procedures/gunshi_video_qc.md\
-    \ を新規作成し、上記 qc_template.md 動画追加項目を参照する形で簡潔にまとめる。\n\n## 実装範囲外 (別cmd)\n- 過去動画(cmd_1424\
-    \ Day5 Zephyrus等)の遡及検証は本cmd範囲外。本cmdは未来cmdへの規格適用のみ。\n- cmd_1478 (Day6 Echidna 修正)\
-    \ は本cmd_1479規格適用1号として走るが、cmd_1478の実装は別cmd。\n\n## 軍師QC観点\n- 4ファイル変更 (multi_view_sync.md\
-    \ / multi_view_scene_switch.md / qc_template.md / karo.md or gunshi_video_qc.md)\n\
-    - 各ファイルが diff で適切に追記されているか\n- 既存内容の破壊がないか\n- cmd_1478 のacceptance_criteriaが本規格を満たすか相互検証"
-- id: cmd_1480
-  status: done
-  priority: medium
-  purpose: 'shared_context/todo_storage_migration.md (TODO B: 読込API/SQLite化計画) の妥当性チェック+詳細設計を軍師に依頼。背景理由（殿のcontext経済性指摘・将軍の段階移行案・軍師cmd_1476独立判定との乖離）も全て開示。'
-  timestamp: '2026-04-25T18:43:57+09:00'
-  lord_original: ToDolistチェックと設計を　軍師に　そのためには背景理由も含めておけ
-  project: multi-agent-shogun
-  assigned_to: gunshi
-  north_star: 殿命の context経済性改善（YAML全文Read→GET API化）を確実かつ安全に実装するため、軍師の独立判定（cmd_1476で読込API化は不要と結論）と殿命の整合点を見出し、計画の抜け・リスク・優先順位を再設計する。
-  acceptance_criteria:
-  - TODO B md (shared_context/todo_storage_migration.md) 全文を Read
-  - 軍師が前回 cmd_1476 で『読込API化は不要』と独立判定した経緯と、殿命『read側もget実装すべき』の対立点を整理
-  - '各段階（1: GET API / 2: agent行動切替 / 3: JSON Lines化 / 4: SQLite化 / 5: 旧Read廃止）の妥当性判定'
-  - 各段階の詳細設計（schema・migration手順・API design・エラーハンドリング・rollback策）
-  - TODO md に抜けている観点の発掘（軍師の独立判断）
-  - 実装優先順位の再評価（殿命下で進める前提で何を最優先にすべきか）
-  - '出力: queue/reports/gunshi_design_storage_migration_1480.yaml'
-  - 'meta_judgment: 軍師の前回判定（不要）と殿命（進める）の整合点と妥協点'
-  - 「殿命でも進めるべきでない」と軍師が判断する場合はその根拠を堂々と述べてよい
-  command: "## 殿命\n『ToDolistチェックと設計を　軍師に　そのためには背景理由も含めておけ』\n→ TODO B (読込API/SQLite化計画)\
-    \ を軍師がチェック+詳細設計する。背景理由を全て開示せよ。\n\n## 背景の全体像（軍師は判断材料として全て読め）\n\n### A. 出発点: 殿の\
-    \ context経済性指摘 (2026-04-25 18:18会話)\n殿原文:\n  『わしはread側もget実装すべきだとおもう　いまだにテキストファイルを全読み込みしているんだろ\n\
-    \   それってコンテキスト消費毎ターンしてるんだろ』\n  『ｓｑｌがいいだろ　検索するなら』\n  『textかもやめたいんだが』\n→ 殿は context\
-    \ window 経済性の観点で 全文Read 廃止を判断。\n\n### B. 将軍の経緯\n将軍は当初 cmd_1475 で軍師に『読込API化すべきか』を含む5項目を提示\
-    \ (これが将軍biasと殿に指摘され cmd_1476でやり直し)。\n将軍自身は cmd_1475 段階では『読込API化は不要・YAML直Readで十分』と主張していた\
-    \ (殿に否定された)。\n殿の指摘後、将軍は context経済性試算（73KB全文Read = 20,000 tokens vs API 0.5KB =\
-    \ 100 tokens = 200倍差）に納得。\n\n### C. 軍師の独立判定 (cmd_1476)\n軍師は context完全リセット+評価項目提示なしで11問題を独立発掘。\n\
-    読込API/SQLite化は HIGH に発掘されず、shogun_to_karo.yaml は MEDIUM (atomic write のみ要対応)。\n\
-    軍師の独立判断は『現状の運用で重大な pain は出ていない』『抜本改修不要』。\n軍師レポート: queue/reports/gunshi_design_review_1476.yaml\n\
-    \n### D. 乖離の構造\n殿: context経済性（20,000 token削減）の観点 → 改修すべき\n軍師: 運用 pain ベース（unread=0、健全稼働）の観点\
-    \ → 改修不要\n→ 観点が違うため『どちらが正しい』ではなく『何を優先するか』の問題。\n殿命優先（『根幹システムは将軍がやれ』『read側もget実装すべき』）で進める前提。\n\
-    \n### E. TODO B の位置付け\nshared_context/todo_storage_migration.md を将軍が起票。段階1〜5の移行計画。\n\
-    殿命を反映した「中期施策」として永続記録。HIGH 3件 (cmd_1477) 完遂後着手予定。\n\n## やること\n\n### 1. TODO B md\
-    \ 全文 Read\n対象: shared_context/todo_storage_migration.md (108行)\nファイル全文を読み、各段階の意図・規模感・リスクを把握。\n\
-    \n### 2. 各段階の妥当性判定\n各段階に対し:\n- 妥当: そのまま進めてよい\n- 要修正: 論理破綻・抜けあり・修正案を提示\n- 順序入替:\
-    \ より安全な順序があれば提示\n- 不要: そもそも実施すべきでない理由\n判定対象:\n- 段階1: GET API 3本 (cmd_pending/inbox/task)\n\
-    - 段階2: agent行動切替 (Read→curl GET)\n- 段階3: ストレージJSON Lines化\n- 段階4: SQLite化\n- 段階5:\
-    \ 旧Read方式廃止\n\n### 3. 各段階の詳細設計\n軍師が『この設計で実装すれば壊れにくい』と判定する詳細を出せ:\n- API schema\
-    \ (request/response の正確な型)\n- migration手順 (dual-path期間の設計)\n- error handling /\
-    \ rollback策\n- 既存hooks (pretool_check.sh等) との互換性\n- index 設計 (SQLite段階で何にindex貼るか)\n\
-    - 認証・atomic性・並列性\n\n### 4. 抜けている観点の発掘\n将軍の TODO md には記載されていないが軍師が重要と思う観点を独立に発掘:\n\
-    - 例: 監視 / 性能測定 / DR (disaster recovery) / 監査ログ / etc.\n- 軍師の cmd_1476 で見つけた11問題との連動\
-    \ (例: logs/ 187MB問題が SQLite WAL log でも再発しないか)\n\n### 5. 実装優先順位の再評価\n殿命下で進める前提で、何を最優先にすべきか軍師の独立判断:\n\
-    - まず段階1だけ実装→運用観察→次に段階2、の段階リリースか\n- 段階1〜5を一気にやるリスクと利点\n- HIGH 3件 (cmd_1477) との並走リスク\n\
-    \n### 6. 「進めるべきでない」結論も歓迎\n軍師が独立判断で『殿命とはいえこの計画は壊れる』と思うなら堂々と述べよ。\nその場合は具体的に何が壊れるか、代替案は何か、まで出せ。\n\
-    \n## 出力フォーマット\nqueue/reports/gunshi_design_storage_migration_1480.yaml\n\n```yaml\n\
-    review_id: gunshi_design_storage_migration_1480\ngunshi: gunshi_opus\nevaluated_at:\
-    \ <ISO8601>\nparent_cmd: cmd_1480\nbackground_understood: |\n  殿のcontext経済性指摘\
-    \ / 将軍経緯 / 軍師cmd_1476判定 / 乖離構造 を理解した上で本レビュー実施。\nstage_evaluations:\n  stage_1_get_apis:\n\
-    \    verdict: <妥当/要修正/順序入替/不要>\n    detailed_design:\n      schemas: [...]\n \
-    \     migration: ...\n      error_handling: ...\n      rollback: ...\n    risks:\
-    \ [...]\n    recommendations: [...]\n  stage_2_agent_switch: {...}\n  stage_3_jsonl:\
-    \ {...}\n  stage_4_sqlite: {...}\n  stage_5_legacy_removal: {...}\nmissing_perspectives:\n\
-    \  - id: ...\n    title: ...\n    rationale: ...\nrevised_priority_ranking: [...]\n\
-    integration_with_high_3:\n  cmd_1477_advisor_proxy: <連動・干渉なし>\n  cmd_1477_inbox_write:\
-    \ <干渉あり: inbox_write改修と段階1のGET inbox APIが衝突可能性>\n  cmd_1477_logrotate: <連動・干渉なし>\n\
-    meta_judgment:\n  prior_judgment_alignment: |\n    cmd_1476 で『改修不要』と判定したが、殿命下で進める前提で本レビューでは『進めるための設計』に注力。\n\
-    \    殿命を否定する論拠が新たに見つかった場合のみ『進めるべきでない』結論を出す。\n  novel_insights: [...]\nsummary:\
-    \ ...\n```\n\n## 注意\n- 前回 cmd_1476 と異なり、本cmdは『将軍の計画を軍師がレビュー』。完全独立評価ではない。\n- 軍師の前回判定\
-    \ (改修不要) は記録として残るが、本cmdは『殿命下でやるならどう設計するか』が主目的。\n- 軍師が『やるべきでない』と判断するなら堂々と述べよ。殿/将軍への忖度は要らぬ。\n\
-    - TODO B md は将軍起票ゆえ将軍biasを含む。軍師は批判的に読み・誤りを指摘してよい。"
-- id: cmd_1481
-  status: done
-  started_at: '2026-04-25T20:13:58+09:00'
-  completed_at: '2026-04-25T20:35:00+09:00'
-  priority: high
-  purpose: SQLite化詳細設計+既存自動化棚卸し+廃止候補特定（殿の体験論拠で cmd_1480 段階4『当面不要』判定が見直された前提・軍師は前回判定の自己訂正を含めて進める設計を出す）
-  timestamp: '2026-04-25T20:12:57+09:00'
-  lord_original: ということで設計いらいせよ / 例えば、今日のサムネ作成どんだけターン消費したと思っているの？過去にやったのになかなかたどり着かない
-    / yamlの整理何度もやった、自動化もしたはずなのにできてない
-  project: multi-agent-shogun
-  assigned_to: gunshi
-  north_star: 殿の体験で立証された2つの真実『過去類似cmd検索ニーズの恒常的発生（人間側）』『複数の自動化スクリプトが動いているのに効果が出ていない（slim_yaml/nightly_audit/dashboard_lifecycle等）』を解消するため、SQLite一元管理への移行を安全に設計する。複雑な自動化を
-    SQL クエリで置換廃止することで、システムをシンプル化し、人間の検索ニーズも同時解決する。
-  acceptance_criteria:
-  - SQLite schema 詳細設計（commands/inbox_messages/tasks/reports テーブル+全 index）
-  - migration 計画（dual-path 1週間期間・並行運用設計・kill_switch・rollback策）
-  - '**廃止すべき既存自動化スクリプトのリストアップ**: slim_yaml_all.sh / nightly_audit.sh / dashboard_lifecycle.sh
-    / その他の YAML処理系を SQL クエリで代替する設計'
-  - WAL+Litestream バックアップ詳細設計+復旧手順
-  - hooks 改修箇所のリストアップ（pretool_check.sh / posttool_yaml_check.sh / cmd_intake_hook.sh
-    等）
-  - 軍師の cmd_1480 判定（『段階4 当面不要』）の自己訂正セクションを含むこと
-  - 殿の体験ベース論拠への応答（agent観察に偏った判定盲点を認める）
-  - '出力: queue/reports/gunshi_design_sqlite_migration_1481.yaml'
-  command: "## 殿命\n『ということで設計いらいせよ』\n＋『例えば、今日のサムネ作成どんだけターン消費したと思っているの？過去にやったのになかなかたどり着かない』\n\
-    ＋『yamlの整理何度もやった、自動化もしたはずなのにできてない』\n\n→ 軍師は cmd_1480 で『段階4 SQLite 当面不要』と判定したが、殿の体験で2つの真実が判明:\n\
-    \  1. 過去類似cmd検索ニーズが恒常的発生（人間側・agent観察では見えない）\n  2. 複数自動化スクリプトが cron で動いているのに効果が出ていない\n\
-    \nこれにより cmd_1480 段階4 の『再評価トリガー』(『将軍/家老が dashboard で複雑な集計を頻繁に行うようになった時』) は **既に成立**。\n\
-    軍師は前回判定の盲点を認め、進める前提で詳細設計を出せ。\n\n## 殿の体験ベース論拠（詳細）\n\n### 論拠1: 過去類似cmd検索ニーズ\n今日\
-    \ Day6 ECHIDNA サムネ作成（cmd_1467/v2/v3）で将軍は約20ターン消費した。\n内訳: ls/find/grep+Read+diff+ナレッジ探索+試行錯誤。\n\
-    SQL なら `SELECT * FROM commands WHERE purpose LIKE '%サムネ%' ORDER BY timestamp DESC\
-    \ LIMIT 5` で1ターン。\n→ 約20倍のターン削減効果が発生中。これが軍師観察に埋没していた。\n\n### 論拠2: 動いていない自動化（実測）\n\
-    以下の cron が動いているのに効果が出ていない:\n  - `0 3 * * * slim_yaml_all.sh` ← 毎日3時 YAMLスリム化稼働中\n\
-    \  - `2 2 * * * nightly_audit.sh` ← 深夜2時2分 監査稼働 → ログ62バイトのみ（実質空・異常終了の疑い）\n  -\
-    \ `0 * * * * dashboard_lifecycle.sh` ← 毎時稼働\n  - `0 * * * * semantic_update` ←\
-    \ 毎時稼働 → **毎回 YAML parse warning 検出**(ashigaru3/5.yaml line破損)\n\n結果:\n  - ashigaru1.yaml:\
-    \ 418行 / 12タスク残存（古task混在）\n  - tasks/ 合計1122行（自動 archive されていない）\n  - YAML破損が再発（本日\
-    \ ashigaru1/2/4.yaml で発生・将軍が手動修復・cmd_1473改修より前の構造的問題）\n  - queue/archive/tasks/\
-    \ には古いスナップショットだけ（定期 archive 機構なし）\n\n## 既存自動化スクリプト一覧（軍師は実測すべき）\n\n```\nscripts/slim_yaml_all.sh\
-    \ / scripts/slim_yaml.sh / scripts/slim_yaml.py\nscripts/nightly_audit.sh\nscripts/dashboard_lifecycle.sh\n\
-    scripts/posttool_yaml_check.sh\nscripts/posttool_cmd_check.sh\nscripts/cmd_intake_hook.sh\n\
-    scripts/pretool_check.sh / scripts/pretool_check_relpath.sh\nscripts/silent_fail_watcher.sh\n\
-    scripts/inbox_write.sh / scripts/inbox_watcher.sh / scripts/watcher_supervisor.sh\n\
-    scripts/cron_health_check.sh\nscripts/backup_full.sh\n```\n\nこれらのうち **SQLite化で廃止可能なもの**\
-    \ をリストアップせよ。\n\n## やること\n\n### 1. 既存自動化の効果実測\n- 各 cron スクリプトの直近1ヶ月のログサイズ・成功率・実効果を実測\n\
-    - 『動いている vs 効果が出ている』を区別して評価\n- 軍師 cmd_1480 で見落とした『効果検証』をやり直す\n\n### 2. SQLite\
-    \ Schema 詳細設計\n- `commands` テーブル（cmd_1480 で軍師が出した schema を baseline・改善余地検証）\n\
-    - `inbox_messages` テーブル\n- `tasks` テーブル\n- `reports` テーブル\n- 全 index 設計（既存 cmd_1480\
-    \ から拡張）\n- pragmas（WAL mode/synchronous/busy_timeout）\n- 制約（CHECK・FOREIGN KEY）\n\
-    \n### 3. Migration 計画\n- dual-path 1週間期間の運用設計\n- kill_switch（ENV: STORAGE_BACKEND={sqlite|yaml|auto}）\n\
-    - migration script（yaml→sqlite データ移行）\n- rollback 手順（SQLite 失敗時に YAML 即復帰）\n-\
-    \ soak period の SLO 監視項目\n\n### 4. 廃止すべき既存自動化\n各スクリプトについて:\n  - 廃止可: SQLite クエリ・トリガで代替可能なもの\n\
-    \  - 改修要: SQLite 対応で残すもの\n  - 不変: SQLite と独立で動くもの\n\n例: `slim_yaml_all.sh` → 廃止可\
-    \ (DELETE FROM commands WHERE status='done' AND timestamp < ...)\n例: `nightly_audit.sh`\
-    \ → 改修要 (audit対象が DB になる)\n例: `dashboard_lifecycle.sh` → 廃止可 (dashboard view を\
-    \ SELECT で動的生成)\n\n### 5. 安全策必須\n- WAL mode + Litestream（連続レプリケート）\n- 日次 sqlite3\
-    \ .dump > queue/cmds.dump.sql（git管理）\n- WAL チェックポイント cron（1時間毎）\n- 旧 .yaml ファイル群を\
-    \ 1ヶ月 .bak 保管\n- 全 hooks の dry-run mode\n- 殿/家老が直接 SQL 叩ける alias `dbcat` 等のヒューマンアクセス\n\
-    \n### 6. 人間直接編集の代替\n殿/家老が cat したいニーズへの対処:\n  - HTML+JS dashboard view (server.py\
-    \ 拡張)\n  - GET /api/cmd_list?format=yaml（後方互換 endpoint）\n  - sqlite3 -header -column\
-    \ のラッパー alias\n  - 既存 GET /cmds ページを SQL 化（既に存在）\n\n### 7. cmd_1480 判定の自己訂正\n\
-    軍師レポート末尾に独立セクションを設けて:\n  - 前回判定（『段階4 当面不要』）の盲点を認める\n  - agent観察に偏った観点を補正\n  -\
-    \ 人間側ニーズ・効果検証観点が抜けていたことを記録\n  - 観点を追加した結果として今回の設計が成立する論理整合\n\n### 8. cmd_1477b\
-    \ との統合\ncmd_1480 で軍師自身が指摘した『cmd_1477b (inbox_write 安全化) と段階1.5 を統合実装すべき』を本cmd_1481\
-    \ 設計でも踏襲。\nSQLite化に inbox_messages テーブル含むため、cmd_1477b の改修方向と整合させる。\n\n## 出力フォーマット\n\
-    queue/reports/gunshi_design_sqlite_migration_1481.yaml\n\n## 注意\n- 軍師は『反対の立場から進める立場』に転換する。前回判定の自己訂正を含めて堂々と書け。\n\
-    - 殿/将軍への忖度は要らぬ。技術的に最適な設計を出せ。\n- 殿が『軍師は壊れた自動化を見落としていた』と指摘した点を逃げずに認めよ。\n- 既存 cmd_1480\
-    \ の段階1+1.5+2（GET API + ETag + mark_read）は本設計の上位互換として残す。SQLite はその下のレイヤーで動く。\n\
-    - 完全 atomic な移行ではなく、段階的に進める設計を優先せよ。"
+  - 軍師QC PASS (4ファイル diff 確認 + 既存内容破壊なし)
+  command: "## 殿原文\n『手順としては動画作成時テロップなしつくり　そのごテロップ加工するのがべすとな作成手順　それだとテロップみすってもとりかえせる？』\n\
+    『Bもやれ』(=B 恒久ルール化)\n\n## 背景\ncmd_1478 (Day6 Echidna 4視点MIX) で:\n- 8戦目右上テロップが『前作った動画に重ねて』描画される事態\
+    \ (元素材に既存テロップ残存疑い)\n- テロップフォーマットが過去 (Day5 zephyrus等) と差異\n- テロップミスが発覚した時、4視点合成を最初からやり直しせざるを得ない作りになっていた\
+    \ (master/telop分離なし)\n殿の提案: master.mp4 を一度作り、テロップは後付け1passで重ねる方式 → ミス時 master\
+    \ から再drawtextで数十分で取り返せる。\n\n## やること\n\n### 1. shared_context/procedures/multi_view_scene_switch.md\
+    \ 改訂\n**鉄則6 (新規)** を追加:\n```\n鉄則6: master/telop 二段生成必須\n- master.mp4 = テロップなしの完成形MIX動画\
+    \ (sync・concat・transition全て適用済)\n- with_telop.mp4 = master.mp4 に ffmpeg drawtext\
+    \ で右上テロップ等を後付け1pass\n- アップロード対象は with_telop.mp4 だが、master.mp4 は永続保管 (削除禁止)\n-\
+    \ テロップ修正発生時: master.mp4 から再 drawtext で with_telop_v2.mp4 を生成 (4視点合成は再実行禁止・無駄)\n\
+    - 元素材 (oo_men_*.mp4 等) に既存テロップが入っている場合は素材選定からやり直し (既存テロップ上に重ね描き禁止)\n```\n\n###\
+    \ 2. shared_context/procedures/master_telop_two_stage.md 新規作成\n以下セクションを含めること:\n\
+    - **目的**: テロップ修正コストを数時間→数十分に短縮\n- **master.mp4 生成手順**: 4視点sync→concat→transition→出力\
+    \ (テロップなし) の標準ffmpeg手順\n- **with_telop.mp4 後加工手順**: \n  ```bash\n  ffmpeg -i master.mp4\
+    \ \\\n    -vf \"drawtext=fontfile=<過去動画と同一>:text='<ボス名>(<戦闘番号>)':fontsize=<過去同一>:fontcolor=<過去同一>:x=<過去同一>:y=<過去同一>:box=<過去同一>:boxcolor=<過去同一>\"\
+    \ \\\n    -c:v h264_nvenc -preset p4 -c:a copy with_telop.mp4\n  ```\n- **テロップミス時の取り返し手順**:\
+    \ master.mp4 から再 drawtext (4視点合成スキップ)\n- **過去テロップフォーマット参照ルール**: 新規動画作成時、必ず最新のアップ済\
+    \ with_telop 動画 (例: Day5 zephyrus_with_telop.mp4) から ffprobe + 視覚比較で drawtext\
+    \ パラメータ抽出し統一する\n- **元素材チェック**: 元動画 (YouTube DL等) に既存テロップ・ロゴが焼き込まれていないか ffmpeg\
+    \ ss 抽出+目視確認必須\n- **保管ルール**: master.mp4 は最低 cmd完了後30日保管 (テロップ修正可能性のため)\n\n###\
+    \ 3. shared_context/qc_template.md 改訂\n動画タスクQC追加項目セクションに以下追加:\n```\n- [ ] master.mp4\
+    \ (テロップなし) 存在確認\n- [ ] with_telop.mp4 = master.mp4 + drawtext 1pass で生成されているか\
+    \ (ffprobe filter_complex 確認)\n- [ ] master.mp4 と with_telop.mp4 の動画長一致確認\n- [\
+    \ ] master.mp4 にテロップが入っていないか目視確認 (ffmpeg ss=5 -frames:v 1)\n```\n\n### 4. instructions/karo.md\
+    \ 改訂\nKaro Task Assignment Checklist に動画系cmd向け追加項目:\n- 動画系cmd の場合、acceptance_criteria\
+    \ に必ず『master.mp4 + with_telop.mp4 二段ファイル提出』を含めよ\n- 元素材のテロップ有無を ffprobe + 目視で事前確認するよう\
+    \ task YAML steps に明記せよ\n- master.mp4 の保管先パスを task YAML target_path に明記せよ\n\n\
+    ## 共通ルール\n- 4ファイル変更 (multi_view_scene_switch.md / master_telop_two_stage.md /\
+    \ qc_template.md / karo.md)\n- 既存内容を破壊せず追記方式で\n- ffmpegは h264_nvenc (GPU)・libx264禁止\n\
+    - git commit + push 必須\n\n## 担当\n家老判断 (cmd_1479 標準テンプレ作成者継続が知見継承上望ましい・足軽3号 等)\n\
+    \n## 工数目安\n- multi_view_scene_switch.md 鉄則6追加: 30分\n- master_telop_two_stage.md\
+    \ 新規作成: 1時間\n- qc_template.md 追加: 15分\n- karo.md 追加: 15分\n- 軍師QC: 30分\n計: 2-3時間\n\
+    \n## 軍師QC観点\n- 4ファイル diff 適切か・既存破壊なし\n- master/telop二段方式の手順が再現可能か (実例コマンド入り)\n\
+    - cmd_1485 のacceptance_criteriaと整合しているか\n- 既存テロップ重ね描き禁止が明文化されているか\n\n## 関連\n-\
+    \ 並列発令 cmd: cmd_1485 (Day6 Echidna 1戦目修正・本規格適用1号)\n- 過去関連 cmd: cmd_1424 (Day5\
+    \ Zephyrus・既に二段方式の片鱗あり) / cmd_1478 (Day6 Echidna・二段方式なし=本cmdの動機)\n- 関連ファイル: shared_context/procedures/multi_view_sync.md\
+    \ (cmd_1479で改訂済) / projects/dozle_kirinuki/work/20260415_*/multi/day5_zephyrus_with_telop.mp4\
+    \ (過去テロップフォーマット参考)"

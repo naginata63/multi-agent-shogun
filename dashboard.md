@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 20:22
+最終更新: 2026-04-25 21:52
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -26,6 +26,10 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 
 ### 📐 cmd_1475 設計レビュー結果
 - **item_3 改修推奨（HIGH）**: cmd_create+inbox自動通知統合。報告: queue/reports/gunshi_design_review_1475.yaml
+
+### 🗄️ cmd_1484 SQLite migration p0+p1 → 軍師QC CONDITIONAL_PASS・dryrun修正中
+subtask_1484a 完了(21:33)・軍師QC CONDITIONAL_PASS(21:44)。軽微: dryrun_log.txt(250)とdryrun_output.sql(255)が別run由来で乖離→subtask_1484b(単発再生成)を足軽4号に発令(21:48)。
+p2 dual-pathは殿再判断待ち。
 
 ### 📐 cmd_1481 SQLite化詳細設計完了(20:22) → 殿の御判断必要
 軍師設計完了(20:22)。報告: `queue/reports/gunshi_design_sqlite_migration_1481.yaml` (710行)
@@ -76,9 +80,8 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 
 | cmd | 担当 | 状態 |
 |-----|------|------|
-| cmd_1478 | 足軽1号 | ✅ **完遂(20:10)** Day6 Echidna 4視点MIX 規格修正+YouTube差替え 新URL: M7UKrqiI3Eo |
-| cmd_1481 | 軍師 | ✅ **完遂(20:22)** SQLite化詳細設計(710行)+廃止候補3件+削減1295行見込 |
-| cmd_1476 | 軍師 | ✅ **完遂(18:27)** /clear後 独立評価 HIGH3件 MEDIUM5件 LOW3件 発掘 |
+| cmd_1485 | 足軽1号 | 🔄 **稼働中(21:32)** Day6 Echidna 1戦目限定修正(charlotte sync再測定+master/telop二段) |
+| cmd_1484 | 足軽4号 | 🔧 **dryrun修正中(21:48)** subtask_1484b: log.txt/output.sql統一run再生成 |
 
 ---
 
@@ -86,21 +89,26 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | GLM | ✅ idle | subtask_1478b ✅完了(20:09) YouTube差替え 旧EVfo4W7jCIc→新M7UKrqiI3Eo |
-| 2号 | GLM | ✅ idle | subtask_1479a ✅完了(19:01)・軍師QC PASS(19:01)・動画系QC規格化5ファイル |
-| 3号 | Opus[1m] | ✅ idle | subtask_1477b ✅完了(19:01)・軍師QC PASS(19:03)・inbox_write.sh silent_fail log化 |
-| 4号 | GLM | ✅ idle | subtask_1477a ✅完了(18:46)・軍師QC PASS(18:48)・advisor_proxy Sonnet切替 |
-| 5号 | GLM | ✅ idle | subtask_1477c ✅完了(18:46)・軍師QC PASS(18:48)・logrotate/cron代替+DEBUG化 |
+| 1号 | GLM | 🔄 **稼働中** | subtask_1485a Day6 Echidna 1戦目修正(cmd_1485)・charlotte sync+master/telop二段 |
+| 2号 | GLM | ✅ idle | subtask_1483a_fix ✅完了(21:41) cmd_1483完遂 |
+| 3号 | Opus[1m] | ✅ idle | subtask_1486a ✅完了(21:40) cmd_1486完遂(軍師PASS 21:46) |
+| 4号 | GLM | 🔄 **稼働中** | subtask_1484b dryrun統一run再生成(cmd_1484) |
+| 5号 | GLM | ✅ idle | subtask_1477c ✅完了(18:46)・軍師QC PASS(18:48) |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
-| 7号 | GLM | ✅ idle | subtask_1466a ✅完了(14:56)・curriculum_v2.html LAN公開 軍師PASS |
-| 軍師 | Opus[1m] | ✅ idle | design_sqlite_migration_1481 ✅完了(20:22) SQLite化詳細設計+廃止候補3件 |
+| 7号 | GLM | ✅ idle | subtask_1482a_fix ✅完了(21:44) cmd_1482完遂 |
+| 軍師 | Opus[1m] | ✅ idle | qc_1486a PASS(21:46) 完了 |
 
 ---
 
-## ✅ 本日の完了（2026-04-24）
+## ✅ 本日の完了（2026-04-25）
 
 | cmd | 内容 |
 |-----|------|
+| cmd_1486 | ✅ **完遂(21:50)** master/telop二段方式恒久ルール化。4ファイル113行追記(削除0)+軍師PASS+git push済 |
+| cmd_1483 | ✅ **完遂(21:50)** Udemy初級編v1設計(curriculum+marketing 2ファイル)+表崩れfix+軍師PASS+git push済 |
+| cmd_1482 | ✅ **完遂(21:50)** Udemy中級編v3改訂(3ファイル分割+マルチ要素上級編分離+所要時間修正)+軍師PASS+git push済 |
+| cmd_1478 | ✅ **完遂(20:10)** Day6 Echidna 4視点MIX 規格修正+YouTube差替え 新URL: M7UKrqiI3Eo |
+| cmd_1481 | ✅ **完遂(20:22)** SQLite化詳細設計(710行)+廃止候補3件+削減1295行見込 |
 | cmd_1439 | ✅ **完了** yt-dlp-js-runtimes-fix スキル化（SKILL.md 135行）軍師qc_1439a PASS commit c179f8a+85e1e32 |
 | cmd_1440 | ✅ **完了** claude-mem Phase1 C/J/D三項目完遂（cmem_quickstart.md+cmem_search.sh+worker LAN公開）軍師qc_1440j/qc_1440cd PASS commit 1517ccc |
 | cmd_1425 | ✅ **完了** Day6 3視点DL+集約（tsurugi/hendy/charlotte 各9パート・part_info.json git commit d9fce67）|

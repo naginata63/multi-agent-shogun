@@ -232,25 +232,32 @@ tasks:
   - /tmp禁止。中間ファイルはwork/cmd_1425/配下
   - '完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo ''足軽4号、subtask_1425c完了。シャルロットDL+分割完了。''
     report_completed ashigaru4'
-- task_id: subtask_1477a
-  parent_cmd: cmd_1477
+- task_id: subtask_1484a
+  parent_cmd: cmd_1484
   assigned_to: ashigaru4
-  bloom_level: L3
+  bloom_level: L5
   status: done
-  timestamp: '2026-04-25T18:35:00+09:00'
-  description: 'advisor_proxy.py claude -p タイムアウト根本対処。軍師指摘(gunshi_design_review_1476.yaml): 90→120s延長は対症療法・当日18:19にも発火・152件/日。軽量モデル(haiku 4.5 or sonnet 4.6)への切替、またはclaude -p常駐化で根本解決。修正範囲はadvisor_proxy.pyのみ(scope creep禁止)。'
-  target_path: /home/murakami/multi-agent-shogun/scripts/advisor_proxy.py
+  timestamp: '2026-04-25T21:20:00+09:00'
+  completed_at: '2026-04-25T21:33:00+09:00'
+  description: 'cmd_1484 SQLite migration p0+p1: install検証+schema_v1.sql作成+migrate_yaml_to_sqlite.py作成+dry-run実行。完了。報告: queue/reports/ashigaru4_report_subtask_1484a.yaml'
+  target_path: /home/murakami/multi-agent-shogun/queue/schema_v1.sql
+  procedure: queue/reports/gunshi_design_sqlite_migration_1481.yaml
+- task_id: subtask_1484b
+  parent_cmd: cmd_1484
+  assigned_to: ashigaru4
+  bloom_level: L1
+  status: in_progress
+  timestamp: '2026-04-25T21:48:00+09:00'
+  description: 'cmd_1484 CONDITIONAL_PASS解消: dryrun_log.txt(Total250)とdryrun_output.sql(Total255)の乖離を単一run再生成で修正。軍師指摘(gunshi_report_qc_1484a.yaml)対応。'
+  target_path: /home/murakami/multi-agent-shogun/work/cmd_1484/dryrun_log.txt
   procedure: shared_context/qc_template.md
-  steps: 'advisor()実装前→scripts/advisor_proxy.py読む(タイムアウト設定・モデル指定確認)→queue/reports/gunshi_design_review_1476.yaml参照(issue_advisor_proxy_timeout_unresolved)→logs/advisor_proxy.logでtimeout件数確認→軽量モデル切替(--model claude-haiku-4-5-20251001 or claude-sonnet-4-6優先)実装→advisor()呼出テスト(タイムアウト無し確認)→tail -20 logs/advisor_proxy.log確認→advisor()完了前→git add scripts/advisor_proxy.py && git commit→完了報告YAML(queue/reports/ashigaru4_report_subtask_1477a.yaml)→inbox_write gunshi QC依頼→inbox_write karo完了報告'
+  steps: 'python3 scripts/migrate_yaml_to_sqlite.py --dry-run --verbose --output-db work/cmd_1484/dryrun_output.sql 2>&1 | tee work/cmd_1484/dryrun_log.txtを単発実行→dryrun_log.txt末尾のSUMMARY数値(Commands/Inbox/Tasks/Reports/Total)をgrep→dryrun_output.sqlの各テーブルINSERT数をgrep -c で確認→両者が一致するか検証→queue/reports/ashigaru4_report_subtask_1484b.yamlに結果記録→git add work/cmd_1484/ queue/reports/→git commit→inbox_write karo完了報告'
   acceptance_criteria:
-  - scripts/advisor_proxy.py のモデル指定またはタイムアウト設定が改修されていること
-  - advisor()呼出テストが正常完了(タイムアウトなし)すること
-  - logs/advisor_proxy.logにてtimeout件数が改修前(152件)より減少傾向を確認
-  - git commit 済み
-  - 完了報告YAML: queue/reports/ashigaru4_report_subtask_1477a.yaml に保存
-  - 軍師QC依頼 inbox_write 送信済み
+  - dryrun_log.txt SUMMARY と dryrun_output.sql のINSERT数が一致すること
+  - '検証コマンド: grep -E "Total:" work/cmd_1484/dryrun_log.txt と grep -c "^INSERT" work/cmd_1484/dryrun_output.sql で同数確認'
+  - 完了報告YAML: queue/reports/ashigaru4_report_subtask_1484b.yaml
+  - git commit済み(work/cmd_1484/ + 報告YAML)
   notes:
-  - 軍師レポート queue/reports/gunshi_design_review_1476.yaml の issue_advisor_proxy_timeout_unresolved を必ず参照
-  - 修正範囲は advisor_proxy.py のみ(scope creep禁止)
-  - advisor()はkaro専用だが、足軽の実装前/完了前確認として例外的に1回ずつ呼出を推奨
-  - Stage 1完了(1477a+1477c)後に家老が Stage 2(subtask_1477b)を発令する
+  - 軍師レポート queue/reports/gunshi_report_qc_1484a.yaml のissues_found > fix_instructionを参照
+  - このコマンド1本だけ。p2 dual-pathには進まない
+  - '完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo ''足軽4号、subtask_1484b完了。dryrun再生成・log/sql一致確認。'' report_completed ashigaru4'
