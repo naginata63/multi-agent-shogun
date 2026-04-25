@@ -2,7 +2,7 @@ tasks:
 - task_id: subtask_1467a
   parent_cmd: cmd_1467
   bloom_level: L3
-  status: in_progress
+  status: done
   timestamp: '2026-04-25T13:15:00+09:00'
   target_path: /home/murakami/multi-agent-shogun/queue/reports/ashigaru2_report_subtask_1467a.yaml
   description: 'Day6 エキドナ サムネ生成: ブザービーター6人・energetic style 3案生成→殿LAN preview通知→選択後
@@ -30,27 +30,23 @@ tasks:
   - advisor()必須(作業前・完了前)
   - '完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi ''足軽2号、subtask_1467a完了(Day6サムネ3案+final確定)。QC依頼。''
     report_completed ashigaru2'
-- task_id: subtask_1479a
-  parent_cmd: cmd_1479
+- task_id: subtask_1492a
+  parent_cmd: cmd_1492
   assigned_to: ashigaru2
-  bloom_level: L3
-  status: done
-  timestamp: '2026-04-25T18:48:00+09:00'
-  description: '動画系QC規格化(cmd_1464 QC形骸化対策)。5ファイル編集: (1)multi_view_sync.md(Step7+鉄則5追加) (2)multi_view_scene_switch.md(acceptance_criteria標準テンプレ+1戦目短seg特例) (3)qc_template.md(動画タスクQC追加項目セクション) (4)instructions/karo.md(動画系cmd起票チェックリスト追加) (5)shared_context/procedures/gunshi_video_qc.md(新規または更新)。'
-  target_path: /home/murakami/multi-agent-shogun/shared_context/procedures/multi_view_scene_switch.md
-  procedure: shared_context/qc_template.md
-  steps: 'queue/shogun_to_karo.yaml cmd_1479全文読む→[1]: shared_context/procedures/multi_view_sync.md読む→Step7(sync_record.yaml生成必須)+鉄則5(sync_record.yamlなきMIX=完了とみなさない)追加編集→[2]: shared_context/procedures/multi_view_scene_switch.md読む→acceptance_criteria標準テンプレセクション追加+1戦目シンプルパターン(短いseg≤200秒=MEN→4画面→MEN)補足追記→[3]: shared_context/qc_template.md読む→動画タスクQC追加項目セクション(mpv視覚検証/seg境界/視点パターン/テロップ規格/sync_record検証)追加→[4]: instructions/karo.md読む→Karo Task Assignment Checklist に動画系cmd項目(acceptance_criteria標準テンプレ必須/sync_record target_path/mpv視覚検証必須)追加→[5]: shared_context/procedures/gunshi_video_qc.md読む(存在すれば更新・なければ新規作成)→全変更git add(明示パス)→git commit→inbox_write gunshi QC依頼→inbox_write karo完了報告'
+  bloom_level: L2
+  status: assigned
+  timestamp: '2026-04-25T23:26:00+09:00'
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+  description: 'server.py の do_POST に POST /api/inbox_write エンドポイントを追加。任意エージェントへHTTP経由でinboxメッセージを送れる汎用API。'
+  steps: 'cmd_1492読む→server.py do_POST(/api/cmd_create参考)読む→advisor()→do_POST に elif /api/inbox_write 追加(body:to/message/type/from、subprocess.run inbox_write.sh、レスポンス{success/msg_id/timestamp})→curlテスト→inbox到達確認→advisor()→完了YAML→git commit→inbox_write karo'
   acceptance_criteria:
-  - multi_view_sync.md に Step7「sync_record.yaml生成必須」+鉄則5追加済み
-  - multi_view_scene_switch.md に acceptance_criteria標準テンプレセクション+1戦目短seg特例追加済み
-  - qc_template.md に「動画タスクQC追加項目」セクション追加済み(mpv視覚検証必須含む)
-  - instructions/karo.md に動画系cmd起票チェックリスト追加済み
-  - shared_context/procedures/gunshi_video_qc.md が存在し視覚検証ステップ記載あり
-  - 既存内容の破壊がないこと(diff確認)
-  - 完了報告YAML: queue/reports/ashigaru2_report_subtask_1479a.yaml
-  - git commit + push
+    - POST /api/inbox_write が server.py に実装済み
+    - body: to/message/type/from の4フィールドを受け付ける
+    - 内部で scripts/inbox_write.sh を subprocess.run で呼ぶ（新規スクリプト禁止）
+    - 'レスポンス: {"success": true, "msg_id": "...", "timestamp": "..."}'
+    - curlテストで実際にinboxにメッセージが届くこと確認済み
+    - git commit済み（push は家老が実施）
   notes:
-  - 実装禁止・ドキュメント編集のみ(scope creep禁止)
-  - cmd_1478はこの規格適用1号として走るため、cmd_1478 acceptance_criteriaが本規格を満たすか相互検証も可(任意)
-  - 各ファイルはRead→Editを必ず順守(WriteツールではなくEditツール使用)
-  - 軍師QC: diffで適切な追記がなされているか確認(既存破壊なし)
+    - /api/cmd_create の実装（L1947〜）を参考にせよ
+    - advisor()必須（作業前・完了前）
+    - '完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1492a完了。/api/inbox_write実装済み。" report_completed ashigaru2'
