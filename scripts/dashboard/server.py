@@ -2093,6 +2093,54 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path == '/api/inbox_write':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length).decode('utf-8'))
+
+                target = body.get('to', '').strip()
+                message = body.get('message', '').strip()
+                msg_type = body.get('type', 'wake_up')
+                from_agent = body.get('from', 'unknown')
+
+                if not target or not message:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'to and message are required'}).encode('utf-8'))
+                    return
+
+                script_path = os.path.join(BASE_DIR, 'scripts', 'inbox_write.sh')
+                result = subprocess.run(
+                    ['bash', script_path, target, message, msg_type, from_agent],
+                    capture_output=True, text=True, timeout=10
+                )
+
+                if result.returncode != 0:
+                    self.send_response(500)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': result.stderr.strip()[:500]}).encode('utf-8'))
+                    return
+
+                now_jst = datetime.now(timezone(timedelta(hours=9)))
+                msg_id = f"msg_{now_jst.strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
+                resp = json.dumps({
+                    'success': True,
+                    'msg_id': msg_id,
+                    'timestamp': now_jst.strftime('%Y-%m-%dT%H:%M:%S')
+                }, ensure_ascii=False).encode('utf-8')
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(resp)))
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         else:
             self.send_response(404)
             self.end_headers()
