@@ -85,26 +85,7 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 
 | cmd | 担当 | 状態 |
 |-----|------|------|
-| cmd_1441 | — | ✅ **完全完了 20:32** D3/D5/D6/D7/D10 完遂・D9は cmd_1446 として分離進行中 |
-| cmd_1442 | 軍師 | ✅ **完了** execution_plan_v3.md commit 98e076a |
-| cmd_1443 | 全足軽+軍師 | ✅ **完了 20:16** 軍師QC 10/10 PASS (push済 a76e866) |
-| cmd_1445 | 足軽7号→軍師 | ✅ **完了 20:40** 軍師qc_1445 PASS_with_v2_follow_up_items (AC全8 PASS・minor findings 3件・v2課題6件) |
-| cmd_1446 | — | ✅ **完全完遂 23:12** 軍師qc_1446_resume PASS_with_process_improvement_note (AC 10/10・前回BLOCKER全解消・家老機敏対応高評価) |
-| cmd_1447 | 足軽6号→軍師 | ✅ **PASS_with_finding(07:41)** skill_inventory.log 旧ERROR tail-200残存(INFO) |
-| cmd_1448 | 足軽3号→軍師 | ✅ **PASS_with_finding(07:41)** C01再発=tail-200窓内残存疑い(MEDIUM・別cmd推奨) |
-| cmd_1449 | — | ✅ **全5領域完遂 23:51** 軍師QC 全PASS |
-| cmd_1450 | — | ✅ **done_ng(07:24)** subtask_1450_cleanup=PASS(07:47・軍師QC)・note下書き2件削除・両URL 404確認済 |
-| cmd_1451 | 足軽2号→軍師 | ✅ **PASS_with_finding(07:41)** noise 2種→advisor_proxy: cmd_1457対応中/403系: 要確認 |
-| cmd_1452 | 足軽1号→軍師 | ✅ **完了(07:52)** 35GB回収 88%→84%。殿判断Option C確定・Tier-B追加削除なし |
-| cmd_1453 | 足軽1号 | ✅ **完全完了(10:29)** 全10プロセス WARN 0件確認・glm修正コード正常稼働 |
-| cmd_1455 | 足軽4号→軍師 | ✅ **PASS(07:57)** done_gate.sh H_post拡張 +20行(AC上限完全一致)・unit test 8件全PASS |
-| cmd_1456 a/c/d | 足軽5/6/7号→軍師 | ✅ **全完遂・QC完了** a=PASS/c=PASS_with_finding(INFO)/d=PASS |
-| cmd_1457 | 足軽3号→軍師 | ✅ **PASS_with_finding(08:33)** 30分観察完了・advisor_proxy FP 0件達成・Finding: WARN flush 1172件/30min genai_daily系noise抑制検討推奨 |
-| cmd_1458 | 足軽1号/3号→軍師 | ✅ **置換完了(08:39)** 新版zP_j7NRg9Lw=public・旧版8M31MYOlRgY=private・🚨殿URL確認要 |
-| cmd_1459 | 足軽2号/5号 | ✅ **A=PASS_with_finding(08:46) / B=PASS_with_finding(08:42)** 全100本ja設定・upload script jaデフォルト化完了 |
-| cmd_1460 | 足軽2号→軍師 | ✅ **完全close(09:48)** en-US 27本全復元✅ / 残19本: private 18本+unlisted 1本・殿判断対処不要 |
-| nightly_audit_20260425_infra | — | ✅ **完遂 02:14** 軍師8件検出(M=4/I=4)・cmd_1453✅/cmd_1456✅完遂 |
-| cmd_1461 | 足軽2号→軍師 | 🔄 **発令(10:25)** dashboard_lifecycle.sh拡張・進行中✅完了行自動削除仕組み化 |
+| cmd_1461 | 足軽2号→軍師 | 🔄 **軍師QC中(10:39)** Logic A=19件/Logic B=2件削除・cron 1h設定・memory化完了 |
 
 ---
 
@@ -113,13 +94,13 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
 | 1号 | GLM | ✅ idle | subtask_1453a_observe ✅完了(10:29)・WARN 0件全確認 |
-| 2号 | GLM | 🔄 busy | subtask_1461a 発令(10:25)・dashboard_lifecycle.sh拡張 |
+| 2号 | GLM | ✅ idle | subtask_1461a ✅完了(10:37)・Logic A/B実装・軍師QC中 |
 | 3号 | Opus[1m] | ✅ idle | subtask_1458b ✅完了(08:39)・新版public+旧版private確認 |
 | 4号 | GLM | ✅ idle | cmd_1455 ✅PASS(07:57・軍師QC) |
 | 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1456d ✅PASS(軍師QC) |
-| 軍師 | Opus[1m] | ✅ idle | qc_subtask_1460a ✅PASS_with_finding(09:31) / 全QC完了 |
+| 軍師 | Opus[1m] | 🔄 busy | qc_subtask_1461a 発令(10:39)・dashboard_lifecycle拡張QC |
 
 ---
 
@@ -141,8 +122,6 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 | cmd_1442 設計 | ✅ **完了** ハーネス設計3本立+v3計画10subtask(commit 95895ce+98e076a) |
 | cmd_1443 全体 | ✅ **完全完遂 20:16** 12ハーネス(H6除外)全実装+軍師QC 10/10 PASS(push済 a76e866) |
 | cmd_1445 | ✅ **完了+軍師PASS 20:40** Udemy講座『AI開発の3階層』カリキュラムv1・578行・commit c80fa7a・PASS_with_v2_follow_up_items |
-| YPP判定通知 | 🎉 **受信(2026-04-24)** ・申請ボタン解禁・AdSense未連携 |
-| ドズル社MCN申請 | 🎉 **送付完了(2026-04-24・v4簡素版)** ・返答待ち |
 | cmd_1446 | ✅ **完全完遂 23:12** D9 submodule履歴書換 push成功+gcloud 278MB除去+fresh clone PASS+軍師qc_1446_resume PASS (AC 10/10) |
 | cmd_1398/1412/1417/1420/1424 | ✅ **一括 done 化 20:55** (殿判断・自動検出R1/R6 動画系5件・status更新+dashboard残骸なし確認) |
 | dashboard残骸一掃 | ✅ **完了 23:18** 殿指示(23:16)・shogun_to_karo.yaml 4件 in_progress→done(cmd_1441/1443/1445/1446)+subtask_1398a→cancelled+旧🚨セクション削除・足軽現タスク欄刷新 |
