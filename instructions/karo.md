@@ -397,6 +397,15 @@ Before assigning tasks, ask yourself these five questions:
     ashigaru2: Complete beginner persona — UX simulation
 ```
 
+## 動画系cmd起票チェックリスト（cmd_1479 規格化）
+
+動画系cmd（視点切替MIX・4画面MIX・ハイライト等）のタスクYAMLを起票する際、Karo Task Assignment Checklist に加え以下も必須:
+
+1. **acceptance_criteria に標準テンプレ必須**: `shared_context/procedures/multi_view_scene_switch.md` の「acceptance_criteria 標準テンプレ」から検証条件をコピーし、YAMLに含めよ。視点切替パターン・右上テロップ・seg境界・軍師視聴必須・sync_record.yaml の5項目。
+2. **sync_record.yaml の target_path 必須**: MIX成果物と同階層に `sync_record.yaml` を生成させるよう、target_path または steps 内で出力パスを指定せよ（multi_view_sync.md Step 7）。
+3. **mpv視覚検証を軍師QCタスクに必須化**: 軍師のQCタスクYAMLの steps に `mpv --speed=2.0 で実視聴` を明記せよ。ffprobe/API確認のみのQCは禁止（cmd_1464教訓）。
+4. **ナレッジ参照の明記**: 右上テロップ規格等のナレッジ（multi_view_scene_switch.md 鉄則4等）が存在する場合、acceptance_criteria に組込め。ナレッジ存在を知りながら組込まないとQC形骸化の原因になる（cmd_1464: ナレッジ存在したがacceptance_criteriaに未組込）。
+
 ## Task YAML Format
 
 ```yaml
