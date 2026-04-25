@@ -74,6 +74,10 @@ def _parse_stk_regex(text):
         m = re.search(r"^  timestamp:\s*['\"]?(.+?)['\"]?$", block, re.MULTILINE)
         if m:
             cmd["timestamp"] = m.group(1).strip().strip("'\"")
+        # issued_at (newer cmds use this instead of timestamp)
+        m = re.search(r"^  issued_at:\s*['\"]?(.+?)['\"]?$", block, re.MULTILINE)
+        if m:
+            cmd["issued_at"] = m.group(1).strip().strip("'\"")
         # purpose (first line only)
         m = re.search(r'^  purpose:\s*(.+)$', block, re.MULTILINE)
         if m:
@@ -162,7 +166,7 @@ def detect_action_required():
 
     # R1: cmd長期停滞 (active cmd > 24h)
     for cmd in get_active_cmds():
-        h = age_hours(cmd.get("timestamp", ""))
+        h = age_hours(cmd.get("timestamp") or cmd.get("issued_at", ""))
         if h > 24:
             days = int(h // 24)
             items.append({
@@ -227,7 +231,7 @@ def detect_action_required():
                 "severity": "HIGH",
                 "title": f"{cmd.get('id','?')} 殿選定待ち",
                 "detail": (cmd.get("purpose", "") or "")[:120],
-                "age_hours": age_hours(cmd.get("timestamp", "")),
+                "age_hours": age_hours(cmd.get("timestamp") or cmd.get("issued_at", "")),
                 "cmd_id": cmd.get("id"),
             })
 
