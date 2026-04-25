@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 11:35
+最終更新: 2026-04-25 11:50
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -35,7 +35,6 @@
 
 | cmd | 担当 | 状態 |
 |-----|------|------|
-| cmd_1462 | 足軽2号→軍師QC | 🔄 **production完了(11:25)** 146→104行削減・軍師QC待ち |
 | cmd_1463 | 足軽1号 | 🔄 **発令(11:35)** Day6 1戦目+8戦目 4視点h264 DL・切出 |
 
 ---
@@ -51,7 +50,7 @@
 | 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1456d ✅PASS(軍師QC) |
-| 軍師 | Opus[1m] | 🔄 busy | qc_subtask_1462a 発令(11:35)・Logic C/D/E 誤削除0件確認 |
+| 軍師 | Opus[1m] | ✅ idle | qc_subtask_1462a ✅PASS(11:46)・Logic C/D/E 9/9 全AC |
 
 ---
 
@@ -78,6 +77,8 @@
 | dashboard残骸一掃 | ✅ **完了 23:18** 殿指示(23:16)・shogun_to_karo.yaml 4件 in_progress→done(cmd_1441/1443/1445/1446)+subtask_1398a→cancelled+旧🚨セクション削除・足軽現タスク欄刷新 |
 | cmd_1449 全5領域 | ✅ **完遂 23:51** A/B/C/D/E 全軍師QC PASS(a8e2878/de29639+df1b470/06ecb45/b9d05b6/a312447)・follow-up 2件殿判断(07:17)対応不要 |
 | cmd_1450 | ✅ **done_ng(07:24)** 殿判断「面白くない・なぎなた不在」→note下書き2件削除中(subtask_1450_cleanup/足軽2号) |
+| cmd_1461 | ✅ **完遂(11:06)** dashboard_lifecycle.sh Logic A/B 追加・進行中✅完了行+24h超過自動削除 軍師PASS |
+| cmd_1462 | ✅ **完遂(11:46)** Logic C/D/E 追加・🚨要対応解決済み41行自動削除 軍師PASS 9/9 commit a029d9b |
 | cmd_1453 | ✅ **完遂 07:00** inbox_watcher.sh glm CLIサポート追加・CLIunresolved WARN撲滅(commit dadc4cd)・watcher再起動待ち |
 | nightly_audit_20260425_infra | ✅ **完遂 02:14(翌日)** 軍師8件検出(C=0/H=0/M=4/I=4)・HIGH前回比全解消・詳細report queue/reports/gunshi_report_nightly_audit_20260425_infra.yaml |
 | cmd_1436 | ✅ **完了** claude-mem活用分析+todolist.md作成（軍師分析→将軍統合） |

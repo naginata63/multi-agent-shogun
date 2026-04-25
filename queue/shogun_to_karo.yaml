@@ -4715,9 +4715,10 @@ commands:
   status: pending
 
 - id: cmd_1462
-  status: in_progress
+  status: done
   timestamp: "2026-04-25T11:00:00+09:00"
   started_at: "2026-04-25T11:08:00+09:00"
+  done_at: "2026-04-25T11:46:00+09:00"
   priority: medium
   lord_original: "B (cmd_1461 拡張・全✅マーク行対象に)"
   north_star: |
