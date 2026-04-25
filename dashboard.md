@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 15:51
+最終更新: 2026-04-25 15:57
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -37,7 +37,7 @@
 | cmd_1464 | 足軽1号 | 🔄 **発令(12:10)** Day6 4視点MIX seg独立+wipeleft SE→final.mp4+YouTube非公開 |
 | cmd_1466 | 軍師 | ✅ **完遂(14:58)** curriculum_v2.html 38スライド LAN公開 http://192.168.2.7:8082/ 軍師PASS |
 | cmd_1465 | 軍師 | ✅ **完遂(13:41)** curriculum_v2.md 672行 5AC全項目PASS 軍師PASS_with_finding |
-| cmd_1467 | 足軽2号 | ⏳ **殿レビュー待ち(15:25)** v2 3案完了(--ref-limit 0) http://192.168.2.7:8081/ ntfy通知済 |
+| cmd_1467 | 足軽2号 | ✅ **完遂(15:55)** 案2確定→thumbnail_final.png commit 0c3518c push済 |
 | cmd_1468 | 軍師 | ✅ **完遂(13:32)** cron再発真因究明 offset追跡実装・13:30 hit=0確認 軍師PASS |
 | cmd_1469 | 軍師 | ✅ **完遂(13:37)** server.py R1 タイムスタンプparse修正 fresh cmd age正常化 軍師PASS |
 | cmd_1470 | 足軽3号 | ✅ **完遂(15:49)** pretool_check CHK3 procedure:必須化 7/7AC 軍師PASS |
@@ -50,7 +50,7 @@
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
 | 1号 | GLM | 🔄 busy | subtask_1464a 発令(12:10)・Day6 4視点MIX final.mp4生成 |
-| 2号 | GLM | ✅ idle | subtask_1467b ✅完了(15:25)・v2 3案生成 殿選択待ち |
+| 2号 | GLM | ✅ idle | subtask_1467b ✅完了(15:25)・cmd_1467完遂(案2確定 15:55) |
 | 3号 | Opus[1m] | ✅ idle | subtask_1470a ✅完了(15:46)・pretool_check CHK3 procedure:必須化 軍師QC中 |
 | 4号 | GLM | 🔄 busy | subtask_1471a 発令(15:51)・server.py POST /api/cmd_create追加 |
 | 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
@@ -85,6 +85,7 @@
 | cmd_1450 | ✅ **done_ng(07:24)** 殿判断「面白くない・なぎなた不在」→note下書き2件削除中(subtask_1450_cleanup/足軽2号) |
 | cmd_1466 | ✅ **完遂(14:58)** curriculum_v2.html 38スライド Marp+LAN公開(8082) 軍師PASS・slide_lan_publish手順確立 |
 | cmd_1465 | ✅ **完遂(13:41)** Udemy curriculum_v2.md 672行 5ペルソナ/18章ハンズオン/競合4領域対決 軍師PASS_with_finding |
+| cmd_1467 | ✅ **完遂(15:55)** Day6 ECHIDNA サムネ 案2確定(--ref-limit 0)・thumbnail_final.png commit 0c3518c cmd_1464完了後YouTube適用 |
 | cmd_1470 | ✅ **完遂(15:49)** pretool_check CHK3 procedure:必須化 7/7AC commit d8764ad 軍師PASS |
 | cmd_1469 | ✅ **完遂(13:37)** server.py R1 タイムスタンプparse修正 fresh cmd age正常化(416日→0.12h) 軍師PASS |
 | cmd_1468 | ✅ **完遂(13:32)** cron再発真因究明 古いログ再検知→offset追跡実装 13:30 hit=0確認 軍師PASS |
