@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 12:06
+最終更新: 2026-04-25 12:12
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -9,7 +9,6 @@
 ## 🚨 要対応（殿の御判断必要）
 
 ### ⚠️ 技術的残課題（将来対処）
-- **Day6 4視点MIX codec混在**: charlotte=vp9 / 他=h264 → concat -c copy不可（cmd_1463で1戦目+8戦目をh264統一DL中・完遂後に本課題解決予定）
 
 ### 📌 技術知見: YouTube音声不調の真因（cmd_1458発見・08:31）
 
@@ -35,8 +34,8 @@
 
 | cmd | 担当 | 状態 |
 |-----|------|------|
-| cmd_1463 | 足軽1号 | 🔄 **発令(11:35)** Day6 1戦目+8戦目 4視点h264 DL・切出 |
-| cmd_1464 | 足軽1号(予定) | ⏳ **pending** cmd_1463完了後着手・Day6 4視点MIX(seg独立+境界wipeleft SE)・YouTube非公開 |
+| cmd_1464 | 足軽1号 | 🔄 **発令(12:10)** Day6 4視点MIX seg独立+wipeleft SE→final.mp4+YouTube非公開 |
+| cmd_1465 | 足軽7号 | 🔄 **発令(12:08)** Udemy curriculum v2 マーケ強化版(ペルソナ/ハンズオン/競合対決表) |
 
 ---
 
@@ -44,14 +43,14 @@
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | GLM | ✅ idle | subtask_1463a ✅完了(12:03)・Day6 4視点8本h264生成 |
+| 1号 | GLM | 🔄 busy | subtask_1464a 発令(12:10)・Day6 4視点MIX final.mp4生成 |
 | 2号 | GLM | ✅ idle | subtask_1462a ✅production完了(11:25)・Logic C/D/E 41行削除 |
 | 3号 | Opus[1m] | ✅ idle | subtask_1458b ✅完了(08:39)・新版public+旧版private確認 |
 | 4号 | GLM | ✅ idle | cmd_1455 ✅PASS(07:57・軍師QC) |
 | 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
-| 7号 | GLM | ✅ idle | subtask_1456d ✅PASS(軍師QC) |
-| 軍師 | Opus[1m] | 🔄 busy | qc_subtask_1463a 発令(12:06)・Day6 4視点8本h264 QC |
+| 7号 | GLM | 🔄 busy | subtask_1465a 発令(12:08)・Udemy curriculum v2 マーケ強化版 |
+| 軍師 | Opus[1m] | ✅ idle | qc_subtask_1463a ✅PASS_with_finding(12:08)・8/8 h264統一確認 |
 
 ---
 
@@ -78,6 +77,7 @@
 | dashboard残骸一掃 | ✅ **完了 23:18** 殿指示(23:16)・shogun_to_karo.yaml 4件 in_progress→done(cmd_1441/1443/1445/1446)+subtask_1398a→cancelled+旧🚨セクション削除・足軽現タスク欄刷新 |
 | cmd_1449 全5領域 | ✅ **完遂 23:51** A/B/C/D/E 全軍師QC PASS(a8e2878/de29639+df1b470/06ecb45/b9d05b6/a312447)・follow-up 2件殿判断(07:17)対応不要 |
 | cmd_1450 | ✅ **done_ng(07:24)** 殿判断「面白くない・なぎなた不在」→note下書き2件削除中(subtask_1450_cleanup/足軽2号) |
+| cmd_1463 | ✅ **完遂(12:10)** Day6 4視点h264統一8本(1sen+8sen)生成 軍師PASS 8/8 codec混在解消 |
 | cmd_1461 | ✅ **完遂(11:06)** dashboard_lifecycle.sh Logic A/B 追加・進行中✅完了行+24h超過自動削除 軍師PASS |
 | cmd_1462 | ✅ **完遂(11:46)** Logic C/D/E 追加・🚨要対応解決済み41行自動削除 軍師PASS 9/9 commit a029d9b |
 | cmd_1453 | ✅ **完遂 07:00** inbox_watcher.sh glm CLIサポート追加・CLIunresolved WARN撲滅(commit dadc4cd)・watcher再起動待ち |

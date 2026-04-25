@@ -2465,7 +2465,7 @@ tasks:
 - task_id: subtask_1463a
   parent_cmd: cmd_1463
   bloom_level: L3
-  status: assigned
+  status: done
   timestamp: "2026-04-25T11:35:00+09:00"
   target_path: /home/murakami/multi-agent-shogun/queue/reports/ashigaru1_report_subtask_1463a.yaml
   procedure: shared_context/procedures/day6_4viewpoint_dl.md
@@ -2489,3 +2489,27 @@ tasks:
     - "procedure内のoffset計算値は近似値。ずれがひどければffprobe確認"
     - "advisor()必須(作業前・完了前)"
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽1号、subtask_1463a完了(Day6 4視点8本生成+source.json+description.md)。QC依頼。' report_completed ashigaru1"
+
+- task_id: subtask_1464a
+  parent_cmd: cmd_1464
+  bloom_level: L4
+  status: assigned
+  timestamp: "2026-04-25T12:10:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/work/cmd_1464/final.mp4
+  procedure: shared_context/procedures/day6_mix_video.md
+  description: "Day6 4視点MIX動画生成。seg1戦目(142秒)+transition(wipeleft+sceneswitch1 SE)+seg8戦目(2150秒)→final.mp4。視点切替(30-60秒間隔・盛り上がり4画面grid)・音声は表示視点追従・テロップ右上→YouTube非公開アップ。"
+  steps: "advisor()→multi_view_sync.md参照し同期offset計測→timeline設計→seg1sen/seg8sen MIX生成→transition生成→concat→final.mp4品質確認→YouTube非公開アップ→advisor()→report→inbox_write gunshi"
+  acceptance_criteria:
+    - "work/cmd_1464/final.mp4 生成 (duration ~2292秒)"
+    - "video=h264 / audio=aac / resolution=1920x1080"
+    - "右上テロップ『エキドナ(初戦)』『エキドナ(8戦目)』各seg期間表示"
+    - "seg境界 wipeleft+sceneswitch1 SE トランジション確認"
+    - "YouTube非公開 URL 取得・報告"
+    - "git push 完了"
+  notes:
+    - "charlotte audio=opus: ffmpegが自動デコード→aac変換するが注意"
+    - "4画面 grid 時の音声: MEN(oo_men)音声固定"
+    - "SE: projects/dozle_kirinuki/assets/bgm/sfx/sceneswitch1.mp3"
+    - "cmd_1424 work/zephyrus_v3.sh がfilter_complexのパターン参考"
+    - "advisor()必須(作業前・完了前)"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽1号、subtask_1464a完了(Day6 4視点MIX final.mp4+YouTube非公開URL)。QC依頼。' report_completed ashigaru1"

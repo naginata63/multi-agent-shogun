@@ -140,3 +140,44 @@ tasks:
     - "cmd_1455(ashigaru4)との整合必須→done_gate.sh実装のfield仕様を先に確認してから追記"
     - "work/cmd_1456/ディレクトリ: mkdir -p で冪等"
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽7号、subtask_1456d完了(task_yaml_schema post_steps/verify_exempt追記)。' report_completed ashigaru7"
+
+- task_id: subtask_1465a
+  parent_cmd: cmd_1465
+  bloom_level: L4
+  status: assigned
+  timestamp: "2026-04-25T12:08:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/curriculum_v2.md
+  description: |
+    Udemy講座カリキュラム v2 (マーケ強化版) 作成。
+    cmd_1445 で作成した curriculum_v1.md をベースに、殿指摘の5項目を補完した v2 を別ファイルで生成。
+
+    【必須参照ファイル】
+    - projects/udemy_course/drafts/curriculum_v1.md (ベース)
+    - work/cmd_1444/marketing_trip_videos_summary.md (Marketing Tripメソッド・ペルソナ設計指針)
+    - work/cmd_1444/udemy_strategy_summary.md (LP/オプトイン/購買心理ナレッジ)
+    - work/cmd_1444/udemy_engineering.json (60件競合分析データ・対決表素材)
+    - /home/murakami/.claude/projects/-home-murakami-multi-agent-shogun/memory/project_udemy_3engineering.md
+    - memory/feedback_note_article_composition.md (3本柱思想応用)
+
+    【5 AC 項目 (全て必須)】
+    1. ペルソナ 3-5 詳述: 年代/職種/業界/年収/具体困りごと/購買動機
+    2. ハンズオン具体化: 各章で何を作る・どう作る・完成品見た目・所要時間
+    3. マーケ戦略: LPコピー案・無料プレビュー設計・購買心理フック・タイトル候補5案
+    4. 競合直接対決表: udemy_engineering.jsonの実講座名を使ってvs比較 (受講者目線)
+    5. ストーリー設計: 各章のemotional hook・受講者の『これだ』ポイント
+
+    出力: projects/udemy_course/drafts/curriculum_v2.md (v1は保持・上書き禁止)
+  steps: "advisor()→必須参照6ファイル全読込→v1構成把握→5項目AC補完しcurriculum_v2.md作成→advisor()→git add/commit/push→report作成→inbox_write gunshi"
+  acceptance_criteria:
+    - "projects/udemy_course/drafts/curriculum_v2.md 新規作成 (v1別ファイル保持)"
+    - "ペルソナ 3-5 詳述済み"
+    - "ハンズオン: 各章で完成品・所要時間明記"
+    - "タイトル候補 5案・LPコピー案・無料プレビュー設計あり"
+    - "競合対決表: 実講座名を使った比較表あり"
+    - "emotional hook ポイント (章別) あり"
+    - "git push 完了"
+  notes:
+    - "v1は projects/udemy_course/drafts/curriculum_v1.md (上書き厳禁)"
+    - "競合対決表はudemy_engineering.jsonの実際の講座名を使うこと(架空不可)"
+    - "advisor()必須(作業前・完了前)"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽7号、subtask_1465a完了(curriculum_v2.md生成)。QC依頼。' report_completed ashigaru7"

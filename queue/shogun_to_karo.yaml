@@ -4802,9 +4802,10 @@ commands:
   priority: medium
 
 - id: cmd_1463
-  status: in_progress
+  status: done
   timestamp: "2026-04-25T11:35:00+09:00"
   started_at: "2026-04-25T11:35:00+09:00"
+  done_at: "2026-04-25T12:10:00+09:00"
   priority: high
   lord_original: "Day6 1戦目(1:39:28〜1:41:50)を4視点h264統一DL・切出 + source.json + description.md draft。8戦目(3:55:10〜4:31:00)も4視点準備対象に追加。"
   north_star: |
@@ -4865,3 +4866,25 @@ commands:
     - "殿経験則: 一気エンコは時間かかる→seg独立方式で失敗時の影響限定"
   project: dozle_kirinuki
   depends_on: cmd_1463
+
+- id: cmd_1465
+  status: in_progress
+  timestamp: "2026-04-25T12:08:00+09:00"
+  started_at: "2026-04-25T12:08:00+09:00"
+  priority: medium
+  lord_original: "Udemy講座カリキュラム v1→v2 マーケ強化版。殿指摘『具体化してくれ・マーケティング考えているか・どんな層でどういうハンズオンか』。ペルソナ3-5詳述・ハンズオン具体化・マーケ戦略・競合対決表・ストーリー設計の5項目補完。"
+  purpose: "curriculum_v1.md の5項目補完でマーケ強化版 curriculum_v2.md を生成。殿指摘の具体化・ペルソナ・マーケ戦略を反映。"
+  acceptance_criteria:
+    - "ペルソナ 3-5 詳述: 年代/職種/業界/年収/具体困りごと/購買動機"
+    - "ハンズオン具体化: 各章で何を作る・どう作る・完成品見た目・所要時間"
+    - "マーケティング戦略: LPコピー案・無料プレビュー設計・購買心理フック・タイトル候補5案"
+    - "競合直接対決表: 既存ベストセラー講座 X vs 本講座 (受講者目線比較)"
+    - "ストーリー設計: 受講者が泣き・笑い・『これだ』と思う emotional hook ポイント (章別)"
+    - "projects/udemy_course/drafts/curriculum_v2.md 生成 (v1は保持・別ファイル)"
+    - "git commit + push"
+    - "軍師QC PASS"
+  notes:
+    - "足軽7号 (cmd_1445 担当者・コンテキスト引継ぎ)"
+    - "所要 3-5h"
+    - "並列稼働: cmd_1463/1464 (DoZ動画) と並列可"
+  project: udemy_course
