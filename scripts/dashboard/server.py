@@ -1722,6 +1722,32 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path == '/api/dashboard_md':
+            # GET /api/dashboard_md — dashboard.md の markdown 全文取得 (家老が Read 直叩き廃止)
+            try:
+                if not os.path.exists(DASHBOARD_MD):
+                    self.send_response(404)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'dashboard.md not found'}).encode())
+                    return
+                with open(DASHBOARD_MD, 'r', encoding='utf-8') as f:
+                    md = f.read()
+                resp = json.dumps({
+                    'content': md,
+                    'bytes': len(md.encode('utf-8')),
+                    'mtime': os.path.getmtime(DASHBOARD_MD),
+                }, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp)))
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         elif self.path.startswith('/api/report_detail'):
             # GET /api/report_detail?id=<report_id> — DB行 + YAML 全文を返す
             try:
@@ -2501,6 +2527,83 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     'success': True, 'task_id': task_id, 'agent': agent,
                     'yaml_path': os.path.relpath(yaml_path, BASE_DIR),
                     'timestamp': task_entry['timestamp'],
+                }, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp)))
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path == '/api/dashboard_update':
+            # POST /api/dashboard_update — dashboard.md 書き換え (家老の Edit 直叩き廃止)
+            # body: {"content": "<markdown 全文>"} で全文上書き
+            # body: {"section": "## 🚨要対応", "section_content": "..."} で該当 section 置換
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length).decode('utf-8'))
+                section = body.get('section')
+                if section is not None and 'section_content' in body:
+                    # 部分置換: 既存 dashboard.md の section から次の同レベル見出しまでを置換
+                    if not os.path.exists(DASHBOARD_MD):
+                        self.send_response(404)
+                        self.send_header('Content-Type', 'application/json')
+                        self.end_headers()
+                        self.wfile.write(json.dumps({'error': 'dashboard.md not found'}).encode())
+                        return
+                    with open(DASHBOARD_MD, 'r', encoding='utf-8') as f:
+                        text = f.read()
+                    import re
+                    # 同じヘッダーレベル (例: ## ) で次のヘッダーまでを匹配
+                    level_match = re.match(r'^(#+)\s', section)
+                    if not level_match:
+                        self.send_response(400)
+                        self.send_header('Content-Type', 'application/json')
+                        self.end_headers()
+                        self.wfile.write(json.dumps(
+                            {'error': 'section must start with markdown header (e.g., "## 🚨要対応")'},
+                            ensure_ascii=False).encode('utf-8'))
+                        return
+                    level = level_match.group(1)
+                    pattern = re.compile(
+                        re.escape(section) + r'.*?(?=\n' + re.escape(level) + r' |\Z)',
+                        re.DOTALL,
+                    )
+                    new_block = section + '\n' + body['section_content'].rstrip('\n') + '\n'
+                    if pattern.search(text):
+                        new_text = pattern.sub(new_block, text, count=1)
+                    else:
+                        # section 不在 → 末尾に追加
+                        new_text = text.rstrip('\n') + '\n\n' + new_block
+                else:
+                    content = body.get('content')
+                    if content is None:
+                        self.send_response(400)
+                        self.send_header('Content-Type', 'application/json')
+                        self.end_headers()
+                        self.wfile.write(json.dumps(
+                            {'error': 'content or (section + section_content) required'},
+                            ensure_ascii=False).encode('utf-8'))
+                        return
+                    new_text = content if content.endswith('\n') else content + '\n'
+
+                # backup + atomic replace
+                import shutil
+                bak = DASHBOARD_MD + '.bak'
+                if os.path.exists(DASHBOARD_MD):
+                    shutil.copy2(DASHBOARD_MD, bak)
+                tmp = DASHBOARD_MD + '.tmp'
+                with open(tmp, 'w', encoding='utf-8') as f:
+                    f.write(new_text)
+                os.replace(tmp, DASHBOARD_MD)
+
+                resp = json.dumps({
+                    'success': True,
+                    'mode': 'section' if section else 'full',
+                    'bytes_written': len(new_text.encode('utf-8')),
                 }, ensure_ascii=False).encode('utf-8')
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')

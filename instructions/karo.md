@@ -352,6 +352,8 @@ done
 - `cat queue/reports/*.yaml` ← `curl /api/report_detail?id=...`
 - `tail queue/inbox/*.yaml` ← `curl /api/inbox_messages?agent=...`
 - `yaml.safe_load(SHOGUN_TO_KARO)` ← `curl /api/cmd_list` or `/api/cmd_detail`
+- `Read dashboard.md` ← `curl /api/dashboard_md`
+- `Edit dashboard.md` ← `curl -X POST /api/dashboard_update -d '{"section":"## 🚨要対応","section_content":"..."}'`
 
 SQLite は dual-path で常に最新。YAML が新しく見えるのは家老の幻覚。**API レスポンスを真として行動せよ**。
 
