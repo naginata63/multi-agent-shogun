@@ -1786,6 +1786,80 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path == '/api/cmd_create':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length).decode('utf-8'))
+
+                # --- Required field validation ---
+                required = ['id', 'purpose']
+                missing = [f for f in required if not body.get(f)]
+                if missing:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': f'Missing required fields: {missing}'}).encode('utf-8'))
+                    return
+
+                cmd_id = body['id']
+
+                # --- flock + YAML append ---
+                import fcntl
+                lock_path = SHOGUN_TO_KARO + '.lock'
+                with open(lock_path, 'w') as lock_f:
+                    fcntl.flock(lock_f, fcntl.LOCK_EX)
+
+                    try:
+                        # Read existing
+                        with open(SHOGUN_TO_KARO, 'r', encoding='utf-8') as f:
+                            data = yaml.safe_load(f)
+
+                        commands = data.get('commands', [])
+
+                        # Duplicate check
+                        if any(c.get('id') == cmd_id for c in commands):
+                            self.send_response(409)
+                            self.send_header('Content-Type', 'application/json')
+                            self.end_headers()
+                            self.wfile.write(json.dumps({'error': f'Duplicate cmd id: {cmd_id}'}).encode('utf-8'))
+                            return
+
+                        # Build new entry
+                        entry = {
+                            'id': cmd_id,
+                            'status': body.get('status', 'pending'),
+                            'priority': body.get('priority', 'medium'),
+                            'purpose': body['purpose'],
+                            'timestamp': body.get('timestamp', datetime.now(timezone(timedelta(hours=9))).strftime('%Y-%m-%dT%H:%M:%S+09:00')),
+                        }
+                        if body.get('issued_at'):
+                            entry['issued_at'] = body['issued_at']
+                        for opt_field in ('command', 'project', 'north_star', 'acceptance_criteria', 'assigned_to'):
+                            if body.get(opt_field):
+                                entry[opt_field] = body[opt_field]
+
+                        commands.append(entry)
+                        data['commands'] = commands
+
+                        # Write back (atomic-ish via write + flush)
+                        with open(SHOGUN_TO_KARO, 'w', encoding='utf-8') as f:
+                            yaml.dump(data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+
+                        entry_line = sum(1 for c in commands)
+                    finally:
+                        fcntl.flock(lock_f, fcntl.LOCK_UN)
+
+                resp = json.dumps({'ok': True, 'cmd_id': cmd_id, 'entry_line': entry_line}, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp)))
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         else:
             self.send_response(404)
             self.end_headers()
