@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 11:52
+最終更新: 2026-04-25 12:06
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -44,14 +44,14 @@
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | GLM | 🔄 busy | subtask_1463a 発令(11:35)・Day6 4視点h264 DL・切出 |
+| 1号 | GLM | ✅ idle | subtask_1463a ✅完了(12:03)・Day6 4視点8本h264生成 |
 | 2号 | GLM | ✅ idle | subtask_1462a ✅production完了(11:25)・Logic C/D/E 41行削除 |
 | 3号 | Opus[1m] | ✅ idle | subtask_1458b ✅完了(08:39)・新版public+旧版private確認 |
 | 4号 | GLM | ✅ idle | cmd_1455 ✅PASS(07:57・軍師QC) |
 | 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1456d ✅PASS(軍師QC) |
-| 軍師 | Opus[1m] | ✅ idle | qc_subtask_1462a ✅PASS(11:46)・Logic C/D/E 9/9 全AC |
+| 軍師 | Opus[1m] | 🔄 busy | qc_subtask_1463a 発令(12:06)・Day6 4視点8本h264 QC |
 
 ---
 

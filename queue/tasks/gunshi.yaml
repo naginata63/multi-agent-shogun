@@ -3671,7 +3671,7 @@ tasks:
   parent_cmd: cmd_1462
   type: qc
   bloom_level: L5
-  status: assigned
+  status: done
   timestamp: "2026-04-25T11:34:00+09:00"
   target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1462a.yaml
   description: "subtask_1462a(dashboard_lifecycle.sh拡張 Logic C/D/E production実行)のQC。足軽2号が dashboard.md 146→104行削減(41行削除)・保護項目全残存を報告。shared_context/qc_template.md を参照してQCせよ。"
@@ -3692,3 +3692,30 @@ tasks:
     - "context_files: queue/reports/ashigaru2_report_subtask_1462a.yaml / scripts/dashboard_lifecycle.sh / dashboard.md / dashboard_archive/2026-04.md"
     - "advisor()必須"
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1462a完了(判定)。' qc_result gunshi"
+
+- task_id: qc_subtask_1463a
+  parent_cmd: cmd_1463
+  type: qc
+  bloom_level: L5
+  status: assigned
+  timestamp: "2026-04-25T12:06:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1463a.yaml
+  description: "subtask_1463a(Day6 4視点h264 DL・切出し 8本生成)のQC。足軽1号報告: 全8本h264・duration正確・hotfix2件あり。shared_context/qc_template.md 参照してQCせよ。"
+  steps: "advisor()→qc_template.md参照→実ファイルffprobe検証(8本全てcodec=h264・duration確認)→source.json存在・内容確認→description.md存在確認→hotfix評価(charlotte cookies問題・tsurugi path文字化け)→charlotte audio=opus の申し送り評価→PASS/FAIL判定→report作成→inbox_write karo"
+  params:
+    day6_dir: "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260416_【#DoZ】6日目 腹から声が出ないヒーラーに命を任せれられるとでも？【ドズル社／おおはらMEN視点】"
+  acceptance_criteria:
+    - "multi_h264_1sen/ に 4本 MP4 実在(oo_men/charlotte/hendy/tsurugi)"
+    - "multi_h264_8sen/ に 4本 MP4 実在(oo_men/charlotte/hendy/tsurugi)"
+    - "ffprobe 全8本 video codec=h264 確認"
+    - "1sen duration: 142秒前後(±5秒)"
+    - "8sen duration: 2150秒前後(±30秒)"
+    - "multi_h264_1sen/source.json 存在・両シーン情報記録あり"
+    - "multi_h264_1sen/description.md draft 存在"
+    - "hotfix charlotte cookies問題: 回避済み評価"
+  notes:
+    - "charlotte audio=opus(YouTube仕様): cmd_1464 ffmpeg filter_complexで自動変換想定→申し送り事項として記録"
+    - "tsurugi 8sen path文字化け: mv修正済み→実ファイル存在確認で検証"
+    - "context: queue/reports/ashigaru1_report_subtask_1463a.yaml"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1463a完了(判定)。' qc_result gunshi"
