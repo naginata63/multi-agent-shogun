@@ -4830,18 +4830,26 @@ commands:
 - id: cmd_1464
   status: pending
   timestamp: "2026-04-25T11:42:00+09:00"
+  revised_at: "2026-04-25T11:52:00+09:00"
   priority: high
-  lord_original: "Day6 4視点 MIX 動画化。seg1戦目(142秒)+seg8戦目(2150秒)を1本に連結。視点切替(MEN→charlotte/hendy/tsurugi バリエーション・たまに4画面grid)。音声はメイン視点追従。右上テロップ『エキドナ(初戦)』『エキドナ(8戦目)』。横長1080p h264_nvenc 14Mbps。YouTube非公開先行。opening不要。"
+  lord_original: "Day6 4視点 MIX 動画化。seg独立MIX→concat方式。seg1戦目(142秒)+seg8戦目(2150秒)を独立MIX後にffmpeg concat -c copy結合。視点切替(MEN→charlotte/hendy/tsurugi バリエーション・たまに4画面grid)。音声はメイン視点追従。右上テロップ『エキドナ(初戦)』『エキドナ(8戦目)』。横長1080p h264_nvenc 14Mbps。YouTube非公開先行。opening不要。"
   north_star: |
     cmd_1463 でh264統一した4視点素材を使い、Day6 ボス戦の見応えあるMIX動画を生成する。
+    seg独立MIX方式で失敗時の再エンコ範囲を限定。concat -c copy で無劣化高速結合。
     視点切替とたまの4画面gridでライブ感を演出。音声は表示視点に追従。
-  purpose: "Day6 ボス1戦目+8戦目 4視点MIX動画 生成→YouTube非公開アップ（殿レビュー用）"
+  purpose: "Day6 ボス1戦目+8戦目 4視点MIX動画 seg独立生成→concat結合→YouTube非公開アップ"
+  implementation_flow: |
+    1. seg1戦目.mp4 = 142秒 4視点 MIX 独立完成 (1:39:28〜1:41:50)
+    2. seg8戦目.mp4 = 2150秒 4視点 MIX 独立完成 (3:55:10〜4:31:00)
+    3. ffmpeg -f concat -c copy → final.mp4 (瞬時・無劣化)
+    4. YouTube非公開アップ
   acceptance_criteria:
-    - "1本の横長1080p MP4 生成 (1戦目142秒+8戦目2150秒≒38分)"
+    - "seg1戦目.mp4 生成 (~142秒・4視点MIX・h264_nvenc・14Mbps)"
+    - "seg8戦目.mp4 生成 (~2150秒・4視点MIX・h264_nvenc・14Mbps)"
+    - "final.mp4 生成 (seg1+seg2 concat -c copy・合計~2292秒)"
     - "視点切替: MEN始まり→MEN終わり・中間でcharlotte/hendy/tsurugi・盛り上がりで4画面grid(2x2)"
     - "音声: 表示視点の音声採用(4画面grid時はMEN音声)"
     - "右上テロップ: 『エキドナ(初戦)』seg1戦目期間・『エキドナ(8戦目)』seg8戦目期間"
-    - "codec h264_nvenc + aac 192k・bitrate 14Mbps程度"
     - "YouTube非公開アップ完了 (URL報告)"
     - "defaultLanguage=ja + defaultAudioLanguage=ja"
     - "軍師QC PASS"
@@ -4850,5 +4858,7 @@ commands:
     - "参考: cmd_1424 zephyrus_v3.sh / shared_context/procedures/multi_view_sync.md"
     - "amix不要 (音声は切替ゆえ)"
     - "opening/outro なし (殿確定)"
+    - "殿レビューPhase Gate: 将軍が殿に確認中(各seg後 or final.mp4のみ)→判明次第dashboard更新"
+    - "殿経験則: 一気エンコは時間かかる→seg独立方式で失敗時の影響限定"
   project: dozle_kirinuki
   depends_on: cmd_1463
