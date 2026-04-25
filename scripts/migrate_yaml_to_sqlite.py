@@ -226,7 +226,7 @@ def generate_insert(table, row):
         vals.append(sql_escape(v))
     col_str = ", ".join(cols)
     val_str = ", ".join(vals)
-    return f"INSERT OR IGNORE INTO {table} ({col_str}) VALUES ({val_str});"
+    return f"INSERT OR REPLACE INTO {table} ({col_str}) VALUES ({val_str});"
 
 
 def main():

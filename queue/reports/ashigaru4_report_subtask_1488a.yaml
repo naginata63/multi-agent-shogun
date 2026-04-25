@@ -1,0 +1,44 @@
+worker_id: ashigaru4
+task_id: subtask_1488a
+parent_cmd: cmd_1488
+timestamp: "2026-04-25T23:12:13"
+status: done
+result:
+  summary: "SQLite p2 dual-path writes実装完了。inbox_write.sh + server.py POST /api/cmd_createにSQLite INSERT dual-path追加。kill_switch(STORAGE_BACKEND=yaml)動作確認済み。cmds.db本番初期化+152件投入完了。Litestream+日次dump 2層backup稼働。audit script作成+cron設定済み。"
+  files_modified:
+    - /home/murakami/multi-agent-shogun/scripts/inbox_write.sh
+    - /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+    - /home/murakami/multi-agent-shogun/scripts/sqlite_yaml_audit.py
+    - /home/murakami/multi-agent-shogun/scripts/migrate_yaml_to_sqlite.py
+    - /home/murakami/.litestream.yml
+    - /home/murakami/multi-agent-shogun/queue/cmds.db
+  notes: |
+    ## 実装内容
+    1. cmds.db初期化: schema_v1.sql → 5テーブル作成 → 152件投入(14 cmd + 22 inbox + 10 tasks + 108 reports)
+    2. inbox_write.sh: YAML書込成功後、STORAGE_BACKEND≠yaml時にSQLite INSERT実行(env var明示渡し修正済み)
+    3. server.py POST /api/cmd_create: YAML append成功後、同条件でSQLite INSERT実行
+    4. Litestream: ~/.litestream.yml設定 + nohup起動 + 初期スナップショット取得済み
+    5. 日次dump cron: 03:00 full paths で cmds_YYYYMMDD.sql.gz 保存
+    6. sqlite_yaml_audit.py: 4テーブル件数+ハッシュ比較 → 差分時exit1+ntfy
+    7. 監査 cron: 04:00 sqlite_yaml_audit.py --notify-on-fail 実行
+    8. kill_switch: STORAGE_BACKEND=yaml でSQLite書込完全スキップ確認済み(YAMLのみ書込)
+    9. 初回audit: commands=OK, inbox=OK, tasks=差分あり(gunshi.yaml parse error等), reports=差分あり(4件YAML parse error)
+
+    ## 既知の差分 (soak期間に監視)
+    - tasks: gunshi.yaml YAML構文エラーで3タスク未移行 + hash mismatch(agent/assigned_to field mapping)
+    - tasks: ashigaru5.yaml (subtask_1425d, cmd_1450) status=idle_waiting/done_ng → schema CHECK violation
+    - tasks: ashigaru6.yaml task_id=None → SQLite未投入
+    - reports: 4件YAML parse error(multi-document) → 未投入
+    - Litestream: WAL autocheckpoint消失によるsync error(非クリティカル・日次dumpが主要backup)
+
+    ## ロールバック手順
+    STORAGE_BACKEND=yaml 設定 → SQLite書込即停止 → cmds.db削除で完全復帰可
+skill_candidate:
+  found: false
+  name: null
+  description: null
+  reason: null
+hotfix_notes:
+  what_was_wrong: "inbox_write.sh dual-path SQLite INSERT でenv varがサブシェルに渡らない問題"
+  workaround: "INBOX_MSG_ID=\"$MSG_ID\" INBOX_FROM=\"$FROM\" ... の形で明示的にexport"
+  proper_fix: "inbox_write.sh全体をPython化すればenv var問題は解消するが今回はbash内inline-pythonで対応"

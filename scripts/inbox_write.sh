@@ -239,6 +239,35 @@ except Exception as e:
         [ $STATUS -eq 0 ] && touch "$INBOX" 2>/dev/null
         _release_lock
 
+        # === p2 dual-path: SQLite INSERT (after successful YAML write) ===
+        if [ $STATUS -eq 0 ] && [ "${STORAGE_BACKEND:-dual}" != "yaml" ]; then
+            (
+                flock -w 3 201 || { _log_silent_fail "SQLite flock timeout in inbox_write"; exit 0; }
+                INBOX_MSG_ID="$MSG_ID" \
+                INBOX_FROM="$FROM" \
+                INBOX_TYPE="$TYPE" \
+                INBOX_CONTENT="$CONTENT" \
+                INBOX_TIMESTAMP="$TIMESTAMP" \
+                "$SCRIPT_DIR/.venv/bin/python3" -c "
+import sqlite3, os
+try:
+    db_path = '$SCRIPT_DIR/queue/cmds.db'
+    conn = sqlite3.connect(db_path, timeout=5)
+    conn.execute('PRAGMA busy_timeout = 5000')
+    conn.execute('''INSERT OR IGNORE INTO inbox_messages
+        (id, agent, from_agent, type, content, read, timestamp)
+        VALUES (?, ?, ?, ?, ?, 0, ?)''',
+        (os.environ['INBOX_MSG_ID'], '$TARGET',
+         os.environ['INBOX_FROM'], os.environ['INBOX_TYPE'],
+         os.environ['INBOX_CONTENT'], os.environ['INBOX_TIMESTAMP']))
+    conn.commit()
+    conn.close()
+except Exception as e:
+    import sys; print(f'SQLite WARN: {e}', file=sys.stderr)
+" 2>>"$SCRIPT_DIR/logs/sqlite_dual_path.log" || true
+            ) 201>"$SCRIPT_DIR/queue/cmds.db.lock"
+        fi
+
         # cmd_new時にRAG自動実行（バックグラウンド、失敗してもinbox配信に影響しない）
         [ "$TYPE" = "cmd_new" ] && bash "$(dirname "$0")/automation/cmd_rag_hook.sh" >> "$SCRIPT_DIR/logs/cmd_rag.log" 2>&1 &
         if [ $STATUS -eq 0 ]; then

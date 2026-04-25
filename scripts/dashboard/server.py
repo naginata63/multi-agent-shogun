@@ -2011,6 +2011,33 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     finally:
                         fcntl.flock(lock_f, fcntl.LOCK_UN)
 
+                # === p2 dual-path: SQLite INSERT (after successful YAML write) ===
+                storage_backend = os.environ.get('STORAGE_BACKEND', 'dual')
+                if storage_backend != 'yaml':
+                    try:
+                        import sqlite3 as _sqlite3
+                        _db_path = os.path.join(BASE_DIR, 'queue', 'cmds.db')
+                        _conn = _sqlite3.connect(_db_path, timeout=5)
+                        _conn.execute('PRAGMA busy_timeout = 5000')
+                        _crit_json = json.dumps(body.get('acceptance_criteria', []), ensure_ascii=False) if body.get('acceptance_criteria') else None
+                        _notes_json = json.dumps(body.get('notes', []), ensure_ascii=False) if body.get('notes') else None
+                        _dep_json = json.dumps(body.get('depends_on', []), ensure_ascii=False) if body.get('depends_on') else None
+                        _conn.execute('''INSERT OR IGNORE INTO commands
+                            (id, status, priority, purpose, lord_original, command_text,
+                             assigned_to, north_star, project, parent_cmd,
+                             acceptance_criteria_json, depends_on_json, notes_json,
+                             timestamp, full_yaml_blob)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                            (cmd_id, entry.get('status', 'pending'), entry.get('priority', 'medium'),
+                             body['purpose'], body.get('lord_original'), body.get('command'),
+                             body.get('assigned_to'), body.get('north_star'), body.get('project'),
+                             body.get('parent_cmd'), _crit_json, _dep_json, _notes_json,
+                             entry.get('timestamp'), json.dumps(entry, ensure_ascii=False)))
+                        _conn.commit()
+                        _conn.close()
+                    except Exception as _sqe:
+                        print(f"[dual_path] SQLite INSERT WARN: {_sqe}")
+
                 # === cmd_1491: cmd_history JSON保管 + inbox自動通知 ===
                 # cmd_history JSON保管 (将来audit_logテーブル代替まで・SQLite p2完了後は廃止)
                 try:
