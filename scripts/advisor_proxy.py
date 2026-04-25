@@ -412,6 +412,33 @@ RETRY_MAX = 2
 RETRY_BACKOFFS = [1, 2]  # seconds
 
 
+def _is_retryable_error(status: int, resp_data) -> bool:
+    """Determine if upstream error should be retried.
+
+    Retryable conditions:
+    - 5xx server errors / 502 connection errors (existing)
+    - GLM HTTP 400 transient errors: code "1234" / "Internal network failure" /
+      "try again later" 等のメッセージ含む場合 (殿指摘 2026-04-25)
+      例: {"type":"error","error":{"message":"Internal network failure...",
+           "code":"1234"},"request_id":"..."}
+    """
+    if status >= 500:
+        return True
+    if status == 400 and isinstance(resp_data, (bytes, bytearray)):
+        try:
+            text = bytes(resp_data).decode("utf-8", errors="replace")
+        except Exception:
+            return False
+        if '"code":"1234"' in text:
+            return True
+        if "Internal network failure" in text:
+            return True
+        lowered = text.lower()
+        if "try again later" in lowered or "please try again" in lowered:
+            return True
+    return False
+
+
 async def _upstream_post(
     session: ClientSession, url: str, json_body: dict, headers: dict
 ) -> tuple[int, dict | bytes | None, str | None]:
@@ -525,10 +552,10 @@ async def handle_request(request: web.Request) -> web.StreamResponse:
                 response_json = resp_data
                 break
 
-            # Retry only on 5xx or connection errors (502)
-            if status >= 500 and attempt < RETRY_MAX:
+            # Retry on 5xx, connection errors, or GLM 400 transient errors
+            if _is_retryable_error(status, resp_data) and attempt < RETRY_MAX:
                 backoff = RETRY_BACKOFFS[attempt]
-                logger.warning("[%s] Upstream %d, retrying in %ds (attempt %d/%d)",
+                logger.warning("[%s] Upstream %d (retryable), retrying in %ds (attempt %d/%d)",
                                req_id, status, backoff, attempt + 1, RETRY_MAX)
                 await asyncio.sleep(backoff)
                 continue
