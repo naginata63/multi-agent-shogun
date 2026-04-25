@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 13:18
+最終更新: 2026-04-25 13:27
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -38,6 +38,7 @@
 | cmd_1465 | 足軽7号 | 🔄 **発令(12:08)** Udemy curriculum v2 マーケ強化版(ペルソナ/ハンズオン/競合対決表) |
 | cmd_1467 | 足軽2号 | 🔄 **発令(13:17)** Day6 エキドナ サムネ3案生成→殿選択→final確定 |
 | cmd_1468 | 軍師QC中 | 🔄 **QC発令(13:18)** cron再発真因究明QC(13:30 cronサイクル確認待ち) |
+| cmd_1469 | 足軽4号 | 🔄 **発令(13:27)** server.py R1 タイムスタンプparse修正(fresh cmd 416日誤表示) |
 
 ---
 
@@ -48,7 +49,7 @@
 | 1号 | GLM | 🔄 busy | subtask_1464a 発令(12:10)・Day6 4視点MIX final.mp4生成 |
 | 2号 | GLM | 🔄 busy | subtask_1467a 発令(13:17)・Day6 エキドナ サムネ生成 |
 | 3号 | Opus[1m] | ✅ idle | subtask_1468a ✅完了(13:16)・cron再発真因究明+offset修正 |
-| 4号 | GLM | ✅ idle | cmd_1455 ✅PASS(07:57・軍師QC) |
+| 4号 | GLM | 🔄 busy | subtask_1469a 発令(13:27)・server.py R1 タイムスタンプparse修正 |
 | 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | 🔄 busy | subtask_1465a 発令(12:08)・Udemy curriculum v2 マーケ強化版 |

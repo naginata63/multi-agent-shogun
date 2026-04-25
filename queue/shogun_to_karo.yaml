@@ -4908,3 +4908,18 @@ commands:
   notes:
     - "足軽2号担当"
     - "優先度 high (Day6 動画用サムネ)"
+- id: cmd_1469
+  status: in_progress
+  assigned_to: ashigaru4
+  issued_at: "2026-04-25T13:26:04+09:00"
+  purpose: "MCP DB タイムスタンプ parse 失敗修正: fresh cmd の age が 416日+と誤算定される問題を根本修正。server.py R1 ロジックの ISO8601 parse エラー対応。"
+  acceptance_criteria:
+    - "scripts/dashboard/server.py の R1 ロジックで ISO8601 timestamp が正しく parse される"
+    - "parse エラー時の fallback が epoch 0 化ではなく判定skip or 推定値"
+    - "fresh cmd の age が正しく計算されること(テスト確認)"
+    - "軍師QC PASS"
+    - "git commit + push"
+  notes:
+    - "調査箇所: scripts/dashboard/server.py L177-210 detect_action_required R1 ロジック"
+    - "shogun_to_karo.yaml の timestamp フィールド format 確認(ISO8601 vs epoch)"
+    - "優先度 medium"
