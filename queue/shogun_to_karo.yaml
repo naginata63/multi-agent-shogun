@@ -4888,3 +4888,46 @@ commands:
     - "所要 3-5h"
     - "並列稼働: cmd_1463/1464 (DoZ動画) と並列可"
   project: udemy_course
+- id: cmd_1468
+  status: in_progress
+  assigned_to: ashigaru3
+  issued_at: "2026-04-25T12:51:31+09:00"
+  purpose: "cron 4エラー再発の真因究明: cmd_1448で対処済のはずが C01/C02/C05/C09/C10/C14 が30分毎に再検知継続。古いログ再検知 or cmd_1448修正不備を切り分け。"
+  command: |
+    【目的】cron_health_check.log に C01/C02/C05/C09/C10/C14 が30分毎再検知継続中。
+    cmd_1448 完遂後も再発。true新規エラーか古いログ再検知かを切り分けて根本修正せよ。
+
+    【調査要点】
+    1. queue/reports/ashigaru3_report_cmd_1448.yaml と work/cmd_1448/root_cause_report.md を再確認
+    2. 修正内容が scripts/cron 配下に実際に反映されているか確認
+    3. crontab -l で新スクリプトが登録されているか確認
+    4. silent_fail_watcher の log offset 管理確認 → 一度検知した行を再検知している疑い
+    5. C01/C02/C05/C09/C10/C14 各エラーの最新 timestamp 確認 (今日か昨日以前か)
+       ※ 一部 timestamp が 2026-04-24T23:25:18 (昨日) = 古いログ再検知の強い疑い
+    6. 真の新規エラー vs 古いログ再検知を切り分けて root_cause_2nd_round.md に記録
+    7. 問題特定後: offset修正 or cmd_1448修正不備を再修正
+    8. 30分後 cron サイクル観察で再発0件確認
+    9. advisor()必須(作業前・完了前)
+    10. git commit + push
+    11. 軍師QC PASS後、inbox_write karo で報告
+
+    【参照】
+    - queue/reports/ashigaru3_report_cmd_1448.yaml
+    - work/cmd_1448/root_cause_report.md
+    - scripts/cron/ 配下の cron スクリプト群
+    - scripts/silent_fail_watcher.sh (offset状態ファイル確認)
+    - logs/cron_health_check.log (最新数行のtimestamp確認)
+
+    【禁止】新規.py作成禁止・/tmp禁止・git add . 禁止
+  acceptance_criteria:
+    - "C01/C02/C05/C09/C10/C14 各エラーの真因確定(新規 or 古いログ再検知)"
+    - "古いログ再検知の場合: silent_fail_watcher offset管理修正完了"
+    - "真の新規エラーの場合: cmd_1448修正不備特定→再修正完了"
+    - "30分後cronサイクル観察で再発0件確認"
+    - "work/cmd_1468/root_cause_2nd_round.md に詳細記録"
+    - "軍師QC PASS"
+    - "git commit + push"
+  notes:
+    - "足軽3号推奨(cmd_1448担当・コンテキスト引継ぎ)"
+    - "優先度 medium (実害は通知ノイズのみ・但し信頼度低下問題)"
+    - "並列稼働: cmd_1464/1465 と並列可"
