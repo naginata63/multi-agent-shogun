@@ -77,7 +77,10 @@ tasks:
   parent_cmd: cmd_1473
   assigned_to: gunshi
   bloom_level: L5
-  status: assigned
+  status: done
+  completed_at: '2026-04-25T17:45:00+09:00'
+  qa_decision: pass
+  report_path: queue/reports/gunshi_report_qc_1473a.yaml
   timestamp: '2026-04-25T17:35:00+09:00'
   target_path: /home/murakami/multi-agent-shogun/scripts/pretool_check.sh
   procedure: shared_context/qc_template.md
@@ -97,3 +100,22 @@ tasks:
   - "テストcase3: projects/dozle_kirinuki/work/20260417_TITLE/x.json → OK (exit=0)"
   - "edge case: work/cmd_1441/notes.md → BLOCK (exit=2) (whitelist除外のみの場合)"
   steps: "advisor()→shared_context/qc_template.md参照→scripts/pretool_check.sh L90-120読む→両分岐の除外条件を目視確認→テスト4ケース実行→queue/reports/gunshi_report_qc_1473a.yaml作成→inbox_write karo"
+- task_id: design_review_1475
+  parent_cmd: cmd_1475
+  assigned_to: gunshi
+  bloom_level: L5
+  status: assigned
+  timestamp: '2026-04-25T18:01:00+09:00'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_design_review_1475.yaml
+  procedure: shared_context/qc_template.md
+  priority: high
+  project: multi-agent-shogun
+  description: "cmd読込側システム設計の中立評価（5問）。将軍の主張は含まれていない。軍師が実際にps/wc/grepで客観事実を検証し、読込側API化・inbox_write API化・自動通知統合・YAML archive機構・inbox YAML スリム化の5項目それぞれを改修推奨/現状維持で独立判断する。出力: queue/reports/gunshi_design_review_1475.yaml"
+  acceptance_criteria:
+  - "5評価項目それぞれに「改修推奨/現状維持」+ 理由 + リスクを記載"
+  - "軍師が実際にプロセス(ps)・ファイル(Read)・サイズ(wc)を確認した上で判断"
+  - "出力: queue/reports/gunshi_design_review_1475.yaml"
+  - "総括欄に設計改修の優先順位（5項目をrank付け）"
+  - "将軍の主張・推奨が混入していない中立判定（意見の引きずりがない）"
+  command: "## 殿命\n『本当かじじつか？軍師にも仰ごう　将軍設計はつたえるな』\n→ 将軍の設計判断・主張・推奨は本cmdに一切含まれていない。軍師自身が客観事実のみから独立判断せよ。\n\n## 客観事実（軍師は実際に検証して確認すること）\n1. 書込API: POST /api/cmd_create (cmd_1471実装+cmd_1474改修: lord_original必須化+pass-through)\n2. 読込方式: 各エージェントが Read tool で YAML 直接読み込み\n   - 家老: queue/shogun_to_karo.yaml\n   - 足軽: queue/tasks/{agent}.yaml\n   - 全員: queue/inbox/{agent}.yaml\n3. 通知: inbox_write.sh → inotifywait → tmux send-keys 'inboxN'\n4. shogun_to_karo.yaml の現状: ファイルサイズ・件数を wc/grep で実測すること\n5. inbox YAML: read:false/true 件数を実測\n6. POST /api/cmd_create で投入後、家老inbox通知は別呼出 (inbox_write.sh)\n7. inbox_watcher プロセスを ps で確認 (常駐数・各エージェント分)\n\n## 評価項目（5問）中立判定\n1. 読み込み側を API GET 化すべきか？(GET /api/cmd_pending, GET /api/inbox/{agent} 等)\n2. inbox_write.sh を POST /api/inbox_write でAPI化すべきか？\n3. POST /api/cmd_create に家老inbox自動通知を統合すべきか？\n4. shogun_to_karo.yaml の archive機構は必要か？(append-only肥大化対策)\n5. inbox YAML スリム化（read済の自動退避）は必要か？\n\n## 評価軸（軍師が比較検討すべき観点）\n- 性能: HTTP overhead vs file syscall・prompt cache 効果\n- 整合性: 並列書込競合・atomicity・flock効果範囲\n- 保守性: 障害切り分け・デバッグ容易性\n- 拡張性: 新エージェント追加・新通知種別の柔軟性\n- Claude Code agent との親和性: Read tool vs Bash curl\n- 実装コスト vs リターン\n\n## 検証手順例\n- ps aux | grep inbox_watcher で常駐プロセス数\n- wc -l queue/shogun_to_karo.yaml でサイズ実測\n- grep -c 'read: false' queue/inbox/*.yaml で未読蓄積\n- 過去事故事例（軍師の知見）を検索\n\n## 注意\n- 軍師の自由判断。将軍へ忖度するな。\n- 既存設計の擁護（『現状維持で十分』）も改修推奨も両方が選択肢。\n- 軍師が『改修不要』と判断するなら、その理由を堂々と述べよ。"
+  steps: "advisor()→客観事実7項目を実測(ps/wc/grep)→5評価項目を独立判断→advisor()→queue/reports/gunshi_design_review_1475.yaml作成→inbox_write karo"

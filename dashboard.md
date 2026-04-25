@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 17:41
+最終更新: 2026-04-25 18:02
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -11,6 +11,11 @@
 ### 🗂️ 古cmd確認依頼（殿の判断要）
 - **cmd_1348**: 309h放置 DingTalk QC → done/cancel どちら? (2026-04-25 殿確認待ち)
 - **cmd_1450**: done_ng(07:24)済・note下書き削除subtask_1450_cleanup完了? cleanup完了確認→statusを正式done化
+
+### 🎬 cmd_1464 完遂後・殿の判断要
+- **skill_candidate: multi-view-mix-generator** (軍師qc_1464b推奨) → 殿承認でスキル化すべきか?
+- **YouTube description未設定**: EVfo4W7jCIc (Day6 4視点MIX) の説明欄が空。設定が必要か?
+- **source.json欠落(hotfix)**: 4視点ソース動画のsource.json未作成。memory/feedback_video_source_metadata_preserve.md準拠のため別cmd推奨
 
 ### ⚠️ 技術的残課題（将来対処）
 - **pretool_check: /tmp/work/cmd_* でメッセージ誤表示** (軍師qc_1473a観察・動作は正常): /tmpパス下のwork/cmd_*にも「リポジトリルート直下」エラー文が出る。別cmd起票推奨。
@@ -39,7 +44,7 @@
 
 | cmd | 担当 | 状態 |
 |-----|------|------|
-| cmd_1464 | 足軽1号 | 🔄 **seg8sen再生成中(17:14)** seg8sen.mp4破損→Steps 2-5再実行→transition→concat→YouTube |
+| cmd_1475 | 軍師 | 🔄 **設計レビュー発令(18:01)** cmd読込側システム5項目 中立評価 |
 
 ---
 
@@ -47,14 +52,14 @@
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | GLM | 🔄 busy | subtask_1464b: seg8sen.mp4破損→Steps 2-5再実行中(seg8sen再生成)→その後Steps 6-12 |
+| 1号 | GLM | ✅ idle | subtask_1464b ✅完了(17:59)・Day6 4視点MIX final.mp4 YouTube非公開アップ 軍師PASS |
 | 2号 | GLM | ✅ idle | subtask_1467b ✅完了(15:25)・cmd_1467完遂(案2確定 15:55) |
 | 3号 | Opus[1m] | ✅ idle | subtask_1473a ✅完了(17:24)・pretool_check CHK2改修(73e7a9a)・軍師QC中 |
 | 4号 | GLM | ✅ idle | subtask_1471a ✅完了(16:01)・軍師QC PASS(17:05)・cmd_1471完遂 |
 | 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1466a ✅完了(14:56)・curriculum_v2.html LAN公開 軍師PASS |
-| 軍師 | Opus[1m] | ✅ idle | design_1472a ✅完了(17:11)・pretool_check CHK2設計PASS(+12/-4行・CHK2のみ対象) |
+| 軍師 | Opus[1m] | 🔄 busy | design_review_1475 in_progress(18:01) cmd読込側システム設計 中立評価 |
 
 ---
 
@@ -83,6 +88,7 @@
 | cmd_1450 | ✅ **done_ng(07:24)** 殿判断「面白くない・なぎなた不在」→note下書き2件削除中(subtask_1450_cleanup/足軽2号) |
 | cmd_1466 | ✅ **完遂(14:58)** curriculum_v2.html 38スライド Marp+LAN公開(8082) 軍師PASS・slide_lan_publish手順確立 |
 | cmd_1465 | ✅ **完遂(13:41)** Udemy curriculum_v2.md 672行 5ペルソナ/18章ハンズオン/競合4領域対決 軍師PASS_with_finding |
+| cmd_1464 | ✅ **完遂(17:59)** Day6 4視点MIX final.mp4(2291s/1080p) YouTube非公開 EVfo4W7jCIc サムネ設定済 軍師PASS 6/6 |
 | cmd_1472 | ✅ **完遂(17:36)** Day6 ECHIDNAサムネ v3案1確定・将軍直接実行・thumbnail_final.png commit df61381+f252122 push済 |
 | cmd_1467 | ✅ **完遂(17:36更新)** Day6 ECHIDNA サムネ v3案1確定・thumbnail_final.png commit df61381 (submodule) push済 |
 | cmd_1470 | ✅ **完遂(15:49)** pretool_check CHK3 procedure:必須化 7/7AC commit d8764ad 軍師PASS |
