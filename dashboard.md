@@ -96,7 +96,7 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 | cmd_1450 | — | ✅ **done_ng(07:24)** subtask_1450_cleanup=PASS(07:47・軍師QC)・note下書き2件削除・両URL 404確認済 |
 | cmd_1451 | 足軽2号→軍師 | ✅ **PASS_with_finding(07:41)** noise 2種→advisor_proxy: cmd_1457対応中/403系: 要確認 |
 | cmd_1452 | 足軽1号→軍師 | ✅ **完了(07:52)** 35GB回収 88%→84%。殿判断Option C確定・Tier-B追加削除なし |
-| cmd_1453 | 足軽1号 | 🔄 **watcher再起動完了(09:54)** 全10件 WARN 0件確認・30分観察中(足軽1号・~10:25) |
+| cmd_1453 | 足軽1号 | ✅ **完全完了(10:29)** 全10プロセス WARN 0件確認・glm修正コード正常稼働 |
 | cmd_1455 | 足軽4号→軍師 | ✅ **PASS(07:57)** done_gate.sh H_post拡張 +20行(AC上限完全一致)・unit test 8件全PASS |
 | cmd_1456 a/c/d | 足軽5/6/7号→軍師 | ✅ **全完遂・QC完了** a=PASS/c=PASS_with_finding(INFO)/d=PASS |
 | cmd_1457 | 足軽3号→軍師 | ✅ **PASS_with_finding(08:33)** 30分観察完了・advisor_proxy FP 0件達成・Finding: WARN flush 1172件/30min genai_daily系noise抑制検討推奨 |
@@ -112,7 +112,7 @@ Day6 MIX cmd起票時に「disk 84%・タイト運用」を必須注記。
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | GLM | 🔄 busy | subtask_1453a_observe 発令(09:55)・watcher WARN 0件確認(~10:25) |
+| 1号 | GLM | ✅ idle | subtask_1453a_observe ✅完了(10:29)・WARN 0件全確認 |
 | 2号 | GLM | 🔄 busy | subtask_1461a 発令(10:25)・dashboard_lifecycle.sh拡張 |
 | 3号 | Opus[1m] | ✅ idle | subtask_1458b ✅完了(08:39)・新版public+旧版private確認 |
 | 4号 | GLM | ✅ idle | cmd_1455 ✅PASS(07:57・軍師QC) |
