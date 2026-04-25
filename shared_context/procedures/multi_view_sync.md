@@ -159,3 +159,9 @@ visual_verification:
 3. **conf=1.00でも疑え** — 数値と耳の両方で判断
 4. **音声3ch amix 検証** — 最終確認は動画再生で
 5. **sync_record.yaml なしの MIX は完了とみなさない** — Step 7 の記録生成が MIX 完了の必須条件。軍師 QC もこの記録の存在と整合性を検証せよ（cmd_1464 QC形骸化対策）
+6. **VP9→h264変換時はbitrate劣化を防げ** — 元素材が VP9 (4Mbps級) の場合、h264化時に以下を必須:
+   - NVENC VBR: `-c:v h264_nvenc -preset p4 -rc vbr -b:v 6000k -maxrate 8000k -bufsize 12000k`
+   - または CQP: `-c:v h264_nvenc -preset p4 -rc constqp -qp 18` (※高bitrateになりやすいので注意)
+   - **デフォルト 2000 kb/s は禁止** — 元素材の44%に劣化する（cmd_1487実測）
+   - 変換前後で ffprobe で bitrate 確認、50%以上の劣化は NG
+   - sync_record.yaml に `bitrate_check` セクション追加（before/after kb/s 記録）
