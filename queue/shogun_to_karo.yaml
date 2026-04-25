@@ -1327,7 +1327,8 @@ commands:
     \ (video-qc-llm skill) / cmd_1491 (server.py inbox統合)\n- 関連手順: shared_context/procedures/master_telop_two_stage.md\
     \ (cmd_1486で作成済)\n- 関連 skill: video-pipeline / highlight / manga-short (別workflow)"
 - id: cmd_1490
-  status: in_progress
+  status: done
+  completed_at: '2026-04-25T22:51:00+09:00'
   priority: medium
   purpose: 軍師が動画再生不可なLLMでもQCを形骸化させない『LLM動画QC4点セット』を正式スキル化。cmd_1485のCONDITIONAL_PASSスキップで殿実視聴NGが発覚した教訓を恒久化する。
   timestamp: '2026-04-25T22:17:35+09:00'
