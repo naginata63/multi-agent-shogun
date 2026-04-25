@@ -2011,7 +2011,51 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     finally:
                         fcntl.flock(lock_f, fcntl.LOCK_UN)
 
-                resp = json.dumps({'ok': True, 'cmd_id': cmd_id, 'entry_line': entry_line, 'fields': list(entry.keys())}, ensure_ascii=False).encode('utf-8')
+                # === cmd_1491: cmd_history JSON保管 + inbox自動通知 ===
+                # cmd_history JSON保管 (将来audit_logテーブル代替まで・SQLite p2完了後は廃止)
+                try:
+                    history_dir = os.path.join(BASE_DIR, 'queue', 'cmd_history')
+                    os.makedirs(history_dir, exist_ok=True)
+                    history_path = os.path.join(history_dir, f'{cmd_id}_request.json')
+                    with open(history_path, 'w', encoding='utf-8') as hf:
+                        json.dump(body, hf, ensure_ascii=False, indent=2)
+                except Exception as he:
+                    print(f"[cmd_history] WARN: {he}")
+
+                # inbox自動通知 (notify_karo=true デフォルト・kill_switch:false でskip)
+                notify_karo = body.get('notify_karo', True)
+                if notify_karo:
+                    try:
+                        import secrets
+                        notify_message = body.get('notify_message') or f"{cmd_id}発令済(API)。purpose: {body['purpose'][:80]}"
+                        inbox_path = os.path.join(BASE_DIR, 'queue', 'inbox', 'karo.yaml')
+                        inbox_lock = inbox_path + '.lock'
+                        now_jst = datetime.now(timezone(timedelta(hours=9)))
+                        msg_id = f"msg_{now_jst.strftime('%Y%m%d_%H%M%S')}_{secrets.token_hex(4)}"
+                        new_msg = {
+                            'id': msg_id,
+                            'from': 'shogun',
+                            'type': 'cmd_new',
+                            'content': notify_message,
+                            'read': False,
+                            'timestamp': now_jst.strftime('%Y-%m-%dT%H:%M:%S+09:00')
+                        }
+                        with open(inbox_lock, 'w') as ilf:
+                            fcntl.flock(ilf, fcntl.LOCK_EX)
+                            try:
+                                with open(inbox_path, 'r', encoding='utf-8') as f:
+                                    inbox_data = yaml.safe_load(f) or {'messages': []}
+                                if not isinstance(inbox_data, dict):
+                                    inbox_data = {'messages': []}
+                                inbox_data.setdefault('messages', []).append(new_msg)
+                                with open(inbox_path, 'w', encoding='utf-8') as f:
+                                    yaml.dump(inbox_data, f, allow_unicode=True, sort_keys=False, default_flow_style=False)
+                            finally:
+                                fcntl.flock(ilf, fcntl.LOCK_UN)
+                    except Exception as ie:
+                        print(f"[inbox_notify] WARN: {ie}")
+
+                resp = json.dumps({'ok': True, 'cmd_id': cmd_id, 'entry_line': entry_line, 'fields': list(entry.keys()), 'notified': notify_karo}, ensure_ascii=False).encode('utf-8')
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self.send_header('Content-Length', str(len(resp)))

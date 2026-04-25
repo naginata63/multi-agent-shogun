@@ -186,6 +186,7 @@
 !scripts/cron_health_check.sh
 !scripts/done_gate.sh
 !scripts/posttool_verify_runner.sh
+!scripts/pretool_kill_shogun_only.sh
 !scripts/phase_gate_checker.sh
 !scripts/silent_fail_watcher.sh
 !scripts/monthly_feedback_review.sh

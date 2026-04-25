@@ -74,6 +74,15 @@
                         "timeout": 8
                     }
                 ]
+            },
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash /home/murakami/multi-agent-shogun/scripts/pretool_kill_shogun_only.sh",
+                        "timeout": 5
+                    }
+                ]
             }
         ],
         "PostToolUse": [
@@ -127,7 +136,6 @@
             "Bash(rm -rf ~*)",
             "Bash(sudo *)",
             "Bash(su *)",
-            "Bash(kill *)",
             "Bash(killall *)",
             "Bash(pkill *)",
             "Bash(git push --force*)",
