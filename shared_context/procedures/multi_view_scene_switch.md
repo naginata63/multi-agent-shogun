@@ -99,3 +99,10 @@ acceptance_criteria:
 3. **視点切替は機械的+判断併用** — 完全自動でも完全手動でもなく、足軽が両方使う
 4. **音声は 1 方式に絞る** — メイン視点切替 or amix のどちらかに統一 (混在禁止)
 5. **境界 SE/transition 定義は selected_json_v2_spec.md 参照** — 新規定義は同ファイル拡張
+6. **master/telop 二段生成必須** — テロップ修正コスト数時間→数十分に短縮 (cmd_1486)
+   - master.mp4 = テロップなしの完成形MIX動画 (sync・concat・transition全て適用済)
+   - with_telop.mp4 = master.mp4 に ffmpeg drawtext で右上テロップ等を後付け1pass
+   - アップロード対象は with_telop.mp4 だが、master.mp4 は永続保管 (削除禁止)
+   - テロップ修正発生時: master.mp4 から再 drawtext で with_telop_v2.mp4 を生成 (4視点合成は再実行禁止)
+   - 元素材 (oo_men_*.mp4 等) に既存テロップが入っている場合は素材選定からやり直し (既存テロップ上に重ね描き禁止)
+   - 詳細手順: `shared_context/procedures/master_telop_two_stage.md`

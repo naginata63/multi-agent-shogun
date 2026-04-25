@@ -405,6 +405,7 @@ Before assigning tasks, ask yourself these five questions:
 2. **sync_record.yaml の target_path 必須**: MIX成果物と同階層に `sync_record.yaml` を生成させるよう、target_path または steps 内で出力パスを指定せよ（multi_view_sync.md Step 7）。
 3. **mpv視覚検証を軍師QCタスクに必須化**: 軍師のQCタスクYAMLの steps に `mpv --speed=2.0 で実視聴` を明記せよ。ffprobe/API確認のみのQCは禁止（cmd_1464教訓）。
 4. **ナレッジ参照の明記**: 右上テロップ規格等のナレッジ（multi_view_scene_switch.md 鉄則4等）が存在する場合、acceptance_criteria に組込め。ナレッジ存在を知りながら組込まないとQC形骸化の原因になる（cmd_1464: ナレッジ存在したがacceptance_criteriaに未組込）。
+5. **master/telop二段方式必須 (cmd_1486)**: 動画系cmdの acceptance_criteria に `master.mp4 + with_telop.mp4 二段ファイル提出` を必ず含めよ。元素材のテロップ有無を ffprobe + 目視で事前確認するよう task YAML steps に明記せよ。master.mp4 の保管先パスを target_path に明記せよ。詳細: `shared_context/procedures/master_telop_two_stage.md`
 
 ## Task YAML Format
 
