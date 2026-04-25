@@ -401,7 +401,7 @@ tasks:
   parent_cmd: cmd_1478
   assigned_to: ashigaru1
   bloom_level: L3
-  status: in_progress
+  status: done
   timestamp: '2026-04-25T20:01:00+09:00'
   description: 'cmd_1478 YouTube差替え。subtask_1478a完成のfinal.mp4(2295s/2.7GB)をEVfo4W7jCIcに差替え。殿判断: mpv視聴スキップでOK・即非公開アップ進めよ(private維持)。'
   target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260416_【#DoZ】6日目 腹から声が出ないヒーラーに命を任せれられるとでも？【ドズル社／おおはらMEN視点】/final.mp4

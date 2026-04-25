@@ -1723,8 +1723,9 @@ commands:
     - 修正範囲は軍師指摘箇所に限定し、関連箇所のリファクタは別cmd化せよ（scope creep禁止）。\n- subtask_1477b で server.py\
     \ に POST /api/cmd_update を追加する場合、cmd_1474 のpass-through実装を踏襲し flock+atomic+lord_original対応を保つ。"
 - id: cmd_1478
-  status: in_progress
+  status: done
   started_at: '2026-04-25T18:51:00+09:00'
+  completed_at: '2026-04-25T20:09:39+09:00'
   priority: high
   purpose: cmd_1464 Day6 Echidna 4視点MIX final.mp4 (YouTube EVfo4W7jCIc) の規格逸脱を修正・sync_record.yaml生成必須化
   timestamp: '2026-04-25T18:41:54+09:00'

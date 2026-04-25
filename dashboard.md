@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 20:02
+最終更新: 2026-04-25 20:10
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -12,10 +12,10 @@
 - **cmd_1348**: ✅ 殿判断: done(2026-04-25 20:00 DingTalk QCループ修正完了扱い)
 - **cmd_1450**: done_ng(07:24)済・note下書き削除subtask_1450_cleanup完了? cleanup完了確認→statusを正式done化
 
-### 🎬 cmd_1478 YouTube差替え中（足軽1号 subtask_1478b）
-軍師QC CONDITIONAL_PASS(19:30)。殿判断: mpv視聴スキップOK・即アップ(20:01)。
-- 足軽1号が EVfo4W7jCIc への差替え(private維持)実行中
-- 完了後 ntfy通知予定
+### 🎬 cmd_1478 完遂（20:10）
+軍師QC CONDITIONAL_PASS → 殿判断: mpv視聴スキップOK → YouTube差替え完了
+- ⚠️ **新URL**: https://www.youtube.com/watch?v=M7UKrqiI3Eo (旧EVfo4W7jCIc→新M7UKrqiI3Eo・private維持)
+- 動画タイトル: Day6 Echidna 4視点MIX (1戦目MEN→4画面→MEN・8戦目通常パターン・右上テロップ修正済)
 
 ### 🔧 cmd_1477完遂 → プロセス再起動が必要（要対応）
 - **[HIGH-1] advisor_proxy**: ✅完遂(19:05)。**★再起動が必要** (Sonnet 4.6 default反映には現行プロセス再起動が必要)
@@ -67,7 +67,7 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 
 | cmd | 担当 | 状態 |
 |-----|------|------|
-| cmd_1478 | 足軽1号 | 🔄 **YouTube差替え中(20:01〜)** subtask_1478b: EVfo4W7jCIc private維持 差替えアップ中 |
+| cmd_1478 | 足軽1号 | ✅ **完遂(20:10)** Day6 Echidna 4視点MIX 規格修正+YouTube差替え 新URL: M7UKrqiI3Eo |
 | cmd_1476 | 軍師 | ✅ **完遂(18:27)** /clear後 独立評価 HIGH3件 MEDIUM5件 LOW3件 発掘 |
 
 ---
@@ -76,7 +76,7 @@ MEDIUM 5件（スケーリング・観測性）: reports/ archive・tasks YAML a
 
 | 足軽 | CLI | 状態 | 現タスク |
 |------|-----|------|---------|
-| 1号 | GLM | 🔄 稼働中 | subtask_1478b YouTube差替え中(20:01〜) EVfo4W7jCIc private |
+| 1号 | GLM | ✅ idle | subtask_1478b ✅完了(20:09) YouTube差替え 旧EVfo4W7jCIc→新M7UKrqiI3Eo |
 | 2号 | GLM | ✅ idle | subtask_1479a ✅完了(19:01)・軍師QC PASS(19:01)・動画系QC規格化5ファイル |
 | 3号 | Opus[1m] | ✅ idle | subtask_1477b ✅完了(19:01)・軍師QC PASS(19:03)・inbox_write.sh silent_fail log化 |
 | 4号 | GLM | ✅ idle | subtask_1477a ✅完了(18:46)・軍師QC PASS(18:48)・advisor_proxy Sonnet切替 |
