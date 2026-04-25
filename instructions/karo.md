@@ -60,72 +60,13 @@ workflow:
   - step: 6
     action: create_task
     target: "POST /api/task_create (curl・SQLite + YAML dual-path 自動同期)"
-    append_only_rule: |
-      【必須】タスクは API 経由で起票。YAML 直編集禁止。
-      - 旧運用: queue/tasks/{agent}.yaml に Edit で追記 → 廃止
-      - 新運用: POST /api/task_create で task_id/agent/status/parent_cmd/priority/title 等を JSON body に
-      - 既存タスクの status 更新は POST /api/task_create に同 task_id で投げ直しか、SQL UPDATE
-      - parent_cmd フィールドは必須（どの cmd から派生したか記録）
-    target_path_rule: |
-      【必須】全タスクYAMLに target_path フィールドを付与すること。省略禁止。
-      - 形式: 絶対パスで記述（例: /home/murakami/multi-agent-shogun/instructions/karo.md）
-      - 意味: 足軽が書き込んでよい成果物ファイルの指定。pretool_check.sh (CHK1/CK2) が
-        Write/Edit ツールのファイルパスと照合し、work/cmd_*/ 配下への直接書込を BLOCK する。
-      - 成果物が複数ファイルに跨る場合: 共通ディレクトリ（例: /home/murakami/.../scripts/）か、
-        主たる成果物ファイルを指定し、steps 内で他ファイルを明記する。
-      - target_path 欠落のタスクは pretool_check CHK6 (cmd YAML lint) で BLOCK される。
-      - 判断不能なタスク（調査/探索系）でも target_path は必須。報告先 YAML を指定してよい
-        （例: queue/reports/ashigaru{N}_report_{task_id}.yaml）。
-    procedure_rule: |
-      【必須】タスクYAMLのsteps/descriptionは80行以内に収めよ。
-      具体的な手順（ffmpegコマンド、Pythonスクリプト等）は shared_context/procedures/ の手順テンプレートに外出しし、
-      タスクYAMLでは procedure: フィールドでパスを参照する。
-      【機械強制】新規 task_id に procedure: が欠落していると pretool_check CHK3拡張が BLOCK する (cmd_1470)。
-
-      利用可能なテンプレート:
-        - shared_context/procedures/manga_panel_gen.md — 漫画パネルPNG生成
-        - shared_context/procedures/stt_pipeline.md — STTパイプライン
-        - shared_context/procedures/youtube_upload.md — YouTube非公開アップ
-        - shared_context/procedures/video_compose.md — パネル→動画合成
-        - shared_context/procedures/clip_concat.md — クリップ連結
-
-      タスクYAML記述例:
-        - task_id: subtask_XXX
-          procedure: shared_context/procedures/manga_panel_gen.md
-          params:
-            panels_json: work/.../panels.json
-            panel_ids: [p3, p4, p5]
-            output_dir: work/.../output/
-          steps: |
-            Step1: procedure記載の手順に従い、上記paramsで実行
-            Step2: 報告
-          （stepsは補足のみ。メインの手順はprocedureファイルを参照させる）
-
-      ⚠️ stepsは1行まで。2行以上でPreToolUseフックにBLOCKされる。
-      テンプレートにない手順は新規テンプレートを shared_context/procedures/ に作成してから参照せよ。
-    bloom_level_rule: |
-      【必須】全タスクYAMLに bloom_level フィールドを付与すること。省略禁止。
-      config/settings.yaml のBloom定義コメントを参照:
-        L1 記憶: コピー、移動、単純置換
-        L2 理解: 整理、分類、フォーマット変換
-        L3 機械的適用: 定型修正、テンプレ埋め、frontmatter一括修正
-        L4 創造的適用: 記事執筆、コード実装（判断・創造性を伴う）
-        L5 分析・評価: QC、設計レビュー、品質判定
-        L6 創造: 戦略設計、新規アーキテクチャ、要件定義
-      判断基準: 「創造性・判断が要るか？」→ YES=L4以上、NO=L3以下。
-      Step 6.5のbloom_routingがこの値を使ってモデルを動的に切り替える。
-    echo_message_rule: |
-      echo_message field is OPTIONAL.
-      Include only when you want a SPECIFIC shout (e.g., company motto chanting, special occasion).
-      For normal tasks, OMIT echo_message — ashigaru will generate their own battle cry.
-      Format (when included): sengoku-style, 1-2 lines, emoji OK, no box/罫線.
-      Personalize per ashigaru: number, role, task content.
-      When DISPLAY_MODE=silent (tmux show-environment -t multiagent DISPLAY_MODE): omit echo_message entirely.
-    batch_modify_safety_rule: |
-      【必須】batch修正タスク（5件以上のファイルを一括修正するスクリプト実行を含むタスク）には、
-      必ず `safety: batch_modify` フィールドを付与すること。
-      足軽はこのフィールドを見たら instructions/git_safety.md をReadしてプロトコルに従う。
-      判断基準: sed/awk/Python/shellループで複数ファイルを書き換える場合 → safety: batch_modify
+    rules: |
+      - 起票は POST /api/task_create のみ (YAML 直編集禁止・dual-path 自動同期)。parent_cmd 必須
+      - target_path: 全タスクで必須・絶対パス・調査系は report YAML 先指定可 (pretool CHK1/2/6 で BLOCK)
+      - procedure: shared_context/procedures/ の既存テンプレートをパス参照 (新規は先に作成)・steps は 1行 (pretool が 2行+を BLOCK)
+      - bloom_level: L1-L6 必須 (config/settings.yaml 参照)・bloom_routing が動的モデル選択
+      - echo_message: OPTIONAL・通常省略・DISPLAY_MODE=silent 時は禁止
+      - safety: batch_modify: 5+ファイル一括修正タスクに必須 (instructions/git_safety.md 準拠)
   - step: 6.5
     action: bloom_routing
     condition: "bloom_routing != 'off' in config/settings.yaml"
@@ -335,15 +276,13 @@ done
 | 用途 | API |
 |------|-----|
 | タスク起票 (queue/tasks/{agent}.yaml + SQLite dual-path) | `POST /api/task_create` (cmd_1494で実装) |
-| 全足軽の最新タスク状態 (filter 無し) | `GET /api/task_list?limit=20` |
-| 特定足軽の全 task 履歴 | `GET /api/task_list?agent=ashigaruN&limit=10` |
-| 特定 cmd の関連タスク | `GET /api/task_list?cmd=cmd_XXX` |
-| 進行中タスクのみ | `GET /api/task_list?status=in_progress` |
-| 進行中cmd一覧 | `GET /api/cmd_list?status=in_progress` |
-| dashboard 集計 (active_cmds/agents/messages) | `GET /api/dashboard` |
+| 全足軽の最新タスク状態 | `GET /api/task_list?limit=10` |
+| 特定足軽 | `GET /api/task_list?agent=ashigaruN&limit=5` |
+| 進行中cmd一覧 | `GET /api/cmd_list?status=in_progress&slim=1` |
+| dashboard 集計 (**default で slim=1 を使え**) | `GET /api/dashboard?slim=1` (約 2KB・通常版24KB) |
 | 各エージェント生存・inbox状態 | `GET /api/agent_health` |
-| 報告書 (QC report 等) の YAML 全文取得 | `GET /api/report_detail?id=<report_id>` |
-| 報告書一覧 | `GET /api/report_list?cmd=cmd_XXX` or `?worker=ashigaruN` |
+| 報告書 YAML 全文 | `GET /api/report_detail?id=<report_id>` |
+| 報告書一覧 | `GET /api/report_list?cmd=cmd_XXX` |
 
 ### ❌ 家老が以下をすると殿激怒 (API 不信からの fallback 禁止)
 
