@@ -4841,12 +4841,15 @@ commands:
   implementation_flow: |
     1. seg1戦目.mp4 = 142秒 4視点 MIX 独立完成 (1:39:28〜1:41:50)
     2. seg8戦目.mp4 = 2150秒 4視点 MIX 独立完成 (3:55:10〜4:31:00)
-    3. ffmpeg -f concat -c copy → final.mp4 (瞬時・無劣化)
-    4. YouTube非公開アップ
+    3. transition.mp4 = seg1末尾1-2秒 + wipeleft xfade + sceneswitch1 SE + seg8冒頭1-2秒 (3-5秒)
+       SE: projects/dozle_kirinuki/assets/bgm/sfx/sceneswitch1.mp3
+    4. concat結合 (h264_nvenc): seg1(末尾切除) + transition.mp4 + seg8(冒頭切除) → final.mp4
+       ※ transition部分のみ再エンコ・境界以外は -c copy で高速
+    5. YouTube非公開アップ
   acceptance_criteria:
     - "seg1戦目.mp4 生成 (~142秒・4視点MIX・h264_nvenc・14Mbps)"
     - "seg8戦目.mp4 生成 (~2150秒・4視点MIX・h264_nvenc・14Mbps)"
-    - "final.mp4 生成 (seg1+seg2 concat -c copy・合計~2292秒)"
+    - "final.mp4 生成 (seg1+transition+seg2 concat・合計~2295秒前後)"
     - "視点切替: MEN始まり→MEN終わり・中間でcharlotte/hendy/tsurugi・盛り上がりで4画面grid(2x2)"
     - "音声: 表示視点の音声採用(4画面grid時はMEN音声)"
     - "右上テロップ: 『エキドナ(初戦)』seg1戦目期間・『エキドナ(8戦目)』seg8戦目期間"
@@ -4856,7 +4859,7 @@ commands:
   notes:
     - "依存: cmd_1463 (4視点素材8本) 完了が前提→完了後に足軽1号(cmd_1424経験者)へ発令"
     - "参考: cmd_1424 zephyrus_v3.sh / shared_context/procedures/multi_view_sync.md"
-    - "amix不要 (音声は切替ゆえ)"
+    - "amix不要 (音声は切替ゆえ)"\n    - "境界トランジション: wipeleft + sceneswitch1 SE (C選択・selected_json_v2_spec.md準拠)"\n    - "SE: projects/dozle_kirinuki/assets/bgm/sfx/sceneswitch1.mp3"
     - "opening/outro なし (殿確定)"
     - "殿レビューPhase Gate: 将軍が殿に確認中(各seg後 or final.mp4のみ)→判明次第dashboard更新"
     - "殿経験則: 一気エンコは時間かかる→seg独立方式で失敗時の影響限定"
