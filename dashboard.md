@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-25 15:31
+最終更新: 2026-04-25 15:47
 
 ## 📱 ntfy通知
 トピック: `shogun-962f817f20fadb36`
@@ -40,7 +40,7 @@
 | cmd_1467 | 足軽2号 | ⏳ **殿レビュー待ち(15:25)** v2 3案完了(--ref-limit 0) http://192.168.2.7:8081/ ntfy通知済 |
 | cmd_1468 | 軍師 | ✅ **完遂(13:32)** cron再発真因究明 offset追跡実装・13:30 hit=0確認 軍師PASS |
 | cmd_1469 | 軍師 | ✅ **完遂(13:37)** server.py R1 タイムスタンプparse修正 fresh cmd age正常化 軍師PASS |
-| cmd_1470 | 足軽3号 | 🔄 **発令(15:31)** pretool_check CHK3 procedure:必須化 新規task_id BLOCK |
+| cmd_1470 | 足軽3号 | ⏳ **軍師QC中(15:47)** pretool_check CHK3 procedure:必須化 軍師qc_1470a発令 |
 
 ---
 
@@ -50,12 +50,12 @@
 |------|-----|------|---------|
 | 1号 | GLM | 🔄 busy | subtask_1464a 発令(12:10)・Day6 4視点MIX final.mp4生成 |
 | 2号 | GLM | ✅ idle | subtask_1467b ✅完了(15:25)・v2 3案生成 殿選択待ち |
-| 3号 | Opus[1m] | 🔄 busy | subtask_1470a 発令(15:31)・pretool_check CHK3 procedure:必須化 |
+| 3号 | Opus[1m] | ✅ idle | subtask_1470a ✅完了(15:46)・pretool_check CHK3 procedure:必須化 軍師QC中 |
 | 4号 | GLM | ✅ idle | subtask_1469a ✅完了(13:34)・server.py R1 タイムスタンプparse修正 |
 | 5号 | GLM | ✅ idle | subtask_1459b ✅完了(08:37)・軍師QC中 |
 | 6号 | GLM | ✅ idle | subtask_1456c ✅PASS_with_finding(07:57・軍師QC) |
 | 7号 | GLM | ✅ idle | subtask_1466a ✅完了(14:56)・curriculum_v2.html LAN公開 軍師QC中 |
-| 軍師 | Opus[1m] | ✅ idle | qc_subtask_1466a ✅PASS(14:58)・cmd_1466完遂 |
+| 軍師 | Opus[1m] | 🔄 busy | qc_subtask_1470a 発令(15:47)・pretool_check CHK3 QC中 |
 
 ---
 

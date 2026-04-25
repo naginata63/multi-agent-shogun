@@ -1336,7 +1336,7 @@ tasks:
 - task_id: subtask_1470a
   parent_cmd: cmd_1470
   bloom_level: L4
-  status: in_progress
+  status: done
   timestamp: "2026-04-25T15:29:00+09:00"
   target_path: /home/murakami/multi-agent-shogun/scripts/pretool_check.sh
   description: |

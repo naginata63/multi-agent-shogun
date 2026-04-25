@@ -3784,7 +3784,7 @@ tasks:
 - task_id: qc_subtask_1466a
   parent_cmd: cmd_1466
   bloom_level: L3
-  status: assigned
+  status: done
   timestamp: "2026-04-25T14:57:00+09:00"
   target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1466a.yaml
   description: "cmd_1466 QC: curriculum_v2.html Marp HTML化+LAN公開(8082)確認。shared_context/qc_template.md 参照してQCせよ。"
@@ -3802,3 +3802,23 @@ tasks:
     - "shared_context/qc_template.md 必須参照"
     - "advisor()必須"
     - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1466a完了(判定)。' qc_result gunshi"
+- task_id: qc_subtask_1470a
+  parent_cmd: cmd_1470
+  status: assigned
+  timestamp: "2026-04-25T15:47:00+09:00"
+  target_path: /home/murakami/multi-agent-shogun/scripts/pretool_check.sh
+  description: "subtask_1470a QC: pretool_check.sh CHK3 procedure:必須化の品質検査"
+  steps: "shared_context/qc_template.md 参照→Step1:pretool_check.sh CHK3ロジック読解(procedure:不在BLOCK・新規task_idのみ)→Step2:テスト2ケース実行(procedure無し=BLOCK・有り=素通り)→Step3:regression確認(既存CHK全テスト)→Step4:task_yaml_schema.md更新確認→Step5:instructions/karo.md+ashigaru.md更新確認→Step6:git log確認→PASS/FAIL判定→advisor()→完了後inbox karo報告"
+  acceptance_criteria:
+    - "scripts/pretool_check.sh CHK3 に procedure: 不在 BLOCK ロジック追加済み"
+    - "新規 task_id のみ規制(既存 task_id は素通り・後方互換)"
+    - "テスト: procedure なし BLOCK・あり 素通り 両方PASS"
+    - "regression 0件(既存CHK1-8全テスト通過)"
+    - "shared_context/task_yaml_schema.md 更新確認"
+    - "instructions/karo.md + instructions/ashigaru.md 更新確認"
+    - "git commit + push完了"
+  notes:
+    - "足軽3号レポート: queue/reports/ashigaru3_report_subtask_1470a.yaml (存在確認要)"
+    - "shared_context/qc_template.md 必須参照"
+    - "advisor()必須"
+    - "完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '軍師、qc_subtask_1470a完了(判定)。' qc_result gunshi"
