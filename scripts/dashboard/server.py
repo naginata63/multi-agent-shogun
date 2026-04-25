@@ -558,11 +558,11 @@ def get_db_agent_status(agent_id: str, conn) -> str:
     rows = query_db(
         conn,
         """
-        SELECT type, created_at,
-               CASE WHEN to_agent = ? THEN 'in' ELSE 'out' END AS direction
-        FROM messages
-        WHERE to_agent = ? OR from_agent = ?
-        ORDER BY created_at DESC
+        SELECT type, timestamp AS created_at,
+               CASE WHEN agent = ? THEN 'in' ELSE 'out' END AS direction
+        FROM inbox_messages
+        WHERE agent = ? OR from_agent = ?
+        ORDER BY timestamp DESC
         LIMIT 50
         """,
         (agent_id, agent_id, agent_id),
@@ -656,9 +656,9 @@ def _get_advisor_proxy_stats():
 def get_dashboard_data():
     conn = get_db()
 
-    # SQLite messages (Phase 4 DB)
-    db_messages = query_db(conn, "SELECT * FROM messages ORDER BY created_at DESC LIMIT 20")
-    db_msg_count = query_db(conn, "SELECT COUNT(*) as c FROM messages")
+    # SQLite inbox_messages (cmd_1488 dual-path)
+    db_messages = query_db(conn, "SELECT * FROM inbox_messages ORDER BY timestamp DESC LIMIT 20")
+    db_msg_count = query_db(conn, "SELECT COUNT(*) as c FROM inbox_messages")
     msg_count_db = db_msg_count[0]["c"] if db_msg_count else 0
 
     # YAML data
@@ -1628,6 +1628,142 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path.startswith('/api/task_list'):
+            # GET /api/task_list?agent=ashigaru3&status=assigned&limit=50
+            try:
+                from urllib.parse import urlparse, parse_qs
+                qs = parse_qs(urlparse(self.path).query)
+                agent = qs.get('agent', [None])[0]
+                status_filter = qs.get('status', [None])[0]
+                cmd_filter = qs.get('cmd', [None])[0]
+                limit = int(qs.get('limit', ['50'])[0])
+
+                conn = sqlite3.connect(DB_PATH, timeout=5)
+                conn.row_factory = sqlite3.Row
+                try:
+                    sql = "SELECT * FROM tasks"
+                    params = []
+                    where = []
+                    if agent:
+                        where.append("agent = ?"); params.append(agent)
+                    if status_filter:
+                        where.append("status = ?"); params.append(status_filter)
+                    if cmd_filter:
+                        where.append("parent_cmd = ?"); params.append(cmd_filter)
+                    if where:
+                        sql += " WHERE " + " AND ".join(where)
+                    sql += " ORDER BY timestamp DESC LIMIT ?"; params.append(limit)
+                    tasks = []
+                    for r in conn.execute(sql, params):
+                        d = {k: v for k, v in dict(r).items()
+                             if v is not None and k != 'full_yaml_blob'}
+                        for k_json, k_clean in [
+                            ('acceptance_criteria_json', 'acceptance_criteria'),
+                            ('notes_json', 'notes'),
+                            ('params_json', 'params'),
+                        ]:
+                            if d.get(k_json):
+                                try: d[k_clean] = json.loads(d[k_json])
+                                except Exception: pass
+                                d.pop(k_json, None)
+                        tasks.append(d)
+                finally:
+                    conn.close()
+
+                body = json.dumps({'tasks': tasks, 'shown': len(tasks),
+                                   'source': 'sqlite'}, ensure_ascii=False,
+                                  indent=2, default=str).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path.startswith('/api/inbox_messages'):
+            # GET /api/inbox_messages?agent=karo&unread=1&limit=20
+            try:
+                from urllib.parse import urlparse, parse_qs
+                qs = parse_qs(urlparse(self.path).query)
+                agent = qs.get('agent', [None])[0]
+                unread = qs.get('unread', [None])[0]  # '1' で未読のみ
+                limit = int(qs.get('limit', ['20'])[0])
+
+                conn = sqlite3.connect(DB_PATH, timeout=5)
+                conn.row_factory = sqlite3.Row
+                try:
+                    sql = "SELECT * FROM inbox_messages"
+                    params = []
+                    where = []
+                    if agent:
+                        where.append("agent = ?"); params.append(agent)
+                    if unread == '1':
+                        where.append("read = 0")
+                    if where:
+                        sql += " WHERE " + " AND ".join(where)
+                    sql += " ORDER BY timestamp DESC LIMIT ?"; params.append(limit)
+                    msgs = [dict(r) for r in conn.execute(sql, params)]
+                finally:
+                    conn.close()
+
+                body = json.dumps({'messages': msgs, 'shown': len(msgs),
+                                   'source': 'sqlite'}, ensure_ascii=False,
+                                  indent=2, default=str).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path.startswith('/api/report_list'):
+            # GET /api/report_list?cmd=cmd_XXX&worker=ashigaru3&limit=20
+            try:
+                from urllib.parse import urlparse, parse_qs
+                qs = parse_qs(urlparse(self.path).query)
+                cmd_filter = qs.get('cmd', [None])[0]
+                worker = qs.get('worker', [None])[0]
+                task_id = qs.get('task', [None])[0]
+                limit = int(qs.get('limit', ['20'])[0])
+
+                conn = sqlite3.connect(DB_PATH, timeout=5)
+                conn.row_factory = sqlite3.Row
+                try:
+                    sql = "SELECT * FROM reports"
+                    params = []
+                    where = []
+                    if cmd_filter:
+                        where.append("parent_cmd = ?"); params.append(cmd_filter)
+                    if worker:
+                        where.append("worker_id = ?"); params.append(worker)
+                    if task_id:
+                        where.append("task_id = ?"); params.append(task_id)
+                    if where:
+                        sql += " WHERE " + " AND ".join(where)
+                    sql += " ORDER BY timestamp DESC LIMIT ?"; params.append(limit)
+                    reports = [dict(r) for r in conn.execute(sql, params)]
+                finally:
+                    conn.close()
+
+                body = json.dumps({'reports': reports, 'shown': len(reports),
+                                   'source': 'sqlite'}, ensure_ascii=False,
+                                  indent=2, default=str).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         elif self.path.startswith('/work/'):
             # 静的ファイル配信: /work/ → projects/dozle_kirinuki/work/
             import mimetypes
@@ -2250,7 +2386,7 @@ if __name__ == '__main__':
     print(f"DB: {os.path.abspath(DB_PATH)}")
     print(f"Tasks: {TASKS_DIR}")
     print(f"shogun_to_karo: {SHOGUN_TO_KARO}")
-    print("Agent status detection: DB-driven (messages table).")
+    print("Agent status detection: DB-driven (inbox_messages table).")
     server = http.server.ThreadingHTTPServer(('0.0.0.0', PORT), DashboardHandler)
     try:
         server.serve_forever()
