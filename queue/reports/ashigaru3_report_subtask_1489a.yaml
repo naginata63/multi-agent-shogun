@@ -1,0 +1,19 @@
+worker_id: ashigaru3
+task_id: subtask_1489a
+parent_cmd: cmd_1489
+timestamp: "2026-04-25T22:40:45"
+status: done
+result:
+  summary: "/master-telop-two-stage スキル正式化完了。.claude/commands/master-telop-two-stage.md 作成 + context/skill_candidates_inventory.md 登録。"
+  files_modified:
+    - "/home/murakami/multi-agent-shogun/.claude/commands/master-telop-two-stage.md"
+    - "/home/murakami/multi-agent-shogun/context/skill_candidates_inventory.md"
+  notes: |
+    - frontmatter: name=master-telop-two-stage, descriptionにトリガー語句6種明記
+    - Do NOT use for: 漫画ショート / 表情ショート 明記
+    - 本文: shared_context/procedures/master_telop_two_stage.md を参照する薄いwrapper形式
+    - skill_candidates_inventory.md に10番目として登録 (IMPLEMENTED)
+    - システム skill list にも即時反映確認済み
+skill_candidate:
+  found: false
+hotfix_notes: null

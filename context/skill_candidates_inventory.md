@@ -7,9 +7,9 @@
 
 ## サマリー
 
-- 総候補数: **9**
+- 総候補数: **10**
 - 🚨 PENDING (未スキル化): **2**
-- ✅ IMPLEMENTED (スキル化済): **2**
+- ✅ IMPLEMENTED (スキル化済): **3**
 - 🟡 NAMELESS (旧形式・name欠落): **5**
 - 🔁 2回以上言及 (ashigaru.md skill化基準クリア): **2**
 - 🆕 直近7日以内初出 (cutoff=2026-04-18): **2**
@@ -27,6 +27,7 @@
 | 7 | `(nameless)` | 🟡 NAMELESS | 1 | 2026-03-14 | 2026-03-14 | Gemini Flash Liteマルチラン品質分析 — リサイクル検出・クロスバリデーション・統合 | subtask_643a(gunshi) |
 | 8 | `yt-dlp-js-runtimes-fix` | ✅ IMPLEMENTED | 2 | 2026-04-24 | 2026-04-24 | yt-dlp使用時にn-challenge solving failedが発生したら --js-runtimes node を追加で解決 | subtask_1425c2(ashigaru4), qc_1425c2(gunshi) |
 | 9 | `skill-candidate-tracker` | ✅ IMPLEMENTED | 1 | 2026-04-24 | 2026-04-24 | queue/reports/ を週次 grep で skill_candidate:found=true を集計→dashboard🚨セクションに自動反映するトラッキング skill（本タスクの H-2 相当） | subtask_1441ghi(ashigaru7) |
+| 10 | `master-telop-two-stage` | ✅ IMPLEMENTED | 1 | 2026-04-25 | 2026-04-25 | 動画MIX (4視点等) でテロップを後加工する標準ワークフロー。master.mp4 + with_telop.mp4 二段保存方式 | subtask_1489a(ashigaru3) |
 
 ## 🔁 2回以上言及された候補 (skill化基準クリア)
 
