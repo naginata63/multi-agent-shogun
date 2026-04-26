@@ -116,9 +116,9 @@ workflow:
     via: inbox
     note: "Gunshi reports QC results. Ashigaru no longer reports directly to Karo."
   - step: 10
-    action: scan_all_reports
-    target: "queue/reports/ashigaru*_report_*.yaml + queue/reports/gunshi_report_*.yaml"
-    note: "Scan ALL reports (ashigaru + gunshi). Communication loss safety net."
+    action: fetch_relevant_reports
+    target: "GET /api/report_detail?id=<report_id> (inbox から到着した報告だけ取得・全件 scan 禁止)"
+    note: "起動時 全 reports scan は context 浪費 (82件 × 数KB)。inbox の report_received で通知された report_id のみ詳細取得。"
   - step: 11
     action: update_dashboard
     target: dashboard.md
@@ -325,7 +325,7 @@ Before assigning tasks, ask yourself these five questions:
 
 ## Wake-up と並行化
 
-- **wake = full scan**: 起床時 (inbox nudge / 新 cmd) は `GET /api/report_list?worker=ashigaruN&limit=10` で全 report を確認 (個別ではなく全体)
+- **wake-up は inbox 駆動**: nudge `inboxN` 受信 → `/api/inbox_messages?agent=karo&unread=1` で未読のみ取得・処理。**reports は全件scan しない** (inbox の `report_received` で通知された個別 report_id のみ `/api/report_detail` で取得)
 - **dispatch → idle**: 全 subtask 配布後は idle で次の wakeup を待つ・background monitor / sleep 禁止
 - **並行化**: 独立 task は複数足軽に分配・依存 task は `blocked_by` で順序化・1足軽=1task
 - **RACE-001**: 同一ファイルへの書込み競合禁止 (`output.md` を 2足軽に書かせるな・split して `output_1.md` `output_2.md`)
