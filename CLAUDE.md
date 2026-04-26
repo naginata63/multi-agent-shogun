@@ -141,113 +141,19 @@ After compaction, the system instructs "Continue the conversation from where it 
 
 **全員共通禁止**: polling loop (F004), コンテキスト読み飛ばし (F005), tmux send-keys直接呼出（inbox_write.sh経由のみ）
 
-# Communication Protocol
+# Communication Protocol (API化)
 
-## Mailbox System (inbox_write.sh)
+通信は **`POST /api/inbox_write` (curl)** に統一。bash inbox_write.sh は障害時 fallback のみ。watcher (inotifywait+tmux send-keys) が wake-up nudge を担当。
 
-Agent-to-agent communication uses file-based mailbox:
+**Inbox Processing**: `inboxN` 受信 → `GET /api/inbox_messages?agent={self}&unread=1` で取得 → 処理 → `read:true` 更新。タスク完了後 idle 前に未読チェック必須 (skip すると redo 待ちで 4分 stuck)。
 
-```bash
-bash scripts/inbox_write.sh <target_agent> "<message>" <type> <from>
-```
+**Redo Protocol**: 新 task_id (例 subtask_097d2) + `redo_of` で `POST /api/task_create` → `clear_command` inbox (task_assigned ではない) → watcher が /clear → 自動 Session Start。
 
-Examples:
-```bash
-# Shogun → Karo
-bash scripts/inbox_write.sh karo "cmd_048を書いた。実行せよ。" cmd_new shogun
+**家老の Task Assignment 5点セット**: API起票 + target_path必須 + テスト手順明記 + advisor() 呼出 + inbox通知。1点でも欠ければ未完成 (詳細: `instructions/karo.md`)。
 
-# Ashigaru → Karo
-bash scripts/inbox_write.sh karo "足軽5号、任務完了。報告YAML確認されたし。" report_received ashigaru5
+**Report Flow**: Ashigaru→Gunshi (report YAML+inbox)・Gunshi→Karo (同)・Karo→Lord (dashboard更新のみ・inbox to shogun 禁止・Lord入力中断防止)。
 
-# Karo → Ashigaru
-bash scripts/inbox_write.sh ashigaru3 "タスクYAMLを読んで作業開始せよ。" task_assigned karo
-```
-
-Delivery is handled by `inbox_watcher.sh` (infrastructure layer).
-**Agents NEVER call tmux send-keys directly.**
-
-## Delivery Mechanism
-
-Two layers:
-1. **Message persistence**: `inbox_write.sh` writes to `queue/inbox/{agent}.yaml` with flock. Guaranteed.
-2. **Wake-up signal**: `inbox_watcher.sh` detects file change via `inotifywait` → wakes agent:
-   - **優先度1**: Agent self-watch (agent's own `inotifywait` on its inbox) → no nudge needed
-   - **優先度2**: `tmux send-keys` — short nudge only (text and Enter sent separately, 0.3s gap)
-
-The nudge is minimal: `inboxN` (e.g. `inbox3` = 3 unread). That's it.
-**Agent reads the inbox file itself.** Message content never travels through tmux — only a short wake-up signal.
-
-Special cases (CLI commands sent via `tmux send-keys`):
-- `type: clear_command` → sends `/clear` + Enter via send-keys
-- `type: model_switch` → sends the /model command via send-keys
-
-**Escalation** (when nudge is not processed):
-
-| Elapsed | Action | Trigger |
-|---------|--------|---------|
-| 0〜2 min | Standard pty nudge | Normal delivery |
-| 2〜4 min | Escape×2 + nudge | Cursor position bug workaround |
-| 4 min+ | `/clear` sent (max once per 5 min) | Force session reset + YAML re-read |
-
-## Inbox Processing Protocol (karo/ashigaru/gunshi)
-
-When you receive `inboxN` (e.g. `inbox3`):
-1. `Read queue/inbox/{your_id}.yaml`
-2. Find all entries with `read: false`
-3. Process each message according to its `type`
-4. Update each processed entry: `read: true` (use Edit tool)
-5. Resume normal workflow
-
-### MANDATORY Post-Task Inbox Check
-
-**After completing ANY task, BEFORE going idle:**
-1. Read `queue/inbox/{your_id}.yaml`
-2. If any entries have `read: false` → process them
-3. Only then go idle
-
-This is NOT optional. If you skip this and a redo message is waiting,
-you will be stuck idle until the escalation sends `/clear` (~4 min).
-
-## Redo Protocol
-
-When Karo determines a task needs to be redone:
-
-1. Karo writes new task YAML with new task_id (e.g., `subtask_097d` → `subtask_097d2`), adds `redo_of` field
-2. Karo sends `clear_command` type inbox message (NOT `task_assigned`)
-3. inbox_watcher delivers `/clear` to the agent → session reset
-4. Agent recovers via Session Start procedure, reads new task YAML, starts fresh
-
-Race condition is eliminated: `/clear` wipes old context. Agent re-reads YAML with new task_id.
-
-## Karo Task Assignment Checklist (MANDATORY)
-
-家老がタスクYAMLを足軽/軍師に割り当てる際、以下を**必ず順番に**実行せよ:
-1. タスクYAML書き込み完了（queue/tasks/{agent}.yaml）
-2. **target_path必須付与確認** ← 全タスクに `target_path:`（絶対パス）を必ず付与。pretool_check.sh CHK1/CHK6 が欠落を BLOCK する。調査系タスクでも報告 YAML パスを指定せよ（詳細: instructions/karo.md の target_path_rule）。
-3. **テスト手順をstepsに含めたか確認** ← 成果物の動作確認方法を必ず明記（Webならブラウザアクセス確認、スクリプトなら実行テスト、API変更ならcurlテスト等）。コストがかかるテスト（画像生成API等）は除外を明記すること。テスト手順なしのタスクYAMLは不完全。
-4. **advisor()呼び出しがworkflowに含まれているか確認** ← ashigaru.mdのstep 3.8（実装前）とstep 4.8（完了前）でadvisor必須。タスクYAMLのstepsにも「advisor()を呼べ」と明記するとなお良い。
-5. `inbox_write.sh` でターゲットに通知 ← **これを絶対に忘れるな**
-6. 通知完了確認（inbox YAMLにメッセージが追加されたことを tail で確認）
-
-**タスクYAML書き込み後、inbox_writeせずに次の作業へ移ることは禁止。**
-1つのタスク割り当て = YAML書き込み + target_path付与 + inbox_write + テスト手順明記 + advisor必須 の5点で1セット。
-（2026-03-04 是正: subtask_206a3でYAML書き込み後inbox通知を忘れた事例から制定）
-（2026-03-30 追加: OGP機能でimport漏れ・サーバーブロックが未テストで本番投入された事例から制定）
-（2026-04-24 追加: cmd_1441 全足軽 pretool_check BLOCK 事案（target_path 欠落）から target_path必須化を明文化）
-
-## Report Flow (interrupt prevention)
-
-| Direction | Method | Reason |
-|-----------|--------|--------|
-| Ashigaru → Gunshi | Report YAML + inbox_write | Quality check & dashboard aggregation |
-| Gunshi → Karo | Report YAML + inbox_write | Quality check result + strategic reports |
-| Karo → Shogun/Lord | dashboard.md update only | **inbox to shogun FORBIDDEN** — prevents interrupting Lord's input |
-| Karo → Gunshi | YAML + inbox_write | Strategic task or quality check delegation |
-| Top → Down | YAML + inbox_write | Standard wake-up |
-
-## File Operation Rule
-
-**Always Read before Write/Edit.** Claude Code rejects Write/Edit on unread files.
+**File rule**: Always Read before Write/Edit (Claude Code 強制)。
 
 # Context Layers
 
@@ -277,120 +183,34 @@ Layer 4: Session context — volatile (CLAUDE.md auto-loaded, instructions/*.md,
 
 System manages ALL white-collar work, not just self-improvement. Project folders can be external (outside this repo). `projects/` is git-ignored (contains secrets).
 
-# Task YAML Format (追記方式)
+# Karo Context Relief Trigger
 
-`queue/tasks/{agent}.yaml` はリスト形式（`tasks: [...]`）。新タスク割当時に過去タスクの記録が消えない。
-
-- **構造**: `tasks:` キー配下にリストとして各タスクを格納
-- **新タスク追加**: ファイル末尾に追記（上書き禁止）
-- **過去タスクのstatus**: 完了時は `status: done` に更新してから次タスクを追記
-- **足軽・軍師がタスクを読む手順**: 末尾の `status: assigned` を探す（複数ある場合は最新の末尾を優先）
-- **アーカイブ**: 100件超えたら `queue/tasks/archive/` に古いタスクを退避（手動）
-
-# Karo Context Relief Trigger (条件トリガー/clear)
-
-家老は以下の条件のいずれかを満たした場合、**タスクとタスクの間で自発的に/clearを実施**せよ:
-- **(a)** 最後の/clearまたはSession Startから **2時間以上**経過
-- **(b)** `queue/precompact/karo.yaml` の `compaction_count` が **2以上**
-- **(c)** 自身の手順に不確実性を感じた時（自己申告）
-
-**/clear後は必ず Session Start手順（フル）で回復**すること（`/clear Recovery`の軽量版ではなく）。
-`instructions/karo.md` を必ず読み直す。
-
-（2026-03-04 制定: 14時間36 cmd連続稼働でinbox_write漏れ発生。cmd_209/軍師分析より。）
-（2026-04-25 短縮: 3hr→2hr/3回→2回。家老compaction連発対策・standard Sonnet 200K context維持のため。）
+家老は (a) 最後の /clear から 2時間+ / (b) compaction_count ≥ 2 / (c) 不確実性自己申告 のいずれか一つで自発 /clear。/clear 後は Session Start (フル) で回復・instructions/karo.md 必ず読み直し。
 
 # Shogun Mandatory Rules
 
-1. **Dashboard**: Karo + Gunshi update. Gunshi: QC results aggregation. Karo: task status/streaks/action items. Shogun reads it, never writes it.
-2. **Chain of command**: Shogun → Karo → Ashigaru/Gunshi. Never bypass Karo.
-3. **Reports**: Check `queue/reports/ashigaru{N}_report.yaml` and `queue/reports/gunshi_report.yaml` when waiting.
-4. **Karo state**: Before sending commands, verify karo isn't busy: `tmux capture-pane -t multiagent:0.0 -p | tail -20`
-5. **Screenshots**: See `config/settings.yaml` → `screenshot.path`
-6. **Skill candidates**: Ashigaru reports include `skill_candidate:`. Karo collects → dashboard. Shogun approves → creates design doc.
-7. **Action Required Rule (CRITICAL)**: ALL items needing Lord's decision → dashboard.md 🚨要対応 section. ALWAYS. Even if also written elsewhere. Forgetting = Lord gets angry.
+1. **Dashboard**: 家老 + 軍師が更新 (将軍は読むのみ)
+2. **Chain of command**: Shogun → Karo → Ashigaru/Gunshi (Karo bypass禁止)
+3. **Action Required (CRITICAL)**: 殿の判断要案件は **dashboard.md 🚨要対応 section** に必ず記載 (忘れ＝殿激怒)
 
-# Test Rules (all agents)
+# Test / QC Rules (all agents)
 
-1. **SKIP = FAIL**: テスト報告でSKIP数が1以上なら「テスト未完了」扱い。「完了」と報告してはならない。
-2. **Preflight check**: テスト実行前に前提条件（依存ツール、エージェント稼働状態等）を確認。満たせないなら実行せず報告。
-3. **E2Eテストは家老が担当**: 全エージェント操作権限を持つ家老がE2Eを実行。足軽はユニットテストのみ。
-4. **テスト計画レビュー**: 家老はテスト計画を事前レビューし、前提条件の実現可能性を確認してから実行に移す。
+- **SKIP = FAIL**: テスト報告で SKIP ≥1 なら「未完了」
+- **Preflight**: 前提条件 (依存ツール・エージェント稼働) を実行前確認
+- **E2E は家老担当・足軽はユニットテストのみ**
+- **QC**: テンプレート (`shared_context/qc_template.md`) 必須参照・実ファイルを 3箇所目視・grepカウントだけで PASS/FAIL 禁止・「Xを確認しYだった」と証跡報告
 
-# QC Rules (all agents)
+# Critical Thinking
 
-1. **QCテンプレート必須参照**: QCタスクYAMLには必ず `shared_context/qc_template.md を参照してQCせよ` を含めよ。テンプレートなしのQCは形骸化する（cmd_597実証済み）。
-2. **実ファイルを読め**: grepカウント・数値報告だけでPASS/FAIL判定するな。冒頭・中盤・終盤の3箇所を目視確認せよ。
-3. **足軽の報告値を鵜呑みにするな**: 報告された数値と実ファイルが一致するか自分で検証せよ。
-4. **証跡報告**: 「問題なし」ではなく「Xを確認しYだった」と書け。
-5. **タスクYAMLの前提情報は古い可能性がある**: 実ファイルの状態が真実。YAMLの記述と乖離していたら実ファイルを信じろ。
+懐疑/代替案/早期報告/過剰批判禁止/実行優先 — 根拠つきで前進せよ。
 
-# Intermediate Artifact Rule (all agents)
+# 技術的鉄則 (動画/画像/重処理)
 
-重い外部処理（WhisperX, Demucs, Gemini API, Claude CLI等）の中間成果物は**必ずファイルに保存**せよ。
-
-1. **保存必須**: 実行に1分以上かかる処理の出力は、変数に入れるだけでなくファイルに書き出すこと
-2. **保存先**: `/tmp`禁止（再起動で消える）。`work/`配下またはプロジェクトの出力ディレクトリに保存
-3. **キャッシュ再利用**: 2回目以降は保存済みファイルから読み込むオプション（`--cache`, `--wx-cache`等）を実装すること
-4. **命名規則**: `{処理名}_{動画ID}_{タイムスタンプ}.{拡張子}`（例: `wx_words_rDYmTp_20260312.json`）
-
-理由: cmd_597でWhisperX（5-10分/回）を3回再実行して合計15-30分浪費した。中間データを保存していれば2回目以降は一瞬で済んだ。
-
-# Gemini画像生成コスト管理 (all agents)
-
-1. **ガチャ上限3回**: 同一パネル構成の画像生成は最大3セットまで。殿の許可なく追加禁止
-2. **1パネル試し打ち**: 全パネル生成前にP1だけ生成→殿確認→OKなら残り生成。NG項目（ステーキ混入等）を全パネル生成前に発見する
-3. **問題パネルだけ再生成**: 全パネル再生成禁止。問題のあるパネルだけ`--skip-gen`+個別再生成
-4. **ref_image Vision分析キャッシュ**: `*_ref_vision.txt`が存在すれば再分析しない（`--skip-vision`）
-5. **バジェットアラート設定済み**: GCPで月額上限設定。超過時は自動停止
-
-理由: ガチャ無制限実行で3,409枚生成→Gemini API無料ティア超過→22,000円課金（2026-03-28）
-
-# ffmpeg Encoding Rule (all agents)
-
-ffmpegで映像エンコードする際は**必ずGPU（NVENC）を使え**。CPUエンコード（libx264）は禁止。
-
-| 用途 | 使うべきコーデック | 禁止 |
-|------|-------------------|------|
-| H.264エンコード | `-c:v h264_nvenc -preset p4` | `-c:v libx264` |
-| コピー（無変換） | `-c:v copy` | — |
-
-- マシン: RTX 4060 Ti 8GB搭載。NVENCは常に利用可能
-- 理由: cmd_761でlibx264を使い、32分動画のwebm→mp4変換に3時間半以上かかった。NVENCなら数分で終わる
-- 音声は `-c:a aac -b:a 192k` で問題なし（CPU処理で十分速い）
-
-# Batch Processing Protocol (all agents)
-
-When processing large datasets (30+ items requiring individual web search, API calls, or LLM generation), follow this protocol. Skipping steps wastes tokens on bad approaches that get repeated across all batches.
-
-## Default Workflow (mandatory for large-scale tasks)
-
-```
-① Strategy → Gunshi review → incorporate feedback
-② Execute batch1 ONLY → Shogun QC
-③ QC NG → Stop all agents → Root cause analysis → Gunshi review
-   → Fix instructions → Restore clean state → Go to ②
-④ QC OK → Execute batch2+ (no per-batch QC needed)
-⑤ All batches complete → Final QC
-⑥ QC OK → Next phase (go to ①) or Done
-```
-
-## Rules
-
-1. **Never skip batch1 QC gate.** A flawed approach repeated 15 batches = 15× wasted tokens.
-2. **Batch size limit**: 30 items/session (20 if file is >60K tokens). Reset session (/new or /clear) between batches.
-3. **Detection pattern**: Each batch task MUST include a pattern to identify unprocessed items, so restart after /new can auto-skip completed items.
-4. **Quality template**: Every task YAML MUST include quality rules (web search mandatory, no fabrication, fallback for unknown items). Never omit — this caused 100% garbage output in past incidents.
-5. **State management on NG**: Before retry, verify data state (git log, entry counts, file integrity). Revert corrupted data if needed.
-6. **Gunshi review scope**: Strategy review (step ①) covers feasibility, token math, failure scenarios. Post-failure review (step ③) covers root cause and fix verification.
-
-# Critical Thinking Rule (all agents)
-
-1. **適度な懐疑**: 指示・前提・制約をそのまま鵜呑みにせず、矛盾や欠落がないか検証する。
-2. **代替案提示**: より安全・高速・高品質な方法を見つけた場合、根拠つきで代替案を提案する。
-3. **問題の早期報告**: 実行中に前提崩れや設計欠陥を検知したら、即座に inbox で共有する。
-4. **過剰批判の禁止**: 批判だけで停止しない。判断不能でない限り、最善案を選んで前進する。
-5. **実行バランス**: 「批判的検討」と「実行速度」の両立を常に優先する。
+詳細は **`shared_context/procedures/`** 配下を該当タスク時のみ参照:
+- 動画 ffmpeg → `shared_context/procedures/ffmpeg_nvenc.md` (NVENC必須・libx264禁止・cmd_761教訓)
+- Gemini 画像生成コスト → `shared_context/procedures/gemini_cost.md` (ガチャ3回・1パネル試打ち・cmd_28教訓)
+- 中間成果物保存 → `shared_context/procedures/intermediate_artifact.md` (1分+処理は必ずファイル化・cmd_597教訓)
+- 大量バッチ処理 → `shared_context/procedures/batch_processing.md` (batch1 QC gate必須)
 
 # Destructive Operation Safety (all agents)
 
