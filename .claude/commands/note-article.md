@@ -38,6 +38,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 - 最低1枚の画像を挿入
 - 記事ソース保存先: `projects/note_mcp_server/articles/{title}.md`
 - **noteで非対応の記法は使わない**: テーブル（`|...|`）、水平線（`---`）
+- **テーブルは画像化して挿入**: PIL/matplotlibでテーブル画像を生成し、noteに画像として挿入する。Markdownテーブルはnoteで表示崩れするため絶対に使うな
 - URLは必ず `[リンクテキスト](URL)` 形式で記述（プレーンURLは使わない）
 - **全画像にキャプションを設定**: 「キャプションを入力」のままにしない（QC_R2の強化）
 - **GitHubリンクはカードリンク形式**: 通常の `[テキスト](URL)` ではなく、URLのみ1行に書いてカードリンクを使用
