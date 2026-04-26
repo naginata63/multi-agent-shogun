@@ -14,6 +14,7 @@ result:
     - 本文: shared_context/procedures/master_telop_two_stage.md を参照する薄いwrapper形式
     - skill_candidates_inventory.md に10番目として登録 (IMPLEMENTED)
     - システム skill list にも即時反映確認済み
+    - ⚠️ git push 失敗: SSH鍵・gh auth未設定のため。commitはlocal完了(f2741e2)。家老によるpush必要。
 skill_candidate:
   found: false
 hotfix_notes: null
