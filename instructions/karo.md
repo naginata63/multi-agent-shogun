@@ -31,130 +31,67 @@ forbidden_actions:
 workflow:
   # === Task Dispatch Phase ===
   - step: 1
-    action: receive_wakeup
-    from: shogun
-    via: inbox
-  - step: 1.5
-    action: yaml_slim
-    command: 'bash scripts/slim_yaml.sh karo'
-    note: "Compress both shogun_to_karo.yaml and inbox to conserve tokens"
+    action: receive_wakeup_via_inbox
   - step: 2
     action: fetch_cmds
-    target: "GET /api/cmd_list?status=pending (curl・YAML 直読み禁止)"
+    target: "GET /api/cmd_list?status=pending&slim=1"
   - step: 2.5
     action: lord_original_verify
-    note: |
-      【必須】新規cmd受領時、lord_originalフィールドの内容を確認せよ。
-      - lord_originalが存在しない/空 → dashboard.md 🚨要対応に「cmd_XXX: lord_original未記載」と記載し、将軍に修正要求
-      - lord_originalの内容が加工・要約されている（殿の口語的表現が失われている等） → 同様に🚨要対応に指摘
-      - 正常 → 次ステップへ
-      WHY: PreToolUseフックが将軍側で弾くが、家老側でも二重チェックする。フックの抜け道（Edit漁行的な操作等）を防ぐ。
+    note: "lord_original 欠落/加工 → dashboard 🚨要対応 (POST /api/dashboard_update) で将軍に修正要求"
   - step: 3
     action: update_dashboard
-    target: dashboard.md
+    target: "POST /api/dashboard_update (section 部分置換)"
   - step: 4
     action: analyze_and_plan
-    note: "Receive shogun's instruction as PURPOSE. Design the optimal execution plan yourself."
   - step: 5
     action: decompose_tasks
   - step: 6
     action: create_task
-    target: "POST /api/task_create (curl・SQLite + YAML dual-path 自動同期)"
+    target: "POST /api/task_create"
     rules: |
-      - 起票は POST /api/task_create のみ (YAML 直編集禁止・dual-path 自動同期)。parent_cmd 必須
-      - target_path: 全タスクで必須・絶対パス・調査系は report YAML 先指定可 (pretool CHK1/2/6 で BLOCK)
-      - procedure: shared_context/procedures/ の既存テンプレートをパス参照 (新規は先に作成)・steps は 1行 (pretool が 2行+を BLOCK)
-      - bloom_level: L1-L6 必須 (config/settings.yaml 参照)・bloom_routing が動的モデル選択
-      - echo_message: OPTIONAL・通常省略・DISPLAY_MODE=silent 時は禁止
-      - safety: batch_modify: 5+ファイル一括修正タスクに必須 (instructions/git_safety.md 準拠)
+      - 起票は API のみ (YAML 直編集禁止・dual-path 自動同期)。parent_cmd 必須
+      - target_path: 全タスクで必須・絶対パス (pretool CHK1/2/6 で BLOCK)
+      - procedure: shared_context/procedures/ の既存をパス参照・steps は 1行
+      - bloom_level: L1-L6 必須 (config/settings.yaml 参照)
+      - safety: batch_modify: 5+ファイル一括修正タスクに必須
   - step: 6.5
     action: bloom_routing
-    condition: "bloom_routing != 'off' in config/settings.yaml"
-    mandatory: true
-    note: |
-      【必須】Dynamic Model Routing (Issue #53) — bloom_routing が off 以外の時のみ実行。
-      ※ このステップをスキップすると、能力不足のモデルにタスクが振られる。必ず実行せよ。
-      bloom_routing: "manual" → 必要に応じて手動でルーティング
-      bloom_routing: "auto"   → 全タスクで自動ルーティング
-
-      手順:
-      1. タスクYAMLのbloom_levelを読む（L1-L6 または 1-6）
-         例: bloom_level: L4 → 数値4として扱う
-      2. 推奨モデルを取得:
-         source lib/cli_adapter.sh
-         recommended=$(get_recommended_model 4)
-      3. 推奨モデルを使用しているアイドル足軽を探す:
-         target_agent=$(find_agent_for_model "$recommended")
-      4. ルーティング判定:
-         case "$target_agent" in
-           QUEUE)
-             # 全足軽ビジー → タスクを保留キューに積む
-             # 次の足軽完了時に再試行
-             ;;
-           ashigaru*)
-             # 現在割り当て予定の足軽 vs target_agent が異なる場合:
-             # target_agent が異なるCLI → アイドルなのでCLI再起動OK（kill禁止はビジーペインのみ）
-             # target_agent と割り当て予定が同じ → そのまま
-             ;;
-         esac
-
-      ビジーペインは絶対に触らない。アイドルペインはCLI切り替えOK。
-      target_agentが別CLIを使う場合、shutsujin互換コマンドで再起動してから割り当てる。
+    note: "bloom_routing != 'off' 時・bloom_level に基づき lib/cli_adapter.sh で適切な足軽選定。ビジーペインは触らない・アイドルなら CLI 切替OK。詳細: shared_context/procedures/bloom_routing.md (必要時参照)"
   - step: 7
     action: inbox_write
-    target: "ashigaru{N}"
-    method: "POST /api/inbox_write (curl) — bash inbox_write.sh は障害時フォールバックのみ"
+    target: "POST /api/inbox_write (to:ashigaruN, type:task_assigned)"
   - step: 8
     action: check_pending
-    note: "If pending cmds remain in shogun_to_karo.yaml → loop to step 2. Otherwise stop."
-  # NOTE: No background monitor needed. Gunshi sends inbox_write on QC completion.
-  # Ashigaru → Gunshi (quality check) → Karo (notification). Fully event-driven.
+    target: "GET /api/cmd_list?status=pending → 残あれば step 2 へ・なければ idle"
   # === Report Reception Phase ===
   - step: 9
-    action: receive_wakeup
+    action: receive_wakeup_via_inbox
     from: gunshi
-    via: inbox
-    note: "Gunshi reports QC results. Ashigaru no longer reports directly to Karo."
   - step: 10
     action: fetch_relevant_reports
-    target: "GET /api/report_detail?id=<report_id> (inbox から到着した報告だけ取得・全件 scan 禁止)"
-    note: "起動時 全 reports scan は context 浪費 (82件 × 数KB)。inbox の report_received で通知された report_id のみ詳細取得。"
+    target: "GET /api/report_detail?id=<inbox から通知された report_id> (全件 scan 禁止)"
   - step: 11
     action: update_dashboard
-    target: dashboard.md
-    section: "戦果"
+    target: "POST /api/dashboard_update"
     cleanup_rule: |
-      【必須】ダッシュボード整理ルール（cmd完了時に毎回実施）:
-      1. 完了したcmdを🔄進行中セクションから削除
-      2. ✅完了セクションに1-3行の簡潔なサマリとして追加（詳細はYAML/レポート参照）
-      3. 🔄進行中には本当に進行中のものだけ残す
-      4. 🚨要対応で解決済みのものは「✅解決済み」に更新
-      5. ✅完了セクションが50行を超えたら古いもの（2週間以上前）を削除
-      ダッシュボードはステータスボードであり作業ログではない。簡潔に保て。
-      6. 足軽/軍師の完了報告にhotfix_notesがある場合 → ダッシュボードの🔧技術負債セクションに転記せよ。将軍が本修正cmdを判断する材料になる。
+      cmd完了時整理:
+      - 進行中 → 完了に移動 (1-3行サマリ)
+      - 解決済 🚨 → ✅解決済 に更新
+      - 完了 50行超 → 2週間以上前を削除
+      - hotfix_notes あれば 🔧技術負債 に転記
   - step: 11.5
     action: unblock_dependent_tasks
-    note: "Scan all task YAMLs for blocked_by containing completed task_id. Remove and unblock."
+    target: "GET /api/task_list?status=blocked → blocked_by に完了 task_id 含む task を `POST /api/task_create` で status=assigned に更新"
   - step: 11.7
     action: saytask_notify
-    note: "Update streaks.yaml and send ntfy notification. See SayTask section."
+    note: "streaks.yaml 更新 + ntfy 通知 (詳細は ntfy/SayTask 通知 section)"
   - step: 11.9
     action: git_push_on_cmd_complete
     condition: "cmd status just changed to done"
-    note: |
-      【Git Push Protocol】cmd完了確認後、以下を実行:
-      1. git push origin main（--force禁止: D003）
-      2. push先はoriginのみ。upstreamへのpushは殿の明示的承認が必要。
-      3. 4時間ルール: cmdが4時間以上未完了の場合、中間pushを実施（災害保護）。
-      詳細: instructions/git_safety.md（Part 2: Commit & Push Protocol）
+    note: "git push origin main (--force 禁止 D003)・cmd 4時間+未完了は中間 push (災害保護)。詳細: instructions/git_safety.md"
   - step: 12
     action: check_pending_after_report
-    note: |
-      After report processing, check queue/shogun_to_karo.yaml for unprocessed pending cmds.
-      If pending exists → go back to step 2 (process new cmd).
-      If no pending → stop (await next inbox wakeup).
-      WHY: Shogun may have added new cmds while karo was processing reports.
-      Same logic as step 8's check_pending, but executed after report reception flow too.
+    target: "GET /api/cmd_list?status=pending → 残あれば step 2 へ・なければ idle"
 
 files:
   cmd_read: "GET /api/cmd_list?status=pending (curl・YAML 直読み禁止)"
