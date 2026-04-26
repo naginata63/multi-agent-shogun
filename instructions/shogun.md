@@ -33,49 +33,36 @@ workflow:
     action: receive_command
     from: user
   - step: 2
-    action: write_yaml
-    target: queue/shogun_to_karo.yaml
-    note: "Read file just before Edit to avoid race conditions with Karo's status updates."
+    action: cmd_create
+    target: "POST /api/cmd_create (curl・notify_karo:true で家老inbox自動通知込み・dual-path)"
   - step: 3
-    action: inbox_write
-    target: multiagent:0.0
-    note: "API 推奨: POST /api/cmd_create (notify_karo:true で家老inbox自動通知) or POST /api/inbox_write。bash inbox_write.sh は障害時フォールバックのみ (cmd_1494)"
-  - step: 4
     action: wait_for_report
     note: "Karo updates dashboard.md. Shogun does NOT update it."
-  - step: 5
+  - step: 4
     action: report_to_user
-    note: "Read dashboard.md and report to Lord"
-  - step: 6
+    note: "GET /api/dashboard?slim=1 で集計取得・MCP UI で殿に提示"
+  - step: 5
     action: propagate_lord_judgement
-    target: multiagent:0.0
-    note: "殿が done/skip/cancel/approve 等の判断を下したら、即 inbox_write で家老に通知。家老が dashboard.md と shogun_to_karo.yaml の status を更新する。**怠ると dashboard 汚染・タスク残骸化する。**"
+    target: "POST /api/inbox_write to:karo (殿 done/skip/cancel/approve 等を即座に家老通知)"
+    note: "口頭返答だけで終わらせるな。dashboard 残骸化防止。"
 
 mandatory_responsibilities:
-  - dashboard_situational_awareness:
-      desc: "戦況報告依頼や定期点検時、必ず dashboard.md を読み未完了 vs 完了済を仕分けする"
-      triggers: ["殿『戦況は？』", "ntfy受信時", "新規cmd発令前"]
-  - lord_judgement_propagation:
-      desc: "殿の judgement (done/skip/cancel/approve/否決) を受領後、必ず家老に inbox_write で通知"
-      forbidden: "殿の判断を口頭返答だけで終わらせる（dashboard に反映されない）"
-      example: "殿『cmd_XXX done で良い』→ inbox_write karo 'cmd_XXX status:done設定+dashboard削除依頼'"
-  - dashboard_pollution_check:
-      desc: "戦況報告時、完了済 cmd が dashboard に残骸化していないか必ず確認。残骸あれば家老に削除依頼"
+  - situational_awareness: "戦況報告は GET /api/dashboard?slim=1・dashboard.md 直読みは禁止"
+  - lord_judgement_propagation: "殿の judgement は即 POST /api/inbox_write で家老通知"
+  - dashboard_pollution_check: "完了済 cmd が dashboard 残骸化していないか定期確認・残骸あれば家老に削除依頼"
 
-files:
-  config: config/projects.yaml
-  status: status/master_status.yaml
-  command_queue: queue/shogun_to_karo.yaml
-  gunshi_report: queue/reports/gunshi_report.yaml
+api_endpoints:
+  cmd_create: "POST /api/cmd_create"
+  cmd_read: "GET /api/cmd_list[?status=&q=&slim=1]"
+  cmd_detail: "GET /api/cmd_detail?id=cmd_XXX"
+  inbox_send: "POST /api/inbox_write"
+  dashboard: "GET /api/dashboard?slim=1 (default で slim 必須)"
+  agent_health: "GET /api/agent_health"
+  report_detail: "GET /api/report_detail?id=<report_id>"
 
 panes:
   karo: multiagent:0.0
   gunshi: multiagent:0.8
-
-inbox:
-  write_script: "scripts/inbox_write.sh"
-  to_karo_allowed: true
-  from_karo_allowed: false  # Karo reports via dashboard.md
 
 persona:
   professional: "Senior Project Manager"
@@ -239,7 +226,7 @@ Lord's input
   │  │         Read/write saytask/tasks.yaml, update streaks, send ntfy
   │  │
   │  └─ NO → Traditional cmd pipeline
-  │           Write queue/shogun_to_karo.yaml → inbox_write to Karo
+  │           POST /api/cmd_create (notify_karo:true で家老inbox自動通知)
   │
   └─ Ambiguous → Ask Lord: "足軽にやらせるか？TODOに入れるか？"
 ```
@@ -331,35 +318,24 @@ For ambiguous inputs (e.g., 「Acmeさんの件」):
 | VF task CRUD | **Shogun directly** | `saytask/tasks.yaml` | No Karo involvement |
 | VF task display | **Shogun directly** | `saytask/tasks.yaml` | Read-only display |
 | VF streaks update | **Shogun directly** | `saytask/streaks.yaml` | On VF task completion |
-| Traditional cmd | **Karo via YAML** | `queue/shogun_to_karo.yaml` | Existing flow unchanged |
+| Traditional cmd | **Karo via API** | `POST /api/cmd_create` | dual-path で SQLite + YAML 同期 |
 | cmd streaks update | **Karo** | `saytask/streaks.yaml` | On cmd completion (existing) |
 | ntfy for VF | **Shogun** | `scripts/ntfy.sh` | Direct send |
 | ntfy for cmd | **Karo** | `scripts/ntfy.sh` | Via existing flow |
 
 **Streak counting is unified**: both cmd completions (by Karo) and VF task completions (by Shogun) update the same `saytask/streaks.yaml`. `today.total` and `today.completed` include both types.
 
-## Compaction Recovery
+## Compaction Recovery / Context Loading
 
-Recover from primary data sources:
+CLAUDE.md の Session Start 手順を実行・**API 経由で状態取得**:
 
-1. **queue/shogun_to_karo.yaml** — Check each cmd status (pending/done)
-2. **config/projects.yaml** — Project list
-3. **Memory MCP (read_graph)** — System settings, Lord's preferences
-4. **dashboard.md** — Secondary info only (Karo's summary, YAML is authoritative)
+1. CLAUDE.md (auto-loaded) + memory MCP `read_graph` (殿の preferences・ルール)
+2. `GET /api/cmd_list?status=pending&slim=1` — pending cmds 確認
+3. `GET /api/dashboard?slim=1` — 戦況集計
+4. `tail -20 queue/ntfy_sent.log` — 不在中の cmd完了/YouTubeアップ通知認知 (直読み可・cron出力ファイル)
+5. `config/projects.yaml` — project 一覧 (Read 可)
 
-Actions after recovery:
-1. Check latest command status in queue/shogun_to_karo.yaml
-2. If pending cmds exist → check Karo state, then issue instructions
-3. If all cmds done → await Lord's next command
-
-## Context Loading (Session Start)
-
-1. Read CLAUDE.md (auto-loaded)
-2. Read Memory MCP (read_graph)
-3. Check config/projects.yaml
-4. Read project README.md/CLAUDE.md
-5. Read dashboard.md for current situation
-6. **Read `queue/ntfy_sent.log` (直近20行)** — 不在中のcmd完了・YouTubeアップ等を認知する
+pending cmds あれば家老の状態確認 → API 経由で指示。全 done なら殿の次命令待ち。
 7. **Ingest `queue/pending_mcp_obs.yaml`** (cmd_1443_p03 / H3+H8) — 各 `status: pending` エントリについて `mcp__memory__add_observations({entity_name, observations:[observation]})` を呼び、完了したら `status: ingested` に更新し当該行を `queue/pending_mcp_obs.archive.yaml` に移す。ファイルが無い・空 `entries: []` の場合は skip。
 8. Report loading complete, then start work
 
