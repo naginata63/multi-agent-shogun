@@ -1,1 +1,1497 @@
-commands: []
+commands:
+- id: cmd_1445
+  status: done
+  completed_at: '2026-04-25T20:40:00+09:00'
+  timestamp: '2026-04-24T20:12:00+09:00'
+  priority: high
+  lord_original: ｂ
+  north_star: 'Udemy 3階層統合講座は市場ゼロの隙間（cmd_1444 60件調査で確定）。
+
+    フロント=Udemy 1,000円コースで月3-5万円安定収入+ハウスリスト集客（オプトイン率32%）
+
+    →バックエンド=AI開発受託・マルチエージェント構築コンサルへの導線確立。
+
+    Marketing Trip メソッド準用で量産せず質で勝つ。
+
+    '
+  purpose: Udemy講座『AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全実践』のカリキュラム設計v1完成（章構成・節構成・所要時間配分・収録順番・差別化ポイント章別配置・ハウスリスト導線設計）
+  acceptance_criteria:
+  - L1プロンプト/L2コンテキスト/L3ハーネスの各レイヤー章構成案がmarkdownで明記
+  - 各章の節構成・所要時間（分単位）が明記されていること
+  - 収録順番が決まっていること（依存関係+冒頭ホットチャプター配置考慮）
+  - Marketing Trip『需要×差別化×ハウスリスト集客』メソッドが各章にどう適用されるか明記
+  - ボーナスレクチャー（バックエンド導線・ハウスリスト集客）の本文骨子含む
+  - '出力先: projects/udemy_course/drafts/curriculum_v1.md'
+  - git commit & push 完了
+  - dashboard.md が最新状態に更新されていること
+  verify_guidance: '家老へ: 本cmdを足軽タスクYAMLに落とす際、verify: 欄を必ず含めよ（cmd_1442 H1 harness）。
+
+    検証は curriculum_v1.md の各章節構成・所要時間記載・収録順番・ハウスリスト導線骨子の有無をgrep+目視で確認。
+
+    '
+  command: 'Udemy講座『AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全実践』のカリキュラム設計v1を作成せよ。
+
+
+    ## 必須参照資料（既存資産）
+
+    - memory/project_udemy_3engineering.md（テーマ確定理由・差別化要素・3階層構成案）
+
+    - work/cmd_1444/udemy_strategy_summary.md（Marketing Trip メソッド要約・ベストセラー3要素・3段構えビジネスモデル）
+
+    - work/cmd_1444/marketing_trip_videos_summary.md（DRM/3-5年FIRE構造・KPI数値）
+
+    - work/cmd_1444/udemy_results.json + udemy_engineering.json（市場リサーチ結果60件）
+
+    - projects/udemy_course/README.md + 既存ディレクトリ構造（drafts/materials/scripts/slides/videos）
+
+
+    ## カリキュラム設計の要件
+
+    1. **3階層構成**: L1プロンプト / L2コンテキスト / L3ハーネス を骨子とする
+
+    2. **入門コース**: 1,000円ターゲット・全体3〜5時間想定
+
+    3. **差別化の章別配置**: 殿の差別化資産（9体マルチエージェント並列運用 / cmd_1442 ハーネス13実装 / claude-mem 12K観察
+    / YouTube実績74本）を各章に実例として散りばめる
+
+    4. **収録順番**: L1→L2→L3（依存関係順）。ただし冒頭にホットチャプター（差別化要素のデモ動画）を配置する Marketing Trip 推奨を反映
+
+    5. **ハウスリスト導線**: 末尾ボーナスレクチャーでバックエンド（AI開発受託・マルチエージェント構築コンサル）への導線を設計（オプトイン率32%狙い）
+
+
+    ## 出力フォーマット
+
+    `projects/udemy_course/drafts/curriculum_v1.md` に以下構造で保存:
+
+    - 講座概要（タイトル・サブタイトル・対象者・前提知識・到達目標）
+
+    - セクション一覧（イントロ + L1 + L2 + L3 + ボーナスレクチャー）
+
+    - 各セクション詳細（章名・節構成・所要時間・差別化要素・実例ファイル参照）
+
+    - 収録順番表
+
+    - ハウスリスト導線設計（ボーナスレクチャー本文骨子）
+
+
+    ## 共通ルール
+
+    - 新規.py作成禁止（カリキュラム設計はテキスト作業のみ）
+
+    - 既存スキル確認（skill-creator/note-article等の知見活用可）
+
+    - Gemini APIテキスト処理禁止（Claude CLI Opus 4.6使え）
+
+    - /tmp禁止・work/配下またはprojects/配下に保存
+
+    - 中間検討メモは work/cmd_1445/ 配下
+
+    - git commit & push 必須
+
+
+    ## 並列稼働の注記
+
+    cmd_1443_p10（H13月次feedback cron・足軽5号）は別途並列継続中。本cmdは別足軽に振れ。
+
+    軍師QC 必須（カリキュラム設計の市場性・差別化・導線設計の妥当性検証）。
+
+    '
+  notes:
+  - '殿選択: Option B (即起票・cmd_1443_p10は並列継続)'
+  - 本cmdは設計のみ。スライド作成・録画・収録は別cmdで段階的に進める
+  - Marketing Trip メソッドは Udemy入門→ハウスリスト→バックエンド本命商品の3段構え
+  - 'テーマ確定根拠: cmd_1444 Udemy市場リサーチ60件で『3階層統合=市場ゼロ』判明'
+  project: multi-agent-shogun
+- id: cmd_1446
+  status: done
+  completed_at: '2026-04-25T23:12:00+09:00'
+  timestamp: '2026-04-24T20:25:00+09:00'
+  priority: high
+  lord_original: A
+  north_star: 'dozle_kirinuki サブモジュール push 不能状態（巨大バイナリが履歴残存）の物理解消。
+
+    git push 復旧で素材commitが反映される正常運用に戻す。技術残課題1件解消。
+
+    '
+  purpose: projects/dozle_kirinuki/ サブモジュールから git filter-repo で巨大バイナリを履歴ごと完全除去し force-with-lease
+    で remote 反映。親リポの submodule pointer も同期更新する。
+  acceptance_criteria:
+  - 'Step1: 完全 mirror backup 取得確認 (/tmp/dozle_kirinuki.backup.{ts}/ サイズ記録)'
+  - 'Step2: filter-repo 実行前後で .git サイズ大幅減少 (du -sh .git の before/after 記録)'
+  - 'Step3: dozle_kirinuki remote へ force-with-lease push 成功'
+  - 'Step4: 親リポ multi-agent-shogun の submodule pointer 更新 commit + push 完了'
+  - 'Step5: 別ディレクトリから git clone --recurse-submodules テスト成功'
+  - 'Step6: dashboard.md 技術残課題から『dozle_kirinukiサブモジュール push不可』削除'
+  - 'Step7: ntfy通知『🔧 dozle_kirinuki 履歴書換完了』'
+  - 'Step8: 軍師QC PASS (clone テスト + dashboard 更新 + force-with-lease 適正実行確認)'
+  verify_guidance: '家老へ: destructive 操作ゆえ各 Step で stdout/stderr を log に保存し軍師QCで監査可能にせよ。
+
+    log 保存先: work/cmd_1446/ 配下 (filter_repo.log / push.log / clone_test.log 等)
+
+    '
+  command: '殿明示承認 (Option A・20:25): cmd_1441 D9 submodule 履歴書換 着手。
+
+
+    ## 実施手順 (家老主導・各ステップ失敗時 即停止+殿報告)
+
+
+    ### Step1: 完全 backup（最重要・絶対省略禁止）
+
+    - mkdir -p work/cmd_1446
+
+    - BACKUP_DIR=/tmp/dozle_kirinuki.backup.$(date +%s)
+
+    - git clone --mirror /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
+    "$BACKUP_DIR"
+
+    - du -sh "$BACKUP_DIR" | tee work/cmd_1446/backup_size.log
+
+    - cp -r projects/dozle_kirinuki /tmp/dozle_kirinuki.worktree.backup.$(date +%s)
+
+
+    ### Step2: 巨大ファイル特定 + filter-repo
+
+    - cd projects/dozle_kirinuki
+
+    - 巨大blob特定: git rev-list --objects --all | git cat-file --batch-check=''%(objecttype)
+    %(objectname) %(objectsize) %(rest)'' | awk ''$1=="blob" && $3>52428800'' | sort
+    -k3 -n | tee ../../work/cmd_1446/big_blobs.log
+
+    - 特定パス確認後 --path-glob で除去（google-cloud-sdk/** 想定だが実パス確認してから確定）
+
+    - git filter-repo --path-glob ''google-cloud-sdk/**'' --invert-paths 2>&1 | tee
+    ../../work/cmd_1446/filter_repo.log
+
+    - git gc --aggressive --prune=now
+
+    - du -sh .git | tee ../../work/cmd_1446/post_size.log
+
+    - filter-repo 未導入時: pip install git-filter-repo
+
+
+    ### Step3: remote へ force-with-lease push
+
+    - git fetch origin
+
+    - REMOTE_SHA=$(git rev-parse origin/main 2>/dev/null || git rev-parse origin/master)
+
+    - git push --force-with-lease=main:$REMOTE_SHA origin main 2>&1 | tee ../../work/cmd_1446/push.log
+
+    - 失敗時: STOP・殿報告。force（lease無し）への escalation 絶対禁止 (CLAUDE.md D003)
+
+
+    ### Step4: 親リポ submodule pointer 更新
+
+    - cd /home/murakami/multi-agent-shogun
+
+    - git add projects/dozle_kirinuki
+
+    - git commit -m "fix(submodule): update dozle_kirinuki pointer after history rewrite
+    (cmd_1446)"
+
+    - git push origin main
+
+
+    ### Step5: clone テスト
+
+    - TEST_DIR=/tmp/clone_test_$(date +%s)
+
+    - git clone --recurse-submodules /home/murakami/multi-agent-shogun "$TEST_DIR"
+    2>&1 | tee work/cmd_1446/clone_test.log
+
+    - cd "$TEST_DIR/projects/dozle_kirinuki" && git log --oneline | head -5
+
+
+    ### Step6: dashboard.md 更新
+
+    - 「⚠️ 技術的残課題」セクションから dozle_kirinuki 行削除
+
+    - 「✅ 本日の完了」に cmd_1446 追加
+
+
+    ### Step7: ntfy
+
+    - bash scripts/ntfy.sh "🔧 dozle_kirinuki 履歴書換完了 (cmd_1446)・push復旧"
+
+
+    ### Step8: 軍師QC 発令
+
+    - 検証点: backup 取得証跡 / filter-repo 前後サイズ比較 / force-with-lease 履歴 / clone テスト成功 /
+    dashboard 更新
+
+
+    ## 安全規定（絶対遵守）
+
+    - Step1 backup 未取得状態で Step2 進行禁止
+
+    - Step3 force-with-lease 失敗時 force（lease無し）への escalation 禁止 → 殿報告
+
+    - 異常検知時は backup から復元: git clone "$BACKUP_DIR" projects/dozle_kirinuki_restored
+
+
+    ## 担当
+
+    - 家老主導（destructive・全エージェント操作権限者が実行）
+
+    - 足軽委任可は Step6 dashboard 更新のみ
+
+    - 軍師 QC: Step8
+
+    '
+  notes:
+  - destructive 操作・殿明示承認 (Option A・20:25)
+  - 完全 mirror backup を Step1 で必ず取得
+  - force-with-lease 必須・force 単独禁止 (CLAUDE.md D003)
+  - 失敗時は backup から完全復元可能
+  - '推定所要: backup 5min + filter-repo 10-20min + push 5min + dashboard 5min = 25-40min'
+  - '並列稼働中: cmd_1441_p10c (足軽5号 MEMORY.md TODO復活) / cmd_1445 (足軽7号 Udemy カリキュラム設計)'
+  project: multi-agent-shogun
+- id: cmd_1447
+  status: done
+  completed_at: '2026-04-25T07:00:00+09:00'
+  timestamp: '2026-04-24T21:10:00+09:00'
+  priority: medium
+  lord_original: 承認
+  north_star: 'スキル化候補が報告YAMLの skill_candidate フィールドに書かれても将軍目視に依存で見落としリスクあり。
+
+    自動収集+棚卸しリスト化で継続改善の基盤を作る。cmd_1442 ハーネスと同じく運用インフラ強化の一環。
+
+    '
+  purpose: 'skill-candidate-tracker スキル化: 全 queue/reports/*.yaml を定期スキャン → skill_candidate
+    フィールド抽出 → inventory markdown 出力 → 棚卸しレビューで実装/却下判定できる体制を作る'
+  acceptance_criteria:
+  - skills/skill-candidate-tracker/SKILL.md 完成 (description/trigger/手順/do not use
+    for 明記)
+  - 全 queue/reports/ashigaruN_report*.yaml + gunshi_report*.yaml をスキャンする実装
+  - skill_candidate:true のエントリを抽出し inventory markdown (context/skill_candidates_inventory.md
+    or dashboard integrated) に集約
+  - 既存スキル(skill-creator/note-article/senkyou等)のフォーマット規約準拠
+  - 定期実行機構(cron weekly or on-demand slash command)
+  - 軍師QC PASS
+  - git commit + push 完了
+  - dashboard.md に完了記録
+  verify_guidance: '家老へ: 本cmdを足軽タスクYAMLに落とす際、verify: 欄を必ず含めよ。
+
+    検証: inventory出力に既知の skill_candidate (例: cmd_1439 yt-dlp-js-runtimes-fix = 既スキル化済
+    / cmd_1441ghi の skill-candidate-tracker 自身 / 他 直近1週間分)が含まれるか実データで確認。
+
+    '
+  command: "殿承認(21:10)受理。skill-candidate-tracker を正式スキル化せよ。\n\n## 必須参照資料\n- skills/skill-creator/SKILL.md\
+    \ (スキル設計の公式雛形・2026-03-public準拠)\n- skills/senkyou/SKILL.md (MCPダッシュボード連携のパターン例)\n\
+    - skills/note-article/SKILL.md (多段workflow例)\n- queue/reports/ 配下の既存report YAML\
+    \ (skill_candidate フィールド実データ確認)\n\n## 設計要件\n1. **トリガー**: 「スキル化候補」「skill candidates」「棚卸し」「/skill-inventory」等で起動\n\
+    2. **スキャン対象**: queue/reports/*.yaml 全件 + skill_candidate:true 抽出\n3. **出力**: markdown\
+    \ テーブル (cmd_id / ashigaru / skill_name / purpose / status=pending/implemented/rejected\
+    \ / 初出日 / 最終言及日)\n4. **保存先**: context/skill_candidates_inventory.md (将来 dashboard\
+    \ 統合可能な形式)\n5. **定期実行**:\n   - weekly cron (毎週日曜深夜等) で自動実行\n   - slash command\
+    \ /skill-inventory で即時実行も可\n6. **Do not use for**: スキル実装自体 (それは skill-creator\
+    \ で作る)\n7. **スキルは既存パターン (skill-creator/senkyou/note-article) に倣って SKILL.md front\
+    \ matter + description + instructions)\n\n## 共通ルール\n- 新規.py は skills/skill-candidate-tracker/\
+    \ 配下 or scripts/配下に保存 (python3 -c ワンライナー禁止)\n- 既存スクリプトで代替可能なら既存使用\n- Gemini APIテキスト処理禁止\
+    \ (Claude CLI Opus 4.6使え)\n- /tmp禁止・work/配下 or skills/配下で中間保存\n- 中間検討は work/cmd_1447/\
+    \ 配下\n- git commit + push 必須\n\n## 並列稼働\n- cmd_1446 (家老 D9 書換・GC+clone test 進行中)\
+    \ と干渉せぬこと\n- cmd_1445 v2課題 6件フォローアップは別軸で継続可\n"
+  notes:
+  - 殿承認(21:10)で skill-candidate-tracker スキル化着手
+  - 手動目視運用からの脱却・継続改善インフラ
+  - skill-creator スキルが既存ゆえ 0 からでなく枠組み活用可
+  - 優先度 medium (cmd_1446完了後に進行可・並列可)
+  project: multi-agent-shogun
+- id: cmd_1448
+  status: done
+  completed_at: '2026-04-25T07:00:00+09:00'
+  timestamp: '2026-04-24T23:17:00+09:00'
+  priority: medium
+  lord_original: cron異常解決して
+  north_star: 'cron_health_check.log で 30分毎に C01/C02/C04/C10 の4エラー種が繰り返し検知され、silent_fail_watcher
+    通知が汚染。
+
+    根本原因を特定して一掃し、cron 健全化+通知ノイズを除去する。
+
+    '
+  purpose: cron 4エラー種(C01 Vertex AI Embedding 404 / C02 Traceback / C04 Traceback
+    / C10 rsync error code 23)を特定→修正→再現停止確認。cron_health_check.log から ERROR 消失させる
+  acceptance_criteria:
+  - C01 Vertex AI Embedding 404 NOT_FOUND (Publisher Model projects/gen-lang-...)
+    根本原因特定+修正+cron再実行で再現しないこと
+  - C02 Traceback 発生元スクリプト特定+例外処理追加 or bug 修正
+  - C04 Traceback 発生元スクリプト特定+例外処理追加 or bug 修正
+  - C10 rsync error code 23 原因(files/attrs were not transferred) 特定+修正
+  - 次 cron サイクル(00:00 or 00:30) で cron_health_check.log に ERROR 追加されないこと
+  - silent_fail_watcher の該当ERROR通知が停止
+  - work/cmd_1448/root_cause_report.md に各エラーの発生元+根本原因+修正内容を記録
+  - git commit + push 完了
+  - dashboard.md の R7/C01-C10 関連残骸を削除
+  verify_guidance: '家老へ: verify: 欄に「cron_health_check.log の直近30分に ERROR C01-C10 が1件も記録されていない」を必須条件として含めよ。
+
+    '
+  command: '殿指示(23:16): cron 4エラー種 C01/C02/C04/C10 の根本原因を特定・修正せよ。
+
+
+    ## 必須参照資料
+
+    - logs/cron_health_check.log (cron エラー発生源)
+
+    - scripts/cron/ 配下 (cron実行スクリプト群)
+
+    - config/vertex_api_key.env (C01 Vertex AI 関連)
+
+    - crontab -l (cron定義)
+
+
+    ## 各エラー対応方針
+
+    ### C01: Vertex AI Embedding 404 NOT_FOUND
+
+    - エラー断片: "Publisher Model projects/gen-lang-..."
+
+    - 原因候補: (a) Vertex AI モデル名廃止 (b) プロジェクトID gen-lang-client-xxx が古い (c) location
+    設定違い
+
+    - 対処: 正しい Vertex AI Embedding モデル名+location+project 指定に修正。config/vertex_api_key.env
+    が最新か確認。memory参照: feedback_vertex_location_by_model.md (Embedding=us-central1)
+
+
+    ### C02/C04: Traceback
+
+    - 発生スクリプト特定 → 例外処理追加 or bug 修正
+
+    - 再現可能なら該当 cron スクリプトを手動実行して stack trace 取得
+
+
+    ### C10: rsync error code 23
+
+    - code 23 = some files/attrs were not transferred
+
+    - 原因候補: (a) 転送元ファイル権限不足 (b) ネットワーク断続 (c) 送信先ディスク容量不足 (disk使用率88%既知)
+
+    - 対処: rsync -v で詳細取得→具体的失敗ファイル特定→権限 or パス修正
+
+
+    ## 実施手順
+
+    1. logs/cron_health_check.log 直近24h の全エラー抽出→発生スクリプト特定
+
+    2. 各エラー発生スクリプト個別に手動実行→stack trace/log取得
+
+    3. 根本原因特定→修正実装
+
+    4. 修正後スクリプト手動実行→エラー再現しないこと確認
+
+    5. 次 cron サイクル(通常30分毎) を観察→ERROR記録なしを確認
+
+    6. work/cmd_1448/root_cause_report.md に各エラーの詳細(発生元/原因/修正/再現停止確認)を記録
+
+    7. 軍師 QC: 各エラーの再現停止 + root_cause_report.md の妥当性
+
+
+    ## 共通ルール
+
+    - 新規.py は scripts/ 配下
+
+    - /tmp禁止・中間は work/cmd_1448/ 配下
+
+    - Gemini API テキスト処理禁止
+
+    - git commit + push 必須
+
+
+    ## 並列稼働
+
+    - cmd_1447 (skill-candidate-tracker 進行中) と並列可
+
+    - 足軽独立担当可 (家老判断)
+
+    '
+  notes:
+  - 殿指示(23:16)で cron 4エラー一掃
+  - silent_fail_watcher が検知するので健全化後はノイズ通知収束
+  - R7 dashboard 残骸も本cmdで解消可能
+  - 優先度 medium (cron異常は実害なしだが通知汚染)
+  project: multi-agent-shogun
+- id: cmd_1449
+  status: done
+  completed_at: '2026-04-25T23:51:00+09:00'
+  timestamp: '2026-04-24T23:23:00+09:00'
+  priority: medium
+  lord_original: やれるだけやれ
+  north_star: 'cmd_1441/1443 完遂で浮上した技術負債+incidental+動画系小修正+ハーネス候補設計を深夜のうちに並列一掃。
+
+    明日以降の大型タスク(Udemy v2, Day6 MIX本番)に持ち込まない。silent_fail_watcher 健全化・dashboard 完全清浄化。
+
+    '
+  purpose: 5領域の残債・小修正・設計docを家老で subtask 分解→足軽並列発令→全領域片付け。足軽5名稼働可(1/2/4/5/7・家老判断)
+  acceptance_criteria:
+  - '領域A: cmd_1441 技術負債4件 (target_path欠落 / bloom_routing参照破綻 / .gitignore work/ /
+    git add .事故予防) 各々対処完了'
+  - '領域B: cmd_1443_p09 incidental 3件 (C02 Traceback / C08 /tmp禁止違反 / C09 slim_yaml連結)
+    修正完了'
+  - '領域C: Udemy v1 カリキュラム minor 3件 (軍師指摘) 修正→curriculum_v1.md 更新'
+  - '領域D: cmd_1425d2 part_info.json 誤記修正 (oo_men不在は誤り・t7JJlTDACyc_part_* 10本存在を反映)'
+  - '領域E: H_post_step_completion_detector 設計doc 作成 (cmd_1446登録の新ハーネス候補・work/cmd_1449/H_post_step_completion_detector_design.md)'
+  - 全領域 git commit + push 完了
+  - 各 subtask 軍師QC PASS
+  - dashboard.md の『⚠️技術的残課題』『🔧cmd_1441 技術負債』『🔧cmd_1443_p09 incidental』セクションから該当項目削除
+  verify_guidance: '家老へ: 5領域を subtask_1449_{a,b,c,d,e} に分解し各足軽に並列発令せよ。
+
+    各subtask YAMLには verify: 欄必須 (cmd_1442 H1 harness 準拠)。
+
+    領域間で依存なし・完全並列可。軍師は subtask 単位で順次QC。
+
+    '
+  command: '殿指示(23:22)『やれるだけやれ』受理。以下5領域を家老で subtask 分解・足軽並列発令せよ。
+
+
+    ## 領域A: cmd_1441 技術負債4件
+
+    - A1: 家老 task_design_checklist に『target_path必須』追加 (cmd_1441で pretool_check.sh
+    BLOCK 多発)
+
+    - A2: bloom_routing 参照破綻修正 (CLAUDE.md/karo.md が settings.yaml→bloom_routing 参照するがキー不在)
+
+    - A3: .gitignore work/ 運用見直し (git add -f 強制運用 → 除外 or 明示)
+
+    - A4: git add . 事故予防 (cmd_1443_p05 commit 1440284 巻込事故) → feedback_git_safety.md
+    自動生成 + 全足軽ルール周知
+
+
+    ## 領域B: cmd_1443_p09 incidental 3件
+
+    - B1: C02 Traceback 発生元特定+例外処理追加
+
+    - B2: C08 /tmp禁止違反 (CLAUDE.mdルール違反の /tmp 使用スクリプト → work/配下に移行)
+
+    - B3: C09 slim_yaml連結ロジック修正 (scripts/slim_yaml.sh)
+
+    ※ C02 は cmd_1448 とスコープ重複の可能性あり → 家老で重複調整せよ
+
+
+    ## 領域C: Udemy v1 カリキュラム minor 3件修正
+
+    - 軍師 qc_1445 報告 queue/reports/gunshi_report_qc_1445.yaml の minor findings 3件を確認
+
+    - projects/udemy_course/drafts/curriculum_v1.md を対応修正
+
+    - ※ v2 課題 6件は殿レビュー後ゆえ本cmdではスコープ外
+
+
+    ## 領域D: cmd_1425d2 part_info.json 誤記修正
+
+    - 『oo_men 視点不在』は誤り → 実態は t7JJlTDACyc_part_* 10本存在
+
+    - projects/dozle_kirinuki/work/20260417_Day6/part_info.json 正確化
+
+    - 該当 parts の再処理要否は 家老判断 (別cmd化可)
+
+
+    ## 領域E: H_post_step_completion_detector 設計doc
+
+    - cmd_1446 軍師qc_1446_resume で登録された新スキル候補
+
+    - 役割: 複数Step構成cmdの各Step完了検知+次Step自動進行 (Phase間ゲートと対をなす)
+
+    - 設計docのみ(実装は別cmd)・work/cmd_1449/H_post_step_completion_detector_design.md
+
+    - 軍師主導も可(家老判断)
+
+
+    ## 共通ルール
+
+    - 各 subtask YAML target_path 明記 (領域Aでルール化する内容と整合)
+
+    - advisor 最低1回 (実装前)
+
+    - 新規.py は scripts/ or skills/ 配下
+
+    - /tmp禁止・work/cmd_1449/ 配下
+
+    - git commit + push 必須
+
+
+    ## 並列稼働注記
+
+    - cmd_1447 (足軽6号 skill-candidate-tracker) / cmd_1448 (足軽3号 cron修正) 進行中
+
+    - 残 idle 足軽: 1/2/4/5/7 + 軍師 → 5領域に家老で割当
+
+    - 領域A/B は内部4+3件をさらに分解可能 (細かすぎるなら 1領域=1 subtask で纏め可・家老判断)
+
+    '
+  notes:
+  - 殿指示(23:22)『やれるだけやれ』 — 深夜並列一掃作戦
+  - 5領域は独立・完全並列可
+  - 本cmd完了で cmd_1441/1443 残債完全解消+Udemy v1 確定+Day6 MIX準備進捗
+  - Udemy v2 フォローアップ6件は殿レビュー後別cmdで継続
+  - 領域E は設計のみ・実装は別cmd
+  - disk使用率88% ゆえ Day6 MIX本番は含めない
+  project: multi-agent-shogun
+- id: cmd_1450
+  status: done
+  completed_at: '2026-04-25T10:29:00+09:00'
+  timestamp: '2026-04-24T23:27:00+09:00'
+  priority: low
+  lord_original: γ将軍かけ
+  north_star: '殿のnote毎日戦略 (memory/note_daily_strategy) — A系(AI×業務効率化Tips) と C系(個人開発の裏側)
+    交互投稿で
+
+    エンジニア層+業務効率化層へのブランディング。Udemy講座集客の導線+ハウスリスト集客の前段インフラ。
+
+    本日は4大マイルストーン(YPP通知/ドズル社申請/cmd_1443完遂/Udemy企画確定+cmd_1446履歴書換) で体験談材料が豊富。
+
+    '
+  purpose: 本日(2026-04-24)のnote記事1本を note-article スキルで執筆→下書き投稿まで完遂。テーマは本日の戦果から最適選定
+  acceptance_criteria:
+  - note-article スキル(skills/note-article/) を使用
+  - 本日の戦果から題材を 3-4 候補抽出→最適1本を選定 (記事選定は足軽判断可・家老レビュー)
+  - 体験談ベース (殿のnote戦略指針)
+  - A系 or C系いずれか(前回投稿とバランス考慮・memory/note_neta.md 参照)
+  - Q1-Q10 QCチェック全通過
+  - 画像生成 (OGP 含む) 完了
+  - note 下書き投稿完了 ★公開禁止★殿レビュー後のみ公開可
+  - 殿レビュー URL を家老が ntfy で通知
+  - git commit (記事 markdown 成果物があれば) + push
+  verify_guidance: '家老へ: note-article スキルが Q1-Q10 QC 自動化しているため本cmdは verify: 欄でスキル実行結果(log)を検証。
+
+    公開フラグは『下書き』固定であること最終確認必須。勝手公開は殿激怒案件。
+
+    '
+  command: '殿指示(23:25)『γ将軍かけ』受理。本日分のnote記事1本を note-article スキルで自動生成→下書き投稿せよ。
+
+
+    ## 必須参照資料
+
+    - skills/note-article/SKILL.md (実行手順・Q1-Q10 QC)
+
+    - memory/note_daily_strategy (A系/C系交互投稿方針)
+
+    - memory/note_neta.md (ネタ帳・過去投稿傾向)
+
+    - projects/note_mcp_server/context/ (note記事関連)
+
+    - 前回投稿履歴 (直近 queue/reports/ or dashboard_archive 参照)
+
+
+    ## 本日の題材候補 (戦果から抽出)
+
+    - C1: 「AIエージェント7体で12ハーネスを並列実装した深夜」(cmd_1443完遂・技術エピソード)
+
+    - C2: 「AIで git filter-repo を自動実行した話・履歴書換の怖さと安全設計」(cmd_1446・dev 寄り)
+
+    - C3: 「マルチエージェントでYouTube切り抜きチャンネルをYPP達成させた話」(本日通知・ストーリー性高)
+
+    - A1: 「silent failure を自動検知する watcher を作って Gemini 22K円課金事故を予防した話」(A系・実用)
+
+
+    推奨: C3 (YPP達成+ドズル社申請送付=本日最大ドラマ) or A1 (実用・業務効率化A系)
+
+    最終選定は足軽判断(前回投稿系列との交互バランス考慮)・家老レビュー
+
+
+    ## 実施手順
+
+    1. 前回note投稿の確認(系列 A/C どちらか)
+
+    2. 本日の題材候補から最適1本を選定
+
+    3. note-article スキル起動 → 執筆→画像生成→Q1-Q10 QC→下書き投稿
+
+    4. 家老が下書き URL を ntfy で殿に通知
+
+    5. 殿レビュー → 殿承認後に別cmdで公開 (本cmdでは★公開禁止★)
+
+    6. 軍師QC: スキル実行結果のQ1-Q10通過+下書き状態維持確認
+
+
+    ## 共通ルール
+
+    - 体験談ベース (殿のnote戦略)
+
+    - 外部公開コンテンツ殿レビューなし公開禁止
+
+    - Gemini API はテキスト処理禁止・OGP画像のみOK
+
+    - git commit + push 必須
+
+
+    ## 並列稼働
+
+    - cmd_1447/1448/1449 と並列可・足軽は家老判断(執筆系は任意1名)
+
+    '
+  notes:
+  - 殿指示(23:25)『γ将軍かけ』受理
+  - 外部公開コンテンツゆえ★下書き固定★殿レビュー待ち
+  - note-article スキルのQ1-Q10 QC 活用
+  - 投稿公開は別cmdで殿承認後のみ
+  - 優先度 low (深夜/夜間のアイドル足軽活用)
+  project: multi-agent-shogun
+- id: cmd_1451
+  status: done
+  completed_at: '2026-04-25T08:00:00+09:00'
+  timestamp: '2026-04-24T23:40:00+09:00'
+  priority: medium
+  lord_original: c
+  north_star: 'silent_fail_watcher 起動後に新規・既知エラーが通知に大量流入(23:30-23:37で13件)。
+
+    cmd_1448 は cron 4エラー(C01/C02/C04/C10)に特化ゆえ、別系統 (embedding 429 / YAML parse warning
+    / inbox_watcher nudge retry) を独立対処。
+
+    exclusion pattern 追加で既知ノイズ除外+新規エラー根本解決で silent_fail_watcher 健全運用を確立。
+
+    '
+  purpose: semantic_update の 429 embedding quota 超過と YAML parse warning を根本修正+silent_fail_watcher
+    に既知ノイズ exclusion pattern 追加して通知汚染を一掃
+  acceptance_criteria:
+  - semantic_update.log の 429 RESOURCE_EXHAUSTED (aiplatform embedding quota) 発生元特定+対処
+  - semantic_update.log の YAML parse warning (gunshi.yaml) 原因特定+修正
+  - inbox_watcher_ashigaruN.log の nudge text still visible WARN は実害なければ exclusion
+    pattern で抑制
+  - silent_fail_watcher の exclusion pattern 設定ファイル更新 (既知 false positive を除外)
+  - 変更後 30分以上 cron サイクル観察→429 と YAML warn 両方の再発なし確認
+  - work/cmd_1451/noise_analysis_report.md に 13件通知の分類(真/既知/false positive)+対処結果を記録
+  - git commit + push
+  verify_guidance: '家老へ: cmd_1448 とスコープ分離(本cmd=429+YAML parse+exclusion/cmd_1448=C01-C10
+    根本)。
+
+    verify: 欄で『silent_fail_watcher 起動中の直近30分 ERROR 件数が N件以下』を定量条件に含めよ。
+
+    '
+  command: '殿指示『c』(23:37)受理。cmd_1448(cron 4エラー)と別系統の通知汚染を本cmdで対処せよ。
+
+
+    ## 必須参照資料
+
+    - logs/silent_fail_watcher.log (検知エラー履歴)
+
+    - logs/semantic_update.log (429 + YAML parse warning 発生元)
+
+    - logs/inbox_watcher_*.log (nudge WARN ノイズ源)
+
+    - scripts/silent_fail_watcher.sh (exclusion pattern 実装箇所)
+
+    - config/silent_fail_watcher.* (設定ファイル・exclusion 追加先)
+
+
+    ## 対処方針
+
+    ### (1) semantic_update 429 RESOURCE_EXHAUSTED
+
+    - aiplatform embedding quota 超過 (per-minute per-base-model)
+
+    - 対処候補: sleep 挿入 / batch size 削減 / cron 時刻分散 / retry with backoff / embedding
+    モデル見直し
+
+    - memory参照: feedback_vertex_location_by_model.md (Embedding=us-central1 必須)
+
+
+    ### (2) YAML parse warning (gunshi.yaml)
+
+    - YAML validator で gunshi.yaml 検査→修正 or semantic_update 側エラーハンドリング改善
+
+
+    ### (3) inbox_watcher nudge text still visible WARN
+
+    - 実害なければ exclusion pattern で抑制(WARN だけ抑え ERROR は通知継続)
+
+
+    ### (4) silent_fail_watcher exclusion pattern 追加
+
+    - 既知 false positive を除外
+
+    - cmd_1448 と scope重複する C01-C10 は exclude せず cmd_1448 で根本修正 (二重対処を避ける)
+
+
+    ## 実施手順
+
+    1. 13件の通知を分類 (real ERROR / known noise / config 課題 の3区分)
+
+    2. 真ERROR対処: 429 根本修正+YAML warn 修正
+
+    3. 既知ノイズ対処: exclusion pattern に追加
+
+    4. 変更後 30分 cron サイクル観察で再発なし確認
+
+    5. work/cmd_1451/noise_analysis_report.md に分類・対処・結果記録
+
+    6. 軍師 QC
+
+
+    ## 共通ルール
+
+    - cmd_1448 (C01-C10 根本修正) と scope 重複禁止
+
+    - 新規.py は scripts/ 配下
+
+    - /tmp禁止・work/cmd_1451/ 配下
+
+    - git commit + push 必須
+
+
+    ## 並列稼働
+
+    - cmd_1447/1448/1449/1450 と並列可・足軽は家老判断
+
+    '
+  notes:
+  - 殿指示(23:37)『c』=cmd_1448 スコープ拡大だが memory警告(走行中YAML改変禁止)に従い別cmd化
+  - cmd_1448=C01-C10 cron エラー / cmd_1451=embedding 429+YAML warn+exclusion pattern
+  - exclusion pattern 実装で既知ノイズ除去+根本修正で新規エラー解消
+  - silent_fail_watcher を一時停止せず『通知が正常に意味を持つ』運用を確立
+  - 優先度 medium (実害はコスト増+通知汚染)
+  project: multi-agent-shogun
+- id: cmd_1453
+  status: done
+  completed_at: '2026-04-25T07:00:00+09:00'
+  timestamp: '2026-04-25T06:55:00+09:00'
+  priority: high
+  notes:
+  - 殿指示『やれ』(06:55)受理・切替副作用の根本対処
+  - scripts/inbox_watcher.sh の is_valid_cli_type 漏れが原因
+  - 3.7h継続中 WARN を撲滅し通信基盤を健全化
+  - 自己参照的タスク ゆえ家老主導推奨
+  - 優先度 high (後続 cmd 発令の前提)
+  lord_original: やれ (inbox_watcher glm 未対応)
+  north_star: '2026-04-25 02:48 殿指示『元の陣営に戻せ』で ashigaru1-7 を GLM CLI に切替成功。
+
+    しかし scripts/inbox_watcher.sh の is_valid_cli_type (L246) に glm が未登録のため、
+
+    pane @agent_cli=glm を resolve 失敗 → Fallback=codex-safe で代替動作。
+
+    結果 5分毎 200件の WARN が 3.7h 継続、ntfy/silent_fail ログが汚染され、
+
+    将来の nudge 動作が不安定化するリスク。glm 正式サポートで通信基盤を健全化する。
+
+    '
+  purpose: scripts/inbox_watcher.sh に glm CLI 正式サポート追加。WARN『CLI unresolved for ashigaru{N}
+    (pane=glm)』を撲滅し、nudge/drift 判定が glm pane で正常動作する状態にする
+  acceptance_criteria:
+  - scripts/inbox_watcher.sh L246 is_valid_cli_type() に 'glm' を追加
+  - L222/L224 付近の CLI分岐 (codex/claude) に glm の適切な扱いを追加
+  - 変更後 ashigaru1-7 pane に対して CLI unresolved WARN が 30分観察で 0件
+  - 'テスト: inbox_write.sh で ashigaru1 にダミー送信→nudge 正常配信→inbox 処理開始'
+  - silent_fail_watcher の『WARN/FALLBACK』ntfy 通知が glm 関連では停止
+  - work/cmd_1453/glm_investigation.md に glm CLI 実装方式を記録
+  - git commit + push
+  - 軍師 QC PASS
+  verify_guidance: '家老へ: 足軽は GLM稼働ゆえ inbox_watcher.sh 自体を壊すと自分に跳ね返る自己参照的タスク。
+
+    家老主導 or ashigaru1 に慎重に委任。変更は L246 の1行追加+L222/L224 近辺 glm 分岐追加で diff≤20行 見込み。
+
+    verify: 欄に『変更後 30分 CLI unresolved WARN 0件 + nudge test 成功』を定量条件で含めよ。
+
+    '
+  command: '殿指示『やれ』(06:55)受理。inbox_watcher.sh glm 正式サポート追加せよ。
+
+
+    ## 必須参照資料
+
+    - scripts/inbox_watcher.sh L246 (is_valid_cli_type)・L222-L224 (CLI分岐)・L265-276
+    (resolve/fallback)
+
+    - scripts/start_ashigaru_glm.sh (glm CLI 起動スクリプト・実装方式把握)
+
+    - lib/cli_adapter.sh (build_cli_command() の glm サポート状況)
+
+    - config/settings.yaml cli.agents.ashigaru{1-7}.type=glm
+
+    - logs/inbox_watcher_ashigaru{1-7}.log (WARN 発生パターン)
+
+
+    ## 実装手順
+
+    ### Step 1: glm CLI 実態調査
+
+    - start_ashigaru_glm.sh を読み、ANTHROPIC_BASE_URL上書きのclaude互換か独自CLIか特定
+
+    - work/cmd_1453/glm_investigation.md に記録
+
+
+    ### Step 2: is_valid_cli_type() 修正 (L246)
+
+    `claude|codex|copilot|kimi|gemini) return 0 ;;` → `claude|codex|copilot|kimi|gemini|glm)
+    return 0 ;;`
+
+
+    ### Step 3: CLI分岐に glm 追加
+
+    L222/L224 近辺 (codex/claude 分岐) に glm 分岐追加。調査結果で claude互換 or codex互換を選択。
+
+
+    ### Step 4: テスト
+
+    - inbox_write.sh で ashigaru1 にテスト送信
+
+    - nudge 正常配信+inbox 処理開始確認
+
+    - inbox_watcher_ashigaru1.log に WARN が出ないこと
+
+
+    ### Step 5: 30分観察で WARN 0件確認
+
+
+    ### Step 6: 軍師 QC 依頼
+
+
+    ## 共通ルール
+
+    - 変更は最小差分 (diff≤20行目標)
+
+    - 新規.py 禁止 (scripts/inbox_watcher.sh 直接修正)
+
+    - /tmp禁止・work/cmd_1453/ 配下
+
+    - git commit + push 必須
+
+
+    ## 安全規定
+
+    - inbox_watcher.sh は全足軽の通信基盤ゆえ、壊すと全体停止
+
+    - 変更前に cp で backup 推奨
+
+    - 失敗時 revert 方法を事前確認
+
+    - 家老 or ashigaru1 (GLM稼働・自己参照タスク) 担当推奨
+
+
+    ## 並列稼働
+
+    - 殿判断待ち 5件は別軸で殿判断次第
+
+    - 本cmdが先行完遂しないと他cmd新規発令 nudge が不安定化リスク
+
+    '
+  project: multi-agent-shogun
+- id: cmd_1458
+  status: done
+  completed_at: '2026-04-25T08:09:00+09:00'
+  timestamp: '2026-04-25T08:00:00+09:00'
+  priority: high
+  lord_original: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_railgun/tono_edit2.mkv
+    縦長にクロップして非公開アップしてくれ。過去の動画だがなぜかYoutubeで音声が変になっていた
+  north_star: '過去のショート動画 (manga_railgun・いろんな時代エンドラ討伐回) が YouTube で音声不調。
+
+    ffv1+flac の高品質中間素材 tono_edit2.mkv は健全ゆえ、ここから縦長クロップ→YouTube非公開アップで再投稿。
+
+    殿レビュー後に古い問題版を入替えるか別動画として残すか判断。
+
+    '
+  purpose: tono_edit2.mkv (3412x1918・22秒・ffv1+flac) を 1080x1920 縦長クロップ→h264_nvenc
+    + aac エンコード→YouTube非公開アップロード→説明欄設定まで完遂
+  acceptance_criteria:
+  - 1080x1920 縦長 mp4 完成 (h264_nvenc + aac 192k・libx264禁止)
+  - 音声が原本(flac)と同等品質で正常再生 (ffprobe で audio stream 確認)
+  - '出力先: projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_railgun/output/cmd_1458/tono_edit2_vertical.mp4'
+  - YouTube 非公開アップロード成功 (動画URL取得)
+  - 説明欄設定 (cmd_1397/1398 と同フォーマット・元動画リンク+@dozle ハンドル+ガイドライン明記)
+  - 'アップロード完了後 ntfy 『🎬 YouTube非公開アップ: tono_edit2 vertical {URL}』'
+  - git commit + push (output mp4 は容量大ゆえ.gitignoreで除外要確認)
+  verify_guidance: '家老へ: 動画cmd ゆえ ffprobe で video/audio 両 stream 確認・縦長 1080x1920 確認・音声
+    stereo 48kHz aac 確認必須。
+
+    YouTube アップ前に再生テスト推奨。
+
+    '
+  command: '殿指示(08:00)受理。tono_edit2.mkv を縦長クロップ→YouTube非公開アップ。
+
+
+    ## 必須参照資料
+
+    - context/shorts_command_template.md (ショート動画 cmd フォーマット)
+
+    - 既存 cmd_1397/1398 の説明欄テンプレート (元動画リンク+@dozle+ガイドライン)
+
+    - memory/feedback_ffmpeg_ss_after_i.md (ffmpeg -ss は -i の後)
+
+    - CLAUDE.md ffmpeg ルール (h264_nvenc 必須・libx264禁止)
+
+    - scripts/upload_youtube.py (or 既存 upload script・skills/manga-short の upload処理)
+
+
+    ## ソース情報
+
+    - パス: projects/dozle_kirinuki/work/20240113_いろんな時代の人になってエンドラ討伐！【マイクラ】/manga_railgun/tono_edit2.mkv
+
+    - 解像度: 3412x1918 (横長・aspect 1.78:1)
+
+    - 長さ: 22.08秒
+
+    - Video: ffv1 + yuv422p (ロスレス中間素材)
+
+    - Audio: flac 48kHz stereo (ロスレス・原本健全)
+
+
+    ## 縦長クロップ仕様
+
+    - 中央クロップ + scale 1080x1920 (9:16)
+
+    - 元aspect 1.78:1 → 縦9:16 (0.5625) 化
+
+    - 元高さ 1918 維持・横を 1078 に切詰める→ 1080x1920 にscale
+
+
+    ## ffmpeg 推奨コマンド (例)
+
+    ffmpeg -i tono_edit2.mkv -vf "crop=1078:1918:(in_w-1078)/2:0,scale=1080:1920"
+    -c:v h264_nvenc -preset p4 -b:v 6M -c:a aac -b:a 192k -ac 2 output/cmd_1458/tono_edit2_vertical.mp4
+
+    上記は参考。家老 or 足軽が適切に調整可。
+
+
+    ## 実施手順
+
+    1. 出力ディレクトリ作成: mkdir -p projects/dozle_kirinuki/work/20240113.../manga_railgun/output/cmd_1458/
+
+    2. ffmpeg で縦長クロップ + h264_nvenc エンコード
+
+    3. ffprobe で出力 mp4 検証 (video: h264 1080x1920 / audio: aac 192k stereo)
+
+    4. YouTube 非公開アップロード (privacy=private)
+
+    5. 説明欄設定 (cmd_1397/1398 ベース・元動画ID 反映)
+
+    6. ntfy通知
+
+    7. 軍師 QC (出力品質+upload成功+説明欄+殿の音声不調問題が解決しているか)
+
+
+    ## 殿への提示
+
+    アップ完了後 URL を ntfy で殿に通知。殿が再生して音声OK確認。問題版との置換は殿後判断。
+
+
+    ## 共通ルール
+
+    - h264_nvenc (GPU) 必須・libx264禁止
+
+    - 中間成果物 work/ 配下保存・/tmp禁止
+
+    - 新規.py 不要 (既存 upload script 流用)
+
+    - git commit + push 必須 (mp4本体は.gitignore済か確認・output/ 配下は通常 ignore)
+
+
+    ## 並列稼働
+
+    - cmd_1453/1455/1456c/1457 と並列可
+
+    - 足軽1名 (家老判断・動画系経験ある足軽推奨)
+
+    '
+  notes:
+  - 殿指示(08:00)受理・過去動画の音声不調修正
+  - 原本 ffv1+flac 健全ゆえ縦長クロップで再生成
+  - NVENC高速エンコード (RTX 4060 Ti) で数十秒見込み
+  - アップ完了URL は殿レビュー要・置換判断は殿後判定
+  - 優先度 high (音声不調の現行公開動画修正)
+  project: multi-agent-shogun
+- id: cmd_1461
+  status: done
+  completed_at: '2026-04-25T10:41:46+09:00'
+  timestamp: '2026-04-25T10:05:00+09:00'
+  started_at: '2026-04-25T10:24:54+09:00'
+  priority: medium
+  lord_original: なんで完了したものにマークしてのこすの・どうゆう仕組みでやっているんだ・仕組み化しろ
+  north_star: '家老が完了済 cmd を dashboard.md に「✅完了」マーク付きで残し続ける慣行で、
+
+    本来見るべき「進行中」「殿判断要」が埋もれる慢性問題。dashboard_lifecycle.sh の対象範囲を
+
+    拡張して完了 cmd の自動削除→アーカイブ移動を仕組み化し、家老の手動運用を不要にする。
+
+    '
+  purpose: 'scripts/dashboard_lifecycle.sh を拡張: (1)進行中テーブル内『✅ 完了』『status:done』行を自動削除
+    (2)『✅ 本日の完了』セクションを翌日朝アーカイブ移動 (3)cron 頻度UP。+ 運用ルール memory化'
+  acceptance_criteria:
+  - scripts/dashboard_lifecycle.sh に『進行中テーブル ✅完了行』『status:done 行』削除ロジック追加
+  - 『✅ 本日の完了』セクション翌日朝アーカイブ移動ロジック追加 (mtime > 24h で archive)
+  - アーカイブ先 dashboard_archive_YYYY-MM.md (既存運用継続)
+  - 'cron entry 追加 (nightly 02:02 + 1h おき・例: 0 * * * * dashboard_lifecycle.sh)'
+  - 起票直後に dashboard.md 1回手動 cleanup 実行 (現状の完了済残骸全消し・即視覚効果)
+  - memory/feedback_dashboard_completed_cleanup.md 新規作成 (運用ルール永続化)
+  - dry-run で動作確認後 production 投入
+  - git commit + push
+  - 軍師QC PASS (dashboard.md 進行中テーブルに完了 cmd 0件確認)
+  verify_guidance: '家老へ: dashboard_lifecycle.sh 既存 strikethrough+解決済 ロジックは維持・追加で完了
+    cmd 検出ロジックを足せ。
+
+    verify: 欄に『dashboard.md 進行中テーブルから ✅ 完了行 0 件』を定量条件で含めよ。
+
+    '
+  command: '殿指示『仕組み化しろ』(10:05)受理。dashboard_lifecycle.sh 拡張+memory化。
+
+
+    ## 必須参照資料
+
+    - scripts/dashboard_lifecycle.sh (cmd_1443_p02 H2拡張・既存実装)
+
+    - scripts/dashboard_rotate.sh (アーカイブ系・参考)
+
+    - scripts/nightly_audit.sh (cron 呼出元)
+
+    - dashboard.md 現状 (殿指摘の完了 cmd 残骸多数)
+
+    - dashboard_archive/ 既存アーカイブパターン
+
+
+    ## 拡張仕様
+
+
+    ### 追加ロジック A: 進行中テーブル内の完了 cmd 削除
+
+    - パターン: テーブル行で `status:done` or `✅ 完了` or `✅ **完遂**` 含む行
+
+    - 既存 strikethrough 検知に加えて新規 detect ロジック
+
+    - 削除前に dashboard_archive_$(date +%Y-%m).md に append
+
+    - 進行中テーブル整形維持 (空行/罫線崩れ防止)
+
+
+    ### 追加ロジック B: 「✅ 本日の完了」セクション翌日アーカイブ
+
+    - セクションタイトルに『本日の完了』含む
+
+    - 各行の日付 (例: cmd_XXX 2026-04-25 完了) を parse
+
+    - 24時間以上経過した行を archive 移動
+
+    - セクション空になったらタイトルごと削除可
+
+
+    ### cron 頻度UP
+
+    - 既存: nightly_audit から 02:02 のみ
+
+    - 追加: crontab に `0 * * * * bash /home/murakami/multi-agent-shogun/scripts/dashboard_lifecycle.sh`
+
+    - 1h おきで完了 cmd 即削除
+
+
+    ## 起票直後の即時 cleanup
+
+    1. 現在の dashboard.md を 1回 dashboard_lifecycle.sh --immediate で清掃
+
+    2. 進行中テーブルから完了 cmd 全削除→アーカイブ移動
+
+    3. 「✅ 本日の完了」過去24h 超過分も移動
+
+
+    ## memory化
+
+    - memory/feedback_dashboard_completed_cleanup.md 新規作成
+
+    - 内容: 「完了 cmd は dashboard に残すな・履歴はアーカイブへ」「dashboard_lifecycle.sh が自動処理」
+
+    - MEMORY.md ### エージェント管理ルール 末尾に1行追記
+
+
+    ## 共通ルール
+
+    - 既存 dashboard_lifecycle.sh の strikethrough+解決済 ロジックは破壊するな (拡張で追加)
+
+    - dry-run で動作確認後 production 投入
+
+    - flock で同時書込み防止 (既存実装継続)
+
+    - 新規.py 禁止 (既存 .sh 拡張のみ)
+
+    - /tmp禁止・work/cmd_1461/ 配下
+
+    - git commit + push 必須
+
+
+    ## 並列稼働
+
+    - cmd_1453 (足軽1号 observe・10:25まで) と並列可
+
+    - 足軽1名 (家老判断・shell script 経験ある足軽推奨)
+
+    '
+  notes:
+  - 殿指示(10:05)『仕組み化しろ』受理
+  - 既存 dashboard_lifecycle.sh 拡張 (新規ファイル不要)
+  - 起票直後 1回手動 cleanup で即視覚効果
+  - cron 頻度 nightly→1hおき で速度UP
+  - memory化で運用ルール永続
+  - 優先度 medium (運用効率化・実害は dashboard 肥大化)
+  project: multi-agent-shogun
+- id: cmd_1487
+  status: cancelled
+  completed_at: '2026-04-25T23:07:00+09:00'
+  priority: high
+  purpose: Day6 Echidna 1戦目seg を再修正。(1) oo_men_1sen.mp4 を VP9→h264変換時の bitrate劣化(4035→2255
+    kb/s)を解消・元4Mbps級画質を維持して再生成 (2) charlotte/hendy/tsurugi 全視点 sync を mpv視覚検証必須で再測定（殿視聴で時間ズレ発覚）(3)
+    master/with_telop 二段方式維持で 1戦目再生成。8戦目には進まない・1戦目で停止。
+  timestamp: '2026-04-25T22:08:17+09:00'
+  project: dozle_kirinuki
+  redo_of: cmd_1485
+  lord_original: 1NG　元動画きれいでした　/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260416_【#DoZ】6日目
+    腹から声が出ないヒーラーに命を任せれられるとでも？【ドズル社／おおはらMEN視点】/t7JJlTDACyc_part_01.mp4／Aそれと　じかんずれがひどい
+  north_star: cmd_1485 軍師CONDITIONAL_PASS の限界（mpv実視聴できぬLLM軍師判定の盲点）を埋め、殿の実視覚NG判定 (画質劣化+時間ズレ)
+    を全解消する。同時に multi_h264_1sen 変換スクリプトの bitrate設定を恒久修正し、過去/将来全動画への波及を防ぐ。
+  acceptance_criteria:
+  - 'oo_men_1sen.mp4 再生成: 元素材 t7JJlTDACyc_part_01.mp4 (4035 kb/s VP9) から VP9→h264_nvenc
+    変換時に bitrate 4Mbps以上維持 (推奨 -crf 18 or -b:v 6000k -maxrate 8000k -bufsize 12000k)'
+  - 再生成後 oo_men_1sen.mp4 の bitrate が charlotte_1sen.mp4 (4347 kb/s) と同等水準であること（ffprobe確認）
+  - 'charlotte/hendy/tsurugi の sync を **mpv視覚検証必須** で再測定: side-by-side合成 (offset候補値を
+    ss適用) を mpv で視聴し ±1frame echo無し確認・cross-correlation の数値だけで判定するな'
+  - 'sync_record.yaml 1戦目セクション完全更新: 全視点 visual_verification.result=pass まで記録・LLM軍師QCのみで完了とせず'
+  - master_1sen.mp4 + with_telop_1sen.mp4 を新 oo_men_1sen から再生成 (master/telop二段方式維持・cmd_1486鉄則6準拠)
+  - 'multi_h264_1sen 生成スクリプトの bitrate設定を恒久修正: 元素材 VP9 (4Mbps級) からの h264化で bitrate劣化させない設定に固定
+    (該当スクリプト or 手順 procedures/ に明記)'
+  - 'shared_context/procedures/multi_view_sync.md に新ルール追加: 『元素材が VP9 (4Mbps級) の場合
+    h264化時 -crf 18 以下 or -b:v 6000k 以上を必須・bitrate劣化チェック (ffprobe before/after) を sync_record
+    に記録』'
+  - '中間ファイル全保存: 新 oo_men_1sen.mp4 / 新 master_1sen.mp4 / 新 with_telop_1sen.mp4 / 新
+    sync verify_*.mp4 / bitrate_diff.md (before/after) を work/cmd_1487/ 配下に'
+  - '**軍師QC + 殿のmpv視聴 必須**: CONDITIONAL_PASS スキップ禁止 (今回NG判定の元凶ゆえ厳格化)'
+  - 8戦目には進まない・1戦目で停止 (殿明示・cmd_1485継承)
+  - git commit + push
+  - dashboard.md 最新化
+  command: "## 殿原文\n『1NG　元動画きれいでした　/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260416_【#DoZ】6日目\
+    \ 腹から声が出ないヒーラーに命を任せれられるとでも？【ドズル社／おおはらMEN視点】/t7JJlTDACyc_part_01.mp4』\n『Aそれと　じかんずれがひどい』\n\
+    \n## 殿の実視覚NG2点\n1. **画質劣化**: 元素材 t7JJlTDACyc_part_01.mp4 (VP9 4035 kb/s) はキレイ・oo_men_1sen.mp4\
+    \ (h264 2255 kb/s) で **bitrate半減**。multi_h264_1sen 段階での VP9→h264変換が劣化原因。足軽1号報告『配信元の問題・足軽管轄外』は\
+    \ **誤り**\n2. **時間ズレひどい**: cmd_1485 sync_record charlotte=-42.752 (3回再現・conf=1.00)\
+    \ で『再現性あり』と判定したが、殿の実視聴で時間ズレ発覚。**LLM軍師は動画再生不可ゆえ視覚検証スキップ→数値だけのCONDITIONAL_PASS が真因**\n\
+    \n## 範囲（厳守）\n- 1戦目seg のみ再修正・8戦目には進まない\n- 1戦目できた時点で停止し殿確認待ち\n- YouTube動画 (M7UKrqiI3Eo)\
+    \ は非公開のまま放置（cmd_1485継承・殿命「Cはほうち」）\n- master/telop二段方式維持 (cmd_1486鉄則6準拠)\n\n##\
+    \ やること\n\n### Step 1: oo_men_1sen.mp4 再生成（bitrate劣化解消）\n```bash\ncd projects/dozle_kirinuki/work/20260416_【#DoZ】6日目*\n\
+    # multi_h264_1sen/oo_men_1sen.mp4 を VP9元素材から再生成\n# 元素材の1戦目部分 (cmd_1464/1478で切出した時刻)\
+    \ を再利用\nffmpeg -i t7JJlTDACyc_part_01.mp4 -ss <1戦目開始秒> -t 142 \\\n  -c:v h264_nvenc\
+    \ -preset p4 -rc constqp -qp 18 \\\n  -c:a aac -b:a 192k \\\n  multi_h264_1sen/oo_men_1sen.mp4\n\
+    ```\n再生成後 ffprobe で bitrate確認:\n- charlotte_1sen.mp4 (4347 kb/s) と同等水準 (4Mbps以上)\
+    \ であること\n- 元素材の 4035 kb/s VP9 → 新 4-6 Mbps h264 を期待\n\n### Step 2: 全視点 sync 再測定\
+    \ (mpv視覚検証必須)\ncharlotte / hendy / tsurugi 全員、cross-correlation測定後に **必ず mpv視覚同期確認**:\n\
+    ```bash\n# 例: charlotte\npython scripts/measure_sync_offset.py --ref oo_men_1sen.mp4\
+    \ --target charlotte_1sen.mp4 --ref-start 60 --sample 60 -o work/cmd_1487/sync_charlotte_a.json\n\
+    # 視覚検証: side-by-side合成して mpv視聴\nffmpeg -i oo_men_1sen.mp4 -ss 60 -t 30 \\\n  \
+    \     -i charlotte_1sen.mp4 -ss <60+offset> -t 30 \\\n       -filter_complex \"\
+    [0:v][1:v]hstack=inputs=2[v];[0:a][1:a]amix=inputs=2[a]\" \\\n       -map [v]\
+    \ -map [a] -c:v h264_nvenc -preset p4 work/cmd_1487/verify_charlotte.mp4\nmpv\
+    \ work/cmd_1487/verify_charlotte.mp4  # 殿 or 家老が視覚同期確認\n```\nhendy / tsurugi も同様。**数値conf=1.00だけでは信用するな**（cmd_1485の教訓）\n\
+    \n### Step 3: master_1sen.mp4 + with_telop_1sen.mp4 再生成\n新 oo_men_1sen.mp4 + 検証済\
+    \ sync offset で master_1sen.mp4 (テロップなし) を生成:\n```bash\nffmpeg -i oo_men_1sen.mp4\
+    \ -ss 0 -t 45 -c:v h264_nvenc -preset p4 -rc constqp -qp 18 ...  # MEN solo\n\
+    # 4-grid section (検証済 sync offsetで)\nffmpeg -i oo_men_1sen.mp4 -ss 45 -t 65 \\\
+    \n       -i charlotte_1sen.mp4 -ss <45+検証済offset> -t 65 \\\n       -i hendy_1sen.mp4\
+    \ -ss <45+検証済offset> -t 65 \\\n       -i tsurugi_1sen.mp4 -ss <45+検証済offset> -t\
+    \ 65 \\\n       -filter_complex \"... 4-grid layout ...\" \\\n       -c:v h264_nvenc\
+    \ -preset p4 -rc constqp -qp 18 ...\nffmpeg -i oo_men_1sen.mp4 -ss 110 -t 32 ...\
+    \  # MEN solo\nffmpeg -f concat -i list.txt -c:v h264_nvenc -preset p4 -rc constqp\
+    \ -qp 18 work/cmd_1487/master_1sen.mp4\n```\nwith_telop_1sen.mp4 は cmd_1485 と同じ\
+    \ Day5フォーマット drawtext で後加工:\n```bash\nffmpeg -i master_1sen.mp4 \\\n  -vf \"drawtext=fontfile=...:text='エキドナ(初戦)':fontsize=48:fontcolor=white:bordercolor=0xFF69B4:borderw=3:x=w-text_w-20:y=20\"\
+    \ \\\n  -c:v h264_nvenc -preset p4 -rc constqp -qp 18 -c:a copy work/cmd_1487/with_telop_1sen.mp4\n\
+    ```\n\n### Step 4: bitrate 改善検証\n```bash\nffprobe -i work/cmd_1487/master_1sen.mp4\
+    \ 2>&1 | grep bitrate\nffprobe -i work/cmd_1487/with_telop_1sen.mp4 2>&1 | grep\
+    \ bitrate\n# 出力: work/cmd_1487/bitrate_diff.md\n#   - 元素材 (VP9): 4035 kb/s\n#\
+    \   - 旧 oo_men_1sen.mp4 (h264): 2255 kb/s ← 劣化\n#   - 新 oo_men_1sen.mp4 (h264_nvenc\
+    \ qp18): X kb/s ← 改善\n#   - 新 master_1sen.mp4: Y kb/s\n#   - 新 with_telop_1sen.mp4:\
+    \ Z kb/s\n```\n\n### Step 5: 恒久修正（multi_h264 変換スクリプト or procedures/ 改訂）\n該当スクリプト\
+    \ (multi_h264 化を行う既存スクリプト・もしくは手順) を特定し、bitrate設定を恒久修正:\n- VP9 → h264 変換時 `-c:v\
+    \ h264_nvenc -preset p4 -rc constqp -qp 18` (or `-b:v 6000k`)\n- shared_context/procedures/multi_view_sync.md\
+    \ に新ルール追記:\n  ```\n  鉄則: 元素材bitrate維持\n  - 元素材が VP9 (4Mbps級) の場合 h264変換時 qp 18\
+    \ 以下 or -b:v 6000k 以上必須\n  - 変換前後で bitrate劣化 50% 超は NG\n  - sync_record に bitrate_check\
+    \ (before/after kb/s) を記録\n  ```\n\n### Step 6: sync_record.yaml 1戦目セクション完全更新\n\
+    projects/dozle_kirinuki/work/20260416_*/sync_record.yaml の `measurements.1sen_*`\
+    \ / `adopted_offsets.1sen` / `visual_verification.1sen` を全部新測定値で上書き。`bitrate_check`\
+    \ セクション新規追加。\n\n### Step 7: 軍師QC + 殿のmpv視聴 必須（CONDITIONAL_PASS禁止）\n- 軍師: ffprobe\
+    \ + 数値 + sync_record.yaml 整合確認\n- **殿のmpv視聴必須**: with_telop_1sen.mp4 を 142秒視聴し画質+時間同期を実視覚確認\n\
+    - スキップ禁止 (今回 cmd_1485 で『B) スキップでPASS』を選択した結果が今のNG)\n\n## 共通ルール\n- 出力先: work/cmd_1487/\
+    \ + projects/dozle_kirinuki/work/20260416_*/sync_record.yaml 更新\n- ffmpeg は h264_nvenc\
+    \ (GPU)・libx264禁止\n- 中間成果物は work/cmd_1487/ 配下に全保存\n- master/telop 二段方式維持 (cmd_1486鉄則6準拠)\n\
+    - git commit + push 必須\n\n## 担当\n**足軽1号** 継続（cmd_1485担当者ゆえ知見継承・足軽hotfix→知見報告必須ルール発動・前回誤判定の教訓化必須）\n\
+    \n## 工数目安\n- Step 1 oo_men再生成: 30分\n- Step 2 全視点sync再測定+視覚検証: 2時間（mpv視聴含む）\n-\
+    \ Step 3 master/with_telop再生成: 1時間\n- Step 4-5 bitrate検証+恒久修正: 1時間\n- Step 6 sync_record更新:\
+    \ 15分\n- Step 7 軍師QC+殿視聴: 1時間\n計: 半日\n\n## 軍師QC観点\n- bitrate改善: 新 oo_men_1sen\
+    \ が charlotte と同等水準 (4Mbps級)\n- mpv視覚検証で全視点sync echo無し\n- 過去判定『conf=1.00』で安心しなかったか\
+    \ (視覚検証必須遵守)\n- master/telop二段方式維持\n- multi_h264 恒久修正が procedures/ に反映されているか\n\
+    - 1戦目限定遵守 (8戦目に手出していない)\n\n## 関連\n- 過去 cmd: cmd_1464 → cmd_1478 → cmd_1485 → 本cmd_1487\
+    \ (1戦目4回目修正)\n- 本cmdで cmd_1485 軍師CONDITIONAL_PASS の盲点 (LLM視覚検証不可) が顕在化 → 軍師QC手順改訂が必要なら\
+    \ cmd_1486 (skill候補 video-qc-llm-mode) と統合検討\n- 過去Day5動画 (cmd_1424 zephyrus) も\
+    \ VP9→h264変換時 bitrate劣化していないか別cmdで遡及確認推奨"
+- id: cmd_1488
+  status: done
+  completed_at: '2026-04-25T23:19:00+09:00'
+  priority: high
+  purpose: cmd_1484 完遂(SQLite p0+p1 dry-run PASS)を受けて、p2 dual-path writes (YAML+SQLite両書き)
+    に着手。1週間soak後にp3 dual-path reads・p4 SLO計測へ進む。本cmdはp2のみ・p3以降は再判断待ち。
+  timestamp: '2026-04-25T22:15:41+09:00'
+  project: multi-agent-shogun
+  lord_original: '#3きょか (cmd_1484 → p2 dual-path 着手 殿許可)'
+  north_star: 軍師cmd_1481 設計の rank_2_dual_path 段階に進み、本番YAMLに影響なくSQLite書込を並走稼働させて実環境での動作実証データを取る。kill_switch
+    (STORAGE_BACKEND env) で即座にYAMLのみに戻せる安全構成を維持。
+  acceptance_criteria:
+  - scripts/inbox_write.sh と server.py POST /api/cmd_create にSQLite書込を**dual-path追加**
+    (YAML書込成功後にSQLite INSERT・YAMLが正・SQLiteは並走)
+  - kill_switch環境変数 STORAGE_BACKEND=yaml で即座にSQLite書込スキップできること
+  - queue/cmds.db (本番DB) を queue/schema_v1.sql で初期化 + 既存YAML全データを migrate_yaml_to_sqlite.py
+    で初期投入
+  - 'Litestream で queue/cmds.db を継続レプリケーション (config例: /var/log/litestream.log)'
+  - 日次 .dump バックアップを cron で queue/backup/cmds_YYYYMMDD.sql.gz に保存 (3層backupの3層目)
+  - '**1週間soak**: 本番運用中に YAML と SQLite のデータ一致を毎日 audit script で検証 (cron夜間)・差分0件継続'
+  - 'audit script (新規 scripts/sqlite_yaml_audit.py): commands/inbox_messages/tasks/reports
+    全テーブルで YAML件数 = SQLite件数 + 内容ハッシュ一致'
+  - 1週間soak中に差分1件でも出れば即 STORAGE_BACKEND=yaml にrollback + 軍師調査cmd発令
+  - '**本cmdではp3 dual-path reads には進まない** (殿の再判断待ち)'
+  - 軍師QC PASS (dual-path書込が正常動作・kill_switch動作・audit_script動作・1週間soak中の毎日audit結果が0件)
+  - git commit + push
+  command: "## 殿命\n『#3きょか』(=cmd_1484 → p2 dual-path 着手 許可)\n\n## 軍師レポート参照\nqueue/reports/gunshi_design_sqlite_migration_1481.yaml\
+    \ の rank_2_dual_path セクション + migration p2/p3/p4 設計。\n軍師cmd_1481 全文の dual-path\
+    \ strategy + kill_switch + Litestream backup design に従って実装せよ。\n\n## 範囲（厳守）\n-\
+    \ p2: dual-path writes (YAML+SQLite両書き) のみ着手\n- 1週間soak (本番運用中の毎日audit) を回す\n\
+    - **p3 dual-path reads には進まない** (殿の再判断待ち)\n- kill_switch (STORAGE_BACKEND=yaml)\
+    \ で即rollback可能な構成維持\n\n## やること\n\n### Step 1: 本番DB初期化 + YAML全データ初期投入\n```bash\n\
+    cd /home/murakami/multi-agent-shogun\nsource venv/bin/activate\nsqlite3 queue/cmds.db\
+    \ < queue/schema_v1.sql\npython3 scripts/migrate_yaml_to_sqlite.py --output-db\
+    \ queue/cmds.db --no-dry-run --verbose 2>&1 | tee logs/migration_initial_$(date\
+    \ +%Y%m%d_%H%M%S).log\n# 期待: commands/inbox_messages/tasks/reports 各テーブルにYAML全件投入完了\n\
+    ```\n\n### Step 2: dual-path書込実装\n#### 2-1. scripts/inbox_write.sh 改修\nYAML write成功後にSQLite\
+    \ INSERT実行。STORAGE_BACKEND=yaml なら SQLite skip。\nflock で SQLite書込時の race condition\
+    \ 回避。\n\n#### 2-2. server.py POST /api/cmd_create 改修\nYAML append成功後にSQLite INSERT実行。同上\
+    \ STORAGE_BACKEND制御。\n(注: 本cmd発令と並行で cmd_1487A=server.py inbox通知統合 も走る可能性。家老は両者の整合確認せよ)\n\
+    \n### Step 3: Litestream レプリケーション開始\n```bash\n# /etc/litestream.yml or ~/.litestream.yml\
+    \ 設定\ndbs:\n  - path: /home/murakami/multi-agent-shogun/queue/cmds.db\n    replicas:\n\
+    \      - type: file\n        path: /home/murakami/litestream-replica/cmds\n# systemd\
+    \ service 起動 or nohup\nnohup litestream replicate -config ~/.litestream.yml >\
+    \ logs/litestream.log 2>&1 &\n```\n\n### Step 4: 日次dump backup cron 設定\n```bash\n\
+    # crontab -e\n0 3 * * * cd /home/murakami/multi-agent-shogun && sqlite3 queue/cmds.db\
+    \ .dump | gzip > queue/backup/cmds_$(date +\\%Y\\%m\\%d).sql.gz\n```\n\n### Step\
+    \ 5: audit script 作成\nscripts/sqlite_yaml_audit.py 新規:\n- commands: YAML 件数 vs\
+    \ sqlite SELECT COUNT(*)\n- inbox_messages: YAML 件数 vs sqlite\n- tasks: YAML 件数\
+    \ vs sqlite\n- reports: YAML 件数 vs sqlite\n- 内容ハッシュ一致 (各レコードの主要フィールドJSON化→sha256比較)\n\
+    - 差分1件以上で exit 1 + ntfy alert\n\n```bash\n# 毎日夜間 cron\n0 4 * * * cd /home/murakami/multi-agent-shogun\
+    \ && python3 scripts/sqlite_yaml_audit.py --notify-on-fail >> logs/sqlite_audit.log\
+    \ 2>&1\n```\n\n### Step 6: kill_switch 動作確認\n```bash\nSTORAGE_BACKEND=yaml bash\
+    \ scripts/inbox_write.sh karo \"test\" cmd_new shogun\n# 期待: queue/inbox/karo.yaml\
+    \ に追加・SQLite には INSERT されない\n```\n\n### Step 7: 1週間soak 開始\n本番運用継続。毎日朝に audit\
+    \ log確認:\n```bash\ntail -20 logs/sqlite_audit.log\n# 差分0件 = OK\n# 差分あり = 即 STORAGE_BACKEND=yaml\
+    \ に切替 + 軍師調査\n```\n\n## 重要な制約\n- **YAMLが正・SQLiteは並走**: dual-path writeでYAML書込失敗時はSQLite書込もスキップ\n\
+    - **kill_switch即動作**: 環境変数1つでSQLite書込を完全停止可能\n- **本cmdではp3 (dual-path reads) には進まない**\n\
+    - **rollback容易**: STORAGE_BACKEND=yaml + queue/cmds.db 削除でp1以前に戻せる\n\n## 担当\n\
+    足軽4号 継続 (cmd_1471 server.py POST /api/cmd_create 実装者・cmd_1484 SQLite p0+p1 担当)\n\
+    \n## 工数目安\n- Step 1 本番DB初期化: 30分\n- Step 2 dual-path実装: 4-5時間\n- Step 3 Litestream:\
+    \ 30分\n- Step 4 cron設定: 15分\n- Step 5 audit script: 2時間\n- Step 6 kill_switch検証:\
+    \ 30分\n- Step 7 soak開始: 即 (1週間継続)\n計: 1-1.5日 + 1週間soak\n\n## 軍師QC観点\n- dual-path書込が正常動作\
+    \ (YAML/SQLite両方に書かれる)\n- kill_switch動作 (STORAGE_BACKEND=yaml でSQLite skip)\n\
+    - audit script動作 (差分0件確認)\n- Litestream + 日次dump 3層backup稼働\n- p3には進んでいない (範囲守られているか)\n\
+    \n## 関連\n- 軍師レポート: queue/reports/gunshi_design_sqlite_migration_1481.yaml\n- 並行進行\
+    \ cmd: cmd_1487 (Day6 1戦目修正・足軽1号), cmd_1489 (master-telop skill), cmd_1490 (video-qc-llm\
+    \ skill), cmd_1491 (server.py inbox通知統合・将軍直接)\n- 注意: cmd_1491 (server.py inbox統合)\
+    \ と本cmdの server.py改修箇所が干渉する可能性 → 家老が順序調整 (cmd_1491 先 → cmd_1488 後 推奨)"
+- id: cmd_1489
+  status: done
+  priority: medium
+  purpose: cmd_1486 で procedures/master_telop_two_stage.md として定義済の master/telop二段方式を
+    **正式スキル化**。動画系MIX cmdで /master-telop で起動できるようにし、将来全動画作成で標準ワークフロー化する。
+  timestamp: '2026-04-25T22:15:41+09:00'
+  project: multi-agent-shogun
+  lord_original: ４きょか (skill候補 master-telop-two-stage 承認 殿許可)
+  north_star: テロップミス時に4視点合成を再実行する無駄を恒久撲滅し、master.mp4 + with_telop.mp4 二段保存をスキル化で全エージェントに強制適用する。
+  acceptance_criteria:
+  - .claude/skills/master-telop-two-stage/SKILL.md 新規作成
+  - 'frontmatter: name=master-telop-two-stage / description（具体的トリガー語句明記）'
+  - '本文: master.mp4 生成手順 + with_telop.mp4 後加工手順 + テロップミス時の取り返し手順 + 元素材テロップチェック手順 +
+    Day5 zephyrus 等の過去フォーマット参照ルール'
+  - shared_context/procedures/master_telop_two_stage.md (cmd_1486で作成済) を参照する形式 (重複定義避ける・SKILL.md
+    は薄めのwrapperでOK)
+  - 'トリガー語句例: 『master/telop二段』『動画にテロップ後加工』『マスター動画 + テロップ別』『master_telop』等'
+  - 'Do NOT use for: 漫画ショート (panels JSONベース) / 表情ショート (別workflow) を明記'
+  - skill_inventory.md に登録 (skills/ 配下を棚卸しするスキル候補リスト)
+  - git commit + push
+  - 軍師QC PASS (SKILL.md frontmatter妥当性 + procedures参照整合 + トリガー語句網羅性)
+  command: "## 殿命\n『４きょか』(=skill候補 master-telop-two-stage 承認 許可)\n\n## 背景\ncmd_1486\
+    \ で shared_context/procedures/master_telop_two_stage.md として手順は既に定義済。\ncmd_1485/1487\
+    \ (Day6 Echidna 1戦目修正) で実証中。\n本cmdで .claude/skills/ 配下に正式スキル化し、`/master-telop`\
+    \ 等で起動可能にする。\n\n## 範囲\n- スキル定義 (.claude/skills/master-telop-two-stage/SKILL.md)\
+    \ のみ\n- 既存 procedures/master_telop_two_stage.md は参照する形式 (重複定義禁止)\n\n## やること\n\n\
+    ### Step 1: skills/ 構造確認\n```bash\nls .claude/skills/\nls skills/  # multi-agent-shogun\
+    \ 独自スキル群\n```\n既存スキルの SKILL.md frontmatter形式を踏襲。\n\n### Step 2: SKILL.md 作成\n\
+    保存先: `.claude/skills/master-telop-two-stage/SKILL.md`\n\nfrontmatter (例):\n```yaml\n\
+    ---\nname: master-telop-two-stage\ndescription: |\n  動画MIX (4視点等) でテロップを後加工する標準ワークフロー。master.mp4\
+    \ (テロップなし) と with_telop.mp4 (drawtext後加工) の二段保存方式。テロップミス時に master から再drawtextで取り返し可能。\n\
+    \  「master/telop二段」「動画にテロップ後加工」「マスター動画 + テロップ別」「master_telop」「テロップ修正」「右上テロップ追加」で起動。\n\
+    \  Do NOT use for: 漫画ショート (panels JSONベース→/manga-short)。表情ショート (別workflow→/expression-short-workflow)。\n\
+    ---\n```\n\n本文 (例):\n```markdown\n# master-telop-two-stage スキル\n\n動画MIX (4視点等)\
+    \ でテロップを後加工する標準ワークフロー。\n\n## 詳細手順\n→ shared_context/procedures/master_telop_two_stage.md\
+    \ を参照\n\n## 起動条件\n- 動画MIX (4視点 grid 等) を作成し右上テロップ等を追加する\n- 元素材にテロップが入っていない (入っていれば素材選定からやり直し)\n\
+    \n## 出力\n- work/cmd_XXXX/master_<seg>.mp4 (テロップなし・永続保管)\n- work/cmd_XXXX/with_telop_<seg>.mp4\
+    \ (アップロード対象)\n```\n\n### Step 3: skill_inventory.md 登録\n既存 context/skill_candidates_inventory.md\
+    \ (or similar) を確認し、master-telop-two-stage を 『正式化済』 として記載。\n\n### Step 4: 動作確認\n\
+    別pane (家老) で `/master-telop` 入力 → スキル発動確認 (SKILL.md frontmatterのdescriptionで起動するか)。\n\
+    \n## 担当\n家老判断 (idle足軽から選定・skill-creator経験者推奨)\n\n## 工数目安\n- Step 1: 15分\n- Step\
+    \ 2 SKILL.md作成: 1時間\n- Step 3 inventory登録: 15分\n- Step 4 動作確認: 15分\n計: 2時間\n\n\
+    ## 軍師QC観点\n- frontmatter description が具体的・トリガー語句網羅\n- procedures/master_telop_two_stage.md\
+    \ と重複定義なし (参照形式)\n- Do NOT use for セクションが他スキルと混同しない明記\n- skill_inventory に登録\n\
+    \n## 関連\n- 並行発令 cmd: cmd_1487 (master/telop方式の実証2号) / cmd_1488 (SQLite p2) / cmd_1490\
+    \ (video-qc-llm skill) / cmd_1491 (server.py inbox統合)\n- 関連手順: shared_context/procedures/master_telop_two_stage.md\
+    \ (cmd_1486で作成済)\n- 関連 skill: video-pipeline / highlight / manga-short (別workflow)"
+- id: cmd_1490
+  status: done
+  completed_at: '2026-04-25T22:51:00+09:00'
+  priority: medium
+  purpose: 軍師が動画再生不可なLLMでもQCを形骸化させない『LLM動画QC4点セット』を正式スキル化。cmd_1485のCONDITIONAL_PASSスキップで殿実視聴NGが発覚した教訓を恒久化する。
+  timestamp: '2026-04-25T22:17:35+09:00'
+  project: multi-agent-shogun
+  lord_original: ５きょか (skill候補 video-qc-llm-mode 承認 殿許可)
+  north_star: LLM軍師が動画系cmdをQCする際、ffprobe数値+sync_record整合+drawtext params diff+bitrate分析の4点セットを必須実行させ、視覚検証スキップでもPASS品質を担保する。CONDITIONAL_PASS判定の責任所在も明確化。
+  acceptance_criteria:
+  - .claude/skills/video-qc-llm-mode/SKILL.md 新規作成
+  - 'frontmatter: name=video-qc-llm-mode / description (具体的トリガー語句明記・LLM動画QC専用)'
+  - '本文: 4点チェックリスト (1)ffprobe数値検証 (2)sync_record.yaml整合 (3)drawtext_params_diff.md
+    過去比較 (4)bitrate分析 (元素材 vs 中間 vs 最終)'
+  - 'CONDITIONAL_PASS判定基準明記: ffprobe等数値はPASSだが視覚検証必要 → 殿の判断仰ぐフォーマット'
+  - shared_context/qc_template.md (cmd_1479で動画QC追加項目セクション既存) を参照する形式・重複定義禁止
+  - 'トリガー語句例: 『動画QC』『video QC』『LLM動画チェック』『ffprobe検証』『軍師動画QC』'
+  - 'Do NOT use for: 漫画ショートQC (panels整合性) / サムネQC (画像比較) / 音声QC (waveform) を明記'
+  - skill_inventory.md に登録
+  - git commit + push
+  - 軍師QC PASS
+  command: "## 殿命\n『５きょか』(=skill候補 video-qc-llm-mode 承認 許可)\n\n## 背景・必要性\ncmd_1485\
+    \ 軍師QCで CONDITIONAL_PASS判定 → 殿『B) cmd_1478同様スキップでOK』選択 → 殿実視聴NG (画質劣化+時間ズレ) 発覚\
+    \ → cmd_1487 redo発令。\n根本原因: LLM軍師は動画再生不可ゆえ視覚検証スキップ、ffprobe数値+sync_record conf=1.00\
+    \ だけでPASS判定してしまう。\n本cmdで『LLM動画QC4点セット』を正式スキル化し、視覚検証スキップでも数値以外の検証 (drawtext params\
+    \ diff / bitrate劣化) を必須化する。\n\n## 範囲\n- スキル定義 (.claude/skills/video-qc-llm-mode/SKILL.md)\
+    \ のみ\n- 既存 qc_template.md 動画QC追加項目セクション (cmd_1479) を参照\n\n## やること\n\n### Step\
+    \ 1: skills/ 構造確認・既存スキル形式踏襲\n```bash\nls .claude/skills/\ncat .claude/skills/{既存スキル}/SKILL.md\
+    \  # frontmatter形式参考\n```\n\n### Step 2: SKILL.md 作成\n保存先: `.claude/skills/video-qc-llm-mode/SKILL.md`\n\
+    \nfrontmatter (例):\n```yaml\n---\nname: video-qc-llm-mode\ndescription: |\n  LLM軍師が動画系cmdをQCする際の4点セット必須チェック\
+    \ (ffprobe + sync_record + drawtext_params_diff + bitrate分析)。動画再生不可なLLMでも形骸化を防ぐ最低限の数値検証。CONDITIONAL_PASS判定の責任所在も明示。\n\
+    \  「動画QC」「video QC」「LLM動画チェック」「ffprobe検証」「軍師動画QC」「動画QC形骸化対策」で起動。\n  Do NOT use\
+    \ for: 漫画ショートQC (→panels整合チェック)。サムネQC (→画像比較)。音声QC (→waveform検証)。\n---\n```\n\n\
+    本文 (例):\n```markdown\n# video-qc-llm-mode スキル\n\nLLM軍師が動画系cmdをQCする際の4点セット必須チェック。\n\
+    \n## 4点チェックリスト\n\n### 1. ffprobe 数値検証\n- 元素材 / 中間ファイル / 最終ファイル全部に ffprobe 実行\n\
+    - bitrate / resolution / fps / codec を比較表で出力\n- 異常検知: bitrate劣化50%超 / resolution不一致\
+    \ / fps変動\n\n### 2. sync_record.yaml 整合\n- measurements 全項目 (primary/check2/check3)\
+    \ の confidence 確認\n- adopted_offsets が 全check で一致 (max_diff ≤ threshold) か確認\n\
+    - visual_verification.result の値が pending か pass か明記\n\n### 3. drawtext_params_diff.md\
+    \ 過去比較\n- 過去動画 (Day5 zephyrus 等) の drawtext パラメータと一致するか\n- font/fontsize/x/y/fontcolor/box/boxcolor\
+    \ のdiff出力\n\n### 4. bitrate分析 (元素材 vs 中間 vs 最終)\n- 元素材 (VP9 等) の bitrate基準 = 4Mbps級\n\
+    - 中間ファイル (h264変換等) で劣化していないか\n- 最終ファイル の見かけbitrate と実質画質の乖離 (再エンコで bitrate膨らんでも実質劣化済の罠)\n\
+    \n## CONDITIONAL_PASS判定基準\n上記4点全PASS だが視覚検証 (mpv) ができない場合:\n```\n軍師QC: CONDITIONAL_PASS\
+    \ (4点セット数値全PASS・LLM視覚検証不可)\n→ 殿の判断仰ぐ:\n  A) 殿が mpv で視覚確認 → 完遂 PASS昇格\n  B) スキップでPASS\
+    \ → 殿責任で完遂 (リスク受け入れ)\n```\n\n## 起動条件\n- 動画系cmd (4視点MIX / ハイライト / ショート等) のQC実施時\n\
+    - LLM軍師がQCを担当する場合 (人間軍師なら mpv視聴で完結)\n\n## 出力\n- queue/reports/gunshi_report_qc_cmdXXXX.yaml\n\
+    - 上記4点の検証結果 + CONDITIONAL_PASS判定 + 殿への選択肢提示\n```\n\n### Step 3: skill_inventory.md\
+    \ 登録\n\n### Step 4: 動作確認\n別pane で `/video-qc-llm` 等の入力 → スキル発動確認。\n\n## 担当\n家老判断\
+    \ (idle足軽から選定・skill-creator経験者推奨)\n\n## 工数目安\n- Step 1: 15分\n- Step 2 SKILL.md:\
+    \ 1.5時間\n- Step 3 inventory登録: 15分\n- Step 4 動作確認: 15分\n計: 2.5時間\n\n## 軍師QC観点\n\
+    - frontmatter description が具体的・トリガー語句網羅\n- 4点セットがcmd_1479 qc_template.md と整合\n\
+    - CONDITIONAL_PASS判定基準が明確 (殿への選択肢フォーマット含む)\n- skill_inventory に登録\n\n## 関連\n-\
+    \ 並行発令 cmd: cmd_1487 (本スキル必要性の実証元) / cmd_1488 (SQLite p2) / cmd_1489 (master-telop\
+    \ skill) / cmd_1491 (server.py inbox統合)\n- 関連手順: shared_context/qc_template.md\
+    \ (cmd_1479で動画QC追加項目セクション既存)\n- 教訓元: cmd_1485 CONDITIONAL_PASSスキップ → 殿実視聴NG"
+- id: cmd_1491
+  status: done
+  completed_at: '2026-04-25T22:32:00+09:00'
+  timestamp: '2026-04-25T22:16:00+09:00'
+  priority: high
+  project: multi-agent-shogun
+  assigned_to: shogun
+  lord_original: Aきょか (server.py inbox自動通知統合 殿許可)・MCP APIつかえよ
+  purpose: scripts/dashboard/server.py の POST /api/cmd_create を拡張し、cmd起票成功時に自動で家老inboxへ通知メッセージを追加する。inbox_write.sh
+    の bash 呼出を不要化し、cmd_1475 item_3 改修推奨を実装。**根幹システム改修ゆえ将軍が直接実装**。
+  north_star: MCP API 1発で『cmd起票 + 家老通知 + cmd_history JSON保管 + (将来) SQLite INSERT』が完結する設計に統一。将軍/家老/足軽が
+    bash inbox_write.sh を呼ぶ必要がなくなり、API一元化で hook chain簡素化と障害点減少。
+  acceptance_criteria:
+  - 'POST /api/cmd_create に新規パラメータ追加: notify_karo (bool・デフォルトtrue) / notify_message
+    (str・省略時はcmd purposeから自動生成)'
+  - cmd_create成功時、notify_karo=true なら queue/inbox/karo.yaml に msg追加 (flock保護・既存inbox_write.sh
+    と同等動作)
+  - msg追加時、msg_id 生成 (msg_<timestamp>_<8文字hash>形式)・read=false / from=shogun / type=cmd_new
+    / content=notify_message or 自動生成
+  - POST受信内容を queue/cmd_history/<cmd_id>_request.json に自動保存 (将来の audit_log テーブル代替まで・SQLite
+    p2完了後は廃止)
+  - 'kill_switch: notify_karo=false で従来動作 (inbox通知なし) が動くこと'
+  - 既存呼出元 (将軍/家老/足軽の bash inbox_write.sh 経由) は影響なし (互換性維持)
+  - 'curl テスト: POST /api/cmd_create -d ''{...notify_karo: true...}'' で karo.yaml に
+    msg追加確認'
+  - 'watcher 連携: inbox/karo.yaml 変更で inotifywait が wakeup nudge を発火 (動作確認)'
+  - git commit + push
+  - dashboard.md 完遂報告
+  command: "## 殿命\n『Aきょか』(=server.py inbox自動通知統合 許可)\n『MCP APIつかえよ』(=cmd起票はAPI一発・bash\
+    \ inbox_write.sh併用は技術負債)\n\n## 背景\n現状: 将軍が cmd起票時に以下2ステップ実行\n1. POST /api/cmd_create\
+    \ でshogun_to_karo.yaml に entry追加\n2. bash scripts/inbox_write.sh karo \"...\"\
+    \ cmd_new shogun で家老通知\n\n問題: API + bash の二重呼出 → ミス余地 (cmd_1487発令時に scripts/inbox_write.sh\
+    \ で wd誤りで失敗例あり)\n\ncmd_1475 item_3 (HIGH推奨): cmd_create + inbox自動通知統合。本cmdで実装。\n\
+    \n## 範囲（厳守）\n- POST /api/cmd_create 拡張のみ (新規API追加ではない)\n- 互換性維持 (既存呼出元・bash inbox_write.sh\
+    \ は引き続き動作)\n- SQLite INSERT は cmd_1488 (p2 dual-path) で別途追加・本cmdは触らない\n\n## やること（将軍直接実装）\n\
+    \n### Step 1: server.py POST /api/cmd_create 拡張\n既存コード (queue/shogun_to_karo.yaml\
+    \ への flock + append) はそのまま。\n以下を追加:\n\n```python\n# 既存処理の最後 (yaml entry追加成功後・レスポンス返す前)\n\
+    \nnotify_karo = body.get('notify_karo', True)  # デフォルトtrue\nnotify_message = body.get('notify_message')\
+    \ or f\"{cmd_id}発令済(API)。purpose: {body['purpose'][:80]}\"\n\nif notify_karo:\n\
+    \    inbox_path = QUEUE_DIR / 'inbox' / 'karo.yaml'\n    inbox_lock = inbox_path.with_suffix('.yaml.lock')\n\
+    \    msg_id = f\"msg_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{secrets.token_hex(4)}\"\
+    \n    new_msg = {\n        'id': msg_id,\n        'from': 'shogun',\n        'type':\
+    \ 'cmd_new',\n        'content': notify_message,\n        'read': False,\n   \
+    \     'timestamp': datetime.now(timezone(timedelta(hours=9))).isoformat()\n  \
+    \  }\n    with open(inbox_lock, 'w') as lf:\n        fcntl.flock(lf, fcntl.LOCK_EX)\n\
+    \        with open(inbox_path, 'r', encoding='utf-8') as f:\n            inbox_data\
+    \ = yaml.safe_load(f) or {'messages': []}\n        inbox_data.setdefault('messages',\
+    \ []).append(new_msg)\n        with open(inbox_path, 'w', encoding='utf-8') as\
+    \ f:\n            yaml.dump(inbox_data, f, allow_unicode=True, sort_keys=False,\
+    \ default_flow_style=False, width=10000)\n```\n\n### Step 2: cmd_history JSON保管追加\n\
+    ```python\n# yaml entry追加成功後\nhistory_dir = QUEUE_DIR / 'cmd_history'\nhistory_dir.mkdir(exist_ok=True)\n\
+    history_path = history_dir / f'{cmd_id}_request.json'\nwith open(history_path,\
+    \ 'w', encoding='utf-8') as f:\n    json.dump(body, f, ensure_ascii=False, indent=2)\n\
+    ```\n\n### Step 3: curl テスト\n```bash\n# テストcmd起票 (cmd_99_test 等)\ncurl -X POST\
+    \ http://127.0.0.1:8770/api/cmd_create \\\n  -H \"Content-Type: application/json\"\
+    \ \\\n  -d '{\"id\":\"cmd_test_99\",\"purpose\":\"test\",\"lord_original\":\"\
+    test\",\"notify_message\":\"テスト通知\"}'\n# 確認:\n# 1. shogun_to_karo.yaml に cmd_test_99\
+    \ entry あり\n# 2. queue/inbox/karo.yaml に msg追加・content='テスト通知'\n# 3. queue/cmd_history/cmd_test_99_request.json\
+    \ 保存\n# 4. 家老pane が wakeup したか (inotifywait経由)\n# テスト後 cleanup: shogun_to_karo.yaml\
+    \ から cmd_test_99 削除・karo.yaml から msg削除\n```\n\n### Step 4: server.py 再起動\n```bash\n\
+    ps aux | grep dashboard/server.py | grep -v grep  # 既存PID確認\nkill -TERM <PID>\n\
+    nohup python3 scripts/dashboard/server.py > logs/dashboard_server.log 2>&1 &\n\
+    ```\n\n### Step 5: 既存呼出元の互換性確認\n- `bash scripts/inbox_write.sh karo \"...\" cmd_new\
+    \ shogun` が引き続き動作\n- `notify_karo=false` の cmd起票で inbox通知が skipされる\n\n### Step\
+    \ 6: dashboard.md 完遂報告\n\n## 重要な制約\n- **既存呼出元に影響なし** (互換性維持)\n- **SQLite INSERT\
+    \ は本cmdで触らない** (cmd_1488 で別途追加)\n- **kill_switch: notify_karo=false で従来動作維持**\n\
+    - **flock 必須** (queue/inbox/karo.yaml の race condition回避)\n\n## 担当\n**将軍直接** (assigned_to:\
+    \ shogun)・根幹システム改修ゆえ家老/足軽委任せず\n\n## 工数目安\n- Step 1 server.py拡張: 1時間\n- Step 2\
+    \ cmd_history保管: 15分\n- Step 3 curlテスト: 30分\n- Step 4 server再起動: 5分\n- Step 5\
+    \ 互換性確認: 15分\n- Step 6 dashboard更新: 10分\n計: 2-2.5時間\n\n## 軍師QC観点\n- API拡張が既存動作を破壊していない\
+    \ (互換性)\n- inbox通知の flock 動作\n- cmd_history JSON が正しく保存される\n- kill_switch 動作\n\
+    - watcher 連携 (nudge発火)\n\n## 関連\n- 並行発令 cmd: cmd_1487 (Day6 1戦目修正・足軽1号), cmd_1488\
+    \ (SQLite p2・足軽4号), cmd_1489 (master-telop skill), cmd_1490 (video-qc-llm skill)\n\
+    - **干渉注意**: cmd_1488 (SQLite p2) と本cmdの server.py改修箇所が干渉する可能性 → **本cmd1491 を先に完遂し、cmd_1488\
+    \ で SQLite INSERT を追加する順序** とする (家老調整)\n- 起源: cmd_1475 item_3 改修推奨"
+  completion_note: 将軍直接実装。POST /api/cmd_create に notify_karo+notify_message パラメータ追加。inbox自動通知統合・cmd_history
+    JSON保管・kill_switch対応。git commit 863bb19。
+- id: cmd_1492
+  status: done
+  completed_at: '2026-04-26T00:03:00+09:00'
+  priority: medium
+  purpose: POST /api/inbox_write エンドポイントをserver.pyに追加。任意エージェントへHTTP経由でinboxメッセージを送信できる汎用API。
+  timestamp: '2026-04-25T23:25:00+09:00'
+  lord_original: 部下に作らせて
+  project: system
+  notify_karo: false
+  command: 'server.py の do_POST に POST /api/inbox_write を追加せよ。body: {"to": "<agent_id>",
+    "message": "<内容>", "type": "<type>", "from": "<from>"}。実装はscripts/inbox_write.shをsubprocess.runで呼ぶ（既存スクリプト再利用必須・新規.py禁止）。レスポンス:
+    {"success": true, "msg_id": "...", "timestamp": "..."}。SQLite dual-pathはinbox_write.shが自動処理。curlテスト必須。target_path:
+    /home/murakami/multi-agent-shogun/scripts/dashboard/server.py'
+  acceptance_criteria:
+  - POST /api/inbox_write が server.py に実装済み
+  - 'body: to/message/type/from の4フィールドを受け付ける'
+  - 内部で scripts/inbox_write.sh を subprocess.run で呼ぶ（新規スクリプト禁止）
+  - 'レスポンス: {success: true, msg_id: ..., timestamp: ...}'
+  - curlテストで実際にinboxにメッセージが届くこと確認済み
+  - git commit済み（push は家老が実施）
+- id: cmd_1493
+  status: done
+  completed_at: '2026-04-26T00:19:00+09:00'
+  priority: low
+  purpose: POST /api/inbox_write のレスポンスmsg_idとYAML実際のmsg_idを一致させる。inbox_write.shの出力からmsg_idを取得してレスポンスに使う。
+  timestamp: '2026-04-26T00:05:00+09:00'
+  lord_original: して
+  project: system
+  notify_karo: false
+  command: 'scripts/dashboard/server.py の /api/inbox_write 実装(L2096〜)を修正せよ。現状: server側でuuid生成→レスポンス、subprocess.runのinbox_write.shで別uuid生成。修正:
+    inbox_write.shの stdout を capture し実際のmsg_idを取得→レスポンスのmsg_idに使う。inbox_write.shがmsg_idをstdoutに出力しない場合は出力を追加せよ。curlテストでレスポンスmsg_idとinbox
+    YAML msg_idが一致することを確認。target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py'
+  acceptance_criteria:
+  - POST /api/inbox_write のレスポンスmsg_idとinbox YAML実際のmsg_idが一致する
+  - subprocess.run の stdout からmsg_idを取得している
+  - curlテストで一致を確認済み
+  - git commit済み（push は家老が実施）
