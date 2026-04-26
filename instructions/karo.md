@@ -280,54 +280,11 @@ SQLite は dual-path で常に最新。YAML が新しく見えるのは家老の
 
 Report via dashboard.md update only. Reason: interrupt prevention during lord's input.
 
-## Foreground Block Prevention (24-min Freeze Lesson)
+## 実行原則
 
-**Karo blocking = entire army halts.** On 2026-02-06, foreground `sleep` during delivery checks froze karo for 24 minutes.
-
-**Rule: NEVER use `sleep` in foreground.** After dispatching tasks → stop and wait for inbox wakeup.
-
-| Command Type | Execution Method | Reason |
-|-------------|-----------------|--------|
-| Read / Write / Edit | Foreground | Completes instantly |
-| inbox_write.sh | Foreground | Completes instantly |
-| `sleep N` | **FORBIDDEN** | Use inbox event-driven instead |
-| tmux capture-pane | **FORBIDDEN** | Read report YAML instead |
-
-### Dispatch-then-Stop Pattern
-
-```
-✅ Correct (event-driven):
-  cmd_008 dispatch → inbox_write ashigaru → stop (await inbox wakeup)
-  → ashigaru completes → inbox_write karo → karo wakes → process report
-
-❌ Wrong (polling):
-  cmd_008 dispatch → sleep 30 → capture-pane → check status → sleep 30 ...
-```
-
-### Multiple Pending Cmds Processing
-
-1. List all pending cmds in `queue/shogun_to_karo.yaml`
-2. For each cmd: decompose → write YAML → inbox_write → **next cmd immediately**
-3. After all cmds dispatched: **stop** (await inbox wakeup from ashigaru)
-4. On wakeup: scan reports → process → check for more pending cmds → stop
-
-### orders/ Archive (Task Instruction Archive)
-
-`orders/` is a private submodule (`naginata63/multi-agent-orders`) that archives all task instructions for post-hoc inspection.
-
-**Copy rules:**
-- **On cmd issuance**: Copy cmd definition from `shogun_to_karo.yaml` → `orders/commands/cmd_XXX.yaml`
-- **On task assignment**: Copy subtask YAML → `orders/tasks/subtask_XXX.yaml`
-- **On report receipt**: Archive completion reports → `orders/reports/`
-- **Commit/push**: After each cmd cycle or daily (whichever is more frequent)
-
-```bash
-# Example: archive a cmd definition
-cp -n queue/shogun_to_karo.yaml orders/commands/cmd_512.yaml  # NOT correct — extract only that cmd's block
-# Use Python/awk to extract the specific cmd block, then save to orders/commands/cmd_XXX.yaml
-cd orders && git add . && git commit -m "archive: cmd_XXX" && git push origin main && cd ..
-git add orders && git commit -m "chore: update orders submodule"
-```
+- **foreground sleep / capture-pane / polling 禁止** (F004): dispatch 後は idle で inbox nudge を待つ
+- **Multiple pending cmds**: 全件 dispatch → idle・wakeup で reports scan
+- **orders/ archive**: 過去 cmd/task 定義は orders/ submodule (naginata63/multi-agent-orders) に退避・必要時のみ参照
 
 ## Task Design: Five Questions
 
@@ -366,59 +323,12 @@ Before assigning tasks, ask yourself these five questions:
 
 タスク起票は **`POST /api/task_create`** (curl) で。body の必須フィールド: `agent`, `task_id`, `status`, `parent_cmd`, `bloom_level`, `description`, `target_path`。dependent task は `blocked_by: [task_id, ...]` を含める。詳細仕様は `shared_context/procedures/dashboard_api_usage.md`。
 
-## "Wake = Full Scan" Pattern
+## Wake-up と並行化
 
-Claude Code cannot "wait". Prompt-wait = stopped.
-
-1. Dispatch ashigaru
-2. Say "stopping here" and end processing
-3. Ashigaru wakes you via inbox
-4. Scan ALL report files (not just the reporting one)
-5. Assess situation, then act
-
-## Event-Driven Wait Pattern (replaces old Background Monitor)
-
-**After dispatching all subtasks: STOP.** Do not launch background monitors or sleep loops.
-
-```
-Step 7: Dispatch cmd_N subtasks → inbox_write to ashigaru
-Step 8: check_pending → if pending cmd_N+1, process it → then STOP
-  → Karo becomes idle (prompt waiting)
-Step 9: Ashigaru completes → inbox_write karo → watcher nudges karo
-  → Karo wakes, scans reports, acts
-```
-
-**Why no background monitor**: inbox_watcher.sh detects ashigaru's inbox_write to karo and sends a nudge. This is true event-driven. No sleep, no polling, no CPU waste.
-
-**Karo wakes via**: inbox nudge from ashigaru report, shogun new cmd, or system event. Nothing else.
-
-## Report Scanning (Communication Loss Safety)
-
-On every wakeup (regardless of reason), scan ALL `queue/reports/ashigaru*_report_*.yaml`.
-Cross-reference with dashboard.md — process any reports not yet reflected.
-
-**Why**: Ashigaru inbox messages may be delayed. Report files are already written and scannable as a safety net.
-
-## RACE-001: No Concurrent Writes
-
-```
-❌ ashigaru1 → output.md + ashigaru2 → output.md  (conflict!)
-✅ ashigaru1 → output_1.md + ashigaru2 → output_2.md
-```
-
-## Parallelization
-
-- Independent tasks → multiple ashigaru simultaneously
-- Dependent tasks → sequential with `blocked_by`
-- 1 ashigaru = 1 task (until completion)
-- **If splittable, split and parallelize.** "One ashigaru can handle it all" is karo laziness.
-
-| Condition | Decision |
-|-----------|----------|
-| Multiple output files | Split and parallelize |
-| Independent work items | Split and parallelize |
-| Previous step needed for next | Use `blocked_by` |
-| Same file write required | Single ashigaru (RACE-001) |
+- **wake = full scan**: 起床時 (inbox nudge / 新 cmd) は `GET /api/report_list?worker=ashigaruN&limit=10` で全 report を確認 (個別ではなく全体)
+- **dispatch → idle**: 全 subtask 配布後は idle で次の wakeup を待つ・background monitor / sleep 禁止
+- **並行化**: 独立 task は複数足軽に分配・依存 task は `blocked_by` で順序化・1足軽=1task
+- **RACE-001**: 同一ファイルへの書込み競合禁止 (`output.md` を 2足軽に書かせるな・split して `output_1.md` `output_2.md`)
 
 ## Task Dependencies (blocked_by)
 
