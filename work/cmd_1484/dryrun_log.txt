@@ -1,61 +1,38 @@
 === SQLite Migration (DRY-RUN) ===
-Output: /tmp/dryrun_output.sql
+Output: work/cmd_1484/dryrun_output.sql
 
 --- Reading /home/murakami/multi-agent-shogun/queue/shogun_to_karo.yaml ---
-Commands: 32 ok, 0 skipped
-Inbox: 61 ok, 0 skipped
-WARN: YAML parse error in /home/murakami/multi-agent-shogun/queue/tasks/ashigaru3.yaml: mapping values are not allowed here
-  in "/home/murakami/multi-agent-shogun/queue/tasks/ashigaru3.yaml", line 30, column 72
-WARN: Skipping /home/murakami/multi-agent-shogun/queue/tasks/ashigaru3.yaml (YAML parse error)
-WARN: YAML parse error in /home/murakami/multi-agent-shogun/queue/tasks/ashigaru5.yaml: mapping values are not allowed here
-  in "/home/murakami/multi-agent-shogun/queue/tasks/ashigaru5.yaml", line 74, column 94
-WARN: Skipping /home/murakami/multi-agent-shogun/queue/tasks/ashigaru5.yaml (YAML parse error)
-Tasks: 41 ok, 2 skipped
+Commands: 22 ok, 0 skipped
+Inbox: 2 ok, 0 skipped
+Tasks: 29 ok, 0 skipped
 
---- Reading 123 report files ---
+--- Reading 107 report files ---
 WARN: YAML parse error in /home/murakami/multi-agent-shogun/queue/reports/ashigaru1_report.yaml: expected a single document in the stream
   in "/home/murakami/multi-agent-shogun/queue/reports/ashigaru1_report.yaml", line 1, column 1
 but found another document
   in "/home/murakami/multi-agent-shogun/queue/reports/ashigaru1_report.yaml", line 69, column 1
 WARN: Skipping /home/murakami/multi-agent-shogun/queue/reports/ashigaru1_report.yaml (YAML parse error)
+WARN: YAML parse error in /home/murakami/multi-agent-shogun/queue/reports/ashigaru4_report_subtask_1484a.yaml: mapping values are not allowed here
+  in "/home/murakami/multi-agent-shogun/queue/reports/ashigaru4_report_subtask_1484a.yaml", line 37, column 44
+WARN: Skipping /home/murakami/multi-agent-shogun/queue/reports/ashigaru4_report_subtask_1484a.yaml (YAML parse error)
 WARN: YAML parse error in /home/murakami/multi-agent-shogun/queue/reports/ashigaru5_report.yaml: expected a single document in the stream
   in "/home/murakami/multi-agent-shogun/queue/reports/ashigaru5_report.yaml", line 1, column 1
 but found another document
   in "/home/murakami/multi-agent-shogun/queue/reports/ashigaru5_report.yaml", line 7, column 1
 WARN: Skipping /home/murakami/multi-agent-shogun/queue/reports/ashigaru5_report.yaml (YAML parse error)
-WARN: YAML parse error in /home/murakami/multi-agent-shogun/queue/reports/dedup_warnings.yaml: while parsing a block mapping
-  in "/home/murakami/multi-agent-shogun/queue/reports/dedup_warnings.yaml", line 1, column 1
-expected <block end>, but found '<scalar>'
-  in "/home/murakami/multi-agent-shogun/queue/reports/dedup_warnings.yaml", line 1, column 82
-WARN: Skipping /home/murakami/multi-agent-shogun/queue/reports/dedup_warnings.yaml (YAML parse error)
-WARN: YAML parse error in /home/murakami/multi-agent-shogun/queue/reports/gunshi_design_sqlite_migration_1481.yaml: while parsing a block collection
-  in "/home/murakami/multi-agent-shogun/queue/reports/gunshi_design_sqlite_migration_1481.yaml", line 654, column 5
-expected <block end>, but found '?'
-  in "/home/murakami/multi-agent-shogun/queue/reports/gunshi_design_sqlite_migration_1481.yaml", line 656, column 5
-WARN: Skipping /home/murakami/multi-agent-shogun/queue/reports/gunshi_design_sqlite_migration_1481.yaml (YAML parse error)
 WARN: YAML parse error in /home/murakami/multi-agent-shogun/queue/reports/gunshi_report.yaml: expected a single document in the stream
   in "/home/murakami/multi-agent-shogun/queue/reports/gunshi_report.yaml", line 1, column 1
 but found another document
   in "/home/murakami/multi-agent-shogun/queue/reports/gunshi_report.yaml", line 194, column 1
 WARN: Skipping /home/murakami/multi-agent-shogun/queue/reports/gunshi_report.yaml (YAML parse error)
-WARN: YAML parse error in /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1477_stage1.yaml: while parsing a block collection
-  in "/home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1477_stage1.yaml", line 95, column 3
-expected <block end>, but found '?'
-  in "/home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1477_stage1.yaml", line 97, column 3
-WARN: Skipping /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1477_stage1.yaml (YAML parse error)
-WARN: YAML parse error in /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1461a.yaml: while scanning a double-quoted scalar
-  in "/home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1461a.yaml", line 12, column 12
-found unknown escape character '*'
-  in "/home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1461a.yaml", line 12, column 369
-WARN: Skipping /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_subtask_1461a.yaml (YAML parse error)
-Reports: 116 ok, 7 skipped
+Reports: 103 ok, 4 skipped
 
-Dry-run SQL written to: /tmp/dryrun_output.sql
+Dry-run SQL written to: work/cmd_1484/dryrun_output.sql
 
 === SUMMARY ===
-Commands: 32 inserted, 0 skipped
-Inbox:    61 inserted, 0 skipped
-Tasks:    41 inserted, 2 skipped
-Reports:  116 inserted, 7 skipped
-Total:    250 inserted, 9 skipped, 0 schema mismatches
-SQL statements: 250
+Commands: 22 inserted, 0 skipped
+Inbox:    2 inserted, 0 skipped
+Tasks:    29 inserted, 0 skipped
+Reports:  103 inserted, 4 skipped
+Total:    156 inserted, 4 skipped, 0 schema mismatches
+SQL statements: 156
