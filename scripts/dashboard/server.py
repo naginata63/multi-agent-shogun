@@ -1711,18 +1711,22 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         elif self.path.startswith('/api/inbox_messages'):
-            # GET /api/inbox_messages?agent=karo&unread=1&limit=20
+            # GET /api/inbox_messages?agent=karo&unread=1&limit=20&full=0
+            # full=0 (default cmd_1495): summary cols only — 件名/from/type のみ・content 含まず
+            # full=1: 全カラム返却 (本文 content 含む)
             try:
                 from urllib.parse import urlparse, parse_qs
                 qs = parse_qs(urlparse(self.path).query)
                 agent = qs.get('agent', [None])[0]
                 unread = qs.get('unread', [None])[0]  # '1' で未読のみ
                 limit = int(qs.get('limit', ['20'])[0])
+                full = qs.get('full', ['0'])[0] == '1'
 
                 conn = sqlite3.connect(DB_PATH, timeout=5)
                 conn.row_factory = sqlite3.Row
                 try:
-                    sql = "SELECT * FROM inbox_messages"
+                    cols = "*" if full else "id, agent, from_agent, type, read, timestamp"
+                    sql = f"SELECT {cols} FROM inbox_messages"
                     params = []
                     where = []
                     if agent:
@@ -1737,8 +1741,8 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     conn.close()
 
                 body = json.dumps({'messages': msgs, 'shown': len(msgs),
-                                   'source': 'sqlite'}, ensure_ascii=False,
-                                  indent=2, default=str).encode('utf-8')
+                                   'full': full, 'source': 'sqlite'},
+                                  ensure_ascii=False, indent=2, default=str).encode('utf-8')
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self.send_header('Content-Length', str(len(body)))
@@ -2707,6 +2711,103 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     'success': True, 'report_id': report_id,
                     'yaml_path': os.path.relpath(yaml_abs, BASE_DIR),
                     'timestamp': report_entry['timestamp'],
+                }, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp)))
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path == '/api/inbox_mark_read':
+            # POST /api/inbox_mark_read — cmd_1495 既読化 API
+            # body: {"agent":"karo","ids":["msg_xxx",...]} か {"agent":"karo","all_unread":true}
+            #   actor 任意 (audit_log 記録用)。SQLite primary + YAML dual-path。
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length).decode('utf-8') or '{}')
+                agent = (body.get('agent') or '').strip()
+                ids = body.get('ids') or []
+                all_unread = bool(body.get('all_unread', False))
+                actor = body.get('actor') or agent or 'unknown'
+
+                if not agent:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'agent required'}).encode('utf-8'))
+                    return
+                if not ids and not all_unread:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(
+                        {'error': 'ids or all_unread required'}).encode('utf-8'))
+                    return
+
+                now_iso = datetime.now(timezone.utc).isoformat()
+                updated = 0
+                conn = sqlite3.connect(DB_PATH, timeout=5)
+                try:
+                    if ids:
+                        placeholders = ','.join('?' * len(ids))
+                        sql = (f"UPDATE inbox_messages SET read=1, read_at=?, actor=? "
+                               f"WHERE id IN ({placeholders}) AND agent=? AND read=0")
+                        params = [now_iso, actor] + list(ids) + [agent]
+                        cur = conn.execute(sql, params)
+                        updated = cur.rowcount
+                    else:  # all_unread
+                        cur = conn.execute(
+                            "UPDATE inbox_messages SET read=1, read_at=?, actor=? "
+                            "WHERE agent=? AND read=0",
+                            (now_iso, actor, agent)
+                        )
+                        updated = cur.rowcount
+                    conn.commit()
+                finally:
+                    conn.close()
+
+                # YAML dual-path (cmd_1494 以降 YAML は基本空・残骸対応)
+                yaml_updated = 0
+                try:
+                    import fcntl as _fcntl
+                    yaml_path = os.path.join(INBOX_DIR, f'{agent}.yaml')
+                    if os.path.exists(yaml_path):
+                        lock_path = yaml_path + '.lock'
+                        with open(lock_path, 'w') as lf:
+                            _fcntl.flock(lf, _fcntl.LOCK_EX)
+                            try:
+                                with open(yaml_path, 'r', encoding='utf-8') as f:
+                                    ydata = yaml.safe_load(f) or {'messages': []}
+                                if not isinstance(ydata, dict):
+                                    ydata = {'messages': []}
+                                changed = False
+                                for m in ydata.get('messages', []):
+                                    if not isinstance(m, dict):
+                                        continue
+                                    mid = m.get('id') or m.get('message_id')
+                                    match = (ids and mid in ids) or all_unread
+                                    if match and not m.get('read', False):
+                                        m['read'] = True
+                                        m['read_at'] = now_iso
+                                        yaml_updated += 1
+                                        changed = True
+                                if changed:
+                                    with open(yaml_path, 'w', encoding='utf-8') as f:
+                                        yaml.dump(ydata, f, allow_unicode=True,
+                                                  sort_keys=False,
+                                                  default_flow_style=False)
+                            finally:
+                                _fcntl.flock(lf, _fcntl.LOCK_UN)
+                except Exception as ye:
+                    print(f"[mark_read YAML] WARN: {ye}")
+
+                resp = json.dumps({
+                    'ok': True, 'updated': updated, 'yaml_updated': yaml_updated,
+                    'agent': agent,
                 }, ensure_ascii=False).encode('utf-8')
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')

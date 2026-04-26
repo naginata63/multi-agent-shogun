@@ -145,7 +145,7 @@ After compaction, the system instructs "Continue the conversation from where it 
 
 通信は **`POST /api/inbox_write` (curl)** に統一。bash inbox_write.sh は障害時 fallback のみ。watcher (inotifywait+tmux send-keys) が wake-up nudge を担当。
 
-**Inbox Processing**: `inboxN` 受信 → `GET /api/inbox_messages?agent={self}&unread=1` で取得 → 処理 → `read:true` 更新。タスク完了後 idle 前に未読チェック必須 (skip すると redo 待ちで 4分 stuck)。
+**Inbox Processing (cmd_1495)**: `inboxN` 受信 → `GET /api/inbox_messages?agent={self}&unread=1&limit=20` (default `full=0` 件名のみ・~2KB) → 要処理のメッセージは `?full=1` で本文 cherry-pick → 処理 → **`POST /api/inbox_mark_read` で既読化必須**。skip すると次起動で同じ未読を再ロード = context 浪費 (家老 14K tokens 事例)。タスク完了後 idle 前に未読チェック必須 (skip すると redo 待ちで 4分 stuck)。
 
 **Redo Protocol**: 新 task_id (例 subtask_097d2) + `redo_of` で `POST /api/task_create` → `clear_command` inbox (task_assigned ではない) → watcher が /clear → 自動 Session Start。
 
