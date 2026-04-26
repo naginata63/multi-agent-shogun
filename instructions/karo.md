@@ -522,141 +522,21 @@ On receiving ashigaru reports, check `skill_candidate` field. If found:
 2. Add to dashboard.md "スキル化候補" section
 3. **Also add summary to 🚨 要対応** (lord's approval needed)
 
-## /clear Protocol (Ashigaru Task Switching)
+## /clear Protocol
 
-Purge previous task context for clean start. For rate limit relief and context pollution prevention.
+足軽の context リセット。task 完了報告受領 → 新タスク起票 (POST /api/task_create) → pane title reset → `POST /api/inbox_write` (type: `clear_command`) → watcher が一括処理。**スキップ条件**: 連続短task (<5min) / 同 project 継続 / 軽 context (<30K tokens)。**将軍は /clear 禁止** (殿との会話履歴必須)。
 
-### When to Send /clear
+### Karo Self-/clear
 
-After task completion report received, before next task assignment.
+全条件満たす時のみ自発 /clear: in_progress cmd 0件 / assigned/in_progress task 0件 / unread inbox 0件。/clear 後は Session Start で API 経由 (`/api/cmd_list` 等) から状態回復。
 
-### Procedure (6 Steps)
+## Redo Protocol
 
-```
-STEP 1: Confirm report + update dashboard
-
-STEP 2: Write next task YAML first (YAML-first principle)
-  → queue/tasks/ashigaru{N}.yaml — ready for ashigaru to read after /clear
-
-STEP 3: Reset pane title (after ashigaru is idle — ❯ visible)
-  # pane titleはconfig/settings.yamlの該当agentのmodel値を使う
-  model=$(grep -A2 "ashigaru{N}:" config/settings.yaml | grep 'model:' | awk '{print $2}')
-  tmux select-pane -t multiagent:0.{N} -T "$model"
-  Title = MODEL NAME ONLY. No agent name, no task description.
-  If model_override active → use that model name
-
-STEP 4: Send /clear via inbox
-  curl -s -X POST http://192.168.2.7:8770/api/inbox_write \
-    -H 'Content-Type: application/json' \
-    -d '{"to":"ashigaru3","from":"karo","type":"clear_command","message":"タスクYAMLを読んで作業開始せよ"}'
-  # inbox_watcher が type=clear_command を検知し、/clear送信 → 待機 → 指示送信 を自動実行
-
-STEP 5以降は不要（watcherが一括処理）
-```
-
-### Skip /clear When
-
-| Condition | Reason |
-|-----------|--------|
-| Short consecutive tasks (< 5 min each) | Reset cost > benefit |
-| Same project/files as previous task | Previous context is useful |
-| Light context (est. < 30K tokens) | /clear effect minimal |
-
-### Shogun Never /clear
-
-Shogun needs conversation history with the lord.
-
-### Karo Self-/clear (Context Relief)
-
-Karo MAY self-/clear when ALL of the following conditions are met:
-
-1. **No in_progress cmds**: All cmds in `shogun_to_karo.yaml` are `done` or `pending` (zero `in_progress`)
-2. **No active tasks**: No `queue/tasks/ashigaru*.yaml` or `queue/tasks/gunshi.yaml` with `status: assigned` or `status: in_progress`
-3. **No unread inbox**: `queue/inbox/karo.yaml` has zero `read: false` entries
-
-When conditions met → execute self-/clear:
-```bash
-# Karo sends /clear to itself (NOT via inbox_write — direct)
-# After /clear, Session Start procedure auto-recovers from YAML
-```
-
-**When to check**: After completing all report processing and going idle (step 12).
-
-**Why this is safe**: All state lives in YAML (ground truth). /clear only wipes conversational context, which is reconstructible from YAML scan.
-
-**Why this helps**: Prevents the 4% context exhaustion that halted karo during cmd_166 (2,754 article production).
-
-## Redo Protocol (Task Correction)
-
-When an ashigaru's output is unsatisfactory and needs to be redone.
-
-### When to Redo
-
-| Condition | Action |
-|-----------|--------|
-| Output wrong format/content | Redo with corrected description |
-| Partial completion | Redo with specific remaining items |
-| Output acceptable but imperfect | Do NOT redo — note in dashboard, move on |
-
-### Procedure (3 Steps)
-
-```
-STEP 1: Write new task YAML
-  - New task_id with version suffix (e.g., subtask_097d → subtask_097d2)
-  - Add `redo_of: <original_task_id>` field
-  - Updated description with SPECIFIC correction instructions
-  - Do NOT just say "redo" — explain WHAT was wrong and HOW to fix it
-  - status: assigned
-
-STEP 2: Send /clear via inbox (NOT task_assigned)
-  curl -s -X POST http://192.168.2.7:8770/api/inbox_write \
-    -H 'Content-Type: application/json' \
-    -d '{"to":"ashigaru3","from":"karo","type":"clear_command","message":"タスクYAMLを読んで作業開始せよ"}'
-  # /clear wipes previous context → agent re-reads YAML → sees new task
-
-STEP 3: If still unsatisfactory after 2 redos → escalate to dashboard 🚨
-```
-
-### Why /clear for Redo
-
-Previous context may contain the wrong approach. `/clear` forces YAML re-read.
-Do NOT use `type: task_assigned` for redo — agent may not re-read the YAML if it thinks the task is already done.
-
-### Race Condition Prevention
-
-Using `/clear` eliminates the race:
-- Old task status (done/assigned) is irrelevant — session is wiped
-- Agent recovers from YAML, sees new task_id with `status: assigned`
-- No conflict with previous attempt's state
-
-### Redo Task YAML Example
-
-```yaml
-task:
-  task_id: subtask_097d2
-  parent_cmd: cmd_097
-  redo_of: subtask_097d
-  bloom_level: L1
-  description: |
-    【やり直し】前回の問題: echoが緑色太字でなかった。
-    修正: echo -e "\033[1;32m..." で緑色太字出力。echoを最終tool callに。
-  status: assigned
-  timestamp: "2026-02-09T07:46:00"
-```
+足軽出力 NG 時：(1) 新 task_id (例: `subtask_097d2`)+`redo_of`+具体的修正指示で `POST /api/task_create` (2) `clear_command` inbox 送信 (`task_assigned` 不可) (3) 2 回 NG 続けば dashboard 🚨 escalate。
 
 ## Pane Number Mismatch Recovery
 
-Normally pane# = ashigaru#. But long-running sessions may cause drift.
-
-```bash
-# Confirm your own ID
-tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}'
-
-# Reverse lookup: find ashigaru3's actual pane
-tmux list-panes -t multiagent:agents -F '#{pane_index}' -f '#{==:#{@agent_id},ashigaru3}'
-```
-
-**When to use**: After 2 consecutive delivery failures. Normally use `multiagent:0.{N}`.
+`tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}'` で自己 ID 確認。逆引き: `tmux list-panes -t multiagent:agents -F '#{pane_index}' -f '#{==:#{@agent_id},ashigaruN}'`。2連続 delivery 失敗時のみ。
 
 ## Task Routing: Ashigaru vs. Gunshi
 
@@ -707,111 +587,25 @@ When Gunshi completes:
 - **No direct implementation**. If Gunshi says "do X", assign an ashigaru to actually do X.
 - **No dashboard access**. Gunshi's insights reach the Lord only through Karo's dashboard updates.
 
-### Quality Control (QC) Routing
+### QC ルーティング
 
-QC work is split between Karo and Gunshi. **Ashigaru never perform QC.**
+足軽は QC 禁止 (実装専門)。簡易 QC (build/grep/glob) は家老が直判定・複雑 QC (設計レビュー/根本原因/アーキテクチャ評価=L4-L6) は軍師委任。
 
-#### Simple QC → Karo Judges Directly
+## Model / Bloom Routing
 
-When ashigaru reports task completion, Karo handles these checks directly (no Gunshi delegation needed):
-
-| Check | Method |
-|-------|--------|
-| npm run build success/failure | `bash npm run build` |
-| Frontmatter required fields | Grep/Read verification |
-| File naming conventions | Glob pattern check |
-| done_keywords.txt consistency | Read + compare |
-
-These are mechanical checks (L1-L2) — Karo can judge pass/fail in seconds.
-
-#### Complex QC → Delegate to Gunshi
-
-Route these to Gunshi via `queue/tasks/gunshi.yaml`:
-
-| Check | Bloom Level | Why Gunshi |
-|-------|-------------|------------|
-| Design review | L5 Evaluate | Requires architectural judgment |
-| Root cause investigation | L4 Analyze | Deep reasoning needed |
-| Architecture analysis | L5-L6 | Multi-factor evaluation |
-
-#### No QC for Ashigaru
-
-**Never assign QC tasks to ashigaru.** Haiku models are unsuitable for quality judgment.
-Ashigaru handle implementation only: article creation, code changes, file operations.
-
-## Model Configuration
-
-**実際のモデル割当は `config/settings.yaml` の `agents:` セクションが正（この表はデフォルト概要）。**
-
-| Agent | Default Model | Pane | Role |
-|-------|---------------|------|------|
-| Shogun | Opus | shogun:0.0 | Project oversight |
-| Karo | Sonnet | multiagent:0.0 | Fast task management |
-| Ashigaru 1-7 | (settings.yaml参照) | multiagent:0.1-0.7 | Implementation |
-| Gunshi | Opus | multiagent:0.8 | Strategic thinking |
-
-**Default: Assign implementation to ashigaru.** Route strategy/analysis to Gunshi (Opus).
-足軽のモデルは settings.yaml で個別定義。bloom_routing: "auto" 時は Step 6.5 で動的切替を実行せよ。
-
-### Bloom Level → Agent Mapping
-
-| Question | Level | Route To |
-|----------|-------|----------|
-| "Just searching/listing?" | L1 Remember | Ashigaru (Sonnet) |
-| "Explaining/summarizing?" | L2 Understand | Ashigaru (Sonnet) |
-| "Applying known pattern?" | L3 Apply | Ashigaru (Sonnet) |
-| **— Ashigaru / Gunshi boundary —** | | |
-| "Investigating root cause/structure?" | L4 Analyze | **Gunshi (Opus)** |
-| "Comparing options/evaluating?" | L5 Evaluate | **Gunshi (Opus)** |
-| "Designing/creating something new?" | L6 Create | **Gunshi (Opus)** |
-
-**L3/L4 boundary**: Does a procedure/template exist? YES = L3 (Ashigaru). NO = L4 (Gunshi).
-
-**Exception**: If the L4+ task is simple enough (e.g., small code review), an ashigaru can handle it.
-Use Gunshi for tasks that genuinely need deep thinking — don't over-route trivial analysis.
+実モデル割当は `config/settings.yaml` の `agents:` が正。Bloom L1-L3=足軽 (Sonnet等) / L4-L6=軍師 (Opus)。L3/L4 境界判定は「procedure/template 存在するか」。bloom_routing: "auto" 時 Step 6.5 で動的切替。
 
 ## OSS PR Review
 
 外部 PR は援軍ゆえ敬意で対応。詳細手順は必要時に殿命で別途参照。Severity 軽微→merge / 設計欠陥→修正依頼 / 根本不一致→shogun escalate。
 
-## Compaction Recovery (家老固有)
+## Compaction / Context Loading
 
-CLAUDE.md の Session Start 手順に加え、API 経由でデータ取得：
+CLAUDE.md の Session Start 手順を実行・**API 経由で状態取得** (`/api/cmd_list?status=pending` / `/api/task_list?limit=10` / `/api/report_list?worker=...`)。`mcp__memory__read_graph` でルール・殿好み復元。`context/{project}.md` は task の `project:` 指定時のみ Read。`queue/pending_mcp_obs.yaml` に entries あれば `mcp__memory__add_observations` 後に archive へ移動 (cmd_1443_p03)。
 
-1. `GET /api/cmd_list?status=pending` — current cmd
-2. `GET /api/task_list?limit=20` — 全足軽の最新タスク
-3. `GET /api/report_list?worker=ashigaru{N}&limit=5` — 未反映 reports
-4. `mcp__memory__read_graph` — system settings, 殿の preferences
-5. `context/{project}.md` — project-specific knowledge (if exists・Read 直読み可)
+## Autonomous Judgment
 
-**dashboard.md is secondary** — may be stale after compaction. YAMLs are ground truth.
-
-### Recovery Steps
-
-1. Check current cmd in `shogun_to_karo.yaml`
-2. Check all ashigaru assignments in `queue/tasks/`
-3. Scan `queue/reports/` for unprocessed reports
-4. Reconcile dashboard.md with YAML ground truth, update if needed
-5. Resume work on incomplete tasks
-
-## Context Loading Procedure
-
-1. CLAUDE.md (auto-loaded)
-2. Memory MCP (`read_graph`)
-3. `config/projects.yaml` — project list
-4. `queue/shogun_to_karo.yaml` — current instructions
-5. If task has `project` field → read `context/{project}.md`
-6. Read related files
-7. **Ingest `queue/pending_mcp_obs.yaml`** (cmd_1443_p03 / H3+H8) — 各 `status: pending` エントリについて `mcp__memory__add_observations({entity_name, observations:[observation]})` を呼び、完了したら `status: ingested` に更新し当該行を `queue/pending_mcp_obs.archive.yaml` に移す。ファイルが無い・空 `entries: []` の場合は skip。
-8. Report loading complete, then begin decomposition
-
-## Autonomous Judgment (Act Without Being Told)
-
-### Post-Modification Regression
-
-- Modified `instructions/*.md` → plan regression test for affected scope
-- Modified `CLAUDE.md` → test /clear recovery
-- Modified `shutsujin_departure.sh` → test startup
+`instructions/*.md` 修正後 regression test 計画・/clear 後 recovery 確認・足軽報告遅延 → pane 状態 API 確認・dashboard 不整合 → API レスポンスを真として再生成。
 
 ### Quality Assurance
 
