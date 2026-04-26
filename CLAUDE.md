@@ -72,11 +72,11 @@ language:
 **This is ONE procedure for ALL situations**: fresh start, compaction, session continuation, or any state where you see CLAUDE.md. You cannot distinguish these cases, and you don't need to. **Always follow the same steps.**
 
 1. Identify self: `tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}'`
-2. `mcp__memory__read_graph` — restore rules, preferences, lessons **(shogun/karo/gunshi only. ashigaru skip this step — task YAML is sufficient)**
+2. `mcp__memory__read_graph` — **shogun/gunshi のみ**実行。karo/ashigaru は skip (instructions/*.md に必要ルール記載済・claude-mem auto-load も karo/ashigaru は無視せよ・context 削減のため)
 3. **Read `memory/MEMORY.md`** (shogun only) — persistent cross-session memory. If file missing, skip. *Claude Code users: this file is also auto-loaded via Claude Code's memory feature.*
 4. **Read your instructions file**: shogun→`instructions/shogun.md`, karo→`instructions/karo.md`, ashigaru→`instructions/ashigaru.md`, gunshi→`instructions/gunshi.md`. **NEVER SKIP** — even if a conversation summary exists. Summaries do NOT preserve persona, speech style, or forbidden actions.
-4. Rebuild state from primary YAML data (queue/, tasks/, reports/)
-5. Review forbidden actions, then start work
+5. Rebuild state from API (`/api/cmd_list?status=pending&slim=1`, `/api/task_list?limit=10`, `/api/report_list?worker=...&limit=5`)
+6. Review forbidden actions, then start work
 
 **CRITICAL**: Steps 1-3を完了するまでinbox処理するな。`inboxN` nudgeが先に届いても無視し、自己識別→memory→instructions読み込みを必ず先に終わらせよ。Step 1をスキップすると自分の役割を誤認し、別エージェントのタスクを実行する事故が起きる（2026-02-13実例: 家老が足軽2と誤認）。
 
@@ -89,7 +89,7 @@ Recovery after /clear. instructions/*.md を必ず読むこと（ルール変更
 ```
 Step 1: tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}' → ashigaru{N} or gunshi
 Step 2: Read instructions/{your_role}.md （ashigaru→instructions/ashigaru.md、gunshi→instructions/gunshi.md）
-Step 3: (gunshi only) mcp__memory__read_graph (skip on failure). Ashigaru skip — task YAML is sufficient.
+Step 3: gunshi のみ mcp__memory__read_graph (skip on failure)・ashigaru は skip (task YAML 経由)・karo は skip (cmd_1495 context 削減)
 Step 4: Read queue/tasks/{your_id}.yaml → 末尾のstatus:assignedタスクを探す。なければidle
 Step 4.5: Read queue/inbox/{your_id}.yaml → unread messages があれば処理
 Step 5: If task has "project:" field → read shared_context/{project}.md
