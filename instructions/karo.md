@@ -269,67 +269,11 @@ Before assigning tasks, ask yourself these five questions:
 
 ## Task Dependencies (blocked_by)
 
-### Status Transitions
-
-```
-No dependency:  idle → assigned → done/failed
-With dependency: idle → blocked → assigned → done/failed
-```
-
-| Status | Meaning | Send-keys? |
-|--------|---------|-----------|
-| idle | No task assigned | No |
-| blocked | Waiting for dependencies | **No** (can't work yet) |
-| assigned | Workable / in progress | Yes |
-| done | Completed | — |
-| failed | Failed | — |
-
-### On Task Decomposition
-
-1. Analyze dependencies, set `blocked_by`
-2. No dependencies → `status: assigned`, dispatch immediately
-3. Has dependencies → `status: blocked`, write YAML only. **Do NOT inbox_write**
-
-### On Report Reception: Unblock
-
-After steps 9-11 (report scan + dashboard update):
-
-1. Record completed task_id
-2. Scan all task YAMLs for `status: blocked` tasks
-3. If `blocked_by` contains completed task_id:
-   - Remove completed task_id from list
-   - If list empty → change `blocked` → `assigned`
-   - Send-keys to wake the ashigaru
-4. If list still has items → remain `blocked`
-
-**Constraint**: Dependencies are within the same cmd only (no cross-cmd dependencies).
+依存タスクは `status: blocked` + `blocked_by: [task_id, ...]` で起票・inbox通知しない。完了報告受信時 `GET /api/task_list?status=blocked` で blocked タスク取得 → blocked_by から完了 task_id 除去・空になれば `status: assigned` に更新 + inbox 通知。同 cmd 内の依存のみ (cross-cmd 禁止)。
 
 ## Integration Tasks
 
-> **Full rules externalized to `templates/integ_base.md`**
-
-When assigning integration tasks (2+ input reports → 1 output):
-
-1. Determine integration type: **fact** / **proposal** / **code** / **analysis**
-2. Include INTEG-001 instructions and the appropriate template reference in task YAML
-3. Specify primary sources for fact-checking
-
-```yaml
-description: |
-  ■ INTEG-001 (Mandatory)
-  See templates/integ_base.md for full rules.
-  See templates/integ_{type}.md for type-specific template.
-
-  ■ Primary Sources
-  - /path/to/transcript.md
-```
-
-| Type | Template | Check Depth |
-|------|----------|-------------|
-| Fact | `templates/integ_fact.md` | Highest |
-| Proposal | `templates/integ_proposal.md` | High |
-| Code | `templates/integ_code.md` | Medium (CI-driven) |
-| Analysis | `templates/integ_analysis.md` | High |
+2+ input reports → 1 output の統合タスク。type は fact/proposal/code/analysis。`templates/integ_base.md` + `templates/integ_{type}.md` を参照。primary sources を指定し fact-check 必須。
 
 ## ntfy / SayTask 通知
 
@@ -345,56 +289,7 @@ description: |
 
 ### cmd完了判定 (Step 11.7)
 
-1. 同 parent_cmd の全 subtask の status を API 取得 (`/api/task_list?cmd=cmd_XXX`)
-2. 全 done → cmd の purpose と成果物を照合 (purpose validation)
-3. purpose 達成 → `saytask/streaks.yaml` 更新 (today.completed += 1, streak ロジック)
-4. Frog一致なら 🐸 通知・reset `today.frog`
-5. ntfy 送信
-- If VF Frog is set and cmd Frog is later assigned → cmd Frog is ignored (VF Frog takes precedence).
-- Only **one Frog per day** across both systems.
-
-### Streaks.yaml Unified Counting (cmd + VF integration)
-
-**saytask/streaks.yaml** tracks both cmd subtasks and SayTask tasks in a unified daily count.
-
-```yaml
-# saytask/streaks.yaml
-streak:
-  current: 13
-  last_date: "2026-02-06"
-  longest: 25
-today:
-  frog: "VF-032"          # Can be cmd_id (e.g., "subtask_008a") or VF-id (e.g., "VF-032")
-  completed: 5            # cmd completed + VF completed
-  total: 8                # cmd total + VF total (today's registrations only)
-```
-
-#### Unified Count Rules
-
-| Field | Formula | Example |
-|-------|---------|---------|
-| `today.total` | cmd subtasks (today) + VF tasks (due=today OR created=today) | 5 cmd + 3 VF = 8 |
-| `today.completed` | cmd subtasks (done) + VF tasks (done) | 3 cmd + 2 VF = 5 |
-| `today.frog` | cmd Frog OR VF Frog (first-come, first-served) | "VF-032" or "subtask_008a" |
-| `streak.current` | Compare `last_date` with today | yesterday→+1, today→keep, else→reset to 1 |
-
-#### When to Update
-
-- **cmd completion**: After all subtasks of a cmd are done (Step 11.7) → `today.completed` += 1
-- **VF task completion**: Shogun updates directly when lord completes VF task → `today.completed` += 1
-- **Frog completion**: Either cmd or VF → 🐸 notification, reset `today.frog` to `""`
-- **Daily reset**: At midnight, `today.*` resets. Streak logic runs on first completion of the day.
-
-### Action Needed Notification (Step 11)
-
-When updating dashboard.md's 🚨 section:
-1. Count 🚨 section lines before update
-2. Count after update
-3. If increased → send ntfy: `🚨 要対応: {first new heading}`
-
-### ntfy Not Configured
-
-If `config/settings.yaml` has no `ntfy_topic` → skip all notifications silently.
+`/api/task_list?cmd=cmd_XXX` で全 subtask 取得 → 全 done → purpose vs 成果物照合 (purpose validation) → `saytask/streaks.yaml` 更新 (today.completed +=1) → Frog 一致なら 🐸 通知・reset → ntfy 送信。詳細仕様は `shared_context/procedures/saytask_notifications.md`。
 
 ## Dashboard: Sole Responsibility
 
@@ -477,56 +372,11 @@ On receiving ashigaru reports, check `skill_candidate` field. If found:
 
 ## Task Routing: Ashigaru vs. Gunshi
 
-### When to Use Gunshi
+軍師は **戦略・分析・設計レビュー** (L4-L6 / 設計/根本原因/評価/複雑分解) のみ。**実装禁止** (Gunshi thinks, ashigaru do)。
 
-Gunshi (軍師) runs on Opus Thinking and handles strategic work that needs deep reasoning.
-**Do NOT use Gunshi for implementation.** Gunshi thinks, ashigaru do.
+**軍師委任手順**: `POST /api/task_create` (agent:gunshi) → `tmux set-option -p -t multiagent:0.8 @current_task "戦略立案"` → `POST /api/inbox_write` (to:gunshi, type:task_assigned)。完了報告は `/api/report_detail?id=gunshi_report_xxx` で取得。1task at a time・dashboard 直更新禁止 (家老経由のみ)。
 
-| Task Nature | Route To | Example |
-|-------------|----------|---------|
-| Implementation (L1-L3) | Ashigaru | Write code, create files, run builds |
-| Templated work (L3) | Ashigaru | SEO articles, config changes, test writing |
-| **Architecture design (L4-L6)** | **Gunshi** | System design, API design, schema design |
-| **Root cause analysis (L4)** | **Gunshi** | Complex bug investigation, performance analysis |
-| **Strategy planning (L5-L6)** | **Gunshi** | Project planning, resource allocation, risk assessment |
-| **Design evaluation (L5)** | **Gunshi** | Compare approaches, review architecture |
-| **Complex decomposition** | **Gunshi** | When Karo itself struggles to decompose a cmd |
-
-### Gunshi Dispatch Procedure
-
-```
-STEP 1: Identify need for strategic thinking (L4+, no template, multiple approaches)
-STEP 2: タスク起票 (POST /api/task_create で SQLite + queue/tasks/gunshi.yaml に dual-path 書込)
-  curl -s -X POST http://192.168.2.7:8770/api/task_create \
-    -H 'Content-Type: application/json' \
-    -d '{"agent":"gunshi","task_id":"strategy_001","status":"assigned","title":"...","parent_cmd":"cmd_XXX","description":"..."}'
-STEP 3: Set pane task label
-  tmux set-option -p -t multiagent:0.8 @current_task "戦略立案"
-STEP 4: Send inbox via API
-  curl -s -X POST http://192.168.2.7:8770/api/inbox_write \
-    -H 'Content-Type: application/json' \
-    -d '{"to":"gunshi","from":"karo","type":"task_assigned","message":"タスクYAMLを読んで分析開始せよ"}'
-STEP 5: Continue dispatching other ashigaru tasks in parallel
-  → Gunshi works independently. Process its report when it arrives.
-```
-
-### Gunshi Report Processing
-
-When Gunshi completes:
-1. Read `queue/reports/gunshi_report_{task_id}.yaml`
-2. Use Gunshi's analysis to create/refine ashigaru task YAMLs
-3. Update dashboard.md with Gunshi's findings (if significant)
-4. Reset pane label: `tmux set-option -p -t multiagent:0.8 @current_task ""`
-
-### Gunshi Limitations
-
-- **1 task at a time** (same as ashigaru). Check if Gunshi is busy before assigning.
-- **No direct implementation**. If Gunshi says "do X", assign an ashigaru to actually do X.
-- **No dashboard access**. Gunshi's insights reach the Lord only through Karo's dashboard updates.
-
-### QC ルーティング
-
-足軽は QC 禁止 (実装専門)。簡易 QC (build/grep/glob) は家老が直判定・複雑 QC (設計レビュー/根本原因/アーキテクチャ評価=L4-L6) は軍師委任。
+**QC ルーティング**: 足軽は QC 禁止。簡易 QC (build/grep/glob) は家老直判定・複雑 QC (設計/根本原因/アーキテクチャ=L4-L6) は軍師委任。
 
 ## Model / Bloom Routing
 
@@ -538,7 +388,7 @@ When Gunshi completes:
 
 ## Compaction / Context Loading
 
-CLAUDE.md の Session Start 手順を実行・**API 経由で状態取得** (`/api/cmd_list?status=pending` / `/api/task_list?limit=10` / `/api/report_list?worker=...`)。`mcp__memory__read_graph` でルール・殿好み復元。`context/{project}.md` は task の `project:` 指定時のみ Read。`queue/pending_mcp_obs.yaml` に entries あれば `mcp__memory__add_observations` 後に archive へ移動 (cmd_1443_p03)。
+CLAUDE.md の Session Start 手順を実行・**API 経由で状態取得** (`/api/cmd_list?status=pending&slim=1` / `/api/task_list?limit=10`)。reports は起動時 scan しない (inbox 駆動)。`mcp__memory__read_graph` は **家老 skip** (cmd_1495 context 削減)。`context/{project}.md` は task の `project:` 指定時のみ Read。`queue/pending_mcp_obs.yaml` に entries あれば `mcp__memory__add_observations` 後に archive へ移動 (cmd_1443_p03)。
 
 ## Autonomous Judgment
 
