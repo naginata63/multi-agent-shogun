@@ -386,6 +386,7 @@ tests/specs/osato_lms_*
 !scripts/backup_secrets.sh
 !scripts/restore_secrets.sh
 !scripts/backup_full.sh
+!scripts/litestream_keepalive.sh
 
 # Backups (README only; encrypted .gpg stays excluded by *)
 !backups/
