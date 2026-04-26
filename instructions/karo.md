@@ -157,12 +157,13 @@ workflow:
       Same logic as step 8's check_pending, but executed after report reception flow too.
 
 files:
-  input: queue/shogun_to_karo.yaml
-  task_template: "queue/tasks/ashigaru{N}.yaml"
-  gunshi_task: queue/tasks/gunshi.yaml
-  report_pattern: "queue/reports/ashigaru{N}_report_{task_id}.yaml"
-  gunshi_report: queue/reports/gunshi_report_{task_id}.yaml
-  dashboard: dashboard.md
+  cmd_read: "GET /api/cmd_list?status=pending (curl・YAML 直読み禁止)"
+  cmd_detail: "GET /api/cmd_detail?id=cmd_XXX"
+  task_create: "POST /api/task_create (agent/task_id/status/parent_cmd 等)"
+  task_read: "GET /api/task_list[?agent=&cmd=&status=&limit=10]"
+  report_read: "GET /api/report_list / /api/report_detail?id=<report_id>"
+  dashboard_read: "GET /api/dashboard?slim=1 (default で slim 必須)"
+  dashboard_write: "POST /api/dashboard_update (section 部分置換 or full)"
 
 panes:
   self: multiagent:0.0
@@ -244,32 +245,9 @@ date "+%Y-%m-%d %H:%M"       # For dashboard.md
 date "+%Y-%m-%dT%H:%M:%S"    # For YAML (ISO 8601)
 ```
 
-## Inbox Communication Rules
+## Inbox Communication
 
-### Sending Messages to Ashigaru (API 推奨・cmd_1494)
-
-**API 経由 (推奨):**
-```bash
-curl -s -X POST http://192.168.2.7:8770/api/inbox_write \
-  -H 'Content-Type: application/json' \
-  -d '{"to":"ashigaru3","from":"karo","type":"task_assigned","message":"タスクYAMLを読んで作業開始せよ"}'
-```
-
-**bash 直叩き (障害時フォールバックのみ):**
-```bash
-bash scripts/inbox_write.sh ashigaru{N} "<message>" task_assigned karo
-```
-
-**No sleep interval needed.** No delivery confirmation needed. Multiple sends can be done in rapid succession — flock handles concurrency.
-
-Example (API一発で複数足軽通知):
-```bash
-for AID in ashigaru1 ashigaru2 ashigaru3; do
-  curl -s -X POST http://192.168.2.7:8770/api/inbox_write \
-    -H 'Content-Type: application/json' \
-    -d "{\"to\":\"$AID\",\"from\":\"karo\",\"type\":\"task_assigned\",\"message\":\"タスクYAMLを読んで作業開始せよ\"}"
-done
-```
+`POST /api/inbox_write` (curl) で送信。flock 同期保証・sleep 不要・複数同時送信可。bash inbox_write.sh は障害時のみ。
 
 ### タスク起票・状態確認も API 経由
 
@@ -506,56 +484,25 @@ description: |
 | Code | `templates/integ_code.md` | Medium (CI-driven) |
 | Analysis | `templates/integ_analysis.md` | High |
 
-## SayTask Notifications
+## ntfy / SayTask 通知
 
-Push notifications to the lord's phone via ntfy. Karo manages streaks and notifications.
+`bash scripts/ntfy.sh "<msg>"` で殿へ push。Frog/Streak/cmd完了/失敗/🚨追加時に発火。詳細仕様は `shared_context/procedures/saytask_notifications.md` (新設・必要時参照)。
 
-### Notification Triggers
+| Event | Format |
+|-------|--------|
+| cmd complete | `✅ cmd_XXX 完了！(Nサブタスク) 🔥ストリーク{n}日目` |
+| Frog complete | `🐸✅ Frog撃破！cmd_XXX 完了！...` |
+| Subtask/cmd failed | `❌ subtask_XXX 失敗 — {reason}` / `❌ cmd_XXX 失敗 (M/N完了 F失敗)` |
+| Action needed | `🚨 要対応: {heading}` (dashboard 🚨追加時) |
+| VF task complete | `✅ VF-{id}完了 {title} 🔥ストリーク{n}日目` |
 
-| Event | When | Message Format |
-|-------|------|----------------|
-| cmd complete | All subtasks of a parent_cmd are done | `✅ cmd_XXX 完了！({N}サブタスク) 🔥ストリーク{current}日目` |
-| Frog complete | Completed task matches `today.frog` | `🐸✅ Frog撃破！cmd_XXX 完了！...` |
-| Subtask failed | Ashigaru reports `status: failed` | `❌ subtask_XXX 失敗 — {reason summary, max 50 chars}` |
-| cmd failed | All subtasks done, any failed | `❌ cmd_XXX 失敗 ({M}/{N}完了, {F}失敗)` |
-| Action needed | 🚨 section added to dashboard.md | `🚨 要対応: {heading}` |
-| **Frog selected** | **Frog auto-selected or manually set** | `🐸 今日のFrog: {title} [{category}]` |
-| **VF task complete** | **SayTask task completed** | `✅ VF-{id}完了 {title} 🔥ストリーク{N}日目` |
-| **VF Frog complete** | **VF task matching `today.frog` completed** | `🐸✅ Frog撃破！{title}` |
+### cmd完了判定 (Step 11.7)
 
-### cmd Completion Check (Step 11.7)
-
-1. Get `parent_cmd` of completed subtask
-2. Check all subtasks with same `parent_cmd`: `grep -l "parent_cmd: cmd_XXX" queue/tasks/ashigaru*.yaml | xargs grep "status:"`
-3. Not all done → skip notification
-4. All done → **purpose validation**: Re-read the original cmd in `queue/shogun_to_karo.yaml`. Compare the cmd's stated purpose against the combined deliverables. If purpose is not achieved (subtasks completed but goal unmet), do NOT mark cmd as done — instead create additional subtasks or report the gap to shogun via dashboard 🚨.
-5. Purpose validated → update `saytask/streaks.yaml`:
-   - `today.completed` += 1 (**per cmd**, not per subtask)
-   - Streak logic: last_date=today → keep current; last_date=yesterday → current+1; else → reset to 1
-   - Update `streak.longest` if current > longest
-   - Check frog: if any completed task_id matches `today.frog` → 🐸 notification, reset frog
-6. Send ntfy notification
-
-### Eat the Frog (today.frog)
-
-**Frog = The hardest task of the day.** Either a cmd subtask (AI-executed) or a SayTask task (human-executed).
-
-#### Frog Selection (Unified: cmd + VF tasks)
-
-**cmd subtasks**:
-- **Set**: On cmd reception (after decomposition). Pick the hardest subtask (Bloom L5-L6).
-- **Constraint**: One per day. Don't overwrite if already set.
-- **Priority**: Frog task gets assigned first.
-- **Complete**: On frog task completion → 🐸 notification → reset `today.frog` to `""`.
-
-**SayTask tasks** (see `saytask/tasks.yaml`):
-- **Auto-selection**: Pick highest priority (frog > high > medium > low), then nearest due date, then oldest created_at.
-- **Manual override**: Lord can set any VF task as Frog via shogun command.
-- **Complete**: On VF frog completion → 🐸 notification → update `saytask/streaks.yaml`.
-
-**Conflict resolution** (cmd Frog vs VF Frog on same day):
-- **First-come, first-served**: Whichever is set first becomes `today.frog`.
-- If cmd Frog is set and VF Frog auto-selected → VF Frog is ignored (cmd Frog takes precedence).
+1. 同 parent_cmd の全 subtask の status を API 取得 (`/api/task_list?cmd=cmd_XXX`)
+2. 全 done → cmd の purpose と成果物を照合 (purpose validation)
+3. purpose 達成 → `saytask/streaks.yaml` 更新 (today.completed += 1, streak ロジック)
+4. Frog一致なら 🐸 通知・reset `today.frog`
+5. ntfy 送信
 - If VF Frog is set and cmd Frog is later assigned → cmd Frog is ignored (VF Frog takes precedence).
 - Only **one Frog per day** across both systems.
 
