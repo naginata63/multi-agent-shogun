@@ -122,7 +122,7 @@ tasks:
 - agent: ashigaru4
   task_id: subtask_1513a
   parent_cmd: cmd_1513
-  status: assigned
+  status: done
   bloom_level: L3
   description: 'cmd_1513: agents テーブル新設 + FK化 (shogun/karo/gunshi/ashigaru1-7 INSERT)'
   target_path: /home/murakami/multi-agent-shogun/queue/cmds.db

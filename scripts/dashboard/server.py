@@ -126,15 +126,51 @@ def parse_shogun_to_karo():
         return []
 
 
+def _row_to_cmd_dict(row):
+    """Convert a sqlite3.Row from commands table to a dict matching parse_shogun_to_karo format."""
+    d = {k: v for k, v in dict(row).items() if v is not None}
+    for k_json, k_clean in [
+        ('acceptance_criteria_json', 'acceptance_criteria'),
+        ('depends_on_json', 'depends_on'),
+        ('notes_json', 'notes'),
+    ]:
+        if d.get(k_json):
+            try:
+                d[k_clean] = json.loads(d[k_json])
+            except Exception:
+                pass
+        d.pop(k_json, None)
+    d.pop('full_yaml_blob', None)
+    return d
+
+
 def get_active_cmds():
-    return [c for c in parse_shogun_to_karo()
-            if c.get("status") not in DONE_STATUSES]
+    conn = get_db()
+    try:
+        placeholders = ','.join(['?'] * len(DONE_STATUSES))
+        rows = conn.execute(
+            f"SELECT * FROM commands WHERE status NOT IN ({placeholders})",
+            list(DONE_STATUSES)
+        ).fetchall()
+        return [_row_to_cmd_dict(r) for r in rows]
+    except Exception:
+        return []
+    finally:
+        conn.close()
 
 
 def get_recent_done(n=5):
-    done = [c for c in parse_shogun_to_karo() if c.get("status") == "done"]
-    done.sort(key=lambda c: c.get("timestamp") or "", reverse=True)
-    return done[:n]
+    conn = get_db()
+    try:
+        rows = conn.execute(
+            "SELECT * FROM commands WHERE status = 'done' ORDER BY timestamp DESC LIMIT ?",
+            (n,)
+        ).fetchall()
+        return [_row_to_cmd_dict(r) for r in rows]
+    except Exception:
+        return []
+    finally:
+        conn.close()
 
 
 _JST = timezone(timedelta(hours=9))
@@ -295,37 +331,24 @@ def detect_action_required():
             except Exception:
                 pass
 
-    # R6: タスク失敗 (failed status in tasks YAML) — uses _yt_cache
-    if os.path.isdir(TASKS_DIR):
-        for fname in os.listdir(TASKS_DIR):
-            if not fname.endswith(".yaml"):
-                continue
-            agent_id = fname.replace(".yaml", "")
-            if agent_id in _EXCLUDED_AGENTS_R5:
-                continue
-            filepath = os.path.join(TASKS_DIR, fname)
-            try:
-                mt = os.path.getmtime(filepath)
-                cached = _yt_cache.get(fname)
-                if cached and cached["mtime"] == mt:
-                    tasks = cached["tasks"]
-                else:
-                    with open(filepath) as f:
-                        data = yaml.safe_load(f)
-                    tasks = data.get("tasks", []) if data else []
-                    _yt_cache[fname] = {"mtime": mt, "tasks": tasks}
-                for t in tasks:
-                    if t.get("status") == "failed":
-                        items.append({
-                            "rule": "R6",
-                            "severity": "HIGH",
-                            "title": f"タスク失敗: {t.get('task_id','?')} ({agent_id})",
-                            "detail": (t.get("description", "") or "")[:120],
-                            "age_hours": age_hours(t.get("timestamp", "")),
-                            "cmd_id": t.get("parent_cmd"),
-                        })
-            except Exception:
-                pass
+    # R6: タスク失敗 (failed status) — SQLite tasks table (cmd_1510)
+    try:
+        conn6 = get_db()
+        failed_rows = conn6.execute(
+            "SELECT task_id, agent, description, timestamp, parent_cmd FROM tasks WHERE status = 'failed'"
+        ).fetchall()
+        conn6.close()
+        for r in failed_rows:
+            items.append({
+                "rule": "R6",
+                "severity": "HIGH",
+                "title": f"タスク失敗: {r['task_id']} ({r['agent']})",
+                "detail": (r["description"] or "")[:120],
+                "age_hours": age_hours(r["timestamp"] or ""),
+                "cmd_id": r["parent_cmd"],
+            })
+    except Exception:
+        pass
 
     # R7: dashboard.md 🚨要対応同期
     try:
@@ -423,70 +446,55 @@ def _parse_tasks_regex(filepath):
 
 
 def read_yaml_tasks():
+    """Agent status from SQLite tasks table (cmd_1510).
+    Returns {agent_id: {agent_id, status, current_task, ...}}."""
+    conn = get_db()
+    try:
+        rows = conn.execute(
+            "SELECT agent, task_id, parent_cmd, status, description, timestamp "
+            "FROM tasks ORDER BY timestamp DESC"
+        ).fetchall()
+    except Exception:
+        conn.close()
+        return {}
+    conn.close()
+
+    # Group tasks by agent
+    agent_tasks = {}
+    for r in rows:
+        aid = r["agent"]
+        if aid not in agent_tasks:
+            agent_tasks[aid] = []
+        agent_tasks[aid].append(dict(r))
+
     agents = {}
-    if not os.path.isdir(TASKS_DIR):
-        return agents
-    _EXCLUDED = {"pending.yaml", "archive"}
-    for fname in os.listdir(TASKS_DIR):
-        if not fname.endswith(".yaml"):
-            continue
-        if fname in _EXCLUDED:
-            continue
-        agent_id = fname.replace(".yaml", "")
-        filepath = os.path.join(TASKS_DIR, fname)
-        try:
-            mt = os.path.getmtime(filepath)
-            cached = _yt_cache.get(fname)
-            if cached and cached["mtime"] == mt:
-                tasks = cached["tasks"]
-            else:
-                with open(filepath) as f:
-                    data = yaml.safe_load(f)
-                tasks = data.get("tasks", []) if data else []
-                _yt_cache[fname] = {"mtime": mt, "tasks": tasks}
-        except Exception:
-            # Fallback: regex-based parsing
-            tasks = _parse_tasks_regex(filepath)
-            _yt_cache[fname] = {"mtime": os.path.getmtime(filepath), "tasks": tasks}
+    now = datetime.now(timezone.utc)
+    for aid, tasks in agent_tasks.items():
+        total = len(tasks)
+        done = sum(1 for t in tasks if t["status"] == "done")
+        # Find latest assigned task (tasks already sorted DESC by timestamp)
+        latest_assigned = None
+        for t in tasks:
+            if t["status"] == "assigned":
+                latest_assigned = t
+                break
+        elapsed_min = None
+        if latest_assigned:
+            ts_str = latest_assigned.get("timestamp") or ""
+            assigned_at = parse_ts(ts_str) if ts_str else None
+            if assigned_at:
+                elapsed_min = (now - assigned_at).total_seconds() / 60
 
-        try:
-            latest_assigned = None
-            total = len(tasks)
-            done = sum(1 for t in tasks if t.get("status") == "done")
-            for t in reversed(tasks):
-                if t.get("status") == "assigned":
-                    latest_assigned = t
-                    break
-            # Compute elapsed_min from task timestamp, fallback to file mtime
-            elapsed_min = None
-            if latest_assigned:
-                ts_str = latest_assigned.get("timestamp", "")
-                assigned_at = parse_ts(ts_str) if ts_str else None
-                if not assigned_at:
-                    assigned_at = datetime.fromtimestamp(os.path.getmtime(filepath), tz=timezone.utc)
-                elapsed_min = (datetime.now(timezone.utc) - assigned_at).total_seconds() / 60
-
-            agents[agent_id] = {
-                "agent_id": agent_id,
-                "status": "busy" if latest_assigned else "idle",
-                "current_task": latest_assigned.get("task_id") if latest_assigned else None,
-                "current_cmd": latest_assigned.get("parent_cmd") if latest_assigned else None,
-                "description": (latest_assigned.get("description", "")[:80] if latest_assigned else ""),
-                "total_tasks": total,
-                "done_tasks": done,
-                "elapsed_min": round(elapsed_min, 1) if elapsed_min is not None else None,
-            }
-        except Exception:
-            agents[agent_id] = {
-                "agent_id": agent_id,
-                "status": "error",
-                "current_task": None,
-                "current_cmd": None,
-                "description": "YAML parse error",
-                "total_tasks": 0,
-                "done_tasks": 0,
-                "elapsed_min": None,
-            }
+        agents[aid] = {
+            "agent_id": aid,
+            "status": "busy" if latest_assigned else "idle",
+            "current_task": latest_assigned["task_id"] if latest_assigned else None,
+            "current_cmd": latest_assigned["parent_cmd"] if latest_assigned else None,
+            "description": (latest_assigned.get("description") or "")[:80] if latest_assigned else "",
+            "total_tasks": total,
+            "done_tasks": done,
+            "elapsed_min": round(elapsed_min, 1) if elapsed_min is not None else None,
+        }
     return agents
 
 
@@ -530,13 +538,10 @@ def read_recent_messages(hours=48):
     return msgs[:30]
 
 
-# ─── Agent status detection via DB messages table ─────────────────────────────
+# ─── Agent status detection via DB agents table (cmd_1513) ────────────────────
 
-# Agents to track
-POLL_AGENTS = [
-    "ashigaru1", "ashigaru2", "ashigaru3", "ashigaru4",
-    "ashigaru5", "ashigaru6", "ashigaru7", "gunshi",
-]
+# Agents to track: now derived from agents table (cmd_1513 FK化)
+POLL_AGENTS_QUERY = "SELECT id FROM agents WHERE role IN ('ashigaru','gunshi')"
 
 # Message types that indicate agent status (latest wins)
 _BUSY_TYPES = {"task_assigned"}
@@ -665,18 +670,20 @@ def get_dashboard_data():
     yaml_agents = read_yaml_tasks()
     yaml_messages = read_recent_messages(hours=24)
 
-    # Agent map (YAML primary)
+    # Agent map: agents table primary (cmd_1513), YAML supplement for display
+    db_agents_rows = query_db(conn, "SELECT id, status, current_task FROM agents WHERE role != 'system'")
+    db_agents = {r['id']: r for r in db_agents_rows}
+
     agent_map = {}
     for aid, a in yaml_agents.items():
         agent_map[aid] = a
 
-    # Override status with DB-driven status
+    # Override status with agents table (authoritative via tr_tasks_status_sync)
     for aid, a in agent_map.items():
-        # Override status with DB messages-based detection
-        db_status = get_db_agent_status(aid, conn)
-        if db_status and db_status != 'unknown':
-            a["status"] = db_status
-        # else: keep YAML-derived status (no forced idle)
+        if aid in db_agents:
+            db_status = db_agents[aid].get('status', 'offline')
+            if db_status and db_status != 'offline':
+                a["status"] = db_status
         # idle agents should not show elapsed time from old assigned tasks
         if a["status"] != "busy":
             a["elapsed_min"] = None
@@ -701,9 +708,11 @@ def get_dashboard_data():
     all_messages.sort(key=lambda x: x.get("timestamp") or x.get("created_at") or "", reverse=True)
     all_messages = all_messages[:30]
 
-    # Stats
-    busy_agents = sum(1 for a in agent_map.values() if a.get("status") == "busy")
-    idle_agents = sum(1 for a in agent_map.values() if a.get("status") == "idle")
+    # Stats: agents table authoritative (cmd_1513)
+    busy_agents = query_db(conn, "SELECT COUNT(*) as c FROM agents WHERE status='busy' AND role != 'system'")
+    idle_agents = query_db(conn, "SELECT COUNT(*) as c FROM agents WHERE status='idle' AND role != 'system'")
+    busy_count = busy_agents[0]["c"] if busy_agents else 0
+    idle_count = idle_agents[0]["c"] if idle_agents else 0
     total_done = sum(a.get("done_tasks", 0) for a in agent_map.values())
 
     # Strip total_tasks/done_tasks from per-agent API response
@@ -720,8 +729,8 @@ def get_dashboard_data():
     return {
         "stats": {
             "action_required_count": len(action_required),
-            "busy_agents": busy_agents,
-            "idle_agents": idle_agents,
+            "busy_agents": busy_count,
+            "idle_agents": idle_count,
             "active_cmds": len(active_cmds),
             "db_messages": msg_count_db,
             "total_done": total_done,
@@ -2030,8 +2039,11 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
         elif self.path.split('?')[0] == '/api/agent_health':
             import subprocess as _sp
             try:
-                agents = ['karo', 'ashigaru1', 'ashigaru2', 'ashigaru3',
-                          'ashigaru4', 'ashigaru5', 'ashigaru6', 'ashigaru7', 'gunshi']
+                # Agent list from agents table (cmd_1513 FK化)
+                _ah_conn = get_db()
+                _ah_rows = query_db(_ah_conn, "SELECT id, role, status, current_task FROM agents WHERE role != 'system'")
+                agents = [r['id'] for r in _ah_rows]
+                _ah_conn.close()
                 # Single tmux call: collect all pane agent_ids
                 alive_agents = None
                 try:
