@@ -39,12 +39,16 @@
 | cmd_1496 | ✅ **完遂(21:22・軍師QC PASS)** countdown_v2 5段drawtext/NVENC |
 
 ## 🚨 要対応（殿の御判断必要）
+## 🚨 要対応（殿の御判断必要）
 
-### ⚠️ SQLite 復旧後 row count 監査（要確認）
-cmd_1513 migration で commands 31→20→40(家老再登録)/tasks 28→16→41(家老再登録)。
-削除された 11 cmds は古い重複記録の可能性大・重要 cmd の消失はないと判断。
-家老が YAML→SQLite 全件再登録完了済（20 cmd / 25 task）。
-将軍に確認いただければ幸甚。
+### 🔴 server.py 再起動必要 (cmd_1514・cmd_1513 副次)
+inbox_messages.type CHECK制約(cmd_1514) と agents テーブル server.py 統合(cmd_1513) が DB 側完了だが server.py への反映に再起動が必要。
+- `server_restart_needed: true` 状態・現在は旧コードで稼働継続中
+- 再起動しないと /api/inbox_write でのtype CHECK が server 側で未活性化
+- **対処（将軍）**: server.py プロセス再起動 (cmd_1502 watcher再起動と同パターン)
+
+### ⚠️ SQLite 復旧後 row count 監査（完了報告）
+家老が YAML→SQLite 全件再登録完了（20 cmd / 25 task）。将軍確認いただければ幸甚。
 
 ### 🔴 CRITICAL: stt_pipeline.md 手順書が実装と完全乖離
 足軽が手順通り叩くと即 argparse error で停止。修正cmd起票要否を判断されたし。

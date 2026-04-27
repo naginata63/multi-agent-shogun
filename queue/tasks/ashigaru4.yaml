@@ -138,10 +138,8 @@ tasks:
 - agent: ashigaru4
   task_id: subtask_1514a
   parent_cmd: cmd_1514
-  status: blocked
+  status: done
   bloom_level: L3
-  blocked_by:
-  - subtask_1513a
   description: 'cmd_1514: inbox_messages.type に CHECK制約 + 旧type migration + inbox_types.py新設'
   target_path: /home/murakami/multi-agent-shogun/queue/cmds.db
   steps: 1) cmd_1514 command 全文読む 2) scripts/dashboard/inbox_types.py 新設 (正規type 14種定数化)
@@ -155,7 +153,7 @@ tasks:
 - agent: ashigaru4
   task_id: subtask_1516a
   parent_cmd: cmd_1516
-  status: blocked
+  status: assigned
   bloom_level: L2
   blocked_by:
   - subtask_1514a
