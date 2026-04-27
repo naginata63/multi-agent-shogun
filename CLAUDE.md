@@ -208,6 +208,7 @@ System manages ALL white-collar work, not just self-improvement. Project folders
 
 詳細は **`shared_context/procedures/`** 配下を該当タスク時のみ参照:
 - 動画 ffmpeg → `shared_context/procedures/ffmpeg_nvenc.md` (NVENC必須・libx264禁止・cmd_761教訓)
+- カウントダウン重畳 → `shared_context/procedures/countdown_overlay.md` (drawtext本番採用・5分毎拡大・4/20殿確定仕様)
 - Gemini 画像生成コスト → `shared_context/procedures/gemini_cost.md` (ガチャ3回・1パネル試打ち・cmd_28教訓)
 - 中間成果物保存 → `shared_context/procedures/intermediate_artifact.md` (1分+処理は必ずファイル化・cmd_597教訓)
 - 大量バッチ処理 → `shared_context/procedures/batch_processing.md` (batch1 QC gate必須)
