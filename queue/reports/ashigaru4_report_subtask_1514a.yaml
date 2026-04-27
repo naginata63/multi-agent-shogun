@@ -1,0 +1,24 @@
+worker_id: ashigaru4
+task_id: subtask_1514a
+parent_cmd: cmd_1514
+timestamp: "2026-04-28T00:25:13"
+status: done
+result:
+  summary: "inbox_messages.type CHECK制約追加・14正規type定数化・旧type移行・テスト系テーブル分離 完了"
+  files_modified:
+    - "scripts/dashboard/inbox_types.py (新設: 14 canonical types + migration map)"
+    - "scripts/dashboard/server.py (type validation + inbox_types import)"
+    - "queue/cmds.db (CHECK制約再構築・旧type移行・テスト系分離)"
+  details:
+    - "14 canonical types: task_assigned, clear_command, cmd_new, cmd_revised, cmd_correction, cmd_spec_confirmed, report_received, report_completed, report_blocked, report_error, qc_request, qc_result, qc_done, wake_up"
+    - "Old type migration: report_done→report_completed(1), session_check→wake_up(1), cmd_simplify→cmd_correction(1), approval_request→cmd_spec_confirmed(1), nightly_audit→report_completed(2), lord_judgement→cmd_spec_confirmed(2), recovery_done→report_completed(1)"
+    - "Test messages (17件) moved to inbox_messages_test table"
+    - "CHECK constraint verified: invalid_type_xyz rejected, valid task_assigned accepted"
+    - "server.py: POST /api/inbox_write returns 400 for non-canonical types (after server restart)"
+    - "DB backup: queue/cmds.db.pre_1514"
+    - "_IDLE_TYPES updated: removed deprecated report_done alias"
+  server_restart_needed: true
+  notes: "Server restart required to activate server.py type validation. DB-level CHECK constraint is already active and blocking invalid types."
+skill_candidate:
+  found: false
+hotfix_notes: null

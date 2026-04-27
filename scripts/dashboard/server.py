@@ -8,6 +8,8 @@ import json
 import os
 import re
 import sqlite3
+
+from inbox_types import CANONICAL_TYPES
 import subprocess
 import threading
 import uuid
@@ -16,6 +18,8 @@ from datetime import datetime, timezone, timedelta
 
 PORT = 8770
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+if _SCRIPT_DIR not in os.sys.path:
+    os.sys.path.insert(0, _SCRIPT_DIR)
 DB_PATH = os.path.join(_SCRIPT_DIR, "..", "..", "queue", "cmds.db")  # cmd_1488 dual-path 統一 (旧: data/dashboard.db 空)
 BASE_DIR = os.path.join(_SCRIPT_DIR, "..", "..")
 TASKS_DIR = os.path.join(BASE_DIR, "queue", "tasks")
@@ -544,10 +548,8 @@ def read_recent_messages(hours=48):
 POLL_AGENTS_QUERY = "SELECT id FROM agents WHERE role IN ('ashigaru','gunshi')"
 
 # Message types that indicate agent status (latest wins)
-_BUSY_TYPES = {"task_assigned"}
-_IDLE_TYPES = {"report_done", "report_completed", "report_received"}
-_BLOCKED_TYPES = {"report_blocked"}
-_ERROR_TYPES = {"report_error"}
+from inbox_types import BUSY_TYPES as _BUSY_TYPES, IDLE_TYPES as _IDLE_TYPES
+from inbox_types import BLOCKED_TYPES as _BLOCKED_TYPES, ERROR_TYPES as _ERROR_TYPES
 
 
 def get_db_agent_status(agent_id: str, conn) -> str:
@@ -2453,6 +2455,15 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 message = body.get('message', '').strip()
                 msg_type = body.get('type', 'wake_up')
                 from_agent = body.get('from', 'unknown')
+
+                if msg_type not in CANONICAL_TYPES:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({
+                        'error': f'Invalid type: {msg_type!r}. Must be one of {sorted(CANONICAL_TYPES)}'
+                    }, ensure_ascii=False).encode('utf-8'))
+                    return
 
                 if not target or not message:
                     self.send_response(400)
