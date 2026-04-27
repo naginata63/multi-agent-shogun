@@ -65,6 +65,7 @@ is_excluded() {
         */silent_fail_watcher_stderr.log) return 0 ;;
         */ntfy_sent.log) return 0 ;;
         */logs/daily/*) return 0 ;;
+        */genai_daily.log) return 0 ;;
         *)  return 1 ;;
     esac
 }
@@ -90,6 +91,12 @@ is_noise_line() {
         *"Advisor response"*) return 0 ;;
         *"[System prompt excerpt]"*) return 0 ;;
         *"x-anthropic-billing-header"*) return 0 ;;
+        *"403 HTTP Error"*) return 0 ;;
+        *"process.stdin.on"*) return 0 ;;
+        *"SessionEnd hook"*) return 0 ;;
+        *"結果: PASS"*) return 0 ;;
+        *"0FAIL"*) return 0 ;;
+        *"Continuation upstream error 429"*) return 0 ;;
         *) return 1 ;;
     esac
 }
