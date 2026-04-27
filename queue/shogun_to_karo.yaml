@@ -293,7 +293,7 @@ commands:
   - git commit
   notify_karo: true
 - id: cmd_1502
-  status: in_progress
+  status: done
   priority: high
   purpose: silent_fail_watcher false positive 一掃 (genai_daily 除外 + noise分類追加・cmd_1498軍師推奨#2)
   timestamp: '2026-04-27T21:48:43+09:00'
@@ -448,5 +448,552 @@ commands:
     で生成されbitrate 1Mbps以上
   - 旧 WB-xCyX-9J0 がYouTubeから削除済
   - 新URLでYouTube非公開アップ完了
+  - ntfy通知
+  notify_karo: true
+- id: cmd_1506
+  status: done
+  priority: high
+  purpose: day2_3sou_men_only_with_countdown_v2.mp4 を YouTube非公開アップ (殿承認済)
+  timestamp: '2026-04-27T22:23:05+09:00'
+  project: dozle_kirinuki
+  lord_original: '''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/day2_3sou_men_only_with_countdown_v2.mp4''
+
+    承認　非公開アップせよ'
+  command: "## 殿原文\n\n「承認 非公開アップせよ」\n対象: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目\
+    \  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/day2_3sou_men_only_with_countdown_v2.mp4\n\
+    \n## やること\n\n```bash\npython3 projects/dozle_kirinuki/scripts/youtube_uploader.py\
+    \ upload \\\n  '/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目\
+    \  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/day2_3sou_men_only_with_countdown_v2.mp4'\
+    \ \\\n  --title <元動画タイトル流用 or ファイル名相当> --privacy private\n```\n\n- defaultLanguage=ja\
+    \ (memory: feedback_youtube_autodubbing_pitfall.md)\n- privacy=private 厳守\n- アップ完了→URL報告→done"
+  acceptance_criteria:
+  - YouTube非公開アップ完了 (URL取得)
+  - ntfy通知
+  notify_karo: true
+- id: cmd_1507
+  status: done
+  priority: high
+  purpose: ダム動画 YmExrTL3Ojc 説明欄を「いつもの内容」で更新
+  timestamp: '2026-04-27T22:24:36+09:00'
+  project: dozle_kirinuki
+  lord_original: ダム動画説明欄もかけ　いつもかいている内容がある
+  command: "## 殿原文\n\n「ダム動画説明欄もかけ いつもかいている内容がある」\n\n## 対象\n\nYouTube非公開動画 https://www.youtube.com/watch?v=YmExrTL3Ojc\
+    \ (cmd_1505 で正規版アップ済 86万トンダム掘り縦長)\n\n## やること\n\n過去ショート/縦長動画の description.txt 既存例\
+    \ (projects/dozle_kirinuki/work/*/description*.txt) を参照し、ドズル社切り抜きチャンネルの**標準説明欄テンプレ**で更新せよ。\n\
+    \n```bash\npython3 projects/dozle_kirinuki/scripts/youtube_uploader.py update-description\
+    \ \\\n  --video-id YmExrTL3Ojc \\\n  --description \"<標準テンプレ + 元動画リンク>\"\n```\n\
+    \n元動画情報 (description記載用):\n- 元動画タイトル: 「86万トンの超巨大なダムを掘るまで終われません！【マイクラ】」 (家老が前回ダム掘りの本家URL\
+    \ を確認・前回pIrocoqvwJg or 本家最新リスト)\n- ドズル社本家チャンネル: https://www.youtube.com/@dozle\n\
+    \n参考:\n- shared_context/procedures/video_vertical_crop_upload.md Step4\n- 過去 description_*.txt\
+    \ 既存例"
+  acceptance_criteria:
+  - YmExrTL3Ojc の説明欄が標準テンプレで更新済 (YouTube側で確認可能)
+  - ntfy通知
+  notify_karo: true
+- id: cmd_1508
+  status: done
+  priority: high
+  purpose: cmds.db SQLite スキーマ全体の設計監査 (cmd_1504 F4 tasks テーブル不在発見の延長・他に DB 正本欠落・履歴から状態逆算等の設計ミス無いか軍師が洗い出す)
+  timestamp: '2026-04-27T22:52:11+09:00'
+  project: multi-agent-shogun
+  lord_original: 'DB設計がおかしいだけよね
+
+    ほかにDB設計おかしいところないかも軍師にふれ'
+  command: '## 殿原文
+
+
+    「DB設計がおかしいだけよね」
+
+    「ほかにDB設計おかしいところないかも軍師にふれ」
+
+
+    ## 経緯
+
+
+    cmd_1504 軍師レポート F4 で agent.status が YAML/DB 二重定義と判明。殿の指摘で本質は「DB に tasks テーブル不在
+    → inbox_messages (履歴ログ) で状態逆算する設計ミス」と確定。同様の「DB正本欠落 → YAML/ログで取り繕う」「履歴ログから状態逆算」等の設計欠陥が他にも潜在しとる可能性。
+
+
+    ## 担当
+
+
+    **軍師 (gunshi)** 単独。足軽は使わない。
+
+
+    ## やること
+
+
+    ### 1. 既存スキーマ網羅
+
+
+    ```bash
+
+    sqlite3 queue/cmds.db ''.schema''
+
+    sqlite3 queue/cmds.db ''.tables''
+
+    ```
+
+    各テーブルの role を確認 (commands/inbox_messages/agents/tasks など)。
+
+
+    ### 2. アンチパターン調査
+
+
+    以下観点で各テーブル + YAML 配置を相関分析:
+
+
+    | 観点 | 調査内容 |
+
+    |------|---------|
+
+    | 正本欠落 | 状態を表すべきだがテーブル化されていないドメインオブジェクト (例: tasks/agents/reports/cmd_phases等)
+    |
+
+    | 履歴から状態逆算 | inbox_messages 等のログから現状を導出している箇所 (server.py 全関数) |
+
+    | YAML/DB dual-path 不整合 | 書込が片方のみ・読出が片方のみ・同期遅延発生する場合 |
+
+    | status enum 自由文字列 | DONE_STATUSES 等で枚挙されているが CHECK 制約なし |
+
+    | 外部キー欠落 | tasks.cmd_id → commands.id 等の参照整合性 |
+
+    | timestamp 系 | 複数の時刻カラム重複 (issued_at/timestamp/created_at) ・命名揺れ |
+
+    | 検索クエリ非効率 | INDEX 不在で全件スキャン発生 |
+
+
+    ### 3. 報告
+
+
+    queue/reports/gunshi_db_schema_review_1508.yaml に以下出力:
+
+
+    - findings: 各設計ミスの id/severity/location/root_cause/recommendation
+
+    - recommended_cmds: 修正cmd提案 (cmd_1488 dual-path第2弾相当の tasks テーブル化など)
+
+    - summary_for_lord: 1段落要約
+
+
+    ### 4. 完了条件
+
+
+    1. queue/reports/gunshi_db_schema_review_1508.yaml 存在・全アンチパターン洗い出し済
+
+    2. 修正cmd 推奨 3-7件 (具体的なテーブル/カラム/SQL)
+
+    3. ntfy通知
+
+
+    ## 注意
+
+
+    cmd_1504 既出 findings (F4 等) とは**重複しない範囲**で新規 findings に集中。F4 の延長 (tasks テーブル化)
+    は本cmdで明示的に深掘りせよ。'
+  acceptance_criteria:
+  - queue/reports/gunshi_db_schema_review_1508.yaml に DB設計の全アンチパターン洗い出し済
+  - 修正cmd推奨 3-7件 (具体的なテーブル/SQL/操作)
+  - tasks テーブル化など F4 真の解決方針を含む
+  - ntfy通知
+  notify_karo: true
+- id: cmd_1509
+  status: pending
+  priority: high
+  purpose: tono_clip1.mp4 / tono_clip2.mp4 を動画解析して漫画パネル化
+  timestamp: '2026-04-27T22:53:31+09:00'
+  project: dozle_kirinuki
+  lord_original: '''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_clip1.mp4''
+
+    ''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_clip2.mp4''
+
+    動画解析して漫画パネル化'
+  command: '## 殿原文
+
+
+    「''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_clip1.mp4''
+
+    ''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_clip2.mp4''
+
+    動画解析して漫画パネル化」
+
+
+    ## 対象
+
+
+    - tono_clip1.mp4 (1.8MB)
+
+    - tono_clip2.mp4 (12.5MB)
+
+    配置: projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/
+
+
+    ## 手順
+
+
+    標準漫画ショート2段階レビュー (memory: feedback_manga_short_workflow.md) 準拠:
+
+
+    1. 動画解析 (Gemini) → panel_review.html (rows 編集)
+
+    2. 殿レビュー → Gemini 再解析
+
+    3. panels_check.html (panels 編集) → 殿レビュー
+
+    4. /manga-short スキル発動 → panels JSON → PNG生成 → 縦型動画 → YouTube非公開アップ
+
+
+    参照: skills/manga-short-workflow / skills/manga-short / projects/dozle_kirinuki/scripts/panel_review_gen.py
+    / panels_check_gen.py / generate_manga_short.py
+
+
+    ## 完了条件
+
+
+    各clip毎に以下:
+
+    1. panel_review.html 生成・殿確認
+
+    2. panels_check.html 生成・殿確認
+
+    3. PNG生成 + 縦型動画合成
+
+    4. YouTube非公開アップ → URL報告 → done
+
+
+    ## 注意
+
+
+    - 漫画ショート = panels JSON ベース・vertical_convert.py の Shorts組立とは別物
+
+    - ガチャ3回ルール撤廃済 (殿指示通り何回でも再生成可)
+
+    - ref_images は絶対パス必須 (memory: feedback_panel_refs_absolute.md)'
+  acceptance_criteria:
+  - tono_clip1/clip2 各々で panel_review→panels_check 2段階レビュー実施
+  - PNG生成+縦型動画+YouTube非公開アップ完了
+  - ntfy通知
+  notify_karo: true
+- id: cmd_1510
+  status: in_progress
+  priority: high
+  purpose: dashboard API SQLite完全移行 (get_active_cmds()+read_yaml_tasks() を SQLite
+    commands/tasks テーブル経由化・cmd_1504 F2 + cmd_1508 F2/F3 一括解消)
+  timestamp: '2026-04-27T23:01:44+09:00'
+  project: multi-agent-shogun
+  lord_original: A (cmd_1504+1508 軍師推奨統合8件起票)
+  command: '## 操作 (軍師レポート集約)
+
+
+    対象: scripts/dashboard/server.py
+
+
+    1. get_active_cmds (L129-131): SELECT * FROM commands WHERE status NOT IN DONE_STATUSES
+    に書換
+
+    2. get_recent_done (L134-137): SELECT * FROM commands WHERE status=''done'' ORDER
+    BY timestamp DESC LIMIT n
+
+    3. read_yaml_tasks (L425-490) → read_tasks_db(): SELECT * FROM tasks ORDER BY
+    timestamp DESC
+
+    4. detect_action_required R4/R6 を tasks テーブル直 SELECT に置換 (L253-261, L298-328)
+
+    5. parse_shogun_to_karo / YAML 直読みは env STORAGE_BACKEND=yaml の kill-switch のみに残す
+
+    6. 検証: curl /api/dashboard?slim=1 と /api/cmd_list?status=pending&limit=200 で active
+    count 完全一致確認
+
+
+    ## 影響
+
+
+    cmd_1504 F2 (active_cmds vs cmd_list 矛盾) + cmd_1508 F2/F3 (agent.status 履歴逆算 +
+    tasks YAML直読み) を一括解消。これだけで cmd_1504 F4 (busy_agents 二重定義) も自動解消の起点になる (agents
+    テーブル新設 cmd_1513 と組み合わせ完全解決)'
+  acceptance_criteria:
+  - server.py の get_active_cmds/get_recent_done/read_yaml_tasks が SQLite 経由
+  - curl /api/dashboard と /api/cmd_list の active count 一致
+  - YAML 直読みは STORAGE_BACKEND=yaml kill-switch のみ
+  notify_karo: true
+- id: cmd_1511
+  status: pending
+  priority: high
+  purpose: full_yaml_blob カラム 3テーブル削除 (cmd_1508 F1解消・dual-path transitional 残骸根絶)
+  timestamp: '2026-04-27T23:01:44+09:00'
+  project: multi-agent-shogun
+  lord_original: A (cmd_1504+1508 軍師推奨統合8件起票)
+  command: '## 操作
+
+
+    対象: queue/cmds.db (commands/tasks/reports テーブル) + scripts/dashboard/server.py
+
+
+    1. 削除前 audit: 全 row で blob vs 正規列の JSON diff (差分ゼロ確認)
+
+    2. ALTER TABLE commands DROP COLUMN full_yaml_blob (SQLite 3.35+ 確認後)
+
+    3. tasks/reports も同様
+
+    4. INSERT 側コード (server.py POST /api/cmd_create / report_create / task_create)
+    で full_yaml_blob 書込み停止
+
+    5. pretool_check に full_yaml_blob カラム参照 BLOCK ルール追加 (再発防止)
+
+
+    rationale: dual-path 移行 transitional 残骸が disk 圧迫 + 整合性崩壊源'
+  acceptance_criteria:
+  - 3テーブル全てから full_yaml_blob カラム削除済
+  - INSERT 側で blob 書込み停止
+  - pretool_check が blob 参照を BLOCK
+  notify_karo: true
+- id: cmd_1512
+  status: pending
+  priority: high
+  purpose: detect_action_required の R7 dedup 強化 + cmd_id:null疑似ID付与 (cmd_1504 F1+F5解消)
+  timestamp: '2026-04-27T23:01:44+09:00'
+  project: multi-agent-shogun
+  lord_original: A (cmd_1504+1508 軍師推奨統合8件起票)
+  command: '## 操作
+
+
+    対象: scripts/dashboard/server.py detect_action_required (L178-379)
+
+
+    1. L344-356 R7 抽出時、cmd_id None の場合 cmd_id = ''_orphan_'' + hashlib.sha1(title.encode()).hexdigest()[:8]
+    を設定
+
+    2. L360-379 dedup logic 拡張: rule==''R7'' の場合 title_key=(rule, title[:100]) で dedup_set
+    管理
+
+    3. CLAUDE.md に ''dashboard.md ### ⚠️ ヘッダには必ず cmd_NNN を含めよ'' を将軍/家老ルール追記
+
+
+    rationale: 殿観測「R7 が同一文言で5件複製」を根絶。dashboard ノイズを 1/3-1/5 に削減'
+  acceptance_criteria:
+  - detect_action_required で R7 dedup logic が動作 (同一title 1件化)
+  - cmd_id None の R7 に疑似ID付与で識別可能
+  - curl /api/dashboard で重複 R7 が出ない
+  notify_karo: true
+- id: cmd_1513
+  status: in_progress
+  priority: medium
+  purpose: agents テーブル新設 + 各テーブル agent系列 FK化 (cmd_1508 F5解消・cmd_1504 F4 完全解決)
+  timestamp: '2026-04-27T23:01:44+09:00'
+  project: multi-agent-shogun
+  lord_original: A (cmd_1504+1508 軍師推奨統合8件起票)
+  command: '## 操作
+
+
+    1. CREATE TABLE agents (id TEXT PK, role TEXT NOT NULL, model TEXT, current_task
+    TEXT REFERENCES tasks(task_id), status TEXT CHECK(status IN (''busy'',''idle'',''blocked'',''error'',''offline'')),
+    last_seen TEXT)
+
+    2. INSERT 既知 9 名 (shogun/karo/gunshi/ashigaru1-7) + 各 model (config/settings.yaml
+    参照)
+
+    3. commands.assigned_to / inbox_messages.agent / inbox_messages.from_agent / tasks.agent
+    (or assignee) / reports.worker_id を REFERENCES agents(id) に変更 (SQLite 再構築要)
+
+    4. POLL_AGENTS 定数を `SELECT id FROM agents WHERE role IN (''ashigaru'',''gunshi'')`
+    に置換
+
+    5. agents.status を tasks 経由で同期する trigger or 定期 sync 設置
+
+    6. server.py stats.busy_agents/idle_agents を `SELECT COUNT(*) FROM agents WHERE
+    status=''busy/idle''` に置換 → 一意化 (cmd_1504 F4 真の解決)
+
+
+    rationale: agent名 typo 検出・新規agent追加時の整合性担保・current_task 永続化基盤'
+  acceptance_criteria:
+  - agents テーブル存在 + 9 row INSERT 済
+  - 各テーブルの agent系列が FK化
+  - stats.busy/idle が agents テーブル直 SELECT で一意化
+  - agent_health/cmd_list/dashboard の三者間で agent状態が完全整合
+  notify_karo: true
+- id: cmd_1514
+  status: pending
+  priority: medium
+  purpose: inbox_messages.type に CHECK制約 + 旧type migration (cmd_1508 F4解消)
+  timestamp: '2026-04-27T23:01:45+09:00'
+  project: multi-agent-shogun
+  lord_original: A (cmd_1504+1508 軍師推奨統合8件起票)
+  command: '## 操作
+
+
+    1. scripts/dashboard/inbox_types.py 新設: 正規 type 14 種を定数化
+
+    2. UPDATE inbox_messages SET type=''report_completed'' WHERE type IN (''report_done'',''task_completion_notice'')
+
+    3. test/qc_test/cmd_test/_test 系 4 種を別テーブル inbox_messages_test に移送 or DELETE
+
+    4. ALTER TABLE inbox_messages ADD CONSTRAINT ck_type CHECK (type IN (...)) — SQLite
+    再構築要
+
+    5. server.py POST /api/inbox_write の type バリデーション追加
+
+    6. _BUSY_TYPES/_IDLE_TYPES マッチが完全動作することを assertion テスト
+
+
+    rationale: 24種自由文字列 → 14種enum 正規化・状態判定 silent miss 根絶'
+  acceptance_criteria:
+  - inbox_messages.type に CHECK制約
+  - 旧type 3種 (report_done/task_completion_notice) を report_completed に migration
+  - test系を別テーブル隔離
+  - POST /api/inbox_write が不正type で 400 を返す
+  notify_karo: true
+- id: cmd_1515
+  status: pending
+  priority: medium
+  purpose: R3 殿選定待ち age_hours 閾値段階化 (cmd_1504 F3解消・起票直後ノイズ抑制)
+  timestamp: '2026-04-27T23:01:45+09:00'
+  project: multi-agent-shogun
+  lord_original: A (cmd_1504+1508 軍師推奨統合8件起票)
+  command: '## 操作
+
+
+    対象: scripts/dashboard/server.py detect_action_required R3 ブロック (L235-251)
+
+
+    1. L243 if 文の中で h = age_hours(...) を計算
+
+    2. h < 0.5 → continue (通知抑制・起票直後は出さない)
+
+    3. 0.5 <= h < 2 → severity=MEDIUM
+
+    4. h >= 2 → severity=HIGH
+
+    5. dashboard UI 側 (L873) は MEDIUM/HIGH 別表示で殿の優先度判断補助
+
+
+    rationale: 起票直後 age_hours=0.05 でも HIGH 発火していたノイズ解消'
+  acceptance_criteria:
+  - R3 で age_hours<0.5h の cmd は要対応に出ない
+  - 0.5-2h は MEDIUM, ≥2h は HIGH 表示
+  notify_karo: true
+- id: cmd_1516
+  status: pending
+  priority: low
+  purpose: reports.status/qa_decision に CHECK制約 + type列追加 (cmd_1508 F4b解消)
+  timestamp: '2026-04-27T23:01:45+09:00'
+  project: multi-agent-shogun
+  lord_original: A (cmd_1504+1508 軍師推奨統合8件起票)
+  command: '## 操作
+
+
+    1. ALTER TABLE reports ADD COLUMN type TEXT CHECK (type IN (''qc'',''completion'',''analysis'',''strategy'',''audit''))
+
+    2. ALTER TABLE reports + CHECK status IN (''done'',''failed'',''blocked'',''cancelled'')
+    (SQLite 再構築要)
+
+    3. CHECK qa_decision IN (''pass'',''fail'',''conditional_pass'',''blocked'',NULL)
+
+    4. CREATE INDEX idx_report_type ON reports(type)
+
+    5. POST /api/report_create で type/status/qa_decision バリデーション追加
+
+
+    rationale: QC 報告と完了報告を type で明示区別・誤分類防止'
+  acceptance_criteria:
+  - reports.type/status/qa_decision に CHECK 制約
+  - 既存 row の type を worker_id プレフィックスから推論して埋める
+  notify_karo: true
+- id: cmd_1517
+  status: pending
+  priority: low
+  purpose: timestamp 正規化 + INDEX 7本一括追加 + action_required first_seen記録 (cmd_1508 F6/F7
+    + cmd_1504 F6解消)
+  timestamp: '2026-04-27T23:01:45+09:00'
+  project: multi-agent-shogun
+  lord_original: A (cmd_1504+1508 軍師推奨統合8件起票)
+  command: '## 操作 (3群 1cmd・LOW 統合)
+
+
+    ### A. timestamp 正規化 (cmd_1508 F6)
+
+    1. audit: SELECT COUNT(*) WHERE timestamp != issued_at FROM commands → 0件確認
+
+    2. ALTER TABLE commands DROP COLUMN issued_at / revised_at
+
+    3. started_at/completed_at/cancelled_at は audit_log の status 変化記録から再生する view 提供
+
+    4. tasks も同方針
+
+
+    ### B. INDEX 7本一括追加 (cmd_1508 F7)
+
+    1. CREATE INDEX idx_inbox_from ON inbox_messages(from_agent)
+
+    2. CREATE INDEX idx_inbox_type ON inbox_messages(type)
+
+    3. CREATE INDEX idx_inbox_agent_type_read ON inbox_messages(agent, type, read)
+
+    4. CREATE INDEX idx_cmd_completed ON commands(completed_at DESC)
+
+    5. CREATE INDEX idx_task_completed ON tasks(completed_at DESC)
+
+    6. CREATE INDEX idx_task_report_to ON tasks(report_to)
+
+    7. CREATE INDEX idx_report_qa ON reports(qa_decision)
+
+
+    ### C. action_required first_seen 記録 (cmd_1504 F6)
+
+    1. queue/.flags/action_required_history.json 新設
+
+    2. item_key=sha1(rule+cmd_id+title[:50])[:12]
+
+    3. detect_action_required 末尾で各 item に first_seen_at merge
+
+    4. dashboard UI で「R7 cmd_1496 (3時間前から)」表示
+
+
+    rationale: LOW 3件統合・スケール時の遅延予防 + 殿が要対応の経過時間で優先判断可'
+  acceptance_criteria:
+  - timestamp 正規化済 (issued_at/revised_at 削除)
+  - INDEX 7本追加済
+  - action_required に first_seen_at 表示
+  notify_karo: true
+- id: cmd_1518
+  status: pending
+  priority: high
+  purpose: GCnCUAuL0p8 (3層オーディン戦カウントダウンv2) にサムネ設定
+  timestamp: '2026-04-27T23:08:25+09:00'
+  project: dozle_kirinuki
+  lord_original: 3層オーディン戦サムネつけてね　サムネは作成済みよ
+  command: "## 殿原文\n\n「3層オーディン戦サムネつけてね　サムネは作成済みよ」\n\n## 対象\n\n- 動画ID: GCnCUAuL0p8\
+    \ (cmd_1506 アップ済 day2_3sou_men_only_with_countdown_v2)\n- サムネファイル: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目\
+    \  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/thumbnail_odin/thumbnail_final.png\n\n\
+    ## やること\n\n```bash\npython3 projects/dozle_kirinuki/scripts/youtube_uploader.py\
+    \ set-thumbnail \\\n  --video-id GCnCUAuL0p8 \\\n  --thumbnail '/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目\
+    \  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/thumbnail_odin/thumbnail_final.png'\n\
+    ```\n\n(サブコマンド名が異なる場合は `python3 projects/dozle_kirinuki/scripts/youtube_uploader.py\
+    \ --help` で確認)"
+  acceptance_criteria:
+  - GCnCUAuL0p8 にサムネ設定済 (YouTube Studio 確認可能)
+  - ntfy通知
+  notify_karo: true
+- id: cmd_1519
+  status: pending
+  priority: high
+  purpose: GCnCUAuL0p8 (3層オーディン戦v2) 説明欄を v2 (30分タイマー・MEN単独) 仕様に更新
+  timestamp: '2026-04-27T23:09:29+09:00'
+  project: dozle_kirinuki
+  lord_original: 説明欄のタイムスタンプが今回ようになってない
+  command: "## 殿原文\n\n「説明欄のタイムスタンプが今回ようになってない」\n\n## 対象\n\n動画ID: GCnCUAuL0p8 (cmd_1506\
+    \ アップ済 day2_3sou_men_only_with_countdown_v2)\n\n## 現状 description (description_3sou_men_only.txt)\
+    \ の不整合\n\n```\n旧 (15分タイマー・4視点版 流用):\n  本文: 「制限時間15分のタイマーバトル」\n  チャプター:\n    0:00\
+    \      3層オーディン戦開始\n    1:03:17  15分タイマー開始\n    1:19:11  タイマーストップ（討伐成功）\n```\n\n\
+    v2 動画の実仕様:\n- タイマー総尺: **30分** (前回 4視点版は15分・本動画は別取り)\n- タイマー開始: **0:48:12**\n-\
+    \ タイマー停止: **1:18:07**\n- 視点: おおはらMEN単独 (4視点mix ではない)\n\n## やること\n\n1. description_3sou_men_only.txt\
+    \ を v2 仕様に更新:\n   - 本文「制限時間15分」→「制限時間30分」\n   - チャプター「1:03:17 15分タイマー開始」→「0:48:12\
+    \ 30分タイマー開始」\n   - チャプター「1:19:11 タイマーストップ」→「1:18:07 タイマーストップ」\n2. GCnCUAuL0p8\
+    \ の YouTube 説明欄を update-description で更新:\n   ```\n   python3 projects/dozle_kirinuki/scripts/youtube_uploader.py\
+    \ update-description \\\n     --video-id GCnCUAuL0p8 \\\n     --description \"\
+    $(cat description_3sou_men_only.txt)\"\n   ```\n3. ntfy通知\n\n## 注意\n\n動画再生で実際のタイマー値を\
+    \ ffprobe + フレーム抽出で再確認してから description 修正・素直に殿原文値 (0:48:12〜1:18:07) を採用してよし"
+  acceptance_criteria:
+  - description_3sou_men_only.txt が v2 仕様に更新済 (30分タイマー・0:48:12〜1:18:07)
+  - YouTube GCnCUAuL0p8 説明欄が update-description で反映済
   - ntfy通知
   notify_karo: true

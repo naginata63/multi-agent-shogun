@@ -113,3 +113,26 @@ tasks:
   - 殿向け要約 (1段落)
   - ntfy通知
   timestamp: '2026-04-27T21:52:13.882706+09:00'
+- agent: gunshi
+  task_id: subtask_1508a
+  parent_cmd: cmd_1508
+  status: done
+  completed_at: '2026-04-27T22:55:00+09:00'
+  bloom_level: L5
+  description: 'cmd_1508: cmds.db SQLite スキーマ全体の設計監査。正本欠落・履歴から状態逆算・YAML/DB dual-path
+    不整合・status enum 自由文字列・外部キー欠落・timestamp重複・INDEX不在の7観点でアンチパターン洗い出し。修正cmd 3-7件提示。'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_db_schema_review_1508.yaml
+  steps: 1) sqlite3 queue/cmds.db '.schema' でスキーマ全体確認 2) sqlite3 '.tables' でテーブル一覧確認
+    3) server.py/dashboard*.py でinbox_messagesから状態逆算している箇所を grep 4) 7観点でアンチパターン洗い出し
+    (cmd_1504 F4重複除く) 5) gunshi_db_schema_review_1508.yaml に findings + recommended_cmds
+    + summary_for_lord 出力 6) ntfy通知 7) inbox_write karo 完了報告
+  acceptance_criteria:
+  - queue/reports/gunshi_db_schema_review_1508.yaml に全アンチパターン洗い出し済
+  - 修正cmd推奨 3-7件 (具体的なテーブル/SQL/操作)
+  - tasks テーブル化など F4 真の解決方針を含む
+  - ntfy通知
+  notes:
+  - cmd_1504 既出 findings (F4 等) とは重複しない範囲で新規 findings に集中
+  - F4 の延長 (tasks テーブル化) は本cmdで明示的に深掘りせよ
+  - 足軽は使わない・軍師単独
+  timestamp: '2026-04-27T22:53:05.586918+09:00'

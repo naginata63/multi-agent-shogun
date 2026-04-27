@@ -86,3 +86,54 @@ tasks:
   - tono_short_vertical_ng.mp4 が存在すること
   - tono_short_vertical.mp4 が存在しないこと
   timestamp: '2026-04-27T22:24:06.000737+09:00'
+- agent: ashigaru3
+  task_id: subtask_1509b
+  parent_cmd: cmd_1509
+  status: in_progress
+  bloom_level: L3
+  description: 'cmd_1509 Phase1: tono_clip2.mp4 (12.5MB) を動画解析して panel_review.html
+    生成'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/clip2_panel_review.html
+  steps: 1) shared_context/procedures/ の漫画ショート手順確認 + projects/dozle_kirinuki/context/
+    参照 2) source ~/.bashrc && python3 projects/dozle_kirinuki/scripts/panel_review_gen.py
+    '/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_clip2.mp4'
+    --output '/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/clip2_panel_review.html'
+    (または同等スクリプト・実際の引数は scripts/ 確認) 3) clip2_panel_review.html をブラウザで確認可能なパスに出力 4)
+    bash scripts/ntfy.sh '📋 clip2 panel_review.html 生成完了 - 殿レビュー待ち' 5) inbox_write
+    karo HTMLパス報告
+  acceptance_criteria:
+  - clip2_panel_review.html が生成済み・rowsが編集可能な状態
+  - ntfy通知で殿にレビュー依頼送信済み
+  - karoへ完了報告済み
+  notes:
+  - Phase1 = panel_review.html 生成のみ。殿レビュー後の Phase2 は別途指令
+  - source ~/.bashrc && を必ず前置 (VERTEX_API_KEY等の環境変数取得)
+  - ref_images は絶対パス必須 (feedback_panel_refs_absolute.md)
+  - 実際の panel_review_gen.py 引数は scripts/ 配下を確認してから実行
+  - clip2は12.5MBゆえ解析に時間がかかる可能性あり
+  timestamp: '2026-04-27T22:54:44.820729+09:00'
+- agent: ashigaru3
+  task_id: subtask_1509b2
+  parent_cmd: cmd_1509
+  redo_of: subtask_1509b
+  status: assigned
+  bloom_level: L3
+  description: 'cmd_1509 Phase1 (訂正版): tono_clip2.mp4 → generate_panel_candidates.py
+    で panels JSON 全自動生成'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/panels_tono_clip2.json
+  steps: '1) source config/vertex_api_key.env 2) python3 projects/dozle_kirinuki/scripts/generate_panel_candidates.py
+    --clip ''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_clip2.mp4''
+    --scene ''tono_clip2'' --title ''86万トンダム掘り切り抜き'' --output ''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/panels_tono_clip2.json''
+    3) cat 出力で panels JSON 確認 4) bash scripts/ntfy.sh ''📋 clip2 panels JSON 生成完了:
+    panels_tono_clip2.json'' 5) inbox_write karo panels_tono_clip2.json のパスを報告'
+  acceptance_criteria:
+  - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/panels_tono_clip2.json
+    が存在・panels配列あり
+  - ntfy通知送信済み
+  - karoへ完了報告済み
+  notes:
+  - '主役: generate_panel_candidates.py (panel_review_gen.py ではない・訂正版)'
+  - source config/vertex_api_key.env 必須 (VERTEX_API_KEY)
+  - clip2は12.5MBゆえ解析に時間がかかる可能性あり
+  - 'redo_of: subtask_1509b (panel_review_gen.py 誤用版)'
+  timestamp: '2026-04-27T22:59:44.155377+09:00'

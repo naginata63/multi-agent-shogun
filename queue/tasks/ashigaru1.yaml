@@ -115,3 +115,121 @@ tasks:
   target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_「#DoZ」2日目  誰も死なせないよ　だって私はヒーラーだもの」「ドズル社／おおはらMEN視点」/day2_3sou_men_only_with_countdown_v2.mp4
   task_id: subtask_1506a
   timestamp: '2026-04-27T22:26:28.773839+09:00'
+- agent: ashigaru1
+  task_id: subtask_1509a
+  parent_cmd: cmd_1509
+  status: assigned
+  bloom_level: L3
+  description: 'cmd_1509 Phase1: tono_clip1.mp4 (1.8MB) を動画解析して panel_review.html
+    生成'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/clip1_panel_review.html
+  steps: 1) shared_context/procedures/ の漫画ショート手順確認 + projects/dozle_kirinuki/context/
+    参照 2) source ~/.bashrc && python3 projects/dozle_kirinuki/scripts/panel_review_gen.py
+    '/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_clip1.mp4'
+    --output '/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/clip1_panel_review.html'
+    (または同等スクリプト・実際の引数は scripts/ 確認) 3) clip1_panel_review.html をブラウザで確認可能なパスに出力 4)
+    bash scripts/ntfy.sh '📋 clip1 panel_review.html 生成完了 - 殿レビュー待ち' 5) inbox_write
+    karo HTMLパス報告
+  acceptance_criteria:
+  - clip1_panel_review.html が生成済み・rowsが編集可能な状態
+  - ntfy通知で殿にレビュー依頼送信済み
+  - karoへ完了報告済み
+  notes:
+  - Phase1 = panel_review.html 生成のみ。殿レビュー後の Phase2 は別途指令
+  - source ~/.bashrc && を必ず前置 (VERTEX_API_KEY等の環境変数取得)
+  - ref_images は絶対パス必須 (feedback_panel_refs_absolute.md)
+  - 実際の panel_review_gen.py 引数は scripts/ 配下を確認してから実行
+  - 'ドズル社メンバー: dozle/bon/qnly/orafu/oo_men/nekooji'
+  timestamp: '2026-04-27T22:54:44.692279+09:00'
+- agent: ashigaru1
+  task_id: subtask_1509a2
+  parent_cmd: cmd_1509
+  redo_of: subtask_1509a
+  status: assigned
+  bloom_level: L3
+  description: 'cmd_1509 Phase1 (訂正版): tono_clip1.mp4 → generate_panel_candidates.py
+    で panels JSON 全自動生成'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/panels_tono_clip1.json
+  steps: '1) source config/vertex_api_key.env 2) python3 projects/dozle_kirinuki/scripts/generate_panel_candidates.py
+    --clip ''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_clip1.mp4''
+    --scene ''tono_clip1'' --title ''86万トンダム掘り切り抜き'' --output ''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/panels_tono_clip1.json''
+    3) cat 出力で panels JSON 確認 4) bash scripts/ntfy.sh ''📋 clip1 panels JSON 生成完了:
+    panels_tono_clip1.json'' 5) inbox_write karo panels_tono_clip1.json のパスを報告'
+  acceptance_criteria:
+  - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/panels_tono_clip1.json
+    が存在・panels配列あり
+  - ntfy通知送信済み
+  - karoへ完了報告済み
+  notes:
+  - '主役: generate_panel_candidates.py (panel_review_gen.py ではない・訂正版)'
+  - source config/vertex_api_key.env 必須 (VERTEX_API_KEY)
+  - 'redo_of: subtask_1509a (panel_review_gen.py 誤用版)'
+  timestamp: '2026-04-27T22:59:44.005886+09:00'
+- agent: ashigaru1
+  task_id: subtask_1510a
+  parent_cmd: cmd_1510
+  status: assigned
+  bloom_level: L4
+  description: 'cmd_1510: get_active_cmds()/get_recent_done()/read_yaml_tasks() を
+    SQLite SELECT に書換 (server.py L129-490)'
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+  steps: 1) queue/shogun_to_karo.yaml の cmd_1510 command 全文読む 2) scripts/dashboard/server.py
+    の get_active_cmds(L129-131) / get_recent_done(L134-137) / read_yaml_tasks(L425-490)
+    を SQLite SELECT に書換 3) python3 -m py_compile scripts/dashboard/server.py で構文確認
+    4) curl http://localhost:8770/api/cmd_list で動作確認 5) git add scripts/dashboard/server.py
+    && commit 6) inbox_write karo 完了報告
+  notes:
+  - cmd_1510 command 全文に詳細SQL例あり・必ず読め
+  - python3 -m py_compile 必須
+  - curl テスト必須
+  - libx264禁止(動画cmd外)
+  timestamp: '2026-04-27T23:05:13.088104+09:00'
+- agent: ashigaru1
+  task_id: subtask_1511a
+  parent_cmd: cmd_1511
+  status: blocked
+  bloom_level: L3
+  blocked_by:
+  - subtask_1510a
+  description: 'cmd_1511: full_yaml_blob カラム 3テーブル削除 (audit→DROP→server.py コード削除)'
+  target_path: /home/murakami/multi-agent-shogun/queue/cmds.db
+  steps: 1) cmd_1511 command 全文読む 2) 全 row で blob vs 正規列 JSON diff → 差分ゼロ確認 3) SQLite
+    3.35+ 確認後 ALTER TABLE commands/tasks/reports DROP COLUMN full_yaml_blob 4) server.py
+    から blob 関連コード削除 5) py_compile + curl テスト 6) git commit 7) inbox_write karo 完了報告
+  notes:
+  - subtask_1510a 完了後に実行
+  - 差分ゼロ確認必須（データ損失防止）
+  - SQLite 3.35未満なら再構築方式で対応
+  timestamp: '2026-04-27T23:05:13.203327+09:00'
+- agent: ashigaru1
+  task_id: subtask_1512a
+  parent_cmd: cmd_1512
+  status: blocked
+  bloom_level: L3
+  blocked_by:
+  - subtask_1511a
+  description: 'cmd_1512: detect_action_required R7 dedup強化 + cmd_id:null 疑似ID付与 (server.py
+    L344-379)'
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+  steps: '1) cmd_1512 command 全文読む 2) L344-356 R7: cmd_id=None の場合 ''_orphan_''+sha1(title)[:8]
+    付与 3) L360-379 dedup: rule==''R7'' は title_key=(rule,title[:100]) で dedup 4) py_compile
+    + curl /api/dashboard テスト 5) git commit 6) inbox_write karo 完了報告'
+  notes:
+  - subtask_1511a 完了後に実行
+  - R7以外のdedup logicは変更しない
+  timestamp: '2026-04-27T23:05:13.278112+09:00'
+- agent: ashigaru1
+  task_id: subtask_1515a
+  parent_cmd: cmd_1515
+  status: blocked
+  bloom_level: L2
+  blocked_by:
+  - subtask_1512a
+  description: 'cmd_1515: R3 age_hours 閾値段階化 (<0.5h skip / 0.5-2h MED / 2h+ HIGH)'
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+  steps: '1) cmd_1515 command 全文読む 2) L235-251 R3 ブロック: h<0.5→continue / 0.5<=h<2→MEDIUM
+    / h>=2→HIGH 3) py_compile + curl テスト 4) git commit 5) inbox_write karo 完了報告'
+  notes:
+  - subtask_1512a 完了後に実行
+  - UIのMEDIUM/HIGH別表示も反映(L873付近)
+  timestamp: '2026-04-27T23:05:13.362014+09:00'

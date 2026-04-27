@@ -15,7 +15,12 @@ set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOCKFILE="/tmp/semantic_index_update.lock"
+FLOCK_FILE="$SCRIPT_DIR/data/semantic_index/.lock"
 LOGFILE="$SCRIPT_DIR/logs/semantic_index_hook.log"
+
+# flock for concurrent write protection — exit if another instance holds the lock
+exec 9>"$FLOCK_FILE"
+flock -n 9 || exit 0
 
 INPUT=$(cat 2>/dev/null || true)
 

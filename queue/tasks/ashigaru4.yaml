@@ -119,3 +119,68 @@ tasks:
   - 元動画リンク(pIrocoqvwJg)を説明欄に含めること
   - youtube_uploader.py update-description コマンドを使え
   timestamp: '2026-04-27T22:26:28.885587+09:00'
+- agent: ashigaru4
+  task_id: subtask_1513a
+  parent_cmd: cmd_1513
+  status: assigned
+  bloom_level: L3
+  description: 'cmd_1513: agents テーブル新設 + FK化 (shogun/karo/gunshi/ashigaru1-7 INSERT)'
+  target_path: /home/murakami/multi-agent-shogun/queue/cmds.db
+  steps: 1) cmd_1513 command 全文読む 2) CREATE TABLE agents (id/role/model/current_task/status/last_seen)
+    3) INSERT 9名 (config/settings.yaml参照) 4) commands/tasks/inbox_messages に agent_id
+    FK CHECK 5) server.py の agent 操作コードを agents テーブル経由に更新 6) py_compile + curl /api/agent_health
+    テスト 7) git commit 8) inbox_write karo 完了報告
+  notes:
+  - DB schema変更のため慎重に
+  - FK追加は既存データ整合確認後
+  - '命名: ashigaru1..7/shogun/karo/gunshi'
+  timestamp: '2026-04-27T23:05:13.456139+09:00'
+- agent: ashigaru4
+  task_id: subtask_1514a
+  parent_cmd: cmd_1514
+  status: blocked
+  bloom_level: L3
+  blocked_by:
+  - subtask_1513a
+  description: 'cmd_1514: inbox_messages.type に CHECK制約 + 旧type migration + inbox_types.py新設'
+  target_path: /home/murakami/multi-agent-shogun/queue/cmds.db
+  steps: 1) cmd_1514 command 全文読む 2) scripts/dashboard/inbox_types.py 新設 (正規type 14種定数化)
+    3) UPDATE 旧type→正規type (report_done→report_completed等) 4) test/qc系メッセージを inbox_messages_test
+    移送 5) ALTER TABLE + CHECK制約 or 再構築 6) py_compile + curl テスト 7) git commit 8) inbox_write
+    karo 完了報告
+  notes:
+  - subtask_1513a 完了後に実行
+  - migrationは慎重に・バックアップ推奨
+  timestamp: '2026-04-27T23:05:13.568163+09:00'
+- agent: ashigaru4
+  task_id: subtask_1516a
+  parent_cmd: cmd_1516
+  status: blocked
+  bloom_level: L2
+  blocked_by:
+  - subtask_1514a
+  description: 'cmd_1516: reports.status/qa_decision CHECK制約 + type列追加'
+  target_path: /home/murakami/multi-agent-shogun/queue/cmds.db
+  steps: 1) cmd_1516 command 全文読む 2) ALTER TABLE reports ADD COLUMN type TEXT CHECK(...)
+    3) CHECK status/qa_decision 追加 (SQLite再構築) 4) CREATE INDEX 5) git commit 6) inbox_write
+    karo 完了報告
+  notes:
+  - subtask_1514a 完了後に実行
+  - SQLite制約はCREATE TABLE再構築が必要な場合あり
+  timestamp: '2026-04-27T23:05:13.638810+09:00'
+- agent: ashigaru4
+  task_id: subtask_1517a
+  parent_cmd: cmd_1517
+  status: blocked
+  bloom_level: L3
+  blocked_by:
+  - subtask_1516a
+  description: 'cmd_1517: timestamp 正規化 + INDEX 7本一括追加 + action_required first_seen記録'
+  target_path: /home/murakami/multi-agent-shogun/queue/cmds.db
+  steps: '1) cmd_1517 command 全文読む 2) audit: issued_at vs timestamp 差分ゼロ確認 3) DROP
+    COLUMN issued_at/revised_at (commands/tasks) 4) CREATE INDEX 7本 5) action_required
+    first_seen カラム追加 6) git commit 7) inbox_write karo 完了報告'
+  notes:
+  - subtask_1516a 完了後に実行
+  - INDEX追加は最後・dropは必ず audit後
+  timestamp: '2026-04-27T23:05:13.731313+09:00'
