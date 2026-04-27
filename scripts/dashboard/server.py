@@ -2686,6 +2686,35 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     return
 
                 report_id = body['report_id']
+                _valid_status = {'done','failed','blocked','cancelled'}
+                _valid_type = {'qc','completion','analysis','strategy','audit'}
+                _valid_qa = {'pass','fail','conditional_pass','blocked'}
+                if body['status'] not in _valid_status:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(
+                        {'error': f'Invalid status: {body["status"]}. Must be one of {sorted(_valid_status)}'}
+                    ).encode('utf-8'))
+                    return
+                _rtype = body.get('type')
+                if _rtype and _rtype not in _valid_type:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(
+                        {'error': f'Invalid type: {_rtype}. Must be one of {sorted(_valid_type)}'}
+                    ).encode('utf-8'))
+                    return
+                _qa = body.get('qa_decision')
+                if _qa and _qa not in _valid_qa:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(
+                        {'error': f'Invalid qa_decision: {_qa}. Must be one of {sorted(_valid_qa)}'}
+                    ).encode('utf-8'))
+                    return
                 reports_dir = os.path.join(BASE_DIR, 'queue', 'reports')
                 os.makedirs(reports_dir, exist_ok=True)
                 yaml_path = body.get('report_path') or os.path.join(
@@ -2716,12 +2745,12 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 try:
                     _conn = sqlite3.connect(DB_PATH, timeout=5)
                     _conn.execute('''INSERT OR REPLACE INTO reports
-                        (report_id, worker_id, task_id, parent_cmd, status,
+                        (report_id, worker_id, task_id, parent_cmd, type, status,
                          qa_decision, timestamp, report_path, summary)
-                        VALUES (?,?,?,?,?,?,?,?,?)''', (
+                        VALUES (?,?,?,?,?,?,?,?,?,?)''', (
                         report_id, body['worker_id'], body.get('task_id'),
-                        body.get('parent_cmd'), body['status'],
-                        body.get('qa_decision'), report_entry['timestamp'],
+                        body.get('parent_cmd'), _rtype, body['status'],
+                        _qa, report_entry['timestamp'],
                         os.path.relpath(yaml_abs, BASE_DIR),
                         body.get('summary'),
                     ))
