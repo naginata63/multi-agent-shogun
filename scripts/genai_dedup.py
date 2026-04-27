@@ -25,7 +25,7 @@ CACHE_FILE = REPORTS_DIR / ".dedup_cache.json"
 CACHE_DAYS = 7
 
 GEMINI_API_KEY = ""  # unused — ADC auth
-EMBED_MODEL = "gemini-embedding-2-preview"
+EMBED_MODEL = "text-embedding-005"  # stable Vertex AI embedding model (us-central1)
 SIMILARITY_THRESHOLD = 0.85
 TITLE_OVERLAP_THRESHOLD = 0.6
 
