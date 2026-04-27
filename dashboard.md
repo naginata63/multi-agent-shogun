@@ -45,6 +45,34 @@
 ## 🚨 要対応（殿の御判断必要）
 ## 🚨 要対応（殿の御判断必要）
 
+### 🔴 cmd_1521「3層動画作り直し」— 殿の意図確認要 (家老待機中)
+殿原文「3層動画作り直し」。作り直しの範囲を選択されたし:
+- **A**: カウントダウン重畳動画ごと作り直し (day2_3sou_men_only_with_countdown_v2.mp4 を元素材から再encode)
+- **B**: アップロード設定のみ更新 (タイトル/description/サムネ のみ変更・動画ファイルはそのまま)
+- **C**: 別の意図（別cmdへの言及など）
+選択後、GCnCUAuL0p8 を削除して別動画として上げ直すか、そのまま更新で済ますかもご指示願いたし。
+→ 家老は選択を受けてから subtask 起票する。
+
+### 🔴🔴 nightly_audit_20260428_video — CRITICAL 2 修正cmd起票要否
+- **修正A**: main.py L657-730 WhisperX経路削除 (1cmd完結)
+- **修正B**: vertical_convert.py argparse 4引数追加 (1cmd完結)
+起票承認されたし。
+
+### 🔴 server.py 再起動必要 (cmd_1514・cmd_1513 副次)
+inbox.type CHECK制約 + agents テーブル統合が DB 側完了だが server 側未活性化。将軍対処要。
+
+### 🔴 CRITICAL: stt_pipeline.md 手順書が実装と完全乖離
+修正cmd起票要否を判断されたし。
+
+### 💡 skill_candidate: sqlite-fk-migration (足軽4号提案)
+スキル化承認されたし。
+
+### ⚠️ 技術的残課題（将来対処）
+- Remotion Root.tsx ハードコード汎用化
+- pretool_check: /tmp/work/cmd_* 誤表示
+
+## 🚨 要対応（殿の御判断必要）
+
 ### 🔴🔴 nightly_audit_20260428_video — CRITICAL 2 / HIGH 6 (軍師 02:08完了)
 7ファイル2557行精読。22件検出。根本問題3点:
 1. **CRITICAL: WhisperX鉄則違反永続化** — main.py L657-730 に --diarize WhisperX経路残存。nightly_audit_20260427_stt CRITICAL1と同根・是正未着手。→ **修正cmd起票推奨: main.py L657-730削除 (1cmd完結)**
