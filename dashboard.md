@@ -2,22 +2,26 @@
 最終更新: 2026-04-28 00:14
 
 ## 🔄 進行中
+## 🔄 進行中
+
+### cmd_1520 (high) — 夜間矛盾検出: 動画制作スクリプト群
+- 🔄 subtask_1520a → 軍師: make_expression_shorts/vertical_convert/make_shorts/Remotion 精読・矛盾列挙 (実行中)
+- 朝までに結果掲載
+
+### cmd_1516 (high) — reports CHECK制約+type列追加
+- ⏳ subtask_1516a → 足軽4号: 完了・軍師QC待ち
 
 ### cmd_1509 (high) — tono_clip1/clip2 漫画パネル化
-- ✅ subtask_1509a2 → 足軽1号: panels_tono_clip1.json (7パネル) 生成完了
+- ✅ subtask_1509a2 → 足軽1号: panels_tono_clip1.json (7パネル) 完了
 - 🔄 subtask_1509b2 → 足軽3号: tono_clip2.mp4 → panels_tono_clip2.json (実行中)
-- 📌 Phase2 (manga-short スキル→PNG→動画→YTアップ) は殿レビュー後
+- 📌 Phase2 は殿レビュー後
 
 ### cmd_1510〜1512・1515 チェーン (high) — server.py SQLite完全移行
-- 🔄 subtask_1510a → 足軽1号: server.py get_active_cmds/read_yaml_tasks → SQLite SELECT 書換 (実行中)
-- ⏸ subtask_1511a → 足軽1号: full_yaml_blob 3テーブル削除 (1510a待ち)
-- ⏸ subtask_1512a → 足軽1号: R7 dedup強化+cmd_id:null疑似ID (1511a待ち)
-- ⏸ subtask_1515a → 足軽1号: R3 age_hours閾値段階化 (1512a待ち)
+- 🔄 subtask_1510a → 足軽1号: server.py SQLite書換 (実行中)
+- ⏸ subtask_1511〜1512・1515a: 1510a待ち
 
-### cmd_1514〜1516〜1517 チェーン (high) — inbox.type CHECK制約+各種正規化
-- 🔄 subtask_1514a → 足軽4号: inbox.type CHECK制約+inbox_types.py新設 (解除・通知済)
-- ⏸ subtask_1516a → 足軽4号: reports CHECK制約+type列 (1514a待ち)
-- ⏸ subtask_1517a → 足軽4号: timestamp正規化+INDEX 7本 (1516a待ち)
+### cmd_1517 チェーン (low) — timestamp正規化+INDEX
+- ⏸ subtask_1517a → 足軽4号: 1516a QC PASS後
 
 ## ✅ 本日の完了
 

@@ -136,3 +136,21 @@ tasks:
   - F4 の延長 (tasks テーブル化) は本cmdで明示的に深掘りせよ
   - 足軽は使わない・軍師単独
   timestamp: '2026-04-27T22:53:05.586918+09:00'
+- agent: gunshi
+  task_id: subtask_1520a
+  status: assigned
+  parent_cmd: cmd_1520
+  bloom_level: L4
+  priority: high
+  project: multi-agent-shogun
+  description: 'cmd_1520: 動画制作スクリプト群の夜間矛盾検出 (読んで報告のみ)'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts
+  steps: '1) 以下を全文精読: scripts/make_expression_shorts.py / scripts/vertical_convert.py
+    / scripts/make_shorts.py(あれば) / remotion-project/src/*.tsx 2) projects/dozle_kirinuki/scripts/main.py(あれば)精読
+    3) 矛盾・不整合・deprecated参照・欠落import・dead code を列挙 4) CRITICAL/HIGH/MEDIUM/LOW分類 5)
+    コード修正禁止・テスト禁止 6) 報告書YAML作成 7) dashboard 🚨要対応に結果掲載 8) inbox_write karo 完了報告'
+  notes:
+  - コード修正禁止・テスト禁止・読んで報告のみ
+  - 朝までに完了
+  - cmd_828と同じ形式（重要度分類+ファイル:行番号）
+  timestamp: '2026-04-28T02:02:56.844320+09:00'
