@@ -93,6 +93,39 @@ cd /home/murakami/multi-agent-shogun/remotion-project
 npx remotion render OdinCountdownTest out/countdown.mp4 --codec h264 --crf 22 --concurrency 4
 ```
 
+### 確定コマンド (30分タイマー本番版 — cmd_1496)
+
+```bash
+SRC="day2_3sou_men_only.mp4"
+DST="day2_3sou_men_only_with_countdown.mp4"
+F="/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"
+
+START_T=2892.22   # タイマー開始秒
+END_T=4687.28     # タイマー終了秒（カウントダウン）
+HOLD_END=4697.28  # 固定表示終了秒
+STAGE1=3792.22    # 40→64切替 (15分後)
+STAGE2=4092.22    # 64→96切替 (20分後)
+STAGE3=4392.22    # 96→128切替 (25分後)
+
+# カウントダウン式
+X="if(lte(t\\,${END_T})\\,${END_T}-t\\,0)"
+TXT='%{eif\:'"$X"'/60\:d\:2}\:%{eif\:mod('"$X"'\,60)\:d\:2}.%{eif\:mod('"$X"'*100\,100)\:d\:2}'
+
+ffmpeg -y -i "$SRC" \
+  -vf "drawtext=fontfile=$F:text='$TXT':fontsize=40:fontcolor=white:bordercolor=0xFF69B4:borderw=3:x=w-text_w-20:y=20:enable='between(t,${START_T},${STAGE1})',\
+       drawtext=fontfile=$F:text='$TXT':fontsize=64:fontcolor=white:bordercolor=0xFF69B4:borderw=3:x=w-text_w-20:y=20:enable='between(t,${STAGE1},${STAGE2})',\
+       drawtext=fontfile=$F:text='$TXT':fontsize=96:fontcolor=white:bordercolor=0xFF69B4:borderw=3:x=w-text_w-20:y=20:enable='between(t,${STAGE2},${STAGE3})',\
+       drawtext=fontfile=$F:text='$TXT':fontsize=128:fontcolor=white:bordercolor=0xFF69B4:borderw=3:x=w-text_w-20:y=20:enable='between(t,${STAGE3},${END_T})',\
+       drawtext=fontfile=$F:text='0\:04.94':fontsize=128:fontcolor=white:bordercolor=0xFF69B4:borderw=3:x=w-text_w-20:y=20:enable='between(t,${END_T},${HOLD_END})'" \
+  -c:v h264_nvenc -preset p4 -rc vbr -cq 23 -b:v 6M -maxrate 8M -bufsize 12M \
+  -c:a aac -b:a 192k "$DST"
+```
+
+**30分版と15分版の違い**:
+- 40px段階追加（最初の15分間）・4段階カウントダウン+固定表示の5段構成
+- MM:SS.cc（2桁分表示）対応
+- HOLD_END で固定表示テキスト（停止時残余値）を10秒間表示
+
 ## 教訓
 
 - **Remotion は試作向け・本番は ffmpeg drawtext** — 4視点 mix への重畳など bash パイプライン統合は drawtext が圧倒的に楽
@@ -107,3 +140,4 @@ npx remotion render OdinCountdownTest out/countdown.mp4 --codec h264 --crf 22 --
 - 4/20 15:03 殿本番指示「mix・.mp4 15分タイマーつけて 1:04:17.04~1:19:11.48」
 - 4/20 15:30 殿仕上げ指示「アウトロつけて 非公開アップ 説明欄もかけ」
 - 4/21 6:15 修正版再アップ（outro 音声統一・YouTube `GEyfSBKLBhA`）
+- 4/27 cmd_1496 30分タイマー版（3層MEN視点・5段階drawtext）
