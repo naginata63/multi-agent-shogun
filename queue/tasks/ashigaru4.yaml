@@ -78,3 +78,23 @@ tasks:
   - YAML書込失敗時はSQLite書込もスキップ(YAMLが正・SQLiteは並走)
   - rollback: STORAGE_BACKEND=yaml + queue/cmds.db削除でp1以前に即戻し可
   - 1週間soak中差分1件でも出れば即STORAGE_BACKEND=yaml + 軍師調査cmd発令
+- agent: ashigaru4
+  task_id: subtask_1502a
+  status: done
+  parent_cmd: cmd_1502
+  bloom_level: L2
+  description: 'cmd_1502: scripts/silent_fail_watcher.sh のfalse positive一掃。genai_daily.log全体除外
+    + noiseパターン6件追加 + 再起動 + 30分監視'
+  target_path: /home/murakami/multi-agent-shogun/scripts/silent_fail_watcher.sh
+  steps: '1. silent_fail_watcher.sh を読んで is_excluded()(L62) と is_noise_line()(L82)
+    を特定 2. is_excluded()に */genai_daily.log) return 0 ;; 追加 3. is_noise_line()に 403
+    HTTP Error/process.stdin.on/SessionEnd hook/結果: PASS/0FAIL/Continuation upstream
+    error 429 の6パターン追加 4. watcher再起動(pkill -f silent_fail_watcher.sh && nohup bash
+    scripts/silent_fail_watcher.sh &) 5. ps auxで起動確認 6. git add scripts/silent_fail_watcher.sh
+    && git commit'
+  acceptance_criteria:
+  - scripts/silent_fail_watcher.sh の is_excluded() に genai_daily.log 除外追加
+  - is_noise_line() に noise 6パターン追加
+  - silent_fail_watcher 再起動済 (ps aux で確認)
+  - git commit
+  timestamp: '2026-04-27T21:52:01.297305+09:00'

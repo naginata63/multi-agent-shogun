@@ -1,1 +1,95 @@
-tasks: []
+tasks:
+- acceptance_criteria:
+  - day2_3sou_men_only_with_countdown.mp4 が生成され ffprobe でh264_nvenc確認済み
+  - 5段drawtext(40/64/96/128px countdown + 128px固定0:04.94)が filter chain に組み込まれていること
+  - 5フレーム(2892.50/3793.00/4093.00/4393.00/4690.00秒)をframes_countdown/に保存済み
+  - countdown_overlay.md に4段階(30分版)仕様を追記しgit commit済み
+  - 軍師にQC依頼inbox送信済み・家老に完了報告inbox送信済み
+  agent: ashigaru1
+  bloom_level: L2
+  description: 'cmd_1496: day2_3sou_men_only.mp4 に30分タイマー4段階+固定 drawtext 重畳。5段構成:
+    40px/64px/96px/128px countdown + 128px固定(0:04.94)。NVENC必須。5フレーム抽出→軍師QC依頼→countdown_overlay.md更新→commit。'
+  notes:
+  - libx264禁止・NVENC必須(ffmpeg_nvenc.md準拠)
+  - 固定表示テキストは 0\:04.94 (実残余時間4.94秒・0:00.00ではない)
+  - HOLD_END後(4697.28秒以降)は表示消去でよい
+  - 完了後YouTubeアップは別cmd扱い(殿追加指示待ち)
+  - description_3sou_men_only.txt が既存なら流用検討
+  parent_cmd: cmd_1496
+  status: done
+  steps: '①shared_context/procedures/countdown_overlay.md + shared_context/procedures/ffmpeg_nvenc.md
+    読む → ②ffprobe で SRC のコーデック/解像度/fps/duration 確認 → ③5段drawtext ffmpeg コマンド実行(NVENC):
+    SRC=/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/day2_3sou_men_only.mp4
+    / DST=同ディレクトリ/day2_3sou_men_only_with_countdown.mp4 / START_T=2892.22 / END_T=4687.28
+    / HOLD_END=4697.28 / STAGE1=3792.22(40→64) / STAGE2=4092.22(64→96) / STAGE3=4392.22(96→128)
+    / X式=if(lte(t\,${END_T})\,${END_T}-t\,0) / TXT(MM:SS.cc)=%{eif\:${X}/60\:d\:2}\:%{eif\:mod(${X}\,60)\:d\:2}.%{eif\:mod(${X}*100\,100)\:d\:2}
+    / 4段countdown drawtext(40px:between(t,2892.22,3792.22)・64px:between(t,3792.22,4092.22)・96px:between(t,4092.22,4392.22)・128px:between(t,4392.22,4687.28))
+    + 固定128px drawtext(text=''0\:04.94'', enable=''between(t,4687.28,4697.28)'') /
+    font=/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc / color=white:bordercolor=0xFF69B4:borderw=3
+    / x=w-text_w-20:y=20 / h264_nvenc -preset p4 -rc vbr -cq 23 -b:v 6M -maxrate 8M
+    -bufsize 12M -c:a aac -b:a 192k → ④ffprobe で DST のコーデック=h264確認 → ⑤5フレーム抽出(2892.50/3793.00/4093.00/4393.00/4690.00秒
+    → 同ディレクトリ/frames_countdown/frame_Ns.png 各1枚) → ⑥完了報告YAML /home/murakami/multi-agent-shogun/queue/reports/ashigaru1_report_subtask_1496a.yaml
+    生成 → ⑦countdown_overlay.md に4段階仕様(30分版)セクション追記 → ⑧git add /home/murakami/multi-agent-shogun/shared_context/procedures/countdown_overlay.md
+    && git commit → ⑨POST /api/inbox_write to:gunshi type:task_assigned 軍師QC依頼(フレームパス列挙)
+    → ⑩POST /api/inbox_write to:karo type:report_received 完了報告'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/day2_3sou_men_only_with_countdown.mp4
+  task_id: subtask_1496a
+  timestamp: '2026-04-27T20:49:21.192312+09:00'
+- acceptance_criteria:
+  - tono_short_vertical.mp4 が 1080x1920/h264/aac で生成済み (ffprobe確認)
+  - タイトル案3本+説明欄ドラフトをshogunへinbox送信済み
+  - 追加オプション(--main-speaker/--hook-text/--cta-text)の要否をshogunへ確認済み
+  - karoへ完了報告inbox送信済み
+  agent: ashigaru1
+  bloom_level: L2
+  description: 'cmd_1499: tono_edit.mkv を vertical_convert.py で1080x1920変換。タイトル/説明欄ドラフト作成→shogunへ確認inbox。承認後YouTube非公開アップ・ntfy・git
+    commit。'
+  notes:
+  - vertical_convert.py を使え・ffmpeg filter_complex 自前組み立て禁止
+  - デフォルト引数(オプションなし)で実行・追加オプションは将軍確認後
+  - YouTube非公開アップはshogun承認後・本タスクでは実施しない
+  - defaultLanguage=ja 必須 (オートダビング罠回避・MEMORY参照)
+  - 'ソース: ffv1 lossless なのでエンコードに時間かかる可能性あり'
+  parent_cmd: cmd_1499
+  status: assigned
+  steps: '①SRC・DST確認: SRC=/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_edit.mkv
+    (ffv1/3412x1918/26.6秒) → ②cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts
+    && python3 vertical_convert.py ../work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_edit.mkv
+    ../work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_short_vertical.mp4 → ③ffprobe
+    で1080x1920/h264/aac確認 → ④タイトル案3本+説明欄ドラフト作成 (ドズル社Shortsスタイル・ダム掘りテーマ) → ⑤POST /api/inbox_write
+    to:shogun type:approval_request 「cmd_1499変換完了。タイトル案/説明欄ドラフトを記載・追加オプション(--main-speaker/--hook-text等)要否確認・YouTube非公開アップ進めてよいか」→
+    ⑥完了報告YAML(/home/murakami/multi-agent-shogun/queue/reports/ashigaru1_report_subtask_1499a.yaml)
+    → ⑦POST /api/inbox_write to:karo type:report_received 変換完了・将軍承認待ちを報告
+
+    ★YouTube非公開アップは将軍承認後に別途指令あり次第実施'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_short_vertical.mp4
+  task_id: subtask_1499a
+  timestamp: '2026-04-27T21:31:37.282032+09:00'
+- acceptance_criteria:
+  - day2_3sou_men_only_with_countdown_v2.mp4 がh264_nvencで生成済み
+  - drawtext式がif(lte(t,4687.28),1800-(t-2892.22),4.94)で組まれている
+  - 5フレーム(2900/3793/4093/4393/4690秒)をframes_countdown_v2/に保存済み
+  - 旧NG版を_ngリネーム済み
+  - countdown_overlay.md修正(正式式採用+旧式誤り注記)・git commit済み
+  - 軍師にQC依頼inbox送信済み・家老に完了報告inbox送信済み
+  agent: ashigaru1
+  bloom_level: L2
+  description: 'cmd_1500: cmd_1496 drawtext式バグ修正。正式式 X=1800-(t-START_T) で再エンコード→v2生成・5フレーム抽出→軍師QC→countdown_overlay.md修正commit。'
+  notes:
+  - '正式式: X=if(lte(t,END_T),1800-(t-START_T),4.94) ← t=START_Tで30:00.00・t=END_Tで0:04.94'
+  - '誤り式: X=if(lte(t,END_T),END_T-t,0) ← cmd_1496で使った誤り(4.94秒短い)'
+  - 128px段階はSTAGE3(4392.22)~HOLD_END(4697.28)で1つに統合・停止後固定drawtextは不要
+  - libx264禁止・NVENC必須
+  - DAY2=/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】
+  parent_cmd: cmd_1500
+  procedure: /home/murakami/multi-agent-shogun/shared_context/procedures/countdown_overlay.md
+  status: done
+  steps: '①queue/tasks/ashigaru1.yaml のsubtask_1500aを読む → ②ffmpegコマンド実行(正式式X=if(lte(t,4687.28),1800-(t-2892.22),4.94)/4drawtext/NVENC):
+    SRC=day2_3sou_men_only.mp4 → DST=day2_3sou_men_only_with_countdown_v2.mp4 → ③ffprobe
+    でh264確認 → ④5フレーム抽出(2900/3793/4093/4393/4690秒→frames_countdown_v2/) → ⑤完了報告YAML生成
+    → ⑥countdown_overlay.md修正(正式式採用+旧式誤り注記+cmd_1500教訓) → ⑦旧NG版リネーム(with_countdown.mp4→with_countdown_ng.mp4)
+    → ⑧git add countdown_overlay.md && commit → ⑨inbox_write to:gunshi QC依頼 → ⑩inbox_write
+    to:karo 完了報告'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/day2_3sou_men_only_with_countdown_v2.mp4
+  task_id: subtask_1500a
+  timestamp: '2026-04-27T21:40:52.128468+09:00'

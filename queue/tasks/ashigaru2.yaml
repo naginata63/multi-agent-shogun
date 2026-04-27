@@ -31,3 +31,22 @@ tasks:
   - advisor()必須(作業前・完了前)
   - '完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi ''足軽2号、subtask_1467a完了(Day6サムネ3案+final確定)。QC依頼。''
     report_completed ashigaru2'
+- agent: ashigaru2
+  task_id: subtask_1501a
+  status: in_progress
+  parent_cmd: cmd_1501
+  bloom_level: L2
+  description: 'cmd_1501: faiss index再構築 + semantic_index_hook.sh にflock追加。RuntimeError解消・5分間エラーなし確認・git
+    commit'
+  target_path: /home/murakami/multi-agent-shogun/scripts/semantic_index_hook.sh
+  steps: 1. scripts/.semantic_index/ か context/.semantic_index/ でfaissファイルパス確認 2.
+    rm -f <path>/*.faiss でindex削除 3. source ~/.bashrc && python3 scripts/semantic_search.py
+    update でリビルド(ERRORなく終了確認) 4. scripts/semantic_index_hook.sh 冒頭にflock追加(flock -n
+    .semantic_index/.lock || exit 0相当) 5. semantic_update.log を5分tail -f監視・RuntimeError再発なし確認
+    6. git add scripts/semantic_index_hook.sh && git commit
+  acceptance_criteria:
+  - faiss index 再構築完了 (semantic_search.py update が ERROR なく終了)
+  - scripts/semantic_index_hook.sh に flock 追加が反映
+  - semantic_update.log で 5分間 RuntimeError 再発なし
+  - git commit
+  timestamp: '2026-04-27T21:51:53.394631+09:00'
