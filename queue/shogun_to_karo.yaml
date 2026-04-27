@@ -1,155 +1,4 @@
 commands:
-- id: cmd_1496
-  status: done
-  priority: high
-  purpose: day2_3sou_men_only.mp4 に 30分タイマーカウントダウン重畳 (4段階拡大 40→64→96→128, 残30/15/10/5分で順拡大,
-    タイマー停止後10秒間0固定表示)
-  timestamp: '2026-04-27T20:45:57+09:00'
-  project: dozle_kirinuki
-  north_star: ドズル社2日目3層おおはらMEN単独視点動画を完成させ非公開アップ。前作オーディン戦(15分タイマー3段階)の延長で30分タイマー4段階拡大の本番採用仕様を確立する
-  lord_original: '''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/day2_3sou_men_only.mp4''
-
-    30分→15→10→5　でじゅんにでかく　0:48:12,22が３０分タイマー開始時間　タイマー停止1:18:07,28  １０秒間そのまま表示
-
-    サイズは40　64　96　128'
-  command: "## 殿原文 (そのまま)\n\n'/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目\
-    \  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/day2_3sou_men_only.mp4'\n30分→15→10→5　でじゅんにでかく　0:48:12,22が３０分タイマー開始時間　タイマー停止1:18:07,28\
-    \  １０秒間そのまま表示\nサイズは40　64　96　128\n\n## 仕様 (殿指示の解釈)\n\n- 対象: day2_3sou_men_only.mp4\n\
-    - タイマー: 30分 (0:48:12.22 → 1:18:07.28)\n  - START_T = 2892.22秒 (=0:48:12.22)\n\
-    \  - END_T   = 4687.28秒 (=1:18:07.28)\n  - HOLD_END = 4697.28秒 (END_T + 10秒・0固定表示)\n\
-    - 4段階拡大 (フォントサイズ・残り時間で切替):\n  - 40px : 残30:00〜15:00 → 動画内 2892.22 〜 3792.22\n\
-    \  - 64px : 残15:00〜10:00 → 動画内 3792.22 〜 4092.22\n  - 96px : 残10:00〜 5:00 → 動画内\
-    \ 4092.22 〜 4392.22\n  - 128px: 残 5:00〜 0:00 → 動画内 4392.22 〜 4687.28\n  - 128px継続(0固定):\
-    \ 4687.28 〜 4697.28 (10秒間 0:00.00表示)\n- 表示形式: MM:SS.cc (10ms刻み・0:00.00 → 30:00.00\
-    \ まで表示・0未満禁止)\n- 位置: 右上 x=w-text_w-20:y=20\n- 色: 白文字+ピンク縁取り (fontcolor=white:bordercolor=0xFF69B4:borderw=3)\n\
-    - フォント: /usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc\n- エンコード: NVENC必須\
-    \ (h264_nvenc -preset p4 -rc vbr -cq 23 -b:v 6M -maxrate 8M -bufsize 12M, -c:a\
-    \ aac -b:a 192k)\n\n## 既存ナレッジ\n\nshared_context/procedures/countdown_overlay.md\
-    \ (4/20殿確定の3段階仕様) を**ベースに**して4段階+30分対応に拡張せよ。完了後 countdown_overlay.md に4段階仕様 (30分タイマー版)\
-    \ を追記すること。\n\n## カウントダウン式 (drawtext expression)\n\n- 30分は 1800秒で MM:SS.cc 表示が必要\n\
-    - カウント値 X = if(lte(t,END_T), END_T-t, 0)\n- enable範囲は START_T〜HOLD_END (4697.28まで)\n\
-    - TXT 例:\n  TXT='%{eif\\:'\"$X\"'/60\\:d\\:2}\\:%{eif\\:mod('\"$X\"'\\,60)\\:d\\\
-    :2}.%{eif\\:mod('\"$X\"'*100\\,100)\\:d\\:2}'\n  (分も2桁ゼロ埋め=30:00.00 形式)\n\n##\
-    \ 完了条件\n\n1. day2_3sou_men_only_with_countdown.mp4 (素材+countdown重畳) が生成されること\n\
-    2. ffprobe で 4段階フォントサイズが drawtext filter chain に組み込まれていること (filter文字列確認)\n3. 動画の以下時刻でフレーム抽出してサイズ目視確認:\n\
-    \   - 2892.50秒 (40px期待)\n   - 3793.00秒 (64px期待)\n   - 4093.00秒 (96px期待)\n   -\
-    \ 4393.00秒 (128px期待)\n   - 4690.00秒 (128px・0:00.00表示期待)\n   軍師QC必須。\n4. countdown_overlay.md\
-    \ に4段階仕様(30分版)を追記しコミット\n5. 本番adopt前に殿確認 (-last_xxx プレビュー切り出し or 上記5フレームの画像並べ提示)\n\
-    \n## 注意事項\n\n- libx264 禁止 (NVENC必須・shared_context/procedures/ffmpeg_nvenc.md 準拠)\n\
-    - 動画完成後の YouTube 非公開アップは別cmd扱い (殿の追加指示待ち)\n- description.txt は描画完了後に対応 (description_3sou_men_only.txt\
-    \ 既存ありなら流用検討)\n- 元素材 day2_3sou_men_only.mp4 のコーデック・解像度・fps は ffprobe で先に確認し family_video_metadata\
-    \ 維持"
-  acceptance_criteria:
-  - day2_3sou_men_only_with_countdown.mp4 が生成され、4段階のフォントサイズ(40/64/96/128)が drawtext
-    で正しく適用されている
-  - タイマー開始 0:48:12.22 (=2892.22秒)・停止 1:18:07.28 (=4687.28秒)・停止後10秒0固定 (=4697.28秒)
-    で3段階enable区間と0固定区間が動作する
-  - 5フレーム(2892.50/3793.00/4093.00/4393.00/4690.00秒)のサイズ目視で殿仕様一致を軍師QC PASS
-  - h264_nvenc使用 (libx264禁止) を ffprobe で確認
-  - shared_context/procedures/countdown_overlay.md に4段階(30分版)仕様を追記しgit commit
-  notify_karo: true
-- id: cmd_1497
-  status: done
-  priority: high
-  purpose: ドズル社本家新着動画 HnDcGHXKJFQ (86万トンの超巨大なダムを埋めるまで終われません！) を1080p h264でDLし projects/dozle_kirinuki/work/20260427_<title>/
-    に配置・source.json記録
-  timestamp: '2026-04-27T20:52:05+09:00'
-  project: dozle_kirinuki
-  north_star: 本家新着動画の素材確保。後続パイプライン (Demucs/STT/集合知/HL選定) の起点とする。
-  lord_original: 'https://youtu.be/HnDcGHXKJFQ?si=8zr61t-mbUOlFvAv
-
-    あたらしい新着動画　DLして　どこにいれるかわかるか
-
-    DLして'
-  command: "## 殿原文\n\n「https://youtu.be/HnDcGHXKJFQ?si=8zr61t-mbUOlFvAv\nあたらしい新着動画　DLして　どこにいれるかわかるか」\n\
-    「DLして」\n\n## 動画メタ (確認済)\n\n- URL: https://youtu.be/HnDcGHXKJFQ\n- ID: HnDcGHXKJFQ\n\
-    - Title: 86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】\n- Channel: ドズル社 (本家・公式)\n- UploadDate:\
-    \ 2026-04-27 (今日)\n- Duration: 2384秒 (約40分)\n- Resolution: 1920x1080\n- Note:\
-    \ 続編 (前回 https://youtu.be/pIrocoqvwJg ダム掘り)\n\n## 配置先 (確定)\n\n```\n/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/\n\
-    ```\n\n命名規則: YYYYMMDD_<title> (既存例 20260421_TNTしか使えない世界でエンドラ討伐 準拠・本家動画ゆえメンバー視点サブ無し)\n\
-    \n## 必須鉄則\n\n### 1. yt-dlp h264 強制 (memory/feedback_yt_dlp_h264_force.md)\n\n\
-    ```bash\nyt-dlp -f \"bv*[vcodec*=avc1]+ba/b[vcodec*=avc1]\" \\\n  --merge-output-format\
-    \ mp4 \\\n  -o '%(id)s.%(ext)s' \\\n  'https://youtu.be/HnDcGHXKJFQ'\n```\n- `-S\
-    \ vcodec:h264` だけでは AV1 (f299) が選ばれてサイズ2倍・編集2-3倍重いゆえNG (Day3/4/9教訓)\n- 完了後 ffprobe\
-    \ で `codec_name=h264` を確認\n\n### 2. source.json 必ず作成 (memory/feedback_video_source_metadata_preserve.md)\n\
-    \n```json\n{\n  \"url\": \"https://youtu.be/HnDcGHXKJFQ\",\n  \"video_id\": \"\
-    HnDcGHXKJFQ\",\n  \"title\": \"86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】\",\n  \"channel\"\
-    : \"ドズル社\",\n  \"upload_date\": \"2026-04-27\",\n  \"duration_sec\": 2384,\n \
-    \ \"resolution\": \"1920x1080\",\n  \"codec\": \"h264\",\n  \"downloaded_at\"\
-    : \"<ISO8601>\",\n  \"source\": \"yt-dlp h264 forced\"\n}\n```\n\n### 3. info.json\
-    \ + ja.srt も保存\n\n```bash\nyt-dlp --write-info-json --write-auto-subs --sub-lang\
-    \ ja --skip-download 'https://youtu.be/HnDcGHXKJFQ'\n```\n\n## やること\n\n1. ディレクトリ作成:\
-    \ `mkdir -p projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】`\n\
-    2. cd 後 yt-dlp で h264 強制DL (1080p mp4)\n3. info.json + ja.srt も DL\n4. source.json\
-    \ 作成\n5. ffprobe で h264 codec 確認 + bitrate 記録\n6. ls -la 結果と ffprobe 結果を完了報告に含める\n\
-    \n## 後続パイプライン判断\n\n- 単独DLで止めるか、video_pipeline スキル全段 (Demucs→STT→集合知→HL/SH候補選定)\
-    \ まで自動継続するかは **殿確認後** に決定\n- 本cmd は **DLまで**で報告・殿に「次どうするか」確認\n\n## 担当\n\n家老が足軽1人にアサイン\
-    \ (Geminiでも GLMでもDL可) ・尺40分ゆえ DL自体は数分\n\n## 完了条件\n\n1. mp4 ファイルが配置先に存在 (h264 /\
-    \ 1080p / 約40分)\n2. info.json + ja.srt 保存\n3. source.json 作成\n4. ffprobe 出力が codec_name=h264\
-    \ を確認\n5. git に追加 (動画ファイル本体は容量大ゆえ .gitignore 対象だが source.json/info.json は commit)\n\
-    6. ntfy 通知: `\U0001F4E5 cmd_1497 DL完了: 86万トン...ダム動画 (40分・h264・配置先確認OK)`"
-  acceptance_criteria:
-  - projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/<ID>.mp4
-    が h264 / 1080p で存在
-  - ffprobe 出力で codec_name=h264 (AV1禁止)
-  - source.json (url/title/channel/codec/duration等) が同階層に存在
-  - info.json + ja.srt が同階層に存在
-  - DL完了 ntfy 通知送信
-  - 殿に次工程 (DLのみ完了 / video_pipeline継続) を確認するメッセージを inbox_write to:shogun で送る
-  notify_karo: true
-- id: cmd_1498
-  status: done
-  priority: high
-  purpose: ntfy通知ログに頻出するsilent_fail系エラー(litestream/advisor_proxy/semantic_index_hook/cron_health_check等)を軍師が解析・根本原因仮説と優先順位を出す
-  timestamp: '2026-04-27T20:52:58+09:00'
-  project: multi-agent-shogun
-  north_star: エラー垂れ流しは殿の戦況把握を阻害し誤検知化する。根因切り分けと対処方針 (修正cmd起票 / 黙殺ルール / 監視除外) を確定させ、ntfy
-    信号品質を取り戻す。
-  lord_original: ntfyにエラーいっぱいきてるの軍師にかいせきさせろ
-  command: "## 殿原文\n\n「ntfyにエラーいっぱいきてるの軍師にかいせきさせろ」\n\n## 担当\n\n**軍師 (gunshi)** が解析担当。家老は軍師にinbox通知してアサイン。足軽は使わない。軍師単独タスク。\n\
-    \n## やること\n\n### Step 1: 入力収集\n\n```bash\n# 直近24時間のntfy通知ログ\ntail -500 queue/ntfy_sent.log\
-    \ > /tmp/ntfy_recent.log\n# 直近24時間の各エラーログ実体\ntail -200 logs/litestream.log logs/advisor_proxy.log\
-    \ logs/semantic_index_hook.log logs/semantic_update.log logs/cron_health_check.log\
-    \ 2>/dev/null > /tmp/error_logs.txt\nls -la /tmp/ntfy_recent.log /tmp/error_logs.txt\n\
-    ```\n\n### Step 2: エラーカテゴリ分け\n\n直近観測されている silent_fail 系を以下軸で分類:\n\n| カテゴリ | 想定\
-    \ | 例 |\n|---------|------|-----|\n| C01 | Embedding API失敗 | dedup WARN: 404 NOT_FOUND\
-    \ |\n| C02 | Python Traceback | 詳細不明 |\n| C04 | Python Traceback | 詳細不明 |\n| C05\
-    \ | dashboard_lifecycle failed | continuing |\n| C09 | YAML parse error | gunshi_report_qc_1488a.yaml\
-    \ block collect |\n| C10 | rsync error code 23 | files/attrs not transferred |\n\
-    | C14 | markdown generation empty | semantic_index 関連? |\n| LIT | litestream sync/compaction\
-    \ failed | rename ltx file 衝突 |\n| ADV | advisor_proxy timeout | claude -p timed\
-    \ out after 120s |\n| FAI | faiss read_xb_vector error | semantic_index_hook 破損\
-    \ |\n\n### Step 3: 根因仮説 (各カテゴリ)\n\n軍師は logs/ + scripts/ + .claude/settings.json\
-    \ を読み根因仮説を出す。例:\n- LIT: litestream replica 先 (/home/murakami/litestream-replica/cmds/ltx/)\
-    \ のディスク容量・権限・rename 競合 (dual-path SQLite書込との競合) — cmd_1488/1494 dual-path 関連?\n\
-    - ADV: claude -p 120s timeout. Sonnet応答遅延 / proxy queue 詰まり / advisor呼出の同時多発\n\
-    - FAI: semantic_index の faiss index 破損 (途中切断 or バージョン不一致)\n- C09: gunshi_report_qc_1488a.yaml\
-    \ の block collect error は cron_health_check が壊れた YAML を拾い続けている (古いゴミファイル)\n- C10:\
-    \ rsync error 23 = source 側ファイル消失 / 権限変化\n- C14: markdown generation empty は genai_daily\
-    \ 関連?\n\n### Step 4: 優先順位 + 対処方針\n\n| Pri | カテゴリ | 対処 |\n|-----|---------|------|\n\
-    | HIGH (殿の戦況把握阻害) | LIT (連続失敗) | 修正cmd起票 — replica disk確認・dual-path 競合解消 |\n|\
-    \ HIGH | ADV (claude -p timeout) | 修正cmd起票 — timeout延長 or 並列制限 or モデル変更 |\n| MED\
-    \ | FAI | 修正cmd起票 — index 再構築 |\n| LOW | C09 (古いゴミYAML) | 単純削除で消える — 軍師がその場で削除可\
-    \ |\n| LOW | C10 | 監視除外 or rsync source再確認 |\n\n### Step 5: 報告\n\n軍師は `queue/reports/gunshi_ntfy_analysis_1498.yaml`\
-    \ に以下を保存:\n\n```yaml\nreport_id: gunshi_ntfy_analysis_1498\ncmd_id: cmd_1498\n\
-    findings:\n  - category: LIT\n    root_cause: ...\n    severity: HIGH\n    fix_proposal:\
-    \ ...\n  - category: ADV\n    ...\nrecommended_cmds:\n  - id: cmd_NEW1\n    purpose:\
-    \ litestream replica 修正\n  - id: cmd_NEW2\n    purpose: advisor_proxy timeout\
-    \ 対策\nfalse_positives_to_silence:\n  - C09 (gunshi_report_qc_1488a.yaml は古いゴミ・削除すれば消える)\n\
-    summary_for_lord: 殿向け1段落要約\n```\n\nそして家老に inbox_write 報告 → 家老が殿に dashboard 反映。\n\
-    \n## 完了条件\n\n1. queue/reports/gunshi_ntfy_analysis_1498.yaml が存在し全カテゴリ解析済\n2.\
-    \ 修正cmd起票推奨が具体的 (どのファイル/設定 を どう変更するか)\n3. 単純削除で済むゴミ (C09 等) は軍師がその場で削除済\n4. 殿向け要約が\
-    \ dashboard.md or inbox_write to:karo→shogun で殿に届く\n5. ntfy通知: 軍師完了通知\n\n## 共通ルール\n\
-    \n- 軍師単独・足軽は使わない\n- 修正cmd は本cmdでは実行しない (推奨のみ)。殿確認後に別cmdで実行\n- 軍師は git commit しない\
-    \ (報告YAMLのみ作成)\n- pretool_check 順守"
-  acceptance_criteria:
-  - queue/reports/gunshi_ntfy_analysis_1498.yaml に各カテゴリ (LIT/ADV/FAI/C01/C09/C10/C14)
-    の根因仮説と優先順位が記載されている
-  - 修正cmd 推奨 (具体的なファイル/設定変更) が3件以上含まれる
-  - '単純削除で消えるゴミファイル (例: gunshi_report_qc_1488a.yaml) は軍師が削除済'
-  - 殿向け要約 (1段落・戦況報告品質) が dashboard.md か inbox_write 経由で殿に届く
-  - '軍師ntfy通知: cmd_1498 解析完了'
-  notify_karo: true
 - id: cmd_1499
   status: in_progress
   priority: high
@@ -260,94 +109,6 @@ commands:
   - 旧NG版 day2_3sou_men_only_with_countdown.mp4 は _ng リネーム or 削除
   - 殿視聴OK判定後にdone確定
   notify_karo: true
-- id: cmd_1501
-  status: in_progress
-  priority: high
-  purpose: faiss index 再構築 + semantic_index_hook flock追加 (cmd_1498軍師推奨#1)
-  timestamp: '2026-04-27T21:48:42+09:00'
-  project: multi-agent-shogun
-  lord_original: 全部OK
-  command: '## 殿命: 軍師推奨3件全部OK の#1
-
-
-    軍師レポート queue/reports/gunshi_ntfy_analysis_1498.yaml findings.FAI 参照。
-
-
-    ## 操作
-
-
-    1. `rm -f scripts/.semantic_index/*.faiss` (or context/.semantic_index/ パスを確認して該当場所)
-
-    2. `source ~/.bashrc && python3 scripts/semantic_search.py update` でフルリビルド
-
-    3. scripts/semantic_index_hook.sh の冒頭に `flock -n .semantic_index/.lock || exit
-    0` 相当を追加 (並行書込防止・cmd_1495 litestream_keepalive と同様)
-
-    4. semantic_update.log を tail -f で 5分監視・read_xb_vector RuntimeError 再発しないこと確認
-
-    5. git commit (scripts/semantic_index_hook.sh 修正のみ・.faiss は git管理外)'
-  acceptance_criteria:
-  - faiss index 再構築完了 (semantic_search.py update が ERROR なく終了)
-  - scripts/semantic_index_hook.sh に flock 追加が反映
-  - semantic_update.log で 5分間 RuntimeError 再発なし
-  - git commit
-  notify_karo: true
-- id: cmd_1502
-  status: done
-  priority: high
-  purpose: silent_fail_watcher false positive 一掃 (genai_daily 除外 + noise分類追加・cmd_1498軍師推奨#2)
-  timestamp: '2026-04-27T21:48:43+09:00'
-  project: multi-agent-shogun
-  lord_original: 全部OK
-  command: "## 殿命: 軍師推奨3件全部OK の#2\n\n軍師レポート queue/reports/gunshi_ntfy_analysis_1498.yaml\
-    \ findings.GENAI_DAILY_FALSE_POSITIVE / C08_FALSE_POSITIVE / ADV 参照。\n\n## 操作\
-    \ (scripts/silent_fail_watcher.sh 修正)\n\n1. is_excluded() (L62 case文) に追加:\n \
-    \  `*/genai_daily.log) return 0 ;;` (genai_daily.log 全体除外・158件削減)\n2. is_noise_line()\
-    \ (L82) に追加:\n   - `*\"403 HTTP Error: Forbidden\"*) return 0 ;;`\n   - `*\"process.stdin.on\"\
-    *) return 0 ;;`\n   - `*\"SessionEnd hook\"*) return 0 ;;`\n   - `*\"結果: PASS\"\
-    *) return 0 ;;`\n   - `*\"0FAIL\"*) return 0 ;;`\n   - `*\"Continuation upstream\
-    \ error 429\"*) return 0 ;;` (WARN降格相当・完全除外)\n3. silent_fail_watcher.sh を再起動 (systemd\
-    \ or pkill+nohup)\n4. 30分監視・通知件数が直前比で大幅減 (期待: 313件→<50件) を確認\n5. git commit"
-  acceptance_criteria:
-  - scripts/silent_fail_watcher.sh の is_excluded() に genai_daily.log 除外追加
-  - is_noise_line() に noise 6パターン追加
-  - silent_fail_watcher 再起動済 (ps aux で確認)
-  - 30分間の通知件数が大幅減 (<50件)
-  - git commit
-  notify_karo: true
-- id: cmd_1503
-  status: done
-  priority: medium
-  purpose: Embedding API 404 NOT_FOUND 修正・Vertex AI location='us-central1' 明示 (cmd_1498軍師推奨#3)
-  timestamp: '2026-04-27T21:48:43+09:00'
-  project: multi-agent-shogun
-  lord_original: 全部OK
-  command: '## 殿命: 軍師推奨3件全部OK の#3
-
-
-    軍師レポート queue/reports/gunshi_ntfy_analysis_1498.yaml findings.C01_404 参照。
-
-
-    ## 操作
-
-
-    1. scripts/dedup.py (or embedding 呼出箇所を grep で特定) の Vertex AI client 初期化に `location=''us-central1''`
-    を明示 (MEMORY: feedback_vertex_location_by_model.md・Embedding=us-central1)
-
-    2. model name 検証: `text-embedding-005` or `gemini-embedding-001` が現在Vertex AIで有効か確認
-
-    3. スクリプト冒頭に `source config/vertex_api_key.env` 呼出追加 (期限切れ GEMINI_API_KEY 回避・MEMORY:
-    feedback_gemini_api_key.md)
-
-    4. dedup を1回テスト実行 → 404 NOT_FOUND が出ないこと確認
-
-    5. git commit'
-  acceptance_criteria:
-  - Vertex AI client が location='us-central1' で初期化されている
-  - VERTEX_API_KEY 経由で認証している (GEMINI_API_KEY 直接利用なし)
-  - テスト実行で 404 NOT_FOUND が再発しない
-  - git commit
-  notify_karo: true
 - id: cmd_1504
   status: in_progress
   priority: high
@@ -414,187 +175,6 @@ commands:
   - queue/reports/gunshi_dashboard_api_review_1504.yaml に各不整合の根因仮説と優先順位
   - 推奨cmd 3-5件 (具体的なファイル/関数/修正内容)
   - 殿向け要約 (1段落)
-  - ntfy通知
-  notify_karo: true
-- id: cmd_1505
-  status: done
-  priority: high
-  purpose: tono_edit.mkv 縦長クロップ→非公開アップやり直し (cmd_1499誤物・vertical_convert.py 誤用→ 標準手順
-    video_vertical_crop_upload.md 通りに ffmpeg crop+pad で再生成)
-  timestamp: '2026-04-27T22:13:25+09:00'
-  project: dozle_kirinuki
-  redo_of: cmd_1499
-  lord_original: 縦長にクロップしてっていっつもやっているんだが vertical_convertってのには--main-speakerとかおぷしょんなんてあるのか
-    なにかかんちがいしていないか
-  command: "## 殿原文\n\n「縦長にクロップしてっていっつもやっているんだが vertical_convertってのには--main-speakerとかおぷしょんなんてあるのか\
-    \ なにかかんちがいしていないか」\n\n## やり直し理由\n\ncmd_1499 で将軍が vertical_convert.py (Shorts組立用・--main-speaker等オプション付)\
-    \ を選んだのは誤り。標準手順は **shared_context/procedures/video_vertical_crop_upload.md**。既存\
-    \ WB-xCyX-9J0 は黒帯付き誤物ゆえ削除。\n\n## 手順 (procedures/video_vertical_crop_upload.md\
-    \ 準拠)\n\n```bash\nIN='/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_edit.mkv'\n\
-    OUT='/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_edit_vertical.mp4'\n\
-    \nffmpeg -i \"$IN\" \\\n  -vf \"crop=1080:1918:1166:0,pad=1080:1920:0:1\" \\\n\
-    \  -c:v h264_nvenc -preset p4 -rc vbr -cq 23 -b:v 8M -maxrate 10M -bufsize 16M\
-    \ \\\n  -c:a aac -b:a 192k \\\n  \"$OUT\"\n\npython3 projects/dozle_kirinuki/scripts/youtube_uploader.py\
-    \ upload \"$OUT\" --title <元動画ファイル名 or 殿確認なし元タイトル流用> --privacy private\n```\n\n\
-    ## 後処理\n\n1. 旧 WB-xCyX-9J0 (誤物アップ) を YouTube から削除 (youtube_uploader.py delete\
-    \ or YouTube Studio手動)\n2. 旧 tono_short_vertical.mp4 (vertical_convert.py 出力誤物)\
-    \ は projects/dozle_kirinuki/work/.../ 内で _ng リネーム or 削除\n3. 新 tono_edit_vertical.mp4\
-    \ アップ完了 → URL 報告 → done\n\n## CLAUDE.md procedures 一覧追記 (将軍直接対応する別件)\n\nvideo_vertical_crop_upload.md\
-    \ は将軍が CLAUDE.md# 技術的鉄則 セクションに追記する (この cmd の範囲外)\n\n## 完了条件\n\n1. tono_edit_vertical.mp4\
-    \ が 1080x1920 / h264 / aac / 26.6秒 で生成 (ffprobe で 1Mbps以上のbitrate確認・procedures鉄則)\n\
-    2. 旧 WB-xCyX-9J0 削除済\n3. 新URL を YouTube から取得・ntfy報告\n4. 完了で done (殿視聴OK判定要求しない・将軍越権)"
-  acceptance_criteria:
-  - tono_edit_vertical.mp4 が procedures/video_vertical_crop_upload.md の crop=1080:1918:1166:0,pad=1080:1920:0:1
-    で生成されbitrate 1Mbps以上
-  - 旧 WB-xCyX-9J0 がYouTubeから削除済
-  - 新URLでYouTube非公開アップ完了
-  - ntfy通知
-  notify_karo: true
-- id: cmd_1506
-  status: done
-  priority: high
-  purpose: day2_3sou_men_only_with_countdown_v2.mp4 を YouTube非公開アップ (殿承認済)
-  timestamp: '2026-04-27T22:23:05+09:00'
-  project: dozle_kirinuki
-  lord_original: '''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/day2_3sou_men_only_with_countdown_v2.mp4''
-
-    承認　非公開アップせよ'
-  command: "## 殿原文\n\n「承認 非公開アップせよ」\n対象: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目\
-    \  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/day2_3sou_men_only_with_countdown_v2.mp4\n\
-    \n## やること\n\n```bash\npython3 projects/dozle_kirinuki/scripts/youtube_uploader.py\
-    \ upload \\\n  '/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目\
-    \  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/day2_3sou_men_only_with_countdown_v2.mp4'\
-    \ \\\n  --title <元動画タイトル流用 or ファイル名相当> --privacy private\n```\n\n- defaultLanguage=ja\
-    \ (memory: feedback_youtube_autodubbing_pitfall.md)\n- privacy=private 厳守\n- アップ完了→URL報告→done"
-  acceptance_criteria:
-  - YouTube非公開アップ完了 (URL取得)
-  - ntfy通知
-  notify_karo: true
-- id: cmd_1507
-  status: done
-  priority: high
-  purpose: ダム動画 YmExrTL3Ojc 説明欄を「いつもの内容」で更新
-  timestamp: '2026-04-27T22:24:36+09:00'
-  project: dozle_kirinuki
-  lord_original: ダム動画説明欄もかけ　いつもかいている内容がある
-  command: "## 殿原文\n\n「ダム動画説明欄もかけ いつもかいている内容がある」\n\n## 対象\n\nYouTube非公開動画 https://www.youtube.com/watch?v=YmExrTL3Ojc\
-    \ (cmd_1505 で正規版アップ済 86万トンダム掘り縦長)\n\n## やること\n\n過去ショート/縦長動画の description.txt 既存例\
-    \ (projects/dozle_kirinuki/work/*/description*.txt) を参照し、ドズル社切り抜きチャンネルの**標準説明欄テンプレ**で更新せよ。\n\
-    \n```bash\npython3 projects/dozle_kirinuki/scripts/youtube_uploader.py update-description\
-    \ \\\n  --video-id YmExrTL3Ojc \\\n  --description \"<標準テンプレ + 元動画リンク>\"\n```\n\
-    \n元動画情報 (description記載用):\n- 元動画タイトル: 「86万トンの超巨大なダムを掘るまで終われません！【マイクラ】」 (家老が前回ダム掘りの本家URL\
-    \ を確認・前回pIrocoqvwJg or 本家最新リスト)\n- ドズル社本家チャンネル: https://www.youtube.com/@dozle\n\
-    \n参考:\n- shared_context/procedures/video_vertical_crop_upload.md Step4\n- 過去 description_*.txt\
-    \ 既存例"
-  acceptance_criteria:
-  - YmExrTL3Ojc の説明欄が標準テンプレで更新済 (YouTube側で確認可能)
-  - ntfy通知
-  notify_karo: true
-- id: cmd_1508
-  status: done
-  priority: high
-  purpose: cmds.db SQLite スキーマ全体の設計監査 (cmd_1504 F4 tasks テーブル不在発見の延長・他に DB 正本欠落・履歴から状態逆算等の設計ミス無いか軍師が洗い出す)
-  timestamp: '2026-04-27T22:52:11+09:00'
-  project: multi-agent-shogun
-  lord_original: 'DB設計がおかしいだけよね
-
-    ほかにDB設計おかしいところないかも軍師にふれ'
-  command: '## 殿原文
-
-
-    「DB設計がおかしいだけよね」
-
-    「ほかにDB設計おかしいところないかも軍師にふれ」
-
-
-    ## 経緯
-
-
-    cmd_1504 軍師レポート F4 で agent.status が YAML/DB 二重定義と判明。殿の指摘で本質は「DB に tasks テーブル不在
-    → inbox_messages (履歴ログ) で状態逆算する設計ミス」と確定。同様の「DB正本欠落 → YAML/ログで取り繕う」「履歴ログから状態逆算」等の設計欠陥が他にも潜在しとる可能性。
-
-
-    ## 担当
-
-
-    **軍師 (gunshi)** 単独。足軽は使わない。
-
-
-    ## やること
-
-
-    ### 1. 既存スキーマ網羅
-
-
-    ```bash
-
-    sqlite3 queue/cmds.db ''.schema''
-
-    sqlite3 queue/cmds.db ''.tables''
-
-    ```
-
-    各テーブルの role を確認 (commands/inbox_messages/agents/tasks など)。
-
-
-    ### 2. アンチパターン調査
-
-
-    以下観点で各テーブル + YAML 配置を相関分析:
-
-
-    | 観点 | 調査内容 |
-
-    |------|---------|
-
-    | 正本欠落 | 状態を表すべきだがテーブル化されていないドメインオブジェクト (例: tasks/agents/reports/cmd_phases等)
-    |
-
-    | 履歴から状態逆算 | inbox_messages 等のログから現状を導出している箇所 (server.py 全関数) |
-
-    | YAML/DB dual-path 不整合 | 書込が片方のみ・読出が片方のみ・同期遅延発生する場合 |
-
-    | status enum 自由文字列 | DONE_STATUSES 等で枚挙されているが CHECK 制約なし |
-
-    | 外部キー欠落 | tasks.cmd_id → commands.id 等の参照整合性 |
-
-    | timestamp 系 | 複数の時刻カラム重複 (issued_at/timestamp/created_at) ・命名揺れ |
-
-    | 検索クエリ非効率 | INDEX 不在で全件スキャン発生 |
-
-
-    ### 3. 報告
-
-
-    queue/reports/gunshi_db_schema_review_1508.yaml に以下出力:
-
-
-    - findings: 各設計ミスの id/severity/location/root_cause/recommendation
-
-    - recommended_cmds: 修正cmd提案 (cmd_1488 dual-path第2弾相当の tasks テーブル化など)
-
-    - summary_for_lord: 1段落要約
-
-
-    ### 4. 完了条件
-
-
-    1. queue/reports/gunshi_db_schema_review_1508.yaml 存在・全アンチパターン洗い出し済
-
-    2. 修正cmd 推奨 3-7件 (具体的なテーブル/カラム/SQL)
-
-    3. ntfy通知
-
-
-    ## 注意
-
-
-    cmd_1504 既出 findings (F4 等) とは**重複しない範囲**で新規 findings に集中。F4 の延長 (tasks テーブル化)
-    は本cmdで明示的に深掘りせよ。'
-  acceptance_criteria:
-  - queue/reports/gunshi_db_schema_review_1508.yaml に DB設計の全アンチパターン洗い出し済
-  - 修正cmd推奨 3-7件 (具体的なテーブル/SQL/操作)
-  - tasks テーブル化など F4 真の解決方針を含む
   - ntfy通知
   notify_karo: true
 - id: cmd_1509
@@ -775,73 +355,6 @@ commands:
   - cmd_id None の R7 に疑似ID付与で識別可能
   - curl /api/dashboard で重複 R7 が出ない
   notify_karo: true
-- id: cmd_1513
-  status: in_progress
-  priority: medium
-  purpose: agents テーブル新設 + 各テーブル agent系列 FK化 (cmd_1508 F5解消・cmd_1504 F4 完全解決)
-  timestamp: '2026-04-27T23:01:44+09:00'
-  project: multi-agent-shogun
-  lord_original: A (cmd_1504+1508 軍師推奨統合8件起票)
-  command: '## 操作
-
-
-    1. CREATE TABLE agents (id TEXT PK, role TEXT NOT NULL, model TEXT, current_task
-    TEXT REFERENCES tasks(task_id), status TEXT CHECK(status IN (''busy'',''idle'',''blocked'',''error'',''offline'')),
-    last_seen TEXT)
-
-    2. INSERT 既知 9 名 (shogun/karo/gunshi/ashigaru1-7) + 各 model (config/settings.yaml
-    参照)
-
-    3. commands.assigned_to / inbox_messages.agent / inbox_messages.from_agent / tasks.agent
-    (or assignee) / reports.worker_id を REFERENCES agents(id) に変更 (SQLite 再構築要)
-
-    4. POLL_AGENTS 定数を `SELECT id FROM agents WHERE role IN (''ashigaru'',''gunshi'')`
-    に置換
-
-    5. agents.status を tasks 経由で同期する trigger or 定期 sync 設置
-
-    6. server.py stats.busy_agents/idle_agents を `SELECT COUNT(*) FROM agents WHERE
-    status=''busy/idle''` に置換 → 一意化 (cmd_1504 F4 真の解決)
-
-
-    rationale: agent名 typo 検出・新規agent追加時の整合性担保・current_task 永続化基盤'
-  acceptance_criteria:
-  - agents テーブル存在 + 9 row INSERT 済
-  - 各テーブルの agent系列が FK化
-  - stats.busy/idle が agents テーブル直 SELECT で一意化
-  - agent_health/cmd_list/dashboard の三者間で agent状態が完全整合
-  notify_karo: true
-- id: cmd_1514
-  status: pending
-  priority: medium
-  purpose: inbox_messages.type に CHECK制約 + 旧type migration (cmd_1508 F4解消)
-  timestamp: '2026-04-27T23:01:45+09:00'
-  project: multi-agent-shogun
-  lord_original: A (cmd_1504+1508 軍師推奨統合8件起票)
-  command: '## 操作
-
-
-    1. scripts/dashboard/inbox_types.py 新設: 正規 type 14 種を定数化
-
-    2. UPDATE inbox_messages SET type=''report_completed'' WHERE type IN (''report_done'',''task_completion_notice'')
-
-    3. test/qc_test/cmd_test/_test 系 4 種を別テーブル inbox_messages_test に移送 or DELETE
-
-    4. ALTER TABLE inbox_messages ADD CONSTRAINT ck_type CHECK (type IN (...)) — SQLite
-    再構築要
-
-    5. server.py POST /api/inbox_write の type バリデーション追加
-
-    6. _BUSY_TYPES/_IDLE_TYPES マッチが完全動作することを assertion テスト
-
-
-    rationale: 24種自由文字列 → 14種enum 正規化・状態判定 silent miss 根絶'
-  acceptance_criteria:
-  - inbox_messages.type に CHECK制約
-  - 旧type 3種 (report_done/task_completion_notice) を report_completed に migration
-  - test系を別テーブル隔離
-  - POST /api/inbox_write が不正type で 400 を返す
-  notify_karo: true
 - id: cmd_1515
   status: pending
   priority: medium
@@ -872,7 +385,7 @@ commands:
   - 0.5-2h は MEDIUM, ≥2h は HIGH 表示
   notify_karo: true
 - id: cmd_1516
-  status: pending
+  status: in_progress
   priority: low
   purpose: reports.status/qa_decision に CHECK制約 + type列追加 (cmd_1508 F4b解消)
   timestamp: '2026-04-27T23:01:45+09:00'
@@ -973,27 +486,120 @@ commands:
   - GCnCUAuL0p8 にサムネ設定済 (YouTube Studio 確認可能)
   - ntfy通知
   notify_karo: true
-- id: cmd_1519
+- id: cmd_1520
+  status: in_progress
+  priority: high
+  purpose: '夜間矛盾検出: 動画制作スクリプト群 (main.py/make_expression_shorts.py/Remotion/vertical_convert.py/make_shorts系)'
+  timestamp: '2026-04-28T02:02:43+09:00'
+  lord_original: '本日のカテゴリ: 動画制作（main.py, make_expression_shorts.py, Remotion, vertical_convert.py,
+    make_shorts系）。軍師に矛盾検出タスクを振れ。cmd_828と同じ形式で。テストを書くな。コードを修正するな。読んで報告するだけ。朝までにダッシュボードに結果を掲載せよ。'
+  project: multi-agent-shogun
+  acceptance_criteria:
+  - 対象スクリプト全ファイルを読んで矛盾・不整合・deprecated参照・欠落関数を列挙
+  - CRITICAL/HIGH/MEDIUM/LOW 重要度分類
+  - コード修正なし・テストなし・読んで報告のみ
+  - 朝までにダッシュボードに結果掲載
+- id: cmd_1521
   status: pending
   priority: high
-  purpose: GCnCUAuL0p8 (3層オーディン戦v2) 説明欄を v2 (30分タイマー・MEN単独) 仕様に更新
-  timestamp: '2026-04-27T23:09:29+09:00'
+  purpose: 3層オーディン戦動画作り直し (殿指示)
+  timestamp: '2026-04-28T06:52:05+09:00'
   project: dozle_kirinuki
-  lord_original: 説明欄のタイムスタンプが今回ようになってない
-  command: "## 殿原文\n\n「説明欄のタイムスタンプが今回ようになってない」\n\n## 対象\n\n動画ID: GCnCUAuL0p8 (cmd_1506\
-    \ アップ済 day2_3sou_men_only_with_countdown_v2)\n\n## 現状 description (description_3sou_men_only.txt)\
-    \ の不整合\n\n```\n旧 (15分タイマー・4視点版 流用):\n  本文: 「制限時間15分のタイマーバトル」\n  チャプター:\n    0:00\
-    \      3層オーディン戦開始\n    1:03:17  15分タイマー開始\n    1:19:11  タイマーストップ（討伐成功）\n```\n\n\
-    v2 動画の実仕様:\n- タイマー総尺: **30分** (前回 4視点版は15分・本動画は別取り)\n- タイマー開始: **0:48:12**\n-\
-    \ タイマー停止: **1:18:07**\n- 視点: おおはらMEN単独 (4視点mix ではない)\n\n## やること\n\n1. description_3sou_men_only.txt\
-    \ を v2 仕様に更新:\n   - 本文「制限時間15分」→「制限時間30分」\n   - チャプター「1:03:17 15分タイマー開始」→「0:48:12\
-    \ 30分タイマー開始」\n   - チャプター「1:19:11 タイマーストップ」→「1:18:07 タイマーストップ」\n2. GCnCUAuL0p8\
-    \ の YouTube 説明欄を update-description で更新:\n   ```\n   python3 projects/dozle_kirinuki/scripts/youtube_uploader.py\
-    \ update-description \\\n     --video-id GCnCUAuL0p8 \\\n     --description \"\
-    $(cat description_3sou_men_only.txt)\"\n   ```\n3. ntfy通知\n\n## 注意\n\n動画再生で実際のタイマー値を\
-    \ ffprobe + フレーム抽出で再確認してから description 修正・素直に殿原文値 (0:48:12〜1:18:07) を採用してよし"
+  lord_original: 3層動画作り直し
+  command: "## 殿原文\n\n「3層動画作り直し」\n\n## 対象\n\n3層オーディン戦動画系一連。直近では:\n- 動画ファイル: projects/dozle_kirinuki/work/20260412_*/day2_3sou_men_only_with_countdown_v2.mp4\
+    \ (cmd_1500生成)\n- YouTube: GCnCUAuL0p8 (cmd_1506アップ済)\n- description.txt 修正進行中\
+    \ (cmd_1519)\n- サムネ設定進行中 (cmd_1518)\n\n## やること\n\n殿の意図確認 → 該当範囲特定 → 作り直し:\n1.\
+    \ **何を作り直すか**を家老が殿に確認:\n   - (a) カウントダウン重畳動画ごと作り直し (元素材から)\n   - (b) アップロード設定のみ作り直し\
+    \ (タイトル/description/サムネ)\n   - (c) 別の意図 (別cmdへの言及?)\n2. 確認結果を踏まえて該当 subtask 起票\n\
+    3. 殿視聴強要禁止・完了→done\n\n## 注意\n\n- 走っている cmd_1518 (サムネ) / cmd_1519 (description)\
+    \ との衝突回避: 既存進行中cmdとの整理\n- 既存 GCnCUAuL0p8 を削除して別動画上げ直すか、update で済ますか家老確認"
   acceptance_criteria:
-  - description_3sou_men_only.txt が v2 仕様に更新済 (30分タイマー・0:48:12〜1:18:07)
-  - YouTube GCnCUAuL0p8 説明欄が update-description で反映済
+  - 殿に意図確認後、適切な範囲で作り直し完了
   - ntfy通知
   notify_karo: true
+- id: cmd_1522
+  status: done
+  priority: high
+  purpose: POST /api/inbox_mark_read が YAML 側を更新せず SQLite/YAML 乖離する dual-path バグの軍師解析+修正方針
+  timestamp: '2026-04-28T07:34:21+09:00'
+  project: multi-agent-shogun
+  lord_original: 事象を軍師に投げて修正させよ
+  command: "## 殿原文\n\n「事象を軍師に投げて修正させよ」\n\n## 事象 (将軍観測 2026-04-28 07:30〜07:33)\n\n\
+    1. 将軍が `POST /api/inbox_mark_read` で複数回既読化処理\n2. SQLite 側 (curl /api/inbox_messages?agent=shogun&unread=1)\
+    \ では未読 0件\n3. **しかし queue/inbox/shogun.yaml には 7件 ntfy_received 残置・全 read:false**\n\
+    4. inbox_watcher_shogun.log が YAML 監視ゆえ「7 unread for shogun」検知 → 将軍 pane に「inbox7」\
+    \ keystroke 送信\n5. 殿が将軍 chat で「inbox7」を見て「なぜ7?」と問う\n6. 将軍が手動で YAML 直書きで read:true\
+    \ 更新 → escalation reset 確認\n\n## 推定根因\n\n- POST /api/inbox_mark_read (server.py\
+    \ エンドポイント) が SQLite UPDATE のみ実装・YAML 側書き換えなし\n- inbox_watcher.sh は YAML を監視 (inotifywait\
+    \ + read 集計) ゆえ YAML 既読が反映されないと keystroke 飛ばし続ける\n- cmd_1488 dual-path 移行で書込側は\
+    \ YAML+SQLite 両系へ実装されたが、**既読化 (mark_read) が SQLite単独実装**で残った\n- cmd_1504 F2 /\
+    \ cmd_1508 F3 (軍師指摘) と同根 = read 側 SQLite完全移行 cmd_1510 / agents+tasks テーブル統合 cmd_1513\
+    \ でも mark_read 側は別件\n\n## 担当\n\n**軍師 (gunshi)** 単独。足軽は使わない。\n\n## やること\n\n1. server.py\
+    \ の POST /api/inbox_mark_read 実装箇所 (grep で特定) を読む\n2. SQLite UPDATE と YAML 側書き換えの実装差異を確認\n\
+    3. inbox_watcher.sh の YAML 監視ロジック (read 集計箇所) を読む\n4. 修正方針提示:\n   - (案A) POST\
+    \ /api/inbox_mark_read を YAML+SQLite 両系更新に拡張 (dual-write)\n   - (案B) inbox_watcher\
+    \ を SQLite 直接 SELECT に切替 (YAML 廃止方向・cmd_1510 系統と統一)\n   - (案C) POST /api/inbox_mark_read\
+    \ 後に YAML 側を sync する trigger / 定期 cron\n5. queue/reports/gunshi_inbox_mark_read_dual_path_1522.yaml\
+    \ に解析結果保存\n\n## 完了条件\n\n1. queue/reports/gunshi_inbox_mark_read_dual_path_1522.yaml\
+    \ 存在・根因+修正方針記載\n2. 推奨cmd 1-3件 (具体的なコード箇所/関数/ALTER)\n3. ntfy通知\n\n## 注意\n\n軍師は実装しない\
+    \ (推奨のみ)・実装は別cmdで殿確認後"
+  acceptance_criteria:
+  - queue/reports/gunshi_inbox_mark_read_dual_path_1522.yaml に根因+修正方針記載
+  - 推奨cmd 1-3件 (具体的コード箇所/関数)
+  - ntfy通知
+  notify_karo: true
+- id: cmd_1523
+  status: in_progress
+  priority: high
+  purpose: 3層オーディン戦カウントダウン独自編集クリップ (残5:00の10秒前〜末尾 ≒6:21) 生成+YouTube非公開アップ
+  timestamp: '2026-04-28T08:29:40+09:00'
+  lord_original: カウントダウン残5:00の10秒前から・動画末尾までそのまま (6:16)
+  project: dozle_kirinuki
+  command: '## 殿原文
+
+    「カウントダウン残5:00の10秒前から・動画末尾までそのまま (6:16)」
+
+
+    ## 背景
+
+    - YPP再審査戦略: 30日後再申請に向け独自編集強化例として仕上げる
+
+    - 元動画: day2_3sou_men_only_with_countdown_v2.mp4 (30分カウントダウン重畳済・79分19秒)
+
+    - END_T=4687.28秒 → 残5:00の10秒前 = 4687.28 - 300 - 10 = 4377.28秒から末尾まで
+
+
+    ## 実施内容
+
+    1. ffmpeg で 4377.28秒〜末尾をクリップ (NVENC必須・shared_context/procedures/ffmpeg_nvenc.md準拠)
+
+    2. YouTube 非公開アップ (yt-dlp h264強制必須・詳細は memory記載)
+
+    3. ntfy送信
+
+
+    ## 具体的コマンド例
+
+    ```bash
+
+    SRC="/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/day2_3sou_men_only_with_countdown_v2.mp4"
+
+    DST="/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/day2_3sou_final_clip_6min.mp4"
+
+    ffmpeg -y -i "$SRC" -ss 4377.28 -c:v h264_nvenc -preset p4 -rc vbr -cq 23 -b:v
+    6M -maxrate 8M -bufsize 12M -c:a aac -b:a 192k "$DST"
+
+    ```
+
+
+    ## 注意
+
+    - -ss は -i の後に配置 (ffmpeg_nvenc.md 鉄則)
+
+    - libx264 禁止
+
+    - YouTube アップ後 URL を報告に含めること'
+  acceptance_criteria:
+  - day2_3sou_final_clip_6min.mp4 が生成済み (ffprobe で ≥6分)
+  - YouTube 非公開アップ完了・URL報告済み
+  - ntfy通知送信済み
