@@ -93,44 +93,45 @@ cd /home/murakami/multi-agent-shogun/remotion-project
 npx remotion render OdinCountdownTest out/countdown.mp4 --codec h264 --crf 22 --concurrency 4
 ```
 
-### 確定コマンド (30分タイマー本番版 — cmd_1496)
+### 確定コマンド (30分タイマー本番版 — cmd_1500 正式式)
 
 ```bash
 SRC="day2_3sou_men_only.mp4"
-DST="day2_3sou_men_only_with_countdown.mp4"
+DST="day2_3sou_men_only_with_countdown_v2.mp4"
 F="/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"
 
 START_T=2892.22   # タイマー開始秒
 END_T=4687.28     # タイマー終了秒（カウントダウン）
-HOLD_END=4697.28  # 固定表示終了秒
+HOLD_END=4697.28  # 表示終了秒（128px段階のenable上限）
 STAGE1=3792.22    # 40→64切替 (15分後)
 STAGE2=4092.22    # 64→96切替 (20分後)
 STAGE3=4392.22    # 96→128切替 (25分後)
 
-# カウントダウン式
-X="if(lte(t\\,${END_T})\\,${END_T}-t\\,0)"
+# 正式カウントダウン式: DURATION-(t-START_T) = 1800-(t-2892.22)
+# t=START_T → 30:00.00 / t=END_T → 0:04.94 / t>END_T → 4.94固定
+X="if(lte(t\\,${END_T})\\,1800-(t-${START_T})\\,4.94)"
 TXT='%{eif\:'"$X"'/60\:d\:2}\:%{eif\:mod('"$X"'\,60)\:d\:2}.%{eif\:mod('"$X"'*100\,100)\:d\:2}'
 
 ffmpeg -y -i "$SRC" \
   -vf "drawtext=fontfile=$F:text='$TXT':fontsize=40:fontcolor=white:bordercolor=0xFF69B4:borderw=3:x=w-text_w-20:y=20:enable='between(t,${START_T},${STAGE1})',\
        drawtext=fontfile=$F:text='$TXT':fontsize=64:fontcolor=white:bordercolor=0xFF69B4:borderw=3:x=w-text_w-20:y=20:enable='between(t,${STAGE1},${STAGE2})',\
        drawtext=fontfile=$F:text='$TXT':fontsize=96:fontcolor=white:bordercolor=0xFF69B4:borderw=3:x=w-text_w-20:y=20:enable='between(t,${STAGE2},${STAGE3})',\
-       drawtext=fontfile=$F:text='$TXT':fontsize=128:fontcolor=white:bordercolor=0xFF69B4:borderw=3:x=w-text_w-20:y=20:enable='between(t,${STAGE3},${END_T})',\
-       drawtext=fontfile=$F:text='0\:04.94':fontsize=128:fontcolor=white:bordercolor=0xFF69B4:borderw=3:x=w-text_w-20:y=20:enable='between(t,${END_T},${HOLD_END})'" \
+       drawtext=fontfile=$F:text='$TXT':fontsize=128:fontcolor=white:bordercolor=0xFF69B4:borderw=3:x=w-text_w-20:y=20:enable='between(t,${STAGE3},${HOLD_END})'" \
   -c:v h264_nvenc -preset p4 -rc vbr -cq 23 -b:v 6M -maxrate 8M -bufsize 12M \
   -c:a aac -b:a 192k "$DST"
 ```
 
 **30分版と15分版の違い**:
-- 40px段階追加（最初の15分間）・4段階カウントダウン+固定表示の5段構成
+- 40px段階追加（最初の15分間）・4段階カウントダウンの4段構成
 - MM:SS.cc（2桁分表示）対応
-- HOLD_END で固定表示テキスト（停止時残余値）を10秒間表示
+- 128px段階は STAGE3~HOLD_END まで連続表示（式が4.94に収束→HOLD_ENDで消去）
+- **cmd_1496 旧式の誤り注記**: 旧式 `X=if(lte(t,END_T),END_T-t,0)` は「4.94秒短い」バグあり（t=START_Tで 1795.06→29:55.06 になるべきが 29:55.06 を表示）。正式式は `X=if(lte(t,END_T),DURATION-(t-START_T),4.94)`
 
 ## 教訓
 
 - **Remotion は試作向け・本番は ffmpeg drawtext** — 4視点 mix への重畳など bash パイプライン統合は drawtext が圧倒的に楽
 - **5分毎拡大は殿の標準仕様** — 単一サイズで生成すると殿NG（4/20 10:11 指示）
-- **タイマー終了後はゼロ表示固定** — 負値表示は減点要素・`if(lte(t,END),START-t,0)` 必須
+- **タイマー終了後は残余値固定** — 負値表示は減点要素・カウントダウン式は `DURATION-(t-START_T)` で `END_T-t` は不可（cmd_1500教訓: END_T=START_T+DURATION-4.94 なので4.94秒短く計算される）
 - **元素材が 44.1kHz だとconcat時に音切れ** — outro は事前に 48kHz 統一せよ（4/21 0:34 NG → 6:15 修正再アップ）
 
 ## 関連 cmd・素材
@@ -141,3 +142,4 @@ ffmpeg -y -i "$SRC" \
 - 4/20 15:30 殿仕上げ指示「アウトロつけて 非公開アップ 説明欄もかけ」
 - 4/21 6:15 修正版再アップ（outro 音声統一・YouTube `GEyfSBKLBhA`）
 - 4/27 cmd_1496 30分タイマー版（3層MEN視点・5段階drawtext）
+- 4/27 cmd_1500 drawtext式バグ修正（正式式採用・旧NG版リネーム・4段構成に統合）
