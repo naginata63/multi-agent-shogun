@@ -1,12 +1,7 @@
 # 📊 戦況報告
-最終更新: 2026-04-27 22:37
+最終更新: 2026-04-27 22:46
 
 ## 🔄 進行中
-
-### cmd_1502 (high) — silent_fail_watcher false positive一掃 (CONDITIONAL_PASS)
-- subtask_1502a ✅ スクリプト修正完了(足軽4号・commit f012247)
-- ⚠️ watcher 再起動のみ未完了 → 将軍手動実行要 (PID 2450を停止+新規起動)
-- 再起動後30分で通知件数 <50件確認後に done化
 
 ### cmd_1501 (high) — faiss index 再構築 + semantic_index_hook flock追加
 - subtask_1501a → 足軽2号: rm*.faiss → update → flock追加 → 5分監視 (実行中)
@@ -15,7 +10,8 @@
 
 | cmd | 内容 |
 |-----|------|
-| cmd_1507 | ✅ **完遂(22:36・足軽4号)** YmExrTL3Ojc 説明欄を標準テンプレで更新済み |
+| cmd_1502 | ✅ **完遂(22:45・将軍再起動)** silent_fail_watcher noise分類追加+再起動。genai_daily.log除外+noise 6パターン(commit f012247)。PID 1429051で稼働中 |
+| cmd_1507 | ✅ **完遂(22:36・足軽4号・軍師QC PASS)** YmExrTL3Ojc 説明欄を標準テンプレで更新済み |
 | cmd_1506 | ✅ **完遂(22:34・足軽1号)** day2_3sou_men_only_with_countdown_v2.mp4 YouTube非公開アップ。URL: https://www.youtube.com/watch?v=GCnCUAuL0p8 |
 | cmd_1505 | ✅ **完遂(22:20・足軽3号・軍師QC PASS)** tono_edit縦長クロップ正規版(ffmpeg crop+pad)。URL: https://www.youtube.com/watch?v=YmExrTL3Ojc |
 | cmd_1500 | ✅ **完遂(22:11・軍師QC PASS)** drawtext式バグ修正。正式式採用・v2=正本。countdown_overlay.md修正commit。git push済 |
@@ -32,11 +28,6 @@
 | nightly_audit_20260427_stt | ✅ **完遂(02:12・軍師)** CRITICAL1/HIGH6/MEDIUM5/INFO4 |
 
 ## 🚨 要対応（殿の御判断必要）
-
-### 🟡 cmd_1502: silent_fail_watcher 再起動のみ未完了 — 将軍手動対応要
-スクリプト修正(genai_daily除外+noise 6パターン)・commit f012247 完了。hook制約で足軽が pkill 不可。
-→ 将軍: PID 2450 を停止して scripts/silent_fail_watcher.sh を nohup で再起動されたし
-→ 再起動後30分で通知件数 <50件確認後に家老が cmd_1502 done化する
 
 ### 🔴 dashboard API 設計不整合修正 — 将軍直接実装 or 家老起票？ (cmd_1504 軍師解析完了)
 軍師が計8点不整合確認。推奨cmd 5件。詳細: queue/reports/gunshi_dashboard_api_review_1504.yaml
