@@ -98,3 +98,24 @@ tasks:
   - silent_fail_watcher 再起動済 (ps aux で確認)
   - git commit
   timestamp: '2026-04-27T21:52:01.297305+09:00'
+- agent: ashigaru4
+  task_id: subtask_1507a
+  parent_cmd: cmd_1507
+  status: done
+  bloom_level: L2
+  description: 'cmd_1507: YouTube動画 YmExrTL3Ojc (86万トンダム掘り縦長) の説明欄を標準テンプレで更新'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！「マイクラ」
+  steps: '1) ls projects/dozle_kirinuki/work/*/description*.txt で既存説明欄テンプレ確認 2) 最近のdescription.txtを読んで標準テンプレ把握
+    3) 元動画リンク(pIrocoqvwJg)を含めた説明欄作成 4) python3 projects/dozle_kirinuki/scripts/youtube_uploader.py
+    update-description --video-id YmExrTL3Ojc --description ''<内容>'' 5) bash scripts/ntfy.sh
+    ''✅ 説明欄更新: YmExrTL3Ojc'' 6) inbox_write karo 完了報告'
+  acceptance_criteria:
+  - YmExrTL3Ojc の説明欄が標準テンプレで更新済み
+  - ntfy通知送信済み
+  - karoへ完了報告済み
+  notes:
+  - 「いつもかいている内容」 = ドズル社切り抜きチャンネル標準説明欄テンプレ
+  - 既存 description*.txt を参照して内容を把握せよ
+  - 元動画リンク(pIrocoqvwJg)を説明欄に含めること
+  - youtube_uploader.py update-description コマンドを使え
+  timestamp: '2026-04-27T22:26:28.885587+09:00'

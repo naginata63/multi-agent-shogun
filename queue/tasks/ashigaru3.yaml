@@ -71,3 +71,18 @@ tasks:
   target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_edit_vertical.mp4
   task_id: subtask_1505a
   timestamp: '2026-04-27T22:14:22.020367+09:00'
+- agent: ashigaru3
+  task_id: subtask_1505b
+  parent_cmd: cmd_1505
+  status: done
+  bloom_level: L1
+  description: 'cmd_1505後処理: tono_short_vertical.mp4 (vertical_convert.py誤物・2.1MB)
+    を _ng リネーム'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_short_vertical_ng.mp4
+  steps: mv /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_short_vertical.mp4
+    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_short_vertical_ng.mp4
+    → karoへ完了報告inbox
+  acceptance_criteria:
+  - tono_short_vertical_ng.mp4 が存在すること
+  - tono_short_vertical.mp4 が存在しないこと
+  timestamp: '2026-04-27T22:24:06.000737+09:00'

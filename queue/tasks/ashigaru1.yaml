@@ -93,3 +93,25 @@ tasks:
   target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/day2_3sou_men_only_with_countdown_v2.mp4
   task_id: subtask_1500a
   timestamp: '2026-04-27T21:40:52.128468+09:00'
+- acceptance_criteria:
+  - YouTube非公開アップ完了 (URL取得済み)
+  - defaultLanguage=ja 設定済み
+  - ntfy通知送信済み
+  - karoへURL報告済み
+  agent: ashigaru1
+  bloom_level: L2
+  description: 'cmd_1506: day2_3sou_men_only_with_countdown_v2.mp4 を YouTube非公開アップ
+    (殿承認済)'
+  notes:
+  - defaultLanguage=ja 必須 (オートダビング音声破壊缺陥回避)
+  - privacy=private 厳守
+  - youtube_uploader.py 使え・新規スクリプト作成禁止
+  parent_cmd: cmd_1506
+  status: done
+  steps: 1) ffprobe で対象ファイル存在確認 2) python3 projects/dozle_kirinuki/scripts/youtube_uploader.py
+    upload 対象ファイル --title '「#DoZ」2日目 誰も死なせないよ だって私はヒーラーだもの「ドズル社/おおはらMEN視点」' --privacy
+    private 3) defaultLanguage=ja確認 4) URL取得 5) bash scripts/ntfy.sh 完了URL含むメッセージ
+    6) inbox_write karo URL報告
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_「#DoZ」2日目  誰も死なせないよ　だって私はヒーラーだもの」「ドズル社／おおはらMEN視点」/day2_3sou_men_only_with_countdown_v2.mp4
+  task_id: subtask_1506a
+  timestamp: '2026-04-27T22:26:28.773839+09:00'
