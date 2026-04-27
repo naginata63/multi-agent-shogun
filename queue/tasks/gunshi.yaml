@@ -19,7 +19,7 @@ tasks:
   - フォールバック痕跡なし（均一200.2s刻みの start_sec が存在しないこと）
 - agent: gunshi
   task_id: subtask_1522a
-  status: assigned
+  status: done
   parent_cmd: cmd_1522
   bloom_level: L4
   priority: high

@@ -65,6 +65,36 @@
 ## 🚨 要対応（殿の御判断必要）
 ## 🚨 要対応（殿の御判断必要）
 
+### 🔴 cmd_1522完了: inbox_mark_read 乖離 修正cmd 3件起票要否 (07:39軍師完了)
+根因: inbox_watcher.sh がYAML単独参照(SQLiteなし)。mark_read後YAMLに残存→誤発火ループ。
+即時回避: 軍師が軍師YAML直編集でread=true済(nudge沈静化)。
+推奨修正方針B (cmd_1494/1510/1513ロードマップと整合):
+- **修正cmd1**: inbox_watcher.sh → SQLite SELECT に切替 (YAML廃止方向)
+- **修正cmd2**: YAML→SQLite sync移行 (inbox write側もSQLite primary化)
+- **修正cmd3**: inbox YAML write廃止
+→ cmd_1510 (server.py SQLite移行) と統一スプリント推奨。起票承認されたし。
+報告書: queue/reports/gunshi_inbox_mark_read_dual_path_1522.yaml
+
+### 🔴🔴 nightly_audit_20260428_video — CRITICAL 2 修正cmd起票要否
+- **修正A**: main.py L657-730 WhisperX経路削除
+- **修正B**: vertical_convert.py argparse 4引数追加
+起票承認されたし。
+
+### 🔴 server.py 再起動必要 (cmd_1514・cmd_1513 副次)
+inbox.type CHECK制約 + agents テーブル統合が DB 側完了だが server 側未活性化。将軍対処要。
+
+### 🔴 CRITICAL: stt_pipeline.md 手順書が実装と完全乖離
+修正cmd起票要否を判断されたし。
+
+### 💡 skill_candidate: sqlite-fk-migration (足軽4号提案)
+スキル化承認されたし。
+
+### ⚠️ 技術的残課題（将来対処）
+- Remotion Root.tsx ハードコード汎用化
+- pretool_check: /tmp/work/cmd_* 誤表示
+
+## 🚨 要対応（殿の御判断必要）
+
 ### 🔴🔴 nightly_audit_20260428_video — CRITICAL 2 修正cmd起票要否
 - **修正A**: main.py L657-730 WhisperX経路削除 (1cmd完結)
 - **修正B**: vertical_convert.py argparse 4引数追加 (1cmd完結)
