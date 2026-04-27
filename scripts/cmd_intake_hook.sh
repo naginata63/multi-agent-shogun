@@ -219,6 +219,35 @@ if [ "$TOTAL_HITS" -eq 0 ]; then
   echo "[cmd_intake_hook] ⚠️ ${CMD_ID} mem-search hit=0 (keywords=[${KEYWORDS}]) — 新規実装の可能性・先行事例なし" >&2
 fi
 
+# (v) semantic_search.py 関連 procedures/scripts 提示 (cmd_1499 縦長クロップ手順書見落とし教訓)
+# KEYWORDS で procedures + scripts + memory を検索し、トップ3を将軍 stderr に提示。
+# Vertex AI Embedding API を呼ぶため timeout 6s で gate (hook 全体 8s 上限)
+if [ -n "$KEYWORDS" ]; then
+  SEM_OUT=$(timeout 6 bash -lc "source ~/.bashrc 2>/dev/null; cd '${REPO_DIR}' && python3 scripts/semantic_search.py query '${KEYWORDS}' --top 5 --json 2>/dev/null" 2>/dev/null || true)
+  if [ -n "$SEM_OUT" ]; then
+    SEM_DIGEST=$(printf '%s' "$SEM_OUT" | python3 -c "
+import sys, json
+try:
+  rs = json.load(sys.stdin)
+  if not isinstance(rs, list): sys.exit(0)
+  # procedures / scripts / memory のみ抽出 (context/comments/git/logs は除外)
+  filtered = [r for r in rs if r.get('source') in ('procedures','scripts','memory')]
+  if not filtered: sys.exit(0)
+  for r in filtered[:3]:
+    src = r.get('source','?')
+    f = r.get('file','')
+    sc = r.get('score',0.0)
+    print(f'  - [{src}] {f} (score={sc:.3f})')
+except Exception:
+  sys.exit(0)
+" 2>/dev/null)
+    if [ -n "$SEM_DIGEST" ]; then
+      echo "[cmd_intake_hook] ${CMD_ID} 関連 procedures/scripts/memory (semantic_search):" >&2
+      echo "$SEM_DIGEST" >&2
+    fi
+  fi
+fi
+
 # self log (debug 用)
 printf '%s %s total_hits=%d pending_mcp=%s archive=%s\n' \
   "$TS" "$CMD_ID" "$TOTAL_HITS" "$PENDING_MCP" "$ARCHIVE_FILE" >> "$SELF_LOG" 2>/dev/null || true

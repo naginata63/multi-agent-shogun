@@ -416,3 +416,37 @@ commands:
   - 殿向け要約 (1段落)
   - ntfy通知
   notify_karo: true
+- id: cmd_1505
+  status: done
+  priority: high
+  purpose: tono_edit.mkv 縦長クロップ→非公開アップやり直し (cmd_1499誤物・vertical_convert.py 誤用→ 標準手順
+    video_vertical_crop_upload.md 通りに ffmpeg crop+pad で再生成)
+  timestamp: '2026-04-27T22:13:25+09:00'
+  project: dozle_kirinuki
+  redo_of: cmd_1499
+  lord_original: 縦長にクロップしてっていっつもやっているんだが vertical_convertってのには--main-speakerとかおぷしょんなんてあるのか
+    なにかかんちがいしていないか
+  command: "## 殿原文\n\n「縦長にクロップしてっていっつもやっているんだが vertical_convertってのには--main-speakerとかおぷしょんなんてあるのか\
+    \ なにかかんちがいしていないか」\n\n## やり直し理由\n\ncmd_1499 で将軍が vertical_convert.py (Shorts組立用・--main-speaker等オプション付)\
+    \ を選んだのは誤り。標準手順は **shared_context/procedures/video_vertical_crop_upload.md**。既存\
+    \ WB-xCyX-9J0 は黒帯付き誤物ゆえ削除。\n\n## 手順 (procedures/video_vertical_crop_upload.md\
+    \ 準拠)\n\n```bash\nIN='/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_edit.mkv'\n\
+    OUT='/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_edit_vertical.mp4'\n\
+    \nffmpeg -i \"$IN\" \\\n  -vf \"crop=1080:1918:1166:0,pad=1080:1920:0:1\" \\\n\
+    \  -c:v h264_nvenc -preset p4 -rc vbr -cq 23 -b:v 8M -maxrate 10M -bufsize 16M\
+    \ \\\n  -c:a aac -b:a 192k \\\n  \"$OUT\"\n\npython3 projects/dozle_kirinuki/scripts/youtube_uploader.py\
+    \ upload \"$OUT\" --title <元動画ファイル名 or 殿確認なし元タイトル流用> --privacy private\n```\n\n\
+    ## 後処理\n\n1. 旧 WB-xCyX-9J0 (誤物アップ) を YouTube から削除 (youtube_uploader.py delete\
+    \ or YouTube Studio手動)\n2. 旧 tono_short_vertical.mp4 (vertical_convert.py 出力誤物)\
+    \ は projects/dozle_kirinuki/work/.../ 内で _ng リネーム or 削除\n3. 新 tono_edit_vertical.mp4\
+    \ アップ完了 → URL 報告 → done\n\n## CLAUDE.md procedures 一覧追記 (将軍直接対応する別件)\n\nvideo_vertical_crop_upload.md\
+    \ は将軍が CLAUDE.md# 技術的鉄則 セクションに追記する (この cmd の範囲外)\n\n## 完了条件\n\n1. tono_edit_vertical.mp4\
+    \ が 1080x1920 / h264 / aac / 26.6秒 で生成 (ffprobe で 1Mbps以上のbitrate確認・procedures鉄則)\n\
+    2. 旧 WB-xCyX-9J0 削除済\n3. 新URL を YouTube から取得・ntfy報告\n4. 完了で done (殿視聴OK判定要求しない・将軍越権)"
+  acceptance_criteria:
+  - tono_edit_vertical.mp4 が procedures/video_vertical_crop_upload.md の crop=1080:1918:1166:0,pad=1080:1920:0:1
+    で生成されbitrate 1Mbps以上
+  - 旧 WB-xCyX-9J0 がYouTubeから削除済
+  - 新URLでYouTube非公開アップ完了
+  - ntfy通知
+  notify_karo: true

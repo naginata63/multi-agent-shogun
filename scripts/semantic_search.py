@@ -86,6 +86,12 @@ def get_data_sources():
         for f in ctx_dir.glob("*.md"):
             sources.append(("context", str(f)))
 
+    # 4.5 shared_context/procedures/*.md (cmd_1499 教訓: 縦長クロップ手順書見落とし対策)
+    proc_dir = BASE_DIR / "shared_context" / "procedures"
+    if proc_dir.exists():
+        for f in proc_dir.glob("*.md"):
+            sources.append(("procedures", str(f)))
+
     # 5. scripts (py/sh/js)
     for script_dir in SCRIPT_DIRS:
         if not script_dir.exists():
@@ -521,7 +527,7 @@ def collect_chunks(source_filter: Optional[str] = None):
             all_chunks.extend(chunk_shogun_to_karo(filepath))
         elif src_type == "tasks":
             all_chunks.extend(chunk_tasks_yaml(filepath))
-        elif src_type in ("memory", "context"):
+        elif src_type in ("memory", "context", "procedures"):
             all_chunks.extend(chunk_markdown(filepath, src_type))
         elif src_type == "scripts":
             all_chunks.extend(chunk_scripts(filepath))
@@ -795,7 +801,7 @@ def main():
     q_parser.add_argument("query", help="検索クエリ")
     q_parser.add_argument("--top", type=int, default=10, help="表示件数 (default: 10)")
     q_parser.add_argument("--source", type=str, default=None,
-                          help="絞り込み: shogun_to_karo / tasks / memory / context / scripts / comments / git / logs")
+                          help="絞り込み: shogun_to_karo / tasks / memory / context / procedures / scripts / comments / git / logs")
     q_parser.add_argument("--json", action="store_true", help="JSON形式で出力")
 
     args = parser.parse_args()
