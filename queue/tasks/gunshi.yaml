@@ -138,8 +138,9 @@ tasks:
   timestamp: '2026-04-27T22:53:05.586918+09:00'
 - agent: gunshi
   task_id: subtask_1520a
-  status: assigned
+  status: done
   parent_cmd: cmd_1520
+  completed_at: '2026-04-28T02:30:00+09:00'
   bloom_level: L4
   priority: high
   project: multi-agent-shogun

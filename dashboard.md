@@ -45,6 +45,28 @@
 ## 🚨 要対応（殿の御判断必要）
 ## 🚨 要対応（殿の御判断必要）
 
+### 🔴🔴 nightly_audit_20260428_video — CRITICAL 2 / HIGH 6 (軍師 02:08完了)
+7ファイル2557行精読。22件検出。根本問題3点:
+1. **CRITICAL: WhisperX鉄則違反永続化** — main.py L657-730 に --diarize WhisperX経路残存。nightly_audit_20260427_stt CRITICAL1と同根・是正未着手。→ **修正cmd起票推奨: main.py L657-730削除 (1cmd完結)**
+2. **HIGH: vertical_convert.py CLI欠落** — 4引数対応 argparse 欠落・動的importlib多用。→ **修正cmd起票推奨: argparse 4引数追加 (1cmd完結)**
+3. **MEDIUM: Remotionハードコード** — Root.tsx が1動画専用 (subtitles.json静的import+FULL_SEC=4795+DoZコラボ色固定)。汎用化は大改修ゆえ将来対処可。
+報告書: queue/reports/gunshi_report_nightly_audit_20260428_video.yaml
+
+### 🔴 server.py 再起動必要 (cmd_1514・cmd_1513 副次)
+inbox.type CHECK制約 + agents テーブル統合が DB 側完了だが server 側未活性化。将軍対処要。
+
+### 🔴 CRITICAL: stt_pipeline.md 手順書が実装と完全乖離
+足軽が手順通り叩くと即 argparse error で停止。修正cmd起票要否を判断されたし。
+
+### 💡 skill_candidate: sqlite-fk-migration (足軽4号提案)
+ForeignKey付きSQLite migration手順をスキル化。スキル化承認されたし。
+
+### ⚠️ 技術的残課題（将来対処）
+- Remotion Root.tsx ハードコード汎用化 (nightly_audit_20260428_video MEDIUM)
+- pretool_check: /tmp/work/cmd_* 誤表示
+
+## 🚨 要対応（殿の御判断必要）
+
 ### 🔴 server.py 再起動必要 (cmd_1514・cmd_1513 副次)
 inbox_messages.type CHECK制約(cmd_1514) と agents テーブル server.py 統合(cmd_1513) が DB 側完了だが server.py への反映に再起動が必要。
 - `server_restart_needed: true` 状態・現在は旧コードで稼働継続中
