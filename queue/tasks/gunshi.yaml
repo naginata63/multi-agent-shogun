@@ -18,140 +18,20 @@ tasks:
   - 全パネルの話者ラベルが SRT同時刻の実話者と一致（oo_men/bon/nekooji/orafu/qnly/dozle/unknown のみ）
   - フォールバック痕跡なし（均一200.2s刻みの start_sec が存在しないこと）
 - agent: gunshi
-  task_id: subtask_qc_1496a
-  status: done
-  parent_cmd: cmd_1496
-  bloom_level: L4
-  blocked_by:
-  - subtask_1496a
-  completed_at: '2026-04-27T21:30:00+09:00'
-  qa_decision: PASS
-  description: 'cmd_1496 QC: 5フレーム目視確認(40/64/96/128px段階・固定0:04.94表示)でサイズ仕様一致を判定。PASS/FAILをkaroに報告。'
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1496a.yaml
-  procedure: /home/murakami/multi-agent-shogun/shared_context/qc_template.md
-  steps: '①ashigaru1報告のフレームパスを確認(frames_countdown/配下) → ②5フレーム目視: frame_2892.50s(40px期待)・frame_3793.00s(64px期待)・frame_4093.00s(96px期待)・frame_4393.00s(128px期待)・frame_4690.00s(128px+0:04.94固定期待)
-    → ③各フレームでタイマー文字が右上に表示されフォントサイズが仕様通りか目視確認 → ④PASS/FAIL判定・根拠を証跡として記載 → ⑤報告YAML(target_path)生成
-    → ⑥POST /api/inbox_write to:karo type:report_received QC結果報告'
-  acceptance_criteria:
-  - 5フレーム全て目視確認済み(grepカウントのみ禁止)
-  - 各フレームのフォントサイズ(40/64/96/128)が仕様通りであること目視証跡あり
-  - 4690.00s フレームで 0:04.94 固定表示(または相当値)を確認
-  - PASS/FAIL/CONDITIONAL_PASS 判定と根拠を報告YAML に記載
-  - 家老にinbox報告済み
-  notes:
-  - フレームはashigaru1が frames_countdown/ に保存する
-  - 目視のみ・コード修正禁止
-  - 固定表示は0:04.94(±0.01秒程度の誤差許容)
-  timestamp: '2026-04-27T20:49:37.408675+09:00'
-- agent: gunshi
-  task_id: subtask_1498a
-  status: done
-  parent_cmd: cmd_1498
-  completed_at: '2026-04-27T21:27:00+09:00'
-  bloom_level: L4
-  blocked_by:
-  - subtask_qc_1496a
-  description: 'cmd_1498: ntfy通知ログ・エラーログ解析。silent_fail系エラー(litestream/advisor_proxy/semantic_index_hook/cron等)の根本原因仮説・優先順位・修正cmd推奨を報告。'
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_ntfy_analysis_1498.yaml
-  procedure: /home/murakami/multi-agent-shogun/shared_context/qc_template.md
-  steps: '①tail -500 queue/ntfy_sent.log > /tmp/ntfy_recent.log && tail -200 logs/litestream.log
-    logs/advisor_proxy.log logs/semantic_index_hook.log logs/semantic_update.log logs/cron_health_check.log
-    2>/dev/null > /tmp/error_logs.txt → ②エラーカテゴリ分類(LIT=litestream/ADV=advisor_proxy/FAI=semantic_index/C01=Embedding404/C09=YAMLparse/C10=詳細不明/C14=詳細不明)
-    → ③各カテゴリの根本原因仮説・影響範囲・優先順位(P1/P2/P3)を判定 → ④単純削除で消えるゴミファイル(例: gunshi_report_qc_1488a.yaml)は削除
-    → ⑤修正cmd推奨3件以上を具体的ファイル/設定変更付きで列挙 → ⑥報告YAML(target_path)生成 → ⑦POST /api/inbox_write
-    to:karo type:report_received 解析完了報告'
-  acceptance_criteria:
-  - gunshi_ntfy_analysis_1498.yaml に各カテゴリ(LIT/ADV/FAI/C01/C09/C10/C14)の根因仮説と優先順位が記載
-  - 修正cmd推奨が3件以上(具体的ファイル/設定変更付き)
-  - ゴミファイル(gunshi_report_qc_1488a.yaml等)削除済み
-  - 殿向け要約(1段落)がdashboard更新か inbox_write経由で届く
-  - 家老にinbox報告済み
-  notes:
-  - 軍師単独タスク・足軽は使わない
-  - subtask_qc_1496a完了後に開始(blocked_by設定済み)
-  - コード修正禁止・読んで分析・修正推奨のみ
-  timestamp: '2026-04-27T20:59:04.723466+09:00'
-- agent: gunshi
-  task_id: subtask_qc_1500a
-  status: done
-  parent_cmd: cmd_1500
-  completed_at: '2026-04-27T22:15:00+09:00'
-  qa_decision: PASS
-  bloom_level: L4
-  blocked_by:
-  - subtask_1500a
-  description: 'cmd_1500 QC: 5フレーム目視確認(30:00.00始まり・段階拡大・停止時0:04.94連続表示)でバグ修正版の正確性を判定。PASS/FAILをkaroに報告。'
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1500a.yaml
-  steps: '①ashigaru1報告のフレームパス確認(frames_countdown_v2/) → ②5フレーム目視: 2900s(期待29:52.22/40px)・3793s(14:59.22/64px)・4093s(9:59.22/96px)・4393s(4:59.22/128px)・4690s(0:04.94固定/128px)
-    → ③各フレームの残値が期待値±0.5秒以内か・サイズ正しいか確認 → ④停止後(4690s)で0:00表示がなく0:04.94が連続表示されているか確認
-    → ⑤PASS/FAIL判定・証跡記載 → ⑥報告YAML生成 → ⑦inbox_write to:karo 報告'
-  acceptance_criteria:
-  - 5フレーム全て目視確認済み
-  - '2900s: 残値29:52.22±0.5秒・40px確認'
-  - '3793s: 残値14:59.22±0.5秒・64px確認'
-  - '4690s: 0:04.94固定表示・0:00表示なし確認'
-  - PASS/FAIL判定と根拠を報告YAMLに記載
-  - 家老にinbox報告済み
-  notes:
-  - '修正の核心: t=START_T(2892.22)で30:00.00表示されること・t=END_T(4687.28)で0:04.94で連続的に固定すること'
-  timestamp: '2026-04-27T21:41:24.868745+09:00'
-- agent: gunshi
-  task_id: subtask_1504a
-  status: done
-  parent_cmd: cmd_1504
-  completed_at: '2026-04-27T22:00:00+09:00'
-  bloom_level: L5
-  description: 'cmd_1504: server.py/dashboard*.py/dashboard_lifecycle 精読→API設計不整合5点+α根因分析→修正推奨cmd
-    3-5件→報告書保存→ntfy'
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_dashboard_api_review_1504.yaml
-  steps: 1. server.py / scripts/dashboard*.py / dashboard_lifecycle 関連を精読 2. 将軍観測の不整合5点(R7重複/slim
-    vs cmd_list矛盾/busy_agents定義曖昧/R3閾値なし/R7 cmd_id:null)の根因を特定 3. 他の不整合も洗い出す(R1-R6検出ルール・dual-path整合・agent_health/cmd_list/dashboard三者間ズレ等)
-    4. 各不整合の根因と修正方針をYAMLに保存 5. 推奨cmd 3-5件提示 6. ntfy通知
-  acceptance_criteria:
-  - queue/reports/gunshi_dashboard_api_review_1504.yaml に各不整合の根因仮説と優先順位
-  - 推奨cmd 3-5件 (具体的なファイル/関数/修正内容)
-  - 殿向け要約 (1段落)
-  - ntfy通知
-  timestamp: '2026-04-27T21:52:13.882706+09:00'
-- agent: gunshi
-  task_id: subtask_1508a
-  parent_cmd: cmd_1508
-  status: done
-  completed_at: '2026-04-27T22:55:00+09:00'
-  bloom_level: L5
-  description: 'cmd_1508: cmds.db SQLite スキーマ全体の設計監査。正本欠落・履歴から状態逆算・YAML/DB dual-path
-    不整合・status enum 自由文字列・外部キー欠落・timestamp重複・INDEX不在の7観点でアンチパターン洗い出し。修正cmd 3-7件提示。'
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_db_schema_review_1508.yaml
-  steps: 1) sqlite3 queue/cmds.db '.schema' でスキーマ全体確認 2) sqlite3 '.tables' でテーブル一覧確認
-    3) server.py/dashboard*.py でinbox_messagesから状態逆算している箇所を grep 4) 7観点でアンチパターン洗い出し
-    (cmd_1504 F4重複除く) 5) gunshi_db_schema_review_1508.yaml に findings + recommended_cmds
-    + summary_for_lord 出力 6) ntfy通知 7) inbox_write karo 完了報告
-  acceptance_criteria:
-  - queue/reports/gunshi_db_schema_review_1508.yaml に全アンチパターン洗い出し済
-  - 修正cmd推奨 3-7件 (具体的なテーブル/SQL/操作)
-  - tasks テーブル化など F4 真の解決方針を含む
-  - ntfy通知
-  notes:
-  - cmd_1504 既出 findings (F4 等) とは重複しない範囲で新規 findings に集中
-  - F4 の延長 (tasks テーブル化) は本cmdで明示的に深掘りせよ
-  - 足軽は使わない・軍師単独
-  timestamp: '2026-04-27T22:53:05.586918+09:00'
-- agent: gunshi
-  task_id: subtask_1520a
-  status: done
-  parent_cmd: cmd_1520
-  completed_at: '2026-04-28T02:30:00+09:00'
+  task_id: subtask_1522a
+  status: assigned
+  parent_cmd: cmd_1522
   bloom_level: L4
   priority: high
   project: multi-agent-shogun
-  description: 'cmd_1520: 動画制作スクリプト群の夜間矛盾検出 (読んで報告のみ)'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts
-  steps: '1) 以下を全文精読: scripts/make_expression_shorts.py / scripts/vertical_convert.py
-    / scripts/make_shorts.py(あれば) / remotion-project/src/*.tsx 2) projects/dozle_kirinuki/scripts/main.py(あれば)精読
-    3) 矛盾・不整合・deprecated参照・欠落import・dead code を列挙 4) CRITICAL/HIGH/MEDIUM/LOW分類 5)
-    コード修正禁止・テスト禁止 6) 報告書YAML作成 7) dashboard 🚨要対応に結果掲載 8) inbox_write karo 完了報告'
+  description: 'cmd_1522: inbox_mark_read YAML/SQLite 乖離バグ解析+修正方針提示'
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+  steps: 1) server.py の POST /api/inbox_mark_read 実装箇所を grep 特定→精読 2) SQLite UPDATE
+    と YAML 書き換えの実装差異確認 3) scripts/inbox_watcher.sh の YAML read 集計ロジック読む 4) 修正方針A/B/C
+    を提示 (A=dual-write拡張 B=watcher→SQLite切替 C=sync trigger/cron) 5) queue/reports/gunshi_inbox_mark_read_dual_path_1522.yaml
+    保存 6) ntfy通知 7) inbox_write karo 完了報告
   notes:
-  - コード修正禁止・テスト禁止・読んで報告のみ
-  - 朝までに完了
-  - cmd_828と同じ形式（重要度分類+ファイル:行番号）
-  timestamp: '2026-04-28T02:02:56.844320+09:00'
+  - 実装禁止・解析と修正方針提示のみ
+  - 推奨cmd 1-3件明示
+  - cmd_1510 server.py SQLite移行との整合性も言及せよ
+  timestamp: '2026-04-28T07:35:08.550620+09:00'

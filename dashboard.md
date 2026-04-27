@@ -4,6 +4,26 @@
 ## 🔄 進行中
 ## 🔄 進行中
 
+### cmd_1522 (high) — inbox_mark_read YAML/SQLite 乖離バグ解析
+- 🔄 subtask_1522a → 軍師: server.py/inbox_watcher.sh 精読→修正方針A/B/C提示 (実行中)
+
+### cmd_1516 (high) — reports CHECK制約+type列追加
+- ⏳ subtask_1516a → 足軽4号: 完了・軍師QC待ち
+
+### cmd_1509 (high) — tono_clip1/clip2 漫画パネル化
+- ✅ subtask_1509a2 → 足軽1号: panels_tono_clip1.json (7パネル) 完了
+- 🔄 subtask_1509b2 → 足軽3号: panels_tono_clip2.json (実行中)
+- 📌 Phase2 は殿レビュー後
+
+### cmd_1510〜1512・1515 チェーン (high) — server.py SQLite完全移行
+- 🔄 subtask_1510a → 足軽1号: server.py SQLite書換 (実行中)
+- ⏸ subtask_1511〜1512・1515a: 1510a待ち
+
+### cmd_1517 (low) — timestamp正規化+INDEX
+- ⏸ subtask_1517a → 足軽4号: 1516a QC後
+
+## 🔄 進行中
+
 ### cmd_1520 (high) — 夜間矛盾検出: 動画制作スクリプト群
 - 🔄 subtask_1520a → 軍師: make_expression_shorts/vertical_convert/make_shorts/Remotion 精読・矛盾列挙 (実行中)
 - 朝までに結果掲載
