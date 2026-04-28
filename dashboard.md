@@ -21,6 +21,25 @@
 - 📌 Phase2 は clip2完了後
 
 ### cmd_1511 (high) — full_yaml_blob カラム3テーブル削除
+- 🔄 subtask_1511a → 足軽7号: cmds.db 3テーブル DROP COLUMN (実行中)
+
+### cmd_1512 (high) — R7 dedup強化 ⚡R7ノイズ解消
+- 🔄 subtask_1512a → 足軽1号: detect_action_required R7 dedup+疑似ID (/clear後着手)
+
+### cmd_1515 (medium) — R3 age閾値段階化 ⚡R3ノイズ解消
+- ⏸ subtask_1515a: 1512a完了待ち (同ファイルRACE-001)
+
+### cmd_1517 (low) — timestamp正規化+INDEX 7本
+- 🔄 subtask_1517a → 足軽4号: 1516a QC PASS → 解放・実行中
+
+## 🔄 進行中
+
+### cmd_1509 (high) — tono_clip1/clip2 漫画パネル化 【最優先・漫画ショート戦略】
+- ✅ subtask_1509a2 → 足軽1号: panels_tono_clip1.json (7パネル) 完了
+- 🔄 subtask_1509b2 → 足軽3号: panels_tono_clip2.json (実行中)
+- 📌 Phase2 は clip2完了後
+
+### cmd_1511 (high) — full_yaml_blob カラム3テーブル削除
 - 🔄 subtask_1511a → 足軽7号: cmds.db 3テーブル DROP COLUMN (1510a完了で解放・実行中)
 
 ### cmd_1512 (high) — R7 dedup強化 ⚡最優先(R7ノイズ解消)
@@ -55,6 +74,30 @@
 - ⏸ subtask_1517a (timestamp+INDEX): 1516a QC PASS後
 
 ## ✅ 本日の完了
+## ✅ 本日の完了
+
+| cmd | 内容 |
+|-----|------|
+| cmd_1516 | ✅ **完遂(18:59・足軽4号・軍師QC PASS)** reports.type/status/qa_decision CHECK制約3点+INDEX+server.py二重validation |
+| cmd_1523 | ✅ **完遂(08:46・足軽5号)** 3層オーディン戦クリップ(6:21) → https://www.youtube.com/watch?v=c0JxfCbNdqU |
+| cmd_1522 | ✅ **完遂(07:39・軍師)** inbox_mark_read YAML/SQLite乖離根因確定。修正cmd3件推奨 |
+| cmd_1521 | ❌ **cancelled** 将軍越権起票→殿「は？」→キャンセル。戦略確定でcmd_1523へ昇華 |
+| cmd_1520 | ✅ **完遂(02:08・軍師)** 夜間監査 動画スクリプト7ファイル22件検出 |
+| cmd_1514 | ✅ **完遂(00:28・足軽4号・軍師QC PASS)** inbox.type CHECK制約14種 |
+| cmd_1513 | ✅ **完遂(00:10・足軽4号・軍師QC PASS)** agents テーブル13行新設+SQLite malformed副次復旧 |
+| cmd_1519 | ✅ **完遂(23:25・足軽6号・軍師QC PASS)** GCnCUAuL0p8 説明欄v2更新 |
+| cmd_1501 | ✅ **完遂(23:37・足軽2号・軍師QC PASS)** faiss index 244MB破損→1.7MB再構築 |
+| cmd_1508 | ✅ **完遂(22:57・軍師)** SQLiteスキーマ監査 8findings・修正cmd 7件 |
+| cmd_1502 | ✅ **完遂(22:45・将軍再起動)** silent_fail_watcher noise分類追加 |
+| cmd_1507 | ✅ **完遂(22:36・足軽4号)** YmExrTL3Ojc 説明欄更新 |
+| cmd_1506 | ✅ **完遂(22:34・足軽1号)** countdown_v2 → GCnCUAuL0p8 アップ |
+| cmd_1505 | ✅ **完遂(22:20・軍師QC)** tono_edit縦長クロップ → YmExrTL3Ojc |
+| cmd_1510 | ✅ **完遂(確認済)** server.py SQLite移行 get_active_cmds/read_yaml_tasks 既実装確認 |
+| cmd_1500 | ✅ **完遂(22:11・軍師QC)** drawtext式バグ修正・正式式採用 |
+| cmd_1504 | ✅ **完遂(21:57・軍師)** dashboard API 設計不整合8点解析 |
+| cmd_1503 | ✅ **完遂(22:06・軍師QC)** Embedding API 404修正 |
+| cmd_1499 | ✅ **殿命done** tono_short_vertical.mp4 → WB-xCyX-9J0 |
+
 ## ✅ 本日の完了
 
 | cmd | 内容 |
