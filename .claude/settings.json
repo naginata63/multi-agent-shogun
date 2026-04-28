@@ -83,6 +83,15 @@
                         "timeout": 5
                     }
                 ]
+            },
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash /home/murakami/multi-agent-shogun/scripts/script_hint_search.sh",
+                        "timeout": 5
+                    }
+                ]
             }
         ],
         "PostToolUse": [

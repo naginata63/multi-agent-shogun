@@ -1,0 +1,26 @@
+# script_hint_aliases.txt — keyword alias mapping for script_hint_search.sh
+# Format: alias_name  search_term1 [search_term2 ...]
+# Lines starting with # are comments. Empty lines are ignored.
+
+vertical_convert video_vertical_crop_upload
+nvenc ffmpeg_nvenc
+countdown countdown_overlay
+demucs stt_pipeline
+transcribe stt_pipeline gemini_video_transcribe
+subtitle stt_pipeline srt
+mix video_compose multi_view_sync
+4view multi_view_sync day6
+broll broll_verify
+telop master_telop_two_stage
+thumbnail thumbnail dozle_thumbnail_generation
+manga manga_panel_gen manga_short_gen panels_check_gen
+panel manga_panel_gen panel_review panels_check
+shorts video_vertical_crop_upload manga_short_gen
+youtube youtube_upload youtube_dashboard
+cost gemini_cost
+batch batch_processing
+intermediate intermediate_artifact
+backup backup_queue_cron backup_secrets_gpg
+clip clip_concat
+expression expression_gen
+semantic doz_semantic_search semantic_search
