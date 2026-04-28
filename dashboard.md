@@ -459,6 +459,49 @@ ForeignKey付きSQLite migration手順をスキル化。承認されたし。
 ## 🔥 進行中
 ## 🔥 進行中
 
+### cmd_1539: bun daemon singleton強制 (2026-04-29 03:02)
+- subtask_1539a: ashigaru7 稼働中
+- subtask_1539b_qc: gunshi blocked(1539a完了後)
+
+### cmd_1540: chroma-mcp監視cron (2026-04-29 03:02)
+- subtask_1540a: ashigaru3 稼働中
+
+### cmd_1538残課題: litestream level=2/3/9完全クリーン (2026-04-29 03:02)
+- subtask_1543a: gunshi 設計完了(33ファイル・13ステップ安全手順書作成)
+- subtask_1543b: ashigaru2 稼働中(実装担当)
+
+### cmd_1525: stuck subtask検知cron
+- スクリプト・cron実装済み(5b8d022)・継続稼働中
+
+## 🔥 進行中
+
+### cmd_1539: bun daemon singleton強制 (2026-04-29 03:00) [high]
+- subtask_1539a: ashigaru7 → hooks.json pgrepガード+HOME統一
+- subtask_1539b_qc: gunshi → QC (blocked・1539a完了後)
+
+### cmd_1540: chroma-mcp監視cron (2026-04-29 03:00)
+- subtask_1540a: ashigaru3 → chroma_mcp_health.sh新設+cron登録
+
+### cmd_1538残課題: litestream level=2/3/9完全クリーン (2026-04-29 03:00)
+- subtask_1543a: gunshi → level=2/3/9残骸分析→クリーン実施
+- 02:55 level=2 compaction failed再発確認済
+
+### cmd_1525: stuck subtask検知cron
+- スクリプト・cron実装済み(5b8d022)・継続監視中
+
+## 🔥 進行中
+
+### 新規起票 cmd_1539-1542 (2026-04-29 02:50)
+- cmd_1539 (high): claude-mem bun daemon singleton強制+HOME統一 → 委任待ち
+- cmd_1540 (medium): chroma-mcp健全性監視cron+ntfy → 委任待ち
+- cmd_1541 (medium): haiku SDK Idle timeout短縮+concurrency縮小 (cmd_1539完了後)
+- cmd_1542 (low): bun daemon systemd user unit化 (長期)
+
+### cmd_1525: stuck subtask検知cron (2026-04-29 02:50)
+- subtask_1525a: ashigaru1で継続稼働中
+
+## 🔥 進行中
+
 ### cmd_1538: litestream二重起動根絶 (2026-04-29 02:25)
 - ✅ 二重起動解消: PID 2621(nohup側)kill済み・PID 2623(systemd --user)のみ稼働中
 - ⚠️ level=2 compaction error継続中 (non-contiguous ltx残骸が原因)
@@ -474,6 +517,26 @@ ForeignKey付きSQLite migration手順をスキル化。承認されたし。
 - subtask_1538b_qc: gunshi → QC (subtask_1538a完了後)
 
 ## ✅ 戦果（完了）
+## ✅ 戦果（完了）
+
+### cmd_1538: litestream二重起動根絶+LTX残骸完全クリーン (2026-04-29 03:22) ✅
+- keepalive.sh exit 0確認済(元commitより正しく実装)・1プロセス稼働
+- LTX level=1: 102d-102d/102d-103b/102e-103b 3件削除
+- LTX level=2/3/9: 計33件削除(軍師13ステップ安全手順書・ashigaru2実施)
+- QC PASS: 14分以降ERROR 0・systemctl active・tar.gz保護
+- 残懸念: @rebootレース→別cmd推奨・tar 1週間後削除推奨
+
+### cmd_1540: chroma-mcp健全性監視cron (2026-04-29 03:22) ✅
+- chroma_mcp_health.sh新設・^/home anchor false positive修正済
+- */5 cron登録・ntfy alert動作確認
+
+### cmd_1537: chroma-mcp根因解析 (2026-04-29 03:22) ✅
+- 真因: bun daemon多重起動(pidFile不在+HOME分岐)
+- 推奨cmd 4件提示→cmd_1539-1542起票済
+
+### cmd_1526/1527: dual-path根治 (2026-04-29 03:22) ✅
+- inbox_watcher SQLite化(8c851fb)・指示書化完了
+
 ## ✅ 戦果（完了）
 
 ### cmd_1527: dual-path根治設計指示書化 (2026-04-29 02:32)

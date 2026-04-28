@@ -1,91 +1,4 @@
 tasks:
-- acceptance_criteria:
-  - HnDcGHXKJFQ.mp4 が 1080p h264 で配置済み (ffprobe確認)
-  - source.json が同階層に存在 (url/title/channel/codec/duration記載)
-  - HnDcGHXKJFQ.info.json と HnDcGHXKJFQ.ja.srt (または.vtt) が同階層に存在
-  - ntfy通知送信済み
-  - shogunへ次工程確認inbox送信済み・karoへ完了報告inbox送信済み
-  agent: ashigaru3
-  bloom_level: L1
-  description: 'cmd_1497: ドズル社本家新着動画 HnDcGHXKJFQ を1080p h264でDL・source.json作成・ntfy通知・殿へ次工程確認。'
-  notes:
-  - 'AV1禁止: -f "bv*[vcodec*=avc1]+ba" で h264強制必須 (-S vcodec:h264 だけだとAV1選択される)'
-  - '配置先: projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/'
-  - 本家動画なのでメンバー視点サブファイル不要
-  - shogunへのinboxはshogunに届く経路を使え (POST /api/inbox_write to:shogun)
-  parent_cmd: cmd_1497
-  status: done
-  steps: '①作業ディレクトリ作成: mkdir -p /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】
-    && cd そこ → ②yt-dlp h264強制DL(memory/feedback_yt_dlp_h264_force.md準拠): yt-dlp -f
-    "bv*[vcodec*=avc1]+ba/b[vcodec*=avc1]" --merge-output-format mp4 --write-info-json
-    --write-subs --sub-lang ja -o "%(id)s.%(ext)s" "https://youtu.be/HnDcGHXKJFQ"
-    → ③ffprobe で codec_name=h264 / resolution=1920x1080 確認 → ④source.json作成(url/title/channel/codec/duration/downloaded_at)
-    → ⑤bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "✅ DL完了: 86万トンダム HnDcGHXKJFQ
-    (1080p h264)" → ⑥完了報告YAML生成(queue/reports/ashigaru3_report_subtask_1497a.yaml)
-    → ⑦POST /api/inbox_write to:shogun msg:"cmd_1497完了。DL完了 HnDcGHXKJFQ 1080p h264。次工程(video_pipeline継続
-    or DLのみ)を御指示されたし。" → ⑧POST /api/inbox_write to:karo type:report_received 完了報告'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/HnDcGHXKJFQ.mp4
-  task_id: subtask_1497a
-  timestamp: '2026-04-27T20:58:48.855745+09:00'
-- acceptance_criteria:
-  - tono_short_vertical.mp4 がYouTube非公開アップ済み・URL取得済み
-  - タイトルは元動画タイトル流用(勝手に考案しない)
-  - privacy=private・defaultLanguage=ja設定済み
-  - ntfy通知送信済み(URL含む)
-  - 家老にURL報告inbox送信済み
-  agent: ashigaru3
-  bloom_level: L2
-  description: 'cmd_1499: tono_short_vertical.mp4 (変換済)をYouTube非公開アップ。タイトル=元動画タイトル流用・説明欄最小限・privacy=private・ntfy報告。'
-  notes:
-  - 勝手にタイトル考案禁止・元動画タイトルかファイル名をそのまま使え
-  - 'defaultLanguage=ja 必須(MEMORY: YouTube オートダビング音声破壊罠回避)'
-  - 既存YouTubeアップローダースクリプトを使え・新規スクリプト作成禁止
-  - 説明欄の確認は不要・最小限でよい
-  parent_cmd: cmd_1499
-  status: done
-  steps: '①動画確認: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_short_vertical.mp4
-    が存在すること → ②YouTubeアップロード: ls scripts/ で既存アップローダー確認 (youtube_uploader.py等) → タイトル=元動画タイトル流用(86万トンの超巨大なダムを掘るまで終われません！【マイクラ】
-    またはファイル名から判断)・説明欄=切り抜きチャンネル標準最小限+元動画リンク・privacy=private・defaultLanguage=ja(オートダビング罠回避MEMORY参照)
-    → ③URL取得 → ④bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "🎬 YouTube非公開アップ:
-    86万トンダム縦長 {URL}" → ⑤完了報告YAML(queue/reports/ashigaru3_report_subtask_1499b.yaml)
-    → ⑥POST /api/inbox_write to:karo type:report_received URL報告'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_short_vertical.mp4
-  task_id: subtask_1499b
-  timestamp: '2026-04-27T21:42:22.601390+09:00'
-- acceptance_criteria:
-  - tono_edit_vertical.mp4 が crop=1080:1918:1166:0,pad=1080:1920:0:1 で生成・bitrate 1Mbps以上
-  - 旧 WB-xCyX-9J0 がYouTubeから削除済
-  - 新URLでYouTube非公開アップ完了
-  - ntfy通知
-  agent: ashigaru3
-  bloom_level: L2
-  description: 'cmd_1505: tono_edit.mkv を ffmpeg crop+pad で1080x1920生成→旧WB-xCyX-9J0削除→新規YouTube非公開アップ。procedures/video_vertical_crop_upload.md
-    準拠'
-  parent_cmd: cmd_1505
-  status: done
-  steps: '手順書: shared_context/procedures/video_vertical_crop_upload.md 参照。1) ffprobe
-    でINPUT確認(3412x1918) 2) ffmpeg crop=1080:1918:1166:0,pad=1080:1920:0:1 で tono_edit_vertical.mp4
-    生成(h264_nvenc必須・b:v 8M) 3) ffprobe でbitrate確認(1Mbps以上必須) 4) youtube_uploader.py
-    delete WB-xCyX-9J0 で旧動画削除 5) youtube_uploader.py upload tono_edit_vertical.mp4
-    --title 86万トンの超巨大なダムを掘るまで終われません！【マイクラ】 --privacy private 6) karoにURL報告'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_edit_vertical.mp4
-  task_id: subtask_1505a
-  timestamp: '2026-04-27T22:14:22.020367+09:00'
-- agent: ashigaru3
-  task_id: subtask_1505b
-  parent_cmd: cmd_1505
-  status: done
-  bloom_level: L1
-  description: 'cmd_1505後処理: tono_short_vertical.mp4 (vertical_convert.py誤物・2.1MB)
-    を _ng リネーム'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_short_vertical_ng.mp4
-  steps: mv /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_short_vertical.mp4
-    /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_short_vertical_ng.mp4
-    → karoへ完了報告inbox
-  acceptance_criteria:
-  - tono_short_vertical_ng.mp4 が存在すること
-  - tono_short_vertical.mp4 が存在しないこと
-  timestamp: '2026-04-27T22:24:06.000737+09:00'
 - agent: ashigaru3
   task_id: subtask_1509b
   parent_cmd: cmd_1509
@@ -113,27 +26,35 @@ tasks:
   - clip2は12.5MBゆえ解析に時間がかかる可能性あり
   timestamp: '2026-04-27T22:54:44.820729+09:00'
 - agent: ashigaru3
-  task_id: subtask_1509b2
-  parent_cmd: cmd_1509
-  redo_of: subtask_1509b
-  status: assigned
+  task_id: subtask_1540a
+  status: done
+  parent_cmd: cmd_1540
   bloom_level: L3
-  description: 'cmd_1509 Phase1 (訂正版): tono_clip2.mp4 → generate_panel_candidates.py
-    で panels JSON 全自動生成'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/panels_tono_clip2.json
-  steps: '1) source config/vertex_api_key.env 2) python3 projects/dozle_kirinuki/scripts/generate_panel_candidates.py
-    --clip ''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_clip2.mp4''
-    --scene ''tono_clip2'' --title ''86万トンダム掘り切り抜き'' --output ''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/panels_tono_clip2.json''
-    3) cat 出力で panels JSON 確認 4) bash scripts/ntfy.sh ''📋 clip2 panels JSON 生成完了:
-    panels_tono_clip2.json'' 5) inbox_write karo panels_tono_clip2.json のパスを報告'
-  acceptance_criteria:
-  - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/panels_tono_clip2.json
-    が存在・panels配列あり
-  - ntfy通知送信済み
-  - karoへ完了報告済み
-  notes:
-  - '主役: generate_panel_candidates.py (panel_review_gen.py ではない・訂正版)'
-  - source config/vertex_api_key.env 必須 (VERTEX_API_KEY)
-  - clip2は12.5MBゆえ解析に時間がかかる可能性あり
-  - 'redo_of: subtask_1509b (panel_review_gen.py 誤用版)'
-  timestamp: '2026-04-27T22:59:44.155377+09:00'
+  description: 'cmd_1540: chroma-mcp健全性監視cron+ntfy alert新設'
+  target_path: /home/murakami/multi-agent-shogun/scripts/chroma_mcp_health.sh
+  steps:
+  - '1. scripts/chroma_mcp_health.sh 新規作成: pgrep -fc chroma-mcp でカウント→2以上ならntfy通知'
+  - 2. chmod +x scripts/chroma_mcp_health.sh
+  - 3. crontab に */5 * * * * で登録
+  - 4. shared_context/cron_inventory.md にエントリ追加(ファイル存在する場合)
+  - 5. bash scripts/chroma_mcp_health.sh を手動実行→エラーなし確認
+  - 6. git add scripts/chroma_mcp_health.sh && git commit
+  - 7. karoにinbox_write(type:report_received)で完了報告
+  timestamp: '2026-04-29T02:58:05.994724+09:00'
+- agent: ashigaru3
+  task_id: subtask_1540b
+  status: done
+  parent_cmd: cmd_1540
+  bloom_level: L3
+  description: 'cmd_1540: chroma_mcp_health.sh 検出ロジック修正（false positive排除）'
+  target_path: /home/murakami/multi-agent-shogun/scripts/chroma_mcp_health.sh
+  steps:
+  - 1. Read scripts/chroma_mcp_health.sh → 現在の検出ロジック確認
+  - 2. pgrep -fc uvx.*chroma-mcp でuvx wrapper数(UVX_COUNT)を取得
+  - 3. pgrep -fc chroma-mcp でtotal数(TOTAL_COUNT)を取得
+  - '4. 判定: UVX_COUNT>=2 OR TOTAL_COUNT>=5 の場合のみntfy alert'
+  - 5. 正常状態(uvx=1, python=1の計2個)ではalertしないことをpgrepコマンドで確認
+  - 6. bash scripts/chroma_mcp_health.sh で手動実行→false positive出ないことを確認
+  - 7. git add scripts/chroma_mcp_health.sh && git commit
+  - 8. karoにinbox_write(type:report_received)で完了報告
+  timestamp: '2026-04-29T03:08:25.852846+09:00'

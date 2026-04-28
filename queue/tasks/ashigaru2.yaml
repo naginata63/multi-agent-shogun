@@ -31,37 +31,9 @@ tasks:
   - advisor()必須(作業前・完了前)
   - '完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi ''足軽2号、subtask_1467a完了(Day6サムネ3案+final確定)。QC依頼。''
     report_completed ashigaru2'
-- task_id: subtask_1526a
-  agent: ashigaru2
-  parent_cmd: cmd_1526
-  bloom_level: L3
-  status: done
-  priority: high
-  description: 'cmd_1526: inbox_watcher.sh を SQLite SELECT 経由に切替 + lib/agent_status.sh
-    SQLite統一 + 動作検証'
-  target_path: /home/murakami/multi-agent-shogun/scripts/inbox_watcher.sh
-  steps: '1) scripts/inbox_watcher.sh を読み: YAML直読み箇所(unread件数取得・read判定)をSQLite SELECT
-    に変更: sqlite3 queue/cmds.db "SELECT COUNT(*) FROM inbox_messages WHERE agent=?
-    AND read=0" 2) lib/agent_status.sh のYAML参照箇所をSQLite経由に変更 (grep -n yaml lib/agent_status.sh
-    で箇所特定) 3) 変更前後のdiff確認 4) テスト: 任意agentのinboxにPOST /api/inbox_write → POST /api/inbox_mark_read
-    → watcher件数0判定確認 5) 全9agent watcher再起動 (pkillで古いプロセス停止→新プロセス起動) 6) git add scripts/inbox_watcher.sh
-    lib/agent_status.sh && git commit 7) ntfy通知 8) inbox_write karo 完了報告'
-  acceptance_criteria:
-  - inbox_watcher.sh がYAML直読みではなくSQLite SELECT で未読件数を判定
-  - POST /api/inbox_mark_read 後にwatcherが即座に件数=0と認識
-  - 全agentで動作確認済み
-  - git commit済み
-  - karo inbox nudgeループが解消
-  notes:
-  - git_safety.md 5+ファイル修正時のプロトコル遵守
-  - STORAGE_BACKEND=yaml のkill-switchは残す
-  - '変更対象: scripts/inbox_watcher.sh, lib/agent_status.sh (他ファイルは変更最小限)'
-  - 'watcher再起動コマンド例: pkill -f inbox_watcher.sh; bash scripts/start_watchers.sh (or
-    各agent個別起動)'
-  timestamp: '2026-04-28T21:06:30.956070+09:00'
 - agent: ashigaru2
   task_id: subtask_1538a
-  status: assigned
+  status: done
   parent_cmd: cmd_1538
   bloom_level: L2
   description: 'cmd_1538: litestream_keepalive.sh バグ修正 + ltx残骸整理 + 5分間ERRORなし確認'
@@ -78,3 +50,25 @@ tasks:
     2621(nohup側)のkillは殿/将軍がpaneで実行予定。ltx残骸(/home/murakami/litestream-replica/cmds/ltx/配下のnon-contiguous
     ltx)はlitestream stop後にrm推奨だが、kill後にlitestreamが自動回復するか観察してから判断すること。'
   timestamp: '2026-04-29T02:24:05.880464+09:00'
+- agent: ashigaru2
+  task_id: subtask_1543b
+  status: done
+  parent_cmd: cmd_1538
+  bloom_level: L4
+  description: 'cmd_1538残課題: litestream level=2/3/9残骸33ファイル完全クリーン（軍師設計書通り実施）'
+  target_path: /home/murakami/litestream-replica/cmds/ltx/
+  steps:
+  - 1. Read queue/reports/gunshi_design_ltx_cleanup_1543.yaml → 設計書の13ステップを確認
+  - 2. advisor()呼び出し（実施前に方針確認）
+  - '3. 設計書Step1: ntfyで殿に削除候補33件を事前報告'
+  - '4. 設計書Step2-3: systemctl --user stop litestream → プロセス0確認'
+  - '5. 設計書Step4: tar.gzで全ltxバックアップ（サイズ確認必須）'
+  - '6. 設計書Step5: realpath二重確認（/mnt/c等に解決しないことを確認）'
+  - '7. 設計書Step6: rm -f ltx/2/*.ltx ltx/3/*.ltx ltx/9/*.ltx'
+  - '8. 設計書Step7: 削除後確認（各ディレクトリ0ファイル）'
+  - '9. 設計書Step8-9: systemctl --user start → active(running)確認'
+  - '10. 設計書Step10-11: 10分待機後 tail logs/litestream.log でERROR 0件確認'
+  - '11. 設計書Step12: ntfy完了通知'
+  - '12. 設計書Step13: karoにinbox_write(type:report_received)で報告'
+  notes: 軍師設計書(queue/reports/gunshi_design_ltx_cleanup_1543.yaml)を必ず先にReadすること。独自判断で改変禁止。rollback手順も設計書に記載済み。
+  timestamp: '2026-04-29T03:02:01.810284+09:00'

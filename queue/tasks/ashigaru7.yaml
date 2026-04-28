@@ -1,1 +1,19 @@
-tasks: []
+tasks:
+- agent: ashigaru7
+  bloom_level: L4
+  description: 'cmd_1539: hooks.jsonにpgrepガード追加+HOME統一でbun daemon singleton強制'
+  parent_cmd: cmd_1539
+  status: in_progress
+  steps:
+  - 1. advisor()を呼び出して方針確認
+  - 2. Read hooks.json → SessionStart hookを特定
+  - 3. SessionStart commandの先頭にpgrepガード(pgrep -f worker-service.cjs --daemon >/dev/null
+    && exit 0)を追加
+  - 4. HOME=/home/murakami をSessionStart hookのcommandに追加
+  - 5. ~/.claude-mem/worker.pid の存在確認
+  - '6. テスト: pgrep -fc worker-service.cjs が1であること確認'
+  - 7. git add hooks.json && git commit
+  - 8. gunshiにQC依頼(subtask_1539b_qcとしてkaroが起票)
+  target_path: /home/murakami/.claude/plugins/cache/thedotmack/claude-mem/10.6.3/hooks/hooks.json
+  task_id: subtask_1539a
+  timestamp: '2026-04-29T02:57:57.639356+09:00'
