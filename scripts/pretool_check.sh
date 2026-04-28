@@ -642,6 +642,43 @@ PYEOF_CK8
   fi
 fi
 
+# ── チェック10: curl JSON 直書き BLOCK (cmd_1546) ──
+# cmd_create / inbox_write 等のAPI投入で JSON を直接 -d '{...}' するのを禁止。
+# ペイロードは queue/cmd_payloads/ にファイル保存し、curl --data @path で投入せよ。
+# 例外: inbox_write の短文メッセージ (文字数 ≤200) は許可。
+if [[ "$TOOL_NAME" == "Bash" ]]; then
+  if echo "$COMMAND" | grep -qE 'curl.*(-d|--data|--data-raw|--data-binary)\s+['\''"]?\{'; then
+    # 例外判定: @ファイル参照 は許可
+    if ! echo "$COMMAND" | grep -qE 'curl.*(-d|--data|--data-raw|--data-binary)\s+@'; then
+      # 例外判定: inbox_write の短文 (message値が200文字以下) は許可
+      _CK10_IS_SHORT=$(echo "$COMMAND" | python3 -c "
+import sys, re, json
+cmd = sys.stdin.read()
+# JSON文字列を抽出 (シングル/ダブルクォート)
+m = re.search(r\"(-d|--data|--data-raw|--data-binary)\\s+['\\\"]?(\\{.+})['\\\"]?\\s*($|;|&|\\|)\", cmd, re.DOTALL)
+if m:
+    try:
+        d = json.loads(m.group(2))
+        msg = d.get('message', '')
+        if len(msg) <= 200:
+            print('short')
+        else:
+            print('long')
+    except Exception:
+        print('unknown')
+else:
+    print('unknown')
+" 2>/dev/null || echo "unknown")
+      if [[ "$_CK10_IS_SHORT" != "short" ]]; then
+        echo "BLOCKED: curl API投入でJSON直書きは禁止 (cmd_1546 CHK10)" >&2
+        echo "queue/cmd_payloads/ にペイロードファイルを置き、curl --data @<path> で送れ。" >&2
+        echo "詳細: context/cmd_template.md / queue/cmd_payloads/README.md" >&2
+        exit 2
+      fi
+    fi
+  fi
+fi
+
 # ── チェック9: full_yaml_blob 参照 BLOCK (cmd_1511 再発防止) ──
 # full_yaml_blob は 3テーブルから削除済。再追加・参照を防止する。
 if [ "$TOOL_NAME" = "Write" ] || [ "$TOOL_NAME" = "Edit" ]; then

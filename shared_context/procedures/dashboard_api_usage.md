@@ -66,22 +66,23 @@ curl -s 'http://192.168.2.7:8770/api/cmd_detail?id=cmd_1487' | jq
 # キーワード "inbox" で検索 (id/purpose/lord_original/assigned_to を LIKE)
 curl -s 'http://192.168.2.7:8770/api/cmd_list?q=inbox&limit=5' | jq '.cmds[] | {id,purpose}'
 
-# inbox メッセージ送信 (足軽3号へ)
+# inbox メッセージ送信 (短文は直書きOK・200文字以下)
 curl -X POST http://192.168.2.7:8770/api/inbox_write \
   -H 'Content-Type: application/json' \
   -d '{"to":"ashigaru3","from":"karo","type":"task_assigned","message":"subtask_1494a 着手せよ"}'
 
-# 新 cmd 起票 (家老inbox自動通知)
+# 新 cmd 起票: JSON payload ファイル作成 → --data @file で投入 (cmd_1546)
+# 1. payload ファイル作成
+#    (context/cmd_template.md のテンプレートを参照)
+# 2. API投入
 curl -X POST http://192.168.2.7:8770/api/cmd_create \
   -H 'Content-Type: application/json' \
-  -d '{
-    "id":"cmd_1500",
-    "priority":"high",
-    "purpose":"...",
-    "lord_original":"殿の発言原文",
-    "notify_karo":true
-  }'
+  --data @queue/cmd_payloads/cmd_XXXX.json
 ```
+
+**注意**: `cmd_create` での JSON 直書き (`-d '{...}'`) は pretool_check.sh CHK10 で BLOCK される。
+`queue/cmd_payloads/` にファイル保存 → `--data @<path>` で投入せよ。
+inbox_write の短文 (200文字以下) は直書き許可。
 
 ## YAML 直読みからの移行ポリシー
 
