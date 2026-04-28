@@ -411,62 +411,6 @@ commands:
   - reports.type/status/qa_decision に CHECK 制約
   - 既存 row の type を worker_id プレフィックスから推論して埋める
   notify_karo: true
-- id: cmd_1517
-  status: done
-  priority: low
-  purpose: timestamp 正規化 + INDEX 7本一括追加 + action_required first_seen記録 (cmd_1508 F6/F7
-    + cmd_1504 F6解消)
-  timestamp: '2026-04-27T23:01:45+09:00'
-  project: multi-agent-shogun
-  lord_original: A (cmd_1504+1508 軍師推奨統合8件起票)
-  command: '## 操作 (3群 1cmd・LOW 統合)
-
-
-    ### A. timestamp 正規化 (cmd_1508 F6)
-
-    1. audit: SELECT COUNT(*) WHERE timestamp != issued_at FROM commands → 0件確認
-
-    2. ALTER TABLE commands DROP COLUMN issued_at / revised_at
-
-    3. started_at/completed_at/cancelled_at は audit_log の status 変化記録から再生する view 提供
-
-    4. tasks も同方針
-
-
-    ### B. INDEX 7本一括追加 (cmd_1508 F7)
-
-    1. CREATE INDEX idx_inbox_from ON inbox_messages(from_agent)
-
-    2. CREATE INDEX idx_inbox_type ON inbox_messages(type)
-
-    3. CREATE INDEX idx_inbox_agent_type_read ON inbox_messages(agent, type, read)
-
-    4. CREATE INDEX idx_cmd_completed ON commands(completed_at DESC)
-
-    5. CREATE INDEX idx_task_completed ON tasks(completed_at DESC)
-
-    6. CREATE INDEX idx_task_report_to ON tasks(report_to)
-
-    7. CREATE INDEX idx_report_qa ON reports(qa_decision)
-
-
-    ### C. action_required first_seen 記録 (cmd_1504 F6)
-
-    1. queue/.flags/action_required_history.json 新設
-
-    2. item_key=sha1(rule+cmd_id+title[:50])[:12]
-
-    3. detect_action_required 末尾で各 item に first_seen_at merge
-
-    4. dashboard UI で「R7 cmd_1496 (3時間前から)」表示
-
-
-    rationale: LOW 3件統合・スケール時の遅延予防 + 殿が要対応の経過時間で優先判断可'
-  acceptance_criteria:
-  - timestamp 正規化済 (issued_at/revised_at 削除)
-  - INDEX 7本追加済
-  - action_required に first_seen_at 表示
-  notify_karo: true
 - id: cmd_1518
   status: pending
   priority: high
@@ -515,37 +459,6 @@ commands:
     \ との衝突回避: 既存進行中cmdとの整理\n- 既存 GCnCUAuL0p8 を削除して別動画上げ直すか、update で済ますか家老確認"
   acceptance_criteria:
   - 殿に意図確認後、適切な範囲で作り直し完了
-  - ntfy通知
-  notify_karo: true
-- id: cmd_1522
-  status: done
-  priority: high
-  purpose: POST /api/inbox_mark_read が YAML 側を更新せず SQLite/YAML 乖離する dual-path バグの軍師解析+修正方針
-  timestamp: '2026-04-28T07:34:21+09:00'
-  project: multi-agent-shogun
-  lord_original: 事象を軍師に投げて修正させよ
-  command: "## 殿原文\n\n「事象を軍師に投げて修正させよ」\n\n## 事象 (将軍観測 2026-04-28 07:30〜07:33)\n\n\
-    1. 将軍が `POST /api/inbox_mark_read` で複数回既読化処理\n2. SQLite 側 (curl /api/inbox_messages?agent=shogun&unread=1)\
-    \ では未読 0件\n3. **しかし queue/inbox/shogun.yaml には 7件 ntfy_received 残置・全 read:false**\n\
-    4. inbox_watcher_shogun.log が YAML 監視ゆえ「7 unread for shogun」検知 → 将軍 pane に「inbox7」\
-    \ keystroke 送信\n5. 殿が将軍 chat で「inbox7」を見て「なぜ7?」と問う\n6. 将軍が手動で YAML 直書きで read:true\
-    \ 更新 → escalation reset 確認\n\n## 推定根因\n\n- POST /api/inbox_mark_read (server.py\
-    \ エンドポイント) が SQLite UPDATE のみ実装・YAML 側書き換えなし\n- inbox_watcher.sh は YAML を監視 (inotifywait\
-    \ + read 集計) ゆえ YAML 既読が反映されないと keystroke 飛ばし続ける\n- cmd_1488 dual-path 移行で書込側は\
-    \ YAML+SQLite 両系へ実装されたが、**既読化 (mark_read) が SQLite単独実装**で残った\n- cmd_1504 F2 /\
-    \ cmd_1508 F3 (軍師指摘) と同根 = read 側 SQLite完全移行 cmd_1510 / agents+tasks テーブル統合 cmd_1513\
-    \ でも mark_read 側は別件\n\n## 担当\n\n**軍師 (gunshi)** 単独。足軽は使わない。\n\n## やること\n\n1. server.py\
-    \ の POST /api/inbox_mark_read 実装箇所 (grep で特定) を読む\n2. SQLite UPDATE と YAML 側書き換えの実装差異を確認\n\
-    3. inbox_watcher.sh の YAML 監視ロジック (read 集計箇所) を読む\n4. 修正方針提示:\n   - (案A) POST\
-    \ /api/inbox_mark_read を YAML+SQLite 両系更新に拡張 (dual-write)\n   - (案B) inbox_watcher\
-    \ を SQLite 直接 SELECT に切替 (YAML 廃止方向・cmd_1510 系統と統一)\n   - (案C) POST /api/inbox_mark_read\
-    \ 後に YAML 側を sync する trigger / 定期 cron\n5. queue/reports/gunshi_inbox_mark_read_dual_path_1522.yaml\
-    \ に解析結果保存\n\n## 完了条件\n\n1. queue/reports/gunshi_inbox_mark_read_dual_path_1522.yaml\
-    \ 存在・根因+修正方針記載\n2. 推奨cmd 1-3件 (具体的なコード箇所/関数/ALTER)\n3. ntfy通知\n\n## 注意\n\n軍師は実装しない\
-    \ (推奨のみ)・実装は別cmdで殿確認後"
-  acceptance_criteria:
-  - queue/reports/gunshi_inbox_mark_read_dual_path_1522.yaml に根因+修正方針記載
-  - 推奨cmd 1-3件 (具体的コード箇所/関数)
   - ntfy通知
   notify_karo: true
 - id: cmd_1523
@@ -603,196 +516,614 @@ commands:
   - day2_3sou_final_clip_6min.mp4 が生成済み (ffprobe で ≥6分)
   - YouTube 非公開アップ完了・URL報告済み
   - ntfy通知送信済み
-- id: cmd_1525
+- id: cmd_1539
   status: done
   priority: high
-  purpose: stuck subtask 検知 → 家老通達 (agent 長時間放置の自動検出)
-  timestamp: '2026-04-28T20:27:33+09:00'
+  purpose: claude-mem bun worker daemon 多重起動防止 + HOME 統一 (cmd_1537 軍師推奨 F1+F2+F3)
+  timestamp: '2026-04-29T02:47:43+09:00'
+  lord_original: 軍師解析完了・daemon singleton強制+HOME統一を本日中に実施せよ (cmd_1537 推奨#1)
   project: multi-agent-shogun
-  lord_original: うごいていないの検知したら家老に通達でいいんじゃないの
-  command: "## 殿原文\n\n「動いていないの検知したら家老に通達でいいんじゃないの」\n\n## 背景 (今回の事案)\n\n足軽3号 subtask_1509b2\
-    \ (cmd_1509 漫画パネル化) が **2026-04-27 22:59 にアサインされたまま約20時間放置**された。理由: GLM API 429\
-    \ で claude code 異常終了 → Stop hook 不発 → idle flag 作成されず → inbox_watcher が busy 誤判定\
-    \ → 起こさず。\n\n## やること\n\n1. **検知スクリプト**: `scripts/stuck_subtask_check.sh` 新規\n\
-    \   - SQLite tasks テーブルから `status='assigned'` で **30分以上経過** したタスクを抽出\n   - dedup\
-    \ (同 task_id を 1時間以内に通知済なら skip)\n2. **cron 登録**: `*/5 * * * * /home/murakami/multi-agent-shogun/scripts/stuck_subtask_check.sh`\n\
-    3. **家老通達**: 検出したら `POST /api/inbox_write to:karo` で「subtask_XXX が agent_N で N分放置・確認要」通達\n\
-    \   - 家老が判断 (再アサイン / wake-up / done化 / cancel) して対応\n\n## 完了条件\n\n1. scripts/stuck_subtask_check.sh\
-    \ 新規作成済 (実行可能)\n2. cron 登録済 (`crontab -l` で確認可能)\n3. dedup 機構動作 (同 task が 1時間以内に複数通達されない)\n\
-    4. テスト: 適当な subtask で動作確認 (家老 inbox に通達届くか)\n5. ntfy通知\n\n## 注意\n\n- 閾値 30分 はデフォルト・検証後調整可\n\
-    - 復旧判断は家老責務 (本cmd は検知+通達のみ)\n- agent状態判定 (pane idle/busy) は family 内で家老が pane\
-    \ 見て判断\n- 既存 cron に追加・他 cron に影響しないこと"
-  acceptance_criteria:
-  - scripts/stuck_subtask_check.sh 新規・実行可能
-  - cron */5 * * * * 登録済
-  - dedup 動作 (1時間以内同 task 重複通達なし)
-  - 家老 inbox に通達届くテスト確認
   notify_karo: true
-- id: cmd_1526
+  command_text: "## 背景\n\ncmd_1537 軍師解析: bun worker daemon の多重起動 (pidFile不在+HOME分岐)\
+    \ が chroma-mcp 6.7GB消費の真因。\n\n## やること\n\n1. **F1: pgrep ガード追加** → hooks.json SessionStart\
+    \ コマンドの先頭に:\n   ```\n   pgrep -f \"worker-service.cjs --daemon\" >/dev/null &&\
+    \ exit 0\n   ```\n   または smart-install.js 冒頭に同等ガードを差し込む\n\n2. **F2: HOME 統一 envwrap**\
+    \ → hooks.json の SessionStart hook の command 先頭に `HOME=/home/murakami` を export。GLM\
+    \ 足軽が起動した場合でも worker-service は主軸 HOME 配下で動作する\n\n3. **F3: worker.pid 強制書込確認**\
+    \ → ~/.claude-mem/worker.pid が daemon 起動中は存在するか確認。なければ書込処理を追加\n\n## 対象ファイル\n\n\
+    - ~/.claude/plugins/cache/thedotmack/claude-mem/10.6.3/hooks/hooks.json\n- ~/.claude/plugins/cache/thedotmack/claude-mem/10.6.3/scripts/smart-install.js\
+    \ (必要時)\n\n## 完了条件\n\n1. pgrep -fc worker-service.cjs == 1 が常時成立\n2. 全エージェントを\
+    \ /clear 連打 (5回) しても bun daemon が 1個のみ\n3. ~/.claude-mem/worker.pid が daemon 起動中は存在する\n\
+    4. git commit\n\n## 注意\n\n- hooks.json は 3rd party plugin ファイル。patch は外側 hook\
+    \ (pgrep ガード) のみで済ませる方が保守的\n- worker-service.cjs は minified bundle のため直接編集しない\n\
+    - 軍師QC必須"
+  acceptance_criteria:
+  - pgrep -fc worker-service.cjs == 1 が常時成立
+  - 全エージェント /clear 連打 5回後も bun daemon 1個のみ
+  - ~/.claude-mem/worker.pid が daemon 起動中は存在する
+  - git commit
+  - 軍師QC PASS
+- id: cmd_1540
   status: done
-  priority: high
-  purpose: inbox_watcher を SQLite 経由に切替・YAML/SQLite dual-path 不整合の根治 (cmd_1522 軍師推奨#1
-    実装)
-  timestamp: '2026-04-28T21:02:41+09:00'
+  priority: medium
+  purpose: chroma-mcp / haiku SDK 健全性監視 cron + ntfy alert 新設 (cmd_1537 軍師推奨 F6)
+  timestamp: '2026-04-29T02:47:54+09:00'
+  lord_original: 軍師解析完了・監視cron+ntfy alertを実施せよ (cmd_1537 推奨#2)
   project: multi-agent-shogun
-  lord_original: する (cmd_1522 軍師推奨実装)
-  command: '## 殿原文
+  notify_karo: true
+  command_text: "## やること\n\n1. scripts/chroma_mcp_health.sh 新規作成:\n   ```bash\n  \
+    \ count=$(pgrep -fc \"chroma-mcp --client-type\")\n   (( count > 1 )) && bash\
+    \ scripts/ntfy.sh \"chroma-mcp 多重検知: ${count} 個\"\n   ```\n2. crontab に 5分毎登録\n\
+    3. shared_context/cron_inventory.md にエントリ追加\n\n## 完了条件\n\n1. scripts/chroma_mcp_health.sh\
+    \ 存在かつ実行可能\n2. crontab -l に 5分毎エントリあり\n3. shared_context/cron_inventory.md に記載\n\
+    4. git commit"
+  acceptance_criteria:
+  - scripts/chroma_mcp_health.sh 存在かつ実行可能
+  - crontab -l に */5 * * * * chroma_mcp_health.sh エントリあり
+  - shared_context/cron_inventory.md に記載済み
+  - git commit
+- id: cmd_1541
+  status: done
+  priority: medium
+  purpose: haiku SDK subprocess Idle timeout短縮 + MAX_CONCURRENT_AGENTS縮小 (cmd_1537
+    軍師推奨 F4+F5)
+  timestamp: '2026-04-29T02:48:01+09:00'
+  lord_original: 軍師解析完了・Idle timeout短縮+concurrency縮小を実施せよ (cmd_1537 推奨#3)
+  project: multi-agent-shogun
+  notify_karo: true
+  command_text: '## 前提
 
 
-    「する」 = cmd_1522 軍師推奨「watcher を SQLite 直接 SELECT 切替」を実装
-
-
-    ## 背景
-
-
-    本セッション中に複数回顕在化:
-
-    - 将軍 inbox: shogun.yaml に 7件累積・SQLite では 0件 → 「inboxN」が累積インクリメント
-
-    - 家老 inbox: karo.yaml に 1件残置・SQLite では 0件 → inbox_watcher_karo が 11秒毎に永遠に起こし続け
-
-    - 同根: `POST /api/inbox_mark_read` が SQLite だけ更新・YAML 放置
-
-
-    ## 軍師推奨 (cmd_1522 推奨B 採用)
-
-
-    queue/reports/gunshi_inbox_mark_read_dual_path_1522.yaml 参照:
-
-    - (案B) inbox_watcher を SQLite 直接 SELECT に切替 (YAML 廃止方向・cmd_1510 系統と統一)
+    cmd_1539 完了後に実施すること (depends_on: cmd_1539)。
 
 
     ## やること
 
 
-    1. **inbox_watcher.sh** の未読件数取得を YAML 直読みから `SELECT COUNT(*) FROM inbox_messages
-    WHERE agent=? AND read=0` に変更
+    1. ~/.claude-mem/settings.json の CLAUDE_MEM_MAX_CONCURRENT_AGENTS を 10 → 5 に変更
 
-    2. **lib/agent_status.sh** の `agent_is_busy_check` 等で YAML 参照箇所を SQLite に統一 (該当箇所のみ)
-
-    3. inbox_watcher の起動時 unread リカバリも SQLite 経由
-
-    4. YAML 同期は kill-switch (env STORAGE_BACKEND=yaml) のみに残す
-
-    5. 動作検証: 全 agent で `POST /api/inbox_mark_read` 後に watcher が **件数=0 と判定**することを確認
-    (今回事例の karo 11秒 nudge ループが消えるか)
+    2. Idle timeout 設定値を 180s → 60s に変更 (worker-service 内変数 or env 経由)
 
 
     ## 完了条件
 
 
-    1. inbox_watcher.sh + lib/agent_status.sh が SQLite 経由に書換済
+    1. CLAUDE_MEM_MAX_CONCURRENT_AGENTS=5 であること
 
-    2. 全 agent で SQLite 既読化 → watcher 即時件数 0 認識
+    2. Idle timeout が 60s に設定されている
 
-    3. dual-path 不整合 (YAML/SQLite 乖離) の発生時も watcher は SQLite 信用
+    3. 9エージェント /clear 連打後 60s で SDK subprocess が 5以下に収束
 
-    4. テスト: 任意 agent inbox に書込→ mark_read → watcher 件数 0 確認
-
-    5. git commit
-
-
-    ## 担当
-
-
-    家老が判断 (足軽1〜7 のいずれか or 軍師)。inbox_watcher は 9 agent 別プロセスゆえ全プロセス再起動も含む。'
+    4. git commit'
   acceptance_criteria:
-  - inbox_watcher.sh が SQLite 経由で未読件数取得
-  - lib/agent_status.sh の YAML 参照を SQLite に統一
-  - 全 agent で SQLite 既読化後 watcher が即時件数 0 と認識
+  - CLAUDE_MEM_MAX_CONCURRENT_AGENTS=5
+  - Idle timeout設定値 60s に変更済み
+  - git commit
+- id: cmd_1542
+  status: pending
+  priority: low
+  purpose: claude-mem worker daemon の systemd user unit 化 (cmd_1537 軍師推奨 F7・長期)
+  timestamp: '2026-04-29T02:48:10+09:00'
+  lord_original: 軍師解析完了・systemd user unit化を検討せよ (cmd_1537 推奨#4・長期)
+  project: multi-agent-shogun
+  notify_karo: true
+  command_text: '## 前提
+
+
+    cmd_1539/1540/1541 完遂後に実施すること。既存運用との衝突確認必須。
+
+
+    ## やること
+
+
+    1. ~/.config/systemd/user/claude-mem-worker.service 作成 (Type=simple / ExecStart=bun
+    worker-service.cjs --daemon)
+
+    2. systemctl --user enable + start
+
+    3. hooks.json から worker-service start 行を撤去
+
+    4. 再起動後も daemon が自動起動することを確認
+
+
+    ## 完了条件
+
+
+    1. systemctl --user status claude-mem-worker が active(running)
+
+    2. hooks.json から worker-service start 行が撤去されている
+
+    3. 再起動後も daemon が自動起動
+
+    4. git commit'
+  acceptance_criteria:
+  - systemctl --user status claude-mem-worker が active(running)
+  - hooks.json から worker-service start 行が撤去済み
+  - 再起動後も daemon が自動起動
+  - git commit
+- id: cmd_1543
+  status: done
+  priority: medium
+  purpose: litestream_keepalive.sh の再診断 — cmd_1538 で「変更なし・診断のみ」とした判断が正しいか軍師が独立検証
+  timestamp: '2026-04-29T02:58:54+09:00'
+  project: infrastructure
+  lord_original: 再診断　pushはまかせる
+  command_text: "## 殿原文\n\n「再診断 pushはまかせる」\n\n## 背景\n\ncmd_1538 (e47ed51) で家老は keepalive.sh\
+    \ を「元commitより exit 0 配置正しく確認済み(診断のみ・変更なし)」とした。しかし将軍の初期分析では if/then/fi 後に exit\
+    \ 0 が無く systemctl 成功時もフォールスルーで nohup 起動 → 二重起動の根本原因と判断していた。両者の判断が乖離している。\n\n##\
+    \ 検証要点 (軍師担当)\n\n1. **scripts/litestream_keepalive.sh の現行コード読込**:\n   - if 文構造を行レベルで写経\n\
+    \   - systemctl --user start litestream.service が rc=0 を返した場合に nohup litestream\
+    \ が実行されるか/されないか論理確認\n2. **2026-04-29 02:07 の二重起動再現性**:\n   - pid=2621 (PPID=1)\
+    \ と pid=2623 (PPID=2274 systemd-user) が同時起動した経路を時系列で復元\n   - keepalive.sh 起動トリガー\
+    \ (cron / systemd timer / 何) を特定\n   - もし keepalive.sh のロジックが正しいなら、**二重起動の真の原因は別所**\n\
+    3. **代替仮説検証**:\n   - litestream.service の systemd unit 内に複数 ExecStart があるか\n \
+    \  - 過去に手動 nohup 起動した残骸プロセスが居て、systemd unit がそれと別 PID で並走しただけか\n   - .litestream.yml\
+    \ に複数 db 設定があり 1プロセスで複数 db 取り扱う構成だが何らかで 2 spawn したか\n\n## 完了条件\n\n1. 軍師レポート (queue/reports/gunshi_cmd_1543.yaml)\
+    \ で以下のいずれか確定:\n   - (A) keepalive.sh は正常 / 二重起動の真因は別所 → 真因を特定し対処 cmd 推奨\n   -\
+    \ (B) keepalive.sh にバグあり → 具体的修正 patch を提示 → cmd_1544 で実装\n2. ntfy で殿に結論通知\n\n\
+    ## 注意\n\n- **コード変更は軍師は行うな** (診断専門)。修正必要なら別 cmd で家老が足軽に委任\n- 将軍の初期分析を鵜呑みにせず軍師独立判断を優先せよ"
+  acceptance_criteria:
+  - keepalive.sh 現行ロジックの行レベル論理検証完了
+  - 02:07 二重起動の経路を時系列復元
+  - 判断A (正常) or B (バグあり修正要) 明示・根拠付き
+  - ntfy 結論通知
+  notify_karo: true
+- id: cmd_1544
+  status: done
+  priority: medium
+  purpose: gacha2_old_v1 の P2 panel のみ単発再生成 (他 p1/p3-p8 は維持)
+  timestamp: '2026-04-29T07:17:17+09:00'
+  project: dozle_kirinuki
+  lord_original: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/gacha2_old_v1　のP2だけ再生性
+  command_text: "## 殿原文\n\n「/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/gacha2_old_v1　のP2だけ再生性」\n\
+    \n(『再生性』=『再生成』の打ち間違いと解釈)\n\n## 状況\n\n対象ディレクトリ: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/gacha2_old_v1/\n\
+    \n現状ファイル:\n- p1_intro_dam.png ✅\n- **p2 → 無し (生成失敗・欠落)**\n- p3_next_day.png ✅\n\
+    - p4_surprise_same_dam.png ✅\n- p5_dozle_realize.png ✅\n- p6_dam_empty.png ✅\n\
+    - p7_dignity_oji_intro.png ✅\n- p8_dozle_shut_up.png ✅\n- results.json\n\n## 指示\n\
+    \n1. 隣接の panels.json (上位ディレクトリ含む) から p2 の panel 定義を特定\n2. generate_manga_short.py\
+    \ の **panel単発再生成モード** を使い p2 のみ再生成\n   - panels JSON 全体は保護・p2 のみ書き換え\n   - 他 p1/p3-p8\
+    \ は触るな\n3. メモリ参照: ガチャ3回ルール撤廃済 (殿指示通り何回でも再生成可)\n4. ref_images は絶対パス必須 (memory:\
+    \ feedback_panel_refs_absolute.md)\n5. 完了後 results.json を更新・p2 のメタ情報を追記\n6. 殿に\
+    \ panel_review HTML or 直接 PNG リンクで完了通知\n\n## 完了条件\n\n1. p2_*.png (適切なファイル名) が生成・gacha2_old_v1\
+    \ 配下に配置\n2. 他 panel (p1/p3-p8) のサイズ/内容が変更されていないこと (mtime か md5 で確認)\n3. results.json\
+    \ に p2 エントリ追記\n4. ntfy 完了通知\n\n## 注意\n\n- 漫画ショート全体の PNG→動画→YouTube アップは本タスクでは実施するな\
+    \ (panel 差し替えのみ)。動画再合成が必要なら別 cmd で殿が判断する\n- generate_manga_short.py のデフォルト軽量モード\
+    \ (GCS URI) で十分・--full は不要 (memory 既知ナレッジ)"
+  acceptance_criteria:
+  - p2_*.png が gacha2_old_v1 配下に存在
+  - p1/p3-p8 が変更されていないこと
+  - results.json に p2 メタ追記
+  - ntfy 完了通知
+  notify_karo: true
+- id: cmd_1545
+  status: done
+  priority: high
+  purpose: litestream @reboot cron 削除 (race condition 根治・cmd_1543 軍師判断A)
+  timestamp: '2026-04-29T07:27:21+09:00'
+  lord_original: 再診断　pushはまかせる (cmd_1543より引継)
+  project: infrastructure
+  command_text: '## 背景
+
+
+    cmd_1543 軍師診断: crontab @reboot sleep 30 && litestream_keepalive.sh が race condition
+    の真因。litestream.service は systemd で enabled=auto-start 済み → @reboot cron は redundant
+    かつ障害の元凶。
+
+
+    ## やること
+
+
+    1. crontab -l で現在のエントリ確認
+
+    2. @reboot.*litestream_keepalive.sh 行を削除 (*/5 cron と */30 health_check は維持)
+
+    3. crontab -l で削除確認
+
+    4. systemctl --user is-enabled litestream.service → enabled 確認
+
+    5. git add + commit (メッセージ: ''fix(infra): litestream @reboot cron削除・race condition根治
+    (cmd_1545)'')
+
+
+    ## 完了条件
+
+
+    1. crontab -l に @reboot.*litestream_keepalive 行が存在しない
+
+    2. */5 cron と */30 health_check は維持されていること
+
+    3. git commit'
+  acceptance_criteria:
+  - crontab -l に @reboot.*litestream_keepalive 行がない
+  - '*/5 cron維持'
+  - '*/30 health_check維持'
   - git commit
   notify_karo: true
-- id: cmd_1527
-  status: done
+- id: cmd_1546
+  status: pending
   priority: high
-  purpose: dual-path 不整合の根治設計を軍師が全体俯瞰で指示書化 (cmd_1504/1508/1522 個別解析の統合根治)
-  timestamp: '2026-04-28T21:03:43+09:00'
-  project: multi-agent-shogun
-  lord_original: dual-path 不整合の根治　指示　軍師にふれ
-  command: "## 殿原文\n\n「dual-path 不整合の根治・指示・軍師にふれ」\n\n## 背景\n\n本セッションで dual-path 不整合\
-    \ (YAML/SQLite 乖離) が**繰り返し顕在化**:\n- cmd_1504 F2: active_cmds (YAML) vs cmd_list\
-    \ (SQLite) 矛盾\n- cmd_1508 F1: full_yaml_blob 残骸\n- cmd_1508 F3: tasks テーブル既存だが\
-    \ server.py が YAML 直読み\n- cmd_1522: POST /api/inbox_mark_read が SQLite だけ更新・YAML\
-    \ 放置 → inbox_watcher が永遠に起こす\n- shogun.yaml 7件累積・karo.yaml 1件で永続nudge (本セッション実観測)\n\
-    \n個別 cmd で部分的に対処してきたが、**全体俯瞰の根治設計**が未着手。\n\n## 担当\n\n**軍師 (gunshi)** 単独。足軽は使わない。\n\
-    \n## やること\n\n1. cmd_1504/1508/1522 の既存軍師レポート 3件を読み込み (queue/reports/gunshi_*1504*.yaml,\
-    \ *1508*.yaml, *1522*.yaml)\n2. dual-path 関連の全箇所を SQL/コード grep で網羅: read 側 (parse_*/read_*/agent_is_busy_check)\
-    \ + write 側 (POST endpoint + ntfy_listener + inbox_write.sh)\n3. **根治設計指示書**を\
-    \ queue/reports/gunshi_dual_path_root_treatment_1527.yaml に出力:\n   - **A. 全体構造**:\
-    \ write は SQLite 一元 / YAML はバックアップ専用 (廃止方向) / read は SQLite 唯一\n   - **B. 移行ステップ**:\
-    \ 影響範囲ごとにフェーズ分割 (例: Phase1 watcher → Phase2 server.py → Phase3 ntfy_listener →\
-    \ Phase4 YAML 廃止)\n   - **C. 後方互換**: 既存 YAML を kill-switch (env STORAGE_BACKEND=yaml)\
-    \ で保持・移行完了後に廃止\n   - **D. 検証指針**: 各フェーズでの dual-write 整合チェック・cron 1日1回の差分監査\n4.\
-    \ 推奨 cmd 5-10件を提示 (各フェーズ別)\n5. cmd_1526 (watcher SQLite切替) との重複/差分を明示\n\n## 完了条件\n\
-    \n1. queue/reports/gunshi_dual_path_root_treatment_1527.yaml 存在\n2. 既存3レポート統合\
-    \ + 全体俯瞰の根治設計\n3. 移行フェーズ別の推奨cmd 5-10件\n4. ntfy通知\n\n## 注意\n\n- 軍師は実装せず推奨のみ・実装は別\
-    \ cmd で\n- cmd_1526 (watcher SQLite切替) はフェーズ1相当・本cmdで他フェーズも設計\n- 殿の運用 (Subscription\
-    \ only・GLM 足軽併用) を考慮した現実的な移行案"
-  acceptance_criteria:
-  - queue/reports/gunshi_dual_path_root_treatment_1527.yaml に全体根治設計+フェーズ別推奨cmd 5-10件
-  - cmd_1504/1508/1522 既存3レポートとの整合性
-  - ntfy通知
-  notify_karo: true
-- id: cmd_1537
-  status: done
-  priority: high
-  purpose: chroma-mcp プロセス大量並走によるメモリ枯渇事故の根因解析 (殿命)
-  timestamp: '2026-04-28T21:23:55+09:00'
-  project: multi-agent-shogun
-  lord_original: なんでこんなことになった　軍師解析に回せ
-  command: "## 殿原文\n\n「なんでこんなことになった 軍師解析に回せ」\n\n## 事象 (将軍観測 2026-04-28 21:15)\n\n\
-    1. メモリ Used 28GiB/31GiB (90%)・Free 381MiB・Swap 3.4GiB/4GiB (85%)\n2. **chroma-mcp\
-    \ プロセスが 10+ 並走** (各 600-870MB・合計 6.7GB+)\n3. 各 chroma-mcp は `--data-dir /home/murakami/.claude_glm/.claude-mem/chroma`\
-    \ (= GLM 足軽用 HOME) を見ている\n4. claude プロセス全体 208個 (claude -p 8個含む)\n5. 古い chroma-mcp\
-    \ 9個 を将軍が手動 kill して 5GiB 即時解放・危機脱出\n\n## 担当\n\n**軍師 (gunshi)** 単独。足軽は使わない。\n\n\
-    ## やること\n\n1. **chroma-mcp 起動経路の特定**:\n   - claude-mem plugin の hook (~/.claude/plugins/cache/thedotmack/claude-mem/10.6.3/hooks/hooks.json)\
-    \ を読む\n   - chroma-mcp はどのタイミングで起動されるか (SessionStart? PostToolUse?)\n   - GLM\
-    \ 足軽用 HOME (/home/murakami/.claude_glm/) で起動する場合と将軍 HOME で起動する場合の差異\n2. **古い chroma-mcp\
-    \ が解放されない理由**:\n   - /clear 時に親プロセス (claude code) が終了しても chroma-mcp が残置する原因\n\
-    \   - cleanup hook が無いか・あっても不発か\n3. **mcp-server.cjs プロセス重複** (前回観察で 5+件) との関連\n\
-    4. **真因仮説 + 修正方針**:\n   - 単一 chroma-mcp instance 共有 (各 agent で別プロセス起動しない)\n  \
-    \ - cleanup hook で古い chroma-mcp 自動 kill\n   - claude-mem 設定で chroma-mcp の lifetime\
-    \ 制御\n   - GLM 足軽 HOME の chroma data-dir を主軸 HOME と統一\n5. queue/reports/gunshi_chroma_mcp_memory_leak_1537.yaml\
-    \ に解析結果保存\n6. 推奨 cmd 2-5件提示\n\n## 完了条件\n\n1. queue/reports/gunshi_chroma_mcp_memory_leak_1537.yaml\
-    \ 存在\n2. 起動経路+解放されない真因+修正方針記載\n3. 推奨cmd 2-5件\n4. ntfy通知\n\n## 注意\n\n- 軍師は実装せず推奨のみ\n\
-    - chroma-mcp は claude-mem plugin の依存ゆえ無効化は検索機能影響大・慎重に\n- 殿は GLM 足軽 + 主軸 Claude\
-    \ Code 両方稼働ゆえ両系統考慮"
-  acceptance_criteria:
-  - queue/reports/gunshi_chroma_mcp_memory_leak_1537.yaml に根因+修正方針記載
-  - 推奨cmd 2-5件
-  - ntfy通知
-  notify_karo: true
-- id: cmd_1538
-  status: done
-  priority: high
-  purpose: litestream二重起動を解消し compaction error を根絶 (nohup fallback と systemd unit
-    の競合)
-  timestamp: '2026-04-29T02:14:54+09:00'
+  purpose: cmd 起票運用の制度刷新 — テンプレ JSON 化 + queue/cmd_payloads/ 確立 + ベタ打ち BLOCK hook
+  timestamp: '2026-04-29T07:28:23+09:00'
   project: infrastructure
-  lord_original: '🚨 [silent_fail] ERROR litestream.log: time=2026-04-29T02:10:30.045+09:00
-    level=ERROR msg="compaction failed" system=store db=cmds.db level=1 error="write
-    ltx file: rename /home/murakami/litestream-replica/cmds/ltx/1/0000000000001063-00000
-    でてる'
-  command_text: "## 殿原文\n\n「\U0001F6A8 [silent_fail] ERROR litestream.log: ... compaction\
-    \ failed ... でてる」\n\n## 状況分析 (将軍調査済)\n\n- `ps aux | grep litestream` で **2プロセス同時稼働**\
-    \ を確認:\n  - pid=2621 (02:07 起動・nohup fallback)\n  - pid=2623 (02:07 起動・経路不明)\n\
-    - 両プロセスとも同一 config `/home/murakami/.litestream.yml` を参照\n- 両者が `/home/murakami/litestream-replica/cmds/ltx/`\
-    \ の同じ tmp ファイルを rename しようとして衝突\n- ログ: `rename ...ltx.tmp ...ltx: no such file\
-    \ or directory` = 先方が既に rename 済みで src が消えた状態\n- replica sync 自体は txid=1076 まで進捗・**データ損失なし**\n\
-    - 02:02 の cron drift 警告と同根の可能性あり (crontab.snapshot.txt と実 crontab -l 乖離)\n\n##\
-    \ 完了条件\n\n1. litestream プロセスを **1個だけ** に統一 (どちらを残すかは家老判断・systemd unit 復旧が筋)\n\
-    2. `journalctl -u litestream` で systemd unit の故障原因を確認・恒久対策\n3. nohup fallback\
-    \ 起動経路を特定 (シェル history / silent_fail_watcher / cron / hooks / .bashrc 等)\n4. 5分以上\
-    \ ERROR ログ無し・`replica sync` のみ出力されること\n5. crontab drift も併せて解消 (cron_inventory.md\
-    \ と crontab.snapshot.txt 整合)\n6. 軍師QC: `ps aux | grep litestream | wc -l` が 1\
-    \ (grep 自身除く) かつ最新 5分の litestream.log に ERROR 無し\n\n## 注意\n\n- **kill する側を間違えるな**:\
-    \ 残すプロセスを先に決めてから kill\n- データは無事ゆえ焦って `litestream restore` するな (むしろ危険)\n- 2プロセス並走の根本原因\
-    \ (nohup fallback と systemd の二重起動) を絶たねば再発する"
+  lord_original: 'Jsonかすべきじゃないのか？テンプレを
+
+    保存場所は/home/murakami/multi-agent-shogun/queueにつくれ ふぉるだつくって
+
+    あとさっき見た維持直接べたうちをきんずるhookも設計しろ'
+  command_text: "## 殿原文\n\n「Jsonかすべきじゃないのか？テンプレを」\n「保存場所は /home/murakami/multi-agent-shogun/queue\
+    \ につくれ ふぉるだつくって」\n「あとさっき見た維持直接べたうちをきんずるhookも設計しろ」\n\n## 経緯\n\n2026-04-29 早朝、将軍が\
+    \ cmd 起票時 payload を /tmp/cmd_*.json に書いて違反 → 殿激怒。直送 (curl --data-raw '{...}')\
+    \ を回避手段として将軍が提案したが、殿は『直接ベタ打ち』も typo・履歴消失・hook 検査困難ゆえ禁ずると判断。新運用を制度化する。\n\n## 設計要件\n\
+    \n### 1. テンプレ JSON 化\n\n- 対象: `context/cmd_template.md`\n- 現状: YAML 形式テンプレ (将軍が脳内\
+    \ YAML→JSON 変換していた)\n- 改修: **JSON 形式テンプレ + 注釈** で書き直し\n- 既存ルール (殿原文必須・north_star・acceptance_criteria・ガチャ3回ルール撤廃等)\
+    \ は注釈で全保持\n- 連動: `shared_context/procedures/dashboard_api_usage.md` も新運用に合わせ更新\n\
+    - `memory/MEMORY.md` の『cmd雛形必須参照』リンク維持\n\n### 2. queue/cmd_payloads/ 確立\n\n- 既に将軍が\
+    \ mkdir 済 (殿命): `/home/murakami/multi-agent-shogun/queue/cmd_payloads/`\n- 命名規則:\
+    \ `cmd_XXXX.json` (cmd_id ベース・1 cmd 1 ファイル)\n- 中身: API POST する JSON そのもの (id/priority/purpose/lord_original/command_text/acceptance_criteria/notify_karo\
+    \ 等)\n- ライフサイクル: cmd 起票時に作成 → API 投入後も **保持** (殿原文+指示書の永続監査ログとなる)\n- git 管理方針:\
+    \ **git 管理する** (殿原文・指示は履歴として残す価値あり・queue/ 直下は既に git 管理対象)\n- 削除タイミング: cmd 完了後も保持。古い\
+    \ cmd は queue/cmd_archive/ に半年単位で archive (家老判断)\n- README.md を queue/cmd_payloads/\
+    \ 直下に配置 (運用説明・命名規則・curl 例)\n\n### 3. ベタ打ち BLOCK hook\n\n- 対象: `scripts/pretool_check.sh`\
+    \ (既存 hook・PreToolUse Bash で起動)\n- BLOCK パターン:\n  - `curl.*-d\\s*'\\{` (シングルクォートで\
+    \ JSON 直書き)\n  - `curl.*--data-raw\\s*'\\{`\n  - `curl.*-d\\s*\"\\{` (ダブルクォート版)\n\
+    \  - `curl.*--data\\s*'\\{` (短縮形)\n- 許可パターン:\n  - `curl.*--data\\s*@queue/cmd_payloads/`\
+    \ (新運用)\n  - `curl.*--data-binary\\s*@queue/cmd_payloads/`\n  - `curl.*-d\\s*@queue/cmd_payloads/`\n\
+    - BLOCK 時メッセージ:\n  ```\n  BLOCKED: cmd 起票/inbox_write 等の API 投入で JSON 直書きは禁止。\n\
+    \  queue/cmd_payloads/ に payload ファイルを置き、curl --data @<path> で送れ。\n  詳細: context/cmd_template.md\n\
+    \  ```\n- exempt: 短い inbox_write メッセージ (3行以下) は例外許可するか、家老判断\n\n### 4. 既存スクリプトへの影響\n\
+    \n- 既存 `scripts/inbox_write.sh` 等が JSON 直書きしている場合は新方式に追従改修\n- `shared_context/procedures/dashboard_api_usage.md`\
+    \ の curl 例も全て新方式に書き換え\n- 全ての将軍/家老/軍師/足軽が新運用を学習できるよう変更点を周知\n\n## 完了条件\n\n1. `context/cmd_template.md`\
+    \ が JSON テンプレ + 注釈形式に書き換え済\n2. `queue/cmd_payloads/README.md` が運用説明 (命名規則/curl例/ライフサイクル)\
+    \ を含む\n3. `scripts/pretool_check.sh` に BLOCK ロジック追加・テストケース PASS\n4. 既存 `shared_context/procedures/dashboard_api_usage.md`\
+    \ の curl 例が新方式に統一\n5. 軍師QC: 違反パターン (curl -d '{...}') が hook で BLOCK されることを実機検証\n\
+    6. 家老が dashboard.md に新運用ルールを 1 セクション追加\n\n## 注意\n\n- 本 cmd 自体の payload (cmd_1545.json)\
+    \ は新運用の **見本** として queue/cmd_payloads/ に既配置済 (将軍実践)\n- 既存 in-flight cmd (cmd_1539-1544\
+    \ 等) には遡及適用しない (新規分のみ)\n- inbox_write の短文メッセージまで BLOCK すると過剰ゆえ exempt パターンを慎重設計せよ"
   acceptance_criteria:
-  - litestream プロセスが 1個のみ稼働
-  - systemd unit 復旧・故障原因記録
-  - nohup fallback 起動経路特定・恒久対策
-  - litestream.log 直近5分に ERROR 無し
-  - crontab drift 解消
-  - 軍師QC PASS
+  - context/cmd_template.md が JSON テンプレ化済 (注釈含む)
+  - queue/cmd_payloads/README.md 配置 (運用ルール記載)
+  - scripts/pretool_check.sh に BLOCK 追加・テスト PASS
+  - shared_context/procedures/dashboard_api_usage.md の curl 例が新方式統一
+  - '軍師 QC: 違反パターン BLOCK 実機検証'
+  - dashboard.md に新運用セクション追加
   notify_karo: true
+- id: cmd_1547
+  status: pending
+  priority: medium
+  purpose: cmd_1541 残課題 — IDLE_TIMEOUT=60s 実効化 (env 未定義による無効状態の根治)
+  timestamp: '2026-04-29T07:45:50+09:00'
+  project: infrastructure
+  lord_original: 後追い cmd 出す
+  command_text: "## 殿原文\n\n「後追い cmd 出す」 (cmd_1541 軍師QC CONDITIONAL_PASS 残課題への対応指示)\n\
+    \n## 経緯\n\ncmd_1541 軍師 QC 結論 (07:28):\n- ✅ MAX_CONCURRENT_AGENTS=5 効果あり\n- ❌ IDLE_TIMEOUT=60\
+    \ **無効** (環境変数未定義のまま実効していない)\n- 軍師自己反省: 『軍師指示精度不足』\n\nつまり cmd_1541 は半分完遂で、IDLE_TIMEOUT=60s\
+    \ が実際の haiku SDK subprocess に伝わっていない。\n\n## 設計要件\n\n1. **真因特定**: IDLE_TIMEOUT\
+    \ が無効になっている経路を特定せよ\n   - haiku SDK subprocess 起動時の env 渡しコード確認\n   - systemd unit\
+    \ / cron / hook / shell rc / .bashrc の env 設定差確認\n   - subprocess.Popen(env=...)\
+    \ で IDLE_TIMEOUT が含まれているか\n2. **修正**: subprocess に IDLE_TIMEOUT=60 が確実に渡る実装に修正\n\
+    \   - 該当ファイル (advisor_proxy.py 等) 確認\n   - 必要なら env 設定の永続化 (~/.bashrc / systemd\
+    \ unit env / config ファイル)\n3. **検証**: 実機で IDLE_TIMEOUT=60s が効くかテスト\n   - haiku\
+    \ SDK subprocess を 60s 以上 idle にして自動終了するか観察\n   - 既存 advisor_proxy.log で idle\
+    \ timeout 発火が観測されるか確認\n4. **軍師指示精度の改善**: 今回『env 未定義で無効』を見落とした要因を軍師レポートに記録\n  \
+    \ - 次回類似 cmd で同じ穴に落ちないよう reflection を queue/reports/ に残す\n\n## 完了条件\n\n1. IDLE_TIMEOUT=60s\
+    \ が haiku SDK subprocess で実効していることを実機検証\n2. 修正コミット (commit message に cmd_1547\
+    \ 明記)\n3. 軍師 QC PASS (CONDITIONAL_PASS は許容しない・完全 PASS 必須)\n4. 軍師の指示精度改善メモを reports\
+    \ に追加\n\n## 注意\n\n- 5点セット (API起票subtask + target_path + テスト手順 + advisor呼出 + inbox通知)\
+    \ 厳守\n- env 永続化は ~/.bashrc 直書きを避け、専用 config or systemd unit env が望ましい\n- 過剰スコープ禁止\
+    \ (IDLE_TIMEOUT のみ・MAX_CONCURRENT 関連は触るな)"
+  acceptance_criteria:
+  - IDLE_TIMEOUT=60s 実効化の実機検証 PASS
+  - 修正コミット (cmd_1547 明記)
+  - 軍師 QC 完全 PASS (CONDITIONAL_PASS 不可)
+  - 軍師指示精度改善メモを reports に追加
+  notify_karo: true
+- id: cmd_1548
+  status: done
+  priority: high
+  purpose: cmd_1509 完成 — tono_edit.mkv を縦長クロップ→YouTube非公開(unlisted)アップ
+  timestamp: '2026-04-29T07:47:20+09:00'
+  project: dozle_kirinuki
+  lord_original: '''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_edit.mkv''　1509完成　縦長にクロップするスクリプトつかい　そのご非公開アップ'
+  command_text: '## 殿原文
+
+
+    「''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_edit.mkv''　1509完成　縦長にクロップするスクリプトつかい　そのご非公開アップ」
+
+
+    ## 対象
+
+
+    入力: `/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_edit.mkv`
+
+
+    ## 手順
+
+
+    1. **既存スクリプト使用 (新規 .py 禁止)**: `projects/dozle_kirinuki/scripts/vertical_convert.py`
+    を使い 9:16 縦長クロップ
+
+    2. 出力先: 同ディレクトリ配下 work/cmd_1548/ もしくは vertical_convert.py の標準出力 (家老判断)
+
+    3. ffmpeg は **h264_nvenc** (GPU)・libx264 禁止 (CLAUDE.md 鉄則)
+
+    4. **YouTube 非公開アップ**: privacyStatus=`unlisted` (private は字幕取得不可ゆえ NG・memory feedback_youtube_unlisted_not_private.md
+    参照)
+
+    5. アップ完了後 ntfy 通知 (タイトル + URL)
+
+    6. cmd_1509 を **status:done** 更新 (本cmd完了が cmd_1509 の最終段階)
+
+
+    ## 完了条件
+
+
+    1. 縦長 (9:16) MP4 生成・配置
+
+    2. YouTube unlisted アップ完了・URL取得
+
+    3. ntfy で殿に URL 報告
+
+    4. cmd_1509 status:done 更新 (dashboard 残骸化防止)
+
+    5. 軍師QC: 動画再生確認 + ffprobe で 9:16 + h264_nvenc 確認
+
+
+    ## 注意
+
+
+    - 5点セット (API起票subtask + target_path + テスト手順 + advisor呼出 + inbox通知) 厳守
+
+    - vertical_convert.py の引数は --help で確認・既存パラメータ活用
+
+    - panels JSON ベースの漫画ショート (manga-short スキル) ではない・本cmd は単純 9:16 クロップ→アップのみ
+
+    - 動画タイトル/概要欄は家老判断 (殿元動画のタイトルから派生・適切に命名)
+
+    - アップ後 cmd_1509 のリンクは tono_clip1/clip2 の漫画パネル化作業 (既に subtask_1509a3 で進行) と統合・家老の判断で重複排除'
+  acceptance_criteria:
+  - 縦長 9:16 MP4 生成 (h264_nvenc 確認)
+  - YouTube unlisted アップ完了・URL取得
+  - ntfy で殿に URL 報告
+  - cmd_1509 status:done 更新
+  - 軍師 QC PASS (動画再生 + ffprobe 9:16 + nvenc)
+  notify_karo: true
+- id: cmd_1549
+  status: pending
+  priority: medium
+  purpose: cmd 起票/Bash 実行時にスクリプト・procedure を自動検索する PreToolUse hook を新設
+  timestamp: '2026-04-29T07:52:23+09:00'
+  project: infrastructure
+  lord_original: 'ええとスクリプトを指定するときに検索するhookってなかったか？
+
+    B (別 cmd で独立起票)'
+  command_text: '## 殿原文
+
+
+    「ええとスクリプトを指定するときに検索するhookってなかったか？」
+
+    → 将軍報告: 検索ツール (script_semantic_index.py) はあるが cmd 起票時の自動 hook は無い
+
+    → 殿判断: 『B (別 cmd で独立起票)』
+
+
+    ## 経緯
+
+
+    2026-04-29 朝、将軍が cmd_1548 起票時に vertical_convert.py を誤指定 (実際はオーバーレイ合成スクリプト・単純 crop
+    ではない)。正解は shared_context/procedures/video_vertical_crop_upload.md の ffmpeg 直接コマンドだった。`script_semantic_index.py
+    search` を打てば即座に procedure に辿り着けたが、将軍がツール存在を忘れて手動 grep で誤指定。同種事故は『前も間違えた』と殿明言。hook
+    で強制すれば再発防止可能。
+
+
+    ## 設計要件
+
+
+    ### 1. 検出対象
+
+
+    PreToolUse Bash で以下パターンを検出:
+
+    - `*.py` ファイル名言及 (例: `python3 scripts/vertical_convert.py`)
+
+    - `ffmpeg`, `ffprobe` 言及 (動画処理)
+
+    - `crop`, `vertical`, `shorts`, `9:16`, `1080x1920` 等の動画キーワード
+
+    - `youtube_uploader`, `whisperx`, `demucs`, `manga`, `panel` 等の固有スクリプト名/工程名
+
+
+    リスト管理: `scripts/script_search_keywords.txt` 等の plain text で 1行1キーワードで持ち、誰でも追記可能とする
+
+
+    ### 2. hook 動作
+
+
+    検出時の挙動:
+
+    - (a) **自動検索**: `python3 scripts/script_semantic_index.py search ''<検出キーワード>''`
+    を実行
+
+    - (b) **結果を agent に返す**: stderr or stdout に top 3 ヒット (パス + 短い summary) を表示
+
+    - (c) **BLOCK しない**: 警告のみ (BLOCK は誤検知で運用妨害・手動上書き許可)
+
+    - (d) exempt: 直前の同セッション内で同キーワードの検索を既に実行済の場合は省略 (簡易キャッシュ)
+
+
+    ### 3. 配置
+
+
+    - 既存 `scripts/pretool_check.sh` の延長として組み込む or 独立 hook 新設 (`scripts/script_search_hint.sh`)
+
+    - `.claude/settings.json` の PreToolUse Bash hook に追加
+
+    - cmd_1546 (ベタ打ち BLOCK) と並走可能・干渉しない設計
+
+
+    ### 4. 性能
+
+
+    - search 1回あたり <2 秒であること (Gemini Embedding 呼出含)
+
+    - BigQuery VECTOR_SEARCH のレスポンス遅延も含めて hook が agent をブロックする時間を最小化
+
+    - タイムアウト 3秒で諦める (検索失敗しても BLOCK しない)
+
+
+    ### 5. インデックス鮮度保証
+
+
+    - script_index.md は commit 時 hook で更新 (既存 semantic_index_hook.sh) → 維持
+
+    - 新規 procedure (shared_context/procedures/) も script_index.md に含めるよう script_semantic_index.py
+    を改修 (現在は scripts/ のみ index 化されているか要確認)
+
+
+    ## 完了条件
+
+
+    1. PreToolUse Bash hook で対象キーワード検出時に `script_semantic_index.py search` 自動実行
+
+    2. 結果 top 3 が agent に表示される
+
+    3. 検出キーワードリスト (`scripts/script_search_keywords.txt` 等) 整備
+
+    4. shared_context/procedures/ も検索対象に含む (現状 scripts/ のみなら拡張)
+
+    5. 軍師QC: 実機で『vertical_convert.py 言及 → video_vertical_crop_upload.md がヒットして表示される』を検証
+
+    6. dashboard.md に新 hook ルール追加
+
+
+    ## 注意
+
+
+    - 5点セット (API起票subtask + target_path + テスト手順 + advisor呼出 + inbox通知) 厳守
+
+    - 過剰スコープ禁止 (cmd_1546 のベタ打ち BLOCK と混ぜるな)
+
+    - BLOCK は禁止・あくまで hint 表示のみ
+
+    - インデックスに procedure 系を含める拡張は別 phase で良い (まず scripts/ ベースで動くものを優先)'
+  acceptance_criteria:
+  - PreToolUse Bash hook 実装・キーワード検出 → search 実行
+  - top 3 結果が agent に表示
+  - 検出キーワードリストファイル整備
+  - shared_context/procedures/ も検索対象 (拡張)
+  - '軍師 QC: vertical_convert 言及で procedure ヒット実機検証'
+  - dashboard.md に新 hook ルール追加
+  notify_karo: true
+- id: cmd_1550
+  status: done
+  priority: high
+  completed_at: '2026-04-29T08:40:00+09:00'
+  purpose: cmd_1548 やり直し — tono_edit.mkv を ffmpeg 直書き 1080x1920 縦長クロップ → YouTube **private**
+    アップ (procedure 完全準拠)
+  timestamp: '2026-04-29T08:09:23+09:00'
+  project: dozle_kirinuki
+  lord_original: '1548違うスクリプトで作成しきりおった　やりなおしじゃ
+
+    しかも限定公開にしおった　げきおこじゃ
+
+    かこのは消す
+
+    即起票　非公開あっぷ'
+  command_text: "## 殿原文\n\n「1548違うスクリプトで作成しきりおった やりなおしじゃ」\n「しかも限定公開にしおった げきおこじゃ」\n\
+    「かこのは消す」\n「即起票 非公開あっぷ」\n\n## 経緯 (二重失態の謝罪付き)\n\n1. cmd_1548 で将軍が `vertical_convert.py`\
+    \ (オーバーレイ合成スクリプト) を誤指定\n2. 訂正inbox 送付 (07:49) → 家老が読む前に作業着手済 (07:43→08:00 完走)\n\
+    3. しかも `--privacy unlisted` (限定公開) でアップ → 殿は **private (非公開)** を要求していた\n4. 将軍が\
+    \ youtube_uploader.py delete で過去動画 UKrh1oUFsd0 を **削除済 (08:08頃)**\n5. 殿激おこ。**やり直し**\n\
+    \n## 入力\n\n`/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_edit.mkv`\n\
+    \n## 必須 procedure\n\n**`shared_context/procedures/video_vertical_crop_upload.md`\
+    \ を必ず先読みせよ**\n\n要点 (procedure からの抜粋・違反禁止):\n\n### Step1: 入力ファイル確認\n```\nffprobe\
+    \ -v quiet -show_entries stream=width,height -of csv=p=0 \"${INPUT_FILE}\"\n```\n\
+    サイズに合わせて crop 値を計算\n\n### Step2: ffmpeg 直接コマンド (新規 .py 禁止・vertical_convert.py\
+    \ 使うな)\n```\nffmpeg -i \"${INPUT}\" \\\n  -vf \"crop=${W}:${H}:${X}:${Y},pad=1080:1920:0:1\"\
+    \ \\\n  -c:v h264_nvenc -preset p4 -rc vbr -cq 23 -b:v 8M -maxrate 10M -bufsize\
+    \ 16M \\\n  -c:a aac -b:a 192k \\\n  \"${OUTPUT}\"\n```\n- **h264_nvenc 必須・libx264\
+    \ 禁止**\n- **ビットレート指定必須** (cmd_1420 で 439kbps 事故・procedure 明記)\n- 完了後 ffprobe で\
+    \ bit_rate ≥ 1Mbps 確認\n\n### Step3: YouTube アップ (--privacy private 必須)\n```\n\
+    python3 projects/dozle_kirinuki/scripts/youtube_uploader.py upload \\\n  \"${OUTPUT}\"\
+    \ \\\n  --title \"${TITLE}\" \\\n  --privacy private\n```\n- **--privacy private\
+    \ 必須・unlisted 禁止 (殿激おこ案件・絶対遵守)**\n\n### Step4: 説明欄更新 (procedure Step4 のテンプレ流用)\n\
+    \n## 完了条件\n\n1. tono_edit.mkv の実サイズを ffprobe で確認・crop 値計算済\n2. 1080x1920 + h264_nvenc\
+    \ + ビットレート ≥ 1Mbps の MP4 出力\n3. youtube_uploader.py upload `--privacy private`\
+    \ で アップ完了\n4. **アップ後 youtube_uploader.py か API で privacy=private を再確認**\n5. ntfy\
+    \ 通知に **privacy: private を明記**\n6. cmd_1509 status:done 更新\n7. 軍師QC 必須項目:\n  \
+    \ - (a) ffprobe で 1080x1920 確認\n   - (b) ffprobe で bit_rate ≥ 1Mbps 確認\n   - (c)\
+    \ ffprobe で codec=h264_nvenc 確認\n   - (d) **YouTube API で privacyStatus=private\
+    \ 確認** (実機チェック・unlisted/public でないこと)\n   - (e) procedure (video_vertical_crop_upload.md)\
+    \ との手順乖離が無いこと\n   - **CONDITIONAL_PASS は不可・完全 PASS 必須**\n\n## 注意 (絶対遵守)\n\n- ❌\
+    \ vertical_convert.py 使うな\n- ❌ unlisted 禁止\n- ❌ 新規 .py 作るな\n- ❌ libx264 禁止\n-\
+    \ ❌ ビットレート未指定禁止\n- ✅ procedure video_vertical_crop_upload.md 完全準拠\n- ✅ private\
+    \ 必須\n- ✅ ffmpeg 直書き\n- ✅ h264_nvenc + ビットレート明示\n- ✅ 軍師は実機 privacy 検証\n\n5点セット\
+    \ (API起票subtask + target_path + テスト手順 + advisor呼出 + inbox通知) 厳守。"
+  acceptance_criteria:
+  - ffprobe で 1080x1920 確認
+  - ffprobe で bit_rate ≥ 1Mbps 確認
+  - ffprobe で codec=h264_nvenc 確認
+  - YouTube API で privacyStatus=private 確認 (実機)
+  - procedure video_vertical_crop_upload.md と手順乖離なし
+  - ntfy 通知に privacy:private 明記
+  - cmd_1509 status:done 更新
+  - 軍師 完全 PASS (CONDITIONAL_PASS 不可)
+  notify_karo: true
+- id: cmd_1551
+  status: done
+  priority: high
+  purpose: 指示系統 hook 総点検 — API 化 (cmd_1494) の不完全性を軍師が網羅的に診断・空振り hook を全特定
+  timestamp: '2026-04-29T08:16:17+09:00'
+  project: infrastructure
+  lord_original: 軍師に指示,APIかが完全でない　指示系統に関わる箇所そうみなおし　とくにhook
+  command_text: "## 殿原文\n\n「軍師に指示,APIかが完全でない 指示系統に関わる箇所そうみなおし とくにhook」\n\n## 経緯\n\n\
+    2026-04-29 朝、将軍が cmd_1548 で vertical_convert.py を誤指定 → 殿激おこ。直接の原因は将軍の procedure\
+    \ 先読み怠慢だが、**真の根因は cmd_intake_hook.sh が API 経由起票で発火していない**こと。\n\n発見済の事実:\n- `scripts/cmd_intake_hook.sh`\
+    \ は本来 (iv) dashboard_archive/YYYY-MM.md 記録 / (v) semantic_search で procedures\
+    \ 自動提示 を担う\n- しかし shogun_to_karo.yaml への **Write/Edit/Bash tool_use** をトリガにする設計\n\
+    - API 経由 (curl POST /api/cmd_create) では server.py が yaml.dump で書き込むゆえ、**Write/Edit/Bash\
+    \ は発火せず hook 空振り**\n- 結果: dashboard_archive/2026-04.md は **4月26日 08:04 で更新停止**\
+    \ (3日間記録漏れ・cmd_1495〜1550 の約50件未記録)\n- semantic_search hint も空振り → vertical_convert.py\
+    \ 誤指定が防げなかった\n\n殿命: 個別対応ではなく **指示系統 (cmd/inbox/task/report の発令経路) 全体の hook を網羅見直し**\n\
+    \n## 軍師タスク (診断のみ・実装は別 cmd)\n\n### Phase A: 既存 hook 棚卸し\n\n対象: `.claude/settings.json`\
+    \ の hooks セクション全件 + `scripts/` 配下の hook 系シェル\n- SessionStart\n- Stop\n- PreCompact\n\
+    - PreToolUse (5 hooks)\n- PostToolUse\n- 他 (UserPromptSubmit 等)\n\n各 hook について以下を文書化:\n\
+    1. **トリガ条件** (どの tool_name + どのファイルパス + どの content パターン)\n2. **本来の機能** (記録/検査/通知/拒否)\n\
+    3. **指示系統との関連性** (cmd起票/inbox/task/report に関与するか)\n4. **API 化以降の発火状況** (動いている/空振りしている/不明)\n\
+    5. **検証方法** (実機テスト手順)\n\n### Phase B: 空振り検出\n\nAPI 経由 (curl POST /api/cmd_create,\
+    \ /api/inbox_write, /api/task_create, /api/report_create, /api/dashboard_update)\
+    \ で発火しないが本来発火すべき hook を全列挙。\n\n発見済 (補完を推奨):\n- cmd_intake_hook.sh (cmd_create\
+    \ で空振り)\n- 他に潜在的に空振りしているもの\n  - posttool_yaml_check.sh (YAML 直書き想定?)\n  - posttool_cmd_check.sh\
+    \ (将軍cmd拡大解釈警告 - これも yaml 直書き経路?)\n  - posttool_verify_runner.sh (cmd_1442 H1\
+    \ harness)\n  - semantic_index_hook.sh (commit時のみゆえ別系統)\n- 全て検証\n\n### Phase C:\
+    \ 修正方針\n\n各空振り hook に対し以下のいずれかを推奨:\n- (a) **server.py 内で同等処理を呼ぶ**: cmd_create/inbox_write/task_create/report_create\
+    \ handler 内で hook スクリプトを subprocess.run で呼ぶ\n- (b) **API endpoint 経由を hook が監視**:\
+    \ server.py のアクセスログを別 hook で tail して trigger\n- (c) **両方**: 直書き経路と API 経路の両方で発火\n\
+    - (d) **不要**: API 化で機能が server.py 側に内包されたゆえ hook 廃止可\n\n### Phase D: 過去分補完計画\n\
+    \ndashboard_archive/2026-04.md の 4/26 08:04 以降の記録漏れ (cmd_1495 ~ cmd_1550 の約50件)\
+    \ を retroactive insert する手順を提案。\n\n### Phase E: 推奨 cmd リスト\n\n軍師レポートに、家老が起票すべき修正\
+    \ cmd を優先順位付きで列挙:\n- cmd_XXXX (priority/scope/期待効果) の形式\n- top 3 は本日中起票推奨を明示\n\
+    \n## 完了条件\n\n1. queue/reports/gunshi_cmd_1551.yaml に Phase A〜E の網羅レポート\n2. 空振り\
+    \ hook 全件特定 (件数明示・最低 cmd_intake_hook.sh は含む)\n3. 修正方針 (a/b/c/d) を hook 毎に判定\n\
+    4. dashboard_archive 記録漏れの retroactive 手順\n5. 推奨 cmd リスト (top 3 priority:high)\n\
+    6. ntfy で殿に結論通知 (件数 + 最優先 cmd)\n\n## 注意\n\n- **軍師は実装するな** (診断専門・コード変更は家老が別 cmd\
+    \ で足軽委任)\n- 5点セット (API起票subtask + target_path + テスト手順 + advisor呼出 + inbox通知) 厳守\n\
+    - 軍師の指示精度を重視 (cmd_1541 で IDLE_TIMEOUT 環境変数未定義を見落とした反省を活かせ)\n- hook の動作確認は **実機テスト**\
+    \ で確証を取れ (コード読みだけで PASS させるな)\n- shogun が今直前まで誤解していたが、cmd_intake_hook.sh の (v)\
+    \ semantic_search 機能は **既に実装済** だった (API 経由空振りで機能していなかっただけ)。重複設計を避けよ。"
+  acceptance_criteria:
+  - queue/reports/gunshi_cmd_1551.yaml に Phase A-E 網羅レポート完成
+  - 空振り hook を全件特定 (件数明示)
+  - 各 hook の修正方針 (a/b/c/d) 判定
+  - dashboard_archive retroactive 手順
+  - 推奨 cmd リスト (top 3 priority:high)
+  - ntfy 殿通知
+  notify_karo: true
+- id: cmd_test_1559
+  status: cancelled
+  priority: low
+  purpose: server.py修正後の自動通知 dual-path テスト (即 cancel)
+  timestamp: '2026-04-29T08:21:34+09:00'
+  lord_original: テスト
+  notify_karo: true
+  cancelled_at: '2026-04-29T08:30:00+09:00'
+  cancelled_reason: 将軍指示・テスト用・作業不要

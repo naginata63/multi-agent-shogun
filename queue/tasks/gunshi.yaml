@@ -80,3 +80,117 @@ tasks:
   target_path: /home/murakami/.claude/plugins/cache/thedotmack/claude-mem/10.6.3/hooks/hooks.json
   task_id: subtask_1539b_qc
   timestamp: '2026-04-29T02:59:14.601656+09:00'
+- task_id: subtask_1548b_qc
+  agent: gunshi
+  parent_cmd: cmd_1548
+  status: done
+  bloom_level: L4
+  title: 'cmd_1548 QC: 縦長MP4 + YouTube URL確認'
+  description: subtask_1548a完了後のQC。ffprobe で 9:16(1080x1920) + h264_nvenc確認。YouTube
+    URL疎通確認。
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/work/cmd_1548
+  steps: '1. ffprobe で tono_edit_vertical.mp4 確認: width=1080 height=1920 codec=h264
+    (nvenc)
+
+    2. YouTube URL を curl -I で疎通確認 (HTTPs 200)
+
+    3. acceptance_criteria 全5件照合
+
+    4. PASS/FAIL判定 + karoにinbox_write'
+  report_to: karo
+  timestamp: '2026-04-29T07:52:06'
+- agent: gunshi
+  task_id: subtask_1551a
+  status: done
+  parent_cmd: cmd_1551
+  bloom_level: L5
+  description: 指示系統hook総点検 - API化(cmd_1494)の不完全性を網羅診断・空振りhookを全特定
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_cmd_1551.yaml
+  steps:
+  - 1. .claude/settings.json 全hook確認 (PostToolUse/PreToolUse/Stop/Notification等)
+  - 2. 各hookのスクリプト実在確認・実行条件確認
+  - 3. 空振りhook(条件不整合・スクリプト欠損・API化後に無意味化)を全特定
+  - 4. 各hookの修正方針 (a:削除/b:修正/c:追加/d:保留) を判定
+  - 5. dashboard_archive retroactive手順を提案
+  - 6. 推奨cmd top3(priority:high)をリストアップ
+  - 7. reports/gunshi_cmd_1551.yaml に Phase A-E 形式で報告書作成
+  - 8. inbox_write でkaroに報告
+  - '9. ntfy通知: bash scripts/ntfy.sh 軍師 cmd_1551完了'
+  lord_original: 軍師に指示,APIかが完全でない 指示系統に関わる箇所そうみなおし とくにhook
+  timestamp: '2026-04-29T08:28:58.683911+09:00'
+- agent: gunshi
+  task_id: subtask_1550b_qc
+  status: done
+  parent_cmd: cmd_1550
+  bloom_level: L4
+  description: cmd_1550 QC - ffprobe検証(1080x1920/nvenc/bitrate) + YouTube private確認
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_cmd_1550_qc.yaml
+  blocked_by:
+  - subtask_1550a
+  steps:
+  - 1. ashigaru4レポート受領・確認
+  - 2. ffprobe で 1080x1920 確認
+  - 3. ffprobe で codec=h264_nvenc 確認
+  - 4. ffprobe で bit_rate >= 1Mbps 確認
+  - 5. YouTube API で privacyStatus=private 確認 (実機)
+  - 6. procedure video_vertical_crop_upload.md と手順乖離なし確認
+  - 7. QC PASS/FAIL 判定 (CONDITIONAL_PASS 不可)
+  - 8. report作成 → inbox_write でkaroに報告
+  timestamp: '2026-04-29T08:29:58.583030+09:00'
+- agent: gunshi
+  task_id: subtask_1546b_qc
+  status: blocked
+  parent_cmd: cmd_1546
+  bloom_level: L4
+  description: cmd_1546 QC - 違反パターンBLOCK実機検証・dashboard新運用セクション確認
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_cmd_1546_qc.yaml
+  blocked_by:
+  - subtask_1546a
+  steps:
+  - 1. ashigaru2レポート受領・確認
+  - 2. context/cmd_template.md がJSON化済み確認(注釈含む)
+  - 3. queue/cmd_payloads/README.md 存在・内容確認
+  - '4. scripts/pretool_check.sh BLOCK実機検証: cmd_template.md直接べた打ちパターンを与えてBLOCKされることを確認'
+  - 5. dashboard_api_usage.md のcurl例が新方式に統一されていること確認
+  - 6. dashboard.md に新運用セクション追加確認
+  - 7. QC PASS/FAIL判定
+  - 8. report作成 → inbox_write でkaroに報告
+  timestamp: '2026-04-29T08:29:58.598165+09:00'
+- agent: gunshi
+  task_id: subtask_1547b_qc
+  status: blocked
+  parent_cmd: cmd_1547
+  bloom_level: L4
+  description: cmd_1547 QC - IDLE_TIMEOUT=60s実効化実機検証 + 軍師指示精度改善メモ確認
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_cmd_1547_qc.yaml
+  blocked_by:
+  - subtask_1547a
+  steps:
+  - 1. ashigaru6レポート受領・確認
+  - 2. worker-service.cjs の CLAUDE_MEM_IDLE_TIMEOUT ハンドラ実装確認
+  - 3. IDLE_TIMEOUT=60s 実機検証 PASS確認
+  - 4. 修正コミット(cmd_1547明記)確認
+  - 5. 軍師指示精度改善メモがreportに記載されているか確認
+  - 6. QC PASS/FAIL判定 (CONDITIONAL_PASS不可)
+  - 7. report作成 → inbox_write でkaroに報告
+  timestamp: '2026-04-29T08:29:58.620984+09:00'
+- agent: gunshi
+  task_id: subtask_1549b_qc
+  status: blocked
+  parent_cmd: cmd_1549
+  bloom_level: L4
+  description: cmd_1549 QC - vertical_convert言及でprocedureヒット実機検証
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_cmd_1549_qc.yaml
+  blocked_by:
+  - subtask_1549a
+  steps:
+  - 1. ashigaru7レポート受領・確認
+  - 2. PreToolUse Bash hook 実装確認
+  - '3. 実機検証: vertical_convert というキーワードを含むBashコマンドで procedure がヒットすること'
+  - 4. top3結果が表示されること確認
+  - 5. 検出キーワードリストファイル整備確認
+  - 6. shared_context/procedures/ が検索対象に含まれること確認
+  - 7. dashboard.md 新hookルール追加確認
+  - 8. QC PASS/FAIL判定
+  - 9. report作成 → inbox_write でkaroに報告
+  timestamp: '2026-04-29T08:29:58.644228+09:00'

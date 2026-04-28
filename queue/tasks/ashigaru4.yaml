@@ -97,3 +97,25 @@ tasks:
     9. アップ完了後: bash scripts/ntfy.sh でURL報告\n10. gunshi にQC依頼(inbox_write type:report_submitted)"
   report_to: gunshi
   timestamp: '2026-04-29T07:51:57'
+- agent: ashigaru4
+  task_id: subtask_1550a
+  status: done
+  parent_cmd: cmd_1550
+  bloom_level: L2
+  description: tono_edit.mkvをffmpeg直書き1080x1920縦長クロップ→YouTube private アップ (procedure準拠)
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/work/cmd_1550/tono_edit_vertical.mp4
+  steps:
+  - '0. 前提: cmd_1548でvertical_convert.pyを使ったのは誤り。今回はprocedureのffmpeg直書きのみ'
+  - '1. procedure読込: shared_context/procedures/video_vertical_crop_upload.md'
+  - '2. 入力: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_edit.mkv'
+  - 3. mkdir -p /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/work/cmd_1550
+  - 4. ffprobe で入力解像度確認
+  - 5. ffmpeg直書き 1080x1920クロップ (h264_nvenc必須・-rc vbr -cq 23 -b:v 8M)
+  - '6. ffprobe で出力検証: 1080x1920 / codec=h264_nvenc / bit_rate>=1Mbps'
+  - 7. youtube_uploader.py で privacy=private アップ (privacyStatus=private 必須)
+  - '8. 前回limitedアップ(YouTube ID: UKrh1oUFsd0)を非公開/削除'
+  - '9. ntfy: bash scripts/ntfy.sh 🎬 YouTube非公開アップ tono_edit_vertical {URL} privacy:private'
+  - 10. report作成 → inbox_write でkaroに報告
+  procedure: shared_context/procedures/video_vertical_crop_upload.md
+  lord_original: 1548違うスクリプトで作成しきりおった やりなおしじゃ しかも限定公開にしおった げきおこじゃ かこのは消す 即起票 非公開あっぷ
+  timestamp: '2026-04-29T08:29:04.310923+09:00'
