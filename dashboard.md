@@ -15,6 +15,32 @@
 ## 🔄 進行中
 ## 🔄 進行中
 
+### cmd_1509 (high) — tono_clip1/clip2 漫画パネル化 【最優先・漫画ショート戦略】
+- ✅ subtask_1509a2 → 足軽1号: panels_tono_clip1.json (7パネル) 完了
+- 🔄 subtask_1509b2 → 足軽3号: panels_tono_clip2.json (実行中)
+- 📌 Phase2 は clip2完了後
+
+### cmd_1511 (high) — full_yaml_blob カラム3テーブル削除
+- 🔄 subtask_1511a → 足軽7号: cmds.db 3テーブル DROP COLUMN (1510a完了で解放・実行中)
+
+### cmd_1512 (high) — R7 dedup強化 ⚡最優先(R7ノイズ解消)
+- 🔄 subtask_1512a → 足軽1号: detect_action_required R7 dedup+疑似ID (1510a完了で解放・/clear後着手)
+
+### cmd_1516 (low) — reports CHECK制約+type列
+- ✅ subtask_1516a → 足軽4号: 完了・軍師QC実行中
+- ⏸ subtask_1517a: 1516a QC PASS後
+
+### cmd_1515 (medium) — R3 age閾値段階化 ⚡最優先(R3ノイズ解消)
+- ⏸ subtask_1515a → 足軽1号: 1512a完了待ち (server.py RACE-001)
+
+### cmd_1510〜1512・1515 チェーン状況
+- ✅ cmd_1510 (server.py SQLite移行): 実装確認済→done
+- 🔄 cmd_1511: subtask_1511a実行中
+- 🔄 cmd_1512: subtask_1512a解放・足軽1号着手待ち
+- ⏸ cmd_1515: 1512a完了後
+
+## 🔄 進行中
+
 ### cmd_1509 (high) — tono_clip1/clip2 漫画パネル化
 - ✅ subtask_1509a2 → 足軽1号: panels_tono_clip1.json (7パネル) 完了
 - 🔄 subtask_1509b2 → 足軽3号: panels_tono_clip2.json (実行中)
