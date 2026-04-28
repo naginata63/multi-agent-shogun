@@ -3,6 +3,7 @@
 DB-driven auto-detection: R1-R7 rules, R7 syncs dashboard.md 🚨要対応."""
 
 import glob
+import hashlib
 import http.server
 import json
 import os
@@ -120,7 +121,6 @@ def parse_shogun_to_karo():
                         except Exception:
                             pass
                         d.pop(k_json, None)
-                d.pop('full_yaml_blob', None)
                 cmds.append(d)
         finally:
             conn.close()
@@ -144,7 +144,6 @@ def _row_to_cmd_dict(row):
             except Exception:
                 pass
         d.pop(k_json, None)
-    d.pop('full_yaml_blob', None)
     return d
 
 
@@ -373,19 +372,21 @@ def detect_action_required():
                     m = re.search(r'(cmd_\d+)', title)
                     if m:
                         cmd_match = m.group(1)
+                    r7_cmd_id = cmd_match or ("_orphan_" + hashlib.sha1(title.encode()).hexdigest()[:8])
                     items.append({
                         "rule": "R7",
                         "severity": "HIGH",
                         "title": title[:100],
                         "detail": "dashboard.md 🚨要対応より",
                         "age_hours": 0,
-                        "cmd_id": cmd_match,
+                        "cmd_id": r7_cmd_id,
                     })
     except Exception:
         pass
 
     # Dedup: R1 and R3 for same cmd_id, prefer R3
     seen_cmds = set()
+    seen_r7_titles = set()
     deduped = []
     # Sort: HIGH first, then by age
     items.sort(key=lambda x: (
@@ -395,8 +396,12 @@ def detect_action_required():
     for item in items:
         cmd_id = item.get("cmd_id")
         rule = item.get("rule")
-        if cmd_id:
-            key = (cmd_id, rule)
+        if rule == "R7":
+            title_key = (rule, (item.get("title") or "")[:100])
+            if title_key in seen_r7_titles:
+                continue
+            seen_r7_titles.add(title_key)
+        elif cmd_id:
             # For R1 and R3 on the same cmd_id, skip R1 if R3 exists
             if cmd_id in seen_cmds and rule == "R1":
                 continue
@@ -690,7 +695,7 @@ def get_dashboard_data():
         if a["status"] != "busy":
             a["elapsed_min"] = None
 
-    conn.close()
+    # NOTE: conn は L721 busy/idle agents query で再利用ゆえ閉じない・末尾で close
 
     # Active cmds
     active_cmds = get_active_cmds()
@@ -721,6 +726,9 @@ def get_dashboard_data():
     for a in agent_map.values():
         a.pop("total_tasks", None)
         a.pop("done_tasks", None)
+
+    # conn を ここで close (L666 で開けたものを最終 close)
+    conn.close()
 
     # DingTalk QC stats
     dingtalk_qc = _get_dingtalk_qc_stats()
@@ -1565,12 +1573,12 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     params.append(limit)
 
                     slim_drop = {'command_text', 'acceptance_criteria_json', 'depends_on_json',
-                                 'notes_json', 'full_yaml_blob', 'north_star',
+                                 'notes_json', 'north_star',
                                  'implementation_flow', 'verify_guidance'}
                     cmds = []
                     for r in conn.execute(sql, params):
                         d = {k: v for k, v in dict(r).items()
-                             if v is not None and k != 'full_yaml_blob'}
+                             if v is not None}
                         if slim:
                             for k in list(d.keys()):
                                 if k in slim_drop:
@@ -1694,7 +1702,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     tasks = []
                     for r in conn.execute(sql, params):
                         d = {k: v for k, v in dict(r).items()
-                             if v is not None and k != 'full_yaml_blob'}
+                             if v is not None}
                         for k_json, k_clean in [
                             ('acceptance_criteria_json', 'acceptance_criteria'),
                             ('notes_json', 'notes'),
