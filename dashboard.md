@@ -17,6 +17,13 @@
 
 ### cmd_1509 (high) — tono_clip1/clip2 漫画パネル化 【最優先・漫画ショート戦略】
 - ✅ subtask_1509a2 → 足軽1号: panels_tono_clip1.json (7パネル) 完了
+- 🔄 subtask_1509b2 → 足軽3号: panels_tono_clip2.json (実行中)
+- 📌 Phase2 は clip2完了後・殿レビュー
+
+## 🔄 進行中
+
+### cmd_1509 (high) — tono_clip1/clip2 漫画パネル化 【最優先・漫画ショート戦略】
+- ✅ subtask_1509a2 → 足軽1号: panels_tono_clip1.json (7パネル) 完了
 - 🔄 subtask_1509b2 → 足軽3号: panels_tono_clip2.json (実行中・age=20h)
 - 📌 Phase2 は clip2完了後・殿レビュー
 
@@ -113,6 +120,25 @@
 - ⏸ subtask_1517a (timestamp+INDEX): 1516a QC PASS後
 
 ## ✅ 本日の完了
+## ✅ 本日の完了
+
+| cmd | 内容 |
+|-----|------|
+| cmd_1517 | ✅ **完遂(19:27・足軽4号・軍師QC PASS)** timestamp正規化+INDEX 7本+first_seen。cmd_1504 F1-F6 全解消・cmd_1508 #1-#7 全完遂 |
+| cmd_1515 | ✅ **完遂(19:19・足軽1号・軍師QC PASS)** R3 age閾値3段階。R3ノイズ解消 |
+| cmd_1511 | ✅ **完遂(19:12・足軽7号・軍師QC PASS)** full_yaml_blob 3テーブルDROP+server.py 7箇所除去 |
+| cmd_1512 | ✅ **完遂(19:11・足軽1号・軍師QC PASS)** R7 dedup+cmd_id疑似ID。R7ノイズ解消 |
+| cmd_1516 | ✅ **完遂(18:59・足軽4号・軍師QC PASS)** reports CHECK制約3点+INDEX |
+| cmd_1523 | ✅ **完遂(08:46・足軽5号)** 3層クリップ(6:21) → https://youtu.be/c0JxfCbNdqU |
+| cmd_1522 | ✅ **完遂(07:39・軍師)** inbox乖離根因確定 |
+| cmd_1520 | ✅ **完遂(02:08・軍師)** 夜間監査22件検出 |
+| cmd_1514 | ✅ **完遂(00:28・軍師QC PASS)** inbox.type CHECK制約14種 |
+| cmd_1513 | ✅ **完遂(00:10・軍師QC PASS)** agents テーブル新設 |
+| cmd_1510 | ✅ **完遂** server.py SQLite移行確認 |
+| cmd_1519 | ✅ **完遂(23:25・軍師QC PASS)** GCnCUAuL0p8 説明欄v2 |
+| cmd_1501 | ✅ **完遂(23:37・軍師QC PASS)** faiss index 再構築 |
+| cmd_1508 | ✅ **完遂(22:57・軍師)** SQLiteスキーマ監査7件 |
+
 ## ✅ 本日の完了
 
 | cmd | 内容 |
@@ -223,30 +249,33 @@
 | cmd_1496 | ✅ **完遂(21:22・軍師QC)** countdown_v2 5段drawtext/NVENC |
 
 ## 🚨 要対応（殿の御判断必要）
+## 🚨 要対応（殿の御判断必要）
 
-### 🔴 server.py 再起動必要 (cmd_1514・cmd_1513 副次)
-inbox.type CHECK制約 + agents テーブル統合が DB 側完了だが server.py 再起動が必要。
-- **対処（将軍）**: `pkill -f server.py && python3 scripts/dashboard/server.py &` 等
+### 🔴 server.py + watcher 再起動 3点まとめて依頼 【将軍対処】
+軍師推奨: 以下3点をまとめて再起動すること。
+1. **server.py 再起動**: cmd_1514 CHECK制約 + cmd_1517 INDEX 7本 + first_seen が活性化される
+2. **watcher 再起動**: cmd_1502 分類更新を確実に反映
+3. **コマンド例**: `pkill -f server.py; python3 scripts/dashboard/server.py &`
 
-### 🔴 cmd_1522完了: inbox_watcher SQLite化 修正cmd 3件起票要否
-根因: inbox_watcher.sh がYAML単独参照(SQLiteなし)→mark_read後も誤発火ループ。
-推奨B案 (cmd_1510ロードマップ整合):
-- **修正cmd1**: inbox_watcher.sh → SQLite SELECT切替
-- **修正cmd2**: YAML→SQLite sync移行
-- **修正cmd3**: inbox YAML write廃止
-起票承認されたし。
+### 🔴 cmd_1522: inbox_watcher SQLite化 修正cmd 3件起票要否
+根因: inbox_watcher.sh がYAML単独参照→mark_read後も誤発火。推奨B案:
+- 修正cmd1: inbox_watcher.sh → SQLite SELECT切替
+- 修正cmd2: YAML→SQLite sync移行
+- 修正cmd3: inbox YAML write廃止
+起票承認されたし (cmd_1510ロードマップと統一スプリント推奨)。
 
 ### 🔴🔴 nightly_audit_20260428_video — CRITICAL 2 修正cmd起票要否
-- **修正A**: main.py L657-730 WhisperX経路削除 (1cmd完結)
-- **修正B**: vertical_convert.py argparse 4引数追加 (1cmd完結)
+- **修正A**: main.py L657-730 WhisperX経路削除
+- **修正B**: vertical_convert.py argparse 4引数追加
 起票承認されたし。
 
 ### 🔴 CRITICAL: stt_pipeline.md 手順書が実装と完全乖離
-足軽が手順通り叩くと即 argparse error で停止。修正cmd起票要否を判断されたし。
+足軽が手順通り叩くと即 argparse error で停止。修正cmd起票要否判断されたし。
 
 ### 💡 skill_candidate: sqlite-fk-migration (足軽4号提案)
 ForeignKey付きSQLite migration手順をスキル化。承認されたし。
 
 ### ⚠️ 技術的残課題（将来対処）
+- cmd_1504 F6 first_seen: cmd_1517 で実装済み ✅
 - Remotion Root.tsx ハードコード汎用化
-- pretool_check: /tmp/work/cmd_* 誤表示
+- CLAUDE.md ⚠️ヘッダ cmd_NNN 必須ルール追記 (軍師提案・cmd_1512副次)
