@@ -79,10 +79,6 @@ def _parse_stk_regex(text):
         m = re.search(r"^  timestamp:\s*['\"]?(.+?)['\"]?$", block, re.MULTILINE)
         if m:
             cmd["timestamp"] = m.group(1).strip().strip("'\"")
-        # issued_at (newer cmds use this instead of timestamp)
-        m = re.search(r"^  issued_at:\s*['\"]?(.+?)['\"]?$", block, re.MULTILINE)
-        if m:
-            cmd["issued_at"] = m.group(1).strip().strip("'\"")
         # purpose (first line only)
         m = re.search(r'^  purpose:\s*(.+)$', block, re.MULTILINE)
         if m:
@@ -220,7 +216,7 @@ def detect_action_required():
 
     # R1: cmd長期停滞 (active cmd > 24h)
     for cmd in get_active_cmds():
-        h = age_hours(cmd.get("timestamp") or cmd.get("issued_at", ""))
+        h = age_hours(cmd.get("timestamp", ""))
         if h > 24:
             days = int(h // 24)
             items.append({
@@ -280,7 +276,7 @@ def detect_action_required():
         else:
             criteria_text = str(criteria)
         if any(kw in criteria_text for kw in selection_kws):
-            h = age_hours(cmd.get("timestamp") or cmd.get("issued_at", ""))
+            h = age_hours(cmd.get("timestamp", ""))
             if h < 0.5:
                 continue
             severity = "HIGH" if h >= 2 else "MEDIUM"
@@ -411,6 +407,33 @@ def detect_action_required():
                 continue
             seen_cmds.add(cmd_id)
         deduped.append(item)
+
+    # C: action_required first_seen tracking (cmd_1517)
+    _AR_HIST_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+                                  "queue", ".flags", "action_required_history.json")
+    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    try:
+        if os.path.isfile(_AR_HIST_PATH):
+            with open(_AR_HIST_PATH) as _f:
+                history = json.load(_f)
+        else:
+            history = {}
+        current_keys = set()
+        for item in deduped:
+            _key_raw = f"{item.get('rule','')}|{item.get('cmd_id','')}|{(item.get('title','') or '')[:50]}"
+            _key = hashlib.sha1(_key_raw.encode()).hexdigest()[:12]
+            current_keys.add(_key)
+            if _key in history:
+                item["first_seen_at"] = history[_key]
+            else:
+                item["first_seen_at"] = now_iso
+                history[_key] = now_iso
+        # Purge resolved items
+        history = {k: v for k, v in history.items() if k in current_keys}
+        with open(_AR_HIST_PATH, "w") as _f:
+            json.dump(history, _f, indent=2)
+    except Exception:
+        pass
 
     return deduped[:20]  # Cap at 20 items
 
@@ -914,10 +937,16 @@ function renderActionRequired(items) {
   let html = '';
   for (const item of items) {
     const sev = (item.severity || 'MEDIUM').toLowerCase();
+    let firstSeen = '';
+    if (item.first_seen_at) {
+      const fsHours = (Date.now() - new Date(item.first_seen_at).getTime()) / 3600000;
+      if (fsHours >= 1) firstSeen = ` (${Math.round(fsHours)}時間前から)`;
+      else firstSeen = ` (${Math.round(fsHours*60)}分前から)`;
+    }
     html += `<div class="action-item ${sev}">
       <span class="rule-badge">${esc(item.rule)}</span>
       <span class="title">${esc(item.title)}</span>
-      <span style="float:right;font-size:0.75em;color:#8b949e">${ageBadge(item.age_hours)}</span>
+      <span style="float:right;font-size:0.75em;color:#8b949e">${ageBadge(item.age_hours)}${firstSeen}</span>
       ${item.detail ? `<div class="detail">${esc(item.detail)}</div>` : ''}
     </div>`;
   }
@@ -1152,7 +1181,7 @@ async function load() {
     const div = document.createElement('div');
     const status = c.status || '';
     div.className = 'cmd ' + status;
-    let html = `<div><span class="id">${escapeHtml(c.id||'')}</span><span class="status ${status}">${status}</span> <span class="meta">${escapeHtml(c.priority||'')} / ${escapeHtml(c.timestamp||c.issued_at||'')}</span></div>`;
+    let html = `<div><span class="id">${escapeHtml(c.id||'')}</span><span class="status ${status}">${status}</span> <span class="meta">${escapeHtml(c.priority||'')} / ${escapeHtml(c.timestamp||'')}</span></div>`;
     if (c.purpose) html += `<div class="purpose">${escapeHtml(c.purpose)}</div>`;
     if (c.lord_original) html += `<div class="lord">殿: ${escapeHtml(c.lord_original)}</div>`;
     const metaItems = [];
@@ -1573,7 +1602,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                         params.extend([kw, kw, kw, kw])
                     if where:
                         sql += " WHERE " + " AND ".join(where)
-                    sql += " ORDER BY COALESCE(timestamp, issued_at) DESC LIMIT ?"
+                    sql += " ORDER BY timestamp DESC LIMIT ?"
                     params.append(limit)
 
                     slim_drop = {'command_text', 'acceptance_criteria_json', 'depends_on_json',
@@ -2358,7 +2387,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                         # Pass-through: body の任意キーを entry に透過 (cmd_1474)
                         # depends_on / notes / redo_of / cancelled_at / cancelled_reason /
                         # implementation_flow / lord_original / command / project /
-                        # north_star / acceptance_criteria / assigned_to / issued_at 等
+                        # north_star / acceptance_criteria / assigned_to 等
                         # 全て自動で entry に反映される（API改修不要で拡張可能）
                         RESERVED = {'id', 'status', 'priority', 'purpose', 'timestamp'}
                         for k, v in body.items():
