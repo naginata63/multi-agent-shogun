@@ -52,7 +52,7 @@ tasks:
   description: litestream_keepalive.sh 行レベル論理検証 + 02:07二重起動経路復元
   parent_cmd: cmd_1543
   report_to: karo
-  status: assigned
+  status: done
   steps:
   - 1. scripts/litestream_keepalive.sh を行レベルで読む
   - 2. systemctl start rc=0時にnohupが実行されるか論理確認
