@@ -46,7 +46,7 @@ sqlite3 "$DB" "SELECT task_id, agent, parent_cmd, timestamp FROM tasks WHERE sta
     msg="stuck検知: ${task_id} (agent=${agent}, age=${age_minutes}分, cmd=${parent_cmd})"
     curl -sf -X POST "$API" \
         -H 'Content-Type: application/json' \
-        -d "{\"to\":\"karo\",\"from\":\"cron_stuck_check\",\"type\":\"stuck_detected\",\"message\":\"${msg}\"}" \
+        -d "{\"to\":\"karo\",\"from\":\"cron_stuck_check\",\"type\":\"wake_up\",\"message\":\"${msg}\"}" \
         > /dev/null 2>&1 || true
 
     # cache 記録
