@@ -1,128 +1,20 @@
 tasks:
 - acceptance_criteria:
-  - day2_3sou_men_only_with_countdown.mp4 が生成され ffprobe でh264_nvenc確認済み
-  - 5段drawtext(40/64/96/128px countdown + 128px固定0:04.94)が filter chain に組み込まれていること
-  - 5フレーム(2892.50/3793.00/4093.00/4393.00/4690.00秒)をframes_countdown/に保存済み
-  - countdown_overlay.md に4段階(30分版)仕様を追記しgit commit済み
-  - 軍師にQC依頼inbox送信済み・家老に完了報告inbox送信済み
+  - clip1_panel_review.html が生成済み・rowsが編集可能な状態
+  - ntfy通知で殿にレビュー依頼送信済み
+  - karoへ完了報告済み
   agent: ashigaru1
-  bloom_level: L2
-  description: 'cmd_1496: day2_3sou_men_only.mp4 に30分タイマー4段階+固定 drawtext 重畳。5段構成:
-    40px/64px/96px/128px countdown + 128px固定(0:04.94)。NVENC必須。5フレーム抽出→軍師QC依頼→countdown_overlay.md更新→commit。'
-  notes:
-  - libx264禁止・NVENC必須(ffmpeg_nvenc.md準拠)
-  - 固定表示テキストは 0\:04.94 (実残余時間4.94秒・0:00.00ではない)
-  - HOLD_END後(4697.28秒以降)は表示消去でよい
-  - 完了後YouTubeアップは別cmd扱い(殿追加指示待ち)
-  - description_3sou_men_only.txt が既存なら流用検討
-  parent_cmd: cmd_1496
-  status: done
-  steps: '①shared_context/procedures/countdown_overlay.md + shared_context/procedures/ffmpeg_nvenc.md
-    読む → ②ffprobe で SRC のコーデック/解像度/fps/duration 確認 → ③5段drawtext ffmpeg コマンド実行(NVENC):
-    SRC=/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/day2_3sou_men_only.mp4
-    / DST=同ディレクトリ/day2_3sou_men_only_with_countdown.mp4 / START_T=2892.22 / END_T=4687.28
-    / HOLD_END=4697.28 / STAGE1=3792.22(40→64) / STAGE2=4092.22(64→96) / STAGE3=4392.22(96→128)
-    / X式=if(lte(t\,${END_T})\,${END_T}-t\,0) / TXT(MM:SS.cc)=%{eif\:${X}/60\:d\:2}\:%{eif\:mod(${X}\,60)\:d\:2}.%{eif\:mod(${X}*100\,100)\:d\:2}
-    / 4段countdown drawtext(40px:between(t,2892.22,3792.22)・64px:between(t,3792.22,4092.22)・96px:between(t,4092.22,4392.22)・128px:between(t,4392.22,4687.28))
-    + 固定128px drawtext(text=''0\:04.94'', enable=''between(t,4687.28,4697.28)'') /
-    font=/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc / color=white:bordercolor=0xFF69B4:borderw=3
-    / x=w-text_w-20:y=20 / h264_nvenc -preset p4 -rc vbr -cq 23 -b:v 6M -maxrate 8M
-    -bufsize 12M -c:a aac -b:a 192k → ④ffprobe で DST のコーデック=h264確認 → ⑤5フレーム抽出(2892.50/3793.00/4093.00/4393.00/4690.00秒
-    → 同ディレクトリ/frames_countdown/frame_Ns.png 各1枚) → ⑥完了報告YAML /home/murakami/multi-agent-shogun/queue/reports/ashigaru1_report_subtask_1496a.yaml
-    生成 → ⑦countdown_overlay.md に4段階仕様(30分版)セクション追記 → ⑧git add /home/murakami/multi-agent-shogun/shared_context/procedures/countdown_overlay.md
-    && git commit → ⑨POST /api/inbox_write to:gunshi type:task_assigned 軍師QC依頼(フレームパス列挙)
-    → ⑩POST /api/inbox_write to:karo type:report_received 完了報告'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/day2_3sou_men_only_with_countdown.mp4
-  task_id: subtask_1496a
-  timestamp: '2026-04-27T20:49:21.192312+09:00'
-- acceptance_criteria:
-  - tono_short_vertical.mp4 が 1080x1920/h264/aac で生成済み (ffprobe確認)
-  - タイトル案3本+説明欄ドラフトをshogunへinbox送信済み
-  - 追加オプション(--main-speaker/--hook-text/--cta-text)の要否をshogunへ確認済み
-  - karoへ完了報告inbox送信済み
-  agent: ashigaru1
-  bloom_level: L2
-  description: 'cmd_1499: tono_edit.mkv を vertical_convert.py で1080x1920変換。タイトル/説明欄ドラフト作成→shogunへ確認inbox。承認後YouTube非公開アップ・ntfy・git
-    commit。'
-  notes:
-  - vertical_convert.py を使え・ffmpeg filter_complex 自前組み立て禁止
-  - デフォルト引数(オプションなし)で実行・追加オプションは将軍確認後
-  - YouTube非公開アップはshogun承認後・本タスクでは実施しない
-  - defaultLanguage=ja 必須 (オートダビング罠回避・MEMORY参照)
-  - 'ソース: ffv1 lossless なのでエンコードに時間かかる可能性あり'
-  parent_cmd: cmd_1499
-  status: done
-  steps: '①SRC・DST確認: SRC=/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_edit.mkv
-    (ffv1/3412x1918/26.6秒) → ②cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts
-    && python3 vertical_convert.py ../work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_edit.mkv
-    ../work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_short_vertical.mp4 → ③ffprobe
-    で1080x1920/h264/aac確認 → ④タイトル案3本+説明欄ドラフト作成 (ドズル社Shortsスタイル・ダム掘りテーマ) → ⑤POST /api/inbox_write
-    to:shogun type:approval_request 「cmd_1499変換完了。タイトル案/説明欄ドラフトを記載・追加オプション(--main-speaker/--hook-text等)要否確認・YouTube非公開アップ進めてよいか」→
-    ⑥完了報告YAML(/home/murakami/multi-agent-shogun/queue/reports/ashigaru1_report_subtask_1499a.yaml)
-    → ⑦POST /api/inbox_write to:karo type:report_received 変換完了・将軍承認待ちを報告
-
-    ★YouTube非公開アップは将軍承認後に別途指令あり次第実施'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！【マイクラ】/tono_short_vertical.mp4
-  task_id: subtask_1499a
-  timestamp: '2026-04-27T21:31:37.282032+09:00'
-- acceptance_criteria:
-  - day2_3sou_men_only_with_countdown_v2.mp4 がh264_nvencで生成済み
-  - drawtext式がif(lte(t,4687.28),1800-(t-2892.22),4.94)で組まれている
-  - 5フレーム(2900/3793/4093/4393/4690秒)をframes_countdown_v2/に保存済み
-  - 旧NG版を_ngリネーム済み
-  - countdown_overlay.md修正(正式式採用+旧式誤り注記)・git commit済み
-  - 軍師にQC依頼inbox送信済み・家老に完了報告inbox送信済み
-  agent: ashigaru1
-  bloom_level: L2
-  description: 'cmd_1500: cmd_1496 drawtext式バグ修正。正式式 X=1800-(t-START_T) で再エンコード→v2生成・5フレーム抽出→軍師QC→countdown_overlay.md修正commit。'
-  notes:
-  - '正式式: X=if(lte(t,END_T),1800-(t-START_T),4.94) ← t=START_Tで30:00.00・t=END_Tで0:04.94'
-  - '誤り式: X=if(lte(t,END_T),END_T-t,0) ← cmd_1496で使った誤り(4.94秒短い)'
-  - 128px段階はSTAGE3(4392.22)~HOLD_END(4697.28)で1つに統合・停止後固定drawtextは不要
-  - libx264禁止・NVENC必須
-  - DAY2=/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】
-  parent_cmd: cmd_1500
-  procedure: /home/murakami/multi-agent-shogun/shared_context/procedures/countdown_overlay.md
-  status: done
-  steps: '①queue/tasks/ashigaru1.yaml のsubtask_1500aを読む → ②ffmpegコマンド実行(正式式X=if(lte(t,4687.28),1800-(t-2892.22),4.94)/4drawtext/NVENC):
-    SRC=day2_3sou_men_only.mp4 → DST=day2_3sou_men_only_with_countdown_v2.mp4 → ③ffprobe
-    でh264確認 → ④5フレーム抽出(2900/3793/4093/4393/4690秒→frames_countdown_v2/) → ⑤完了報告YAML生成
-    → ⑥countdown_overlay.md修正(正式式採用+旧式誤り注記+cmd_1500教訓) → ⑦旧NG版リネーム(with_countdown.mp4→with_countdown_ng.mp4)
-    → ⑧git add countdown_overlay.md && commit → ⑨inbox_write to:gunshi QC依頼 → ⑩inbox_write
-    to:karo 完了報告'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目  誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/day2_3sou_men_only_with_countdown_v2.mp4
-  task_id: subtask_1500a
-  timestamp: '2026-04-27T21:40:52.128468+09:00'
-- acceptance_criteria:
-  - YouTube非公開アップ完了 (URL取得済み)
-  - defaultLanguage=ja 設定済み
-  - ntfy通知送信済み
-  - karoへURL報告済み
-  agent: ashigaru1
-  bloom_level: L2
-  description: 'cmd_1506: day2_3sou_men_only_with_countdown_v2.mp4 を YouTube非公開アップ
-    (殿承認済)'
-  notes:
-  - defaultLanguage=ja 必須 (オートダビング音声破壊缺陥回避)
-  - privacy=private 厳守
-  - youtube_uploader.py 使え・新規スクリプト作成禁止
-  parent_cmd: cmd_1506
-  status: done
-  steps: 1) ffprobe で対象ファイル存在確認 2) python3 projects/dozle_kirinuki/scripts/youtube_uploader.py
-    upload 対象ファイル --title '「#DoZ」2日目 誰も死なせないよ だって私はヒーラーだもの「ドズル社/おおはらMEN視点」' --privacy
-    private 3) defaultLanguage=ja確認 4) URL取得 5) bash scripts/ntfy.sh 完了URL含むメッセージ
-    6) inbox_write karo URL報告
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_「#DoZ」2日目  誰も死なせないよ　だって私はヒーラーだもの」「ドズル社／おおはらMEN視点」/day2_3sou_men_only_with_countdown_v2.mp4
-  task_id: subtask_1506a
-  timestamp: '2026-04-27T22:26:28.773839+09:00'
-- agent: ashigaru1
-  task_id: subtask_1509a
-  parent_cmd: cmd_1509
-  status: assigned
   bloom_level: L3
   description: 'cmd_1509 Phase1: tono_clip1.mp4 (1.8MB) を動画解析して panel_review.html
     生成'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/clip1_panel_review.html
+  notes:
+  - Phase1 = panel_review.html 生成のみ。殿レビュー後の Phase2 は別途指令
+  - source ~/.bashrc && を必ず前置 (VERTEX_API_KEY等の環境変数取得)
+  - ref_images は絶対パス必須 (feedback_panel_refs_absolute.md)
+  - 実際の panel_review_gen.py 引数は scripts/ 配下を確認してから実行
+  - 'ドズル社メンバー: dozle/bon/qnly/orafu/oo_men/nekooji'
+  parent_cmd: cmd_1509
+  status: assigned
   steps: 1) shared_context/procedures/ の漫画ショート手順確認 + projects/dozle_kirinuki/context/
     参照 2) source ~/.bashrc && python3 projects/dozle_kirinuki/scripts/panel_review_gen.py
     '/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_clip1.mp4'
@@ -130,106 +22,100 @@ tasks:
     (または同等スクリプト・実際の引数は scripts/ 確認) 3) clip1_panel_review.html をブラウザで確認可能なパスに出力 4)
     bash scripts/ntfy.sh '📋 clip1 panel_review.html 生成完了 - 殿レビュー待ち' 5) inbox_write
     karo HTMLパス報告
-  acceptance_criteria:
-  - clip1_panel_review.html が生成済み・rowsが編集可能な状態
-  - ntfy通知で殿にレビュー依頼送信済み
-  - karoへ完了報告済み
-  notes:
-  - Phase1 = panel_review.html 生成のみ。殿レビュー後の Phase2 は別途指令
-  - source ~/.bashrc && を必ず前置 (VERTEX_API_KEY等の環境変数取得)
-  - ref_images は絶対パス必須 (feedback_panel_refs_absolute.md)
-  - 実際の panel_review_gen.py 引数は scripts/ 配下を確認してから実行
-  - 'ドズル社メンバー: dozle/bon/qnly/orafu/oo_men/nekooji'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/clip1_panel_review.html
+  task_id: subtask_1509a
   timestamp: '2026-04-27T22:54:44.692279+09:00'
-- agent: ashigaru1
-  task_id: subtask_1509a2
-  parent_cmd: cmd_1509
-  redo_of: subtask_1509a
-  status: assigned
+- acceptance_criteria:
+  - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/panels_tono_clip1.json
+    が存在・panels配列あり
+  - ntfy通知送信済み
+  - karoへ完了報告済み
+  agent: ashigaru1
   bloom_level: L3
   description: 'cmd_1509 Phase1 (訂正版): tono_clip1.mp4 → generate_panel_candidates.py
     で panels JSON 全自動生成'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/panels_tono_clip1.json
+  notes:
+  - '主役: generate_panel_candidates.py (panel_review_gen.py ではない・訂正版)'
+  - source config/vertex_api_key.env 必須 (VERTEX_API_KEY)
+  - 'redo_of: subtask_1509a (panel_review_gen.py 誤用版)'
+  parent_cmd: cmd_1509
+  redo_of: subtask_1509a
+  status: assigned
   steps: '1) source config/vertex_api_key.env 2) python3 projects/dozle_kirinuki/scripts/generate_panel_candidates.py
     --clip ''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_clip1.mp4''
     --scene ''tono_clip1'' --title ''86万トンダム掘り切り抜き'' --output ''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/panels_tono_clip1.json''
     3) cat 出力で panels JSON 確認 4) bash scripts/ntfy.sh ''📋 clip1 panels JSON 生成完了:
     panels_tono_clip1.json'' 5) inbox_write karo panels_tono_clip1.json のパスを報告'
-  acceptance_criteria:
-  - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/panels_tono_clip1.json
-    が存在・panels配列あり
-  - ntfy通知送信済み
-  - karoへ完了報告済み
-  notes:
-  - '主役: generate_panel_candidates.py (panel_review_gen.py ではない・訂正版)'
-  - source config/vertex_api_key.env 必須 (VERTEX_API_KEY)
-  - 'redo_of: subtask_1509a (panel_review_gen.py 誤用版)'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/panels_tono_clip1.json
+  task_id: subtask_1509a2
   timestamp: '2026-04-27T22:59:44.005886+09:00'
-- agent: ashigaru1
-  task_id: subtask_1510a
-  parent_cmd: cmd_1510
-  status: assigned
-  bloom_level: L4
-  description: 'cmd_1510: get_active_cmds()/get_recent_done()/read_yaml_tasks() を
-    SQLite SELECT に書換 (server.py L129-490)'
-  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
-  steps: 1) queue/shogun_to_karo.yaml の cmd_1510 command 全文読む 2) scripts/dashboard/server.py
-    の get_active_cmds(L129-131) / get_recent_done(L134-137) / read_yaml_tasks(L425-490)
-    を SQLite SELECT に書換 3) python3 -m py_compile scripts/dashboard/server.py で構文確認
-    4) curl http://localhost:8770/api/cmd_list で動作確認 5) git add scripts/dashboard/server.py
-    && commit 6) inbox_write karo 完了報告
-  notes:
-  - cmd_1510 command 全文に詳細SQL例あり・必ず読め
-  - python3 -m py_compile 必須
-  - curl テスト必須
-  - libx264禁止(動画cmd外)
-  timestamp: '2026-04-27T23:05:13.088104+09:00'
-- agent: ashigaru1
-  task_id: subtask_1511a
-  parent_cmd: cmd_1511
-  status: blocked
-  bloom_level: L3
+- agent: ashigaru7
   blocked_by:
   - subtask_1510a
+  bloom_level: L3
   description: 'cmd_1511: full_yaml_blob カラム 3テーブル削除 (audit→DROP→server.py コード削除)'
-  target_path: /home/murakami/multi-agent-shogun/queue/cmds.db
-  steps: 1) cmd_1511 command 全文読む 2) 全 row で blob vs 正規列 JSON diff → 差分ゼロ確認 3) SQLite
-    3.35+ 確認後 ALTER TABLE commands/tasks/reports DROP COLUMN full_yaml_blob 4) server.py
-    から blob 関連コード削除 5) py_compile + curl テスト 6) git commit 7) inbox_write karo 完了報告
   notes:
   - subtask_1510a 完了後に実行
   - 差分ゼロ確認必須（データ損失防止）
   - SQLite 3.35未満なら再構築方式で対応
+  parent_cmd: cmd_1511
+  status: assigned
+  steps: 1) cmd_1511 command 全文読む 2) 全 row で blob vs 正規列 JSON diff → 差分ゼロ確認 3) SQLite
+    3.35+ 確認後 ALTER TABLE commands/tasks/reports DROP COLUMN full_yaml_blob 4) server.py
+    から blob 関連コード削除 5) py_compile + curl テスト 6) git commit 7) inbox_write karo 完了報告
+  target_path: /home/murakami/multi-agent-shogun/queue/cmds.db
+  task_id: subtask_1511a
   timestamp: '2026-04-27T23:05:13.203327+09:00'
-- agent: ashigaru1
-  task_id: subtask_1512a
-  parent_cmd: cmd_1512
-  status: blocked
+- task_id: subtask_1525a
+  agent: ashigaru1
+  parent_cmd: cmd_1525
   bloom_level: L3
-  blocked_by:
-  - subtask_1511a
-  description: 'cmd_1512: detect_action_required R7 dedup強化 + cmd_id:null 疑似ID付与 (server.py
-    L344-379)'
-  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
-  steps: '1) cmd_1512 command 全文読む 2) L344-356 R7: cmd_id=None の場合 ''_orphan_''+sha1(title)[:8]
-    付与 3) L360-379 dedup: rule==''R7'' は title_key=(rule,title[:100]) で dedup 4) py_compile
-    + curl /api/dashboard テスト 5) git commit 6) inbox_write karo 完了報告'
+  status: assigned
+  priority: high
+  description: 'cmd_1525: stuck subtask 検知スクリプト新規作成 + cron登録 + dedup機構 + テスト'
+  target_path: /home/murakami/multi-agent-shogun/scripts/stuck_subtask_check.sh
+  steps: '1) scripts/stuck_subtask_check.sh 新規作成: SQLite tasks テーブルから status=assigned
+    かつ timestamp が30分以上前のタスクを抽出 → POST /api/inbox_write to:karo で通達 2) dedup: /tmp/stuck_notified_cache.txt
+    に task_id+timestamp を記録し1時間以内同task重複通達をskip 3) crontab -l で既存cron確認 → */5 * *
+    * * /home/murakami/multi-agent-shogun/scripts/stuck_subtask_check.sh を追加 4) テスト:
+    status=assigned のタスクが存在すれば動作確認 (karo inbox に届くか) 5) bash scripts/ntfy.sh "✅ cmd_1525完了:
+    stuck検知cron設置" 6) inbox_write karo 完了報告'
+  acceptance_criteria:
+  - scripts/stuck_subtask_check.sh 新規・実行可能 (chmod +x済)
+  - cron */5 * * * * 登録済 (crontab -l で確認)
+  - dedup 動作 (1時間以内同 task 重複通達なし)
+  - 家老 inbox に通達届くテスト確認済
+  - ntfy通知送信済
   notes:
-  - subtask_1511a 完了後に実行
-  - R7以外のdedup logicは変更しない
-  timestamp: '2026-04-27T23:05:13.278112+09:00'
-- agent: ashigaru1
-  task_id: subtask_1515a
-  parent_cmd: cmd_1515
-  status: blocked
+  - 'SQLite DB: /home/murakami/multi-agent-shogun/queue/cmds.db'
+  - tasks テーブルのtimestampカラムはISO8601形式
+  - 閾値30分はデフォルト・コメントで変更可能と明記
+  - 既存cronに影響しないこと
+  - 'inbox_write API: POST http://192.168.2.7:8770/api/inbox_write'
+  timestamp: '2026-04-28T20:30:09.495147+09:00'
+- task_id: subtask_1539a
+  agent: ashigaru1
+  parent_cmd: cmd_1539
+  status: assigned
   bloom_level: L2
-  blocked_by:
-  - subtask_1512a
-  description: 'cmd_1515: R3 age_hours 閾値段階化 (<0.5h skip / 0.5-2h MED / 2h+ HIGH)'
-  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
-  steps: '1) cmd_1515 command 全文読む 2) L235-251 R3 ブロック: h<0.5→continue / 0.5<=h<2→MEDIUM
-    / h>=2→HIGH 3) py_compile + curl テスト 4) git commit 5) inbox_write karo 完了報告'
-  notes:
-  - subtask_1512a 完了後に実行
-  - UIのMEDIUM/HIGH別表示も反映(L873付近)
-  timestamp: '2026-04-27T23:05:13.362014+09:00'
+  title: hooks.json pgrep guard + HOME統一
+  description: claude-mem hooks.json の SessionStart に pgrep guard を追加し bun worker
+    daemon の多重起動を防止。HOME=/home/murakami を統一。
+  target_path: /home/murakami/.claude/plugins/cache/thedotmack/claude-mem/10.6.3/hooks/hooks.json
+  steps: '1. Read /home/murakami/.claude/plugins/cache/thedotmack/claude-mem/10.6.3/hooks/hooks.json
+
+    2. SessionStart hooks[1].command (bun worker-service.cjs start) の先頭に以下を追加: HOME=/home/murakami;
+    pgrep -f ''worker-service.cjs --daemon'' >/dev/null 2>&1 && exit 0;
+
+    3. 修正後の command 文字列: ''HOME=/home/murakami; _R=...; pgrep -f worker-service.cjs.*--daemon
+    >/dev/null 2>&1 && exit 0; node ...''
+
+    4. JSON バリデーション: python3 -m json.tool hooks.json >/dev/null
+
+    5. 動作確認: pgrep -fa ''worker-service.cjs --daemon'' が1件のみ出ること
+
+    6. git add /home/murakami/.claude/ は不可。代わりにファイル内容をコミット対象外として確認のみ
+
+    7. 完了報告を gunshi に inbox_write'
+  report_to: gunshi
+  timestamp: '2026-04-29T03:27:51'
