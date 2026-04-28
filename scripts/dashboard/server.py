@@ -2387,13 +2387,13 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                             (id, status, priority, purpose, lord_original, command_text,
                              assigned_to, north_star, project, parent_cmd,
                              acceptance_criteria_json, depends_on_json, notes_json,
-                             timestamp, full_yaml_blob)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                             timestamp)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                             (cmd_id, entry.get('status', 'pending'), entry.get('priority', 'medium'),
                              body['purpose'], body.get('lord_original'), body.get('command'),
                              body.get('assigned_to'), body.get('north_star'), body.get('project'),
                              body.get('parent_cmd'), _crit_json, _dep_json, _notes_json,
-                             entry.get('timestamp'), json.dumps(entry, ensure_ascii=False)))
+                             entry.get('timestamp')))
                         _conn.commit()
                         _conn.close()
                     except Exception as _sqe:
@@ -2565,8 +2565,8 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                          project, description, target_path, procedure, steps,
                          acceptance_criteria_json, notes_json, params_json,
                          assigned_to, assignee, report_to, safety, redo_of,
-                         timestamp, full_yaml_blob)
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', (
+                         timestamp)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', (
                         task_id, agent, body.get('parent_cmd'), body['status'],
                         body.get('priority'), body.get('title'), body.get('project'),
                         body.get('description'), body.get('target_path'),
@@ -2578,7 +2578,6 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                         body.get('report_to'), body.get('safety'),
                         body.get('redo_of'),
                         task_entry['timestamp'],
-                        yaml.safe_dump(task_entry, allow_unicode=True),
                     ))
                     _conn.commit()
                     _conn.close()

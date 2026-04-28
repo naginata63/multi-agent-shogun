@@ -642,4 +642,18 @@ PYEOF_CK8
   fi
 fi
 
+# ── チェック9: full_yaml_blob 参照 BLOCK (cmd_1511 再発防止) ──
+# full_yaml_blob は 3テーブルから削除済。再追加・参照を防止する。
+if [ "$TOOL_NAME" = "Write" ] || [ "$TOOL_NAME" = "Edit" ]; then
+  _CHK9_FILE_PATH=$(echo "$TOOL_INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('file_path',''))" 2>/dev/null)
+  if echo "$_CHK9_FILE_PATH" | grep -qE '\.py$'; then
+    _CHK9_CONTENT=$(echo "$TOOL_INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('new_string','') + d.get('content',''))" 2>/dev/null)
+    if echo "$_CHK9_CONTENT" | grep -q 'full_yaml_blob'; then
+      echo "BLOCKED: full_yaml_blob 参照検出 (cmd_1511 再発防止ルール)" >&2
+      echo "理由: 3テーブル(commands/tasks/reports)から同カラム削除済。再追加禁止。" >&2
+      exit 2
+    fi
+  fi
+fi
+
 exit 0
