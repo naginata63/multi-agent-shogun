@@ -17,6 +17,16 @@
 
 ### cmd_1509 (high) — tono_clip1/clip2 漫画パネル化 【最優先・漫画ショート戦略】
 - ✅ subtask_1509a2 → 足軽1号: panels_tono_clip1.json (7パネル) 完了
+- 🔄 subtask_1509b2 → 足軽3号: panels_tono_clip2.json (実行中・age=20h)
+- 📌 Phase2 は clip2完了後・殿レビュー
+
+### cmd_1517 (low) — timestamp正規化+INDEX 7本
+- 🔄 subtask_1517a → 足軽4号: 実行中
+
+## 🔄 進行中
+
+### cmd_1509 (high) — tono_clip1/clip2 漫画パネル化 【最優先・漫画ショート戦略】
+- ✅ subtask_1509a2 → 足軽1号: panels_tono_clip1.json (7パネル) 完了
 - 🔄 subtask_1509b2 → 足軽3号: panels_tono_clip2.json (実行中)
 - 📌 Phase2 は clip2完了後
 
@@ -103,6 +113,25 @@
 - ⏸ subtask_1517a (timestamp+INDEX): 1516a QC PASS後
 
 ## ✅ 本日の完了
+## ✅ 本日の完了
+
+| cmd | 内容 |
+|-----|------|
+| cmd_1515 | ✅ **完遂(19:19・足軽1号・軍師QC PASS)** R3 age閾値3段階(<0.5h/0.5-2h/2h+)。R3ノイズ解消。cmd_1504主要F1-F5完全解消 |
+| cmd_1511 | ✅ **完遂(19:12・足軽7号・軍師QC PASS)** full_yaml_blob 3テーブルDROP+server.py 7箇所除去+pretool CHK9 |
+| cmd_1512 | ✅ **完遂(19:11・足軽1号・軍師QC PASS)** R7 dedup+cmd_id疑似ID。R7ノイズ解消 |
+| cmd_1516 | ✅ **完遂(18:59・足軽4号・軍師QC PASS)** reports.type/status/qa_decision CHECK制約3点+INDEX |
+| cmd_1523 | ✅ **完遂(08:46・足軽5号)** 3層クリップ(6:21) → https://youtu.be/c0JxfCbNdqU |
+| cmd_1522 | ✅ **完遂(07:39・軍師)** inbox_mark_read YAML/SQLite乖離根因確定 |
+| cmd_1520 | ✅ **完遂(02:08・軍師)** 夜間監査 動画スクリプト7ファイル22件検出 |
+| cmd_1514 | ✅ **完遂(00:28・足軽4号・軍師QC PASS)** inbox.type CHECK制約14種 |
+| cmd_1513 | ✅ **完遂(00:10・足軽4号・軍師QC PASS)** agents テーブル13行新設 |
+| cmd_1510 | ✅ **完遂(確認済)** server.py SQLite移行 既実装確認 |
+| cmd_1519 | ✅ **完遂(23:25・足軽6号・軍師QC PASS)** GCnCUAuL0p8 説明欄v2更新 |
+| cmd_1501 | ✅ **完遂(23:37・足軽2号・軍師QC PASS)** faiss index 再構築 |
+| cmd_1508 | ✅ **完遂(22:57・軍師)** SQLiteスキーマ監査 8findings |
+| cmd_1502 | ✅ **完遂(22:45)** silent_fail_watcher noise分類追加 |
+
 ## ✅ 本日の完了
 
 | cmd | 内容 |
