@@ -1,80 +1,82 @@
 tasks:
-- task_id: qc_1413a
-  agent: gunshi
-  parent_cmd: cmd_1413
-  status: superseded
-  priority: high
-  title: panels_doz_healer_15331_16531.json 品質検査（捏造・話者・分布）
-  project: dozle_kirinuki
-  steps: 'shared_context/qc_template.md を参照してQC実施。実ファイルを自分の目で読め（数値報告だけでPASS禁止）。advisor()を実施前後に呼べ。完了後
-    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo ''QC結果{PASS/FAIL}:
-    qc_1413a。{所見}'' qc_result gunshi'
-  assigned_to: gunshi
-  timestamp: '2026-04-18T09:20:00+09:00'
-  acceptance_criteria:
+- acceptance_criteria:
   - panels 10枚全て存在（panel_count=10）
   - 各 panel.lines[].text が SRT同時刻±5秒以内の実発話に部分一致（捏造ゼロ）
   - start_sec が 0-1200 全域に分散（均一200s分割でないこと）
   - 全パネルの話者ラベルが SRT同時刻の実話者と一致（oo_men/bon/nekooji/orafu/qnly/dozle/unknown のみ）
   - フォールバック痕跡なし（均一200.2s刻みの start_sec が存在しないこと）
-- task_id: subtask_1516a_qc
   agent: gunshi
-  parent_cmd: cmd_1516
-  bloom_level: L5
-  status: assigned
-  priority: low
-  description: 'cmd_1516 QC: reports.status/qa_decision CHECK制約 + type列追加の品質検証'
-  target_path: /home/murakami/multi-agent-shogun/queue/cmds.db
-  steps: 1) queue/reports/ashigaru4_report_subtask_1516a.yaml 全文読む 2) PRAGMA table_info(reports)
-    で type列・CHECK制約存在確認 3) INSERT invalid値でCHECK制約が発火するか確認 4) backfill 113行の内容サンプル確認
-    5) server.py validation コード確認 6) PASS/FAIL 判定→inbox_write karo
-  acceptance_criteria:
+  assigned_to: gunshi
+  parent_cmd: cmd_1413
+  priority: high
+  project: dozle_kirinuki
+  status: superseded
+  steps: 'shared_context/qc_template.md を参照してQC実施。実ファイルを自分の目で読め（数値報告だけでPASS禁止）。advisor()を実施前後に呼べ。完了後
+    bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo ''QC結果{PASS/FAIL}:
+    qc_1413a。{所見}'' qc_result gunshi'
+  task_id: qc_1413a
+  timestamp: '2026-04-18T09:20:00+09:00'
+  title: panels_doz_healer_15331_16531.json 品質検査（捏造・話者・分布）
+- acceptance_criteria:
   - reports.type列が存在する
   - status/qa_decision にCHECK制約が活性化されている
   - QC PASS/FAILを karo に報告済み
+  agent: gunshi
+  bloom_level: L5
+  description: 'cmd_1516 QC: reports.status/qa_decision CHECK制約 + type列追加の品質検証'
   notes:
   - '報告書: queue/reports/ashigaru4_report_subtask_1516a.yaml'
   - PASS後 subtask_1517a (timestamp+INDEX) を unblock する
+  parent_cmd: cmd_1516
+  priority: low
+  status: assigned
+  steps: 1) queue/reports/ashigaru4_report_subtask_1516a.yaml 全文読む 2) PRAGMA table_info(reports)
+    で type列・CHECK制約存在確認 3) INSERT invalid値でCHECK制約が発火するか確認 4) backfill 113行の内容サンプル確認
+    5) server.py validation コード確認 6) PASS/FAIL 判定→inbox_write karo
+  target_path: /home/murakami/multi-agent-shogun/queue/cmds.db
+  task_id: subtask_1516a_qc
   timestamp: '2026-04-28T18:56:09.965487+09:00'
 - agent: gunshi
-  task_id: subtask_1543a
-  status: blocked
-  parent_cmd: cmd_1538
-  bloom_level: L4
-  blocked_reason: |
-    軍師は実装禁止 (instructions/gunshi.md Role: thinker not doer)。
+  blocked_reason: '軍師は実装禁止 (instructions/gunshi.md Role: thinker not doer)。
+
     削除33ファイル>10件 = CLAUDE.md Tier 2 STOP-AND-REPORT 該当。
+
     設計指示書は既に作成済: queue/reports/gunshi_design_ltx_cleanup_1543.yaml
+
     (削除候補リスト33件・active保護対象・13ステップ安全手順・rollback含む)
+
     実装は足軽 (推奨ashigaru2) に再アサインを家老に上申済 (msg_20260429_030118_9c184ec0)。
-  description: 'cmd_1538残課題: litestream level=2/3/9残骸の完全クリーン手順を設計・実施'
-  target_path: /home/murakami/litestream-replica/cmds/ltx/
+
+    '
+  bloom_level: L5
+  description: litestream_keepalive.sh 行レベル論理検証 + 02:07二重起動経路復元
+  parent_cmd: cmd_1543
+  report_to: karo
+  status: assigned
   steps:
-  - 1. ls -la /home/murakami/litestream-replica/cmds/ltx/{0,1,2,3,9}/ でファイル数・タイムスタンプ確認
-  - 2. tail -30 logs/litestream.log でERROR詳細確認(level=2 compactionのtxid範囲特定)
-  - 3. 02:07以前タイムスタンプの古い残骸を特定→削除候補リスト作成
-  - 4. 削除候補をntfyで殿に1報(Tier2安全策)→bash scripts/ntfy.sh で送信
-  - 5. systemctl --user stop litestream
-  - 6. tar -czf /home/murakami/litestream_ltx_full_backup_$(date +%Y%m%d%H%M).tar.gz
-    /home/murakami/litestream-replica/cmds/ltx/
-  - 7. 特定した残骸のみrm(active txid 0x1100番台以降は絶対触らない)
-  - 8. systemctl --user start litestream
-  - 9. tail -50 logs/litestream.log で10分間ERROR 0確認(5分compaction周期×2回)
-  - 10. karoにinbox_write(type:report_received)で結果報告
+  - 1. scripts/litestream_keepalive.sh を行レベルで読む
+  - 2. systemctl start rc=0時にnohupが実行されるか論理確認
+  - 3. crontab -l でlitestream関連cron確認
+  - 4. 02:07の二重起動(pid=2621 PPID=1 + pid=2623 PPID=2274)経路を復元
+  - 5. 判断A(正常・真因は別所)かB(バグあり)を根拠付きで明示
+  - 6. queue/reports/gunshi_cmd_1543.yaml に報告
+  - 7. karoにinbox_write・ntfyで殿に結論通知
+  target_path: /home/murakami/multi-agent-shogun/scripts/litestream_keepalive.sh
+  task_id: subtask_1543a
   timestamp: '2026-04-29T02:58:26.911505+09:00'
 - agent: gunshi
-  task_id: subtask_1539b_qc
-  status: blocked
-  parent_cmd: cmd_1539
-  bloom_level: L4
   blocked_by:
   - subtask_1539a
+  bloom_level: L4
   description: 'cmd_1539 QC: hooks.json pgrep guard + HOME統一の検証'
-  target_path: /home/murakami/.claude/plugins/cache/thedotmack/claude-mem/10.6.3/hooks/hooks.json
+  parent_cmd: cmd_1539
+  status: done
   steps:
   - 1. hooks.json を読んで pgrep guard と HOME=/home/murakami が正しい位置に追加されているか確認
   - 2. pgrep -fc worker-service.cjs が 1 であること確認
   - 3. ~/.claude-mem/worker.pid の存在確認
   - 4. acceptance_criteria 全5件を確認・証跡記載
   - 5. PASS/FAIL判定をkaroにinbox_writeで報告
+  target_path: /home/murakami/.claude/plugins/cache/thedotmack/claude-mem/10.6.3/hooks/hooks.json
+  task_id: subtask_1539b_qc
   timestamp: '2026-04-29T02:59:14.601656+09:00'

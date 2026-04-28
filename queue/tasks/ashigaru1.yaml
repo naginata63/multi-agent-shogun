@@ -66,42 +66,40 @@ tasks:
   target_path: /home/murakami/multi-agent-shogun/queue/cmds.db
   task_id: subtask_1511a
   timestamp: '2026-04-27T23:05:13.203327+09:00'
-- task_id: subtask_1525a
-  agent: ashigaru1
-  parent_cmd: cmd_1525
-  bloom_level: L3
-  status: assigned
-  priority: high
-  description: 'cmd_1525: stuck subtask 検知スクリプト新規作成 + cron登録 + dedup機構 + テスト'
-  target_path: /home/murakami/multi-agent-shogun/scripts/stuck_subtask_check.sh
-  steps: '1) scripts/stuck_subtask_check.sh 新規作成: SQLite tasks テーブルから status=assigned
-    かつ timestamp が30分以上前のタスクを抽出 → POST /api/inbox_write to:karo で通達 2) dedup: /tmp/stuck_notified_cache.txt
-    に task_id+timestamp を記録し1時間以内同task重複通達をskip 3) crontab -l で既存cron確認 → */5 * *
-    * * /home/murakami/multi-agent-shogun/scripts/stuck_subtask_check.sh を追加 4) テスト:
-    status=assigned のタスクが存在すれば動作確認 (karo inbox に届くか) 5) bash scripts/ntfy.sh "✅ cmd_1525完了:
-    stuck検知cron設置" 6) inbox_write karo 完了報告'
-  acceptance_criteria:
+- acceptance_criteria:
   - scripts/stuck_subtask_check.sh 新規・実行可能 (chmod +x済)
   - cron */5 * * * * 登録済 (crontab -l で確認)
   - dedup 動作 (1時間以内同 task 重複通達なし)
   - 家老 inbox に通達届くテスト確認済
   - ntfy通知送信済
+  agent: ashigaru1
+  bloom_level: L3
+  description: 'cmd_1525: stuck subtask 検知スクリプト新規作成 + cron登録 + dedup機構 + テスト'
   notes:
   - 'SQLite DB: /home/murakami/multi-agent-shogun/queue/cmds.db'
   - tasks テーブルのtimestampカラムはISO8601形式
   - 閾値30分はデフォルト・コメントで変更可能と明記
   - 既存cronに影響しないこと
   - 'inbox_write API: POST http://192.168.2.7:8770/api/inbox_write'
-  timestamp: '2026-04-28T20:30:09.495147+09:00'
-- task_id: subtask_1539a
-  agent: ashigaru1
-  parent_cmd: cmd_1539
+  parent_cmd: cmd_1525
+  priority: high
   status: assigned
+  steps: '1) scripts/stuck_subtask_check.sh 新規作成: SQLite tasks テーブルから status=assigned
+    かつ timestamp が30分以上前のタスクを抽出 → POST /api/inbox_write to:karo で通達 2) dedup: /tmp/stuck_notified_cache.txt
+    に task_id+timestamp を記録し1時間以内同task重複通達をskip 3) crontab -l で既存cron確認 → */5 * *
+    * * /home/murakami/multi-agent-shogun/scripts/stuck_subtask_check.sh を追加 4) テスト:
+    status=assigned のタスクが存在すれば動作確認 (karo inbox に届くか) 5) bash scripts/ntfy.sh "✅ cmd_1525完了:
+    stuck検知cron設置" 6) inbox_write karo 完了報告'
+  target_path: /home/murakami/multi-agent-shogun/scripts/stuck_subtask_check.sh
+  task_id: subtask_1525a
+  timestamp: '2026-04-28T20:30:09.495147+09:00'
+- agent: ashigaru1
   bloom_level: L2
-  title: hooks.json pgrep guard + HOME統一
   description: claude-mem hooks.json の SessionStart に pgrep guard を追加し bun worker
     daemon の多重起動を防止。HOME=/home/murakami を統一。
-  target_path: /home/murakami/.claude/plugins/cache/thedotmack/claude-mem/10.6.3/hooks/hooks.json
+  parent_cmd: cmd_1539
+  report_to: gunshi
+  status: done
   steps: '1. Read /home/murakami/.claude/plugins/cache/thedotmack/claude-mem/10.6.3/hooks/hooks.json
 
     2. SessionStart hooks[1].command (bun worker-service.cjs start) の先頭に以下を追加: HOME=/home/murakami;
@@ -117,5 +115,32 @@ tasks:
     6. git add /home/murakami/.claude/ は不可。代わりにファイル内容をコミット対象外として確認のみ
 
     7. 完了報告を gunshi に inbox_write'
-  report_to: gunshi
+  target_path: /home/murakami/.claude/plugins/cache/thedotmack/claude-mem/10.6.3/hooks/hooks.json
+  task_id: subtask_1539a
   timestamp: '2026-04-29T03:27:51'
+  title: hooks.json pgrep guard + HOME統一
+- task_id: subtask_1541a
+  agent: ashigaru1
+  parent_cmd: cmd_1541
+  status: assigned
+  bloom_level: L2
+  title: claude-mem MAX_CONCURRENT=5 + Idle timeout=60s設定
+  description: ~/.claude-mem/settings.json の CLAUDE_MEM_MAX_CONCURRENT_AGENTS を 10→5
+    に変更。Idle timeout 60s を設定。
+  target_path: /home/murakami/.claude-mem/settings.json
+  steps: '1. cat ~/.claude-mem/settings.json で現在値確認
+
+    2. CLAUDE_MEM_MAX_CONCURRENT_AGENTS: ''10'' → ''5'' に変更
+
+    3. Idle timeout設定: 既存keyで CLAUDE_MEM_IDLE_TIMEOUT や CLAUDE_MEM_SUBPROCESS_IDLE_TIMEOUT
+    等があれば 60 に変更。なければ CLAUDE_MEM_IDLE_TIMEOUT=''60'' を追記
+
+    4. JSON valid確認: python3 -m json.tool ~/.claude-mem/settings.json
+
+    5. このファイルはgit管理外。コミット不要
+
+    6. 確認: cat ~/.claude-mem/settings.json | grep -E ''MAX_CONCURRENT|IDLE''
+
+    7. 完了報告を gunshi に inbox_write'
+  report_to: gunshi
+  timestamp: '2026-04-29T07:21:18'
