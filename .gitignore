@@ -388,6 +388,7 @@ tests/specs/osato_lms_*
 !scripts/backup_full.sh
 !scripts/litestream_keepalive.sh
 !scripts/claude_mem_hook_guard.sh
+!scripts/chroma_mcp_health.sh
 
 # Backups (README only; encrypted .gpg stays excluded by *)
 !backups/

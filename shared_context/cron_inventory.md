@@ -217,6 +217,19 @@
 | 状態 | active |
 | 備考 | cmd_1447 で新設。`/skill-inventory` slash command で即時実行可。SKILL.md は `skills/skill-candidate-tracker/SKILL.md`。新規 .py 禁止で全処理 shell + python3 HEREDOC。 |
 
+### C15 — chroma-mcp 健全性監視 (cmd_1540)
+
+| 項目 | 値 |
+|------|-----|
+| スケジュール | `*/5 * * * *` (5分毎) |
+| コマンド | `cd /home/murakami/multi-agent-shogun && bash scripts/chroma_mcp_health.sh` |
+| 目的 | chroma-mcp プロセス数を監視。pgrep -fc chroma-mcp ≥ 2 の場合 ntfy で即時アラート通知し、重複プロセスの早期発見・対処を可能にする。 |
+| 所管 | 家老 (運用) / 足軽全員 (参照) |
+| 停止影響 | chroma-mcp 重複起動に気づかず、リソース枯渇や MCP 動作不安定の原因特定が遅れる。 |
+| ログ | `logs/chroma_mcp_health.log` |
+| 状態 | active |
+| 備考 | cmd_1540 で新設。閾値は 2 以上 (通常は 1 プロセス)。誤検知時は pgrep パターン調整で対応。 |
+
 ---
 
 ## 3. Disabled cron (コメントアウト行)
@@ -321,3 +334,4 @@
 |------|--------|------|
 | 2026-04-24 | ashigaru6 (cmd_1443_p09) | 新設。C01-C10 棚卸し + C11 新規 (cron_health_check) + D01-D05 記録 |
 | 2026-04-24 | ashigaru5 (cmd_1443_p10) | C13 新規 (monthly feedback review / H13)。crontab snapshot 同時更新。 |
+| 2026-04-29 | ashigaru3 (cmd_1540) | C15 新規 (chroma-mcp 健全性監視)。pgrep -fc chroma-mcp ≥ 2 → ntfy alert。 |
