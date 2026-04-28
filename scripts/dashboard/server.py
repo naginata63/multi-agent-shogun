@@ -280,12 +280,16 @@ def detect_action_required():
         else:
             criteria_text = str(criteria)
         if any(kw in criteria_text for kw in selection_kws):
+            h = age_hours(cmd.get("timestamp") or cmd.get("issued_at", ""))
+            if h < 0.5:
+                continue
+            severity = "HIGH" if h >= 2 else "MEDIUM"
             items.append({
                 "rule": "R3",
-                "severity": "HIGH",
+                "severity": severity,
                 "title": f"{cmd.get('id','?')} 殿選定待ち",
                 "detail": (cmd.get("purpose", "") or "")[:120],
-                "age_hours": age_hours(cmd.get("timestamp") or cmd.get("issued_at", "")),
+                "age_hours": h,
                 "cmd_id": cmd.get("id"),
             })
 
