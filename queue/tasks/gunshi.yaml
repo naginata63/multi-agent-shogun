@@ -35,3 +35,83 @@ tasks:
   - 推奨cmd 1-3件明示
   - cmd_1510 server.py SQLite移行との整合性も言及せよ
   timestamp: '2026-04-28T07:35:08.550620+09:00'
+- task_id: subtask_1516a_qc
+  agent: gunshi
+  parent_cmd: cmd_1516
+  bloom_level: L5
+  status: assigned
+  priority: low
+  description: 'cmd_1516 QC: reports.status/qa_decision CHECK制約 + type列追加の品質検証'
+  target_path: /home/murakami/multi-agent-shogun/queue/cmds.db
+  steps: 1) queue/reports/ashigaru4_report_subtask_1516a.yaml 全文読む 2) PRAGMA table_info(reports)
+    で type列・CHECK制約存在確認 3) INSERT invalid値でCHECK制約が発火するか確認 4) backfill 113行の内容サンプル確認
+    5) server.py validation コード確認 6) PASS/FAIL 判定→inbox_write karo
+  acceptance_criteria:
+  - reports.type列が存在する
+  - status/qa_decision にCHECK制約が活性化されている
+  - QC PASS/FAILを karo に報告済み
+  notes:
+  - '報告書: queue/reports/ashigaru4_report_subtask_1516a.yaml'
+  - PASS後 subtask_1517a (timestamp+INDEX) を unblock する
+  timestamp: '2026-04-28T18:56:09.965487+09:00'
+- task_id: subtask_1527a
+  agent: gunshi
+  parent_cmd: cmd_1527
+  bloom_level: L5
+  status: done
+  priority: high
+  description: 'cmd_1527: dual-path不整合 全体根治設計指示書作成 (cmd_1504/1508/1522統合俯瞰)'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_dual_path_root_treatment_1527.yaml
+  steps: '1) queue/reports/ から gunshi_*1504*.yaml / gunshi_*1508*.yaml / gunshi_inbox_mark_read_dual_path_1522.yaml
+    を読込 2) grep -rn でdual-path関連全箇所網羅: scripts/inbox_watcher.sh / lib/agent_status.sh
+    / scripts/dashboard/server.py / scripts/inbox_write.sh / scripts/ntfy_listener.py
+    3) 根治設計指示書をqueue/reports/gunshi_dual_path_root_treatment_1527.yamlに出力: A.全体構造(write=SQLite一元/YAML=バックアップ/read=SQLite唯一)
+    B.移行フェーズ(Phase1 watcher→Phase2 server.py→Phase3 ntfy_listener→Phase4 YAML廃止) C.後方互換(STORAGE_BACKEND=yaml
+    kill-switch) D.推奨cmd 5-10件 4) ntfy通知 5) inbox_write karo 報告'
+  acceptance_criteria:
+  - queue/reports/gunshi_dual_path_root_treatment_1527.yaml が存在・A/B/C/D章含む
+  - 推奨cmd 5-10件 フェーズ別に記載
+  - cmd_1504/1508/1522 3レポートとの整合性確認済
+  - ntfy通知送信済
+  notes:
+  - 実装禁止・設計指示書作成のみ
+  - 'cmd_1522報告書: queue/reports/gunshi_inbox_mark_read_dual_path_1522.yaml'
+  - 本タスク完了後、家老が推奨cmdを将軍に上申
+  timestamp: '2026-04-28T21:06:11.442871+09:00'
+- agent: gunshi
+  task_id: subtask_1538b_qc
+  status: done
+  parent_cmd: cmd_1538
+  bloom_level: L4
+  blocked_by:
+  - subtask_1538a
+  description: 'cmd_1538 QC: litestream keepalive修正検証 + 5分間ERRORなし + プロセス1個確認'
+  target_path: /home/murakami/multi-agent-shogun/scripts/litestream_keepalive.sh
+  steps:
+  - 1. Read ashigaru2の報告書 → 修正内容確認
+  - 2. scripts/litestream_keepalive.sh を読んでexit 0が正しい位置に追加されているか確認
+  - 3. ps -eo pid,ppid,cmd | grep litestream でプロセスが1個のみか確認
+  - 4. tail -100 logs/litestream.log で5分以上ERRORがないか確認
+  - 5. systemctl --user status litestream でactive(running)を確認
+  - 6. acceptance_criteria全6件を1件ずつ確認・証跡を報告書に記載
+  - 7. PASS/FAIL判定をkaroにinbox_writeで報告
+  timestamp: '2026-04-29T02:24:17.946779+09:00'
+- agent: gunshi
+  task_id: subtask_1537a
+  status: done
+  parent_cmd: cmd_1537
+  bloom_level: L5
+  description: 'cmd_1537: chroma-mcp大量並走によるメモリ枯渇根因解析 + 修正方針 + 推奨cmd提示'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_chroma_mcp_memory_leak_1537.yaml
+  steps:
+  - 1. ~/.claude/plugins/cache/thedotmack/claude-mem/10.6.3/hooks/hooks.json を読む →
+    chroma-mcp 起動タイミング(SessionStart?PostToolUse?)を特定
+  - 2. ps -eo pid,ppid,cmd | grep chroma-mcp でプロセス構造確認
+  - 3. /clear時に親プロセス(claude code)が終了してもchroma-mcpが残置される原因を特定
+  - 4. cleanup hookの有無確認 → なければ追加の必要性を判断
+  - 5. GLM足軽用HOME(/home/murakami/.claude_glm/)と主軸HOME のchroma data-dir統一可能性を検討
+  - 6. 真因仮説 + 修正方針を queue/reports/gunshi_chroma_mcp_memory_leak_1537.yaml に保存
+  - 7. 推奨cmd 2-5件を提示
+  - 8. bash scripts/ntfy.sh で完了通知
+  - 9. karoにinbox_writeで報告(type:report_received)
+  timestamp: '2026-04-29T02:30:59.524509+09:00'

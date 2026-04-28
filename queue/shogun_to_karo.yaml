@@ -297,7 +297,7 @@ commands:
   - YAML 直読みは STORAGE_BACKEND=yaml kill-switch のみ
   notify_karo: true
 - id: cmd_1511
-  status: pending
+  status: in_progress
   priority: high
   purpose: full_yaml_blob カラム 3テーブル削除 (cmd_1508 F1解消・dual-path transitional 残骸根絶)
   timestamp: '2026-04-27T23:01:44+09:00'
@@ -328,7 +328,7 @@ commands:
   - pretool_check が blob 参照を BLOCK
   notify_karo: true
 - id: cmd_1512
-  status: pending
+  status: in_progress
   priority: high
   purpose: detect_action_required の R7 dedup 強化 + cmd_id:null疑似ID付与 (cmd_1504 F1+F5解消)
   timestamp: '2026-04-27T23:01:44+09:00'
@@ -356,7 +356,7 @@ commands:
   - curl /api/dashboard で重複 R7 が出ない
   notify_karo: true
 - id: cmd_1515
-  status: pending
+  status: in_progress
   priority: medium
   purpose: R3 殿選定待ち age_hours 閾値段階化 (cmd_1504 F3解消・起票直後ノイズ抑制)
   timestamp: '2026-04-27T23:01:45+09:00'
@@ -412,7 +412,7 @@ commands:
   - 既存 row の type を worker_id プレフィックスから推論して埋める
   notify_karo: true
 - id: cmd_1517
-  status: pending
+  status: done
   priority: low
   purpose: timestamp 正規化 + INDEX 7本一括追加 + action_required first_seen記録 (cmd_1508 F6/F7
     + cmd_1504 F6解消)
@@ -603,3 +603,196 @@ commands:
   - day2_3sou_final_clip_6min.mp4 が生成済み (ffprobe で ≥6分)
   - YouTube 非公開アップ完了・URL報告済み
   - ntfy通知送信済み
+- id: cmd_1525
+  status: done
+  priority: high
+  purpose: stuck subtask 検知 → 家老通達 (agent 長時間放置の自動検出)
+  timestamp: '2026-04-28T20:27:33+09:00'
+  project: multi-agent-shogun
+  lord_original: うごいていないの検知したら家老に通達でいいんじゃないの
+  command: "## 殿原文\n\n「動いていないの検知したら家老に通達でいいんじゃないの」\n\n## 背景 (今回の事案)\n\n足軽3号 subtask_1509b2\
+    \ (cmd_1509 漫画パネル化) が **2026-04-27 22:59 にアサインされたまま約20時間放置**された。理由: GLM API 429\
+    \ で claude code 異常終了 → Stop hook 不発 → idle flag 作成されず → inbox_watcher が busy 誤判定\
+    \ → 起こさず。\n\n## やること\n\n1. **検知スクリプト**: `scripts/stuck_subtask_check.sh` 新規\n\
+    \   - SQLite tasks テーブルから `status='assigned'` で **30分以上経過** したタスクを抽出\n   - dedup\
+    \ (同 task_id を 1時間以内に通知済なら skip)\n2. **cron 登録**: `*/5 * * * * /home/murakami/multi-agent-shogun/scripts/stuck_subtask_check.sh`\n\
+    3. **家老通達**: 検出したら `POST /api/inbox_write to:karo` で「subtask_XXX が agent_N で N分放置・確認要」通達\n\
+    \   - 家老が判断 (再アサイン / wake-up / done化 / cancel) して対応\n\n## 完了条件\n\n1. scripts/stuck_subtask_check.sh\
+    \ 新規作成済 (実行可能)\n2. cron 登録済 (`crontab -l` で確認可能)\n3. dedup 機構動作 (同 task が 1時間以内に複数通達されない)\n\
+    4. テスト: 適当な subtask で動作確認 (家老 inbox に通達届くか)\n5. ntfy通知\n\n## 注意\n\n- 閾値 30分 はデフォルト・検証後調整可\n\
+    - 復旧判断は家老責務 (本cmd は検知+通達のみ)\n- agent状態判定 (pane idle/busy) は family 内で家老が pane\
+    \ 見て判断\n- 既存 cron に追加・他 cron に影響しないこと"
+  acceptance_criteria:
+  - scripts/stuck_subtask_check.sh 新規・実行可能
+  - cron */5 * * * * 登録済
+  - dedup 動作 (1時間以内同 task 重複通達なし)
+  - 家老 inbox に通達届くテスト確認
+  notify_karo: true
+- id: cmd_1526
+  status: done
+  priority: high
+  purpose: inbox_watcher を SQLite 経由に切替・YAML/SQLite dual-path 不整合の根治 (cmd_1522 軍師推奨#1
+    実装)
+  timestamp: '2026-04-28T21:02:41+09:00'
+  project: multi-agent-shogun
+  lord_original: する (cmd_1522 軍師推奨実装)
+  command: '## 殿原文
+
+
+    「する」 = cmd_1522 軍師推奨「watcher を SQLite 直接 SELECT 切替」を実装
+
+
+    ## 背景
+
+
+    本セッション中に複数回顕在化:
+
+    - 将軍 inbox: shogun.yaml に 7件累積・SQLite では 0件 → 「inboxN」が累積インクリメント
+
+    - 家老 inbox: karo.yaml に 1件残置・SQLite では 0件 → inbox_watcher_karo が 11秒毎に永遠に起こし続け
+
+    - 同根: `POST /api/inbox_mark_read` が SQLite だけ更新・YAML 放置
+
+
+    ## 軍師推奨 (cmd_1522 推奨B 採用)
+
+
+    queue/reports/gunshi_inbox_mark_read_dual_path_1522.yaml 参照:
+
+    - (案B) inbox_watcher を SQLite 直接 SELECT に切替 (YAML 廃止方向・cmd_1510 系統と統一)
+
+
+    ## やること
+
+
+    1. **inbox_watcher.sh** の未読件数取得を YAML 直読みから `SELECT COUNT(*) FROM inbox_messages
+    WHERE agent=? AND read=0` に変更
+
+    2. **lib/agent_status.sh** の `agent_is_busy_check` 等で YAML 参照箇所を SQLite に統一 (該当箇所のみ)
+
+    3. inbox_watcher の起動時 unread リカバリも SQLite 経由
+
+    4. YAML 同期は kill-switch (env STORAGE_BACKEND=yaml) のみに残す
+
+    5. 動作検証: 全 agent で `POST /api/inbox_mark_read` 後に watcher が **件数=0 と判定**することを確認
+    (今回事例の karo 11秒 nudge ループが消えるか)
+
+
+    ## 完了条件
+
+
+    1. inbox_watcher.sh + lib/agent_status.sh が SQLite 経由に書換済
+
+    2. 全 agent で SQLite 既読化 → watcher 即時件数 0 認識
+
+    3. dual-path 不整合 (YAML/SQLite 乖離) の発生時も watcher は SQLite 信用
+
+    4. テスト: 任意 agent inbox に書込→ mark_read → watcher 件数 0 確認
+
+    5. git commit
+
+
+    ## 担当
+
+
+    家老が判断 (足軽1〜7 のいずれか or 軍師)。inbox_watcher は 9 agent 別プロセスゆえ全プロセス再起動も含む。'
+  acceptance_criteria:
+  - inbox_watcher.sh が SQLite 経由で未読件数取得
+  - lib/agent_status.sh の YAML 参照を SQLite に統一
+  - 全 agent で SQLite 既読化後 watcher が即時件数 0 と認識
+  - git commit
+  notify_karo: true
+- id: cmd_1527
+  status: done
+  priority: high
+  purpose: dual-path 不整合の根治設計を軍師が全体俯瞰で指示書化 (cmd_1504/1508/1522 個別解析の統合根治)
+  timestamp: '2026-04-28T21:03:43+09:00'
+  project: multi-agent-shogun
+  lord_original: dual-path 不整合の根治　指示　軍師にふれ
+  command: "## 殿原文\n\n「dual-path 不整合の根治・指示・軍師にふれ」\n\n## 背景\n\n本セッションで dual-path 不整合\
+    \ (YAML/SQLite 乖離) が**繰り返し顕在化**:\n- cmd_1504 F2: active_cmds (YAML) vs cmd_list\
+    \ (SQLite) 矛盾\n- cmd_1508 F1: full_yaml_blob 残骸\n- cmd_1508 F3: tasks テーブル既存だが\
+    \ server.py が YAML 直読み\n- cmd_1522: POST /api/inbox_mark_read が SQLite だけ更新・YAML\
+    \ 放置 → inbox_watcher が永遠に起こす\n- shogun.yaml 7件累積・karo.yaml 1件で永続nudge (本セッション実観測)\n\
+    \n個別 cmd で部分的に対処してきたが、**全体俯瞰の根治設計**が未着手。\n\n## 担当\n\n**軍師 (gunshi)** 単独。足軽は使わない。\n\
+    \n## やること\n\n1. cmd_1504/1508/1522 の既存軍師レポート 3件を読み込み (queue/reports/gunshi_*1504*.yaml,\
+    \ *1508*.yaml, *1522*.yaml)\n2. dual-path 関連の全箇所を SQL/コード grep で網羅: read 側 (parse_*/read_*/agent_is_busy_check)\
+    \ + write 側 (POST endpoint + ntfy_listener + inbox_write.sh)\n3. **根治設計指示書**を\
+    \ queue/reports/gunshi_dual_path_root_treatment_1527.yaml に出力:\n   - **A. 全体構造**:\
+    \ write は SQLite 一元 / YAML はバックアップ専用 (廃止方向) / read は SQLite 唯一\n   - **B. 移行ステップ**:\
+    \ 影響範囲ごとにフェーズ分割 (例: Phase1 watcher → Phase2 server.py → Phase3 ntfy_listener →\
+    \ Phase4 YAML 廃止)\n   - **C. 後方互換**: 既存 YAML を kill-switch (env STORAGE_BACKEND=yaml)\
+    \ で保持・移行完了後に廃止\n   - **D. 検証指針**: 各フェーズでの dual-write 整合チェック・cron 1日1回の差分監査\n4.\
+    \ 推奨 cmd 5-10件を提示 (各フェーズ別)\n5. cmd_1526 (watcher SQLite切替) との重複/差分を明示\n\n## 完了条件\n\
+    \n1. queue/reports/gunshi_dual_path_root_treatment_1527.yaml 存在\n2. 既存3レポート統合\
+    \ + 全体俯瞰の根治設計\n3. 移行フェーズ別の推奨cmd 5-10件\n4. ntfy通知\n\n## 注意\n\n- 軍師は実装せず推奨のみ・実装は別\
+    \ cmd で\n- cmd_1526 (watcher SQLite切替) はフェーズ1相当・本cmdで他フェーズも設計\n- 殿の運用 (Subscription\
+    \ only・GLM 足軽併用) を考慮した現実的な移行案"
+  acceptance_criteria:
+  - queue/reports/gunshi_dual_path_root_treatment_1527.yaml に全体根治設計+フェーズ別推奨cmd 5-10件
+  - cmd_1504/1508/1522 既存3レポートとの整合性
+  - ntfy通知
+  notify_karo: true
+- id: cmd_1537
+  status: done
+  priority: high
+  purpose: chroma-mcp プロセス大量並走によるメモリ枯渇事故の根因解析 (殿命)
+  timestamp: '2026-04-28T21:23:55+09:00'
+  project: multi-agent-shogun
+  lord_original: なんでこんなことになった　軍師解析に回せ
+  command: "## 殿原文\n\n「なんでこんなことになった 軍師解析に回せ」\n\n## 事象 (将軍観測 2026-04-28 21:15)\n\n\
+    1. メモリ Used 28GiB/31GiB (90%)・Free 381MiB・Swap 3.4GiB/4GiB (85%)\n2. **chroma-mcp\
+    \ プロセスが 10+ 並走** (各 600-870MB・合計 6.7GB+)\n3. 各 chroma-mcp は `--data-dir /home/murakami/.claude_glm/.claude-mem/chroma`\
+    \ (= GLM 足軽用 HOME) を見ている\n4. claude プロセス全体 208個 (claude -p 8個含む)\n5. 古い chroma-mcp\
+    \ 9個 を将軍が手動 kill して 5GiB 即時解放・危機脱出\n\n## 担当\n\n**軍師 (gunshi)** 単独。足軽は使わない。\n\n\
+    ## やること\n\n1. **chroma-mcp 起動経路の特定**:\n   - claude-mem plugin の hook (~/.claude/plugins/cache/thedotmack/claude-mem/10.6.3/hooks/hooks.json)\
+    \ を読む\n   - chroma-mcp はどのタイミングで起動されるか (SessionStart? PostToolUse?)\n   - GLM\
+    \ 足軽用 HOME (/home/murakami/.claude_glm/) で起動する場合と将軍 HOME で起動する場合の差異\n2. **古い chroma-mcp\
+    \ が解放されない理由**:\n   - /clear 時に親プロセス (claude code) が終了しても chroma-mcp が残置する原因\n\
+    \   - cleanup hook が無いか・あっても不発か\n3. **mcp-server.cjs プロセス重複** (前回観察で 5+件) との関連\n\
+    4. **真因仮説 + 修正方針**:\n   - 単一 chroma-mcp instance 共有 (各 agent で別プロセス起動しない)\n  \
+    \ - cleanup hook で古い chroma-mcp 自動 kill\n   - claude-mem 設定で chroma-mcp の lifetime\
+    \ 制御\n   - GLM 足軽 HOME の chroma data-dir を主軸 HOME と統一\n5. queue/reports/gunshi_chroma_mcp_memory_leak_1537.yaml\
+    \ に解析結果保存\n6. 推奨 cmd 2-5件提示\n\n## 完了条件\n\n1. queue/reports/gunshi_chroma_mcp_memory_leak_1537.yaml\
+    \ 存在\n2. 起動経路+解放されない真因+修正方針記載\n3. 推奨cmd 2-5件\n4. ntfy通知\n\n## 注意\n\n- 軍師は実装せず推奨のみ\n\
+    - chroma-mcp は claude-mem plugin の依存ゆえ無効化は検索機能影響大・慎重に\n- 殿は GLM 足軽 + 主軸 Claude\
+    \ Code 両方稼働ゆえ両系統考慮"
+  acceptance_criteria:
+  - queue/reports/gunshi_chroma_mcp_memory_leak_1537.yaml に根因+修正方針記載
+  - 推奨cmd 2-5件
+  - ntfy通知
+  notify_karo: true
+- id: cmd_1538
+  status: done
+  priority: high
+  purpose: litestream二重起動を解消し compaction error を根絶 (nohup fallback と systemd unit
+    の競合)
+  timestamp: '2026-04-29T02:14:54+09:00'
+  project: infrastructure
+  lord_original: '🚨 [silent_fail] ERROR litestream.log: time=2026-04-29T02:10:30.045+09:00
+    level=ERROR msg="compaction failed" system=store db=cmds.db level=1 error="write
+    ltx file: rename /home/murakami/litestream-replica/cmds/ltx/1/0000000000001063-00000
+    でてる'
+  command_text: "## 殿原文\n\n「\U0001F6A8 [silent_fail] ERROR litestream.log: ... compaction\
+    \ failed ... でてる」\n\n## 状況分析 (将軍調査済)\n\n- `ps aux | grep litestream` で **2プロセス同時稼働**\
+    \ を確認:\n  - pid=2621 (02:07 起動・nohup fallback)\n  - pid=2623 (02:07 起動・経路不明)\n\
+    - 両プロセスとも同一 config `/home/murakami/.litestream.yml` を参照\n- 両者が `/home/murakami/litestream-replica/cmds/ltx/`\
+    \ の同じ tmp ファイルを rename しようとして衝突\n- ログ: `rename ...ltx.tmp ...ltx: no such file\
+    \ or directory` = 先方が既に rename 済みで src が消えた状態\n- replica sync 自体は txid=1076 まで進捗・**データ損失なし**\n\
+    - 02:02 の cron drift 警告と同根の可能性あり (crontab.snapshot.txt と実 crontab -l 乖離)\n\n##\
+    \ 完了条件\n\n1. litestream プロセスを **1個だけ** に統一 (どちらを残すかは家老判断・systemd unit 復旧が筋)\n\
+    2. `journalctl -u litestream` で systemd unit の故障原因を確認・恒久対策\n3. nohup fallback\
+    \ 起動経路を特定 (シェル history / silent_fail_watcher / cron / hooks / .bashrc 等)\n4. 5分以上\
+    \ ERROR ログ無し・`replica sync` のみ出力されること\n5. crontab drift も併せて解消 (cron_inventory.md\
+    \ と crontab.snapshot.txt 整合)\n6. 軍師QC: `ps aux | grep litestream | wc -l` が 1\
+    \ (grep 自身除く) かつ最新 5分の litestream.log に ERROR 無し\n\n## 注意\n\n- **kill する側を間違えるな**:\
+    \ 残すプロセスを先に決めてから kill\n- データは無事ゆえ焦って `litestream restore` するな (むしろ危険)\n- 2プロセス並走の根本原因\
+    \ (nohup fallback と systemd の二重起動) を絶たねば再発する"
+  acceptance_criteria:
+  - litestream プロセスが 1個のみ稼働
+  - systemd unit 復旧・故障原因記録
+  - nohup fallback 起動経路特定・恒久対策
+  - litestream.log 直近5分に ERROR 無し
+  - crontab drift 解消
+  - 軍師QC PASS
+  notify_karo: true

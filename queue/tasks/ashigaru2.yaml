@@ -31,22 +31,50 @@ tasks:
   - advisor()必須(作業前・完了前)
   - '完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi ''足軽2号、subtask_1467a完了(Day6サムネ3案+final確定)。QC依頼。''
     report_completed ashigaru2'
-- agent: ashigaru2
-  task_id: subtask_1501a
-  status: in_progress
-  parent_cmd: cmd_1501
-  bloom_level: L2
-  description: 'cmd_1501: faiss index再構築 + semantic_index_hook.sh にflock追加。RuntimeError解消・5分間エラーなし確認・git
-    commit'
-  target_path: /home/murakami/multi-agent-shogun/scripts/semantic_index_hook.sh
-  steps: 1. scripts/.semantic_index/ か context/.semantic_index/ でfaissファイルパス確認 2.
-    rm -f <path>/*.faiss でindex削除 3. source ~/.bashrc && python3 scripts/semantic_search.py
-    update でリビルド(ERRORなく終了確認) 4. scripts/semantic_index_hook.sh 冒頭にflock追加(flock -n
-    .semantic_index/.lock || exit 0相当) 5. semantic_update.log を5分tail -f監視・RuntimeError再発なし確認
-    6. git add scripts/semantic_index_hook.sh && git commit
+- task_id: subtask_1526a
+  agent: ashigaru2
+  parent_cmd: cmd_1526
+  bloom_level: L3
+  status: done
+  priority: high
+  description: 'cmd_1526: inbox_watcher.sh を SQLite SELECT 経由に切替 + lib/agent_status.sh
+    SQLite統一 + 動作検証'
+  target_path: /home/murakami/multi-agent-shogun/scripts/inbox_watcher.sh
+  steps: '1) scripts/inbox_watcher.sh を読み: YAML直読み箇所(unread件数取得・read判定)をSQLite SELECT
+    に変更: sqlite3 queue/cmds.db "SELECT COUNT(*) FROM inbox_messages WHERE agent=?
+    AND read=0" 2) lib/agent_status.sh のYAML参照箇所をSQLite経由に変更 (grep -n yaml lib/agent_status.sh
+    で箇所特定) 3) 変更前後のdiff確認 4) テスト: 任意agentのinboxにPOST /api/inbox_write → POST /api/inbox_mark_read
+    → watcher件数0判定確認 5) 全9agent watcher再起動 (pkillで古いプロセス停止→新プロセス起動) 6) git add scripts/inbox_watcher.sh
+    lib/agent_status.sh && git commit 7) ntfy通知 8) inbox_write karo 完了報告'
   acceptance_criteria:
-  - faiss index 再構築完了 (semantic_search.py update が ERROR なく終了)
-  - scripts/semantic_index_hook.sh に flock 追加が反映
-  - semantic_update.log で 5分間 RuntimeError 再発なし
-  - git commit
-  timestamp: '2026-04-27T21:51:53.394631+09:00'
+  - inbox_watcher.sh がYAML直読みではなくSQLite SELECT で未読件数を判定
+  - POST /api/inbox_mark_read 後にwatcherが即座に件数=0と認識
+  - 全agentで動作確認済み
+  - git commit済み
+  - karo inbox nudgeループが解消
+  notes:
+  - git_safety.md 5+ファイル修正時のプロトコル遵守
+  - STORAGE_BACKEND=yaml のkill-switchは残す
+  - '変更対象: scripts/inbox_watcher.sh, lib/agent_status.sh (他ファイルは変更最小限)'
+  - 'watcher再起動コマンド例: pkill -f inbox_watcher.sh; bash scripts/start_watchers.sh (or
+    各agent個別起動)'
+  timestamp: '2026-04-28T21:06:30.956070+09:00'
+- agent: ashigaru2
+  task_id: subtask_1538a
+  status: assigned
+  parent_cmd: cmd_1538
+  bloom_level: L2
+  description: 'cmd_1538: litestream_keepalive.sh バグ修正 + ltx残骸整理 + 5分間ERRORなし確認'
+  target_path: /home/murakami/multi-agent-shogun/scripts/litestream_keepalive.sh
+  steps:
+  - 1. Read scripts/litestream_keepalive.sh → 19-22行目を確認
+  - 2. if systemctl --user start ... then以下にexit 0を追加（nohup無条件実行のバグ修正）
+  - 3. ntfy通知文をsystemctlが失敗した時のみ送るよう修正（現在はif成功でも送信されうる）
+  - 4. systemctl --user status litestream でactive(running)を確認
+  - 5. tail -50 logs/litestream.log で5分間ERRORがないことを確認
+  - 6. ps -eo pid,ppid,cmd | grep litestream でプロセスが1個のみであることを確認
+  - 7. 報告書をgunshiに送信（軍師QC依頼）
+  notes: '将軍分析済み: keepalive.sh:19-22のif/then/fiの後にexit 0がないためsystemctl成功でもnohupが無条件実行されていた。PID
+    2621(nohup側)のkillは殿/将軍がpaneで実行予定。ltx残骸(/home/murakami/litestream-replica/cmds/ltx/配下のnon-contiguous
+    ltx)はlitestream stop後にrm推奨だが、kill後にlitestreamが自動回復するか観察してから判断すること。'
+  timestamp: '2026-04-29T02:24:05.880464+09:00'
