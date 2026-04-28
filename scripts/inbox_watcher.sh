@@ -34,6 +34,7 @@ if [ "${__INBOX_WATCHER_TESTING__:-}" != "1" ]; then
     CLI_TYPE="${3:-claude}"  # CLI種別（claude/codex/copilot）。未指定→claude（後方互換）
 
     INBOX="$SCRIPT_DIR/queue/inbox/${AGENT_ID}.yaml"
+    DB_PATH="${DB_PATH:-${SCRIPT_DIR}/queue/cmds.db}"
     LOCKFILE="${INBOX}.lock"
 
     if [ -z "$AGENT_ID" ] || [ -z "$PANE_TARGET" ]; then
@@ -403,7 +404,12 @@ no_idle_full_read() {
 
 # summary-first: unread_count fast-path before full read
 get_unread_count_fast() {
-    INBOX_PATH="$INBOX" "$VENV_PYTHON" - << 'PY'
+    if command -v sqlite3 &>/dev/null && [ -f "$DB_PATH" ]; then
+        local count
+        count=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM inbox_messages WHERE agent='$AGENT_ID' AND read=0" 2>/dev/null || echo "0")
+        echo "{\"count\": ${count:-0}}"
+    else
+        INBOX_PATH="$INBOX" "$VENV_PYTHON" - << 'PY'
 import json
 import os
 import yaml
@@ -418,15 +424,33 @@ try:
 except Exception:
     print(json.dumps({"count": 0}))
 PY
+    fi
 }
 
 # ─── Extract unread message info (lock-free read) ───
 # Returns JSON lines: {"count": N, "has_special": true/false, "specials": [...]}
 # Test anchor for bats awk pattern: get_unread_info\\(\\)
 get_unread_info() {
-    (
-        if command -v flock &>/dev/null; then flock -x 200; else _ld="${LOCKFILE}.d"; _i=0; while ! mkdir "$_ld" 2>/dev/null; do sleep 0.1; _i=$((_i+1)); [ $_i -ge 300 ] && break; done; trap "rmdir '$_ld' 2>/dev/null" EXIT; fi
-        INBOX_PATH="$INBOX" "$VENV_PYTHON" - << 'PY'
+    if command -v sqlite3 &>/dev/null && [ -f "$DB_PATH" ]; then
+        (
+            if command -v flock &>/dev/null; then flock -x 200; else _ld="${LOCKFILE}.d"; _i=0; while ! mkdir "$_ld" 2>/dev/null; do sleep 0.1; _i=$((_i+1)); [ $_i -ge 300 ] && break; done; trap "rmdir '$_ld' 2>/dev/null" EXIT; fi
+            local normal_count specials_json has_task_assigned
+
+            normal_count=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM inbox_messages WHERE agent='$AGENT_ID' AND read=0 AND type NOT IN ('clear_command','model_switch','cli_restart')" 2>/dev/null || echo "0")
+
+            has_task_assigned=$(sqlite3 "$DB_PATH" "SELECT CASE WHEN EXISTS(SELECT 1 FROM inbox_messages WHERE agent='$AGENT_ID' AND read=0 AND type='task_assigned') THEN 1 ELSE 0 END" 2>/dev/null || echo "0")
+
+            specials_json=$(sqlite3 "$DB_PATH" "SELECT COALESCE('['||GROUP_CONCAT(json_object('type',type,'content',content))||']','[]') FROM inbox_messages WHERE agent='$AGENT_ID' AND read=0 AND type IN ('clear_command','model_switch','cli_restart')" 2>/dev/null || echo "[]")
+
+            # Mark specials as read in SQLite
+            sqlite3 "$DB_PATH" "UPDATE inbox_messages SET read=1, read_at=datetime('now') WHERE agent='$AGENT_ID' AND read=0 AND type IN ('clear_command','model_switch','cli_restart')" 2>/dev/null || true
+
+            echo "{\"count\": ${normal_count:-0}, \"has_task_assigned\": ${has_task_assigned:-0}, \"specials\": ${specials_json:-[]}}"
+        ) 200>"$LOCKFILE" 2>/dev/null
+    else
+        (
+            if command -v flock &>/dev/null; then flock -x 200; else _ld="${LOCKFILE}.d"; _i=0; while ! mkdir "$_ld" 2>/dev/null; do sleep 0.1; _i=$((_i+1)); [ $_i -ge 300 ] && break; done; trap "rmdir '$_ld' 2>/dev/null" EXIT; fi
+            INBOX_PATH="$INBOX" "$VENV_PYTHON" - << 'PY'
 import json
 import os
 import yaml
@@ -469,7 +493,8 @@ try:
 except Exception:
     print(json.dumps({"count": 0, "specials": []}))
 PY
-    ) 200>"$LOCKFILE" 2>/dev/null
+        ) 200>"$LOCKFILE" 2>/dev/null
+    fi
 }
 
 # ─── Send CLI command via pty direct write ───
