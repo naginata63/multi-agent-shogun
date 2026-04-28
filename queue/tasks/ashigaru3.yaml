@@ -58,3 +58,28 @@ tasks:
   - 7. git add scripts/chroma_mcp_health.sh && git commit
   - 8. karoにinbox_write(type:report_received)で完了報告
   timestamp: '2026-04-29T03:08:25.852846+09:00'
+- task_id: subtask_1545a
+  agent: ashigaru3
+  parent_cmd: cmd_1545
+  status: done
+  bloom_level: L2
+  title: litestream @reboot cron削除
+  description: crontab から @reboot.*litestream_keepalive.sh 行を削除。race condition根治。*/5と*/30は維持。
+  target_path: /var/spool/cron/crontabs/murakami
+  steps: '1. crontab -l で現状確認・@reboot行を目視確認
+
+    2. crontab -l | grep -v ''@reboot.*litestream_keepalive'' | crontab - で削除
+
+    3. crontab -l で削除確認: @rebootがなく */5と*/30が残っていること
+
+    4. systemctl --user is-enabled litestream.service → enabled 確認
+
+    5. git -C /home/murakami/multi-agent-shogun add -f /home/murakami/multi-agent-shogun/scripts/litestream_keepalive.sh
+    (変更なし・git status確認のみ)
+
+    6. git commit: ''fix(infra): litestream @reboot cron削除・race condition根治 (cmd_1545)''
+    (crontabはgit管理外だがcommit msgに記録)
+
+    7. karo に inbox_write(type:report_submitted)'
+  report_to: karo
+  timestamp: '2026-04-29T07:27:33'

@@ -72,3 +72,30 @@ tasks:
   - '12. 設計書Step13: karoにinbox_write(type:report_received)で報告'
   notes: 軍師設計書(queue/reports/gunshi_design_ltx_cleanup_1543.yaml)を必ず先にReadすること。独自判断で改変禁止。rollback手順も設計書に記載済み。
   timestamp: '2026-04-29T03:02:01.810284+09:00'
+- task_id: subtask_1544a
+  agent: ashigaru2
+  parent_cmd: cmd_1544
+  status: done
+  bloom_level: L3
+  title: gacha2_old_v1 P2パネル単発再生成
+  description: gacha2_old_v1 の p2_success.png (error) を単発再生成。他p1/p3-p8は変更禁止。
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/gacha2_old_v1
+  steps: '1. results.json を読んでp2のtitle・start_sec・duration_sec等のパネル定義を確認
+
+    2. panels_tono.json を読んでp2のpanel定義を確認 (上位ディレクトリ参照)
+
+    3. generate_manga_short.py の使い方を確認: python3 scripts/generate_manga_short.py --help
+
+    4. p2のみを再生成 (--panel-only p2 か --panel-id p2_success または同等オプション)
+
+    5. 生成成功後 p2_*.png が gacha2_old_v1/ に配置されていることを確認
+
+    6. p1/p3-p8のmtimeが変わっていないことを確認: ls -la gacha2_old_v1/*.png
+
+    7. results.json にp2のエントリを更新 (status: success + output_path等)
+
+    8. bash scripts/ntfy.sh ''p2パネル生成完了: {ファイル名}''
+
+    9. karo にinbox_write(type:report_submitted)で完了報告'
+  report_to: karo
+  timestamp: '2026-04-29T07:22:28'
