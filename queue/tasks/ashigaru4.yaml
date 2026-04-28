@@ -1,23 +1,15 @@
 tasks:
-- task_id: subtask_1425c
-  agent: ashigaru4
-  parent_cmd: cmd_1425
-  bloom_level: L2
-  status: blocked
-  description: DoZ6日目 シャルロット(youtube live v19JAnVjZ_c) DL+1時間分割。保存先 DAY6_DIR/raw/
-    → DAY6_DIR/multi/day6_charlotte_part_XX.mp4
-  steps: mkdir -p work/cmd_1425 DAY6_DIR/raw DAY6_DIR/multi → yt-dlp 'https://www.youtube.com/live/v19JAnVjZ_c'
-    -f 'bv*+ba/best' -o DAY6_DIR/raw/day6_charlotte_full.mp4 --write-info-json → ffmpeg
-    -i raw/day6_charlotte_full.mp4 -c copy -f segment -segment_time 3600 -reset_timestamps
-    1 multi/day6_charlotte_part_%02d.mp4 → ffprobe各partで尺/codec確認→結果をwork/cmd_1425/charlotte_parts.json保存→完了報告
-  blocked_reason: YouTube bot detection. yt-dlp --cookies-from-browser chrome/firefox不可（ブラウザcookieなし）。denoインストール済みも全player_client(android/tv/ios/mweb)でbot検知。認証cookie必要。
-  blocked_at: '2026-04-23T11:47:00'
-  timestamp: '2026-04-22T20:52:00'
-  acceptance_criteria:
+- acceptance_criteria:
   - day6_charlotte_full.mp4 DL成功（音声付き）
   - day6_charlotte_part_00.mp4〜 が DAY6_DIR/multi/ に存在
   - charlotte_parts.json に各partの duration/size_mb/codec 記録
   - day5_ prefix ファイルを上書きしていないこと
+  agent: ashigaru4
+  blocked_at: '2026-04-23T11:47:00'
+  blocked_reason: YouTube bot detection. yt-dlp --cookies-from-browser chrome/firefox不可（ブラウザcookieなし）。denoインストール済みも全player_client(android/tv/ios/mweb)でbot検知。認証cookie必要。
+  bloom_level: L2
+  description: DoZ6日目 シャルロット(youtube live v19JAnVjZ_c) DL+1時間分割。保存先 DAY6_DIR/raw/
+    → DAY6_DIR/multi/day6_charlotte_part_XX.mp4
   notes:
   - 'YouTube Live: -f ''bv*+ba/best'' で動画+音声マージDL'
   - 分割は -c copy（再エンコード不要・h264_nvenc不要）
@@ -25,23 +17,48 @@ tasks:
   - '完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo ''足軽4号、subtask_1425c完了。シャルロットDL+分割完了。''
     report_completed ashigaru4'
   params:
-    url: https://www.youtube.com/live/v19JAnVjZ_c
     day6_dir: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260416_【#DoZ】6日目
       腹から声が出ないヒーラーに命を任せれられるとでも？【ドズル社／おおはらMEN視点】
-    raw_out: day6_charlotte_full.mp4
     prefix: day6_charlotte
+    raw_out: day6_charlotte_full.mp4
+    url: https://www.youtube.com/live/v19JAnVjZ_c
     work_dir: /home/murakami/multi-agent-shogun/work/cmd_1425
-- task_id: subtask_1488a
+  parent_cmd: cmd_1425
+  status: blocked
+  steps: mkdir -p work/cmd_1425 DAY6_DIR/raw DAY6_DIR/multi → yt-dlp 'https://www.youtube.com/live/v19JAnVjZ_c'
+    -f 'bv*+ba/best' -o DAY6_DIR/raw/day6_charlotte_full.mp4 --write-info-json → ffmpeg
+    -i raw/day6_charlotte_full.mp4 -c copy -f segment -segment_time 3600 -reset_timestamps
+    1 multi/day6_charlotte_part_%02d.mp4 → ffprobe各partで尺/codec確認→結果をwork/cmd_1425/charlotte_parts.json保存→完了報告
+  task_id: subtask_1425c
+  timestamp: '2026-04-22T20:52:00'
+- acceptance_criteria:
+  - scripts/inbox_write.sh dual-path改修: YAML書込後SQLite INSERT / STORAGE_BACKEND=yaml時skip動作確認
+  - server.py POST /api/cmd_create dual-path改修: cmd_1491実装を継承・SQLite INSERT追加・互換性維持
+  - kill_switch(STORAGE_BACKEND=yaml)でSQLite書込完全スキップ動作確認済み
+  - queue/cmds.db 本番DB初期化完了 + 既存YAML全データ初期投入完了(件数確認)
+  - Litestream稼働確認(logs/litestream.log存在・ERROR 0)
+  - 日次dumpバックアップcron設定完了(queue/backup/cmds_YYYYMMDD.sql.gz)
+  - scripts/sqlite_yaml_audit.py 新規作成・4テーブル件数+ハッシュ比較・差分時exit1+ntfy
+  - 初回audit実行: 差分0件確認済み
+  - 毎日4:00 audit cronを設定済み
+  - p3 dual-path readsには進んでいない
+  - 軍師QC依頼済み
+  - git commit + push完了
   agent: ashigaru4
-  parent_cmd: cmd_1488
+  assigned_to: ashigaru4
   bloom_level: L4
-  status: in_progress
   description: 'cmd_1488: SQLite p2 dual-path writes実装。inbox_write.sh + server.py
     POST /api/cmd_create にSQLite INSERT dual-path追加(YAML正・SQLite並走・kill_switch=STORAGE_BACKEND)。本番DB初期化(queue/cmds.db)+全YAML初期投入+Litestream設定+日次dumpバックアップcron+audit
     script(sqlite_yaml_audit.py)新規作成+kill_switch動作確認+1週間soak開始。p3 dual-path readsには進まない。cmd_1491完遂(commit
     863bb19)済みゆえserver.py干渉なし。'
-  target_path: /home/murakami/multi-agent-shogun/scripts/sqlite_yaml_audit.py
+  notes:
+  - cmd_1491完遂(22:32 commit 863bb19)済み・server.py干渉なし
+  - YAML書込失敗時はSQLite書込もスキップ(YAMLが正・SQLiteは並走)
+  - rollback: STORAGE_BACKEND=yaml + queue/cmds.db削除でp1以前に即戻し可
+  - 1週間soak中差分1件でも出れば即STORAGE_BACKEND=yaml + 軍師調査cmd発令
+  parent_cmd: cmd_1488
   procedure: /home/murakami/multi-agent-shogun/queue/reports/gunshi_design_sqlite_migration_1481.yaml
+  status: in_progress
   steps: /home/murakami/multi-agent-shogun/queue/shogun_to_karo.yaml(id:cmd_1488)全文読む
     + /home/murakami/multi-agent-shogun/queue/reports/gunshi_design_sqlite_migration_1481.yaml
     rank_2_dual_pathセクション読む→advisor()→[Step1]sqlite3 /home/murakami/multi-agent-shogun/queue/cmds.db
@@ -58,127 +75,25 @@ tasks:
     add /home/murakami/multi-agent-shogun/scripts/sqlite_yaml_audit.py /home/murakami/multi-agent-shogun/scripts/inbox_write.sh
     /home/murakami/multi-agent-shogun/scripts/dashboard/server.py→commit→push→inbox_write
     gunshi QC依頼→inbox_write karo 完了報告
-  assigned_to: ashigaru4
+  target_path: /home/murakami/multi-agent-shogun/scripts/sqlite_yaml_audit.py
+  task_id: subtask_1488a
   timestamp: '2026-04-25T22:39:00+09:00'
-  acceptance_criteria:
-  - scripts/inbox_write.sh dual-path改修: YAML書込後SQLite INSERT / STORAGE_BACKEND=yaml時skip動作確認
-  - server.py POST /api/cmd_create dual-path改修: cmd_1491実装を継承・SQLite INSERT追加・互換性維持
-  - kill_switch(STORAGE_BACKEND=yaml)でSQLite書込完全スキップ動作確認済み
-  - queue/cmds.db 本番DB初期化完了 + 既存YAML全データ初期投入完了(件数確認)
-  - Litestream稼働確認(logs/litestream.log存在・ERROR 0)
-  - 日次dumpバックアップcron設定完了(queue/backup/cmds_YYYYMMDD.sql.gz)
-  - scripts/sqlite_yaml_audit.py 新規作成・4テーブル件数+ハッシュ比較・差分時exit1+ntfy
-  - 初回audit実行: 差分0件確認済み
-  - 毎日4:00 audit cronを設定済み
-  - p3 dual-path readsには進んでいない
-  - 軍師QC依頼済み
-  - git commit + push完了
-  notes:
-  - cmd_1491完遂(22:32 commit 863bb19)済み・server.py干渉なし
-  - YAML書込失敗時はSQLite書込もスキップ(YAMLが正・SQLiteは並走)
-  - rollback: STORAGE_BACKEND=yaml + queue/cmds.db削除でp1以前に即戻し可
-  - 1週間soak中差分1件でも出れば即STORAGE_BACKEND=yaml + 軍師調査cmd発令
-- agent: ashigaru4
-  task_id: subtask_1502a
-  status: done
-  parent_cmd: cmd_1502
-  bloom_level: L2
-  description: 'cmd_1502: scripts/silent_fail_watcher.sh のfalse positive一掃。genai_daily.log全体除外
-    + noiseパターン6件追加 + 再起動 + 30分監視'
-  target_path: /home/murakami/multi-agent-shogun/scripts/silent_fail_watcher.sh
-  steps: '1. silent_fail_watcher.sh を読んで is_excluded()(L62) と is_noise_line()(L82)
-    を特定 2. is_excluded()に */genai_daily.log) return 0 ;; 追加 3. is_noise_line()に 403
-    HTTP Error/process.stdin.on/SessionEnd hook/結果: PASS/0FAIL/Continuation upstream
-    error 429 の6パターン追加 4. watcher再起動(pkill -f silent_fail_watcher.sh && nohup bash
-    scripts/silent_fail_watcher.sh &) 5. ps auxで起動確認 6. git add scripts/silent_fail_watcher.sh
-    && git commit'
-  acceptance_criteria:
-  - scripts/silent_fail_watcher.sh の is_excluded() に genai_daily.log 除外追加
-  - is_noise_line() に noise 6パターン追加
-  - silent_fail_watcher 再起動済 (ps aux で確認)
-  - git commit
-  timestamp: '2026-04-27T21:52:01.297305+09:00'
-- agent: ashigaru4
-  task_id: subtask_1507a
-  parent_cmd: cmd_1507
-  status: done
-  bloom_level: L2
-  description: 'cmd_1507: YouTube動画 YmExrTL3Ojc (86万トンダム掘り縦長) の説明欄を標準テンプレで更新'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260426_86万トンの超巨大なダムを掘るまで終われません！「マイクラ」
-  steps: '1) ls projects/dozle_kirinuki/work/*/description*.txt で既存説明欄テンプレ確認 2) 最近のdescription.txtを読んで標準テンプレ把握
-    3) 元動画リンク(pIrocoqvwJg)を含めた説明欄作成 4) python3 projects/dozle_kirinuki/scripts/youtube_uploader.py
-    update-description --video-id YmExrTL3Ojc --description ''<内容>'' 5) bash scripts/ntfy.sh
-    ''✅ 説明欄更新: YmExrTL3Ojc'' 6) inbox_write karo 完了報告'
-  acceptance_criteria:
-  - YmExrTL3Ojc の説明欄が標準テンプレで更新済み
-  - ntfy通知送信済み
-  - karoへ完了報告済み
-  notes:
-  - 「いつもかいている内容」 = ドズル社切り抜きチャンネル標準説明欄テンプレ
-  - 既存 description*.txt を参照して内容を把握せよ
-  - 元動画リンク(pIrocoqvwJg)を説明欄に含めること
-  - youtube_uploader.py update-description コマンドを使え
-  timestamp: '2026-04-27T22:26:28.885587+09:00'
-- agent: ashigaru4
-  task_id: subtask_1513a
-  parent_cmd: cmd_1513
+- task_id: subtask_1548a
+  agent: ashigaru4
+  parent_cmd: cmd_1548
   status: done
   bloom_level: L3
-  description: 'cmd_1513: agents テーブル新設 + FK化 (shogun/karo/gunshi/ashigaru1-7 INSERT)'
-  target_path: /home/murakami/multi-agent-shogun/queue/cmds.db
-  steps: 1) cmd_1513 command 全文読む 2) CREATE TABLE agents (id/role/model/current_task/status/last_seen)
-    3) INSERT 9名 (config/settings.yaml参照) 4) commands/tasks/inbox_messages に agent_id
-    FK CHECK 5) server.py の agent 操作コードを agents テーブル経由に更新 6) py_compile + curl /api/agent_health
-    テスト 7) git commit 8) inbox_write karo 完了報告
-  notes:
-  - DB schema変更のため慎重に
-  - FK追加は既存データ整合確認後
-  - '命名: ashigaru1..7/shogun/karo/gunshi'
-  timestamp: '2026-04-27T23:05:13.456139+09:00'
-- agent: ashigaru4
-  task_id: subtask_1514a
-  parent_cmd: cmd_1514
-  status: done
-  bloom_level: L3
-  description: 'cmd_1514: inbox_messages.type に CHECK制約 + 旧type migration + inbox_types.py新設'
-  target_path: /home/murakami/multi-agent-shogun/queue/cmds.db
-  steps: 1) cmd_1514 command 全文読む 2) scripts/dashboard/inbox_types.py 新設 (正規type 14種定数化)
-    3) UPDATE 旧type→正規type (report_done→report_completed等) 4) test/qc系メッセージを inbox_messages_test
-    移送 5) ALTER TABLE + CHECK制約 or 再構築 6) py_compile + curl テスト 7) git commit 8) inbox_write
-    karo 完了報告
-  notes:
-  - subtask_1513a 完了後に実行
-  - migrationは慎重に・バックアップ推奨
-  timestamp: '2026-04-27T23:05:13.568163+09:00'
-- agent: ashigaru4
-  task_id: subtask_1516a
-  parent_cmd: cmd_1516
-  status: assigned
-  bloom_level: L2
-  blocked_by:
-  - subtask_1514a
-  description: 'cmd_1516: reports.status/qa_decision CHECK制約 + type列追加'
-  target_path: /home/murakami/multi-agent-shogun/queue/cmds.db
-  steps: 1) cmd_1516 command 全文読む 2) ALTER TABLE reports ADD COLUMN type TEXT CHECK(...)
-    3) CHECK status/qa_decision 追加 (SQLite再構築) 4) CREATE INDEX 5) git commit 6) inbox_write
-    karo 完了報告
-  notes:
-  - subtask_1514a 完了後に実行
-  - SQLite制約はCREATE TABLE再構築が必要な場合あり
-  timestamp: '2026-04-27T23:05:13.638810+09:00'
-- agent: ashigaru4
-  task_id: subtask_1517a
-  parent_cmd: cmd_1517
-  status: blocked
-  bloom_level: L3
-  blocked_by:
-  - subtask_1516a
-  description: 'cmd_1517: timestamp 正規化 + INDEX 7本一括追加 + action_required first_seen記録'
-  target_path: /home/murakami/multi-agent-shogun/queue/cmds.db
-  steps: '1) cmd_1517 command 全文読む 2) audit: issued_at vs timestamp 差分ゼロ確認 3) DROP
-    COLUMN issued_at/revised_at (commands/tasks) 4) CREATE INDEX 7本 5) action_required
-    first_seen カラム追加 6) git commit 7) inbox_write karo 完了報告'
-  notes:
-  - subtask_1516a 完了後に実行
-  - INDEX追加は最後・dropは必ず audit後
-  timestamp: '2026-04-27T23:05:13.731313+09:00'
+  title: tono_edit.mkv 縦長クロップ→YouTube unlisted アップ
+  description: tono_edit.mkv (3412x1918・ffv1+flac・2.6GB) を vertical_convert.py で 9:16
+    縦長クロップし、YouTube unlisted アップ。cmd_1509 done更新まで完遂。
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/work/cmd_1548
+  steps: "1. SRC=/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_edit.mkv\n\
+    2. mkdir -p /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/work/cmd_1548\n\
+    3. OUT=/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/work/cmd_1548/tono_edit_vertical.mp4\n\
+    4. shared_context/procedures/ffmpeg_nvenc.md を参照してNVENC確認\n5. python3 vertical_convert.py\
+    \ --help で引数確認\n6. source ~/.bashrc && python3 vertical_convert.py \"\" \"\" (最小限の引数・hook-text等は省略可)\n\
+    7. ffprobe で出力確認: 縦長(1080x1920)・h264_nvenc確認\n8. YouTube unlisted アップ (privacyStatus=unlisted・privateは不可):\
+    \ 既存アップロードスクリプト使用 or yt-dlp互換ツール\n   タイトル案: 【縦】86万トンの超巨大なダムを埋めるまで終われません！殿編集ver【マイクラ/ドズル社】\n\
+    9. アップ完了後: bash scripts/ntfy.sh でURL報告\n10. gunshi にQC依頼(inbox_write type:report_submitted)"
+  report_to: gunshi
+  timestamp: '2026-04-29T07:51:57'
