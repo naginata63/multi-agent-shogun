@@ -1,6 +1,6 @@
 commands:
 - id: cmd_1499
-  status: in_progress
+  status: done
   priority: high
   purpose: tono_edit.mkv (前回ダム掘り動画の殿編集中間・3412x1918・26.6秒) を縦長(9:16=1080x1920)クロップしてYouTube非公開アップ
   timestamp: '2026-04-27T21:20:40+09:00'
@@ -46,7 +46,7 @@ commands:
   - git commit (description.txt 等)
   notify_karo: true
 - id: cmd_1500
-  status: in_progress
+  status: done
   priority: high
   purpose: 'cmd_1496カウントダウン重畳の式バグ修正: 4.94秒短い表示・停止後0:00→0:04.94順序逆を解消し30:00.00から始まり0:04.94で停止して10秒固定する'
   timestamp: '2026-04-27T21:39:22+09:00'
