@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-29 10:05
+最終更新: 2026-04-29 10:18
 
 ## 🎌 YPP戦略確定 (2026-04-28 殿御裁断)
 
@@ -15,15 +15,8 @@
 ### cmd_1552a (high) — server.py POST /api/cmd_create に監査ロジック統合
 - 📌 cmd_1552b QC PASS後に着手 (settings.json競合回避)
 
-### cmd_1553 (high) — stop_hook_inbox.sh bash→curl API移行
-- subtask_1553a → ashigaru1 (L188 curl置換+fallback維持)
-
 ### cmd_1554 (medium) — dashboard_archive/2026-04.md retroactive backfill (cmd_1495〜1552b)
 - 📌 **cmd_1552a 完了後に着手** (AC1 条件)
-
-### cmd_1558 (high) — OrarishTelop MP4 render → 殿レビュー待ち
-- subtask_1558a → ashigaru3 (remotion render 1920x1080/h264-nvenc)
-- ※殿レビュー前YouTube禁止
 
 ### cmd_1520 (medium) — 夜間矛盾検出: 動画制作スクリプト群 [着手前]
 ### cmd_1521 (medium) — 3層オーディン戦動画作り直し [殿指示待ち]
@@ -36,6 +29,15 @@
 ### cmd_1518 (low) — GCnCUAuL0p8 サムネ設定 [保留]
 
 ## ✅ 本日の完了 (2026-04-29)
+
+### cmd_1558 (high) — OrarishTelop MP4 render 完了 → 殿レビュー待ち (10:13)
+- 1920x1080/h264/60fps/146.58s/3.66Mbps/8792frames (remotion --codec=h264)
+- path: projects/dozle_kirinuki/work/20260320_おらふ.../output/long/orarish_telop.mp4
+- ⚠️ YouTube非公開アップは殿承認後のみ
+
+### cmd_1553 (high) — stop_hook_inbox.sh bash→curl API移行 完了 (10:13)
+- L188 curl POST /api/inbox_write・jq+fallback実装・syntax PASS (commit ae053c3)
+- 軍師QC PASS (全9件充足)
 
 ### cmd_1557 (high) — server.py task_create INSERT VALUES ?修正 完了 (09:40)
 - VALUES ?19→20修正・PID 2120559で再起動・WARN解消確認 (commit c37be33)
@@ -80,16 +82,23 @@
 
 ## 🚨 要対応
 
-### ⚠️ hook死文化修正 — 対応中 (cmd_1552a/b/1553/1554 全発令済)
+### 🎬 cmd_1558 OrarishTelop — **殿レビュー待ち** (YouTube禁止)
+
+- path: projects/dozle_kirinuki/work/20260320_おらふイングリッシュ翻訳してくだサーイ！！【マイクラ】/output/long/orarish_telop.mp4
+- 仕様: 1920x1080/h264/60fps/146.58s/8792frames
+- テロップ: 「正解をだしたのに間違う、おらリッシュ先生」 (改行表示は殿目視確認要)
+- **殿確認後のみ YouTube 非公開アップ可** (承認前アップ厳禁)
+
+### ⚠️ hook死文化修正 — 対応中 (cmd_1552a/b/1554 残3件)
 
 **軍師診断結果 (2026-04-29 08:35)**:
 - **H8 cmd_intake_hook.sh → 死文化**: cmd_1495-1551 約57件の dashboard_archive 記録漏れ真因
-- H11 posttool_cmd_check → 疑死 / H2 stop_hook_inbox → 部分死文化
+- H11 posttool_cmd_check → 疑死 / H2 stop_hook_inbox → **✅ PASS** (cmd_1553)
 
 **対応状況:**
 1. cmd_1552b: ashigaru6 作業中 (hook trigger拡張)
 2. cmd_1552a: cmd_1552b 完了後 ashigaru2 配備予定
-3. cmd_1553: ashigaru1 作業中 (stop_hook_inbox API移行)
+3. cmd_1553: **✅ PASS** (軍師QC 10:11)
 4. cmd_1554: cmd_1552a 完了後 ashigaru4 配備予定
 
 詳細: queue/reports/gunshi_cmd_1551.yaml

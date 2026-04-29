@@ -85,7 +85,7 @@ tasks:
   timestamp: '2026-04-29T07:27:33'
 - agent: ashigaru3
   task_id: subtask_1558a
-  status: assigned
+  status: done
   parent_cmd: cmd_1558
   bloom_level: L3
   description: OrarishTelop composition をMP4出力 (1920x1080/h264-nvenc優先) → 殿レビュー待ち

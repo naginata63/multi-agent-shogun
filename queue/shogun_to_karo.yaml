@@ -1270,7 +1270,7 @@ commands:
   - git commit & push 済み
   notify_karo: true
 - id: cmd_1553
-  status: in_progress
+  status: done
   priority: high
   purpose: stop_hook_inbox.sh の bash inbox_write 直叩きを `curl POST /api/inbox_write`
     に移行・SQLite + YAML dual-write 整合性回復

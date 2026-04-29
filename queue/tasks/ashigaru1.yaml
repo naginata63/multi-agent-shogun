@@ -59,7 +59,7 @@ tasks:
   - 差分ゼロ確認必須（データ損失防止）
   - SQLite 3.35未満なら再構築方式で対応
   parent_cmd: cmd_1511
-  status: assigned
+  status: done
   steps: 1) cmd_1511 command 全文読む 2) 全 row で blob vs 正規列 JSON diff → 差分ゼロ確認 3) SQLite
     3.35+ 確認後 ALTER TABLE commands/tasks/reports DROP COLUMN full_yaml_blob 4) server.py
     から blob 関連コード削除 5) py_compile + curl テスト 6) git commit 7) inbox_write karo 完了報告
@@ -175,3 +175,39 @@ tasks:
     > /tmp/test_task.json'
   - WARN再発なければSUCCESS・再発したらserver.py行番号とともに報告
   timestamp: '2026-04-29T09:29:47.095372+09:00'
+- agent: ashigaru1
+  task_id: subtask_1553a
+  status: done
+  parent_cmd: cmd_1553
+  bloom_level: L2
+  description: stop_hook_inbox.sh L188 の bash inbox_write 直叩き → curl POST /api/inbox_write
+    に移行 (fallback維持)
+  target_path: /home/murakami/multi-agent-shogun/scripts/stop_hook_inbox.sh
+  steps:
+  - '1. 現状確認: sed -n ''183,195p'' scripts/stop_hook_inbox.sh'
+  - '2. L188 の bash inbox_write.sh 呼出を以下の if-else パターンに置換:'
+  - '   DASHBOARD_API=''http://192.168.2.7:8770'''
+  - '   # jqでJSONエスケープ (改行・"含む文字列を安全に処理)'
+  - '   PAYLOAD=$(jq -n --arg to ''karo'' --arg from "$AGENT_ID" --arg message "$NOTIFY_CONTENT"
+    --arg type "$NOTIFY_TYPE" ''{to:$to,from:$from,message:$message,type:$type}'')'
+  - '   if curl -s -X POST "$DASHBOARD_API/api/inbox_write" -H ''Content-Type: application/json''
+    --max-time 5 -d "$PAYLOAD" | grep -q ''"success":true''; then'
+  - '     : # API success'
+  - '   else'
+  - '     bash "$SCRIPT_DIR/scripts/inbox_write.sh" karo "$NOTIFY_CONTENT" "$NOTIFY_TYPE"
+    "$AGENT_ID"'
+  - '   fi'
+  - '3. jq コマンドの存在確認: which jq || (echo ''jq not found'' && exit 1)'
+  - 4. background実行 (&) は維持 (non-blocking)
+  - 5. git diff scripts/stop_hook_inbox.sh で変更確認
+  - '6. 実機検証 (簡易): bash -n scripts/stop_hook_inbox.sh (syntax check)'
+  - '7. git add scripts/stop_hook_inbox.sh && git commit -m ''fix(hooks): stop_hook_inbox.sh
+    bash→curl API移行 fallback維持 (cmd_1553)'''
+  - 8. report作成 → curl POST /api/inbox_write karo
+  notes:
+  - 'SCRIPT_DIRは stop_hook_inbox.sh の先頭で定義済み: SCRIPT_DIR=$(cd $(dirname $0) && pwd)'
+  - fallback の bash inbox_write.sh は削除禁止 (AC7)
+  - stop hook はバックグラウンド実行なので --max-time 5 で5秒timeout必須 (AC6)
+  - 'jq がない環境への対処: python3 -c ''import json,sys; print(json.dumps({...}))'' でも可'
+  - 実機テスト (AC3) は gunshi QC側で担当・ashigaru は syntax check のみ
+  timestamp: '2026-04-29T10:02:38.932177+09:00'

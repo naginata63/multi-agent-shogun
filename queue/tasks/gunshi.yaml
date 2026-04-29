@@ -176,7 +176,7 @@ tasks:
   timestamp: '2026-04-29T08:29:58.620984+09:00'
 - agent: gunshi
   task_id: subtask_1549b_qc
-  status: assigned
+  status: done
   parent_cmd: cmd_1549
   bloom_level: L4
   description: cmd_1549 QC - vertical_convert言及でprocedureヒット実機検証
@@ -194,3 +194,24 @@ tasks:
   - 8. QC PASS/FAIL判定
   - 9. report作成 → inbox_write でkaroに報告
   timestamp: '2026-04-29T08:29:58.644228+09:00'
+- agent: gunshi
+  task_id: subtask_1523b_qc
+  status: done
+  parent_cmd: cmd_1523
+  bloom_level: L4
+  description: cmd_1523 QC - 3層オーディン戦ラスト6分クリップ + YouTube private確認
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_cmd_1523_qc.yaml
+  steps:
+  - '1. ashigaru5レポート確認: queue/reports/ashigaru5_report_subtask_1523a.yaml'
+  - '2. ffprobe検証: ffprobe -v quiet /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260412_【#DoZ】2日目\
+    \ 誰も死なせないよ　だって私はヒーラーだもの【ドズル社／おおはらMEN視点】/day2_3sou_final_clip_6min.mp4'
+  - '3. 尺: 381.74秒≒6:21 確認'
+  - '4. codec: h264 (nvenc) 確認'
+  - '5. bitrate: 1Mbps以上確認'
+  - '6. YouTube API: c0JxfCbNdqU の privacyStatus=private 確認'
+  - 7. cmd_1523 acceptance_criteria 確認 (残5:00の10秒前〜末尾クリップ)
+  - 8. PASS/FAIL判定 → report作成 → inbox_write karo
+  notes:
+  - report from ashigaru5 was filed 2026-04-28T08:46 - delayed processing
+  - 'cmd_1521 (動画作り直し) との依存関係確認: cmd_1523は独立クリップなので影響なし'
+  timestamp: '2026-04-29T09:35:59.415913+09:00'
