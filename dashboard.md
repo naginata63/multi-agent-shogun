@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-29 10:46
+最終更新: 2026-04-29 10:56
 
 ## 🎌 YPP戦略確定 (2026-04-28 殿御裁断)
 
@@ -11,6 +11,9 @@
 
 ### cmd_1552a (high) — server.py POST /api/cmd_create に監査ロジック統合
 - subtask_1552a → ashigaru2 (iii/iv/v統合・hook削除・settings.json更新)
+
+### cmd_1555 (high) — cmd詳細HTMLページ追加・dashboard一覧リンク化 (スマホ対応)
+- 📌 **cmd_1552a 完了後に着手** (server.py RACE-001回避)
 
 ### cmd_1554 (medium) — dashboard_archive/2026-04.md retroactive backfill (cmd_1495〜1552b)
 - 📌 **cmd_1552a 完了後に着手** (AC1 条件)
