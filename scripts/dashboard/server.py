@@ -231,7 +231,7 @@ def detect_action_required():
     # R2: ブロック報告検出 (ashigaru*/gunshi messages only, not shogun/karo)
     block_keywords = ["ブロック", "blocked", "DBSC", "認証", "殿操作", "待ち", "失敗"]
     _R2_ALLOWED_FROM_PREFIX = ("ashigaru", "gunshi")
-    _R2_UNBLOCK_TYPES = {"report_done", "report_completed", "unblock", "report_received"}
+    _R2_UNBLOCK_TYPES = {"report_done", "report_completed", "unblock", "report_received", "qc_done"}
     recent_msgs = read_recent_messages(hours=48)
 
     # First pass: find which agents have resolved their blocks
@@ -240,7 +240,13 @@ def detect_action_required():
         mfrom = msg.get("from", "") or ""
         mtype = msg.get("type", "") or ""
         if mfrom.startswith(_R2_ALLOWED_FROM_PREFIX) and mtype in _R2_UNBLOCK_TYPES:
-            resolved_agents.add(mfrom)
+            # qc_done: only resolve if 判定=PASS (FAIL keeps block active)
+            if mtype == "qc_done":
+                content = msg.get("content", "") or msg.get("message", "") or ""
+                if "判定=PASS" in content:
+                    resolved_agents.add(mfrom)
+            else:
+                resolved_agents.add(mfrom)
 
     seen_r2 = set()
     for msg in recent_msgs:
