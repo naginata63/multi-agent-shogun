@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-29 10:56
+最終更新: 2026-04-29 10:57
 
 ## 🎌 YPP戦略確定 (2026-04-28 殿御裁断)
 
@@ -14,6 +14,10 @@
 
 ### cmd_1555 (high) — cmd詳細HTMLページ追加・dashboard一覧リンク化 (スマホ対応)
 - 📌 **cmd_1552a 完了後に着手** (server.py RACE-001回避)
+
+### cmd_1556 (low) — dashboard.md 廃止 (git rm)
+- 📌 **cmd_1555 完了後に着手** (depends_on: cmd_1555)
+- 戦略系は memory/project_*.md 既存・cmd詳細は cmd_1555 HTML化後不要
 
 ### cmd_1554 (medium) — dashboard_archive/2026-04.md retroactive backfill (cmd_1495〜1552b)
 - 📌 **cmd_1552a 完了後に着手** (AC1 条件)
