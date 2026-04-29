@@ -879,7 +879,21 @@ a.cmd-link:hover { text-decoration: underline; }
 .msg-to { color: #58a6ff; }
 .empty { color: #484f58; font-style: italic; padding: 16px; text-align: center; font-size: 0.82em; }
 
-@media (max-width: 768px) { .grid2 { grid-template-columns: 1fr; } .truncate { max-width: 160px; } table { font-size: 0.72em; } th, td { padding: 4px 5px; } a.cmd-link { min-height: 44px; line-height: 36px; } }
+@media (max-width: 768px) {
+  .grid2 { grid-template-columns: 1fr; }
+  .truncate { max-width: 100%; white-space: normal; overflow: visible; text-overflow: clip; }
+  .table-wrap { overflow-x: visible; -webkit-overflow-scrolling: auto; }
+  .table-wrap table, .table-wrap thead, .table-wrap tbody, .table-wrap th, .table-wrap td, .table-wrap tr { display: block; }
+  .table-wrap thead tr { position: absolute; top: -9999px; left: -9999px; }
+  .table-wrap tr { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; }
+  .table-wrap td { border: none; padding: 4px 0; position: relative; padding-left: 7em; min-height: 1.4em; word-break: break-word; max-width: 100% !important; white-space: normal !important; }
+  .table-wrap td::before { content: attr(data-label); position: absolute; left: 0; width: 6em; font-weight: 600; color: #8b949e; font-size: 0.78em; }
+  .table-wrap td:first-child { padding-left: 0; font-weight: 600; }
+  .table-wrap td:first-child::before { display: none; }
+  a.cmd-link { display: inline-block; min-height: 44px; line-height: 28px; padding: 8px 4px; }
+  body { padding: 8px; }
+  h1, h2, h3 { font-size: 1.05em; }
+}
 </style>
 </head>
 <body>
@@ -899,7 +913,6 @@ a.cmd-link:hover { text-decoration: underline; }
 </div>
 
 <div class="grid2">
-  <div class="panel" id="dingtalk-panel"><h2>💰 DingTalk音声QC</h2><div id="dingtalk-qc"></div></div>
   <div class="panel" id="advisor-proxy-panel"><h2>🔮 Advisor Proxy</h2><div id="advisor-proxy"></div></div>
   <div class="panel"><h2>🏯 足軽・軍師 状態</h2><div id="agents"></div></div>
   <div class="panel"><h2>📋 進行中 cmd</h2><div id="active-cmds"></div></div>
@@ -1040,9 +1053,9 @@ function renderAgents(agents) {
     }
     html += `<tr>
       <td><strong>${esc(a.agent_id)}</strong></td>
-      <td><span class="badge ${badge}">${esc(a.status || 'offline')}</span></td>
-      <td class="truncate" title="${esc(a.description || a.current_task || '')}">${esc(task)}</td>
-      <td style="white-space:nowrap">${elapsed}</td>
+      <td data-label="状態"><span class="badge ${badge}">${esc(a.status || 'offline')}</span></td>
+      <td class="truncate" data-label="タスク" title="${esc(a.description || a.current_task || '')}">${esc(task)}</td>
+      <td data-label="経過" style="white-space:nowrap">${elapsed}</td>
     </tr>`;
   }
   html += '</table></div>';
@@ -1056,9 +1069,9 @@ function renderActiveCmds(cmds) {
     const badge = `badge-${c.status || 'pending'}`;
     html += `<tr>
       <td style="white-space:nowrap"><a class="cmd-link" href="/cmd/${encodeURIComponent(c.id||'')}">${esc(c.id)}</a></td>
-      <td><span class="badge ${badge}">${esc(c.status)}</span></td>
-      <td style="white-space:nowrap">${ageBadge(c.age_hours)}</td>
-      <td class="truncate" style="max-width:200px" title="${esc(c.purpose)}">${esc(c.purpose)}</td>
+      <td data-label="状態"><span class="badge ${badge}">${esc(c.status)}</span></td>
+      <td data-label="経過" style="white-space:nowrap">${ageBadge(c.age_hours)}</td>
+      <td class="truncate" data-label="目的" style="max-width:200px" title="${esc(c.purpose)}">${esc(c.purpose)}</td>
     </tr>`;
   }
   html += '</table></div>';
@@ -1072,7 +1085,7 @@ function renderRecentDone(done) {
     const ts = (c.timestamp || '').slice(5, 16).replace('T', ' ');
     html += `<tr>
       <td style="white-space:nowrap"><a class="cmd-link" href="/cmd/${encodeURIComponent(c.id||'')}" style="color:#3fb950">${esc(c.id)}</a><br><span style="color:#8b949e;font-size:0.72em">${esc(ts)}</span></td>
-      <td class="truncate" style="max-width:250px" title="${esc(c.purpose)}">${esc(c.purpose)}</td>
+      <td class="truncate" data-label="目的" style="max-width:250px" title="${esc(c.purpose)}">${esc(c.purpose)}</td>
     </tr>`;
   }
   html += '</table></div>';
@@ -1087,8 +1100,8 @@ function renderMessages(msgs) {
     const readBadge = m.read ? '' : ' <span class="badge badge-unread">NEW</span>';
     html += `<tr>
       <td style="white-space:nowrap;font-size:0.75em">${esc(ts)}</td>
-      <td style="white-space:nowrap"><span class="msg-from">${esc(m.from_agent || m.from)}</span><br><span class="msg-to">${esc(m.to_agent || m.to)}</span></td>
-      <td class="truncate" style="max-width:300px" title="${esc(m.content||'')}">${esc((m.content||'').slice(0,100))}${readBadge}</td>
+      <td data-label="From→To" style="white-space:nowrap"><span class="msg-from">${esc(m.from_agent || m.from)}</span><br><span class="msg-to">${esc(m.to_agent || m.to)}</span></td>
+      <td class="truncate" data-label="内容" style="max-width:300px" title="${esc(m.content||'')}">${esc((m.content||'').slice(0,100))}${readBadge}</td>
     </tr>`;
   }
   html += '</table></div>';
@@ -1104,7 +1117,6 @@ async function refresh() {
     $('ts').textContent = '最終更新: ' + now.toLocaleTimeString('ja-JP');
     renderStats(d.stats);
     renderActionRequired(d.action_required);
-    renderDingtalkQC(d.dingtalk_qc);
     renderAdvisorProxy(d.advisor_proxy);
     renderAgents(d.agents);
     renderActiveCmds(d.active_cmds);
@@ -1304,6 +1316,36 @@ def render_cmd_detail(cmd):
         items = ''.join(f'<li>{esc(a)}</li>' for a in ac)
         ac_html = f'<div class="field"><span class="label">acceptance_criteria</span><ul>{items}</ul></div>'
 
+    cmd_id_esc = esc(cmd.get('id', ''))
+    status_change_html = ''
+    if status not in ('done', 'cancelled', 'done_ng', 'superseded'):
+        status_change_html = (
+            '<div class="field" style="background:#1a3320;border:1px solid #4CAF50">'
+            '<button id="mark-done-btn" onclick="markDone()" '
+            'style="background:#4CAF50;color:#fff;border:none;padding:14px 20px;border-radius:6px;font-size:16px;cursor:pointer;width:100%;font-weight:600">'
+            '✅ done に変更</button>'
+            '<div id="mark-done-msg" style="margin-top:8px;font-size:12px;text-align:center"></div>'
+            '</div>'
+            '<script>'
+            'async function markDone(){'
+            f'if(!confirm("{cmd_id_esc} を done に変更しますか?"))return;'
+            'const btn=document.getElementById("mark-done-btn");'
+            'const msg=document.getElementById("mark-done-msg");'
+            'btn.disabled=true;btn.textContent="更新中...";'
+            'try{'
+            'const r=await fetch("/api/cmd_status_change",{method:"POST",headers:{"Content-Type":"application/json"},'
+            f'body:JSON.stringify({{id:"{cmd_id_esc}",status:"done",actor:"lord"}})}});'
+            'const j=await r.json();'
+            'if(r.ok){msg.textContent="✅ done に変更しました (reload)";msg.style.color="#4CAF50";'
+            'setTimeout(function(){location.reload();},800);}'
+            'else{msg.textContent="エラー: "+(j.error||r.status);msg.style.color="#f55";'
+            'btn.disabled=false;btn.textContent="✅ done に変更 (再試行)";}'
+            '}catch(e){msg.textContent="エラー: "+e.message;msg.style.color="#f55";'
+            'btn.disabled=false;btn.textContent="✅ done に変更 (再試行)";}'
+            '}'
+            '</script>'
+        )
+
     notes_html = ''
     notes = cmd.get('notes') or []
     if isinstance(notes, str):
@@ -1358,6 +1400,7 @@ h1{{margin:0 0 4px;font-size:1.3em;display:flex;align-items:center;gap:8px;flex-
 {notes_html}
 {'<div class="field"><span class="label">cancelled_reason</span><div class="content">' + esc(cmd.get("cancelled_reason","")) + '</div></div>' if cmd.get("cancelled_reason") else ''}
 {'<div class="field"><span class="label">redo_of</span><div class="content"><a href="/cmd/' + esc(cmd.get("redo_of","")) + '">' + esc(cmd.get("redo_of","")) + '</a></div></div>' if cmd.get("redo_of") else ''}
+{status_change_html}
 </body>
 </html>"""
 
@@ -2713,6 +2756,65 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.send_response(500)
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path == '/api/cmd_status_change':
+            # 殿/将軍 用: cmd 詳細ページから 1タップで status 変更
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length).decode('utf-8'))
+                cmd_id = (body.get('id') or '').strip()
+                new_status = (body.get('status') or '').strip()
+                actor = body.get('actor', 'lord')
+                valid = {'pending', 'assigned', 'in_progress', 'done', 'done_ng', 'cancelled', 'blocked', 'superseded'}
+                if not cmd_id or new_status not in valid:
+                    self.send_response(400); self.send_header('Content-Type', 'application/json'); self.end_headers()
+                    self.wfile.write(json.dumps({'error': f'id required and status must be one of {sorted(valid)}'}).encode('utf-8'))
+                    return
+                now_iso = datetime.now(timezone(timedelta(hours=9))).strftime('%Y-%m-%dT%H:%M:%S+09:00')
+                completed_at = now_iso if new_status == 'done' else None
+                # SQLite UPDATE
+                import sqlite3 as _sqlite3
+                _db_path = os.path.join(BASE_DIR, 'queue', 'cmds.db')
+                _conn = _sqlite3.connect(_db_path, timeout=5)
+                try:
+                    if completed_at:
+                        cur = _conn.execute('UPDATE commands SET status=?, completed_at=? WHERE id=?', (new_status, completed_at, cmd_id))
+                    else:
+                        cur = _conn.execute('UPDATE commands SET status=? WHERE id=?', (new_status, cmd_id))
+                    _conn.commit()
+                    rowcount = cur.rowcount
+                finally:
+                    _conn.close()
+                if rowcount == 0:
+                    self.send_response(404); self.send_header('Content-Type', 'application/json'); self.end_headers()
+                    self.wfile.write(json.dumps({'error': f'cmd not found: {cmd_id}'}).encode('utf-8'))
+                    return
+                # YAML update (best effort)
+                import fcntl as _fcntl2
+                _lock = SHOGUN_TO_KARO + '.lock'
+                try:
+                    with open(_lock, 'w') as _lf:
+                        _fcntl2.flock(_lf, _fcntl2.LOCK_EX)
+                        try:
+                            with open(SHOGUN_TO_KARO, 'r', encoding='utf-8') as _yf:
+                                _ydata = yaml.safe_load(_yf)
+                            for _c in (_ydata.get('commands') or []):
+                                if _c.get('id') == cmd_id:
+                                    _c['status'] = new_status
+                                    if completed_at:
+                                        _c['completed_at'] = completed_at
+                                    break
+                            with open(SHOGUN_TO_KARO, 'w', encoding='utf-8') as _yf:
+                                yaml.dump(_ydata, _yf, allow_unicode=True, default_flow_style=False, sort_keys=False)
+                        finally:
+                            _fcntl2.flock(_lf, _fcntl2.LOCK_UN)
+                except Exception as _ye:
+                    print(f"[cmd_status_change] WARN YAML update: {_ye}")
+                resp = json.dumps({'ok': True, 'cmd_id': cmd_id, 'status': new_status, 'completed_at': completed_at, 'actor': actor}, ensure_ascii=False).encode('utf-8')
+                self.send_response(200); self.send_header('Content-Type', 'application/json; charset=utf-8'); self.send_header('Content-Length', str(len(resp))); self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500); self.send_header('Content-Type', 'application/json'); self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         elif self.path == '/api/inbox_write':
             try:

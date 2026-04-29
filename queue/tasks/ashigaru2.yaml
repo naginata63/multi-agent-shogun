@@ -233,7 +233,7 @@ tasks:
   timestamp: '2026-04-29T11:46:59.388980+09:00'
 - agent: ashigaru2
   task_id: subtask_1561a
-  status: assigned
+  status: done
   parent_cmd: cmd_1561
   bloom_level: L3
   description: 'cmd_1561: dashboard root の cmd 一覧から /cmd/<id> 詳細へのリンク追加・横スクロール解消・スマホ最適化完成'
