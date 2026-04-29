@@ -297,7 +297,7 @@ commands:
   - YAML 直読みは STORAGE_BACKEND=yaml kill-switch のみ
   notify_karo: true
 - id: cmd_1511
-  status: in_progress
+  status: done
   priority: high
   purpose: full_yaml_blob カラム 3テーブル削除 (cmd_1508 F1解消・dual-path transitional 残骸根絶)
   timestamp: '2026-04-27T23:01:44+09:00'
@@ -328,7 +328,7 @@ commands:
   - pretool_check が blob 参照を BLOCK
   notify_karo: true
 - id: cmd_1512
-  status: in_progress
+  status: done
   priority: high
   purpose: detect_action_required の R7 dedup 強化 + cmd_id:null疑似ID付与 (cmd_1504 F1+F5解消)
   timestamp: '2026-04-27T23:01:44+09:00'
@@ -356,7 +356,7 @@ commands:
   - curl /api/dashboard で重複 R7 が出ない
   notify_karo: true
 - id: cmd_1515
-  status: in_progress
+  status: done
   priority: medium
   purpose: R3 殿選定待ち age_hours 閾値段階化 (cmd_1504 F3解消・起票直後ノイズ抑制)
   timestamp: '2026-04-27T23:01:45+09:00'
@@ -1163,3 +1163,217 @@ commands:
   - 殿レビュー前に YouTube アップ禁止 (外部公開コンテンツは殿レビューなし公開禁止)
   - text の改行 \n が画面で正しく改行されるか目視確認
   - ntfy で「✅ おらりっしゅテロップ render 完了 path=...」通知
+- id: cmd_1552a
+  status: in_progress
+  priority: high
+  purpose: server.py の POST /api/cmd_create handler に cmd_intake/posttool_cmd_check
+    監査ロジック (iii)(iv)(v) を統合・H8/H11 hook を廃止
+  timestamp: '2026-04-29T09:56:22+09:00'
+  project: infrastructure
+  lord_original: 1552 その案は、将軍の判断をとおらないのではないか → 将軍2分割案提示 → 殿「よい」
+  command_text: "## 殿原文\n\n「1552 その案は、将軍の判断をとおらないのではないか」「よい」\n\n## 経緯\n\ncmd_1551\
+    \ 軍師 audit (queue/reports/gunshi_cmd_1551.yaml) で H8 cmd_intake_hook が DEAD・H11\
+    \ posttool_cmd_check が SUSPECT_DEAD と特定。軍師 B1 案は両 hook ロジックを丸ごと server.py に移植する案だったが、殿が指摘の通り\
+    \ cmd_intake_hook の (i) mem-search 過去 cmd 提示 (ii) procedure 提示 は **将軍が cmd 書く前**に判断材料を渡す\
+    \ pre-creation 機能ゆえ、 server.py に移すと将軍判断を経由しなくなる盲点があった。\n\n本 cmd_1552a は **事後監査ロジックのみ**\
+    \ server.py に移植する。pre-creation ヒント (i) は別 cmd_1552b で hook 側に維持改修・(ii) は cmd_1549\
+    \ で代替済 (script_hint_search hook)。\n\n## 移植対象 (server.py 内 POST /api/cmd_create\
+    \ handler に inline)\n\n(iii) `queue/cmd_intake_obs.jsonl` への観察記録\n  - 形式: 1行 1\
+    \ cmd の JSON: {ts, cmd_id, project, lord_original, purpose, source_ip, ...}\n\
+    \  - 既存 jsonl があれば format 踏襲・なければ新規作成\n\n(iv) `dashboard_archive/YYYY-MM.md` への自動追記\n\
+    \  - cmd_intake_hook.sh の現行ロジックを Python 移植\n  - markdown table 行: `| timestamp\
+    \ | cmd_id | priority | one-line purpose | status |`\n  - 月跨ぎ自動切替 (current month\
+    \ based)\n  - 既存行と重複しないよう grep -F で事前確認\n\n(v) lord_original/command 乖離 WARN (旧\
+    \ H11 posttool_cmd_check.sh 機能)\n  - lord_original (殿発言原文) と command_text に共通キーワードが極端に乖離していたら\
+    \ WARN\n  - 出力先: dashboard_server.log の WARN 行 (既存 \"WARN sqlite tasks INSERT\
+    \ failed\" と同形式)\n  - **追加**: WARN 発生時 ntfy で将軍に通知 (殿に届かぬよう将軍 only) → 将軍が次回 cmd\
+    \ 修正に反映可能\n\n## 削除対象\n\n- `scripts/cmd_intake_hook.sh` — ファイル削除\n- `scripts/posttool_cmd_check.sh`\
+    \ — ファイル削除\n- `.claude/settings.json` の対応 hook 登録行 (PreToolUse: cmd_intake_hook,\
+    \ PostToolUse: posttool_cmd_check) 削除\n\n## 5点セット\n\n1. **API 経由 subtask 起票**\
+    \ (POST /api/task_create)・assigned_to: ashigaru\n2. **target_path**: scripts/dashboard/server.py\
+    \ / scripts/cmd_intake_hook.sh / scripts/posttool_cmd_check.sh / .claude/settings.json\n\
+    3. **テスト手順 (実機検証必須)**:\n   - (a) curl POST /api/cmd_create で test cmd 起票 → cmd_intake_obs.jsonl\
+    \ に行追加されること\n   - (b) 同 → dashboard_archive/2026-04.md に行追加されること (日付/cmd_id/purpose\
+    \ 確認)\n   - (c) lord_original=\"テスト\" で command_text 長文の test cmd 起票 → 乖離 WARN\
+    \ が dashboard_server.log に出ること\n   - (d) cmd_intake_hook.sh / posttool_cmd_check.sh\
+    \ が ls -la で存在しないこと\n   - (e) .claude/settings.json から両 hook 登録行が消えていること\n4. **advisor()\
+    \ 呼出**: 実装前に必ず advisor() を呼んで設計レビュー受けよ\n5. **inbox 通知**: 完了時 inbox_write to gunshi\
+    \ → QC 依頼 → gunshi → karo\n\n## 注意\n\n- mem-search 機能 (i) は本 cmd で移植**しない** (cmd_1552b\
+    \ で hook 側に残すため)\n- procedure ヒント (ii) は cmd_1549 の script_hint_search hook で代替済\
+    \ (重複実装禁止)\n- server.py の既存 POST /api/cmd_create handler に inline 追記する形式 (新規ファイル作成は最小限)\n\
+    - ntfy 通知の宛先は **将軍 only** (殿には流さぬ・乖離 WARN は内部運用情報)\n- backfill (cmd_1554) との連携:\
+    \ 本 cmd 完了後、過去分補完が cmd_1554 として続く\n- 軍師レポート: queue/reports/gunshi_cmd_1551.yaml\
+    \ の phase_b_remediation H8/H11 セクションを参照"
+  acceptance_criteria:
+  - POST /api/cmd_create 後に queue/cmd_intake_obs.jsonl が更新される (実機 curl テスト)
+  - 新規 cmd 起票で dashboard_archive/2026-04.md に該当行が自動追記される (日付・cmd_id 一致)
+  - lord_original/command_text 乖離 cmd で dashboard_server.log に WARN 行が出力される
+  - WARN 発生時 ntfy で将軍に通知が飛ぶ (将軍 only・殿には流さぬ)
+  - scripts/cmd_intake_hook.sh と scripts/posttool_cmd_check.sh が削除されている
+  - .claude/settings.json から両 hook 登録行が削除されている
+  - mem-search 機能 (i) と procedure ヒント (ii) は本 cmd で移植されていない (cmd_1552b 領分)
+  - 軍師 QC PASS
+  - git commit & push 済み
+  notify_karo: true
+- id: cmd_1552b
+  status: in_progress
+  priority: high
+  purpose: cmd_intake_hook.sh の trigger 条件を拡張・将軍が `Bash + curl /api/cmd_create` 打鍵前に
+    mem-search 過去類似 cmd を提示する pre-creation ヒント機能を維持
+  timestamp: '2026-04-29T09:56:33+09:00'
+  project: infrastructure
+  lord_original: 1552 その案は、将軍の判断をとおらないのではないか → 将軍2分割案提示 → 殿「よい」
+  command_text: "## 殿原文\n\n「1552 その案は、将軍の判断をとおらないのではないか」「よい」\n\n## 経緯\n\ncmd_1551\
+    \ 軍師 audit で H8 cmd_intake_hook が DEAD と判明。軍師 B1 案は丸ごと server.py 移植だったが、(i) mem-search\
+    \ 過去 cmd 提示 と (ii) procedure ヒントは **将軍が cmd 書く前**に判断材料を渡す pre-creation 機能ゆえ、 server.py\
+    \ に移すと将軍判断を経由しなくなる盲点を殿が指摘。\n\n本 cmd_1552b は (i) mem-search 機能のみ hook 側に残し、trigger\
+    \ 条件を **API 経由 cmd 起票でも発火** するよう拡張する。(ii) は cmd_1549 で script_hint_search hook\
+    \ が代替済ゆえ本 cmd で扱わない。事後監査 (iii)(iv)(v) は cmd_1552a で server.py 側に移植中。\n\n## 改修対象\n\
+    \n`scripts/cmd_intake_hook.sh` の trigger 条件:\n  - **旧**: PreToolUse / Write|Edit|MultiEdit|Bash\
+    \ on shogun_to_karo.yaml\n  - **新**: PreToolUse / Bash で **`curl.*api/cmd_create`\
+    \ パターンを検出**\n    - 旧 trigger も残す (YAML 直書き経路 fallback ・shogun_to_karo.yaml が今後も使われる場合に備え)\n\
+    \n## hook 内部ロジック\n\n1. tool_use の Bash command を解析\n2. `curl.*api/cmd_create`\
+    \ パターン検出\n3. payload 抽出: `--data @queue/cmd_payloads/cmd_XXXX.json` 形式から JSON\
+    \ ファイル path を取得 → file 読み込み → purpose と lord_original を抜き出し\n4. 既存の cmd_intake_hook.sh\
+    \ の **mem-search 部分のみ実行** (semantic_search.py で過去類似 cmd top 3 を将軍 context に提示)\n\
+    5. dashboard_archive 追記・jsonl 記録は **しない** (cmd_1552a で server.py に移植済のため)\n6.\
+    \ exit 0 で tool 実行を継続 (BLOCK しない・ヒント表示のみ)\n\n## .claude/settings.json 改修\n\n既存:\n\
+    ```json\n{\n  \"PreToolUse\": [\n    {\n      \"matcher\": \"Write|Edit|MultiEdit|Bash\"\
+    ,\n      \"hooks\": [{\"type\": \"command\", \"command\": \"bash scripts/cmd_intake_hook.sh\"\
+    }]\n    }\n  ]\n}\n```\n\n変更後:\n```json\n{\n  \"PreToolUse\": [\n    {\n     \
+    \ \"matcher\": \"Bash\",\n      \"hooks\": [{\"type\": \"command\", \"command\"\
+    : \"bash scripts/cmd_intake_hook.sh\"}]\n    }\n  ]\n}\n```\n(matcher を Bash のみに絞る・hook\
+    \ 内で curl パターン判定)\n\n## 5点セット\n\n1. **API 経由 subtask 起票**・assigned_to: ashigaru\n\
+    2. **target_path**: scripts/cmd_intake_hook.sh / .claude/settings.json\n3. **テスト手順\
+    \ (実機検証必須)**:\n   - (a) Bash で `curl -s -X POST http://192.168.2.7:8770/api/cmd_create\
+    \ --data @queue/cmd_payloads/cmd_TESTXXX.json` を将軍が打つ前 (シミュレート可) → mem-search\
+    \ が過去類似 cmd を 3件提示すること\n   - (b) Bash で **`curl /api/cmd_create` を含まない**コマンド (ls,\
+    \ git status 等) では hook が早期 exit すること (overhead 最小)\n   - (c) cmd_1552a 完了後と並行:\
+    \ cmd_intake_obs.jsonl 記録は server.py 側のみで重複していないこと\n4. **advisor() 呼出**: 実装前必須\n\
+    5. **inbox 通知**: 完了時 gunshi → karo 経路で QC\n\n## cmd_1549 との関係\n\ncmd_1549 で `script_hint_search`\
+    \ hook が PreToolUse Bash で procedure 自動ヒット機能を実装済。本 cmd_1552b はそれと**並走**する別 hook\
+    \ (mem-search 過去 cmd 機能)。\n  - script_hint_search → procedure ヒット (例: vertical_convert→procedures/video_vertical_crop_upload.md)\n\
+    \  - cmd_intake_hook (本cmd) → 過去類似 cmd ヒット (例: 将軍が新 cmd 書く時に過去 cmd_1485 が類似と表示)\n\
+    \  - 機能重複しないこと・両 hook が共存することを実機確認\n\n## 注意\n\n- 事後監査機能 (iii)(iv)(v) は本 cmd で扱わない\
+    \ (cmd_1552a 領分)\n- (ii) procedure ヒント機能も本 cmd で扱わない (cmd_1549 で実装済)\n- hook の\
+    \ overhead を最小化 (curl /api/cmd_create を含まない Bash 実行で重い処理を走らせるな・grep 1発で早期 exit)\n\
+    - hook 失敗時も tool 実行を継続 (BLOCK 禁止・あくまで参考情報)\n- cmd_1552a と並行進行可能 (依存無し)"
+  acceptance_criteria:
+  - Bash で curl /api/cmd_create を含むコマンド実行時、cmd_intake_hook が発火し mem-search 過去類似 cmd
+    top3 が将軍 context に表示される
+  - Bash で curl /api/cmd_create を含まないコマンド実行時、hook が早期 exit する (grep 1発以内)
+  - .claude/settings.json の matcher が Bash のみに絞られている
+  - scripts/cmd_intake_hook.sh の (iii)(iv)(v) 監査ロジックが削除されている (cmd_1552a 側に移ったため)
+  - cmd_1549 の script_hint_search hook と機能重複していない (procedure 系は script_hint_search・過去
+    cmd 系は本 hook)
+  - 軍師 QC PASS
+  - git commit & push 済み
+  notify_karo: true
+- id: cmd_1553
+  status: in_progress
+  priority: high
+  purpose: stop_hook_inbox.sh の bash inbox_write 直叩きを `curl POST /api/inbox_write`
+    に移行・SQLite + YAML dual-write 整合性回復
+  timestamp: '2026-04-29T10:01:51+09:00'
+  project: infrastructure
+  lord_original: 1552 その案は将軍判断を通らない → 2分割案 → 殿「よい」 → 1553/1554 詳細説明 → 殿「そく」
+  command_text: "## 殿原文\n\n「依頼して 順に実行できるように できんかったっけblockとかで」「そく」\n\n## 経緯\n\ncmd_1551\
+    \ 軍師 audit (queue/reports/gunshi_cmd_1551.yaml) で H2 stop_hook_inbox.sh が PARTIAL_DEAD\
+    \ と特定。L188 が `bash inbox_write.sh karo ...` を直叩き = SQLite に書込まれず YAML のみ → cmd_1488/1494\
+    \ で導入した dual-path 整合性が崩れる。\n\nAPI (POST /api/inbox_write) は server.py が **SQLite\
+    \ + YAML 両方に dual-write** するゆえ、これに移行することで整合性回復。\n\n## 修正箇所\n\n### scripts/stop_hook_inbox.sh\
+    \ L188 (および同様の bash inbox_write.sh 直叩き箇所)\n\n旧:\n```bash\nbash \"$SCRIPT_DIR/scripts/inbox_write.sh\"\
+    \ karo \"$msg\" report_received \"$from\"\n```\n\n新:\n```bash\nif curl -sf -m\
+    \ 5 -X POST http://192.168.2.7:8770/api/inbox_write \\\n  -H 'Content-Type: application/json'\
+    \ \\\n  -d \"$(jq -nc --arg to karo --arg from \"$from\" --arg msg \"$msg\" \\\
+    \n       '{to:$to, from:$from, type:\"report_received\", message:$msg}')\" \\\n\
+    \  > /dev/null 2>&1; then\n    : # success\nelse\n    # API 障害時 fallback (二次経路)\n\
+    \    bash \"$SCRIPT_DIR/scripts/inbox_write.sh\" karo \"$msg\" report_received\
+    \ \"$from\"\nfi\n```\n\n### 設計ポイント\n\n- API 試行は 5秒 timeout (Stop hook を長時間ブロックしない)\n\
+    - 失敗時は bash 直叩きに fallback (今朝の Dashboard 落ち事案再発時の保険)\n- jq で JSON エスケープ (改行・\"\
+    ・特殊文字を含む報告本文に対応)\n- jq が未インストール環境で動くか念のため確認 (将軍 PC は jq インストール済のはず・要確認)\n\n##\
+    \ 5点セット\n\n1. **API 経由 subtask 起票**・assigned_to: ashigaru\n2. **target_path**:\
+    \ scripts/stop_hook_inbox.sh\n3. **テスト手順 (実機検証必須)**:\n   - (a) agent (足軽) Stop\
+    \ イベントを発火させ、 Karo の inbox に SQLite + YAML 両方に新着行作成されること\n     - SQLite 側: `sqlite3\
+    \ dashboard.db \"SELECT count(*) FROM inbox_messages WHERE agent='karo' AND from_agent='ashigaruN'\"\
+    ` の数値増加\n     - YAML 側: `yq '.messages | length' queue/inbox/karo.yaml` の数値増加\n\
+    \     - 両者の増分が一致 (= dual-write 成功)\n   - (b) API ダウン再現テスト: `kill <server.py PID>`\
+    \ で API 落とした上で stop hook 発火 → bash fallback で YAML のみに書込されること\n   - (c) jq の JSON\
+    \ エスケープ確認: メッセージに `\\n` や `\"` を含む test メッセージで stop hook 発火 → SQLite/YAML 両方で正しく保存されていること\n\
+    \   - (d) timeout 機能確認: server.py を sleep でハングさせ stop hook 発火 → 5秒で fallback パスに移行すること\n\
+    4. **advisor() 呼出**: 実装前必須・bash の if-else fallback パターンが他 hook (将来の API 移行候補)\
+    \ でも再利用できる形か議論\n5. **inbox 通知**: 完了時 gunshi → karo 経路で QC\n\n## 注意\n\n- bash inbox_write.sh\
+    \ 自体は **削除しない** (fallback として残す)\n- 他の hook で bash inbox_write.sh を直叩きしている箇所があれば併せて検出\
+    \ (`grep -rn 'inbox_write.sh' scripts/`)・但し本 cmd では stop_hook_inbox.sh のみ修正対象\
+    \ (他は別 cmd で順次対応)\n- 5秒 timeout が長すぎないか実機で確認 (Stop hook の体感遅延要因)\n- cmd_1552a/1552b\
+    \ と並行実行可 (依存無し)"
+  acceptance_criteria:
+  - scripts/stop_hook_inbox.sh L188 が curl POST /api/inbox_write に置換されている
+  - API 失敗時の bash fallback コードが残っている (if-else パターン)
+  - agent Stop で Karo inbox に SQLite + YAML 両方に新着行作成 (実機テスト)
+  - API ダウン再現で bash fallback が機能 (実機テスト)
+  - jq JSON エスケープで改行・" 含むメッセージが破損しないこと
+  - 5秒 timeout で stop hook ハング防止確認
+  - scripts/inbox_write.sh は削除されていない (fallback 維持)
+  - 軍師 QC PASS
+  - git commit & push 済み
+  notify_karo: true
+- id: cmd_1554
+  status: pending
+  priority: medium
+  purpose: dashboard_archive/2026-04.md に cmd_1495〜cmd_1552b の欠落 cmd 群 (約57件) を timestamp
+    順で retroactive backfill
+  timestamp: '2026-04-29T10:02:01+09:00'
+  project: infrastructure
+  depends_on:
+  - cmd_1552a
+  lord_original: 依頼して 順に実行できるように できんかったっけblockとかで → 殿「そく」
+  command_text: "## 殿原文\n\n「依頼して 順に実行できるように できんかったっけblockとかで」「そく」\n\n## 依存\n\n**`depends_on:\
+    \ [\"cmd_1552a\"]`** — cmd_1552a で server.py の dashboard_archive 自動追記が復活した後にのみ着手すること。家老は\
+    \ cmd_1552a の status:done を確認するまで subtask 起票を保留せよ (cross-cmd 依存は通常運用外だが本 cmd は明示的に保留指示)。\n\
+    \n## 経緯\n\ncmd_1551 軍師 audit で dashboard_archive/2026-04.md が **2026-04-26 08:04:38\
+    \ cmd_1494** を最後に更新停止と判明。原因は H8 cmd_intake_hook の API 化空振り。 cmd_1552a で根治後、過去分の手動補完が本\
+    \ cmd の範囲。\n\n## 欠落範囲 (cmd_1552a 完了時点で確定)\n\ncmd_1495 〜 直近完了 cmd まで (推定 57件・本\
+    \ cmd 起票時点では cmd_1552b まで含む可能性)。家老が cmd_1552a 完了後にスナップショット取得して範囲確定すること。\n\n##\
+    \ 修正手順 (足軽向け)\n\n### Phase 1: 既存 cmd_id 抽出 (重複防止)\n```bash\ngrep -oE 'cmd_[0-9]+[a-z]*'\
+    \ dashboard_archive/2026-04.md | sort -u > /tmp/existing_cmd_ids.txt\n```\n\n\
+    ### Phase 2: 全 cmd 取得 + 差分抽出\n```bash\ncurl -s 'http://192.168.2.7:8770/api/cmd_list?limit=300&status=any'\
+    \ \\\n  | jq -r '.cmds[] | [.id, .timestamp, (.priority // \"n/a\"), .status,\
+    \ .purpose] | @tsv' \\\n  > /tmp/all_cmds.tsv\n\n# cmd_1495 以降のみ抽出 (id 文字列比較・サフィックス対応)\n\
+    awk -F'\\t' '{ if ($1 >= \"cmd_1495\") print $0 }' /tmp/all_cmds.tsv > /tmp/target_cmds.tsv\n\
+    \n# 既存と重複しない id のみ\ngrep -F -v -f /tmp/existing_cmd_ids.txt /tmp/target_cmds.tsv\
+    \ > /tmp/new_cmds.tsv\n```\n\n### Phase 3: markdown table 行に整形\n```bash\nawk -F'\\\
+    t' '{\n  ts=substr($2, 1, 16);          # \"YYYY-MM-DD HH:MM\" に切り詰め\n  id=$1;\n\
+    \  pri=$3;\n  status=$4;\n  # purpose の | を \\| にエスケープ + 80字に切り詰め\n  purpose=$5;\n\
+    \  gsub(/\\|/, \"\\\\|\", purpose);\n  if (length(purpose) > 80) purpose = substr(purpose,\
+    \ 1, 77) \"...\";\n  printf \"| %s | %s | %s | %s | %s |\\n\", ts, id, pri, purpose,\
+    \ status;\n}' /tmp/new_cmds.tsv > /tmp/new_rows.md\n```\n\n### Phase 4: dashboard_archive/2026-04.md\
+    \ に追記\n- 4/26 セクション末尾 (cmd_1494 行直後) に挿入\n- markdown table の連続性を保つ (区切り行 `|---|...|`\
+    \ を重複させぬ)\n- timestamp 順にソート済の状態で追記\n\n### Phase 5: 検証 + commit\n```bash\n# 重複検査\n\
+    grep -oE 'cmd_[0-9]+[a-z]*' dashboard_archive/2026-04.md | sort | uniq -d\n# →\
+    \ 出力空であること (重複行ゼロ)\n\n# 行数確認\nwc -l /tmp/new_rows.md  # 追加された行数を control 値として控える\n\
+    \n# git commit\ngit add dashboard_archive/2026-04.md\ngit commit -m 'fix(archive):\
+    \ cmd_1495 以降 N件 retroactive backfill (cmd_1554)'\n```\n\n## 5点セット\n\n1. **API\
+    \ 経由 subtask 起票**・assigned_to: ashigaru (cmd_1552a 完了確認後に起票)\n2. **target_path**:\
+    \ dashboard_archive/2026-04.md\n3. **テスト手順 (実機検証必須)**:\n   - (a) cmd_1495 以降の全\
+    \ cmd_id が dashboard_archive/2026-04.md に行として存在すること (grep -c で件数照合)\n   - (b)\
+    \ `grep -oE 'cmd_[0-9]+[a-z]*' dashboard_archive/2026-04.md | sort | uniq -d`\
+    \ の出力が空 (重複ゼロ)\n   - (c) markdown table 構文が壊れていない (renderer もしくは grep '^|' で行頭確認)\n\
+    \   - (d) cmd_1552a 完了後の新規 cmd が server.py 自動追記で同 archive に出現すること (二重追記ゼロ確認)\n\
+    4. **advisor() 呼出**: awk スクリプトの purpose エスケープ・サフィックス付き id (cmd_1552a/cmd_1552b)\
+    \ の取扱が正しいか相談\n5. **inbox 通知**: 完了時 gunshi → karo 経路で QC\n\n## 注意\n\n- **cmd_1552a\
+    \ 完了前に着手禁止** (二重追記リスク)・家老は cmd_1552a の status:done を確認してから本 cmd の subtask 起票せよ\n\
+    - cmd_id は数値順とは限らない (cmd_test_1559 / cmd_1552a / cmd_1552b 等のサフィックス・テストプレフィックス)\
+    \ → 文字列比較で安全に処理\n- purpose 内に `|` (markdown table 区切り) があると行が壊れる → awk で必ずエスケープ\n\
+    - 月跨ぎ cmd (4月→5月) があれば dashboard_archive/2026-05.md にも書込必要・但し本 cmd では 2026-04.md\
+    \ のみ対象 (5月以降は cmd_1552a で自動追記される)\n- 軍師レポート: queue/reports/gunshi_cmd_1551.yaml\
+    \ の phase_c_retroactive セクション参照"
+  acceptance_criteria:
+  - cmd_1552a の status:done 確認後にのみ着手
+  - cmd_1495 以降 cmd_1552b までの全 cmd が dashboard_archive/2026-04.md に追記
+  - dashboard_archive/2026-04.md 内で cmd_id 重複ゼロ (grep | sort | uniq -d で空)
+  - markdown table 構文壊れていない
+  - cmd_1552a 完了後の新規 cmd が二重追記されていない (自動 + 手動 backfill の境界確認)
+  - git commit に cmd_1554 明記 + 追加件数記載
+  - 軍師 QC PASS
+  notify_karo: true
