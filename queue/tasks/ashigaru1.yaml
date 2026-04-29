@@ -213,7 +213,7 @@ tasks:
   timestamp: '2026-04-29T10:02:38.932177+09:00'
 - agent: ashigaru1
   task_id: subtask_1542a
-  status: assigned
+  status: done
   parent_cmd: cmd_1542
   bloom_level: L3
   description: 'cmd_1542: claude-mem worker daemon を systemd user unit 化・hooks.json
