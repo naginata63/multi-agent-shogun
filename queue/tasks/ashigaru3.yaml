@@ -83,3 +83,31 @@ tasks:
     7. karo に inbox_write(type:report_submitted)'
   report_to: karo
   timestamp: '2026-04-29T07:27:33'
+- agent: ashigaru3
+  task_id: subtask_1558a
+  status: assigned
+  parent_cmd: cmd_1558
+  bloom_level: L3
+  description: OrarishTelop composition をMP4出力 (1920x1080/h264-nvenc優先) → 殿レビュー待ち
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260320_おらふイングリッシュ翻訳してくだサーイ！！【マイクラ】/output/long/orarish_telop.mp4
+  steps:
+  - '1. remotion-project 確認: ls /home/murakami/remotion-project/ と ls /home/murakami/remotion-project/out/
+    (空のはず)'
+  - '2. 素材確認: ls -la /home/murakami/remotion-project/public/orarish_input.mp4'
+  - '3. 出力先ディレクトリ確認: ls ''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260320_おらふイングリッシュ翻訳してくだサーイ！！【マイクラ】/output/long/'''
+  - '4. render実行 (h264-nvenc優先): cd /home/murakami/remotion-project && npx remotion
+    render OrarishTelop ''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260320_おらふイングリッシュ翻訳してくだサーイ！！【マイクラ】/output/long/orarish_telop.mp4''
+    --codec=h264-nvenc'
+  - '5. h264-nvenc失敗時フォールバック: --codec=h264 (libx264相当) で再試行'
+  - '6. ffprobe 検証: ffprobe -v quiet -show_entries stream=width,height,codec_name,r_frame_rate
+    -show_entries format=duration,bit_rate ''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260320_おらふイングリッシュ翻訳してくだサーイ！！【マイクラ】/output/long/orarish_telop.mp4'''
+  - '7. 確認項目: 幅1920 高さ1080 / 尺≒146秒 / codec=h264'
+  - '8. テロップ改行確認: ffprobe -show_entries format_tags -of json でメタデータ確認 (または静止フレームで目視不可のためffprobe尺確認のみ)'
+  - 9. bash scripts/ntfy.sh '✅ おらりっしゅテロップ render完了 path=orarish_telop.mp4 (殿レビュー待ち・YouTubeアップ禁止)'
+  - 10. report作成 → curl POST /api/inbox_write karo に報告 (YouTube禁止・殿レビュー必須を明記)
+  notes:
+  - '殿レビュー前YouTube非公開アップ禁止 (MEMORY.md: 外部公開コンテンツは殿レビューなし公開禁止)'
+  - 出力先は remotion-project/out/ ではなく dozle_kirinuki work ディレクトリ (shogun 09:22訂正)
+  - 'テロップ文字列: 「正解をだしたのに間違う、\nおらリッシュ先生」 - 改行が画面で正しく表示されるかはrender後に殿確認'
+  - 8792frames / 60fps = 約146.5秒が正常値
+  timestamp: '2026-04-29T09:29:47.140840+09:00'

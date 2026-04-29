@@ -789,10 +789,11 @@ commands:
   - dashboard.md に新運用セクション追加
   notify_karo: true
 - id: cmd_1547
-  status: pending
+  status: done
   priority: medium
   purpose: cmd_1541 残課題 — IDLE_TIMEOUT=60s 実効化 (env 未定義による無効状態の根治)
   timestamp: '2026-04-29T07:45:50+09:00'
+  completed_at: '2026-04-29T09:27:00+09:00'
   project: infrastructure
   lord_original: 後追い cmd 出す
   command_text: "## 殿原文\n\n「後追い cmd 出す」 (cmd_1541 軍師QC CONDITIONAL_PASS 残課題への対応指示)\n\
@@ -889,7 +890,7 @@ commands:
   - 軍師 QC PASS (動画再生 + ffprobe 9:16 + nvenc)
   notify_karo: true
 - id: cmd_1549
-  status: pending
+  status: in_progress
   priority: medium
   purpose: cmd 起票/Bash 実行時にスクリプト・procedure を自動検索する PreToolUse hook を新設
   timestamp: '2026-04-29T07:52:23+09:00'
@@ -1128,3 +1129,34 @@ commands:
   notify_karo: true
   cancelled_at: '2026-04-29T08:30:00+09:00'
   cancelled_reason: 将軍指示・テスト用・作業不要
+- id: cmd_1557
+  status: in_progress
+  priority: high
+  purpose: 'server.py task_create INSERT SQL: VALUES ? が19個だが列数20個のミスマッチ修正'
+  timestamp: '2026-04-29T09:23:33+09:00'
+  lord_original: SQLite WARN "19 values for 20 columns" → server.py tasks INSERT の
+    ? を1つ追加して修正・再起動
+  project: infrastructure
+  notify_karo: true
+  acceptance_criteria:
+  - scripts/pretool_check.sh VALUES ? 数が列数と一致 (20個)
+  - server.py 再起動後 task_create で WARN が出なくなること
+  - curl POST /api/task_create で SQLite に正常書込確認
+  - git commit (cmd_1557)
+  - ntfy 通知
+- id: cmd_1558
+  status: in_progress
+  priority: high
+  purpose: OrarishTelop の MP4 出力 → 殿レビュー → YouTube 非公開アップ (殿確認後)
+  timestamp: '2026-04-29T09:23:44+09:00'
+  lord_original: remotion-project の "OrarishTelop" composition を MP4 出力する。殿がおらりっしゅテロップ動画と明示。
+  project: dozle_kirinuki
+  notify_karo: true
+  acceptance_criteria:
+  - npx remotion render OrarishTelop out/orarish_telop.mp4 で MP4 生成 (1920x1080 / h264-nvenc
+    または高品質codec)
+  - ffprobe で解像度1920x1080・尺・codec 確認
+  - '出力先: remotion-project/out/orarish_telop.mp4 (絶対パス殿に提示)'
+  - 殿レビュー前に YouTube アップ禁止 (外部公開コンテンツは殿レビューなし公開禁止)
+  - text の改行 \n が画面で正しく改行されるか目視確認
+  - ntfy で「✅ おらりっしゅテロップ render 完了 path=...」通知

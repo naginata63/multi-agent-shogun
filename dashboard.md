@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-29 08:31
+最終更新: 2026-04-29 09:30
 
 ## 🎌 YPP戦略確定 (2026-04-28 殿御裁断)
 
@@ -8,23 +8,42 @@
 - 漫画ショート = **主力素材** ・MCN返答受領後は併用検討
 
 ## 🚀 進行中
-## 🚀 進行中
 
-### cmd_1547 (medium) — IDLE_TIMEOUT=60s実効化 [patch適用済・daemon再起動待ち]
-- subtask_1547b → ashigaru6 (daemon再起動+thresholdMs=60000実機検証)
-- subtask_1547b_qc → gunshi (blocked)
+### cmd_1557 (high) — server.py task_create INSERT VALUES ?修正 (SQLite WARN根治)
+- subtask_1557a → ashigaru1 (19→20個修正・restart・実機検証)
+
+### cmd_1558 (high) — OrarishTelop MP4 render → 殿レビュー待ち
+- subtask_1558a → ashigaru3 (remotion render 1920x1080/h264-nvenc)
+- ※殿レビュー前YouTube禁止
 
 ### cmd_1549 (medium) — PreToolUse Bash script検索hook新設
-- subtask_1549a → ashigaru7 (キーワード検出→procedure自動検索)
-- subtask_1549b_qc → gunshi (blocked)
+- subtask_1549a → ashigaru7 ✅ (script_hint_search.sh実装完了)
+- subtask_1549b_qc → gunshi (assigned・QC中)
+
+### cmd_1510 (high) — dashboard API SQLite完全移行 [着手前・subtask未配備]
+### cmd_1511 (high) — full_yaml_blob カラム3テーブル削除 [着手前・subtask未配備]
+### cmd_1512 (high) — detect_action_required R7 dedup強化 [着手前・subtask未配備]
+### cmd_1515 (medium) — R3 殿選定待ち age_hours 閾値段階化 [着手前・subtask未配備]
+### cmd_1516 (low) — reports.status/qa_decision CHECK制約+type列追加
+- subtask_1516a_qc → gunshi (assigned)
+
+### cmd_1520 (medium) — 夜間矛盾検出: 動画制作スクリプト群 [着手前]
+### cmd_1521 (medium) — 3層オーディン戦動画作り直し [殿指示待ち]
+### cmd_1523 (medium) — 3層オーディン戦カウントダウン独自編集クリップ生成 [着手前]
 
 ## ⏸ 待機中
 
 ### cmd_1542 (low) — bun daemon systemd user unit化
 - 依存cmd完遂済み → 着手可能 (優先度低・殿判断待ち)
 
+### cmd_1547 (medium) — IDLE_TIMEOUT=60s実効化 ✅ 完了待ち集計中
+### cmd_1518 (low) — GCnCUAuL0p8 サムネ設定 [保留]
+
 ## ✅ 本日の完了 (2026-04-29)
-## ✅ 本日の完了 (2026-04-29)
+
+### cmd_1547 (medium) — IDLE_TIMEOUT=60s実効化 完了 (09:27)
+- thresholdMs=60000 実機ログ確認・/api/admin/restart 経由daemon再起動
+- 軍師QC PASS (subtask_1547b_qc)
 
 ### cmd_1546 (high) — cmd起票運用刷新 完了 (09:06)
 - テンプレJSON化 / queue/cmd_payloads/README.md / CHK10 BLOCK hook (is_inbox判定)
@@ -52,11 +71,11 @@
 
 ## 🔧 技術負債
 
-- **Idle timeout hardcoded**: cmd_1547で対応中 (worker-service.cjs env var化)
-- **hooks.json patch追跡**: plugin更新時に消失リスク → claude_mem_hooks_patch.md 作成推奨 (cmd_1551で診断中)
+- **hooks.json patch追跡**: plugin更新時に消失リスク → claude_mem_hooks_patch.md 作成推奨
 - **worker.pid書込なし**: worker-service.cjs内部問題
 - **systemd/cron設計原則**: user systemd auto-start 単位には @reboot cron を入れない原則 (文書化推奨)
 - **git push**: 随時実行可
+- **cmd_1510-1516系**: SQLite完全移行・dedup強化・CHECK制約 未着手多数
 
 ## 🚨 要対応
 

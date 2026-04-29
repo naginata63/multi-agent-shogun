@@ -176,7 +176,7 @@ tasks:
   timestamp: '2026-04-29T08:29:58.620984+09:00'
 - agent: gunshi
   task_id: subtask_1549b_qc
-  status: blocked
+  status: assigned
   parent_cmd: cmd_1549
   bloom_level: L4
   description: cmd_1549 QC - vertical_convert言及でprocedureヒット実機検証

@@ -83,7 +83,7 @@ tasks:
   - 'inbox_write API: POST http://192.168.2.7:8770/api/inbox_write'
   parent_cmd: cmd_1525
   priority: high
-  status: assigned
+  status: done
   steps: '1) scripts/stuck_subtask_check.sh 新規作成: SQLite tasks テーブルから status=assigned
     かつ timestamp が30分以上前のタスクを抽出 → POST /api/inbox_write to:karo で通達 2) dedup: /tmp/stuck_notified_cache.txt
     に task_id+timestamp を記録し1時間以内同task重複通達をskip 3) crontab -l で既存cron確認 → */5 * *
@@ -122,7 +122,7 @@ tasks:
 - task_id: subtask_1541a
   agent: ashigaru1
   parent_cmd: cmd_1541
-  status: assigned
+  status: done
   bloom_level: L2
   title: claude-mem MAX_CONCURRENT=5 + Idle timeout=60s設定
   description: ~/.claude-mem/settings.json の CLAUDE_MEM_MAX_CONCURRENT_AGENTS を 10→5
@@ -144,3 +144,34 @@ tasks:
     7. 完了報告を gunshi に inbox_write'
   report_to: gunshi
   timestamp: '2026-04-29T07:21:18'
+- agent: ashigaru1
+  task_id: subtask_1557a
+  status: assigned
+  parent_cmd: cmd_1557
+  bloom_level: L2
+  description: 'scripts/dashboard/server.py の task_create INSERT SQL: VALUES ? 19個→20個修正
+    + 再起動 + 実機検証'
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+  steps:
+  - '1. server.py で tasks テーブル INSERT 文を検索: grep -n ''INSERT OR REPLACE INTO tasks''
+    scripts/dashboard/server.py'
+  - 2. INSERT 文の列数を確認 (task_id, agent, parent_cmd, status, priority, title, project,
+    description, target_path, procedure, steps, acceptance_criteria_json, notes_json,
+    params_json, assigned_to, assignee, report_to, safety, redo_of, timestamp = 20列)
+  - '3. VALUES の ? 数を確認: 19個になっているはず → 20個に修正'
+  - '4. 修正: VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) → VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+  - 5. git diff scripts/dashboard/server.py で修正確認
+  - 6. systemctl --user restart mcp-dashboard.service && sleep 5 && curl -s http://192.168.2.7:8770/api/agent_health
+  - '7. 再起動後のログ確認: journalctl --user -u mcp-dashboard.service -n 20 | grep -i ''WARN\|error\|start'''
+  - '8. 実機検証: curl -s -X POST http://192.168.2.7:8770/api/task_create -H ''Content-Type:
+    application/json'' --data @/tmp/test_task.json でWARN再発しないこと確認'
+  - '9. git add scripts/dashboard/server.py && git commit -m ''fix(server): task_create
+    INSERT VALUES ?を19→20個に修正 (cmd_1557)'''
+  - 10. bash scripts/ntfy.sh '✅ SQLite WARN修正完了 (cmd_1557) - VALUES ?19→20修正済'
+  - 11. report作成 → curl POST /api/inbox_write karo に報告
+  notes:
+  - server.py再起動前にgit commitすること (再起動でメモリ上の変更は消えない・ファイルは残るが念のため)
+  - '実機検証用テストpayload: echo ''{"agent":"ashigaru1","task_id":"test_verify_1557","status":"assigned","parent_cmd":"cmd_1557","description":"検証用テストタスク"}''
+    > /tmp/test_task.json'
+  - WARN再発なければSUCCESS・再発したらserver.py行番号とともに報告
+  timestamp: '2026-04-29T09:29:47.095372+09:00'
