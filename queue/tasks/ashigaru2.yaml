@@ -149,7 +149,7 @@ tasks:
   timestamp: '2026-04-29T08:46:48.969440+09:00'
 - agent: ashigaru2
   task_id: subtask_1552a
-  status: assigned
+  status: done
   parent_cmd: cmd_1552a
   bloom_level: L3
   description: 'cmd_1552a: server.py POST /api/cmd_create に (iii)(iv)(v) 監査ロジック統合
@@ -179,3 +179,29 @@ tasks:
     WARN'
   - ntfy通知は将軍only (bash scripts/ntfy.sh) → 殿には流さぬ
   timestamp: '2026-04-29T10:40:36.922866+09:00'
+- agent: ashigaru2
+  task_id: subtask_1555a
+  status: assigned
+  parent_cmd: cmd_1555
+  bloom_level: L3
+  description: 'cmd_1555: server.py に GET /cmd/<id> 詳細HTMLページ追加・dashboard一覧リンク化'
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+  steps:
+  - 1. server.py の dashboard root handler 確認 (GET / のレンダリング箇所)
+  - '2. GET /cmd/<id> ルート追加: SQLite commands テーブルから cmd 取得・HTML 詳細ページを返す'
+  - '3. 詳細ページ表示項目: id/status/priority/project/lord_original/purpose/command_text/acceptance_criteria/depends_on/timestamp'
+  - 4. command_text は markdown→HTML 変換 (python-markdown または簡易変換でリスト・コードブロック対応)
+  - 5. dashboard root の cmd 一覧 (各 cmd 行) に詳細ページへのリンク追加 (<a href='/cmd/{id}'>)
+  - 6. depends_on 内の cmd_id をリンク化 (<a href='/cmd/{dep_id}'>)
+  - '7. スマホ対応: viewport meta tag・横スクロール無し・シンプルHTML (外部CSS不要)'
+  - 8. 存在しない cmd_id で 404 を返す
+  - 9. 既存 dashboard root 表示が壊れていないこと確認 (GET / が正常返却)
+  - 10. python3 -c 'import ast; ast.parse(open("scripts/dashboard/server.py").read())'
+    で syntax確認
+  - 11. git add scripts/dashboard/server.py && git commit (cmd_1555)
+  - 12. report → inbox_write gunshi (QC依頼)
+  notes:
+  - cmd_1552a が直前まで server.py を修正しており commit b1b9fd4。最新版を使え
+  - スマホ体感確認は軍師QCで実施 (AC6)
+  - 外部ライブラリ追加は最小限に。標準 http.server + 組込みテンプレートで実装推奨
+  timestamp: '2026-04-29T11:03:56.882948+09:00'

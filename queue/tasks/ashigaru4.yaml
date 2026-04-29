@@ -119,3 +119,30 @@ tasks:
   procedure: shared_context/procedures/video_vertical_crop_upload.md
   lord_original: 1548違うスクリプトで作成しきりおった やりなおしじゃ しかも限定公開にしおった げきおこじゃ かこのは消す 即起票 非公開あっぷ
   timestamp: '2026-04-29T08:29:04.310923+09:00'
+- agent: ashigaru4
+  task_id: subtask_1554a
+  status: assigned
+  parent_cmd: cmd_1554
+  bloom_level: L2
+  description: 'cmd_1554: dashboard_archive/2026-04.md に cmd_1495〜cmd_1552b の欠落 cmd
+    群を retroactive backfill'
+  target_path: /home/murakami/multi-agent-shogun/dashboard_archive/2026-04.md
+  steps:
+  - '1. cmd_1552a status:done 確認: curl http://192.168.2.7:8770/api/cmd_detail?id=cmd_1552a
+    | python3 -c "import json,sys; print(json.load(sys.stdin)[''status''])"'
+  - 2. dashboard_archive/2026-04.md の現状確認 (既存エントリ・末尾行・フォーマット確認)
+  - '3. cmd 一覧取得: curl ''http://192.168.2.7:8770/api/cmd_list?limit=200'' で cmd_1495〜cmd_1552b
+    の全 cmd を取得'
+  - '4. dashboard_archive/2026-04.md に未記載の cmd を抽出 (id 重複チェック: grep でファイルに既出なら skip)'
+  - '5. 未記載 cmd を timestamp 昇順で markdown table 行として追記 (format: | cmd_id | status |
+    purpose | timestamp |)'
+  - '6. 追記後: grep cmd_id | sort | uniq -d で重複ゼロ確認 (AC3)'
+  - '7. markdown table 構文確認: ヘッダー行・区切り行・データ行の整合性'
+  - 8. git add dashboard_archive/2026-04.md && git commit (cmd_1554・追加件数記載)
+  - 9. report → inbox_write gunshi (QC依頼)
+  notes:
+  - cmd_1552a 完了後の新規 cmd (cmd_1553〜) は server.py が自動追記する。手動 backfill は cmd_1495〜cmd_1552b
+    のみ
+  - dashboard_archive/2026-04.md のフォーマットは既存行に合わせよ
+  - 約57件の追記想定。バッチ処理でも一括でもOK
+  timestamp: '2026-04-29T11:03:57.739295+09:00'

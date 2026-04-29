@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-29 10:57
+最終更新: 2026-04-29 11:05
 
 ## 🎌 YPP戦略確定 (2026-04-28 殿御裁断)
 
@@ -9,18 +9,14 @@
 
 ## 🚀 進行中
 
-### cmd_1552a (high) — server.py POST /api/cmd_create に監査ロジック統合
-- subtask_1552a → ashigaru2 (iii/iv/v統合・hook削除・settings.json更新)
-
 ### cmd_1555 (high) — cmd詳細HTMLページ追加・dashboard一覧リンク化 (スマホ対応)
-- 📌 **cmd_1552a 完了後に着手** (server.py RACE-001回避)
+- subtask_1555a → ashigaru2 (GET /cmd/<id> 実装・markdown変換・スマホ対応)
+
+### cmd_1554 (medium) — dashboard_archive/2026-04.md retroactive backfill (cmd_1495〜1552b)
+- subtask_1554a → ashigaru4 (約57件 timestamp順追記)
 
 ### cmd_1556 (low) — dashboard.md 廃止 (git rm)
 - 📌 **cmd_1555 完了後に着手** (depends_on: cmd_1555)
-- 戦略系は memory/project_*.md 既存・cmd詳細は cmd_1555 HTML化後不要
-
-### cmd_1554 (medium) — dashboard_archive/2026-04.md retroactive backfill (cmd_1495〜1552b)
-- 📌 **cmd_1552a 完了後に着手** (AC1 条件)
 
 ### cmd_1520 (medium) — 夜間矛盾検出: 動画制作スクリプト群 [着手前]
 ### cmd_1521 (medium) — 3層オーディン戦動画作り直し [殿指示待ち]
@@ -33,6 +29,11 @@
 ### cmd_1518 (low) — GCnCUAuL0p8 サムネ設定 [保留]
 
 ## ✅ 本日の完了 (2026-04-29)
+
+### cmd_1552a (high) — server.py (iii)(iv)(v) 監査ロジック統合 完了 (11:03)
+- cmd_intake_obs.jsonl記録 + dashboard_archive自動追記 + 乖離WARN+ntfy実装
+- hook script 2件削除 / settings.json整理 (commit b1b9fd4) / 軍師QC PASS
+- **cmd_1494 API化不完全性 H8/H11/H2 3件全解消**
 
 ### cmd_1552b (high) — cmd_intake_hook.sh trigger拡張 完了 (10:39)
 - Bash+api/cmd_create trigger / iii/iv/v削除 / 行数255→153 / QC PASS (軍師)
@@ -103,11 +104,11 @@
 - **H8 cmd_intake_hook.sh → 死文化**: cmd_1495-1551 約57件の dashboard_archive 記録漏れ真因
 - H11 posttool_cmd_check → 疑死 / H2 stop_hook_inbox → **✅ PASS** (cmd_1553)
 
-**対応状況:**
+**対応状況 (全4件完了):**
 1. cmd_1552b: **✅ PASS** (軍師QC 10:39)
-2. cmd_1552a: ashigaru2 作業中 (server.py iii/iv/v統合・hook削除)
+2. cmd_1552a: **✅ PASS** (軍師QC 11:03) — H8/H11/H2 全解消
 3. cmd_1553: **✅ PASS** (軍師QC 10:11)
-4. cmd_1554: cmd_1552a 完了後 ashigaru4 配備予定
+4. cmd_1554: ashigaru4 作業中 (backfill)
 
 詳細: queue/reports/gunshi_cmd_1551.yaml
 
