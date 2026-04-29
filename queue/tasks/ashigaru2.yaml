@@ -99,3 +99,83 @@ tasks:
     9. karo にinbox_write(type:report_submitted)で完了報告'
   report_to: karo
   timestamp: '2026-04-29T07:22:28'
+- agent: ashigaru2
+  task_id: subtask_1546a
+  status: done
+  parent_cmd: cmd_1546
+  bloom_level: L3
+  description: cmd起票テンプレJSON化 + queue/cmd_payloads/README.md + pretool_check.sh BLOCK追加
+  target_path: /home/murakami/multi-agent-shogun/context/cmd_template.md
+  steps:
+  - 1. context/cmd_template.md を読んでJSON形式への変換設計
+  - 2. context/cmd_template.md をJSON化 (YAML/Markdownから変換・注釈/コメント行を含む)
+  - 3. queue/cmd_payloads/ ディレクトリ作成 + README.md 配置 (運用ルール・保存形式・命名規則記載)
+  - '4. scripts/pretool_check.sh にBLOCKチェック追加: cmd_template.md直接ベタ打ち検出'
+  - 5. pretool_check.sh のテスト実行 PASS確認
+  - 6. shared_context/procedures/dashboard_api_usage.md の curl例を新方式(JSON形式)に統一更新
+  - 7. dashboard.md に新運用セクション追加 (POST /api/dashboard_update使用)
+  - 8. git add/commit (cmd_1546)
+  - 9. report作成 → inbox_write でkaroに報告
+  lord_original: Jsonかすべきじゃないのか？テンプレを 保存場所は/home/murakami/multi-agent-shogun/queueにつくれ
+    ふぉるだつくって あとさっき見た維持直接べたうちをきんずるhookも設計しろ
+  timestamp: '2026-04-29T08:29:17.483088+09:00'
+- agent: ashigaru2
+  task_id: subtask_1546c
+  status: done
+  parent_cmd: cmd_1546
+  bloom_level: L2
+  redo_of: subtask_1546a
+  description: CHK10 is_inbox判定バグ修正 - /api/inbox_write以外のJSON直書きをBLOCK
+  target_path: /home/murakami/multi-agent-shogun/scripts/pretool_check.sh
+  steps:
+  - 1. scripts/pretool_check.sh のCHK10 Pythonコード部分を確認 (grep -n "CHK10\|is_short\|IS_SHORT"
+    scripts/pretool_check.sh)
+  - '2. 修正: is_inbox = "/api/inbox_write" in cmd を追加し、short判定をinbox_writeのみに限定'
+  - '3. 修正コード:'
+  - '   is_inbox = "/api/inbox_write" in cmd'
+  - '   msg = d.get("message", "")'
+  - '   if is_inbox and len(msg) <= 200: print("short")'
+  - '   else: print("long")'
+  - '   except Exception: print("long")  # parse失敗は安全側BLOCK'
+  - '4. 実機テスト: cmd_create JSON直書きで BLOCK (exit≠0) されること確認'
+  - '   test: echo curl -s -X POST http://192.168.2.7:8770/api/cmd_create -d ''{"id":"test","command_text":"long_text_here"}''
+    | bash scripts/pretool_check.sh → BLOCK確認'
+  - '5. 実機テスト: inbox_write 短文は PASS (exit=0) されること確認'
+  - 6. dashboard.md 重複セクション削除 (L13/31のcmd_1546重複・L120/121の重複見出し)
+  - '7. git add scripts/pretool_check.sh && git commit -m fix(hook): CHK10 is_inbox判定追加・cmd_create等を確実BLOCK
+    (cmd_1546)'
+  - 8. report作成 → inbox_write でkaroに報告
+  lord_original: CHK10 BLOCK hook バグ修正 redo
+  timestamp: '2026-04-29T08:46:48.969440+09:00'
+- agent: ashigaru2
+  task_id: subtask_1552a
+  status: assigned
+  parent_cmd: cmd_1552a
+  bloom_level: L3
+  description: 'cmd_1552a: server.py POST /api/cmd_create に (iii)(iv)(v) 監査ロジック統合
+    + hook削除'
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+  steps:
+  - '1. 参照ファイル読込: scripts/cmd_intake_hook.sh (logic iii/iv/v の元実装) + scripts/posttool_cmd_check.sh'
+  - 2. server.py の POST /api/cmd_create handler 特定 (L2341付近)
+  - '3. AC1: cmd_intake_obs.jsonl 記録ロジック追加 (queue/cmd_intake_obs.jsonl にJSONL行追記・cmd_id/timestamp/purpose/project)'
+  - '4. AC2: dashboard_archive/2026-04.md 自動追記ロジック追加 (cmd_id・timestamp・purpose 1行・ファイル存在しない場合はヘッダー作成)'
+  - '5. AC3/AC4: lord_original と command_text の乖離検出→dashboard_server.log に WARN ログ出力
+    + bash scripts/ntfy.sh ''⚠️ cmd起票 lord_original乖離: {cmd_id}'' (将軍only)'
+  - '6. AC7確認: mem-search(i) と procedure_hint(ii) は実装しない (cmd_1552b 側で既実装)'
+  - '7. AC5: scripts/cmd_intake_hook.sh と scripts/posttool_cmd_check.sh を rm で削除'
+  - '8. AC6: .claude/settings.json から cmd_intake_hook と posttool_cmd_check の hooks
+    エントリを削除'
+  - '9. syntax/import エラーがないか確認: python3 -c ''import ast; ast.parse(open("scripts/dashboard/server.py").read())'''
+  - '10. 実機テスト: curl -X POST http://192.168.2.7:8770/api/cmd_create --data @queue/cmd_payloads/任意ファイル.json
+    で cmd_intake_obs.jsonl 書込確認'
+  - 11. git add scripts/dashboard/server.py .claude/settings.json && git commit
+  - 12. report → inbox_write gunshi (QC依頼)
+  notes:
+  - cmd_1552b (hook trigger拡張) は既にPASS済。settings.jsonからBash hookは追加済みのはず。削除は cmd_intake_hook
+    と posttool_cmd_check の hooks のみ
+  - dashboard_archive/2026-04.md が存在しない場合はヘッダー行から作成してよい
+  - 'lord_original 乖離検出: lord_original が空か、command_text が lord_original に含まれない場合は
+    WARN'
+  - ntfy通知は将軍only (bash scripts/ntfy.sh) → 殿には流さぬ
+  timestamp: '2026-04-29T10:40:36.922866+09:00'

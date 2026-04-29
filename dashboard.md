@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-29 10:18
+最終更新: 2026-04-29 10:41
 
 ## 🎌 YPP戦略確定 (2026-04-28 殿御裁断)
 
@@ -9,11 +9,8 @@
 
 ## 🚀 進行中
 
-### cmd_1552b (high) — cmd_intake_hook.sh trigger拡張 (Bash+API cmd_create 検知)
-- subtask_1552b → ashigaru6 (hook修正・mem-search維持・iii/iv/v削除)
-
 ### cmd_1552a (high) — server.py POST /api/cmd_create に監査ロジック統合
-- 📌 cmd_1552b QC PASS後に着手 (settings.json競合回避)
+- subtask_1552a → ashigaru2 (iii/iv/v統合・hook削除・settings.json更新)
 
 ### cmd_1554 (medium) — dashboard_archive/2026-04.md retroactive backfill (cmd_1495〜1552b)
 - 📌 **cmd_1552a 完了後に着手** (AC1 条件)
@@ -29,6 +26,10 @@
 ### cmd_1518 (low) — GCnCUAuL0p8 サムネ設定 [保留]
 
 ## ✅ 本日の完了 (2026-04-29)
+
+### cmd_1552b (high) — cmd_intake_hook.sh trigger拡張 完了 (10:39)
+- Bash+api/cmd_create trigger / iii/iv/v削除 / 行数255→153 / QC PASS (軍師)
+- Issue I1(LOW): L59 set -u 違反 (CONTENT未定義) → 別 cmd で対処推奨
 
 ### cmd_1558 (high) — OrarishTelop MP4 render 完了 → 殿レビュー待ち (10:13)
 - 1920x1080/h264/60fps/146.58s/3.66Mbps/8792frames (remotion --codec=h264)
@@ -89,15 +90,21 @@
 - テロップ: 「正解をだしたのに間違う、おらリッシュ先生」 (改行表示は殿目視確認要)
 - **殿確認後のみ YouTube 非公開アップ可** (承認前アップ厳禁)
 
-### ⚠️ hook死文化修正 — 対応中 (cmd_1552a/b/1554 残3件)
+### 🖼️ cmd_1509 clip2 パネルHTML — **殿レビュー待ち** (軍師追加成果物 10:40)
+
+- path: projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/clip2_panel_review.html (40KB)
+- 94行・62パネル解析済み。panels_tono_clip2_raw.json も生成
+- 殿による HTML 目視レビュー → 使用パネル選定をお願いしたい
+
+### ⚠️ hook死文化修正 — 対応中 (cmd_1552a/1554 残2件)
 
 **軍師診断結果 (2026-04-29 08:35)**:
 - **H8 cmd_intake_hook.sh → 死文化**: cmd_1495-1551 約57件の dashboard_archive 記録漏れ真因
 - H11 posttool_cmd_check → 疑死 / H2 stop_hook_inbox → **✅ PASS** (cmd_1553)
 
 **対応状況:**
-1. cmd_1552b: ashigaru6 作業中 (hook trigger拡張)
-2. cmd_1552a: cmd_1552b 完了後 ashigaru2 配備予定
+1. cmd_1552b: **✅ PASS** (軍師QC 10:39)
+2. cmd_1552a: ashigaru2 作業中 (server.py iii/iv/v統合・hook削除)
 3. cmd_1553: **✅ PASS** (軍師QC 10:11)
 4. cmd_1554: cmd_1552a 完了後 ashigaru4 配備予定
 
