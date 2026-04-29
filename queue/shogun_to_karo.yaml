@@ -740,10 +740,11 @@ commands:
   - git commit
   notify_karo: true
 - id: cmd_1546
-  status: pending
+  status: done
   priority: high
   purpose: cmd 起票運用の制度刷新 — テンプレ JSON 化 + queue/cmd_payloads/ 確立 + ベタ打ち BLOCK hook
   timestamp: '2026-04-29T07:28:23+09:00'
+  completed_at: '2026-04-29T09:06:00+09:00'
   project: infrastructure
   lord_original: 'Jsonかすべきじゃないのか？テンプレを
 

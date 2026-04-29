@@ -8,22 +8,15 @@
 - 漫画ショート = **主力素材** ・MCN返答受領後は併用検討
 
 ## 🚀 進行中
+## 🚀 進行中
 
-### cmd_1546 (high) — cmd起票運用刷新 [QC FAIL→redo中]
-- subtask_1546c → ashigaru2 (CHK10 is_inbox判定バグ修正・/clear後)
-- subtask_1546b_qc2 → gunshi (redo完了後)
-
-### cmd_1547 (medium) — IDLE_TIMEOUT=60s実効化
-- subtask_1547a → ashigaru6 (worker-service.cjs env var追加)
+### cmd_1547 (medium) — IDLE_TIMEOUT=60s実効化 [patch適用済・daemon再起動待ち]
+- subtask_1547b → ashigaru6 (daemon再起動+thresholdMs=60000実機検証)
 - subtask_1547b_qc → gunshi (blocked)
 
 ### cmd_1549 (medium) — PreToolUse Bash script検索hook新設
 - subtask_1549a → ashigaru7 (キーワード検出→procedure自動検索)
 - subtask_1549b_qc → gunshi (blocked)
-
-### cmd_1550 (high) — tono_edit.mkv 縦長クロップ→YouTube private アップ [やり直し]
-- subtask_1550a → ashigaru4 (ffmpeg直書き procedure準拠・前回UKrh1oUFsd0削除含む)
-- subtask_1550b_qc → gunshi (blocked)
 
 ## ⏸ 待機中
 
@@ -31,6 +24,12 @@
 - 依存cmd完遂済み → 着手可能 (優先度低・殿判断待ち)
 
 ## ✅ 本日の完了 (2026-04-29)
+## ✅ 本日の完了 (2026-04-29)
+
+### cmd_1546 (high) — cmd起票運用刷新 完了 (09:06)
+- テンプレJSON化 / queue/cmd_payloads/README.md / CHK10 BLOCK hook (is_inbox判定)
+- dashboard.md重複3箇所統合済 (ashigaru2 subtask_1546c)
+- 軍師QC → 誤FAIL→PASS訂正 (08:45→09:06)
 
 ### cmd_1550 (high) — tono_edit.mkv 縦長クロップ→YouTube private アップ [やり直し完了] (08:40)
 - 🎬 **YouTube**: https://www.youtube.com/watch?v=Iv-FEu6Ipzw (private)
@@ -41,8 +40,6 @@
 - H8/H11 死文化確定・H2 部分死文化・残10件 OK
 - 約57件 dashboard_archive 記録漏れの真因特定
 - 推奨cmd: cmd_1552/1553/1554 → 🚨要対応に追加済
-
-### cmd_1548 ~~(やり直し済)~~ — cmd_1550で是正完了
 
 ### cmd_1545 (high) — litestream @reboot cron削除・race condition根治
 ### cmd_1544 (medium) — gacha2_old_v1 P2パネル再生成 (768x1376)

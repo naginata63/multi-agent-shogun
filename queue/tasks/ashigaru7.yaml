@@ -19,7 +19,7 @@ tasks:
   timestamp: '2026-04-29T02:57:57.639356+09:00'
 - agent: ashigaru7
   task_id: subtask_1549a
-  status: assigned
+  status: done
   parent_cmd: cmd_1549
   bloom_level: L3
   description: PreToolUse Bash hook新設 - Bash実行時にスクリプト/procedureを自動検索

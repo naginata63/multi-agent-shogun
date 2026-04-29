@@ -139,7 +139,7 @@ tasks:
   timestamp: '2026-04-29T08:29:58.583030+09:00'
 - agent: gunshi
   task_id: subtask_1546b_qc
-  status: blocked
+  status: done
   parent_cmd: cmd_1546
   bloom_level: L4
   description: cmd_1546 QC - 違反パターンBLOCK実機検証・dashboard新運用セクション確認
@@ -158,7 +158,7 @@ tasks:
   timestamp: '2026-04-29T08:29:58.598165+09:00'
 - agent: gunshi
   task_id: subtask_1547b_qc
-  status: blocked
+  status: done
   parent_cmd: cmd_1547
   bloom_level: L4
   description: cmd_1547 QC - IDLE_TIMEOUT=60s実効化実機検証 + 軍師指示精度改善メモ確認
