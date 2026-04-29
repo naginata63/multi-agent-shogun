@@ -211,3 +211,55 @@ tasks:
   - 'jq がない環境への対処: python3 -c ''import json,sys; print(json.dumps({...}))'' でも可'
   - 実機テスト (AC3) は gunshi QC側で担当・ashigaru は syntax check のみ
   timestamp: '2026-04-29T10:02:38.932177+09:00'
+- agent: ashigaru1
+  task_id: subtask_1542a
+  status: assigned
+  parent_cmd: cmd_1542
+  bloom_level: L3
+  description: 'cmd_1542: claude-mem worker daemon を systemd user unit 化・hooks.json
+    の start 行撤去'
+  target_path: /home/murakami/.config/systemd/user/claude-mem-worker.service
+  steps:
+  - 0. advisor() 呼出 (作業前)
+  - '1. 参考確認: cat /home/murakami/.config/systemd/user/mcp-dashboard.service (Type=simple
+    の参考)'
+  - '2. 現在の worker プロセス確認: ps aux | grep worker-service (PID・引数確認)'
+  - '3. worker が foreground モードをサポートするか確認: /home/murakami/.bun/bin/bun /home/murakami/.claude/plugins/cache/thedotmack/claude-mem/10.6.3/scripts/worker-service.cjs
+    --help 2>&1 | head -20 (help 表示で --daemon / --foreground フラグ確認)'
+  - 4. ~/.config/systemd/user/claude-mem-worker.service を新規作成 (Type=simple・ExecStart=bun
+    ... worker-service.cjs ※--daemon は不要・systemdが管理するため。Environment=HOME=/home/murakami
+    CLAUDE_PLUGIN_ROOT=... CLAUDE_MEM_WORKER_PORT=37777 CLAUDE_MEM_DATA_DIR=/home/murakami/.claude-mem)
+  - '5. 既存 worker プロセス停止 (丁寧に): kill -SIGTERM $(python3 -c "import json; print(json.load(open(''/home/murakami/.claude-mem/worker.pid''))[''pid''])")
+    && sleep 3'
+  - 6. systemctl --user daemon-reload && systemctl --user enable claude-mem-worker
+    && systemctl --user start claude-mem-worker
+  - 7. systemctl --user status claude-mem-worker (active(running) 確認・失敗した場合は journalctl
+    --user -u claude-mem-worker -n 30 でログ確認)
+  - '8. もし Type=simple で worker が即終了する場合は Type=forking に変更して再試行: sed -i ''s/Type=simple/Type=forking/''
+    ~/.config/systemd/user/claude-mem-worker.service && ExecStart に --daemon を追加 →
+    daemon-reload → restart'
+  - 9. curl http://127.0.0.1:37777/api/health 2>/dev/null || curl http://127.0.0.1:37777/
+    2>/dev/null | head (worker API が応答確認)
+  - '10. hooks.json から start 行を撤去: /home/murakami/.claude/plugins/marketplaces/thedotmack/plugin/hooks/hooks.json
+    の SessionStart から ''worker-service.cjs\" start'' を含む hook オブジェクト (matcher: startup|clear|compact
+    の 2番目エントリ) を削除 (python3 で JSON 読み込み・該当エントリ除去・書き戻し)'
+  - '11. grep 確認: grep -c ''worker-service.cjs.*start'' /home/murakami/.claude/plugins/marketplaces/thedotmack/plugin/hooks/hooks.json
+    (0 であること)'
+  - 12. systemctl --user is-enabled claude-mem-worker (enabled 確認)
+  - 13. git add ~/.config/systemd/user/claude-mem-worker.service && git commit は service
+    ファイルが git 管理外なので commit 不要・代わりに hooks.json の変更ハッシュを報告に記載
+  - 14. advisor() 呼出 (完了前)
+  - '15. report → inbox_write gunshi (QC依頼: systemctl status / hooks.json grep / is-enabled
+    / worker API 応答の4点確認を依頼)'
+  notes:
+  - 'worker-service.cjs パス: /home/murakami/.claude/plugins/cache/thedotmack/claude-mem/10.6.3/scripts/worker-service.cjs'
+  - 'bun パス: /home/murakami/.bun/bin/bun'
+  - 'hooks.json パス: /home/murakami/.claude/plugins/marketplaces/thedotmack/plugin/hooks/hooks.json'
+  - '削除対象: SessionStart の matcher=''startup|clear|compact'' 配下の ''bun-runner.js ...
+    worker-service.cjs start'' hook エントリのみ (context/session-init 等の他フックは残すこと)'
+  - '現在の worker PID: /home/murakami/.claude-mem/worker.pid (JSON: {pid, port, startedAt})'
+  - 'CLAUDE_MEM_WORKER_PORT=37777, HOME 注意: 現在のプロセスは HOME=.claude_glm で動いているが systemd
+    unit では HOME=/home/murakami を明示せよ'
+  - 'STOP: システム全体に影響するため、プロセス停止前に worker が重要な処理中でないか 1秒待て (実際には claude-mem は idempotent
+    なので大丈夫)'
+  timestamp: '2026-04-29T14:05:04.656338+09:00'
