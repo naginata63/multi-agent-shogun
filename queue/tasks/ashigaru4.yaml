@@ -146,3 +146,36 @@ tasks:
   target_path: /home/murakami/multi-agent-shogun/dashboard_archive/2026-04.md
   task_id: subtask_1554a
   timestamp: '2026-04-29T11:03:57.739295+09:00'
+- agent: ashigaru4
+  task_id: subtask_1556a
+  status: assigned
+  parent_cmd: cmd_1556
+  bloom_level: L3
+  description: 'cmd_1556: dashboard.md 廃止 (git rm) + CLAUDE.md/instructions/*.md の参照更新'
+  target_path: /home/murakami/multi-agent-shogun/CLAUDE.md
+  steps:
+  - '1. cmd_1555 status:done 確認: curl http://192.168.2.7:8770/api/cmd_detail?id=cmd_1555'
+  - '2. dashboard_archive/ が無傷か確認: ls dashboard_archive/ (触るな・確認のみ)'
+  - '3. scripts/dashboard_lifecycle.sh の dashboard.md 参照確認: grep -n ''dashboard\.md''
+    scripts/dashboard_lifecycle.sh'
+  - 4. git rm dashboard.md (--cached ではなく完全削除)
+  - '5. CLAUDE.md の dashboard.md 参照を更新: ''MCP dashboard (http://192.168.2.7:8770/)''
+    への参照に置換または削除。具体箇所: L24 dashboard定義・L83 CRITICAL・L138 karo行・L194 Action Required'
+  - '6. instructions/shogun.md の dashboard.md 参照を更新 (7箇所): MCP dashboard URL / API
+    /api/dashboard?slim=1 への置換'
+  - '7. instructions/gunshi.md の dashboard.md 参照を更新 (7箇所): dashboard.md → MCP dashboard
+    / inbox_write karo への置換'
+  - 8. instructions/karo.md の dashboard.md 参照確認・更新 (dashboard API 経由に既移行済みならスキップ可)
+  - 9. instructions/ashigaru.md L286 の dashboard.md 参照を更新
+  - 10. git add CLAUDE.md instructions/*.md && git diff --cached でレビュー (意図外削除ないか確認)
+  - 11. git commit (cmd_1556 明記)
+  - '12. 事後確認: ls dashboard.md → No such file / MCP GET / → HTTP 200 正常表示'
+  - 13. report → inbox_write gunshi (QC依頼)
+  notes:
+  - dashboard_archive/ は絶対に触るな (別物・cmd_1556 AC6)
+  - dashboard.md の戦略系内容 (YPP戦略等) は memory/project_*.md に既存のため data loss なし
+  - 'instructions 更新方針: dashboard.md → ''MCP dashboard (http://192.168.2.7:8770/)''
+    または ''/api/dashboard?slim=1 API'' に置換。単純に削除するより置換が望ましい'
+  - scripts/dashboard_lifecycle.sh が dashboard.md を更新しているなら、そのロジックを無効化 or 削除してよい (dashboard.md
+    が消えるため)
+  timestamp: '2026-04-29T11:20:00.997312+09:00'

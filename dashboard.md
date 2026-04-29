@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-29 11:16
+最終更新: 2026-04-29 11:20
 
 ## 🎌 YPP戦略確定 (2026-04-28 殿御裁断)
 
@@ -9,11 +9,8 @@
 
 ## 🚀 進行中
 
-### cmd_1555 (high) — cmd詳細HTMLページ追加・dashboard一覧リンク化 (スマホ対応)
-- subtask_1555a → ashigaru2 (GET /cmd/<id> 実装・markdown変換・スマホ対応)
-
-### cmd_1556 (low) — dashboard.md 廃止 (git rm)
-- 📌 **cmd_1555 完了後に着手** (depends_on: cmd_1555)
+### cmd_1556 (low) — dashboard.md 廃止 (git rm) + instructions参照更新
+- subtask_1556a → ashigaru4 (git rm + CLAUDE.md/instructions/*.md 参照置換)
 
 ### cmd_1520 (medium) — 夜間矛盾検出: 動画制作スクリプト群 [着手前]
 ### cmd_1521 (medium) — 3層オーディン戦動画作り直し [殿指示待ち]
@@ -26,6 +23,10 @@
 ### cmd_1518 (low) — GCnCUAuL0p8 サムネ設定 [保留]
 
 ## ✅ 本日の完了 (2026-04-29)
+
+### cmd_1555 (high) — cmd詳細HTMLページ 完了 (11:19)
+- GET /cmd/<id> 実装・viewport 800px スマホ対応・depends_onリンク化 (commit 5b51cb9)
+- 軍師QC 正式 PASS / 殿スマホ体感確認推奨
 
 ### cmd_1554 (medium) — dashboard_archive backfill 完了 (11:15)
 - 35件 retroactive backfill (cmd_1497〜1552b) / 重複ゼロ / timestamp昇順 (commit 3786024)
