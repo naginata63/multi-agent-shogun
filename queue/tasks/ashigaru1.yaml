@@ -146,7 +146,7 @@ tasks:
   timestamp: '2026-04-29T07:21:18'
 - agent: ashigaru1
   task_id: subtask_1557a
-  status: assigned
+  status: done
   parent_cmd: cmd_1557
   bloom_level: L2
   description: 'scripts/dashboard/server.py の task_create INSERT SQL: VALUES ? 19個→20個修正
