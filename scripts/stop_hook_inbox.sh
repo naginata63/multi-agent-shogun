@@ -185,9 +185,15 @@ if [ -n "$LAST_MSG" ]; then
     # Send notification to karo (background, non-blocking)
     # Shogun doesn't report to karo — skip notification
     if [ -n "$NOTIFY_TYPE" ] && [ "$AGENT_ID" != "shogun" ]; then
-        bash "$SCRIPT_DIR/scripts/inbox_write.sh" karo \
-            "$NOTIFY_CONTENT" \
-            "$NOTIFY_TYPE" "$AGENT_ID" &
+        (
+            DASHBOARD_API='http://192.168.2.7:8770'
+            PAYLOAD=$(jq -n --arg to 'karo' --arg from "$AGENT_ID" --arg message "$NOTIFY_CONTENT" --arg type "$NOTIFY_TYPE" '{to:$to,from:$from,message:$message,type:$type}')
+            if curl -s -X POST "$DASHBOARD_API/api/inbox_write" -H 'Content-Type: application/json' --max-time 5 -d "$PAYLOAD" | grep -q '"success":true'; then
+                : # API success
+            else
+                bash "$SCRIPT_DIR/scripts/inbox_write.sh" karo "$NOTIFY_CONTENT" "$NOTIFY_TYPE" "$AGENT_ID"
+            fi
+        ) &
     fi
 fi
 
