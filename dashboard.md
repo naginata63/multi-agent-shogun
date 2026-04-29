@@ -9,6 +9,12 @@
 
 ## 🚀 進行中
 
+### cmd_1552b (high) — cmd_intake_hook.sh trigger拡張 (Bash+API cmd_create 検知)
+- subtask_1552b → ashigaru6 (hook修正・mem-search維持・iii/iv/v削除)
+
+### cmd_1552a (high) — server.py POST /api/cmd_create に監査ロジック統合
+- 📌 cmd_1552b QC PASS後に着手 (settings.json競合回避)
+
 ### ~~cmd_1557~~ (high) — server.py task_create INSERT VALUES ?修正 ✅ 完了 (09:40)
 - VALUES ?19→20修正・PID 2120559で再起動・WARN解消確認 (commit c37be33)
 
@@ -91,8 +97,9 @@
 2. **cmd_1553 (HIGH)**: stop_hook_inbox.sh を API経由に移行 (20分)
 3. **cmd_1554 (MED)**: dashboard_archive retroactive backfill cmd_1495-1551 約57件 (30分)
 
-→ **将軍の発令を仰ぐ** (cmd_1552/1553/1554 起票判断)
+→ **cmd_1552a/b 発令済 (2026-04-29 09:56)** — 配備中
 詳細: queue/reports/gunshi_cmd_1551.yaml
+- cmd_1553/1554 はまだ未発令 (将軍判断待ち)
 
 ## cmd起票運用 (cmd_1546)
 
