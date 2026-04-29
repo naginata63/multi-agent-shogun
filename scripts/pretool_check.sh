@@ -654,9 +654,9 @@ if [[ "$TOOL_NAME" == "Bash" ]]; then
       _CK10_IS_SHORT=$(echo "$COMMAND" | python3 -c "
 import sys, re, json
 cmd = sys.stdin.read()
-# JSON文字列を抽出 (シングル/ダブルクォート)
+is_inbox = '/api/inbox_write' in cmd
 m = re.search(r\"(-d|--data|--data-raw|--data-binary)\\s+['\\\"]?(\\{.+})['\\\"]?\\s*($|;|&|\\|)\", cmd, re.DOTALL)
-if m:
+if m and is_inbox:
     try:
         d = json.loads(m.group(2))
         msg = d.get('message', '')
@@ -665,10 +665,10 @@ if m:
         else:
             print('long')
     except Exception:
-        print('unknown')
+        print('long')
 else:
-    print('unknown')
-" 2>/dev/null || echo "unknown")
+    print('long')
+" 2>/dev/null || echo "long")
       if [[ "$_CK10_IS_SHORT" != "short" ]]; then
         echo "BLOCKED: curl API投入でJSON直書きは禁止 (cmd_1546 CHK10)" >&2
         echo "queue/cmd_payloads/ にペイロードファイルを置き、curl --data @<path> で送れ。" >&2
