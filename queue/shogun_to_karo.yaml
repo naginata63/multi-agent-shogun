@@ -462,9 +462,10 @@ commands:
   - ntfy通知
   notify_karo: true
 - id: cmd_1523
-  status: in_progress
+  status: done
   priority: high
   purpose: 3層オーディン戦カウントダウン独自編集クリップ (残5:00の10秒前〜末尾 ≒6:21) 生成+YouTube非公開アップ
+  completed_at: '2026-04-29T09:38:34+09:00'
   timestamp: '2026-04-28T08:29:40+09:00'
   lord_original: カウントダウン残5:00の10秒前から・動画末尾までそのまま (6:16)
   project: dozle_kirinuki

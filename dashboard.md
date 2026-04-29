@@ -27,9 +27,8 @@
 
 ### cmd_1520 (medium) — 夜間矛盾検出: 動画制作スクリプト群 [着手前]
 ### cmd_1521 (medium) — 3層オーディン戦動画作り直し [殿指示待ち]
-### cmd_1523 (medium) — 3層オーディン戦カウントダウン独自編集クリップ生成
-- subtask_1523a → ashigaru5 ✅ (YouTube private c0JxfCbNdqU・2026-04-28 08:46報告)
-- subtask_1523b_qc → gunshi (QC中)
+### ~~cmd_1523~~ (high) — 3層オーディン戦カウントダウン独自編集クリップ ✅ 完了 (09:38)
+- 🎬 YouTube private: c0JxfCbNdqU / 381s=6:21 / 7.78Mbps / h264_nvenc
 
 ## ⏸ 待機中
 
