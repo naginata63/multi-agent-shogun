@@ -207,7 +207,7 @@ tasks:
   timestamp: '2026-04-29T11:03:56.882948+09:00'
 - agent: ashigaru2
   task_id: subtask_1560a
-  status: assigned
+  status: done
   parent_cmd: cmd_1560
   bloom_level: L3
   description: 'cmd_1560: server.py R2 unblock ロジックに qc_done 追加・将軍手動解除を自動化'
@@ -231,3 +231,35 @@ tasks:
   - cmd_1555 直後の server.py 最新版 (commit 5b51cb9 の後、cmd_1556 で d76cf99 が追加) を使え
   - 再起動は systemctl --user restart mcp-dashboard (以前確認済み)
   timestamp: '2026-04-29T11:46:59.388980+09:00'
+- agent: ashigaru2
+  task_id: subtask_1561a
+  status: assigned
+  parent_cmd: cmd_1561
+  bloom_level: L3
+  description: 'cmd_1561: dashboard root の cmd 一覧から /cmd/<id> 詳細へのリンク追加・横スクロール解消・スマホ最適化完成'
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+  steps:
+  - '1. server.py の GET / handler 確認: cmd 一覧HTML生成部分を特定 (grep -n ''cmd_id\|/cmd/\|<table\|<tr''
+    scripts/dashboard/server.py | head -40)'
+  - 2. cmd id 表示部分に <a href='/cmd/{cmd_id}'>{cmd_id}</a> リンクを追加 (既存の cmd_id 表示セルを置換)
+  - '3. 横スクロール解消: テーブルに overflow-x:auto wrapper div 追加・min-width 削除またはmax-width設定・font-size調整
+    (スマホ800px幅以内に収まること)'
+  - '4. タップ目標サイズ確保: リンク要素に padding追加 (min 44px height相当・スマホでタップしやすく)'
+  - '5. viewport meta tag 確認・未設定なら追加: <meta name=''viewport'' content=''width=device-width,
+    initial-scale=1''>'
+  - '6. syntax確認: python3 -c ''import ast; ast.parse(open("scripts/dashboard/server.py").read())'''
+  - '7. リンク確認: curl http://192.168.2.7:8770/ | grep -o ''href="/cmd/'' | head -5 (1件以上ヒットすること)'
+  - 8. systemctl --user restart mcp-dashboard で再起動
+  - '9. PID/uptime確認: curl http://192.168.2.7:8770/api/dashboard?slim=1 | python3
+    -c "import json,sys; d=json.load(sys.stdin); print(d.get(''server_pid'',''?''),
+    d.get(''uptime_sec'',''?''))"'
+  - '10. regression確認: curl http://192.168.2.7:8770/ でaction_required/stats等が正常表示されること'
+  - 11. git add scripts/dashboard/server.py && git commit (cmd_1561)
+  - 12. report → inbox_write gunshi (QC依頼・殿体感確認依頼含む)
+  notes:
+  - cmd_1560 直後の server.py 最新版 (commit c859c17) を使え
+  - 'RACE-001: cmd_1560完了後・server.py修正は本タスクのみ。競合なし'
+  - スマホ体感確認 (AC3/AC4) は殿直接確認が必須。軍師QCに『殿に http://192.168.2.7:8770/ をスマホで確認依頼』を含めること
+  - 横スクロール解消が最重要。テーブルの横スクロールはoverflow-x:autoのwrapper divで吸収
+  - 既存の /cmd/<id> 詳細ページ (cmd_1555実装済み) への遷移が正常動作すること
+  timestamp: '2026-04-29T12:10:03.169964+09:00'
