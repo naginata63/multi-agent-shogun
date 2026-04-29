@@ -1,12 +1,20 @@
 tasks:
-- agent: ashigaru3
-  task_id: subtask_1509b
-  parent_cmd: cmd_1509
-  status: done
+- acceptance_criteria:
+  - clip2_panel_review.html が生成済み・rowsが編集可能な状態
+  - ntfy通知で殿にレビュー依頼送信済み
+  - karoへ完了報告済み
+  agent: ashigaru3
   bloom_level: L3
   description: 'cmd_1509 Phase1: tono_clip2.mp4 (12.5MB) を動画解析して panel_review.html
     生成'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/clip2_panel_review.html
+  notes:
+  - Phase1 = panel_review.html 生成のみ。殿レビュー後の Phase2 は別途指令
+  - source ~/.bashrc && を必ず前置 (VERTEX_API_KEY等の環境変数取得)
+  - ref_images は絶対パス必須 (feedback_panel_refs_absolute.md)
+  - 実際の panel_review_gen.py 引数は scripts/ 配下を確認してから実行
+  - clip2は12.5MBゆえ解析に時間がかかる可能性あり
+  parent_cmd: cmd_1509
+  status: done
   steps: 1) shared_context/procedures/ の漫画ショート手順確認 + projects/dozle_kirinuki/context/
     参照 2) source ~/.bashrc && python3 projects/dozle_kirinuki/scripts/panel_review_gen.py
     '/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_clip2.mp4'
@@ -14,24 +22,14 @@ tasks:
     (または同等スクリプト・実際の引数は scripts/ 確認) 3) clip2_panel_review.html をブラウザで確認可能なパスに出力 4)
     bash scripts/ntfy.sh '📋 clip2 panel_review.html 生成完了 - 殿レビュー待ち' 5) inbox_write
     karo HTMLパス報告
-  acceptance_criteria:
-  - clip2_panel_review.html が生成済み・rowsが編集可能な状態
-  - ntfy通知で殿にレビュー依頼送信済み
-  - karoへ完了報告済み
-  notes:
-  - Phase1 = panel_review.html 生成のみ。殿レビュー後の Phase2 は別途指令
-  - source ~/.bashrc && を必ず前置 (VERTEX_API_KEY等の環境変数取得)
-  - ref_images は絶対パス必須 (feedback_panel_refs_absolute.md)
-  - 実際の panel_review_gen.py 引数は scripts/ 配下を確認してから実行
-  - clip2は12.5MBゆえ解析に時間がかかる可能性あり
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/clip2_panel_review.html
+  task_id: subtask_1509b
   timestamp: '2026-04-27T22:54:44.820729+09:00'
 - agent: ashigaru3
-  task_id: subtask_1540a
-  status: done
-  parent_cmd: cmd_1540
   bloom_level: L3
   description: 'cmd_1540: chroma-mcp健全性監視cron+ntfy alert新設'
-  target_path: /home/murakami/multi-agent-shogun/scripts/chroma_mcp_health.sh
+  parent_cmd: cmd_1540
+  status: done
   steps:
   - '1. scripts/chroma_mcp_health.sh 新規作成: pgrep -fc chroma-mcp でカウント→2以上ならntfy通知'
   - 2. chmod +x scripts/chroma_mcp_health.sh
@@ -40,14 +38,14 @@ tasks:
   - 5. bash scripts/chroma_mcp_health.sh を手動実行→エラーなし確認
   - 6. git add scripts/chroma_mcp_health.sh && git commit
   - 7. karoにinbox_write(type:report_received)で完了報告
+  target_path: /home/murakami/multi-agent-shogun/scripts/chroma_mcp_health.sh
+  task_id: subtask_1540a
   timestamp: '2026-04-29T02:58:05.994724+09:00'
 - agent: ashigaru3
-  task_id: subtask_1540b
-  status: done
-  parent_cmd: cmd_1540
   bloom_level: L3
   description: 'cmd_1540: chroma_mcp_health.sh 検出ロジック修正（false positive排除）'
-  target_path: /home/murakami/multi-agent-shogun/scripts/chroma_mcp_health.sh
+  parent_cmd: cmd_1540
+  status: done
   steps:
   - 1. Read scripts/chroma_mcp_health.sh → 現在の検出ロジック確認
   - 2. pgrep -fc uvx.*chroma-mcp でuvx wrapper数(UVX_COUNT)を取得
@@ -57,15 +55,15 @@ tasks:
   - 6. bash scripts/chroma_mcp_health.sh で手動実行→false positive出ないことを確認
   - 7. git add scripts/chroma_mcp_health.sh && git commit
   - 8. karoにinbox_write(type:report_received)で完了報告
+  target_path: /home/murakami/multi-agent-shogun/scripts/chroma_mcp_health.sh
+  task_id: subtask_1540b
   timestamp: '2026-04-29T03:08:25.852846+09:00'
-- task_id: subtask_1545a
-  agent: ashigaru3
-  parent_cmd: cmd_1545
-  status: done
+- agent: ashigaru3
   bloom_level: L2
-  title: litestream @reboot cron削除
   description: crontab から @reboot.*litestream_keepalive.sh 行を削除。race condition根治。*/5と*/30は維持。
-  target_path: /var/spool/cron/crontabs/murakami
+  parent_cmd: cmd_1545
+  report_to: karo
+  status: done
   steps: '1. crontab -l で現状確認・@reboot行を目視確認
 
     2. crontab -l | grep -v ''@reboot.*litestream_keepalive'' | crontab - で削除
@@ -81,15 +79,20 @@ tasks:
     (crontabはgit管理外だがcommit msgに記録)
 
     7. karo に inbox_write(type:report_submitted)'
-  report_to: karo
+  target_path: /var/spool/cron/crontabs/murakami
+  task_id: subtask_1545a
   timestamp: '2026-04-29T07:27:33'
+  title: litestream @reboot cron削除
 - agent: ashigaru3
-  task_id: subtask_1558a
-  status: done
-  parent_cmd: cmd_1558
   bloom_level: L3
   description: OrarishTelop composition をMP4出力 (1920x1080/h264-nvenc優先) → 殿レビュー待ち
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260320_おらふイングリッシュ翻訳してくだサーイ！！【マイクラ】/output/long/orarish_telop.mp4
+  notes:
+  - '殿レビュー前YouTube非公開アップ禁止 (MEMORY.md: 外部公開コンテンツは殿レビューなし公開禁止)'
+  - 出力先は remotion-project/out/ ではなく dozle_kirinuki work ディレクトリ (shogun 09:22訂正)
+  - 'テロップ文字列: 「正解をだしたのに間違う、\nおらリッシュ先生」 - 改行が画面で正しく表示されるかはrender後に殿確認'
+  - 8792frames / 60fps = 約146.5秒が正常値
+  parent_cmd: cmd_1558
+  status: done
   steps:
   - '1. remotion-project 確認: ls /home/murakami/remotion-project/ と ls /home/murakami/remotion-project/out/
     (空のはず)'
@@ -105,19 +108,20 @@ tasks:
   - '8. テロップ改行確認: ffprobe -show_entries format_tags -of json でメタデータ確認 (または静止フレームで目視不可のためffprobe尺確認のみ)'
   - 9. bash scripts/ntfy.sh '✅ おらりっしゅテロップ render完了 path=orarish_telop.mp4 (殿レビュー待ち・YouTubeアップ禁止)'
   - 10. report作成 → curl POST /api/inbox_write karo に報告 (YouTube禁止・殿レビュー必須を明記)
-  notes:
-  - '殿レビュー前YouTube非公開アップ禁止 (MEMORY.md: 外部公開コンテンツは殿レビューなし公開禁止)'
-  - 出力先は remotion-project/out/ ではなく dozle_kirinuki work ディレクトリ (shogun 09:22訂正)
-  - 'テロップ文字列: 「正解をだしたのに間違う、\nおらリッシュ先生」 - 改行が画面で正しく表示されるかはrender後に殿確認'
-  - 8792frames / 60fps = 約146.5秒が正常値
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260320_おらふイングリッシュ翻訳してくだサーイ！！【マイクラ】/output/long/orarish_telop.mp4
+  task_id: subtask_1558a
   timestamp: '2026-04-29T09:29:47.140840+09:00'
 - agent: ashigaru3
-  task_id: subtask_1562a
-  status: assigned
-  parent_cmd: cmd_1562
   bloom_level: L2
   description: 'cmd_1562: downloader.py format selector に [vcodec*=avc1] 追加・AV1混入を恒久解消'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/downloader.py
+  notes:
+  - '推奨 format string (hd=True): bestvideo[height<=1080][ext=mp4][vcodec*=avc1]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec*=avc1]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4][vcodec*=avc1]/best[height<=1080]'
+  - '推奨 format string (hd=False/360p): bestvideo[height<=360][ext=mp4][vcodec*=avc1]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec*=avc1]+bestaudio[ext=m4a]/best[height<=360][ext=mp4][vcodec*=avc1]/best[height<=360]'
+  - vcodec*=avc1 は H.264 を指定 (avc1=H.264 の MIME codec string)
+  - 実機テストで DL 対象は適当な短い公開動画でOK・殿指定不要
+  - projects/dozle_kirinuki は git-ignored ゆえ git add -f または .gitignore 確認が必要かもしれない
+  parent_cmd: cmd_1562
+  status: done
   steps:
   - '1. 現状確認: sed -n ''95,115p'' projects/dozle_kirinuki/scripts/downloader.py'
   - '2. hd=True の fmt 修正 (L100付近): bestvideo[height<=1080][ext=mp4] → bestvideo[height<=1080][ext=mp4][vcodec*=avc1]
@@ -132,10 +136,6 @@ tasks:
   - '6. 実機テスト (hd=False): 同様に 360p で DL → ffprobe で h264 確認'
   - 7. git add projects/dozle_kirinuki/scripts/downloader.py && git commit (cmd_1562)
   - 8. report → inbox_write gunshi (QC依頼)
-  notes:
-  - '推奨 format string (hd=True): bestvideo[height<=1080][ext=mp4][vcodec*=avc1]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec*=avc1]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4][vcodec*=avc1]/best[height<=1080]'
-  - '推奨 format string (hd=False/360p): bestvideo[height<=360][ext=mp4][vcodec*=avc1]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec*=avc1]+bestaudio[ext=m4a]/best[height<=360][ext=mp4][vcodec*=avc1]/best[height<=360]'
-  - vcodec*=avc1 は H.264 を指定 (avc1=H.264 の MIME codec string)
-  - 実機テストで DL 対象は適当な短い公開動画でOK・殿指定不要
-  - projects/dozle_kirinuki は git-ignored ゆえ git add -f または .gitignore 確認が必要かもしれない
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/downloader.py
+  task_id: subtask_1562a
   timestamp: '2026-04-29T17:38:23.126072+09:00'
