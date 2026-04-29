@@ -181,7 +181,7 @@ tasks:
   timestamp: '2026-04-29T10:40:36.922866+09:00'
 - agent: ashigaru2
   task_id: subtask_1555a
-  status: assigned
+  status: done
   parent_cmd: cmd_1555
   bloom_level: L3
   description: 'cmd_1555: server.py に GET /cmd/<id> 詳細HTMLページ追加・dashboard一覧リンク化'
@@ -205,3 +205,29 @@ tasks:
   - スマホ体感確認は軍師QCで実施 (AC6)
   - 外部ライブラリ追加は最小限に。標準 http.server + 組込みテンプレートで実装推奨
   timestamp: '2026-04-29T11:03:56.882948+09:00'
+- agent: ashigaru2
+  task_id: subtask_1560a
+  status: assigned
+  parent_cmd: cmd_1560
+  bloom_level: L3
+  description: 'cmd_1560: server.py R2 unblock ロジックに qc_done 追加・将軍手動解除を自動化'
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+  steps:
+  - '1. server.py の R2 検出・unblock ロジック特定: grep -n ''_R2_UNBLOCK\|R2\|unblock\|qc_done''
+    scripts/dashboard/server.py | head -30'
+  - '2. Option A (推奨): _R2_UNBLOCK_TYPES に qc_done を追加し、content に ''判定=PASS'' を含む場合のみ
+    unblock (FAIL は unblock しない)'
+  - '3. Option B (代替): qc_done を type 単独で unblock 対象に追加 (content 判定不要の場合)'
+  - '4. 実装後 syntax 確認: python3 -c ''import ast; ast.parse(open("scripts/dashboard/server.py").read())'''
+  - '5. regression 確認: report_blocked / report_error 型は引き続き R2 が発火することをコード上で確認'
+  - 6. systemctl --user restart mcp-dashboard で再起動
+  - '7. PID/uptime 確認: curl http://192.168.2.7:8770/api/dashboard?slim=1 | python3
+    -c "import json,sys; d=json.load(sys.stdin); print(d.get(''server_pid'',''?''),
+    d.get(''uptime_sec'',''?''))"'
+  - 8. git add scripts/dashboard/server.py && git commit (cmd_1560)
+  - 9. report → inbox_write gunshi (QC依頼・実機テスト含む)
+  notes:
+  - 'Option A 推奨: ''判定=PASS'' content check で誤解除を防ぐ'
+  - cmd_1555 直後の server.py 最新版 (commit 5b51cb9 の後、cmd_1556 で d76cf99 が追加) を使え
+  - 再起動は systemctl --user restart mcp-dashboard (以前確認済み)
+  timestamp: '2026-04-29T11:46:59.388980+09:00'
