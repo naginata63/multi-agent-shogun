@@ -1134,7 +1134,7 @@ h1{margin:0 0 8px;font-size:1.3em}
 .cmd.cancelled{border-left-color:#f55}
 .cmd.superseded{border-left-color:#888}
 .cmd.testing{border-left-color:#5af}
-.id{font-weight:bold;font-size:1.05em;color:#fff}
+.id{font-weight:bold;font-size:1.05em;color:#fff;text-decoration:none}
 .status{display:inline-block;padding:1px 8px;border-radius:8px;font-size:10px;background:#333;margin-left:6px;color:#eee;letter-spacing:0.5px}
 .status.pending{background:#665b00;color:#FCC700}
 .status.done{background:#1d4422;color:#7be090}
@@ -1181,13 +1181,13 @@ async function load() {
     const div = document.createElement('div');
     const status = c.status || '';
     div.className = 'cmd ' + status;
-    let html = `<div><span class="id">${escapeHtml(c.id||'')}</span><span class="status ${status}">${status}</span> <span class="meta">${escapeHtml(c.priority||'')} / ${escapeHtml(c.timestamp||'')}</span></div>`;
+    let html = `<div><a class="id" href="/cmd/${encodeURIComponent(c.id||'')}">${escapeHtml(c.id||'')}</a><span class="status ${status}">${status}</span> <span class="meta">${escapeHtml(c.priority||'')} / ${escapeHtml(c.timestamp||'')}</span></div>`;
     if (c.purpose) html += `<div class="purpose">${escapeHtml(c.purpose)}</div>`;
     if (c.lord_original) html += `<div class="lord">殿: ${escapeHtml(c.lord_original)}</div>`;
     const metaItems = [];
     if (c.assigned_to) metaItems.push('→ ' + escapeHtml(c.assigned_to));
     if (c.project) metaItems.push('proj: ' + escapeHtml(c.project));
-    if (c.depends_on) metaItems.push('depends: ' + escapeHtml(c.depends_on));
+    if (c.depends_on) metaItems.push('depends: ' + (Array.isArray(c.depends_on) ? c.depends_on.map(d => `<a href="/cmd/${encodeURIComponent(d)}">${escapeHtml(d)}</a>`).join(', ') : escapeHtml(c.depends_on)));
     if (c.cancelled_reason) metaItems.push('reason: ' + escapeHtml(c.cancelled_reason));
     if (metaItems.length) html += `<div class="meta">${metaItems.join(' | ')}</div>`;
     div.innerHTML = html;
@@ -1210,6 +1210,145 @@ document.getElementById('q').addEventListener('input', e => {
 load();
 setInterval(load, 30000);
 </script>
+</body>
+</html>"""
+
+
+# ─── cmd detail HTML renderer ─────────────────────────────────────────────────────
+
+def _simple_md_to_html(text):
+    """Minimal markdown → HTML (lists, bold, code, paragraphs)."""
+    if not text:
+        return ''
+    lines = text.split('\n')
+    html_parts = []
+    in_list = False
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            if in_list:
+                html_parts.append('</ul>')
+                in_list = False
+            continue
+        if stripped.startswith('- '):
+            if not in_list:
+                html_parts.append('<ul>')
+                in_list = True
+            content = stripped[2:]
+            content = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', content)
+            content = re.sub(r'`(.+?)`', r'<code>\1</code>', content)
+            html_parts.append(f'<li>{content}</li>')
+        elif re.match(r'^\d+\.\s', stripped):
+            if not in_list:
+                html_parts.append('<ul>')
+                in_list = True
+            content = re.sub(r'^\d+\.\s', '', stripped)
+            content = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', content)
+            content = re.sub(r'`(.+?)`', r'<code>\1</code>', content)
+            html_parts.append(f'<li>{content}</li>')
+        else:
+            if in_list:
+                html_parts.append('</ul>')
+                in_list = False
+            content = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', stripped)
+            content = re.sub(r'`(.+?)`', r'<code>\1</code>', content)
+            html_parts.append(f'<p>{content}</p>')
+    if in_list:
+        html_parts.append('</ul>')
+    return '\n'.join(html_parts)
+
+
+def render_cmd_detail(cmd):
+    """Return full HTML page for a single cmd detail view."""
+    status = cmd.get('status', '')
+    status_colors = {
+        'pending': '#FCC700', 'assigned': '#FCC700', 'in_progress': '#5af',
+        'done': '#4CAF50', 'blocked': '#f55', 'cancelled': '#f55',
+        'superseded': '#888', 'done_ng': '#f55',
+    }
+    sc = status_colors.get(status, '#888')
+
+    def esc(s):
+        if s is None:
+            return ''
+        return str(s).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;')
+
+    depends_html = ''
+    deps = cmd.get('depends_on') or []
+    if isinstance(deps, str):
+        try:
+            deps = json.loads(deps)
+        except Exception:
+            deps = [deps] if deps else []
+    if deps:
+        links = ', '.join(f'<a href="/cmd/{esc(d)}">{esc(d)}</a>' for d in deps if d)
+        depends_html = f'<div class="field"><span class="label">depends_on</span>{links}</div>'
+
+    ac_html = ''
+    ac = cmd.get('acceptance_criteria') or []
+    if isinstance(ac, str):
+        try:
+            ac = json.loads(ac)
+        except Exception:
+            ac = [ac] if ac else []
+    if ac:
+        items = ''.join(f'<li>{esc(a)}</li>' for a in ac)
+        ac_html = f'<div class="field"><span class="label">acceptance_criteria</span><ul>{items}</ul></div>'
+
+    notes_html = ''
+    notes = cmd.get('notes') or []
+    if isinstance(notes, str):
+        try:
+            notes = json.loads(notes)
+        except Exception:
+            notes = [notes] if notes else []
+    if notes:
+        items = ''.join(f'<li>{esc(n)}</li>' for n in notes)
+        notes_html = f'<div class="field"><span class="label">notes</span><ul>{items}</ul></div>'
+
+    ct_raw = cmd.get('command_text') or ''
+    ct_html = _simple_md_to_html(ct_raw) if ct_raw else ''
+
+    return f"""<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{esc(cmd.get('id',''))}</title>
+<style>
+body{{margin:0;padding:12px;background:#1a1a1a;color:#eee;font-family:-apple-system,sans-serif;font-size:14px;line-height:1.5;max-width:800px;margin:0 auto}}
+a{{color:#5af;text-decoration:none}}a:hover{{text-decoration:underline}}
+.back{{display:inline-block;margin-bottom:12px;color:#888;font-size:13px}}
+.back:hover{{color:#eee}}
+h1{{margin:0 0 4px;font-size:1.3em;display:flex;align-items:center;gap:8px;flex-wrap:wrap}}
+.badge{{display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;letter-spacing:0.5px;background:{sc};color:{"#000" if sc in ("#FCC700","#4CAF50") else "#fff"}}}
+.field{{margin:8px 0;padding:8px 10px;background:#222;border-radius:4px}}
+.label{{display:block;color:#888;font-size:11px;text-transform:uppercase;margin-bottom:2px}}
+.content{{white-space:pre-wrap;word-break:break-word}}
+.content ul{{margin:4px 0;padding-left:20px}}.content li{{margin:2px 0}}
+.content code{{background:#333;padding:1px 4px;border-radius:3px;font-size:13px}}
+.meta-row{{display:flex;gap:12px;flex-wrap:wrap;color:#888;font-size:12px;margin:4px 0}}
+.meta-row span{{background:#2a2a2a;padding:2px 8px;border-radius:8px}}
+.lord{{color:#FCC700;border-left:2px solid #FCC700;padding-left:8px;background:rgba(252,199,0,0.05)}}
+</style>
+</head>
+<body>
+<a class="back" href="/cmds">&#8592; cmd 一覧</a>
+<h1><span>{esc(cmd.get('id',''))}</span><span class="badge">{esc(status)}</span></h1>
+<div class="meta-row">
+{''.join(f'<span>{esc(cmd.get("priority",""))}</span>' if cmd.get("priority") else '')}
+{''.join(f'<span>{esc(cmd.get("timestamp",""))}</span>' if cmd.get("timestamp") else '')}
+{''.join(f'<span>→ {esc(cmd.get("assigned_to",""))}</span>' if cmd.get("assigned_to") else '')}
+{''.join(f'<span>proj: {esc(cmd.get("project",""))}</span>' if cmd.get("project") else '')}
+</div>
+{'<div class="field"><span class="label">purpose</span><div class="content">' + esc(cmd.get("purpose","")) + '</div></div>' if cmd.get("purpose") else ''}
+{'<div class="field lord"><span class="label">lord_original</span><div class="content">' + esc(cmd.get("lord_original","")) + '</div></div>' if cmd.get("lord_original") else ''}
+{'<div class="field"><span class="label">command_text</span><div class="content">' + ct_html + '</div></div>' if ct_html else ''}
+{ac_html}
+{depends_html}
+{notes_html}
+{'<div class="field"><span class="label">cancelled_reason</span><div class="content">' + esc(cmd.get("cancelled_reason","")) + '</div></div>' if cmd.get("cancelled_reason") else ''}
+{'<div class="field"><span class="label">redo_of</span><div class="content"><a href="/cmd/' + esc(cmd.get("redo_of","")) + '">' + esc(cmd.get("redo_of","")) + '</a></div></div>' if cmd.get("redo_of") else ''}
 </body>
 </html>"""
 
@@ -1566,6 +1705,51 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             self.send_header('Content-Length', str(len(body)))
             self.end_headers()
             self.wfile.write(body)
+        elif self.path.startswith('/cmd/'):
+            # GET /cmd/<id> — cmd detail HTML page
+            try:
+                cmd_id = self.path[5:].split('?')[0].strip()
+                if not cmd_id:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'text/html; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(b'<h1>400 Bad Request</h1><p>cmd ID required</p>')
+                    return
+                conn = sqlite3.connect(DB_PATH, timeout=5)
+                conn.row_factory = sqlite3.Row
+                try:
+                    r = conn.execute("SELECT * FROM commands WHERE id = ?", (cmd_id,)).fetchone()
+                finally:
+                    conn.close()
+                if r is None:
+                    self.send_response(404)
+                    self.send_header('Content-Type', 'text/html; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(f'<h1>404 Not Found</h1><p>cmd not found: {cmd_id}</p><a href="/cmds">cmd list</a>'.encode('utf-8'))
+                    return
+                d = {k: v for k, v in dict(r).items() if v is not None}
+                for k_json, k_clean in [
+                    ('acceptance_criteria_json', 'acceptance_criteria'),
+                    ('depends_on_json', 'depends_on'),
+                    ('notes_json', 'notes'),
+                ]:
+                    if d.get(k_json):
+                        try:
+                            d[k_clean] = json.loads(d[k_json])
+                        except Exception:
+                            pass
+                        d.pop(k_json, None)
+                body = render_cmd_detail(d).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/html; charset=utf-8')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'text/html; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(f'<h1>500 Error</h1><p>{e}</p>'.encode('utf-8'))
         elif self.path.startswith('/api/cmd_list'):
             # cmd_1488 dual-path 完了後は SQLite が読み出しソース。
             try:
