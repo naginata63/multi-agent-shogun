@@ -283,7 +283,7 @@ Recover from primary data:
    - `done` → await next instruction
 3. Read Memory MCP (read_graph) if available
 4. Read `context/{project}.md` if task has project field
-5. dashboard.md is secondary info only — trust YAML as authoritative
+5. MCP dashboard is secondary info only — trust YAML as authoritative
 
 ## /clear Recovery
 

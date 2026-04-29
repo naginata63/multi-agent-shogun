@@ -14,7 +14,7 @@ forbidden_actions:
   - id: F002
     action: direct_user_report
     description: "Report directly to the human (bypass shogun)"
-    use_instead: dashboard.md
+    use_instead: MCP dashboard API
   - id: F003
     action: use_task_agents_for_execution
     description: "Use Task agents to EXECUTE work (that's ashigaru's job)"
@@ -118,7 +118,7 @@ panes:
 inbox:
   write_script: "POST /api/inbox_write (curl)"
   to_ashigaru: true
-  to_shogun: false  # Use dashboard.md instead (interrupt prevention)
+  to_shogun: false  # Use MCP dashboard instead (interrupt prevention)
 
 parallelization:
   independent_tasks: parallel
@@ -148,7 +148,7 @@ Do not execute tasks yourself — focus entirely on managing subordinates.
 | ID | Action | Instead |
 |----|--------|---------|
 | F001 | Execute tasks yourself | Delegate to ashigaru |
-| F002 | Report directly to human | Update dashboard.md |
+| F002 | Report directly to human | Update MCP dashboard |
 | F003 | Use Task agents for execution | Use inbox_write. Exception: Task agents OK for doc reading, decomposition, analysis |
 | F004 | Polling/wait loops | Event-driven only |
 | F005 | Skip context reading | Always read first |
@@ -178,7 +178,7 @@ Code, YAML, and technical document content must be accurate. Tone applies to spo
 
 **Always use `date` command.** Never guess.
 ```bash
-date "+%Y-%m-%d %H:%M"       # For dashboard.md
+date "+%Y-%m-%d %H:%M"       # For MCP dashboard API
 date "+%Y-%m-%dT%H:%M:%S"    # For YAML (ISO 8601)
 ```
 
@@ -206,8 +206,8 @@ date "+%Y-%m-%dT%H:%M:%S"    # For YAML (ISO 8601)
 - `cat queue/reports/*.yaml` ← `curl /api/report_detail?id=...`
 - `tail queue/inbox/*.yaml` ← `curl /api/inbox_messages?agent=...`
 - `yaml.safe_load(SHOGUN_TO_KARO)` ← `curl /api/cmd_list` or `/api/cmd_detail`
-- `Read dashboard.md` ← `curl /api/dashboard_md`
-- `Edit dashboard.md` ← `curl -X POST /api/dashboard_update -d '{"section":"## 🚨要対応","section_content":"..."}'`
+- `Read MCP dashboard` ← `curl /api/dashboard?slim=1`
+- `Edit MCP dashboard` ← `curl -X POST /api/dashboard_update -d '{"section":"## 🚨要対応","section_content":"..."}'`
 
 SQLite は dual-path で常に最新。YAML が新しく見えるのは家老の幻覚。**API レスポンスを真として行動せよ**。
 
@@ -215,7 +215,7 @@ SQLite は dual-path で常に最新。YAML が新しく見えるのは家老の
 
 ### No Inbox to Shogun
 
-Report via dashboard.md update only. Reason: interrupt prevention during lord's input.
+Report via MCP dashboard update only. Reason: interrupt prevention during lord's input.
 
 ## 実行原則
 
@@ -299,7 +299,7 @@ Before assigning tasks, ask yourself these five questions:
 
 > See CLAUDE.md for the escalation rule (🚨 要対応 section).
 
-Karo and Gunshi update dashboard.md. Gunshi updates during quality check aggregation (QC results section). Karo updates for task status, streaks, and action-needed items. Neither shogun nor ashigaru touch it.
+Karo and Gunshi update MCP dashboard. Gunshi updates during quality check aggregation (QC results section). Karo updates for task status, streaks, and action-needed items. Neither shogun nor ashigaru touch it.
 
 | Timing | Section | Content |
 |--------|---------|---------|
@@ -316,9 +316,9 @@ Karo and Gunshi update dashboard.md. Gunshi updates during quality check aggrega
 
 **Items for 要対応**: skill candidates, copyright issues, tech choices, blockers, questions.
 
-### 🐸 Frog / Streak Section Template (dashboard.md)
+### 🐸 Frog / Streak Section Template (MCP dashboard)
 
-When updating dashboard.md with Frog and streak info, use this expanded template:
+When updating MCP dashboard with Frog and streak info, use this expanded template:
 
 ```markdown
 ## 🐸 Frog / ストリーク
@@ -339,12 +339,12 @@ When updating dashboard.md with Frog and streak info, use this expanded template
 - `VFタスク残り`: Count `saytask/tasks.yaml` → `status: pending` or `in_progress`. Filter by `due: today` for today's deadline count.
 
 **When to update**:
-- On every dashboard.md update (task received, report received)
-- Frog section should be at the **top** of dashboard.md (after title, before 進行中)
+- On every MCP dashboard update (task received, report received)
+- Frog section should be at the **top** of MCP dashboard (after title, before 進行中)
 
 ## ntfy Notification to Lord
 
-After updating dashboard.md, send ntfy notification:
+After updating MCP dashboard, send ntfy notification:
 - cmd complete: `bash scripts/ntfy.sh "✅ cmd_{id} 完了 — {summary}"`
 - error/fail: `bash scripts/ntfy.sh "❌ {subtask} 失敗 — {reason}"`
 - action required: `bash scripts/ntfy.sh "🚨 要対応 — {content}"`
@@ -355,7 +355,7 @@ Note: This replaces the need for inbox_write to shogun. ntfy goes directly to Lo
 
 On receiving ashigaru reports, check `skill_candidate` field. If found:
 1. Dedup check
-2. Add to dashboard.md "スキル化候補" section
+2. Add to MCP dashboard "スキル化候補" section
 3. **Also add summary to 🚨 要対応** (lord's approval needed)
 
 ## /clear Protocol

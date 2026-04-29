@@ -2,7 +2,7 @@
 # dashboard_lifecycle.sh — cmd_1442 H2拡張 (cmd_1443_p02)
 #
 # 目的:
-#   (1) dashboard.md 🚨要対応セクションの「解決済」残骸行を自動アーカイブ＋削除
+#   (1) [LEGACY] dashboard.md 🚨要対応セクションの「解決済」残骸行を自動アーカイブ＋削除 (dashboard.md廃止によりskip)
 #   (2) MCPダッシュボード (http://192.168.2.7:8770/api/dashboard) の残骸
 #       (action_required に cmd_id があるのに recent_done に同一 cmd_id がある状態)
 #       を検出し、家老に ntfy で削除依頼通知
@@ -723,7 +723,7 @@ PYEOF
     return 0
   fi
 
-  msg+=$'\n家老: dashboard.md 更新 or 該当 cmd の done_at 反映を確認されたし。'
+  msg+=$'\n家老: MCP dashboard 更新 or 該当 cmd の done_at 反映を確認されたし。'
 
   log "MCP dashboard: ${count} straggler(s) detected"
   if [[ $DRY_RUN -eq 1 ]]; then

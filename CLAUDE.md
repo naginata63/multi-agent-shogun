@@ -21,7 +21,7 @@ files:
   pending_tasks: queue/tasks/pending.yaml # Karo管理の保留タスク（blocked未割当）
   reports: "queue/reports/ashigaru{N}_report.yaml" # Ashigaru → Karo reports
   gunshi_report: queue/reports/gunshi_report.yaml  # Gunshi → Karo strategic reports
-  dashboard: dashboard.md              # Human-readable summary (secondary data)
+  dashboard: "http://192.168.2.7:8770/"  # MCP dashboard (primary)
   ntfy_inbox: queue/ntfy_inbox.yaml    # Incoming ntfy messages from Lord's phone
   orders: orders/                      # Task instruction archive (private submodule: naginata63/multi-agent-orders)
 
@@ -80,7 +80,7 @@ language:
 
 **CRITICAL**: Steps 1-3を完了するまでinbox処理するな。`inboxN` nudgeが先に届いても無視し、自己識別→memory→instructions読み込みを必ず先に終わらせよ。Step 1をスキップすると自分の役割を誤認し、別エージェントのタスクを実行する事故が起きる（2026-02-13実例: 家老が足軽2と誤認）。
 
-**CRITICAL**: dashboard.md is secondary data (karo's summary). Primary data = YAML files. Always verify from YAML.
+**CRITICAL**: MCP dashboard (http://192.168.2.7:8770/) is secondary data (karo's summary). Primary data = YAML files. Always verify from YAML.
 
 ## /clear Recovery (ashigaru/gunshi only)
 
@@ -135,7 +135,7 @@ After compaction, the system instructs "Continue the conversation from where it 
 | Role | Primary Job | Report To | Key Forbidden Actions |
 |------|-------------|-----------|----------------------|
 | Shogun | 全体指揮・cmd発行 | Lord (human) | Dashboard直接編集禁止、Karo bypass禁止 |
-| Karo | タスク管理・配分・QC判定 | Shogun (dashboard.md経由) | **実装禁止**（必ず足軽に委任）、polling禁止 |
+| Karo | タスク管理・配分・QC判定 | Shogun (MCP dashboard経由) | **実装禁止**（必ず足軽に委任）、polling禁止 |
 | Ashigaru | タスク実行・コード実装 | Gunshi (inbox_write) | git push禁止、他足軽のYAML編集禁止、人間直接連絡禁止 |
 | Gunshi | 戦略分析・QC検査 | Karo (inbox_write) | Shogunへ直接報告禁止、足軽管理禁止、人間直接連絡禁止 |
 
@@ -191,7 +191,7 @@ System manages ALL white-collar work, not just self-improvement. Project folders
 
 1. **Dashboard**: 家老 + 軍師が更新 (将軍は読むのみ)
 2. **Chain of command**: Shogun → Karo → Ashigaru/Gunshi (Karo bypass禁止)
-3. **Action Required (CRITICAL)**: 殿の判断要案件は **dashboard.md 🚨要対応 section** に必ず記載 (忘れ＝殿激怒)
+3. **Action Required (CRITICAL)**: 殿の判断要案件は **MCP dashboard 🚨要対応 section** に必ず記載 (忘れ＝殿激怒)
 
 # Test / QC Rules (all agents)
 

@@ -140,7 +140,7 @@ Ashigaru handle implementation. Your job is to draw the map so ashigaru never ge
 | F003 | Manage ashigaru (inbox/assign) | Return analysis to Karo. Karo manages ashigaru. |
 | F004 | Polling/wait loops | Event-driven only |
 | F005 | Skip context reading | Always read first |
-| F006 | Update dashboard.md outside QC flow | Ad-hoc dashboard edits are Karo's role. Gunshi updates dashboard ONLY during quality check aggregation (see below). |
+| F006 | Update MCP dashboard outside QC flow | Ad-hoc dashboard edits are Karo's role. Gunshi updates dashboard ONLY during quality check aggregation (see below). |
 
 ## North Star Alignment (Required)
 
@@ -168,7 +168,7 @@ north_star_alignment:
 
 Starting 2026-02-13, Gunshi now handles:
 1. **Quality Check**: Review ashigaru completed deliverables
-2. **Dashboard Aggregation**: Collect all ashigaru reports and update dashboard.md
+2. **Dashboard Aggregation**: Collect all ashigaru reports and update MCP dashboard
 3. **Report to Karo**: Provide summary and OK/NG decision
 
 **Flow:**
@@ -184,7 +184,7 @@ Gunshi performs quality check:
   - Check for technical correctness (tests pass, build OK, etc.)
   - Flag any concerns (incomplete work, bugs, scope creep)
   ↓
-Gunshi updates dashboard.md with ashigaru results
+Gunshi updates MCP dashboard with ashigaru results
   ↓
 Gunshi reports to Karo: quality check PASS/FAIL
   ↓
@@ -255,7 +255,7 @@ When ashigaru completes work, gunshi receives report via inbox and performs qual
 - Ashigaru completes task → reports to gunshi (inbox_write)
 - Gunshi reads ashigaru_report.yaml from queue/reports/
 - Gunshi performs quality review (tests pass? build OK? scope met?)
-- Gunshi updates dashboard.md with results
+- Gunshi updates MCP dashboard with results
 - Gunshi reports to Karo: "Quality check PASS" or "Quality check FAIL + concerns"
 - Karo makes final OK/NG decision
 
@@ -292,7 +292,7 @@ result:
   scope_match: complete  # complete | incomplete | exceeded
   skill_candidate_inherited:
     found: false  # Copy from ashigaru report if found: true
-files_modified: ["dashboard.md"]  # Updated dashboard
+files_modified: []  # Dashboard updated via API
 ```
 
 ## Task YAML Format
@@ -449,7 +449,7 @@ Karo: "足軽の報告によると原因不明のエラーが発生。軍師に�
 Ashigaru completes task → reports to Gunshi (inbox_write)
   → Gunshi reads ashigaru_report.yaml + original task YAML
   → Gunshi performs quality check (tests? build? scope?)
-  → Gunshi updates dashboard.md with QC results
+  → Gunshi updates MCP dashboard with QC results
   → Gunshi reports to Karo: "QC PASS" or "QC FAIL: X,Y,Z"
   → Karo makes OK/NG decision and unblocks dependent tasks
 ```
@@ -465,7 +465,7 @@ Recover from primary data:
 3. Read Memory MCP (read_graph) if available
 4. **Ingest `queue/pending_mcp_obs.yaml`** (cmd_1443_p03 / H3+H8) — 各 `status: pending` エントリについて `mcp__memory__add_observations({entity_name, observations:[observation]})` を呼び、完了したら `status: ingested` に更新し当該行を `queue/pending_mcp_obs.archive.yaml` に移す。ファイルが無い・空 `entries: []` の場合は skip。
 5. Read `context/{project}.md` if task has project field
-6. dashboard.md is secondary info only — trust YAML as authoritative
+6. MCP dashboard is secondary info only — trust YAML as authoritative
 
 ## /clear Recovery
 
@@ -535,7 +535,7 @@ source ~/.bashrc && python3 scripts/semantic_search.py query "テスト" --json
 3. 各 entry の目的/所管/停止影響/ログ健全性を再検証 (C11 `cron_health_check.log` を参照)
 4. Disabled (D01-D05) 再開/削除判断
 5. スナップショット更新: `crontab -l > shared_context/crontab.snapshot.txt`
-6. 結果を dashboard.md 掲載 + inbox_write karo で家老に報告
+6. 結果を MCP dashboard 掲載 + inbox_write karo で家老に報告
 7. 殿に ntfy 送信 (四半期レビュー完了)
 
 詳細な手順・必須フィールド仕様は `shared_context/cron_inventory.md §5` を参照。
