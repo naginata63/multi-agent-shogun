@@ -1,5 +1,5 @@
 # 📊 戦況報告
-最終更新: 2026-04-29 11:05
+最終更新: 2026-04-29 11:16
 
 ## 🎌 YPP戦略確定 (2026-04-28 殿御裁断)
 
@@ -11,9 +11,6 @@
 
 ### cmd_1555 (high) — cmd詳細HTMLページ追加・dashboard一覧リンク化 (スマホ対応)
 - subtask_1555a → ashigaru2 (GET /cmd/<id> 実装・markdown変換・スマホ対応)
-
-### cmd_1554 (medium) — dashboard_archive/2026-04.md retroactive backfill (cmd_1495〜1552b)
-- subtask_1554a → ashigaru4 (約57件 timestamp順追記)
 
 ### cmd_1556 (low) — dashboard.md 廃止 (git rm)
 - 📌 **cmd_1555 完了後に着手** (depends_on: cmd_1555)
@@ -29,6 +26,10 @@
 ### cmd_1518 (low) — GCnCUAuL0p8 サムネ設定 [保留]
 
 ## ✅ 本日の完了 (2026-04-29)
+
+### cmd_1554 (medium) — dashboard_archive backfill 完了 (11:15)
+- 35件 retroactive backfill (cmd_1497〜1552b) / 重複ゼロ / timestamp昇順 (commit 3786024)
+- **🎖️ cmd_1551 殿命 3推奨全完成**: H2/H8/H11 全解消 + archive漏れ完全補完
 
 ### cmd_1552a (high) — server.py (iii)(iv)(v) 監査ロジック統合 完了 (11:03)
 - cmd_intake_obs.jsonl記録 + dashboard_archive自動追記 + 乖離WARN+ntfy実装
@@ -98,19 +99,11 @@
 - テロップ: 「正解をだしたのに間違う、おらリッシュ先生」 (改行表示は殿目視確認要)
 - **殿確認後のみ YouTube 非公開アップ可** (承認前アップ厳禁)
 
-### ⚠️ hook死文化修正 — 対応中 (cmd_1552a/1554 残2件)
+### ✅ hook死文化修正 — **全4件完了** (cmd_1551 殿命完遂)
 
-**軍師診断結果 (2026-04-29 08:35)**:
-- **H8 cmd_intake_hook.sh → 死文化**: cmd_1495-1551 約57件の dashboard_archive 記録漏れ真因
-- H11 posttool_cmd_check → 疑死 / H2 stop_hook_inbox → **✅ PASS** (cmd_1553)
-
-**対応状況 (全4件完了):**
-1. cmd_1552b: **✅ PASS** (軍師QC 10:39)
-2. cmd_1552a: **✅ PASS** (軍師QC 11:03) — H8/H11/H2 全解消
-3. cmd_1553: **✅ PASS** (軍師QC 10:11)
-4. cmd_1554: ashigaru4 作業中 (backfill)
-
-詳細: queue/reports/gunshi_cmd_1551.yaml
+- cmd_1552b PASS / cmd_1552a PASS / cmd_1553 PASS / cmd_1554 PASS
+- H2(stop_hook_inbox) / H8(cmd_intake_hook) / H11(posttool_cmd_check) 全解消
+- dashboard_archive 35件 retroactive backfill 完了
 
 ## cmd起票運用 (cmd_1546)
 

@@ -78,15 +78,13 @@ tasks:
   target_path: /home/murakami/multi-agent-shogun/scripts/sqlite_yaml_audit.py
   task_id: subtask_1488a
   timestamp: '2026-04-25T22:39:00+09:00'
-- task_id: subtask_1548a
-  agent: ashigaru4
-  parent_cmd: cmd_1548
-  status: done
+- agent: ashigaru4
   bloom_level: L3
-  title: tono_edit.mkv 縦長クロップ→YouTube unlisted アップ
   description: tono_edit.mkv (3412x1918・ffv1+flac・2.6GB) を vertical_convert.py で 9:16
     縦長クロップし、YouTube unlisted アップ。cmd_1509 done更新まで完遂。
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/work/cmd_1548
+  parent_cmd: cmd_1548
+  report_to: gunshi
+  status: done
   steps: "1. SRC=/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_edit.mkv\n\
     2. mkdir -p /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/work/cmd_1548\n\
     3. OUT=/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/work/cmd_1548/tono_edit_vertical.mp4\n\
@@ -95,15 +93,17 @@ tasks:
     7. ffprobe で出力確認: 縦長(1080x1920)・h264_nvenc確認\n8. YouTube unlisted アップ (privacyStatus=unlisted・privateは不可):\
     \ 既存アップロードスクリプト使用 or yt-dlp互換ツール\n   タイトル案: 【縦】86万トンの超巨大なダムを埋めるまで終われません！殿編集ver【マイクラ/ドズル社】\n\
     9. アップ完了後: bash scripts/ntfy.sh でURL報告\n10. gunshi にQC依頼(inbox_write type:report_submitted)"
-  report_to: gunshi
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/work/cmd_1548
+  task_id: subtask_1548a
   timestamp: '2026-04-29T07:51:57'
+  title: tono_edit.mkv 縦長クロップ→YouTube unlisted アップ
 - agent: ashigaru4
-  task_id: subtask_1550a
-  status: done
-  parent_cmd: cmd_1550
   bloom_level: L2
   description: tono_edit.mkvをffmpeg直書き1080x1920縦長クロップ→YouTube private アップ (procedure準拠)
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/work/cmd_1550/tono_edit_vertical.mp4
+  lord_original: 1548違うスクリプトで作成しきりおった やりなおしじゃ しかも限定公開にしおった げきおこじゃ かこのは消す 即起票 非公開あっぷ
+  parent_cmd: cmd_1550
+  procedure: shared_context/procedures/video_vertical_crop_upload.md
+  status: done
   steps:
   - '0. 前提: cmd_1548でvertical_convert.pyを使ったのは誤り。今回はprocedureのffmpeg直書きのみ'
   - '1. procedure読込: shared_context/procedures/video_vertical_crop_upload.md'
@@ -116,17 +116,20 @@ tasks:
   - '8. 前回limitedアップ(YouTube ID: UKrh1oUFsd0)を非公開/削除'
   - '9. ntfy: bash scripts/ntfy.sh 🎬 YouTube非公開アップ tono_edit_vertical {URL} privacy:private'
   - 10. report作成 → inbox_write でkaroに報告
-  procedure: shared_context/procedures/video_vertical_crop_upload.md
-  lord_original: 1548違うスクリプトで作成しきりおった やりなおしじゃ しかも限定公開にしおった げきおこじゃ かこのは消す 即起票 非公開あっぷ
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/work/cmd_1550/tono_edit_vertical.mp4
+  task_id: subtask_1550a
   timestamp: '2026-04-29T08:29:04.310923+09:00'
 - agent: ashigaru4
-  task_id: subtask_1554a
-  status: assigned
-  parent_cmd: cmd_1554
   bloom_level: L2
   description: 'cmd_1554: dashboard_archive/2026-04.md に cmd_1495〜cmd_1552b の欠落 cmd
     群を retroactive backfill'
-  target_path: /home/murakami/multi-agent-shogun/dashboard_archive/2026-04.md
+  notes:
+  - cmd_1552a 完了後の新規 cmd (cmd_1553〜) は server.py が自動追記する。手動 backfill は cmd_1495〜cmd_1552b
+    のみ
+  - dashboard_archive/2026-04.md のフォーマットは既存行に合わせよ
+  - 約57件の追記想定。バッチ処理でも一括でもOK
+  parent_cmd: cmd_1554
+  status: done
   steps:
   - '1. cmd_1552a status:done 確認: curl http://192.168.2.7:8770/api/cmd_detail?id=cmd_1552a
     | python3 -c "import json,sys; print(json.load(sys.stdin)[''status''])"'
@@ -140,9 +143,6 @@ tasks:
   - '7. markdown table 構文確認: ヘッダー行・区切り行・データ行の整合性'
   - 8. git add dashboard_archive/2026-04.md && git commit (cmd_1554・追加件数記載)
   - 9. report → inbox_write gunshi (QC依頼)
-  notes:
-  - cmd_1552a 完了後の新規 cmd (cmd_1553〜) は server.py が自動追記する。手動 backfill は cmd_1495〜cmd_1552b
-    のみ
-  - dashboard_archive/2026-04.md のフォーマットは既存行に合わせよ
-  - 約57件の追記想定。バッチ処理でも一括でもOK
+  target_path: /home/murakami/multi-agent-shogun/dashboard_archive/2026-04.md
+  task_id: subtask_1554a
   timestamp: '2026-04-29T11:03:57.739295+09:00'
