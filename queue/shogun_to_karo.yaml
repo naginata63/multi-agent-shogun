@@ -1132,9 +1132,10 @@ commands:
   cancelled_at: '2026-04-29T08:30:00+09:00'
   cancelled_reason: 将軍指示・テスト用・作業不要
 - id: cmd_1557
-  status: in_progress
+  status: done
   priority: high
   purpose: 'server.py task_create INSERT SQL: VALUES ? が19個だが列数20個のミスマッチ修正'
+  completed_at: '2026-04-29T09:40:00+09:00'
   timestamp: '2026-04-29T09:23:33+09:00'
   lord_original: SQLite WARN "19 values for 20 columns" → server.py tasks INSERT の
     ? を1つ追加して修正・再起動

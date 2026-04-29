@@ -9,8 +9,8 @@
 
 ## 🚀 進行中
 
-### cmd_1557 (high) — server.py task_create INSERT VALUES ?修正 (SQLite WARN根治)
-- subtask_1557a → ashigaru1 (19→20個修正・restart・実機検証)
+### ~~cmd_1557~~ (high) — server.py task_create INSERT VALUES ?修正 ✅ 完了 (09:40)
+- VALUES ?19→20修正・PID 2120559で再起動・WARN解消確認 (commit c37be33)
 
 ### cmd_1558 (high) — OrarishTelop MP4 render → 殿レビュー待ち
 - subtask_1558a → ashigaru3 (remotion render 1920x1080/h264-nvenc)
