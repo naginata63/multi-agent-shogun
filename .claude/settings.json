@@ -67,16 +67,6 @@
                 ]
             },
             {
-                "matcher": "Bash",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "bash /home/murakami/multi-agent-shogun/scripts/cmd_intake_hook.sh",
-                        "timeout": 8
-                    }
-                ]
-            },
-            {
                 "hooks": [
                     {
                         "type": "command",
@@ -102,15 +92,6 @@
                         "type": "command",
                         "command": "bash /home/murakami/multi-agent-shogun/scripts/posttool_yaml_check.sh",
                         "timeout": 5
-                    }
-                ]
-            },
-            {
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "bash /home/murakami/multi-agent-shogun/scripts/posttool_cmd_check.sh",
-                        "timeout": 35
                     }
                 ]
             },

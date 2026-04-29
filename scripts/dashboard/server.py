@@ -2432,6 +2432,55 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     except Exception as _sqe:
                         print(f"[dual_path] SQLite INSERT WARN: {_sqe}")
 
+                # === (iii) cmd_intake_obs.jsonl 監査記録 (cmd_1552a) ===
+                try:
+                    obs_path = os.path.join(BASE_DIR, 'queue', 'cmd_intake_obs.jsonl')
+                    obs_entry = {
+                        'cmd_id': cmd_id,
+                        'timestamp': entry.get('timestamp', ''),
+                        'purpose': body.get('purpose', ''),
+                        'project': body.get('project', ''),
+                    }
+                    with open(obs_path, 'a', encoding='utf-8') as obs_f:
+                        obs_f.write(json.dumps(obs_entry, ensure_ascii=False) + '\n')
+                except Exception as obs_e:
+                    print(f"[cmd_intake_obs] WARN: {obs_e}")
+
+                # === (iv) dashboard_archive 自動追記 (cmd_1552a) ===
+                try:
+                    archive_dir = os.path.join(BASE_DIR, 'queue', 'dashboard_archive')
+                    os.makedirs(archive_dir, exist_ok=True)
+                    now_jst = datetime.now(timezone(timedelta(hours=9)))
+                    archive_path = os.path.join(archive_dir, now_jst.strftime('%Y-%m') + '.md')
+                    if not os.path.exists(archive_path):
+                        with open(archive_path, 'w', encoding='utf-8') as af:
+                            af.write(f'# Dashboard Archive {now_jst.strftime("%Y-%m")}\n\n')
+                    archive_line = f"- **{cmd_id}** [{entry.get('timestamp', '')}] {body.get('purpose', '')}\n"
+                    with open(archive_path, 'a', encoding='utf-8') as af:
+                        af.write(archive_line)
+                except Exception as arch_e:
+                    print(f"[dashboard_archive] WARN: {arch_e}")
+
+                # === (v) lord_original 乖離検出 (cmd_1552a) ===
+                try:
+                    _lord_orig = body.get('lord_original', '')
+                    _cmd_text = body.get('command', '')
+                    _deviation = False
+                    if not _lord_orig:
+                        _deviation = True
+                    elif _cmd_text and _lord_orig not in _cmd_text:
+                        _deviation = True
+                    if _deviation:
+                        print(f"[lord_original_deviation] WARN cmd={cmd_id} lord_empty={not _lord_orig}")
+                        ntfy_script = os.path.join(BASE_DIR, 'scripts', 'ntfy.sh')
+                        if os.path.exists(ntfy_script):
+                            subprocess.run(
+                                ['bash', ntfy_script, f'⚠️ cmd起票 lord_original乖離: {cmd_id}'],
+                                capture_output=True, text=True, timeout=10
+                            )
+                except Exception as dev_e:
+                    print(f"[lord_original_deviation] WARN: {dev_e}")
+
                 # === cmd_1491: cmd_history JSON保管 + inbox自動通知 ===
                 # cmd_history JSON保管 (将来audit_logテーブル代替まで・SQLite p2完了後は廃止)
                 try:
