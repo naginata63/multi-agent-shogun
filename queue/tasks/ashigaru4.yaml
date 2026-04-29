@@ -148,7 +148,7 @@ tasks:
   timestamp: '2026-04-29T11:03:57.739295+09:00'
 - agent: ashigaru4
   task_id: subtask_1556a
-  status: assigned
+  status: done
   parent_cmd: cmd_1556
   bloom_level: L3
   description: 'cmd_1556: dashboard.md 廃止 (git rm) + CLAUDE.md/instructions/*.md の参照更新'
