@@ -169,6 +169,7 @@ mcp__memory__create_relations([{
 - [UserPromptSubmitフックでntfy新着注入](feedback_userprompt_ntfy_hook.md) — 会話中のcmd完了を将軍に自動通知 [2026-04-06]
 - [YouTube非公開はunlisted必須](feedback_youtube_unlisted_not_private.md) — privateだと字幕取得不可 [2026-04-04]
 - [shogun_to_karo statusルール](feedback_shogun_to_karo_status_update.md) — cmd完了時にshogun_to_karo.yamlのstatusもdoneに更新（dashboard.mdとセット必須）
+- [cmd done化前 subtask 全件 verify](feedback_cmd_done_subtask_verify.md) — cmd done更新前に /api/task_list?cmd=XXX で全subtask done/cancelled 確認必須。done済みcmdへの軍師報告は殿へ通知不要 [2026-04-29]
 
 ### [2026-03-16] ffmpegはNVENC（GPU）でエンコードせよ
 - [詳細: memory/feedback_ffmpeg_nvenc.md](memory/feedback_ffmpeg_nvenc.md)
