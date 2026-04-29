@@ -16,9 +16,7 @@
 - subtask_1558a → ashigaru3 (remotion render 1920x1080/h264-nvenc)
 - ※殿レビュー前YouTube禁止
 
-### cmd_1549 (medium) — PreToolUse Bash script検索hook新設
-- subtask_1549a → ashigaru7 ✅ (script_hint_search.sh実装完了)
-- subtask_1549b_qc → gunshi (assigned・QC中)
+### ~~cmd_1549~~ (medium) — PreToolUse Bash script検索hook新設 ✅ 完了 (09:32)
 
 ### cmd_1510 (high) — dashboard API SQLite完全移行 [着手前・subtask未配備]
 ### cmd_1511 (high) — full_yaml_blob カラム3テーブル削除 [着手前・subtask未配備]

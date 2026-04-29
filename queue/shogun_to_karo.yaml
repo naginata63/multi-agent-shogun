@@ -890,10 +890,11 @@ commands:
   - 軍師 QC PASS (動画再生 + ffprobe 9:16 + nvenc)
   notify_karo: true
 - id: cmd_1549
-  status: in_progress
+  status: done
   priority: medium
   purpose: cmd 起票/Bash 実行時にスクリプト・procedure を自動検索する PreToolUse hook を新設
   timestamp: '2026-04-29T07:52:23+09:00'
+  completed_at: '2026-04-29T09:32:00+09:00'
   project: infrastructure
   lord_original: 'ええとスクリプトを指定するときに検索するhookってなかったか？
 
