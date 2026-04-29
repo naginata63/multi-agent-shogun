@@ -857,6 +857,9 @@ th { text-align: left; color: #8b949e; padding: 5px 8px; border-bottom: 1px soli
 td { padding: 5px 8px; border-bottom: 1px solid #0d1117; vertical-align: top; }
 tr:hover td { background: #1c2128; }
 .truncate { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+a.cmd-link { color: #58a6ff; text-decoration: none; padding: 4px 2px; display: inline-block; min-height: 32px; line-height: 24px; }
+a.cmd-link:hover { text-decoration: underline; }
 
 .badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 0.72em; font-weight: bold; white-space: nowrap; }
 .badge-busy { background: #da3633; color: #fff; }
@@ -876,7 +879,7 @@ tr:hover td { background: #1c2128; }
 .msg-to { color: #58a6ff; }
 .empty { color: #484f58; font-style: italic; padding: 16px; text-align: center; font-size: 0.82em; }
 
-@media (max-width: 768px) { .grid2 { grid-template-columns: 1fr; } }
+@media (max-width: 768px) { .grid2 { grid-template-columns: 1fr; } .truncate { max-width: 160px; } table { font-size: 0.72em; } th, td { padding: 4px 5px; } a.cmd-link { min-height: 44px; line-height: 36px; } }
 </style>
 </head>
 <body>
@@ -970,14 +973,14 @@ function renderDingtalkQC(qc) {
     <div style="background:#21262d;border-radius:4px;height:20px;margin-bottom:8px">
       <div style="background:#238636;height:100%;border-radius:4px;width:${pct}%;min-width:2px;text-align:center;color:#fff;font-size:0.7em;line-height:20px">${processed}/${qc.target} (${pct}%)</div>
     </div>
-    <table>
+    <div class="table-wrap"><table>
       <tr><td>✅ 確認済み</td><td>${qc.confirmed}</td></tr>
       <tr><td>🟡 スキップ</td><td>${qc.skipped}</td></tr>
       <tr><td>🔴 エラー</td><td>${qc.error}</td></tr>
       <tr><td>📊 平均類似度</td><td>${qc.avg_similarity}%</td></tr>
       <tr><td>📉 最低類似度</td><td>${qc.min_similarity}%</td></tr>
       <tr><td>🔊 平均音量</td><td>${qc.avg_volume} dB</td></tr>
-    </table>
+    </table></div>
     ${qc.sources ? `<div style="margin-top:8px;font-size:0.75em;color:#8b949e">内訳: ${Object.entries(qc.sources).map(([k,v]) => `${k.replace('qc_log','').replace('.jsonl','') || 'main'}=${v}`).join(', ')}</div>` : ''}`;
 }
 
@@ -999,7 +1002,7 @@ function renderAdvisorProxy(ap) {
     : '—';
   const successRate = ap.total_requests > 0 ? ((ap.success / ap.total_requests) * 100).toFixed(1) : '—';
   el.innerHTML = `
-    <table>
+    <div class="table-wrap"><table>
       <tr><td>📡 状態</td><td><span class="badge badge-busy">稼働中</span></td></tr>
       <tr><td>⏱ 稼働時間</td><td>${uptime}</td></tr>
       <tr><td>🔒 サーキット</td><td>${circuitBadge}</td></tr>
@@ -1008,12 +1011,12 @@ function renderAdvisorProxy(ap) {
       <tr><td>🔴 失敗</td><td>${ap.failures}</td></tr>
       <tr><td>🔮 Advisor呼出</td><td>${ap.advisor_calls}</td></tr>
       <tr><td>⏱ 平均応答</td><td>${Math.round(ap.avg_response_ms)}ms</td></tr>
-    </table>`;
+    </table></div>`;
 }
 
 function renderAgents(agents) {
   if (!agents || !agents.length) { $('agents').innerHTML = '<div class="empty">No agents</div>'; return; }
-  let html = '<table><tr><th>エージェント</th><th>状態</th><th>タスク</th><th>経過</th></tr>';
+  let html = '<div class="table-wrap"><table><tr><th>エージェント</th><th>状態</th><th>タスク</th><th>経過</th></tr>';
   agents.sort((a,b) => {
     const order = ['karo','ashigaru1','ashigaru2','ashigaru3','ashigaru4','ashigaru5','ashigaru6','ashigaru7','gunshi'];
     return order.indexOf(a.agent_id) - order.indexOf(b.agent_id);
@@ -1042,43 +1045,43 @@ function renderAgents(agents) {
       <td style="white-space:nowrap">${elapsed}</td>
     </tr>`;
   }
-  html += '</table>';
+  html += '</table></div>';
   $('agents').innerHTML = html;
 }
 
 function renderActiveCmds(cmds) {
   if (!cmds || !cmds.length) { $('active-cmds').innerHTML = '<div class="empty">進行中cmdなし</div>'; return; }
-  let html = '<table><tr><th>ID</th><th>状態</th><th>経過</th><th>目的</th></tr>';
+  let html = '<div class="table-wrap"><table><tr><th>ID</th><th>状態</th><th>経過</th><th>目的</th></tr>';
   for (const c of cmds) {
     const badge = `badge-${c.status || 'pending'}`;
     html += `<tr>
-      <td style="white-space:nowrap"><strong>${esc(c.id)}</strong></td>
+      <td style="white-space:nowrap"><a class="cmd-link" href="/cmd/${encodeURIComponent(c.id||'')}">${esc(c.id)}</a></td>
       <td><span class="badge ${badge}">${esc(c.status)}</span></td>
       <td style="white-space:nowrap">${ageBadge(c.age_hours)}</td>
       <td class="truncate" style="max-width:200px" title="${esc(c.purpose)}">${esc(c.purpose)}</td>
     </tr>`;
   }
-  html += '</table>';
+  html += '</table></div>';
   $('active-cmds').innerHTML = html;
 }
 
 function renderRecentDone(done) {
   if (!done || !done.length) { $('recent-done').innerHTML = '<div class="empty">なし</div>'; return; }
-  let html = '<table><tr><th>ID</th><th>目的</th></tr>';
+  let html = '<div class="table-wrap"><table><tr><th>ID</th><th>目的</th></tr>';
   for (const c of done) {
     const ts = (c.timestamp || '').slice(5, 16).replace('T', ' ');
     html += `<tr>
-      <td style="white-space:nowrap"><span style="color:#3fb950">${esc(c.id)}</span><br><span style="color:#8b949e;font-size:0.72em">${esc(ts)}</span></td>
+      <td style="white-space:nowrap"><a class="cmd-link" href="/cmd/${encodeURIComponent(c.id||'')}" style="color:#3fb950">${esc(c.id)}</a><br><span style="color:#8b949e;font-size:0.72em">${esc(ts)}</span></td>
       <td class="truncate" style="max-width:250px" title="${esc(c.purpose)}">${esc(c.purpose)}</td>
     </tr>`;
   }
-  html += '</table>';
+  html += '</table></div>';
   $('recent-done').innerHTML = html;
 }
 
 function renderMessages(msgs) {
   if (!msgs || !msgs.length) { $('messages').innerHTML = '<div class="empty">なし</div>'; return; }
-  let html = '<table><tr><th>時刻</th><th>From→To</th><th>内容</th></tr>';
+  let html = '<div class="table-wrap"><table><tr><th>時刻</th><th>From→To</th><th>内容</th></tr>';
   for (const m of msgs.slice(0, 15)) {
     const ts = (m.timestamp || m.created_at || '').slice(5, 16).replace('T', ' ');
     const readBadge = m.read ? '' : ' <span class="badge badge-unread">NEW</span>';
@@ -1088,7 +1091,7 @@ function renderMessages(msgs) {
       <td class="truncate" style="max-width:300px" title="${esc(m.content||'')}">${esc((m.content||'').slice(0,100))}${readBadge}</td>
     </tr>`;
   }
-  html += '</table>';
+  html += '</table></div>';
   $('messages').innerHTML = html;
 }
 
