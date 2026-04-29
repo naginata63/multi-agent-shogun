@@ -2,7 +2,7 @@ tasks:
 - agent: ashigaru3
   task_id: subtask_1509b
   parent_cmd: cmd_1509
-  status: in_progress
+  status: done
   bloom_level: L3
   description: 'cmd_1509 Phase1: tono_clip2.mp4 (12.5MB) を動画解析して panel_review.html
     生成'
@@ -111,3 +111,31 @@ tasks:
   - 'テロップ文字列: 「正解をだしたのに間違う、\nおらリッシュ先生」 - 改行が画面で正しく表示されるかはrender後に殿確認'
   - 8792frames / 60fps = 約146.5秒が正常値
   timestamp: '2026-04-29T09:29:47.140840+09:00'
+- agent: ashigaru3
+  task_id: subtask_1562a
+  status: assigned
+  parent_cmd: cmd_1562
+  bloom_level: L2
+  description: 'cmd_1562: downloader.py format selector に [vcodec*=avc1] 追加・AV1混入を恒久解消'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/downloader.py
+  steps:
+  - '1. 現状確認: sed -n ''95,115p'' projects/dozle_kirinuki/scripts/downloader.py'
+  - '2. hd=True の fmt 修正 (L100付近): bestvideo[height<=1080][ext=mp4] → bestvideo[height<=1080][ext=mp4][vcodec*=avc1]
+    / フォールバックも同様に avc1 追加'
+  - '3. hd=False の fmt 修正 (L105付近): bestvideo[height<=360][ext=mp4] → bestvideo[height<=360][ext=mp4][vcodec*=avc1]
+    / 各フォールバックにも avc1 追加'
+  - '4. syntax 確認: python3 -c ''import ast; ast.parse(open("projects/dozle_kirinuki/scripts/downloader.py").read())'''
+  - '5. 実機テスト (hd=True): source ~/.bashrc && cd projects/dozle_kirinuki && python3
+    -c "from scripts.downloader import download_video; download_video(''https://www.youtube.com/watch?v=dQw4w9WgXcQ'',
+    ''/tmp/test_hd.mp4'', hd=True)" 2>&1 | tail -5 → ffprobe -v quiet -select_streams
+    v:0 -show_entries stream=codec_name -of csv=p=0 /tmp/test_hd.mp4 で h264 確認'
+  - '6. 実機テスト (hd=False): 同様に 360p で DL → ffprobe で h264 確認'
+  - 7. git add projects/dozle_kirinuki/scripts/downloader.py && git commit (cmd_1562)
+  - 8. report → inbox_write gunshi (QC依頼)
+  notes:
+  - '推奨 format string (hd=True): bestvideo[height<=1080][ext=mp4][vcodec*=avc1]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec*=avc1]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4][vcodec*=avc1]/best[height<=1080]'
+  - '推奨 format string (hd=False/360p): bestvideo[height<=360][ext=mp4][vcodec*=avc1]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec*=avc1]+bestaudio[ext=m4a]/best[height<=360][ext=mp4][vcodec*=avc1]/best[height<=360]'
+  - vcodec*=avc1 は H.264 を指定 (avc1=H.264 の MIME codec string)
+  - 実機テストで DL 対象は適当な短い公開動画でOK・殿指定不要
+  - projects/dozle_kirinuki は git-ignored ゆえ git add -f または .gitignore 確認が必要かもしれない
+  timestamp: '2026-04-29T17:38:23.126072+09:00'
