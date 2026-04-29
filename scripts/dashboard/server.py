@@ -2444,35 +2444,20 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     print(f"[cmd_history] WARN: {he}")
 
                 # inbox自動通知 (notify_karo=true デフォルト・kill_switch:false でskip)
+                # cmd_1494 dual-path 修正 (2026-04-29 殿命): inbox_write.sh 呼出に統一
+                # 旧実装は YAML 直書きのみで SQLite に反映されず /api/inbox_messages や
+                # inbox_watcher.sh (cmd_1526 SQLite化済) から検知できぬ重大バグだった
                 notify_karo = body.get('notify_karo', True)
                 if notify_karo:
                     try:
-                        import secrets
                         notify_message = body.get('notify_message') or f"{cmd_id}発令済(API)。purpose: {body['purpose'][:80]}"
-                        inbox_path = os.path.join(BASE_DIR, 'queue', 'inbox', 'karo.yaml')
-                        inbox_lock = inbox_path + '.lock'
-                        now_jst = datetime.now(timezone(timedelta(hours=9)))
-                        msg_id = f"msg_{now_jst.strftime('%Y%m%d_%H%M%S')}_{secrets.token_hex(4)}"
-                        new_msg = {
-                            'id': msg_id,
-                            'from': 'shogun',
-                            'type': 'cmd_new',
-                            'content': notify_message,
-                            'read': False,
-                            'timestamp': now_jst.strftime('%Y-%m-%dT%H:%M:%S+09:00')
-                        }
-                        with open(inbox_lock, 'w') as ilf:
-                            fcntl.flock(ilf, fcntl.LOCK_EX)
-                            try:
-                                with open(inbox_path, 'r', encoding='utf-8') as f:
-                                    inbox_data = yaml.safe_load(f) or {'messages': []}
-                                if not isinstance(inbox_data, dict):
-                                    inbox_data = {'messages': []}
-                                inbox_data.setdefault('messages', []).append(new_msg)
-                                with open(inbox_path, 'w', encoding='utf-8') as f:
-                                    yaml.dump(inbox_data, f, allow_unicode=True, sort_keys=False, default_flow_style=False)
-                            finally:
-                                fcntl.flock(ilf, fcntl.LOCK_UN)
+                        script_path = os.path.join(BASE_DIR, 'scripts', 'inbox_write.sh')
+                        result = subprocess.run(
+                            ['bash', script_path, 'karo', notify_message, 'cmd_new', 'shogun'],
+                            capture_output=True, text=True, timeout=10
+                        )
+                        if result.returncode != 0:
+                            print(f"[inbox_notify] WARN inbox_write.sh failed rc={result.returncode}: {result.stderr.strip()[:300]}")
                     except Exception as ie:
                         print(f"[inbox_notify] WARN: {ie}")
 
@@ -2599,7 +2584,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                          acceptance_criteria_json, notes_json, params_json,
                          assigned_to, assignee, report_to, safety, redo_of,
                          timestamp)
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', (
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', (
                         task_id, agent, body.get('parent_cmd'), body['status'],
                         body.get('priority'), body.get('title'), body.get('project'),
                         body.get('description'), body.get('target_path'),
