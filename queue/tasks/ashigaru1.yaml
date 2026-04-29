@@ -119,15 +119,13 @@ tasks:
   task_id: subtask_1539a
   timestamp: '2026-04-29T03:27:51'
   title: hooks.json pgrep guard + HOME統一
-- task_id: subtask_1541a
-  agent: ashigaru1
-  parent_cmd: cmd_1541
-  status: done
+- agent: ashigaru1
   bloom_level: L2
-  title: claude-mem MAX_CONCURRENT=5 + Idle timeout=60s設定
   description: ~/.claude-mem/settings.json の CLAUDE_MEM_MAX_CONCURRENT_AGENTS を 10→5
     に変更。Idle timeout 60s を設定。
-  target_path: /home/murakami/.claude-mem/settings.json
+  parent_cmd: cmd_1541
+  report_to: gunshi
+  status: done
   steps: '1. cat ~/.claude-mem/settings.json で現在値確認
 
     2. CLAUDE_MEM_MAX_CONCURRENT_AGENTS: ''10'' → ''5'' に変更
@@ -142,16 +140,21 @@ tasks:
     6. 確認: cat ~/.claude-mem/settings.json | grep -E ''MAX_CONCURRENT|IDLE''
 
     7. 完了報告を gunshi に inbox_write'
-  report_to: gunshi
+  target_path: /home/murakami/.claude-mem/settings.json
+  task_id: subtask_1541a
   timestamp: '2026-04-29T07:21:18'
+  title: claude-mem MAX_CONCURRENT=5 + Idle timeout=60s設定
 - agent: ashigaru1
-  task_id: subtask_1557a
-  status: done
-  parent_cmd: cmd_1557
   bloom_level: L2
   description: 'scripts/dashboard/server.py の task_create INSERT SQL: VALUES ? 19個→20個修正
     + 再起動 + 実機検証'
-  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+  notes:
+  - server.py再起動前にgit commitすること (再起動でメモリ上の変更は消えない・ファイルは残るが念のため)
+  - '実機検証用テストpayload: echo ''{"agent":"ashigaru1","task_id":"test_verify_1557","status":"assigned","parent_cmd":"cmd_1557","description":"検証用テストタスク"}''
+    > /tmp/test_task.json'
+  - WARN再発なければSUCCESS・再発したらserver.py行番号とともに報告
+  parent_cmd: cmd_1557
+  status: done
   steps:
   - '1. server.py で tasks テーブル INSERT 文を検索: grep -n ''INSERT OR REPLACE INTO tasks''
     scripts/dashboard/server.py'
@@ -169,20 +172,21 @@ tasks:
     INSERT VALUES ?を19→20個に修正 (cmd_1557)'''
   - 10. bash scripts/ntfy.sh '✅ SQLite WARN修正完了 (cmd_1557) - VALUES ?19→20修正済'
   - 11. report作成 → curl POST /api/inbox_write karo に報告
-  notes:
-  - server.py再起動前にgit commitすること (再起動でメモリ上の変更は消えない・ファイルは残るが念のため)
-  - '実機検証用テストpayload: echo ''{"agent":"ashigaru1","task_id":"test_verify_1557","status":"assigned","parent_cmd":"cmd_1557","description":"検証用テストタスク"}''
-    > /tmp/test_task.json'
-  - WARN再発なければSUCCESS・再発したらserver.py行番号とともに報告
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+  task_id: subtask_1557a
   timestamp: '2026-04-29T09:29:47.095372+09:00'
 - agent: ashigaru1
-  task_id: subtask_1553a
-  status: done
-  parent_cmd: cmd_1553
   bloom_level: L2
   description: stop_hook_inbox.sh L188 の bash inbox_write 直叩き → curl POST /api/inbox_write
     に移行 (fallback維持)
-  target_path: /home/murakami/multi-agent-shogun/scripts/stop_hook_inbox.sh
+  notes:
+  - 'SCRIPT_DIRは stop_hook_inbox.sh の先頭で定義済み: SCRIPT_DIR=$(cd $(dirname $0) && pwd)'
+  - fallback の bash inbox_write.sh は削除禁止 (AC7)
+  - stop hook はバックグラウンド実行なので --max-time 5 で5秒timeout必須 (AC6)
+  - 'jq がない環境への対処: python3 -c ''import json,sys; print(json.dumps({...}))'' でも可'
+  - 実機テスト (AC3) は gunshi QC側で担当・ashigaru は syntax check のみ
+  parent_cmd: cmd_1553
+  status: done
   steps:
   - '1. 現状確認: sed -n ''183,195p'' scripts/stop_hook_inbox.sh'
   - '2. L188 の bash inbox_write.sh 呼出を以下の if-else パターンに置換:'
@@ -204,21 +208,26 @@ tasks:
   - '7. git add scripts/stop_hook_inbox.sh && git commit -m ''fix(hooks): stop_hook_inbox.sh
     bash→curl API移行 fallback維持 (cmd_1553)'''
   - 8. report作成 → curl POST /api/inbox_write karo
-  notes:
-  - 'SCRIPT_DIRは stop_hook_inbox.sh の先頭で定義済み: SCRIPT_DIR=$(cd $(dirname $0) && pwd)'
-  - fallback の bash inbox_write.sh は削除禁止 (AC7)
-  - stop hook はバックグラウンド実行なので --max-time 5 で5秒timeout必須 (AC6)
-  - 'jq がない環境への対処: python3 -c ''import json,sys; print(json.dumps({...}))'' でも可'
-  - 実機テスト (AC3) は gunshi QC側で担当・ashigaru は syntax check のみ
+  target_path: /home/murakami/multi-agent-shogun/scripts/stop_hook_inbox.sh
+  task_id: subtask_1553a
   timestamp: '2026-04-29T10:02:38.932177+09:00'
 - agent: ashigaru1
-  task_id: subtask_1542a
-  status: done
-  parent_cmd: cmd_1542
   bloom_level: L3
   description: 'cmd_1542: claude-mem worker daemon を systemd user unit 化・hooks.json
     の start 行撤去'
-  target_path: /home/murakami/.config/systemd/user/claude-mem-worker.service
+  notes:
+  - 'worker-service.cjs パス: /home/murakami/.claude/plugins/cache/thedotmack/claude-mem/10.6.3/scripts/worker-service.cjs'
+  - 'bun パス: /home/murakami/.bun/bin/bun'
+  - 'hooks.json パス: /home/murakami/.claude/plugins/marketplaces/thedotmack/plugin/hooks/hooks.json'
+  - '削除対象: SessionStart の matcher=''startup|clear|compact'' 配下の ''bun-runner.js ...
+    worker-service.cjs start'' hook エントリのみ (context/session-init 等の他フックは残すこと)'
+  - '現在の worker PID: /home/murakami/.claude-mem/worker.pid (JSON: {pid, port, startedAt})'
+  - 'CLAUDE_MEM_WORKER_PORT=37777, HOME 注意: 現在のプロセスは HOME=.claude_glm で動いているが systemd
+    unit では HOME=/home/murakami を明示せよ'
+  - 'STOP: システム全体に影響するため、プロセス停止前に worker が重要な処理中でないか 1秒待て (実際には claude-mem は idempotent
+    なので大丈夫)'
+  parent_cmd: cmd_1542
+  status: done
   steps:
   - 0. advisor() 呼出 (作業前)
   - '1. 参考確認: cat /home/murakami/.config/systemd/user/mcp-dashboard.service (Type=simple
@@ -251,15 +260,26 @@ tasks:
   - 14. advisor() 呼出 (完了前)
   - '15. report → inbox_write gunshi (QC依頼: systemctl status / hooks.json grep / is-enabled
     / worker API 応答の4点確認を依頼)'
-  notes:
-  - 'worker-service.cjs パス: /home/murakami/.claude/plugins/cache/thedotmack/claude-mem/10.6.3/scripts/worker-service.cjs'
-  - 'bun パス: /home/murakami/.bun/bin/bun'
-  - 'hooks.json パス: /home/murakami/.claude/plugins/marketplaces/thedotmack/plugin/hooks/hooks.json'
-  - '削除対象: SessionStart の matcher=''startup|clear|compact'' 配下の ''bun-runner.js ...
-    worker-service.cjs start'' hook エントリのみ (context/session-init 等の他フックは残すこと)'
-  - '現在の worker PID: /home/murakami/.claude-mem/worker.pid (JSON: {pid, port, startedAt})'
-  - 'CLAUDE_MEM_WORKER_PORT=37777, HOME 注意: 現在のプロセスは HOME=.claude_glm で動いているが systemd
-    unit では HOME=/home/murakami を明示せよ'
-  - 'STOP: システム全体に影響するため、プロセス停止前に worker が重要な処理中でないか 1秒待て (実際には claude-mem は idempotent
-    なので大丈夫)'
+  target_path: /home/murakami/.config/systemd/user/claude-mem-worker.service
+  task_id: subtask_1542a
   timestamp: '2026-04-29T14:05:04.656338+09:00'
+- agent: ashigaru1
+  bloom_level: L1
+  description: 'cmd_1542 follow-up: hooks.json の worker-service start hook (L25-29)
+    を完全撤去'
+  notes:
+  - '削除対象: SessionStart の 2番目 hook エントリ (command に bun-runner.js + worker-service.cjs
+    start を含む)'
+  - 他のフック (context/session-init/observation/summarize) は絶対に削除するな
+  - gunshi QC 不要・家老直報告でOK
+  parent_cmd: cmd_1542
+  status: done
+  steps:
+  - 1. python3 で hooks.json を読み込み・SessionStart の matcher='startup|clear|compact' 配下から
+    'worker-service.cjs\" start' を含む hook エントリを削除・書き戻し
+  - '2. 確認: grep -c ''worker-service.cjs.*start'' /home/murakami/.claude/plugins/marketplaces/thedotmack/plugin/hooks/hooks.json
+    → 0 であること'
+  - 3. report → inbox_write karo (完了報告・gunshi QC 不要)
+  target_path: /home/murakami/.claude/plugins/marketplaces/thedotmack/plugin/hooks/hooks.json
+  task_id: subtask_1542b
+  timestamp: '2026-04-29T17:23:13.609944+09:00'
