@@ -12,8 +12,14 @@
 ### cmd_1552b (high) — cmd_intake_hook.sh trigger拡張 (Bash+API cmd_create 検知)
 - subtask_1552b → ashigaru6 (hook修正・mem-search維持・iii/iv/v削除)
 
+### cmd_1553 (high) — stop_hook_inbox.sh bash→curl API移行
+- subtask_1553a → ashigaru1 (L188 curl置換+fallback維持)
+
 ### cmd_1552a (high) — server.py POST /api/cmd_create に監査ロジック統合
 - 📌 cmd_1552b QC PASS後に着手 (settings.json競合回避)
+
+### cmd_1554 (medium) — dashboard_archive/2026-04.md retroactive backfill (cmd_1495〜1552b)
+- 📌 **cmd_1552a 完了後に着手** (AC1 条件)
 
 ### ~~cmd_1557~~ (high) — server.py task_create INSERT VALUES ?修正 ✅ 完了 (09:40)
 - VALUES ?19→20修正・PID 2120559で再起動・WARN解消確認 (commit c37be33)
