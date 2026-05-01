@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code はじめての一歩 — AI開発の基礎を1日で習得</title>
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; max-width: 980px; margin: 0 auto; padding: 0; background: #f8f9fa; color: #222; line-height: 1.7; }
+  .hero { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #fff; padding: 40px 28px; }
+  .hero h1 { font-size: 22px; margin: 0 0 8px 0; line-height: 1.4; }
+  .hero h2 { font-size: 28px; margin: 0 0 16px 0; line-height: 1.3; font-weight: bold; }
+  .hero .meta { font-size: 14px; opacity: 0.85; }
+  .container { padding: 24px 28px; }
+  h3.section { font-size: 20px; border-left: 5px solid #059669; padding-left: 12px; margin: 32px 0 16px 0; }
+  .benefit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+  @media (max-width: 700px) { .benefit-grid { grid-template-columns: 1fr; } }
+  .benefit-grid li { padding: 6px 0; }
+  .persona { background: #fff; border-left: 4px solid #10b981; padding: 10px 16px; margin: 8px 0; font-size: 14px; }
+  .persona b { color: #047857; }
+  .toc-table { background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; margin-bottom: 16px; }
+  .toc-section { border-bottom: 1px solid #e5e7eb; }
+  .toc-section:last-child { border-bottom: none; }
+  .toc-header { background: #ecfdf5; padding: 10px 16px; font-weight: bold; color: #047857; font-size: 14px; display: flex; justify-content: space-between; }
+  .toc-row { padding: 12px 16px; display: grid; grid-template-columns: 50px 1fr 90px; gap: 12px; align-items: start; border-top: 1px solid #f3f4f6; }
+  .toc-row.free { background: #fef9c3; }
+  .toc-row .num { font-weight: bold; color: #6b7280; font-size: 14px; }
+  .toc-row .title { font-size: 14px; }
+  .toc-row .title b { display: block; margin-bottom: 4px; color: #1f2937; }
+  .toc-row .title small { color: #6b7280; font-size: 12px; }
+  .toc-row .meta { font-size: 11px; color: #6b7280; text-align: right; white-space: nowrap; }
+  .free-tag { display: inline-block; background: #facc15; color: #78350f; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: bold; margin-right: 4px; }
+  .deliverables { background: #fff; border-radius: 8px; padding: 16px 20px; border: 1px solid #e5e7eb; }
+  .deliverables ol { margin: 0; padding-left: 20px; }
+  .preview-cta { background: #fef3c7; border: 2px dashed #f59e0b; padding: 16px 20px; margin: 24px 0; border-radius: 8px; text-align: center; }
+  .preview-cta a { color: #92400e; font-weight: bold; }
+  .summary-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+  @media (max-width: 700px) { .summary-stats { grid-template-columns: 1fr 1fr; } }
+  .stat { background: #fff; border-radius: 6px; padding: 10px; text-align: center; border: 1px solid #e5e7eb; }
+  .stat .v { font-size: 22px; font-weight: bold; color: #047857; }
+  .stat .l { font-size: 11px; color: #6b7280; }
+  .next-step { background: #eef2ff; border-radius: 8px; padding: 16px 20px; margin-top: 16px; }
+  .next-step h4 { color: #1e3a8a; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>【初級編 v2・講義オンリー】Udemy 講座カリキュラム TOC</h1>
+  <h2>Claude Code はじめての一歩 — AI開発の基礎を1日で習得</h2>
+  <div class="meta">v2 (講義オンリー版) / 8 レクチャー / 約 3.5 時間 / 通常価格 12,000円 (セール時 1,500円)</div>
+</div>
+
+<div class="container">
+
+<div class="summary-stats">
+  <div class="stat"><div class="v">8</div><div class="l">レクチャー</div></div>
+  <div class="stat"><div class="v">3.5h</div><div class="l">合計時間</div></div>
+  <div class="stat"><div class="v">2本</div><div class="l">無料プレビュー</div></div>
+  <div class="stat"><div class="v">3点</div><div class="l">最終学習到達点</div></div>
+</div>
+
+<h3 class="section">この講座で学べること (ベネフィット)</h3>
+<ul class="benefit-grid">
+  <li>✅ Claude Code のインストールから初回起動までを完全理解</li>
+  <li>✅ AI に「確実に伝わる」プロンプトの書き方をマスター</li>
+  <li>✅ CLAUDE.md 30 行でプロジェクトのルールを AI に理解させる仕組み</li>
+  <li>✅ AI に「作業を任せる」自動化の仕組み — バグ修正フローの完全解説</li>
+  <li>✅ hook 1 本で AI の危険な操作をブロックする安全装置の仕組み</li>
+  <li>✅ MCP 接続で AI に「セッションを跨ぐ記憶」を与える仕組み</li>
+  <li>✅ 講義のみで完走できる 3.5 時間構成 — まずは理解してから次へ</li>
+  <li>✅ 中級編 (3 階層完全解説) への橋渡しロードマップ</li>
+</ul>
+
+<h3 class="section">対象受講生 (4 ペルソナ)</h3>
+<div class="persona"><b>Q1: 新人バックエンドエンジニア「小林」</b>: 入社直後・先輩から Claude Code 使えと言われたが何から始めれば良いか分からない</div>
+<div class="persona"><b>Q2: 文系出身プログラマー「高橋」</b>: ターミナル恐怖症・「CLI って難しそう」と感じてブラウザ AI で止まっている</div>
+<div class="persona"><b>Q3: 副業希望IT会社員「中村」</b>: AI で作業効率化したい・週末に試したいが入門書はガッツリ読まされて挫折</div>
+<div class="persona"><b>Q4: 学生エンジニア「松本」</b>: 卒業前に AI 開発触っておきたい・最短で「できる感」を掴みたい</div>
+
+<h3 class="section">📚 カリキュラム (全 8 レクチャー)</h3>
+
+<div class="toc-table">
+
+  <div class="toc-section">
+    <div class="toc-header"><span>序章 (無料・15min)</span><span>Claude Code とは</span></div>
+    <div class="toc-row free">
+      <div class="num">0</div>
+      <div class="title">
+        <b><span class="free-tag">FREE</span>序章: Claude Code とは — AI開発の新しい形</b>
+        <small>「ブラウザ AI vs CLI AI」3 分デモ — Chat 版は会話だけ、Code 版は自動でファイル編集・テスト実行。この差が「やってみたい」のトリガー。</small>
+      </div>
+      <div class="meta">15 min<br>L1</div>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-header"><span>本編 (章 1〜6)</span><span>20〜30 min × 6</span></div>
+    <div class="toc-row">
+      <div class="num">1</div>
+      <div class="title">
+        <b>インストール + 初回起動 — 最初の1行</b>
+        <small>百聞は一見に如かず。スクリーンショット付きでインストールから初回会話まで完全解説。</small>
+      </div>
+      <div class="meta">20 min<br>L2-L3</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">2</div>
+      <div class="title">
+        <b>プロンプト基礎 — AI に確実に伝える技術</b>
+        <small>XMLタグで構造化される瞬間をスライド比較。再現性のあるプロンプトの仕組みを完全解説。</small>
+      </div>
+      <div class="meta">30 min<br>L3 Apply</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">3</div>
+      <div class="title">
+        <b>CLAUDE.md ミニマム — プロジェクトの「説明書」</b>
+        <small>30 行書くだけで AI がプロジェクトのルールを理解。あり/なしで振る舞いが変わる仕組みを解説。</small>
+      </div>
+      <div class="meta">30 min<br>L3 Apply</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">4</div>
+      <div class="title">
+        <b>簡単な自動化体験 — AI に任せてみる</b>
+        <small>AI が自ら読み→原因特定→修正→テストまで完走する仕組みを時系列解説。</small>
+      </div>
+      <div class="meta">30 min<br>L3-L4</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">5</div>
+      <div class="title">
+        <b>hook の入門 — AI の安全装置を作る (1 本だけ)</b>
+        <small><code>rm -rf</code> がブロックされる安心感。hook の仕組みと設定方法を完全解説。</small>
+      </div>
+      <div class="meta">30 min<br>L3 Apply</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">6</div>
+      <div class="title">
+        <b>MCP 接続入門 — AI の記憶を拡張する</b>
+        <small>セッションを跨いでも記憶を引き継ぐ MCP の仕組み。before/after 対比で解説。</small>
+      </div>
+      <div class="meta">30 min<br>L3 Apply</div>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-header"><span>終章 (無料・25min)</span><span>中級編への橋渡し</span></div>
+    <div class="toc-row free">
+      <div class="num">7</div>
+      <div class="title">
+        <b><span class="free-tag">FREE</span>終章: 中級編への橋渡し — 次のステップ</b>
+        <small>初級編で理解した 3 点が中級編でどう進化するかのロードマップ。「今の自分」と「次の自分」の差。</small>
+      </div>
+      <div class="meta">25 min<br>L2 + L6</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="preview-cta">
+  🎬 <b>無料プレビュー: 序章 + 終章</b><br>
+  序章で講座価値を体感・終章で次のステップを示す両端開放方式。「入り口」と「出口」を見せて購買決断を促す。
+</div>
+
+<h3 class="section">🎁 受講後に理解できること (3 点)</h3>
+<div class="deliverables">
+<ol>
+  <li><b>CLAUDE.md の役割と書き方</b> — プロジェクト固有の設定ファイルの仕組み (第 3 章)</li>
+  <li><b>PreToolUse hook の仕組み</b> — AI の安全装置の仕組みと設定方法 (第 5 章)</li>
+  <li><b>MCP 接続の基礎</b> — AI の記憶を拡張する仕組み (第 6 章)</li>
+</ol>
+</div>
+
+<h3 class="section">📈 中級編との位置づけ</h3>
+<div class="next-step">
+<table style="width:100%; border-collapse: collapse; font-size: 13px;">
+<tr style="background: #fff;"><th style="padding: 6px; border: 1px solid #ddd; text-align: left;">項目</th><th style="padding: 6px; border: 1px solid #ddd;">初級編 v2 (本講座)</th><th style="padding: 6px; border: 1px solid #ddd;">中級編 v4</th></tr>
+<tr><td style="padding: 6px; border: 1px solid #ddd;">対象レベル</td><td style="padding: 6px; border: 1px solid #ddd;">初心者 (未経験〜触り程度)</td><td style="padding: 6px; border: 1px solid #ddd;">中級〜上級 (基本操作済み)</td></tr>
+<tr><td style="padding: 6px; border: 1px solid #ddd;">所要時間</td><td style="padding: 6px; border: 1px solid #ddd;">約 3.5 時間 / 8 レクチャー</td><td style="padding: 6px; border: 1px solid #ddd;">約 14 時間 / 22 レクチャー</td></tr>
+<tr><td style="padding: 6px; border: 1px solid #ddd;">形式</td><td style="padding: 6px; border: 1px solid #ddd;">講義オンリー</td><td style="padding: 6px; border: 1px solid #ddd;">講義オンリー</td></tr>
+<tr><td style="padding: 6px; border: 1px solid #ddd;">hook 本数</td><td style="padding: 6px; border: 1px solid #ddd;">1 本 (入門解説)</td><td style="padding: 6px; border: 1px solid #ddd;">18 本 (実戦解説)</td></tr>
+<tr><td style="padding: 6px; border: 1px solid #ddd;">MCP</td><td style="padding: 6px; border: 1px solid #ddd;">使う側の解説のみ</td><td style="padding: 6px; border: 1px solid #ddd;">自前構築 + 永続化 3 バックエンド</td></tr>
+<tr><td style="padding: 6px; border: 1px solid #ddd;">送客導線</td><td style="padding: 6px; border: 1px solid #ddd;">終章で中級編を予告</td><td style="padding: 6px; border: 1px solid #ddd;">受講完了 → 上級編へ</td></tr>
+</table>
+<h4>初級編は「入門券」として最低価格・中級編がメイン収益源・終章で自然な送客動線を設計</h4>
+</div>
+
+</div>
+</body>
+</html>

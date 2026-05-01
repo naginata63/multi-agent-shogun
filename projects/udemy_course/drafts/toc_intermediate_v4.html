@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全解説</title>
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; max-width: 980px; margin: 0 auto; padding: 0; background: #f8f9fa; color: #222; line-height: 1.7; }
+  .hero { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; padding: 40px 28px; }
+  .hero h1 { font-size: 22px; margin: 0 0 8px 0; line-height: 1.4; }
+  .hero h2 { font-size: 28px; margin: 0 0 16px 0; line-height: 1.3; font-weight: bold; }
+  .hero .meta { font-size: 14px; opacity: 0.85; }
+  .container { padding: 24px 28px; }
+  h3.section { font-size: 20px; border-left: 5px solid #1e3a8a; padding-left: 12px; margin: 32px 0 16px 0; }
+  .benefit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+  @media (max-width: 700px) { .benefit-grid { grid-template-columns: 1fr; } }
+  .benefit-grid li { padding: 6px 0; }
+  .persona { background: #fff; border-left: 4px solid #2563eb; padding: 10px 16px; margin: 8px 0; font-size: 14px; }
+  .persona b { color: #1e3a8a; }
+  .toc-table { background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; margin-bottom: 16px; }
+  .toc-section { border-bottom: 1px solid #e5e7eb; }
+  .toc-section:last-child { border-bottom: none; }
+  .toc-header { background: #eef2ff; padding: 10px 16px; font-weight: bold; color: #1e3a8a; font-size: 14px; display: flex; justify-content: space-between; }
+  .toc-row { padding: 12px 16px; display: grid; grid-template-columns: 50px 1fr 90px; gap: 12px; align-items: start; border-top: 1px solid #f3f4f6; }
+  .toc-row.free { background: #fef9c3; }
+  .toc-row .num { font-weight: bold; color: #6b7280; font-size: 14px; }
+  .toc-row .title { font-size: 14px; }
+  .toc-row .title b { display: block; margin-bottom: 4px; color: #1f2937; }
+  .toc-row .title small { color: #6b7280; font-size: 12px; }
+  .toc-row .meta { font-size: 11px; color: #6b7280; text-align: right; white-space: nowrap; }
+  .free-tag { display: inline-block; background: #facc15; color: #78350f; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: bold; margin-right: 4px; }
+  .deliverables { background: #fff; border-radius: 8px; padding: 16px 20px; border: 1px solid #e5e7eb; }
+  .deliverables ol { margin: 0; padding-left: 20px; }
+  .preview-cta { background: #fef3c7; border: 2px dashed #f59e0b; padding: 16px 20px; margin: 24px 0; border-radius: 8px; text-align: center; }
+  .preview-cta a { color: #92400e; font-weight: bold; }
+  .summary-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+  @media (max-width: 700px) { .summary-stats { grid-template-columns: 1fr 1fr; } }
+  .stat { background: #fff; border-radius: 6px; padding: 10px; text-align: center; border: 1px solid #e5e7eb; }
+  .stat .v { font-size: 22px; font-weight: bold; color: #1e3a8a; }
+  .stat .l { font-size: 11px; color: #6b7280; }
+  .ladder { background: #ecfdf5; border-radius: 8px; padding: 16px 20px; margin-top: 16px; border-left: 4px solid #059669; }
+  .ladder b { color: #047857; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>【中級編 v4・講義オンリー】Udemy 講座カリキュラム TOC</h1>
+  <h2>AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全解説</h2>
+  <div class="meta">v4 (講義オンリー版) / 22 レクチャー / 約 14 時間 (附録込み) / 通常価格 19,800円 (セール時 1,500円)</div>
+</div>
+
+<div class="container">
+
+<div class="summary-stats">
+  <div class="stat"><div class="v">22</div><div class="l">レクチャー</div></div>
+  <div class="stat"><div class="v">14h</div><div class="l">合計時間</div></div>
+  <div class="stat"><div class="v">2本</div><div class="l">無料プレビュー</div></div>
+  <div class="stat"><div class="v">4点</div><div class="l">最終学習到達点</div></div>
+</div>
+
+<h3 class="section">この講座で学べること (ベネフィット)</h3>
+<ul class="benefit-grid">
+  <li>✅ プロンプトを「再利用できる関数」として設計する仕組み</li>
+  <li>✅ CLAUDE.md / instructions / task YAML の役割分担</li>
+  <li>✅ コンテキストウィンドウの「家計簿」と最適配分</li>
+  <li>✅ claude-mem / MCP memory による永続記憶層の仕組み</li>
+  <li>✅ SessionStart / PreCompact による完全復旧仕組み</li>
+  <li>✅ コンテキスト運用ベストプラクティス + 劣化検出</li>
+  <li>✅ ハーネス 18 本: Claude Code lifecycle 7 イベント完全解説</li>
+  <li>✅ flagship: 三層アーキテクチャ統合コードの完全読解</li>
+</ul>
+
+<h3 class="section">対象受講生</h3>
+<div class="persona"><b>初級修了者</b>: CLAUDE.md / hook / MCP の基礎を理解している状態から、もう 1 段ステップアップしたい方</div>
+<div class="persona"><b>初〜中級エンジニア</b>: Claude Code を使っているが「セッションが切れると一からやり直し」「コンテキストが太って遅い」に悩んでいる方</div>
+<div class="persona"><b>個人開発者・副業エンジニア</b>: 1人+1AI で大規模プロジェクトを回したい・属人化したノウハウを永続化したい方</div>
+
+<h3 class="section">📚 カリキュラム (全 22 レクチャー)</h3>
+
+<div class="toc-table">
+
+  <div class="toc-section">
+    <div class="toc-header"><span>序章 (無料・20min)</span><span>before/after 体験</span></div>
+    <div class="toc-row free">
+      <div class="num">0</div>
+      <div class="title">
+        <b><span class="free-tag">FREE</span>序章: AI開発 3階層モデルとは</b>
+        <small>「壁に絵を描いては消す」状態に窓を開け、配管まで通す方法 — 3 階層全体像と最終到達点のツアー。</small>
+      </div>
+      <div class="meta">20 min<br>L0</div>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-header"><span>L1 プロンプトエンジニアリング (章 1〜4)</span><span>30min × 4</span></div>
+    <div class="toc-row free">
+      <div class="num">1</div>
+      <div class="title">
+        <b><span class="free-tag">FREE</span>プロンプトを「関数」として設計する</b>
+        <small>『AI に伝わればいい』から『何度でも使える』へ。日常業務タスクが関数化される仕組みを解説。</small>
+      </div>
+      <div class="meta">30 min<br>L3 Apply</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">2</div>
+      <div class="title">
+        <b>構造化プロンプトと失敗パターン</b>
+        <small>10 項目の診断 checklist で自分のプロンプトの病気を見分ける仕組みを解説。</small>
+      </div>
+      <div class="meta">30 min<br>L4</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">3</div>
+      <div class="title">
+        <b>階層的プロンプト: CLAUDE.md / instructions / task YAML の役割分担</b>
+        <small>CLAUDE.md 100行 → 30行スリム化の仕組み。「変更頻度×適用範囲」マトリクスで3層に整理。</small>
+      </div>
+      <div class="meta">30 min<br>L4-L5</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">4</div>
+      <div class="title">
+        <b>プロンプト品質 Gate: advisor() と QC template</b>
+        <small>あなたのプロンプトを別の AI に審査させる仕組み。PASS/FAIL 判定基準 15 項目を解説。</small>
+      </div>
+      <div class="meta">30 min<br>L5</div>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-header"><span>L2 コンテキストエンジニアリング (章 5〜9)</span><span>40min × 5</span></div>
+    <div class="toc-row">
+      <div class="num">5</div>
+      <div class="title">
+        <b>コンテキストウィンドウ経済学</b>
+        <small>「ファイル読込が 7 割を占めていた」AI の家計簿を作る仕組み。予算配分と auto-compact 設計。</small>
+      </div>
+      <div class="meta">40 min<br>L4</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">6</div>
+      <div class="title">
+        <b>永続コンテキスト層 (claude-mem / MCP memory / Agent Skills)</b>
+        <small>3 バックエンド比較と 4 カテゴリ分類。過去の教訓を memory に永続化する仕組み。</small>
+      </div>
+      <div class="meta">40 min<br>L4-L5</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">7</div>
+      <div class="title">
+        <b>セッション再起動耐性 (SessionStart / PreCompact / rehydrate)</b>
+        <small>/clear → SessionStart hook → 3 秒で完全復旧する仕組みを完全解説。L2 の山場。</small>
+      </div>
+      <div class="meta">40 min<br>L5-L6</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">8</div>
+      <div class="title">
+        <b>コンテキスト運用ベストプラクティス</b>
+        <small>不要コンテキストの削減 5 原則と rehydrate による効率的再開パターン。</small>
+      </div>
+      <div class="meta">40 min<br>L5-L6</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">9</div>
+      <div class="title">
+        <b>コンテキスト劣化検出と自動更新</b>
+        <small>memory に賞味期限を設定する仕組み。staleness 判定 3 ルールと週次自動スキャン。</small>
+      </div>
+      <div class="meta">40 min<br>L5-L6</div>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-header"><span>L3 ハーネスエンジニアリング (章 10〜15)</span><span>40min × 6</span></div>
+    <div class="toc-row">
+      <div class="num">10</div>
+      <div class="title">
+        <b>ハーネス入門: Claude Code lifecycle 7 イベント</b>
+        <small>AI のライフサイクルイベントに反応する仕組み。18 本 hook カタログの概観。</small>
+      </div>
+      <div class="meta">40 min<br>L2-L3</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">11</div>
+      <div class="title">
+        <b>完了 Gate ハーネス (H1 + H10)</b>
+        <small>AI の「完了」報告を機械的に検証する門番。5 条件自動チェックの仕組みを解説。</small>
+      </div>
+      <div class="meta">40 min<br>L6</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">12</div>
+      <div class="title">
+        <b>silent fail 検出ハーネス (H4)</b>
+        <small>エラーなし ≠ 成功。成功ログに紛れた「実は失敗」を監視員が検出する仕組み。</small>
+      </div>
+      <div class="meta">40 min<br>L6</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">13</div>
+      <div class="title">
+        <b>cmd intake ハーネス (H3 + H8 + H9)</b>
+        <small>タスク起票時に自動で過去類似事例を検索する仕組み。「1 ヶ月前に同じ問題を解決していた」を発見。</small>
+      </div>
+      <div class="meta">40 min<br>L6</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">14</div>
+      <div class="title">
+        <b>lord-angry slash (H11): 怒りを学習データに</b>
+        <small>ステークホルダーの怒りを半自動で構造化 feedback に変換する仕組み。</small>
+      </div>
+      <div class="meta">40 min<br>L5-L6</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">15</div>
+      <div class="title">
+        <b>ハーネスカタログと選定判断</b>
+        <small>12 種類の道具から自分に必要な 3 つだけを選ぶ方法。選定表 + 実装ロードマップ。</small>
+      </div>
+      <div class="meta">40 min<br>L4-L5</div>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-header"><span>L3 flagship (章 16)</span><span>最重要章 45min</span></div>
+    <div class="toc-row">
+      <div class="num">16</div>
+      <div class="title">
+        <b>flagship: 三層アーキ実装パターン (L1+L2+L3 統合)</b>
+        <small>プロンプト設計 → コンテキスト注入 → hook 実装が 1 つのスクリプトに統合。45 分で一行ずつ解剖。本講座のクライマックス。</small>
+      </div>
+      <div class="meta">45 min<br>L6</div>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-header"><span>総合解説 (章 17〜18)</span><span>40min × 2</span></div>
+    <div class="toc-row">
+      <div class="num">17</div>
+      <div class="title">
+        <b>総合解説 Part 1: 3階層統合の設計思想</b>
+        <small>1〜16 章の個別要素が統合される全体像。成熟度評価 → Gap 分析 → 実装ロードマップ。</small>
+      </div>
+      <div class="meta">40 min<br>L6</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">18</div>
+      <div class="title">
+        <b>総合解説 Part 2: ハーネス統合の設計思想</b>
+        <small>failure 注入 → done_gate BLOCK → silent_fail WARN → 全自動検出の仕組みを解説。本講座の集大成。</small>
+      </div>
+      <div class="meta">40 min<br>L6</div>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-header"><span>附録 (3 種・各 20min)</span><span>本編後オプション</span></div>
+    <div class="toc-row"><div class="num">A</div><div class="title"><b>差別化戦略</b><small>3階層統合は市場ゼロ — 60件分析データ・自分のニッチを見つける3ステップ。</small></div><div class="meta">20 min</div></div>
+    <div class="toc-row"><div class="num">B</div><div class="title"><b>ビジネス導線設計</b><small>Marketing Trip メソッド準拠の導線設計テンプレート。</small></div><div class="meta">20 min</div></div>
+    <div class="toc-row"><div class="num">C</div><div class="title"><b>トラブルシュート集</b><small>hook が発火しない 5 大原因・claude-mem 復旧・コスト爆発防衛。</small></div><div class="meta">20 min</div></div>
+  </div>
+
+</div>
+
+<div class="preview-cta">
+  🎬 <b>無料プレビュー: 序章 + 第1章</b><br>
+  序章で 3 階層全体像 (購買決断のトリガー) + 第1章で関数プロンプト設計の仕組み — 「これだ！」を提供。
+</div>
+
+<h3 class="section">🎁 受講後に理解できること (4 点)</h3>
+<div class="deliverables">
+<ol>
+  <li><b>CLAUDE.md + instructions/*.md セットの設計思想</b> (L2 コンテキスト層)</li>
+  <li><b>5 種ライフサイクル hook の仕組み</b> (L3 ハーネス層)</li>
+  <li><b>メモリバックエンドへの自動記録経路の仕組み</b> (L2+L3 統合)</li>
+  <li><b>cmd intake hook の 3 層統合設計思想</b> (L1+L2+L3 統合)</li>
+</ol>
+</div>
+
+<h3 class="section">🪜 三段階送客導線</h3>
+<div class="ladder">
+<b>初級 (3.5h・通常 12,000円 / セール 1,500円)</b> → <b>中級 (本講座・14h・通常 19,800円 / セール 1,500円)</b> → <b>上級 (9h・通常 24,000円 / セール 1,800円)</b>
+<p>初級で Claude Code 入門 → 中級で 3 階層の仕組みを完全理解 → 上級で hook 18 本 + flagship 三層アーキへ。1 本買って次に繋がる構造。<br>
+<b>上級編予告</b>: ハーネス実装 6 本 (完了Gate / silent fail watcher / cmd intake hook / lord-angry slash 等) + flagship 「三層アーキ実装パターン」 + 総合演習 2 章 + 附録 B (ビジネス導線設計)。</p>
+</div>
+
+</div>
+</body>
+</html>
