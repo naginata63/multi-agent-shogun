@@ -36,9 +36,11 @@ case $DOW in
   7)   CATEGORY="YouTube/外部連携（youtube_uploader.py, downloader.py, note系, API連携）" ;;
 esac
 
-bash "$SCRIPT_DIR/scripts/inbox_write.sh" karo \
-  "【夜間矛盾検出・自動発令】本日のカテゴリ: ${CATEGORY}。軍師に矛盾検出タスクを振れ。cmd_828と同じ形式で。テストを書くな。コードを修正するな。読んで報告するだけ。朝までにダッシュボードに結果を掲載せよ。" \
-  nightly_audit shogun
+MSG="【夜間矛盾検出・自動発令】本日のカテゴリ: ${CATEGORY}。軍師に矛盾検出タスクを振れ。cmd_828と同じ形式で。テストを書くな。コードを修正するな。読んで報告するだけ。朝までにダッシュボードに結果を掲載せよ。"
+curl -sf -X POST "http://192.168.2.7:8770/api/inbox_write" \
+  -H 'Content-Type: application/json' \
+  -d "{\"to\":\"karo\",\"from\":\"shogun\",\"type\":\"wake_up\",\"message\":\"${MSG}\"}" \
+  > /dev/null 2>&1 || bash "$SCRIPT_DIR/scripts/inbox_write.sh" karo "$MSG" nightly_audit shogun
 
 # === dashboard_lifecycle (cmd_1443_p02 / H2 拡張) ===
 # dashboard.md 🚨解決済み残骸の自動クリーン + MCPダッシュボード残骸検出→家老通知

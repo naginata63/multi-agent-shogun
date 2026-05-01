@@ -294,6 +294,10 @@ while true; do
             ✅*|🎬*|🐑*|🌟*|🎤*|📊*|🚨*|📰*|🖼️*|🔍*|❌*|🌐*|📋*) IS_AGENT_MSG=true ;;
         esac
         if [ "$IS_AGENT_MSG" = false ]; then
+            curl -sf -X POST "http://192.168.2.7:8770/api/inbox_write" \
+                -H 'Content-Type: application/json' \
+                -d '{"to":"shogun","from":"ntfy_listener","type":"wake_up","message":"ntfyから新しいメッセージ受信。queue/ntfy_inbox.yaml を確認し処理せよ。"}' \
+                > /dev/null 2>&1 || \
             bash "$SCRIPT_DIR/scripts/inbox_write.sh" shogun \
                 "ntfyから新しいメッセージ受信。queue/ntfy_inbox.yaml を確認し処理せよ。" \
                 ntfy_received ntfy_listener
