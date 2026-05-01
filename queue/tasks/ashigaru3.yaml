@@ -1,1 +1,94 @@
-tasks: []
+tasks:
+- agent: ashigaru3
+  task_id: subtask_1563a
+  status: done
+  parent_cmd: cmd_1563
+  bloom_level: L3
+  priority: medium
+  description: 'cmd_1563: cron発令スクリプトのinbox書込をAPI経由に統一・dual-path不整合解消'
+  target_path: /home/murakami/multi-agent-shogun/scripts/nightly_audit.sh
+  steps: '0) advisor()呼出 1) crontab -l の全cronと grep -rl で inbox YAML直書き箇所を全て洗い出し一覧化
+    2) nightly_audit.sh の inbox書込部分を curl -s -X POST http://192.168.2.7:8770/api/inbox_write
+    に置換 3) bash syntax確認 4) テスト発火: 実際に1件発火しSQLite/YAML双方に反映確認 (curl /api/inbox_messages?agent=karo&unread=1
+    とqueue/inbox/karo.yaml の件数一致) 5) 残りの全スクリプトも同様に置換 6) git add scripts/ && git commit
+    (cmd_1563) 7) advisor()呼出 8) inbox_write gunshi QC依頼'
+  acceptance_criteria:
+  - inbox YAML直書きを行う全cronスクリプトを洗い出し一覧化(crontab + scripts/)
+  - nightly_audit.shを含む全対象スクリプトをcurl POST /api/inbox_write経由に置換
+  - テスト発火でYAML/SQLite双方に反映・GET /api/inbox_messages?agent=karo&unread=1 の件数が一致
+  - git commit完了
+  - gunshi QC PASS
+  notes:
+  - inbox_write.sh は障害時フォールバック用途で残してよい。cronスクリプトの直書きのみ置換
+  - 'curl POST /api/inbox_write の JSON形式: {"to":"karo","from":"system","type":"nightly_audit","message":"..."}'
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-02T06:23:15.074351+09:00'
+- agent: ashigaru3
+  task_id: subtask_1571a
+  status: done
+  parent_cmd: cmd_1571
+  bloom_level: L3
+  priority: medium
+  description: 'cmd_1571: 初級編 序章 Marp 講義スライド + speaker notes を完成させ量産フォーマット確定'
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/beginner_ch00_intro.md
+  steps: '0) advisor()呼出 1) projects/udemy_course/drafts/lectures/intermediate_ch00_intro.md
+    を全文精読 (形式・speaker notes記法・スライド構成を把握) 2) projects/udemy_course/drafts/curriculum_beginner_v2_marp.md
+    の序章セクションを精読 (カバーすべきトピック確認) 3) beginner_ch00_intro.md を新規作成: intermediate_ch00_intro.md
+    と同形式 / テーマ=''Claude Codeとは — AI開発の新しい形'' / 全スライドにspeaker notes (HTMLコメント <!--
+    ... -->) / 受講者操作系語句なし / 講師実演ベースで説明 4) grep確認: grep -c ''演習|ハンズオン|実装してください|手元で試''
+    beginner_ch00_intro.md (0件) 5) marp --html beginner_ch00_intro.md -o beginner_ch00_intro.html
+    (CLIなければnpx @marp-team/marp-cli) 6) projects/udemy_course/drafts/index.html を読んで
+    ''🎬 講義資料 (lectures)'' セクションを追加し beginner_ch00_intro.html へのリンクを記載 7) git add projects/udemy_course/drafts/lectures/
+    projects/udemy_course/drafts/index.html && git commit ''feat: cmd_1571 初級序章 Marp講義スライド完成・量産フォーマット確定''
+    && git push origin main 8) advisor()呼出 9) inbox_write gunshi QC依頼(speaker notes全スライド確認・grep
+    0件・HTML生成・index.html追加・量産フォーマット評価)'
+  acceptance_criteria:
+  - drafts/lectures/beginner_ch00_intro.md が intermediate_ch00_intro.md と同形式で存在
+  - Marp HTML版 (beginner_ch00_intro.html) が生成済み
+  - 全スライドに speaker notes が記載 (HTMLコメント形式)
+  - 受講者操作系の語句が0件 (grep確認)
+  - drafts/index.html に序章ページリンク追加 (🎬 講義資料 セクション)
+  - git commit + push 完了
+  - 次章以降の量産用フォーマットとして使える完成度 (軍師が評価)
+  notes:
+  - '形式参照: projects/udemy_course/drafts/lectures/intermediate_ch00_intro.md'
+  - '内容参照: projects/udemy_course/drafts/curriculum_beginner_v2_marp.md の序章セクション'
+  - '殿原文: ''１ — 試作として初級編 序章1本のみ先行作成し、フォーマット確定後に残り章を展開する戦略'''
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-02T08:07:23.040273+09:00'
+- agent: ashigaru3
+  task_id: subtask_1573a
+  status: assigned
+  parent_cmd: cmd_1573
+  bloom_level: L3
+  priority: medium
+  description: 'cmd_1573: 初級編カリキュラム v2→v3 再構成 (序章に生成AIとはなにか追加・インストール章削除)'
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/curriculum_beginner_v3_marp.md
+  steps: '0) advisor()呼出 1) projects/udemy_course/drafts/curriculum_beginner_v2_marp.md
+    全文精読・序章とインストール章の内容確認 2) curriculum_beginner_v3_marp.md を新規作成: v2を基に (a)序章を2部構成に再編成
+    — 新パート「生成AIとはなにか」(生成AI定義・LLM仕組み・ChatGPT/Claude比較・なぜ今重要か)を序章冒頭に追加、旧序章「Claude Codeとは」は序章後半として残す
+    (b)インストール章全削除 (c)冒頭にversion log追記(v2→v3差分: 生成AI序章追加・インストール章削除) 3) grep確認: grep
+    -c ''インストール'' projects/udemy_course/drafts/curriculum_beginner_v3_marp.md (0件必須・講師用手順記述も不可)
+    && grep -c ''生成AIとは'' curriculum_beginner_v3_marp.md (1件以上) 4) marp --html curriculum_beginner_v3_marp.md
+    -o curriculum_beginner_v3.html (CLIなければnpx @marp-team/marp-cli) && toc_beginner_v3.html
+    も生成 5) projects/udemy_course/drafts/lectures/beginner_ch00_intro.md を beginner_ch01_claude_code.md
+    にリネーム (git mv) 6) projects/udemy_course/drafts/index.html 更新: v3をNEW表示でリンク追加・v2を旧版表示に変更・lectures
+    リンクも beginner_ch01_claude_code.html に更新 7) git add projects/udemy_course/drafts/
+    && git diff --cached (意図外ファイル確認) && git commit ''feat: cmd_1573 初級編v3 生成AI序章追加・インストール章削除''
+    && git push origin main 8) advisor()呼出 9) inbox_write gunshi QC依頼(grep 0件確認・生成AIとは確認・ch01リネーム・HTML生成・index.html
+    v3/旧版表示確認)'
+  acceptance_criteria:
+  - curriculum_beginner_v3_marp.md 存在・序章に生成AIとはなにか含む・インストール章なし
+  - curriculum_beginner_v3.html / toc_beginner_v3.html ビルド済
+  - grep 'インストール' curriculum_beginner_v3_marp.md → 0件
+  - grep '生成AIとは' curriculum_beginner_v3_marp.md → 1件以上
+  - lectures/beginner_ch01_claude_code.md (旧 ch00_intro) が存在
+  - drafts/index.html にv3=NEW表示・v2=旧版表示・ch01リンク更新済
+  - git commit + push完了
+  notes:
+  - '殿原文: ''生成AIとはなにか もいれてほしい / インストールは不要'''
+  - 'インストール章削除: grep 0件が証跡。''講師がインストールする'' 等の言及も含めて全削除'
+  - 旧 ch00_intro.md = 「Claude Codeとは」→ ch01_claude_code.md にリネーム (git mv)
+  - v3 HTML は drafts/ 直下に出力
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-02T08:23:45.607934+09:00'

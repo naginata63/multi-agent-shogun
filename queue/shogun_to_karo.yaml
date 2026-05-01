@@ -444,3 +444,467 @@ commands:
   - git commit に cmd_1554 明記 + 追加件数記載
   - 軍師 QC PASS
   notify_karo: true
+- id: cmd_1563
+  status: done
+  priority: medium
+  purpose: cron発令スクリプトの inbox 書込を API 経由に統一・dual-path 不整合を解消
+  timestamp: '2026-05-02T06:18:54+09:00'
+  project: infrastructure
+  north_star: dashboard 表示と API 応答の整合性を担保し、未読検出の信頼性を回復する。cmd_1488 dual-path / cmd_1494
+    SQLite移行で残った最後の負債を解消し、運用判断の根拠を一本化する。
+  acceptance_criteria:
+  - 夜間矛盾検出 cron など inbox 書込を行う全 cron スクリプトを `POST /api/inbox_write` 経由に書き換える
+  - 書き換え対象スクリプトを `crontab -l` から洗い出し一覧化（少なくとも nightly_audit 系含む）
+  - 書き換え後、テスト発火で yaml と sqlite 双方に反映されることを確認
+  - GET /api/inbox_messages?agent=karo&unread=1 と queue/inbox/karo.yaml の未読件数が一致する
+  - ashigaru ではなく gunshi に矛盾検出風に依頼するのではなく、ashigaru による実装タスクとして処理
+  lord_original: 軍師案件、これもやらせよ — 殿2026-05-02 06:18 (cron が yaml 直書きで API 読み出しと乖離している件の修正指示)
+  command: '夜間矛盾検出 cron をはじめとする inbox 書込 cron スクリプト群を POST /api/inbox_write 経由に統一せよ。
+
+
+    背景: cron は queue/inbox/<agent>.yaml に直接書き込んでいるため、SQLite を読む API (/api/inbox_messages?unread=1)
+    では未読扱いされず、dashboard R5 検出とAPI応答が乖離する。実例: 2026-05-02 06:15 時点で karo.yaml に nightly_audit
+    3件が read:false で残っているが API は 0件未読と返した。
+
+
+    対応:
+
+    1) crontab -l と scripts/cron 配下を grep し inbox 書込を行う全スクリプトを洗い出す (nightly_audit,
+    dashboard_lifecycle, 他)
+
+    2) 各スクリプトの YAML 直書きロジックを `curl POST /api/inbox_write` (dual-path 自動同期) に置換
+
+    3) 旧 inbox_write.sh フォールバックを使っている箇所も同様に置換
+
+    4) 1件試発火→ YAML/SQLite 双方に反映されること・unread API が正しく拾うこと・dashboard R5 が正しく消えることを確認
+
+    5) 残りを順次置換し本番 crontab に反映
+
+    6) 完了後、再度同じテストで全 cron が API 経由になっていることを QC
+
+
+    注意: 家老に振らず ashigaru 実装タスクとして処理せよ。テストは家老/軍師が実施。'
+  notify_karo: true
+  completed_at: '2026-05-02T06:53:43+09:00'
+- id: cmd_1564
+  status: done
+  priority: medium
+  purpose: STTパイプライン 矛盾検出・死文化スクリプト検出 (nightly_audit 2026-04-30自動発令)
+  timestamp: '2026-05-02T06:21:59+09:00'
+  lord_original: 【夜間矛盾検出・自動発令 2026-04-30】STTパイプライン（vocal_stt_pipeline.py, stt_merge.py,
+    speaker_id系, 成果物）。軍師に矛盾検出タスクを振れ。テストを書くな。コードを修正するな。読んで報告するだけ。
+  notify_karo: false
+  completed_at: '2026-05-02T06:32:37+09:00'
+- id: cmd_1565
+  status: done
+  priority: medium
+  purpose: 動画制作スクリプト群 矛盾検出・死文化スクリプト検出 (nightly_audit 2026-05-01自動発令)
+  timestamp: '2026-05-02T06:21:59+09:00'
+  lord_original: 【夜間矛盾検出・自動発令 2026-05-01】動画制作（main.py, make_expression_shorts.py,
+    Remotion, vertical_convert.py, make_shorts系）。軍師に矛盾検出タスクを振れ。テストを書くな。コードを修正するな。読んで報告するだけ。
+  notify_karo: false
+  completed_at: '2026-05-02T06:36:57+09:00'
+- id: cmd_1566
+  status: done
+  priority: medium
+  purpose: インフラスクリプト群 矛盾検出・死文化スクリプト検出 (nightly_audit 2026-05-02自動発令)
+  timestamp: '2026-05-02T06:22:00+09:00'
+  lord_original: 【夜間矛盾検出・自動発令 2026-05-02】インフラ（inbox_write/watcher, ntfy, cron, agent管理系,
+    context_monitor等）。軍師に矛盾検出タスクを振れ。テストを書くな。コードを修正するな。読んで報告するだけ。
+  notify_karo: false
+  completed_at: '2026-05-02T06:42:22+09:00'
+- id: cmd_1567
+  status: done
+  priority: medium
+  purpose: cmd_1564 STT パイプライン HIGH 2 + MEDIUM 4 と cmd_1565 動画制作 HIGH 2 + MEDIUM 4
+    を一体整理し、矛盾を解消する
+  timestamp: '2026-05-02T06:39:11+09:00'
+  project: infrastructure
+  lord_original: あーやらせよ — 殿2026-05-02 06:38 (cmd_1564 STT 矛盾検出 HIGH 2/MEDIUM 4 + cmd_1565
+    動画制作 矛盾検出 HIGH 2/MEDIUM 4 を一体整理 follow-up cmd 起票指示・軍師進言 45分推奨に同意)
+  north_star: 矛盾検出で発見された死文化スクリプト・hardcoded path・二重実装・skill doc 漏れを実際に解消し、scripts/
+    の信頼性と再利用性を回復する。検出フェーズ(軍師)→修正フェーズ(足軽)の分業設計を完遂する。
+  command_text: "殿原文: あーやらせよ\n\n軍師による矛盾検出 cmd_1564 (STT) + cmd_1565 (動画制作) で発見された問題を実際に修正せよ。軍師は\
+    \ 45分推奨。\n\n=== cmd_1564 STT パイプライン ===\n\nHIGH 2件:\nH1) gemini_transcription_task.py\
+    \ が hardcoded path で再利用不可\n  - L8: SEGMENTS_DIR = projects/dozle_kirinuki/work/highlight_rDYmTp/output/diarize_tmp/segments\n\
+    \  - L9: OUTPUT_FILE = projects/dozle_kirinuki/work/highlight_... 等\n  → 引数化 or\
+    \ 設定ファイル化して再利用可能にせよ\n\nH2) STT パイプライン .bak_1000 が runtime 直下 (scripts/) に残存\n\
+    \  - 現行版は projects/dozle_kirinuki/scripts/ 配下\n  - .bak_1000 は scripts/ runtime\
+    \ 直下 = 紛らわしい配置\n  → scripts/archive/ 等へ退避 or 削除\n\nMEDIUM 4件:\nM1) cmd_487 関連実験スクリプト\
+    \ 4件 dead code (cross-ref 0)\n  → 削除 (git log に履歴は残る)\nM2) 古い Whisper-only transcribe_*.py\
+    \ が dead code\n  → 削除\nM3) vocal_stt_pipeline.py 内 run_speaker_identification\
+    \ 二重実装\n  → 1本に統合\nM4) auto_speaker_mapping.py が stt_merge と機能重複\n  → どちらか削除 or\
+    \ 役割明確化\n\n=== cmd_1565 動画制作スクリプト ===\n\nHIGH 2件:\nH3) generate_thumbnail.py スクリプト\
+    \ と main.py 内 generate_thumbnail() 関数 同名衝突\n  - generate_thumbnail.py: Gemini\
+    \ API CLI ツール (cross-ref 0)\n  - main.py L305: 独立関数 (内部呼出のみ・L1127, L1458)\n  →\
+    \ どちらかリネーム (例: gemini_thumbnail_cli.py) or 統合\n\nH4) vertical_convert.py に cmd_1548\
+    \ 教訓警告がない\n  - cmd_1548 で将軍誤指定 → 殿激おこ事案\n  - cmd_1550 で procedure 化済 (shared_context/procedures/video_vertical_crop_upload.md)\n\
+    \  → vertical_convert.py docstring 冒頭に 「procedure 経由必須・直接呼出 NG」 警告を追記\n\nMEDIUM\
+    \ 4件:\nM5) 孤立 7 ファイル dead code (旧 cmd hardcoded・実験完了済)\n  → 削除\nM6) add_chapters.py\
+    \ と generate_chapters.py 役割重複可能性\n  → 差異を確認し統合 or 役割明確化\nM7) manga_poc 配下スクリプトが\
+    \ SKILL.md に未記載 (analyze_clip_scene.py, manga_short_composer.py)\n  → manga-short\
+    \ skill の SKILL.md に追記\nM8) remotion-project Root.tsx 内 FULL_SEC=4795 hardcoded\n\
+    \  → cmd 起動時に動的設定する仕組みに変更 (env var or 引数)\n\n=== 共通ルール ===\n- 削除前に必ず git log で履歴確認\
+    \ (誤削除防止)\n- スクリプト削除時は .gitignore 化や archive/ 配置で「消した形跡」を残す方針も可\n- 既存テストがあれば実行\
+    \ (.venv 内)\n- LOW 3件 (各レポート) は本cmd対象外・別途判断\n- 詳細レポート: queue/reports/gunshi_stt_contradiction_1564.yaml\
+    \ と queue/reports/gunshi_video_contradiction_1565.yaml を必読\n\n=== 完了条件 ===\n-\
+    \ HIGH 4件 (H1〜H4) すべて修正済み\n- MEDIUM 8件 (M1〜M8) すべて修正済み or 明示 skip 判断 (rationale\
+    \ 記載)\n- 動作確認: 修正したスクリプトが既存呼出元から呼んだ際に正常動作\n- git commit + push 完了\n- 修正ファイル一覧と修正内容を\
+    \ report YAML に記載"
+  acceptance_criteria:
+  - cmd_1564 HIGH H1 (gemini_transcription_task.py hardcoded path) が引数化または設定ファイル化されている
+  - cmd_1564 HIGH H2 (.bak_1000 runtime直下残存) が scripts/archive/ 配下に移動 or 削除されている
+  - cmd_1564 MEDIUM M1-M4 が削除/統合/明示skip のいずれかで処理済み
+  - cmd_1565 HIGH H3 (generate_thumbnail 名前衝突) がリネーム or 統合で解消
+  - cmd_1565 HIGH H4 (vertical_convert.py 警告なし) で docstring に procedure 経由必須警告が追記
+  - cmd_1565 MEDIUM M5-M8 が削除/統合/skill doc追記/動的設定化のいずれかで処理済み
+  - git commit + push まで完了し submodule pointer も親リポで更新
+  - 完了レポートに修正ファイル一覧と各 H/M 項目の処置内容が明記
+  notify_karo: true
+  completed_at: '2026-05-02T07:09:41+09:00'
+- id: cmd_1568
+  status: done
+  priority: high
+  purpose: cmd_1566 インフラ矛盾検出 HIGH 3 + MEDIUM 4 を解消し、特に最優先の silent_fail_watcher.sh
+    の常時起動を確立する
+  timestamp: '2026-05-02T06:48:39+09:00'
+  project: infrastructure
+  lord_original: 起票 — 殿2026-05-02 06:43 (cmd_1566 インフラ矛盾検出 HIGH 3/MEDIUM 4 follow-up
+    cmd 起票指示・最優先 silent_fail_watcher.sh cron未登録は Gemini 課金事故型silent fail検知の機能不全リスクのため
+    high 扱い)
+  north_star: 課金事故型 silent fail (Gemini 22K円事案・cmd_1443_p04 H4) の検知不在を即解消し、運用安全網を回復する。同時にインフラ系の死文化スクリプトと
+    bak 残存・dashboard_lifecycle 残骸を整理する。
+  command_text: "殿原文: 起票\n\n軍師 cmd_1566 (インフラ矛盾検出) で発見された問題を実際に修正せよ。最優先は H2 (silent_fail_watcher.sh\
+    \ cron 未登録 = 課金事故検知不在)。\n\n=== HIGH 3件 ===\n\nH1) context_monitor.sh が DISABLED\
+    \ 状態で exit 0 のまま残存\n  - L5-L7: 「DISABLED ... echo ... exit 0」 の dead code\n  -\
+    \ cross-reference 0 件・cron 0 件・5.2KB 全体が死文化\n  - 後継: context_watcher.sh (但し cross-ref\
+    \ 0)\n  → 削除 or scripts/archive/ 退避。後継 context_watcher.sh の起動経路は H1 に含めず M1 で対応\n\
+    \nH2) silent_fail_watcher.sh が cron 未登録 = 設計目的不履行【最優先】\n  - 設計: ログ内 ERROR/WARN/FALLBACK/COST/BILLING\
+    \ を即検知し ntfy 通知\n  - 目的: Gemini 22K円課金事故型 silent fail を即時検知 (cmd_1443_p04 H4)\n\
+    \  - 実装: inotifywait + 追記検知 → daemon 想定\n  - 現状: crontab/systemd unit 未登録・watcher_supervisor.sh\
+    \ も非参照\n  → systemd user unit 化 (cmd_1542 worker と同形式) で常時起動。@reboot cron では不可\
+    \ (再起動時のみ)\n  → 起動後に意図的にテスト ERROR を吐いて ntfy 着弾を確認すること\n\nH3) inbox_watcher.sh.bak\
+    \ が 2 件残存 (紛らわしい配置)\n  - 現行: scripts/inbox_watcher.sh (57.9KB・cmd_1526 SQLite\
+    \ 切替後)\n  - bak.cmd_1453: 55.8KB / bak_1004: 55.7KB\n  - cmd_1564 H2 と同パターン (.bak\
+    \ が runtime に同居)\n  → scripts/archive/ 退避 or 削除\n\n=== MEDIUM 4件 ===\n\nM1) context_watcher.sh\
+    \ の cron 未登録・cross-ref 0\n  - context_monitor.sh DISABLED の後継だが起動経路不明\n  - tmux\
+    \ pane 常駐想定だが docstring に明示なし\n  → 起動経路を docstring に明記。常駐させるなら systemd user unit\
+    \ 化\n\nM2) ntfy 系 3 種 (ntfy.sh / ntfy_listener.sh / ntfy_voice.sh) 役割重複\n  - ntfy_voice.sh:\
+    \ 用途不明・3/27作成以降変更なし・参照2件\n  → 各スクリプトの役割を docstring 冒頭に1行記載。ntfy_voice.sh が dead\
+    \ なら削除\n\nM3) dashboard_lifecycle.sh L4 [LEGACY] セクション残存 (cmd_1556 廃止後)\n  - dashboard.md\
+    \ は cmd_1556 で git rm 廃止済\n  - lifecycle スクリプト内に廃止セクションのコメント残存\n  → [LEGACY] 関連コード/コメントを除去\n\
+    \nM4) crontab 内 #disabled エントリ 5 件残存・cron_inventory との整合確認要\n  - 5件: auto_fetch\
+    \ / scene_search / post_fetch_recommend / chat-retry\n  - cron_inventory.md Disabled\
+    \ セクション D01-D05 と一致するか未確認\n  - 不一致なら nightly_audit.sh の drift 検知が ntfy 警告を発火\n\
+    \  → diff を取り、不一致なら cron_inventory.md を更新\n\n=== 共通ルール ===\n- 削除前に必ず git log 確認\n\
+    - systemd user unit は ~/.config/systemd/user/ 配下に配置 (cmd_1542 参考)\n- LOW 3件 (各レポート)\
+    \ は本cmd対象外\n- 詳細レポート: queue/reports/gunshi_infra_contradiction_1566.yaml を必読\n\
+    \n=== 完了条件 ===\n- silent_fail_watcher.sh が systemd user service として常時起動 (status\
+    \ active)\n- 意図的なテスト ERROR で ntfy が着弾することを実証\n- HIGH 3件 / MEDIUM 4件 すべて修正済 or\
+    \ 明示 skip 判断 (rationale 記載)\n- git commit + push 完了 (.config/systemd 配下も対象なら手順を\
+    \ report に明記)\n- 修正ファイル一覧と各 H/M 項目の処置内容を report YAML に記載"
+  acceptance_criteria:
+  - silent_fail_watcher.sh が systemd user service で常時起動 (systemctl --user status で
+    active)
+  - 意図的にテスト ERROR を発生させ ntfy 通知が着弾することを実証 (ログまたはスクリーンショット)
+  - context_monitor.sh が削除 or scripts/archive/ 退避済 (dead code 解消)
+  - inbox_watcher.sh.bak 2件が scripts/archive/ 退避 or 削除済
+  - context_watcher.sh の起動経路が docstring に明記 or systemd 化
+  - ntfy 系 3 種それぞれの役割が docstring 冒頭に明記 (ntfy_voice.sh は要否判定)
+  - dashboard_lifecycle.sh の [LEGACY] 関連コード/コメント除去
+  - 'crontab #disabled 5件 と cron_inventory.md D01-D05 の整合確認・必要なら更新'
+  - git commit + push まで完了
+  notify_karo: true
+  completed_at: '2026-05-02T06:59:45+09:00'
+- id: cmd_1569
+  status: done
+  priority: low
+  purpose: R2 検出ロジックの unblock_types に `qc_request` を追加し、過去の cmd_1568 のような誤検出を防ぐ
+  timestamp: '2026-05-02T07:13:32+09:00'
+  project: infrastructure
+  lord_original: それで — 殿2026-05-02 07:13 (R2ブロック報告検出残骸の恒久対処指示)
+  north_star: R2 ブロック報告検出ルールの誤検出を恒久解消し、ダッシュボードの信頼性を上げる。`qc_request` を送った時点で実質ブロック解消なのに
+    R2 が残り続ける現象を排除する。
+  command_text: "殿原文: それで\n\n背景:\ncmd_1568 で ashigaru4 が report_blocked → 将軍が PID\
+    \ kill → ashigaru4 が直接 qc_request 送信、という流れで実質 block は解消したが、R2 検出ロジックは qc_request\
+    \ を unblock 指標として認識せず、ブロック残骸が48時間ダッシュボードに残った。\n\n対象ファイル:\nscripts/dashboard/server.py\
+    \ L234 付近\n  _R2_UNBLOCK_TYPES = {\"report_done\", \"report_completed\", \"unblock\"\
+    , \"report_received\", \"qc_done\"}\n\n修正:\nこの集合に \"qc_request\" を追加せよ。理由は、qc_request\
+    \ は ashigaru/gunshi が成果物を完成させて QC を要求する送信であり、ブロック状態とは両立しない。\n\nテスト:\n1) 既存 unit\
+    \ test がある場合は pass を確認\n2) 修正後、本番 dashboard で R2 件数が減ることを目視確認 (cmd_1568 残骸が消えるはず)\n\
+    3) 偽陽性を生まないか念のため軽くレビュー (qc_request 送ったが直後に再ブロックする極稀ケースは別途 report_blocked が発火するので問題なし)\n\
+    \n完了条件:\n- _R2_UNBLOCK_TYPES に qc_request 追加済\n- dashboard /api/dashboard 応答で\
+    \ cmd_1568 関連 R2 残骸が消える\n- git commit + push 完了"
+  acceptance_criteria:
+  - scripts/dashboard/server.py の _R2_UNBLOCK_TYPES に "qc_request" が含まれる
+  - GET /api/dashboard 応答の action_required から ashigaru4→shogun/karo の R2 ブロック残骸が消える
+  - dashboard server がエラーなく起動・既存検出 (R1〜R6) が引き続き機能する
+  - git commit + push 完了
+  notify_karo: true
+  completed_at: '2026-05-02T07:32:15+09:00'
+- id: cmd_1570
+  status: done
+  priority: medium
+  purpose: 初級編・中級編のカリキュラムからハンズオン要素を全削除し、講義オンリー形式に再構成する
+  timestamp: '2026-05-02T07:31:37+09:00'
+  project: udemy_course
+  lord_original: すまん。ハンズオンなしで構成し直せ。講義オンリーで — 殿2026-05-02 07:32 (Udemy講座を講義オンリー形式に再構成する指示)
+  north_star: Udemy講座を『見るだけで理解できる講義オンリー形式』に再構成し、視聴ハードルを下げ完走率を上げる。受講者がコードを書く時間を排除し、講師の実演とストーリーで習得させる。受託・コンサル導線への基盤を最短で確立する。
+  command_text: "殿原文: すまん。ハンズオンなしで構成し直せ。講義オンリーで\n\n背景:\n現在のカリキュラム (drafts/curriculum_beginner_v1_marp.md\
+    \ / curriculum_intermediate_v3_marp.md) は『ストーリー + ハンズオン + 学習目標』の3点構成で受講者が手を動かす演習が含まれている。殿の方針転換により、講義オンリー\
+    \ (受講者は視聴するのみ) に再構成する。\n\n=== 対象ファイル ===\n初級編:\n- projects/udemy_course/drafts/curriculum_beginner_v1_marp.md\
+    \ (Marpソース)\n- projects/udemy_course/drafts/curriculum_beginner_v1.md\n- projects/udemy_course/drafts/curriculum_beginner_v1.html\
+    \ (再ビルド)\n- projects/udemy_course/drafts/toc_beginner_v1.html (再ビルド)\n\n中級編:\n\
+    - projects/udemy_course/drafts/curriculum_intermediate_v3_marp.md\n- projects/udemy_course/drafts/curriculum_intermediate_v3.md\n\
+    - projects/udemy_course/drafts/curriculum_intermediate_v3.html\n- projects/udemy_course/drafts/toc_intermediate_v3.html\n\
+    \n=== 再構成方針 ===\n\n1. ハンズオン要素を全削除\n   - 「演習」「実装してください」「手元で試して」「コードを書いて」等の受講者操作セクションを削除\n\
+    \   - 章末の確認課題・宿題・成果物提出も削除\n\n2. 講師実演に置換\n   - 削除した演習部分は『講師がデモする』『画面録画で示す』方式に書換\n\
+    \   - 例: ❌「受講者がhookを書く」→ ✅「講師が完成形のhookを画面で読み解く・なぜこの実装かを語る」\n\n3. ストーリー・ケーススタディ強化\n\
+    \   - 既存の失敗事例(Gemini課金事故等)・成功事例(漫画ショート74本投稿)を講義のメインに\n   - 『私はこう考えた・こう失敗した・こう直した』の一人称ナラティブで構成\n\
+    \n4. 学習目標の表現を変更\n   - 旧: 『〜できるようになる』(技能習得目標)\n   - 新: 『〜が分かる・〜の判断基準が持てる』(理解・判断基準習得目標)\n\
+    \n5. 完走率・尺の見直し\n   - ハンズオン削除で総時間は短縮見込み (中級編17.5h → 12-14h目安)\n   - 各章の尺を 30-50min\
+    \ を中心に再配分\n\n6. v3とv1の連番管理\n   - 初級編は curriculum_beginner_v2_marp.md として新規作成 (v1は残す)\n\
+    \   - 中級編は curriculum_intermediate_v4_marp.md として新規作成 (v3は残す)\n   - 旧版の差分根拠が後から辿れるよう\
+    \ version log を追記\n\n=== 完了条件 ===\n- v2 (初級) / v4 (中級) marp ソース作成\n- HTML 再ビルド\
+    \ (marp-cli)\n- TOC HTML 再ビルド\n- 旧版のハンズオン記述が新版に1つも残らない (grep '演習\\|ハンズオン\\|実装してください\\\
+    |手元で' で 0件)\n- 各章の冒頭に新方針の version log 記載\n- git commit + push\n\n=== 共通ルール ===\n\
+    - 既存メモリ memory/project_udemy_3engineering.md の 3階層フレーム (L1プロンプト/L2コンテキスト/L3ハーネス)\
+    \ は維持\n- 既存マーケ計画 (marketing_plan_*) との整合は別cmdで対応 (本cmdではカリキュラム本体のみ)\n- 新規スクリプト作成禁止。既存\
+    \ marp-cli のみ使用"
+  acceptance_criteria:
+  - drafts/curriculum_beginner_v2_marp.md が存在し講義オンリー形式 (ハンズオン記述なし)
+  - drafts/curriculum_intermediate_v4_marp.md が存在し講義オンリー形式 (ハンズオン記述なし)
+  - 両 marp ソースから HTML が再ビルド済 (curriculum_*_v2.html / curriculum_*_v4.html)
+  - toc_beginner_v2.html / toc_intermediate_v4.html が再ビルド済
+  - 新版に grep '演習\|ハンズオン\|実装してください\|手元で試' で 0件
+  - 各 marp ソース冒頭に方針転換の version log (旧版→新版の差分) が明記
+  - 中級編の総時間が 12-14h 程度に短縮されている
+  - git commit + push 完了
+  notify_karo: true
+  completed_at: '2026-05-02T07:47:54+09:00'
+- id: cmd_1571
+  status: done
+  priority: medium
+  purpose: 初級編 序章 (Claude Code とは — AI開発の新しい形) の Marp 講義スライド + speaker notes を完成させ、残り章の量産フォーマット雛形とする
+  timestamp: '2026-05-02T08:06:25+09:00'
+  project: udemy_course
+  lord_original: １ — 殿2026-05-02 08:08 (cmd_1570 v2/v4 が設計書だったため、実際の講義スライド/原稿を作成。試作として初級編
+    序章 1本のみ先行作成し、フォーマット確定後に残り章を展開する戦略)
+  north_star: Udemy初級編の序章を講義スライド形式で完成させ、残り全章 (1〜6章+終章) の展開フォーマットを確定する。試作1本で型を固めることで、以降の章作成を並列足軽展開可能にし、講座完成までの最短経路を確立する。
+  command_text: '殿原文: １
+
+
+    背景:
+
+    cmd_1570 で生成した curriculum_beginner_v2_marp.md は『カリキュラム設計書』であって実際の講義資料ではない。本cmdでは初級編
+    序章のみ先行で『実際の講義 Marp スライド』として作成し、量産フォーマットを確定する。
+
+
+    === フォーマット参照 ===
+
+    既存の中級編序章を厳格な雛形とせよ:
+
+    - projects/udemy_course/drafts/lectures/intermediate_ch00_intro.md (274行・Marpカバー+本編+speaker
+    notes)
+
+
+    上記ファイルの構造:
+
+    1. Marp フロントマター (theme/style)
+
+    2. カバースライド (class:cover・タイトル・サブタイトル・FREE PREVIEWバッジ・講師名)
+
+    3. 章ゴール (この30分で得られること 4-5項目)
+
+    4. ストーリー導入 (受講者の現状を一人称ナラティブで描く)
+
+    5. 章本編 (章ごとのテーマを5-10スライドで解説)
+
+    6. まとめスライド
+
+    7. 次章への橋渡し
+
+
+    各スライドに必ず HTML コメントの speaker notes を入れること。
+
+
+    === 出力先 ===
+
+    projects/udemy_course/drafts/lectures/beginner_ch00_intro.md
+
+
+    === 内容ガイド ===
+
+    v2 curriculum (curriculum_beginner_v2_marp.md L 序章節) より抜粋:
+
+
+    章タイトル: Claude Code とは — AI開発の新しい形
+
+    所要: 15 min (無料プレビュー)
+
+    Level: L1: Remember
+
+
+    ストーリー導入:
+
+    > 「今までのAI開発は『ブラウザを開いてチャットする』だけでした。Claude Codeは、あなたのターミナルの中でAIが直接コードを読み、書き、実行する——まったく新しい開発体験です。」
+
+
+    学習目標 (新表現・判断基準型):
+
+    - Claude Code と他の AI ツール (ChatGPT/Cursor 等) の違いが分かる
+
+    - なぜ CLI で AI を使うのかの理由が腑に落ちる
+
+    - 本講座の終着点 (3つの到達点) を把握する
+
+
+    解説アウトライン (講師実演中心・受講者操作なし):
+
+    1. AI 開発ツールの現在地 (2026年): Chat / IDE拡張 / CLI の 3 形態
+
+    2. Claude Code の立ち位置: CLI 特化 × Anthropic 製 × 開発者向け
+
+    3. 他のAIツールとの違い: Cursor / GitHub Copilot CLI / Aider との比較表
+
+    4. 本講座のゴール: 3 つの到達点プレビュー (実画面キャプチャを講師が見せる)
+
+    5. 中級編へのブリッジ
+
+
+    講師: 村上誠治 (なぎなた)
+
+
+    === ルール ===
+
+    - ハンズオン要素を一切入れない (受講者が操作する記述は禁止)
+
+    - 『講師がやってみせる・解説する』『受講者が見て理解する』スタイル
+
+    - speaker notes は 各スライド毎に必ず記載 (なぎなた一人称で・録画原稿として使えるレベル)
+
+    - intermediate_ch00_intro.md の Marp スタイル (font-size, color, blockquote, big class
+    等) を踏襲
+
+    - 末尾に 『この型でch01以降も展開する』旨の version log を記載
+
+
+    === 完了条件 ===
+
+    - drafts/lectures/beginner_ch00_intro.md (250行〜) を作成
+
+    - marp-cli で beginner_ch00_intro.html を生成し閲覧可能
+
+    - speaker notes が全スライドにある (grep ''<!--'' で 10件以上)
+
+    - 受講者操作系の語句がない (grep ''演習\|ハンズオン\|手元で\|やってみよう'' で 0件)
+
+    - git commit + push
+
+    - index.html (drafts/index.html) に 序章ページへのリンクを追加'
+  acceptance_criteria:
+  - drafts/lectures/beginner_ch00_intro.md が intermediate_ch00_intro.md と同形式で存在する
+  - Marp HTML 版 (beginner_ch00_intro.html) が生成済み
+  - 全スライドに speaker notes が記載 (HTML コメント形式)
+  - 受講者操作系の語句が0件 (grep で確認)
+  - drafts/index.html に序章ページリンク追加 (新セクション '🎬 講義資料 (lectures)')
+  - git commit + push 完了
+  - 次章以降の量産用フォーマットとして使える完成度 (講師録画原稿として実使用可能なレベル)
+  notify_karo: true
+  completed_at: '2026-05-02T08:17:46+09:00'
+- id: cmd_1572
+  status: done
+  priority: medium
+  purpose: GPT版CDP画像生成スクリプトの設計書を軍師が作成する (実装は後続cmdで足軽担当)
+  timestamp: '2026-05-02T08:13:52+09:00'
+  project: dozle_kirinuki
+  lord_original: CDPでGemini画像生成スクリプトがあるが、GPT版を作成してほしいので設計から軍師にやらせてくれ。プロンプトは、generate_manga_short.py
+    のsimple相当でできることは確認ずみ gemini_prompts_simple_3views わたすリファレンスも３面図でよいことも確認済み — 殿2026-05-02
+    08:25
+  north_star: Gemini CDP画像生成の代替・補完として GPT (ChatGPT 4o image / Sora 等) ベースの画像生成パイプラインを獲得し、画像クオリティ・キャラ一貫性の比較検証を可能にする。漫画ショート量産の頭打ち
+    (Gemini単独依存) を回避し、複数モデルガチャ戦略の基盤を確立する。
+  command_text: "殿原文: CDPでGemini画像生成スクリプトがあるが、GPT版を作成してほしいので設計から軍師にやらせてくれ。プロンプトは、generate_manga_short.py\
+    \ のsimple相当でできることは確認ずみ。わたすリファレンスも３面図でよいことも確認済み\n\n=== 本cmdの位置づけ ===\nPhase1 (本cmd):\
+    \ 軍師が設計書 (DESIGN.md) を作成\nPhase2 (後続cmd): 足軽が設計書に基づき実装\n\n本cmdでは実装には踏み込まない。設計書のみ。\n\
+    \n=== 既存資産 (軍師は精読せよ) ===\n\n参照スクリプト (Gemini CDP実装):\n- projects/dozle_kirinuki/scripts/cdp_gemini_image_poc.py\
+    \ (563行)\n- projects/dozle_kirinuki/scripts/cdp_gemini_with_ref.py (550行)\n- projects/dozle_kirinuki/scripts/cdp_manga_panel.py\
+    \ (407行・PromptBuilder利用)\n- projects/dozle_kirinuki/scripts/manga_prompt_builder.py\
+    \ (共通プロンプトモジュール)\n- projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py\
+    \ (simple モード相当が殿確認済の入力プロンプト)\n\n確認済みの入出力サンプル:\n- 入力プロンプト例: projects/dozle_kirinuki/work/20260428_じゃんけんで決まるエンドラ討伐/gemini_prompts_simple_3views/*.prompt.txt\n\
+    - 入力リファレンス: projects/dozle_kirinuki/assets/dozle_jp/character/3views/*.png (bon/dozle/oo_men/orafu/qnly/nekooji/daifugo_oji\
+    \ の三面図)\n- リファレンス指定方式: *.refs.txt (各プロンプトに対応する画像リスト)\n\n=== 軍師の調査・設計タスク ===\n\n\
+    1) 既存 Gemini CDP の動作機序を完全に把握 (3スクリプトを読み解き)\n   - CDP attach 方式 (既存Chrome起動への接続)\
+    \ か Playwright launch 方式か\n   - ログイン状態の維持方法 (user-data-dir / cookies)\n   - プロンプト入力\
+    \ → リファレンス画像アップロード → 生成完了検出 → 画像URL取得 → ダウンロードまでの DOM/event フロー\n   - 失敗時のリトライ・タイムアウト設計\n\
+    \   - レート制限・スロットリング対策\n\n2) GPT 側の調査\n   - 候補: ChatGPT 4o image generation (chatgpt.com)\
+    \ / Sora / DALL·E 3 (Bing含む)\n   - 各候補のWeb UIで以下が可能か検証:\n     a. プロンプト入力\n   \
+    \  b. 複数リファレンス画像アップロード (三面図PNG x 1〜3枚)\n     c. キャラ一貫性 (同じ三面図から複数パネル生成して同一キャラと認識されるか)\n\
+    \     d. 生成画像の取得 (右クリック保存 or DOM経由ダウンロード)\n     e. レート制限・回数制限\n   - 推奨候補1つを選定し、根拠を設計書に明記\n\
+    \n3) アーキテクチャ設計\n   - スクリプト名と配置: 例 scripts/cdp_gpt_image_poc.py / cdp_gpt_with_ref.py\
+    \ / cdp_gpt_manga_panel.py\n   - Gemini版とのI/F互換性: 引数・出力ディレクトリ構造を可能な限り一致させ、cdp_manga_panel.py\
+    \ からモデル切替で呼び分けられる設計\n   - 共通PromptBuilder (manga_prompt_builder.py) の流用可否\n  \
+    \ - 三面図リファレンスのアップロード方式\n   - 失敗モード・リトライ・タイムアウト・コスト管理\n\n4) 比較表 (Gemini vs GPT)\n\
+    \   - 画質・キャラ一貫性・速度・コスト・レート制限・実装難度\n   - 用途別の使い分け推奨 (どのシーンに Gemini / どのシーンに GPT)\n\
+    \n5) 実装フェーズへの引き渡し\n   - 後続cmdで足軽が着手する際の TODO リスト (PoC優先順)\n   - PoC スコープ最小化案 (1パネル生成\
+    \ → 3パネル一貫性検証 → 漫画ショート1本通し)\n\n=== 出力物 ===\n- projects/dozle_kirinuki/scripts/manga_poc/DESIGN_gpt_image_cdp.md\
+    \ (設計書本体)\n- 設計書の HTML プレビュー (任意)\n\n=== ルール ===\n- 軍師は読んで設計するのみ。コード実装はするな (advisor()\
+    \ 推奨)\n- ChatGPT/Sora の検証で実際にブラウザ操作する場合は手順を記録し再現性を担保\n- セキュリティ: APIキー漏洩・cookies\
+    \ 流出対策を設計書に明記\n- 実装可否の不明箇所は『要PoC』として残し、後続cmdで足軽が確認するTODOに含めよ\n- 既存cmd_28 (Gemini画像生成コスト教訓・1パネル試打ち必須)\
+    \ のナレッジを GPT 側にも適用検討せよ\n\n=== 完了条件 ===\n- DESIGN_gpt_image_cdp.md が存在し、上記5項目 (機序把握・GPT調査・アーキ設計・比較表・引き渡し)\
+    \ を網羅\n- gunshi report で要約 + 設計判断点 + 残課題を提示\n- 家老が後続cmdを発令可能な粒度で TODO が記載\n- git\
+    \ commit + push"
+  acceptance_criteria:
+  - projects/dozle_kirinuki/scripts/manga_poc/DESIGN_gpt_image_cdp.md が存在する
+  - DESIGN内に 既存Gemini CDP 3スクリプトの動作機序の図解 or 箇条書き把握結果が記載
+  - DESIGN内に GPT候補(ChatGPT 4o image / Sora / DALL·E 3 等)の比較と推奨候補1つの根拠記載
+  - DESIGN内に 3面図リファレンスのアップロード方式・キャラ一貫性検証方針が記載
+  - DESIGN内に Gemini版とのI/F互換性方針 (cdp_manga_panel.py のモデル切替で呼び分けできる構造) が記載
+  - DESIGN内に 後続実装cmdの TODO リスト (PoC優先順) が記載
+  - git commit + push 完了
+  - 軍師レポートに 残課題と推奨フォローアップcmdが提示されている
+  notify_karo: true
+  completed_at: '2026-05-02T08:24:49+09:00'
+- id: cmd_1573
+  status: in_progress
+  priority: medium
+  purpose: 初級編 v2 を v3 に再構成し、序章に『生成AIとはなにか』を新規追加し、インストール章を削除する
+  timestamp: '2026-05-02T08:22:40+09:00'
+  project: udemy_course
+  lord_original: '生成AIとはなにか もいれてほしい / インストールは不要 — 殿2026-05-02 08:21 (初級編v2再構成: 序章に生成AI概論を新規追加・インストール章は削除)'
+  north_star: 初級編を完全ゼロ知識層 (生成AIに触ったことがない / 名前だけ知っている) まで取り込めるカリキュラムに再設計し、講義オンリーの一貫性
+    (受講者は視聴のみ) を徹底する。インストール章削除で『事前準備済を前提とした視聴体験』に統一する。
+  command_text: "殿原文: 生成AIとはなにか もいれてほしい / インストールは不要\n\n背景:\nv2 は『ハンズオン語句削除』しただけで、第1章『インストール+初回起動』が本質的ハンズオン章として残存していた。また完全ゼロ知識層\
+    \ (生成AIそのものを知らない) を取り込む導入が無かった。\n\n=== 対象ファイル ===\n- projects/udemy_course/drafts/curriculum_beginner_v3_marp.md\
+    \ (新規作成・v2を雛形に書換)\n- projects/udemy_course/drafts/curriculum_beginner_v3.html\
+    \ (再ビルド)\n- projects/udemy_course/drafts/toc_beginner_v3.html (再ビルド)\n- projects/udemy_course/drafts/index.html\
+    \ (v3を最新版として上に昇格)\n- projects/udemy_course/drafts/lectures/beginner_ch00_intro.md\
+    \ / .html (旧ch00は『Claude Codeとは』だったが新ch00は『生成AIとは』に変わるため・本cmdでは旧版を beginner_ch01_claude_code.md\
+    \ にリネームしフォーマット維持。ch00新規作成は後続cmd)\n\n=== 再構成方針 ===\n\n旧 (v2):\n- 序章: Claude Code\
+    \ とは — AI開発の新しい形\n- 第1章: インストール+初回起動 ← 削除\n- 第2章: プロンプト基礎\n- 第3章: CLAUDE.md ミニマム\n\
+    - 第4章: 簡単な自動化体験\n- 第5章: hookの入門\n- 第6章: MCP 接続入門\n- 終章: 中級編への橋渡し\n\n新 (v3):\n\
+    - 序章: **生成AIとはなにか — Chat/IDE/CLIの全体観** (新規)\n- 第1章: Claude Codeとは — CLI型AIの新しい形\
+    \ (旧序章を発展)\n- 第2章: プロンプト基礎\n- 第3章: CLAUDE.md ミニマム\n- 第4章: 簡単な自動化体験\n- 第5章: hookの入門\n\
+    - 第6章: MCP 接続入門\n- 終章: 中級編への橋渡し\n\n変更点:\n1) 序章を新規追加 (生成AIとはなにか・約15min・無料プレビュー)\n\
+    \   - 生成AIの登場 (2022 ChatGPT〜) と現在地 (2026)\n   - Chat / IDE拡張 / CLI の3形態\n   -\
+    \ 各形態の代表ツール (ChatGPT, Cursor, Claude Code 等)\n   - 本講座は『CLI型』の入門という位置づけを明示\n \
+    \  - 受講対象 (生成AIに触ったことがない or Chat だけ使ったことがある人) を明記\n2) 旧序章 (Claude Code とは) を第1章に格上げ・尺を\
+    \ 15min → 25min 程度に拡張可\n3) 旧第1章 (インストール+初回起動) を完全削除\n   - インストールは『事前準備済を前提』とし、受講前提条件として序章末尾に1スライドだけ案内\n\
+    4) 第2章以降は番号繰り上げ・内容そのまま\n5) 章数は8章 (序章+第1〜6章+終章) で v2 と同じ\n\n=== ルール ===\n- ハンズオン要素は引き続き0件\n\
+    - 各章で『講師が画面で見せる + 解説する』『受講者は視聴のみ』を徹底\n- v2 は残置 (旧版として参考保存)\n- index.html で v3\
+    \ を NEW・v2 を旧版に降格表示\n- 既存 lectures/beginner_ch00_intro.md (Claude Codeとは) は新ch01に該当するため\
+    \ lectures/beginner_ch01_claude_code.md にリネーム (内容は流用可)\n  - リネーム後 index.html のリンクも更新\n\
+    - 新ch00 (生成AIとは) のスライド本体は別cmd (後続) で作成・本cmdではカリキュラム設計のみ\n\n=== 完了条件 ===\n- curriculum_beginner_v3_marp.md\
+    \ 作成 (序章=生成AIとは・第1章以降番号繰り上げ・インストール章削除)\n- curriculum_beginner_v3.html / toc_beginner_v3.html\
+    \ 再ビルド\n- v3 内に grep 'インストール+初回起動' で 0件\n- v3 内に grep '生成AIとは' で 1件以上 (序章タイトル)\n\
+    - lectures/beginner_ch00_intro.md → lectures/beginner_ch01_claude_code.md にリネーム済\
+    \ (HTMLも対応)\n- drafts/index.html で v3 を最新表示・v2 を旧版降格・lectures リンク先更新\n- git commit\
+    \ + push 完了"
+  acceptance_criteria:
+  - curriculum_beginner_v3_marp.md が存在し序章 = 生成AIとはなにか・インストール章なし
+  - curriculum_beginner_v3.html / toc_beginner_v3.html が再ビルド済
+  - grep 'インストール+初回起動' /curriculum_beginner_v3* で 0件
+  - grep '生成AIとは' /curriculum_beginner_v3* で 1件以上
+  - lectures/beginner_ch01_claude_code.md (旧 ch00_intro) が存在しリンクが index.html で更新済
+  - drafts/index.html で v3 が NEW表示・v2 が旧版表示
+  - git commit + push 完了
+  notify_karo: true
