@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# SayTask通知 — ntfy.sh経由でスマホにプッシュ通知
+# ntfy.sh — スマホへのプッシュ通知送信 (全エージェントから利用)
+# 役割: ntfy.sh=送信専用 / ntfy_listener.sh=ストリーミング受信 / ntfy_voice.sh=VOICEVOX音声合成
 # FR-066: ntfy認証対応 (Bearer token / Basic auth)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

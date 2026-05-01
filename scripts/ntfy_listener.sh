@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════
-# ntfy Input Listener
+# ntfy_listener.sh — 殿からのntfyメッセージを受信しinbox YAMLに書込む
+# 役割: ntfy.sh=送信専用 / ntfy_listener.sh=ストリーミング受信(本ファイル) / ntfy_voice.sh=音声合成
 # Streams messages from ntfy topic, writes to inbox YAML, wakes shogun.
 # NOT polling — uses ntfy's streaming endpoint (long-lived HTTP connection).
 # FR-066: ntfy認証対応 (Bearer token / Basic auth)

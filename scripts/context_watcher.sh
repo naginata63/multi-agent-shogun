@@ -1,6 +1,7 @@
 #!/bin/bash
 # context_watcher.sh — コンテキスト残量監視 → 自動handoff/clear/rehydrate
 # 使い方: bash scripts/context_watcher.sh &
+# 起動経路: 手動バックグラウンド実行のみ (cron未登録・watcher_supervisor.sh非経由)
 #
 # statusline.shが /tmp/claude_context_{pane_id}.txt に used_percentage を書き出す
 # このスクリプトが定期的にチェックし、閾値を超えたら:

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# ntfy_voice.sh — VOICEVOXずんだもんで音声合成 → スピーカー再生
+# ntfy_voice.sh — VOICEVOXずんでもんで音声合成 → スピーカー再生
+# 役割: ntfy.sh=送信専用 / ntfy_listener.sh=ストリーミング受信 / ntfy_voice.sh=音声合成(本ファイル)
 # 引数: 読み上げるテキスト
 # バックグラウンド実行前提（ntfy.sh から & で呼ばれる）
 

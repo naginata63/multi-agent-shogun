@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# dashboard_lifecycle.sh — cmd_1442 H2拡張 (cmd_1443_p02)
+# dashboard_lifecycle.sh — MCPダッシュボード残骸検出 + 進行中テーブル✅完了行削除
+# cmd_1442 H2拡張 (cmd_1443_p02) / cmd_1556後LEGACY整理
 #
 # 目的:
-#   (1) [LEGACY] dashboard.md 🚨要対応セクションの「解決済」残骸行を自動アーカイブ＋削除 (dashboard.md廃止によりskip)
 #   (2) MCPダッシュボード (http://192.168.2.7:8770/api/dashboard) の残骸
 #       (action_required に cmd_id があるのに recent_done に同一 cmd_id がある状態)
 #       を検出し、家老に ntfy で削除依頼通知
@@ -10,8 +10,7 @@
 # 設計メモ:
 #   - plan v3 §3 Δ2 では /api/tasks と記載だが実機は /api/dashboard のみ (/api/tasks は 404)
 #     → hotfix_notes に記録 (cmd_1443_p02 報告参照)
-#   - dashboard.md の ✅ は進行中セクションでも多用される (live tracking data)。
-#     従って「~~strikethrough~~ かつ 解決済/解消済 キーワードを含む行」のみ対象
+#   - dashboard.md は cmd_1556 で廃止済み。dashboard.md関連の (1) Logic は全てskip動作
 #   - 削除前に dashboard_archive/$(date +%Y-%m).md へ append (監査証跡)
 #   - flock で dashboard.md への同時書込みを防止
 #
@@ -19,7 +18,7 @@
 #   bash scripts/dashboard_lifecycle.sh [--dry-run] [--verbose]
 #
 # Cron:
-#   既存 nightly_audit (02:02) から呼び出される
+#   毎時 0 * * * * (crontab直)
 
 set -euo pipefail
 
@@ -64,7 +63,7 @@ ntfy_best_effort() {
 log "=== dashboard_lifecycle start (dry_run=${DRY_RUN}) ==="
 
 # ─────────────────────────────────────────────────────────────
-# (1) dashboard.md 解決済み残骸クリーン
+# (1) [SKIP] dashboard.md 廃止済 (cmd_1556) — 全ロジックskip動作
 # ─────────────────────────────────────────────────────────────
 
 clean_dashboard_md() {
