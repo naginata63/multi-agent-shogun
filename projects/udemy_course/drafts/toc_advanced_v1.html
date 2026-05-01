@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code 上級: ハーネス実装 + flagship 三層アーキ</title>
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; max-width: 980px; margin: 0 auto; padding: 0; background: #f8f9fa; color: #222; line-height: 1.7; }
+  .hero { background: linear-gradient(135deg, #c2410c 0%, #9a3412 100%); color: #fff; padding: 40px 28px; }
+  .hero h1 { font-size: 22px; margin: 0 0 8px 0; line-height: 1.4; }
+  .hero h2 { font-size: 28px; margin: 0 0 16px 0; line-height: 1.3; font-weight: bold; }
+  .hero .meta { font-size: 14px; opacity: 0.85; }
+  .container { padding: 24px 28px; }
+  h3.section { font-size: 20px; border-left: 5px solid #c2410c; padding-left: 12px; margin: 32px 0 16px 0; }
+  .benefit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+  @media (max-width: 700px) { .benefit-grid { grid-template-columns: 1fr; } }
+  .benefit-grid li { padding: 6px 0; }
+  .persona { background: #fff; border-left: 4px solid #ea580c; padding: 10px 16px; margin: 8px 0; font-size: 14px; }
+  .persona b { color: #9a3412; }
+  .toc-table { background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; margin-bottom: 16px; }
+  .toc-section { border-bottom: 1px solid #e5e7eb; }
+  .toc-section:last-child { border-bottom: none; }
+  .toc-header { background: #ffedd5; padding: 10px 16px; font-weight: bold; color: #9a3412; font-size: 14px; display: flex; justify-content: space-between; }
+  .toc-row { padding: 12px 16px; display: grid; grid-template-columns: 50px 1fr 90px; gap: 12px; align-items: start; border-top: 1px solid #f3f4f6; }
+  .toc-row.free { background: #fef9c3; }
+  .toc-row.flagship { background: #ecfdf5; border-left: 4px solid #059669; }
+  .toc-row .num { font-weight: bold; color: #6b7280; font-size: 14px; }
+  .toc-row .title { font-size: 14px; }
+  .toc-row .title b { display: block; margin-bottom: 4px; color: #1f2937; }
+  .toc-row .title small { color: #6b7280; font-size: 12px; }
+  .toc-row .meta { font-size: 11px; color: #6b7280; text-align: right; white-space: nowrap; }
+  .free-tag { display: inline-block; background: #facc15; color: #78350f; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: bold; margin-right: 4px; }
+  .flag-tag { display: inline-block; background: #059669; color: #fff; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: bold; margin-right: 4px; }
+  .deliverables { background: #fff; border-radius: 8px; padding: 16px 20px; border: 1px solid #e5e7eb; }
+  .deliverables ol { margin: 0; padding-left: 20px; }
+  .differentiator { background: #fff7ed; border-radius: 8px; padding: 16px 20px; }
+  .differentiator h4 { color: #9a3412; margin-top: 8px; }
+  .preview-cta { background: #fef3c7; border: 2px dashed #f59e0b; padding: 16px 20px; margin: 24px 0; border-radius: 8px; text-align: center; }
+  .summary-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+  @media (max-width: 700px) { .summary-stats { grid-template-columns: 1fr 1fr; } }
+  .stat { background: #fff; border-radius: 6px; padding: 10px; text-align: center; border: 1px solid #e5e7eb; }
+  .stat .v { font-size: 22px; font-weight: bold; color: #9a3412; }
+  .stat .l { font-size: 11px; color: #6b7280; }
+  .ladder { background: #ffedd5; border-radius: 8px; padding: 16px 20px; margin-top: 16px; border-left: 4px solid #c2410c; }
+  .ladder b { color: #9a3412; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>【上級編 v1】Udemy 講座カリキュラム TOC</h1>
+  <h2>Claude Code 上級: ハーネス実装 + flagship 三層アーキ</h2>
+  <div class="meta">9 レクチャー / 約 9 時間 / 通常価格 24,000円 (セール時 1,800円) — 18 hook 実コードカタログ + flagship 60min</div>
+</div>
+
+<div class="container">
+
+<div class="summary-stats">
+  <div class="stat"><div class="v">9</div><div class="l">レクチャー</div></div>
+  <div class="stat"><div class="v">9h</div><div class="l">合計時間</div></div>
+  <div class="stat"><div class="v">2本</div><div class="l">無料プレビュー</div></div>
+  <div class="stat"><div class="v">5点</div><div class="l">最終成果物</div></div>
+</div>
+
+<h3 class="section">この講座で学べること (ベネフィット)</h3>
+<ul class="benefit-grid">
+  <li>✅ done_gate ハーネスで「未完了の完了」を機械的にBLOCK</li>
+  <li>✅ silent_fail_watcher で沈黙の失敗を inotifywait+systemd 常駐検出</li>
+  <li>✅ cmd_intake_hook で過去類似事例を自動表示 (再発防止)</li>
+  <li>✅ lord-angry slash で怒りを永続学習データに変換</li>
+  <li>✅ 12 ハーネスから自プロジェクト用 3 つを選定する判断軸</li>
+  <li>✅ <b>flagship 第6章</b>: 三層アーキ統合 hook を 60 分で 1 行ずつ解剖</li>
+  <li>✅ failure 注入テスト → done_gate BLOCK / watcher WARN の全自動検出</li>
+  <li>✅ Marketing Trip 流のバックエンド導線設計 (附録 B)</li>
+</ul>
+
+<h3 class="section">対象受講生</h3>
+<div class="persona"><b>中級修了者</b>: CLAUDE.md/instructions/memory/入門 hook を実装済み。「これを実戦級に拡張したい」と感じる方</div>
+<div class="persona"><b>個人で大規模 AI 開発を回している方</b>: 9 体並列・hook 18 本級の規模感に挑戦したい方</div>
+<div class="persona"><b>「AI 開発受託」「コンサル」を視野に入れる方</b>: 附録 B のビジネス導線で次の収益源を設計したい方</div>
+
+<h3 class="section">📚 カリキュラム (全 9 レクチャー)</h3>
+
+<div class="toc-table">
+
+  <div class="toc-section">
+    <div class="toc-header"><span>序章 (無料・30min)</span><span>中級復習 + 上級導入</span></div>
+    <div class="toc-row free">
+      <div class="num">0</div>
+      <div class="title">
+        <b><span class="free-tag">FREE</span>序章: 中級の延長線にある「実戦級ハーネス」とは</b>
+        <small>中級で作った入門 hook 1 本 → 本講座で 6 種に拡張するロードマップと flagship のクライマックス予告。</small>
+      </div>
+      <div class="meta">30 min<br>L0</div>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-header"><span>L3 ハーネス実装 (章 1〜5)</span><span>60min × 5</span></div>
+    <div class="toc-row free">
+      <div class="num">1</div>
+      <div class="title">
+        <b><span class="free-tag">FREE</span>完了 Gate ハーネス (H1 + H10 統合型)</b>
+        <small>「完了」報告に対して done_gate が ERROR を返す体験 — 未完了の完了報告を 5 条件で機械的に BLOCK。</small>
+      </div>
+      <div class="meta">60 min<br>L6 Create</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">2</div>
+      <div class="title">
+        <b>silent fail 検出ハーネス (H4)</b>
+        <small>成功ログに紛れた『実は失敗』を inotifywait + systemd で常駐監視。一番危険な失敗の沈黙を破る。</small>
+      </div>
+      <div class="meta">60 min<br>L6 Create</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">3</div>
+      <div class="title">
+        <b>Phase 間ゲートと cmd intake ハーネス (H3+H8+H9)</b>
+        <small>タスク起票時に過去類似事例を自動表示 — 「1 ヶ月前に同じ問題を解いていた」を発見する仕組み。</small>
+      </div>
+      <div class="meta">60 min<br>L6 Create</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">4</div>
+      <div class="title">
+        <b>ステークホルダー激怒を feedback 自動化する slash (H11)</b>
+        <small>怒りを永続的な学習データに変換 — y承認 / e修正 / n破棄 のレビュー方式 slash command。</small>
+      </div>
+      <div class="meta">60 min<br>L5-L6</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">5</div>
+      <div class="title">
+        <b>残り 7 ハーネスカタログと選定判断</b>
+        <small>12 種類から自プロジェクトに必要な 3 つを選定し、1 週間の実装ロードマップを作成。</small>
+      </div>
+      <div class="meta">60 min<br>L4-L5</div>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-header"><span>第6章 flagship (本講座最重要)</span><span>60min × 1</span></div>
+    <div class="toc-row flagship">
+      <div class="num">6</div>
+      <div class="title">
+        <b><span class="flag-tag">FLAGSHIP</span>三層アーキ実装パターン (L1+L2+L3 統合)</b>
+        <small>本講座のクライマックス。3 層統合 hook を一行ずつ解剖。primary 死亡時の fallback 3 点も実装。</small>
+      </div>
+      <div class="meta">60 min<br>L6 Create</div>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-header"><span>総合演習 (章 7〜8)</span><span>60min × 2</span></div>
+    <div class="toc-row">
+      <div class="num">7</div>
+      <div class="title">
+        <b>総合演習 Part 1: 自プロジェクトに 3 階層統合を組み込む</b>
+        <small>1〜6 章の個別成果物を統合 — git log に「3layer integration complete」が残る達成感。</small>
+      </div>
+      <div class="meta">60 min<br>L6 Create</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">8</div>
+      <div class="title">
+        <b>総合演習 Part 2: ハーネス統合テスト</b>
+        <small>failure 注入 → done_gate が BLOCK → silent_fail_watcher が WARN 全自動検出。</small>
+      </div>
+      <div class="meta">60 min<br>L6 Create</div>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-header"><span>附録 (1 種・30min)</span><span>本編後オプション</span></div>
+    <div class="toc-row"><div class="num">B</div><div class="title"><b>ビジネス導線設計 (Marketing Trip メソッド)</b><small>本講座 → メルマガ → AI開発コンサル/受託 への送客導線。バックエンド商品設計テンプレート付き。</small></div><div class="meta">30 min</div></div>
+  </div>
+
+</div>
+
+<div class="preview-cta">
+  🎬 <b>無料プレビュー: 序章 + 第1章 (完了 Gate)</b><br>
+  序章で「実戦級ハーネス」のロードマップ + 第1章で done_gate が ERROR を返す瞬間の体験 — 「これがあれば AI に任せられる」の確信を提供。
+</div>
+
+<h3 class="section">🎁 受講後あなたが手にするもの (5 点)</h3>
+<div class="deliverables">
+<ol>
+  <li><b><code>scripts/done_gate.sh</code></b> (PostToolUse hook・5 条件自動チェック)</li>
+  <li><b><code>scripts/silent_fail_watcher.sh</code> + systemd unit</b> (inotifywait 常駐 daemon)</li>
+  <li><b><code>scripts/cmd_intake_hook.sh</code></b> (PreToolUse hook・mem-search 自動)</li>
+  <li><b><code>.claude/commands/{ステークホルダー}-angry.md</code></b> (slash command)</li>
+  <li><b>flagship: 3 層統合 hook 5 ファイル一式</b> + ハーネス選定計画 + 統合テストレポート</li>
+</ol>
+</div>
+
+<h3 class="section">⭐ 4 つの差別化ポイント</h3>
+<div class="differentiator">
+<h4>1. 3階層統合は市場ゼロ (60 件市場調査で確認)</h4>
+<p>単独層の講座はレッドオーシャン、3 層通貫の実装講座は存在しない。</p>
+<h4>2. 18 本 hook 実コードカタログ</h4>
+<p>既存ベストセラー 2 件は概論止まり。本講座は実コード 18 本の読解を含む。</p>
+<h4>3. 失敗事例 15 件以上を教材化</h4>
+<p>実運用での事故 (context 爆発 / silent fail 等) を教材化。机上の空論ではない。</p>
+<h4>4. flagship case study (第6章)</h4>
+<p>三層アーキテクチャを 60 min で解剖 + primary/fallback 二重安全設計まで踏み込む深度。既存講座では見られない。</p>
+</div>
+
+<h3 class="section">🪜 三段階送客導線</h3>
+<div class="ladder">
+<b>初級 (5h・通常 12,000円 / セール 1,500円)</b> → <b>中級 (11h・通常 19,800円 / セール 1,500円)</b> → <b>上級 (本講座・9h・通常 24,000円 / セール 1,800円)</b>
+<p>初級で Claude Code 入門 → 中級で 3 階層基礎を実装 → 本講座で hook 18 本 + flagship 三層アーキへ。受講完了後は附録 B の Marketing Trip メソッドで AI 開発コンサル/受託への次の収益源へ。</p>
+</div>
+
+</div>
+</body>
+</html>

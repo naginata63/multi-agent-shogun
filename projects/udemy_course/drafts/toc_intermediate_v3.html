@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code 中級: 3階層基礎完全実装</title>
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; max-width: 980px; margin: 0 auto; padding: 0; background: #f8f9fa; color: #222; line-height: 1.7; }
+  .hero { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; padding: 40px 28px; }
+  .hero h1 { font-size: 22px; margin: 0 0 8px 0; line-height: 1.4; }
+  .hero h2 { font-size: 28px; margin: 0 0 16px 0; line-height: 1.3; font-weight: bold; }
+  .hero .meta { font-size: 14px; opacity: 0.85; }
+  .container { padding: 24px 28px; }
+  h3.section { font-size: 20px; border-left: 5px solid #1e3a8a; padding-left: 12px; margin: 32px 0 16px 0; }
+  .benefit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+  @media (max-width: 700px) { .benefit-grid { grid-template-columns: 1fr; } }
+  .benefit-grid li { padding: 6px 0; }
+  .persona { background: #fff; border-left: 4px solid #2563eb; padding: 10px 16px; margin: 8px 0; font-size: 14px; }
+  .persona b { color: #1e3a8a; }
+  .toc-table { background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; margin-bottom: 16px; }
+  .toc-section { border-bottom: 1px solid #e5e7eb; }
+  .toc-section:last-child { border-bottom: none; }
+  .toc-header { background: #eef2ff; padding: 10px 16px; font-weight: bold; color: #1e3a8a; font-size: 14px; display: flex; justify-content: space-between; }
+  .toc-row { padding: 12px 16px; display: grid; grid-template-columns: 50px 1fr 90px; gap: 12px; align-items: start; border-top: 1px solid #f3f4f6; }
+  .toc-row.free { background: #fef9c3; }
+  .toc-row .num { font-weight: bold; color: #6b7280; font-size: 14px; }
+  .toc-row .title { font-size: 14px; }
+  .toc-row .title b { display: block; margin-bottom: 4px; color: #1f2937; }
+  .toc-row .title small { color: #6b7280; font-size: 12px; }
+  .toc-row .meta { font-size: 11px; color: #6b7280; text-align: right; white-space: nowrap; }
+  .free-tag { display: inline-block; background: #facc15; color: #78350f; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: bold; margin-right: 4px; }
+  .deliverables { background: #fff; border-radius: 8px; padding: 16px 20px; border: 1px solid #e5e7eb; }
+  .deliverables ol { margin: 0; padding-left: 20px; }
+  .preview-cta { background: #fef3c7; border: 2px dashed #f59e0b; padding: 16px 20px; margin: 24px 0; border-radius: 8px; text-align: center; }
+  .preview-cta a { color: #92400e; font-weight: bold; }
+  .summary-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+  @media (max-width: 700px) { .summary-stats { grid-template-columns: 1fr 1fr; } }
+  .stat { background: #fff; border-radius: 6px; padding: 10px; text-align: center; border: 1px solid #e5e7eb; }
+  .stat .v { font-size: 22px; font-weight: bold; color: #1e3a8a; }
+  .stat .l { font-size: 11px; color: #6b7280; }
+  .ladder { background: #ecfdf5; border-radius: 8px; padding: 16px 20px; margin-top: 16px; border-left: 4px solid #059669; }
+  .ladder b { color: #047857; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>【中級編 v4】Udemy 講座カリキュラム TOC</h1>
+  <h2>Claude Code 中級: 3階層基礎完全実装</h2>
+  <div class="meta">12 レクチャー / 約 11 時間 / 通常価格 19,800円 (セール時 1,500円) — L1 プロンプト + L2 コンテキスト + L3 ハーネス入門</div>
+</div>
+
+<div class="container">
+
+<div class="summary-stats">
+  <div class="stat"><div class="v">12</div><div class="l">レクチャー</div></div>
+  <div class="stat"><div class="v">11h</div><div class="l">合計時間</div></div>
+  <div class="stat"><div class="v">2本</div><div class="l">無料プレビュー</div></div>
+  <div class="stat"><div class="v">3点</div><div class="l">最終成果物</div></div>
+</div>
+
+<h3 class="section">この講座で学べること (ベネフィット)</h3>
+<ul class="benefit-grid">
+  <li>✅ プロンプトを「再利用できる関数」として設計する</li>
+  <li>✅ CLAUDE.md / instructions / task YAML の役割分担</li>
+  <li>✅ コンテキストウィンドウの「家計簿」と最適配分</li>
+  <li>✅ claude-mem / MCP memory による永続記憶層の構築</li>
+  <li>✅ SessionStart / PreCompact による完全復旧仕組み</li>
+  <li>✅ コンテキスト運用ベストプラクティス + 劣化検出</li>
+  <li>✅ ハーネス入門: Claude Code lifecycle 7 イベント</li>
+  <li>✅ 中級総合演習: 自プロジェクトに 3 階層を統合する</li>
+</ul>
+
+<h3 class="section">対象受講生</h3>
+<div class="persona"><b>初級修了者</b>: CLAUDE.md / hook 1 本 / MCP 接続済の状態から、もう 1 段ステップアップしたい方</div>
+<div class="persona"><b>初〜中級エンジニア</b>: Claude Code を使っているが「セッションが切れると一からやり直し」「コンテキストが太って遅い」に悩んでいる方</div>
+<div class="persona"><b>個人開発者・副業エンジニア</b>: 1人+1AI で大規模プロジェクトを回したい・属人化したノウハウを永続化したい方</div>
+
+<h3 class="section">📚 カリキュラム (全 12 レクチャー)</h3>
+
+<div class="toc-table">
+
+  <div class="toc-section">
+    <div class="toc-header"><span>序章 (無料・30min)</span><span>before/after 体験</span></div>
+    <div class="toc-row free">
+      <div class="num">0</div>
+      <div class="title">
+        <b><span class="free-tag">FREE</span>序章: AI開発 3階層モデルとは</b>
+        <small>「壁に絵を描いては消す」状態に窓を開け、配管まで通す方法 — 3 階層全体像と最終成果物のツアー。</small>
+      </div>
+      <div class="meta">30 min<br>L0</div>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-header"><span>L1 プロンプトエンジニアリング (章 1〜4)</span><span>45min × 4</span></div>
+    <div class="toc-row free">
+      <div class="num">1</div>
+      <div class="title">
+        <b><span class="free-tag">FREE</span>プロンプトを「関数」として設計する</b>
+        <small>『AI に伝わればいい』から『何度でも使える』へ。日常業務タスクが関数化される瞬間を体験。</small>
+      </div>
+      <div class="meta">45 min<br>L3 Apply</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">2</div>
+      <div class="title">
+        <b>構造化プロンプトと失敗パターン</b>
+        <small>10 項目の診断 checklist で自分のプロンプトの病気を見分ける医者になる。</small>
+      </div>
+      <div class="meta">45 min<br>L4</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">3</div>
+      <div class="title">
+        <b>階層的プロンプト: CLAUDE.md / instructions / task YAML の役割分担</b>
+        <small>CLAUDE.md 100行 → 30行スリム化体験。荷物を部屋に整理する快感。</small>
+      </div>
+      <div class="meta">45 min<br>L4-L5</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">4</div>
+      <div class="title">
+        <b>プロンプト品質 Gate: advisor() と QC template</b>
+        <small>あなたのプロンプトを別の AI に審査させる仕組み。盲点を指摘される体験。</small>
+      </div>
+      <div class="meta">45 min<br>L5</div>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-header"><span>L2 コンテキストエンジニアリング (章 5〜9)</span><span>60min × 5</span></div>
+    <div class="toc-row">
+      <div class="num">5</div>
+      <div class="title">
+        <b>コンテキストウィンドウ経済学</b>
+        <small>「ファイル読込が 7 割を占めていた」AI の家計簿を作る。予算配分と auto-compact 設計。</small>
+      </div>
+      <div class="meta">60 min<br>L4</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">6</div>
+      <div class="title">
+        <b>永続コンテキスト層 (claude-mem / MCP memory / Agent Skills)</b>
+        <small>過去 1 ヶ月の教訓 10 件を memory/*.md に落とし込み、新セッションで自動読込確認。</small>
+      </div>
+      <div class="meta">60 min<br>L4-L5</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">7</div>
+      <div class="title">
+        <b>セッション再起動耐性 (SessionStart / PreCompact / rehydrate)</b>
+        <small>意図的 /clear → SessionStart hook 発動 → 3 秒で完全復旧する「魔法のような」体験。</small>
+      </div>
+      <div class="meta">60 min<br>L5-L6</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">8</div>
+      <div class="title">
+        <b>コンテキスト運用ベストプラクティス</b>
+        <small>過去 1 週間のセッション履歴を分析し、不要コンテキストの削減プランを作成。</small>
+      </div>
+      <div class="meta">60 min<br>L5-L6</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">9</div>
+      <div class="title">
+        <b>コンテキスト劣化検出と自動更新</b>
+        <small>memory/*.md に賞味期限を設定。週次 cron で stale 検出する仕組みを構築。</small>
+      </div>
+      <div class="meta">60 min<br>L5-L6</div>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-header"><span>L3 ハーネス入門 (章 10) + 中級総合演習 (章 11)</span><span>60min × 2</span></div>
+    <div class="toc-row">
+      <div class="num">10</div>
+      <div class="title">
+        <b>ハーネス入門: Claude Code lifecycle 7 イベント</b>
+        <small>『AI が何をしたかを監視する』への入口。最初の hook が発火する瞬間。本格的な実装は上級編で。</small>
+      </div>
+      <div class="meta">60 min<br>L2-L3</div>
+    </div>
+    <div class="toc-row">
+      <div class="num">11</div>
+      <div class="title">
+        <b>中級総合演習: 自プロジェクトに 3 階層基礎を統合する</b>
+        <small>1〜10 章の成果物を統合 — CLAUDE.md / memory / 入門 hook が連携した自分のリポジトリへ。</small>
+      </div>
+      <div class="meta">60 min<br>L6 Create</div>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-header"><span>附録 (2 種・各 30min)</span><span>本編後オプション</span></div>
+    <div class="toc-row"><div class="num">A</div><div class="title"><b>差別化戦略</b><small>3階層統合は市場ゼロ — 60件分析データ・自分のニッチを見つける3ステップ。</small></div><div class="meta">30 min</div></div>
+    <div class="toc-row"><div class="num">C</div><div class="title"><b>トラブルシュート集</b><small>hook が発火しない 5 大原因・claude-mem 復旧・コスト爆発防衛。</small></div><div class="meta">30 min</div></div>
+  </div>
+
+</div>
+
+<div class="preview-cta">
+  🎬 <b>無料プレビュー: 序章 + 第1章</b><br>
+  序章で 3 階層全体像 (購買決断のトリガー) + 第1章で関数プロンプト体験 — 「これだ！」を提供。
+</div>
+
+<h3 class="section">🎁 受講後あなたが手にするもの (3 点)</h3>
+<div class="deliverables">
+<ol>
+  <li><b>スリム化 CLAUDE.md + instructions/*.md セット</b> (L1 階層プロンプト)</li>
+  <li><b>memory/*.md + MEMORY.md 索引 + SessionStart 復旧 hook</b> (L2 永続コンテキスト)</li>
+  <li><b>入門 hook 1〜2 本 + 設定済 settings.json</b> (L3 ハーネス入口)</li>
+</ol>
+</div>
+
+<h3 class="section">🪜 三段階送客導線</h3>
+<div class="ladder">
+<b>初級 (5h・通常 12,000円 / セール 1,500円)</b> → <b>中級 (本講座・11h・通常 19,800円 / セール 1,500円)</b> → <b>上級 (9h・通常 24,000円 / セール 1,800円)</b>
+<p>初級で Claude Code 入門 → 中級で 3 階層基礎を実装 → 上級で hook 18 本 + flagship 三層アーキへ。1 本買って次に繋がる構造。<br>
+<b>上級編予告</b>: ハーネス実装 6 本 (完了Gate / silent fail watcher / cmd intake hook / lord-angry slash 等) + flagship 「三層アーキ実装パターン」 + 総合演習 2 章 + 附録 B (ビジネス導線設計)。</p>
+</div>
+
+</div>
+</body>
+</html>

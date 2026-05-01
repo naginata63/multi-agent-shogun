@@ -78,3 +78,77 @@ tasks:
   target_path: /home/murakami/multi-agent-shogun/scripts/sqlite_yaml_audit.py
   task_id: subtask_1488a
   timestamp: '2026-04-25T22:39:00+09:00'
+- agent: ashigaru4
+  task_id: subtask_1568a
+  status: done
+  parent_cmd: cmd_1568
+  bloom_level: L3
+  priority: high
+  description: 'cmd_1568 Phase1: silent_fail_watcher.sh を systemd user service で常時起動・テスト検証'
+  target_path: /home/murakami/.config/systemd/user/silent-fail-watcher.service
+  steps: '0) advisor()呼出 1) 参考: cat ~/.config/systemd/user/claude-mem-worker.service
+    (Type=simple参考) 2) 現在の watcher プロセス確認: ps aux | grep silent_fail_watcher | grep
+    -v grep 3) ~/.config/systemd/user/silent-fail-watcher.service を新規作成 (Type=simple・ExecStart=bash
+    /home/murakami/multi-agent-shogun/scripts/silent_fail_watcher.sh・WorkingDirectory=/home/murakami/multi-agent-shogun・Restart=on-failure・RestartSec=10・Environment=HOME=/home/murakami)
+    4) 既存プロセス停止: PID確認→kill -SIGTERM $PID && sleep 3 (kill blockedならshogunに依頼) 5)
+    systemctl --user daemon-reload && systemctl --user enable silent-fail-watcher
+    && systemctl --user start silent-fail-watcher 6) systemctl --user status silent-fail-watcher
+    (active(running)確認) 7) テスト検証: echo ''ERROR: test_billing COST=999 triggered''
+    >> logs/nightly_audit.log && sleep 10 (ntfy通知またはlogs/silent_fail_watcher.log に検知ログが記録されること確認)
+    8) systemctl --user is-enabled silent-fail-watcher (enabled確認) 9) advisor()呼出
+    10) inbox_write gunshi QC依頼(systemctl status / is-enabled / テスト検知ログの3点確認依頼)'
+  acceptance_criteria:
+  - ~/.config/systemd/user/silent-fail-watcher.service 作成済み
+  - systemctl --user status silent-fail-watcher が active(running)
+  - systemctl --user is-enabled が enabled
+  - テストERROR注入でlogs/silent_fail_watcher.logに検知ログが記録される
+  - gunshi QC PASS
+  notes:
+  - silent_fail_watcher.sh はmain()でwhile trueループ(foreground)→Type=simple で直接実行可
+  - ExecStart=bash scripts/... ではなく絶対パスで指定
+  - kill BLOCK の場合は殿/将軍に依頼 (D006ルール)
+  - サービスファイルはgit管理外のため commit不要
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-02T06:50:06.308309+09:00'
+- agent: ashigaru4
+  task_id: subtask_1574a
+  status: assigned
+  parent_cmd: cmd_1574
+  bloom_level: L3
+  priority: medium
+  description: 'cmd_1574: ChatGPT CDP PoC 実装 (TODO 1〜3: ログイン+画像生成+三面図ref+セッション維持)'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/cdp_chatgpt_image_poc.py
+  steps: '0) advisor()呼出 1) projects/dozle_kirinuki/scripts/manga_poc/DESIGN_gpt_image_cdp.md
+    全文精読 (設計書622行・第11章セッション維持設計必須確認) 2) projects/dozle_kirinuki/scripts/cdp_gemini_image_poc.py
+    精読(I/F参照・Cookie復号方式) 3) [Phase1] cdp_chatgpt_login_poc.py 新規作成: (a)Chrome Cookie
+    復号(peanuts方式・cdp_gemini_image_poc.py流用) (b)Playwright起動+Cookie注入 (c)chatgpt.com
+    アクセス+ログイン状態確認 (d)New Chat 起動確認 (e)50-100行目標) → python3 cdp_chatgpt_login_poc.py
+    で実行確認 4) [Phase2] cdp_chatgpt_image_poc.py 新規作成: (a)cdp_gemini_image_poc.py と同I/F(--prompt/--out/--count/--update-cookies)
+    (b)プロンプト入力(contenteditable ProseMirror対応・fill()使用) (c)送信→生成完了detect(img src=files.oaiusercontent.com出現)
+    (d)URL fetch でローカル保存(案A推奨・失敗時案B fallback) (e)timeout 120秒 (f)300-400行目標) → python3
+    cdp_chatgpt_image_poc.py --prompt ''テスト侍のイラスト'' --out /tmp/test_chatgpt/ で実行確認・出力PNG確認
+    5) [Phase3] ref-image + セッション維持を cdp_chatgpt_image_poc.py に追加: (a)--ref-image
+    引数対応(複数ファイル・setInputFiles) (b)同一chat内連続生成(第11章設計通り・新規チャット不可) (c)conversation_id/URL
+    保持でセッション状態管理 (d)クラッシュ時リカバリロジック(state JSON書出) → 三面図ref使用テスト: python3 cdp_chatgpt_image_poc.py
+    --prompt ''赤い服を着て笑うdozle'' --ref-image projects/dozle_kirinuki/assets/dozle_jp/character/3views/dozle_3views.png
+    --out /tmp/test_dozle/ → 3パネル連続生成テスト (同一chat内) 6) git add projects/dozle_kirinuki/scripts/cdp_chatgpt_login_poc.py
+    projects/dozle_kirinuki/scripts/cdp_chatgpt_image_poc.py && git diff --cached
+    && git commit ''feat: cmd_1574 ChatGPT CDP PoC (login+image_gen+ref+session)''
+    && git push origin main (submodule内) 7) advisor()呼出 8) inbox_write karo 完了報告(各Phase成功ログ+生成画像path+失敗時は詳細エラー記載)'
+  acceptance_criteria:
+  - scripts/cdp_chatgpt_login_poc.py が存在しchatgpt.comにログイン状態でアクセス可能
+  - scripts/cdp_chatgpt_image_poc.py が存在しprompt → PNG生成可能 (1024x1024)
+  - cdp_chatgpt_image_poc.py に --ref-image 対応があり三面図参照でdozle一致画像生成可能
+  - 同一chat内で3パネル連続生成成功・背景連続性目視確認
+  - 失敗時リカバリ(再ログインまたはchat復元)のロジックが実装されている
+  - git commit + push完了 (submodule)
+  - 完了reportに各Phaseの成功ログ + 生成画像path記載
+  notes:
+  - '設計書: projects/dozle_kirinuki/scripts/manga_poc/DESIGN_gpt_image_cdp.md (622行・第11章必読)'
+  - 'I/F参照: cdp_gemini_image_poc.py (同じCookie復号方式・Playwright操作パターン)'
+  - '実装場所: projects/dozle_kirinuki/scripts/ (submodule内・git pushはsubmodule内で行え)'
+  - 'ChatGPT Cookie: peanuts方式がそのまま使えない場合はalt keyring方式を試みよ・失敗はPhase1で即報告'
+  - '三面図パス: assets/dozle_jp/character/3views/ 以下を確認せよ'
+  - 'セッション維持(第11章)は必須要件: 同一chat連続生成=背景統一のため・NewChat禁止'
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-02T08:26:55.081172+09:00'
