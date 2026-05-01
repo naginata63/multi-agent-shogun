@@ -108,6 +108,26 @@ ORAFU_V5_REF = Path("projects/dozle_kirinuki/work/orafu_futuristic/orafu_futuris
 ORAFU_V5_OUT_DIR = Path("projects/dozle_kirinuki/work/orafu_futuristic/v5")
 ORAFU_V5_PROMPT = """全身のアニメ風キャラクターイラスト、透過背景、リファレンス画像と同じ画風・衣装を維持。銀白色ショートヘア・青い瞳・色白少年。v1衣装そのまま（フラットキャップ+黒アンテナ2本、ティールヘッドホン雪だるまロゴ、スカウター型シアンホログラム、ティールグレージャケット、赤スカーフ、ゴールドベルト、ダークネイビーパンツ白ライン、白スニーカー）。武器: 右手にSF風ハンドガン（ティール/シアン色ボディ+グレースライド、コンパクト、未来的ブロック状デザイン、銃口は下向きまたは横向き）。ポーズ: 自信のある立ちポーズ、右手にSFハンドガン・左手は自然に下ろす。高精細アニメイラスト。"""
 
+# 大富豪おじいちゃん (ネコおじが扮するキャラ・殿命 2026-04-28)
+DIGNITY_OJI_REF = Path("projects/dozle_kirinuki/assets/dozle_jp/character/source/dignity_oji_ref.png")
+DIGNITY_OJI_OUT = Path("projects/dozle_kirinuki/assets/dozle_jp/character/selected/dignity_oji_default_r1_rgba.png")
+DIGNITY_OJI_PROMPT = """全身のアニメ風キャラクターイラスト、透過背景、リファレンス画像と同じ画風・衣装・雰囲気を維持。
+
+キャラクター: 大富豪おじいちゃん。落ち着いた老紳士、品のある佇まい。
+- 黒のシルクハット (山高帽)
+- グレーのロングコート (落ち着いた色合い)
+- 黒のジャケット+白シャツ+黒タイ (フォーマル)
+- ダークパンツ
+- 茶色の杖を片手に持つ (装飾的・優雅)
+- 顔: 痩せ型・ヒゲあり (グレー)・落ち着いた表情・優しい目
+- ダンディで紳士的な雰囲気・年配の富豪
+- 西洋アンティーク風の衣装
+
+ポーズ: 自然な立ちポーズ、杖を片手に、もう片方の手は自然に下ろす。正面〜やや斜め向きで全身が見える構図。
+
+品質: 高精細アニメイラスト、クリーンな線画、ドズル社切り抜きチャンネルの他キャラと同じ画風 (アニメ・ライトノベル風)。
+背景: 完全透過 (背景なし)。"""
+
 
 def upload_to_gcs(local_path: Path) -> str | None:
     """ローカルファイルをGCSにアップしGCS URIを返す。"""
@@ -177,7 +197,7 @@ def generate_image(client, ref_bytes=None, ref_gcs_uri=None, ref_gcs_uris=None, 
 
 def main():
     parser = argparse.ArgumentParser(description="Gemini APIでキャラクター画像生成")
-    parser.add_argument("--mode", choices=["naginata", "orafu", "orafu_v2", "orafu_v3", "orafu_v4", "orafu_v5"], default="naginata",
+    parser.add_argument("--mode", choices=["naginata", "orafu", "orafu_v2", "orafu_v3", "orafu_v4", "orafu_v5", "dignity_oji"], default="naginata",
                         help="生成モード (default: naginata)")
     args = parser.parse_args()
     mode = args.mode
@@ -325,6 +345,27 @@ def main():
             print("ERROR: v5生成に失敗しました")
             sys.exit(1)
         print(f"\n=== 結果: v5生成 {'成功' if ok else '失敗'} ===")
+        return
+
+    if mode == "dignity_oji":
+        # 大富豪おじいちゃん 立ち絵生成 (1枚・default ポーズ)
+        if not DIGNITY_OJI_REF.exists():
+            print(f"ERROR: Reference image not found: {DIGNITY_OJI_REF}")
+            sys.exit(1)
+
+        DIGNITY_OJI_OUT.parent.mkdir(parents=True, exist_ok=True)
+        print(f"Reference image: {DIGNITY_OJI_REF}")
+        gcs_uri = upload_to_gcs(DIGNITY_OJI_REF)
+        if not gcs_uri:
+            print("ERROR: GCSアップロード失敗")
+            sys.exit(1)
+
+        print(f"\n=== 大富豪おじいちゃん 立ち絵生成 (1枚) ===")
+        ok = generate_image(client, ref_gcs_uri=gcs_uri, prompt=DIGNITY_OJI_PROMPT, aspect_ratio="3:4", out_path=DIGNITY_OJI_OUT)
+        if not ok:
+            print("ERROR: dignity_oji生成に失敗しました")
+            sys.exit(1)
+        print(f"\n=== 結果: dignity_oji 生成成功 → {DIGNITY_OJI_OUT} ===")
         return
 
     # 既存のなぎなたモード

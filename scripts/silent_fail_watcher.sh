@@ -66,6 +66,7 @@ is_excluded() {
         */ntfy_sent.log) return 0 ;;
         */logs/daily/*) return 0 ;;
         */genai_daily.log) return 0 ;;
+        */pretool_cmd_check.log) return 0 ;;  # 殿命 2026-04-28: CHK4 は debug log・誤検出ノイズ回避 (実エラーではない)
         *)  return 1 ;;
     esac
 }

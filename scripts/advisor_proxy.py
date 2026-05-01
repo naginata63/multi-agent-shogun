@@ -27,6 +27,7 @@ import uuid
 from logging.handlers import RotatingFileHandler
 
 from aiohttp import web, ClientSession, ClientTimeout
+from aiohttp.client_exceptions import ClientConnectionResetError
 
 # ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -454,6 +455,94 @@ async def _upstream_post(
         return 502, None, str(e)
 
 
+async def handle_haiku_via_claude_p(request: web.Request, body_json: dict, req_id: str) -> web.StreamResponse:
+    """haiku request を claude -p (殿の Subscription) で代替する。
+    z.ai 経由しない・API key 不要・claude-mem worker 等の haiku 呼出を完結。
+    殿命 2026-04-28 (advisor 経路と同じ手法・エラーマスク禁止)。
+    """
+    messages = body_json.get("messages", [])
+    system = body_json.get("system", "")
+    wants_stream = body_json.get("stream", False)
+
+    # 最後の user message から prompt 抽出 (簡易版)
+    user_text = ""
+    for m in reversed(messages):
+        if m.get("role") == "user":
+            content = m.get("content", "")
+            if isinstance(content, list):
+                parts = []
+                for c in content:
+                    if isinstance(c, dict) and c.get("type") == "text":
+                        parts.append(c.get("text", ""))
+                user_text = "\n".join(parts)
+            else:
+                user_text = str(content)
+            if user_text:
+                break
+
+    # system prompt 統合
+    sys_text = ""
+    if isinstance(system, str):
+        sys_text = system
+    elif isinstance(system, list):
+        sys_text = "\n".join(b.get("text", "") for b in system if isinstance(b, dict) and b.get("type") == "text")
+
+    full_prompt = (sys_text + "\n\n" if sys_text else "") + user_text
+
+    logger.info("[%s] handle_haiku_via_claude_p: invoking claude -p haiku (prompt %d chars)", req_id, len(full_prompt))
+
+    def _run():
+        try:
+            # 殿命 2026-04-28: timeout つけない (claude -p の起動オーバーヘッドゆえ・worker 側 timeout に委ねる)
+            result = subprocess.run(
+                [CLAUDE_CLI, "-p", full_prompt, "--output-format", "text", "--model", "haiku"],
+                capture_output=True, text=True,
+                env={**os.environ, "HOME": os.path.expanduser("~"),
+                     # z.ai env を消して Anthropic 直接 (Subscription 経由 = OAuth)
+                     "ANTHROPIC_BASE_URL": "", "ANTHROPIC_AUTH_TOKEN": "",
+                     "ANTHROPIC_DEFAULT_HAIKU_MODEL": "", "ANTHROPIC_DEFAULT_SONNET_MODEL": "",
+                     "ANTHROPIC_DEFAULT_OPUS_MODEL": ""},
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                return result.stdout.strip()
+            logger.warning("[%s] claude -p haiku rc=%d stderr=%s", req_id, result.returncode, result.stderr[:200])
+            return ""
+        except Exception as e:
+            logger.warning("[%s] claude -p haiku failed: %s", req_id, e)
+            return ""
+
+    loop = asyncio.get_event_loop()
+    text = await loop.run_in_executor(None, _run)
+
+    # Anthropic Messages API 互換 response 組立
+    msg_id = "msg_" + uuid.uuid4().hex[:24]
+    response_json = {
+        "id": msg_id, "type": "message", "role": "assistant",
+        "model": "claude-haiku-4-5",
+        "content": [{"type": "text", "text": text or "(empty response)"}],
+        "stop_reason": "end_turn", "stop_sequence": None,
+        "usage": {"input_tokens": len(full_prompt) // 4, "output_tokens": len(text) // 4},
+    }
+
+    metrics.record_success(int((time.time() - time.time()) * 1000))
+
+    if wants_stream:
+        resp = web.StreamResponse(status=200, headers={
+            "Content-Type": "text/event-stream", "Cache-Control": "no-cache", "Connection": "keep-alive",
+        })
+        try:
+            await resp.prepare(request)
+            for chunk in synthesize_sse(response_json):
+                await resp.write(chunk)
+            await resp.write_eof()
+            return resp
+        except (ClientConnectionResetError, ConnectionResetError) as e:
+            logger.warning("[%s] Client closed during haiku stream: %s", req_id, e)
+            return resp
+    else:
+        return web.json_response(response_json)
+
+
 async def handle_request(request: web.Request) -> web.StreamResponse:
     """Handle all incoming requests — proxy to Z.AI with advisor interception.
 
@@ -506,6 +595,12 @@ async def handle_request(request: web.Request) -> web.StreamResponse:
     except json.JSONDecodeError:
         logger.error("Invalid JSON in request body")
         return web.Response(status=400, text="Invalid JSON")
+
+    # 【REVERT 2026-04-28 殿命】haiku→claude -p 経路はメモリ枯渇のため停止
+    # claude -p 起動オーバーヘッド + claude-mem worker からの大量呼出でメモリ食い
+    # 既存の z.ai 経路に戻す (エラーノイズは silent_fail_watcher の noise 分類で対処)
+    # if "haiku" in model_lower or model_lower == "glm-4.5-air":
+    #     return await handle_haiku_via_claude_p(request, request_json, req_id)
 
     wants_stream = request_json.get("stream", False)
 
@@ -635,13 +730,23 @@ async def handle_request(request: web.Request) -> web.StreamResponse:
                 "Connection": "keep-alive",
             },
         )
-        await resp.prepare(request)
-        for chunk in synthesize_sse(response_json):
-            await resp.write(chunk)
-        await resp.write_eof()
-        return resp
+        # Client (e.g. claude-mem worker) が timeout で先に切断するケースを warning 降格
+        # 殿命 2026-04-28: ClientConnectionResetError は実害なし (request 自体は upstream に届いている)
+        try:
+            await resp.prepare(request)
+            for chunk in synthesize_sse(response_json):
+                await resp.write(chunk)
+            await resp.write_eof()
+            return resp
+        except (ClientConnectionResetError, ConnectionResetError) as e:
+            logger.warning("Client closed connection mid-response (benign): %s", e)
+            return resp
     else:
-        return web.json_response(response_json)
+        try:
+            return web.json_response(response_json)
+        except (ClientConnectionResetError, ConnectionResetError) as e:
+            logger.warning("Client closed connection (benign): %s", e)
+            return web.Response(status=499, text="Client Closed Request")
 
 
 # ─── Health Check ─────────────────────────────────────────────────────────────
