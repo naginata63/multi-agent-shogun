@@ -209,6 +209,10 @@
 !projects/udemy_course/context/reference_videos/*.srt
 !projects/udemy_course/drafts/
 !projects/udemy_course/drafts/*.md
+!projects/udemy_course/drafts/*.html
+!projects/udemy_course/drafts/lectures/
+!projects/udemy_course/drafts/lectures/*.md
+!projects/udemy_course/drafts/lectures/*.html
 
 # Orders (task instruction archive submodule)
 !orders
