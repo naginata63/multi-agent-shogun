@@ -4,8 +4,9 @@ theme: default
 paginate: true
 size: 16:9
 style: |
-  section { font-size: 0.9em; padding: 40px 60px; background: #fafafa; }
-  section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; }
+  section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+  section h1:first-child, section h2:first-child { margin-top: 0; }
+  section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
   section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
   section.cover h2 { font-size: 1.0em; color: #fde68a; }
   section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
@@ -74,32 +75,12 @@ style: |
 |------|--------|------|
 | **Chat** | ChatGPT, Claude.ai | ブラウザで会話。コピペ必須 |
 | **IDE 拡張** | Cursor, GitHub Copilot | エディタ内補完。能動的な作業は限定的 |
-| **CLI** | Claude Code, Aider | ターミナルで自律的に読む・書く・実行する |
+| **CLI** | **Claude Code**, Aider | ターミナルで自律的に読む・書く・実行する |
 
-> 💡 Claude Code は **CLI 形態** に分類されます
-
-<!--
-2026年現在、AI開発ツールは大きく3つの形態に分かれています。Chatは手軽ですがプロジェクトとの連携が弱い。IDE拡張は補完に強いですが、AIが自律的に動く範囲は限定的です。CLI形態は、AIがあなたのプロジェクト全体にアクセスし、自らファイルを読み、編集し、テストを実行できます。この「自律性」の高さが最大の違いです。
--->
-
----
-
-# Claude Code の立ち位置
-
-```
-  Anthropic 製
-     ×
-  CLI 特化
-     ×
-  開発者向け
-```
-
-- **Anthropic 公式** — Claude モデルを直接搭載
-- **CLI（コマンドライン）** — ターミナル上で動作
-- **開発者向け** — コードの読み書き・実行に特化
+> 💡 Claude Code = **Anthropic 公式 × CLI 特化 × 開発者向け** の3拍子
 
 <!--
-Claude CodeはAnthropic社が公式に提供しているCLIツールです。ブラウザ版のClaudeとは異なり、あなたのローカル環境で直接動きます。ターミナルを開いて`claude`と打つだけで、AIがあなたのプロジェクトにアクセスし、コードを読み、書き、実行できるようになります。
+2026年現在、AI開発ツールは大きく3つの形態に分かれています。Chatは手軽ですがプロジェクトとの連携が弱い。IDE拡張は補完に強いですが、AIが自律的に動く範囲は限定的です。CLI形態は、AIがあなたのプロジェクト全体にアクセスし、自らファイルを読み、編集し、テストを実行できます。Claude CodeはAnthropic社が公式に提供しているCLIツールで、ターミナルを開いて`claude`と打つだけで、AIがあなたのプロジェクトにアクセスし、コードを読み、書き、実行できるようになります。
 -->
 
 ---
@@ -194,36 +175,19 @@ Claude CodeはAnthropic社が公式に提供しているCLIツールです。ブ
 
 ---
 
-# 🚀 次のレクチャー予告 (第1章)
-
-## **インストール + 初回起動 — 最初の1行** (20 min)
-
-> ターミナルで `claude` と打つだけで、AIとの開発が始まります。
-
-- Node.js 環境の確認
-- インストール手順の解説
-- 初回ログインと最初のプロンプト体験
-
-📌 **第1章も無料プレビュー**です。続けてご視聴ください。
-
-<!--
-次の第1章では、実際にClaude Codeをインストールし、初回起動から最初のプロンプトまでを解説します。ターミナルで`claude`と打つだけでAIとの会話が始まる驚きを、画面キャプチャ付きでお伝えします。第1章も無料プレビューですので、ぜひ続けてご視聴ください。
--->
-
----
-
 <!-- _class: cover -->
 
 # 序章 完了 🎓
-## 次は第1章「インストール + 初回起動」
+## 次は第1章「インストール + 初回起動」(20 min / 無料プレビュー)
 
 <div class="meta">
 ✅ Claude Codeと他のAIツールの違い<br>
 ✅ なぜCLIでAIを使うのか<br>
 ✅ 本講座の3つの学習到達点<br><br>
-<b>続けて第1章をお楽しみください</b>
+<b>第1章: Node.js確認 → インストール → 初回ログイン → 最初のプロンプト体験</b><br><br>
+続けて第1章をお楽しみください
 </div>
 
 <!--
-ご視聴ありがとうございました。この序章でClaude CodeがブラウザAIとは異なる「自律的な開発ツール」であることを理解いただけたはずです。続けて第1章では、実際にあなたの環境にClaude Codeをインストールし、動かす手順を解説します。最後まで見ていただければ、この講座の価値を腹落ちさせていただけるはずです。
+ご視聴ありがとうございました。この序章でClaude CodeがブラウザAIとは異なる「自律的な開発ツール」であることを理解いただけたはずです。次の第1章では、実際にClaude Codeをインストールし、初回起動から最初のプロンプトまでを解説します。ターミナルで`claude`と打つだけでAIとの会話が始まる驚きを、画面キャプチャ付きでお伝えします。第1章も無料プレビューですので、ぜひ続けてご視聴ください。最後まで見ていただければ、この講座の価値を腹落ちさせていただけるはずです。
 -->
