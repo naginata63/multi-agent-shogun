@@ -31,231 +31,65 @@ tasks:
   target_path: /home/murakami/multi-agent-shogun/queue/reports/ashigaru2_report_subtask_1467a.yaml
   task_id: subtask_1467a
   timestamp: '2026-04-25T13:15:00+09:00'
-- acceptance_criteria:
-  - intermediate_v4_ch01_prompt_function.md / .html 作成済み
-  - speaker notes 全スライド
-  - '講師名: なぎなた のみ'
-  - ASCII罫線/XML/受講者操作系 0件
-  - スライド枚数 12-15枚
-  - git commit + push 完了
-  agent: ashigaru2
-  bloom_level: L3
-  description: 'cmd_1586 ch01: 中級編 v4 第1章 intermediate_v4_ch01_prompt_function.md
-    / .html 作成'
-  notes:
-  - '殿原文: ''中級も作成開始せよ — 殿2026-05-03 09:48'''
-  - '参照アウトライン: curriculum_intermediate_v4_marp.md 第1章'
-  - '形式参照: beginner_ch01_prompt_v4.md'
-  - advisor()必須(作業前・完了前)
-  parent_cmd: cmd_1586
-  priority: medium
-  status: done
-  steps: '0) advisor()呼出 1) projects/udemy_course/context/lecture_design_rules.md
-    を全文精読 2) projects/udemy_course/drafts/curriculum_intermediate_v4_marp.md の第1章セクション
-    (『第1章 プロンプトを「関数」として設計する』) を精読 3) 初級編の形式参照: projects/udemy_course/drafts/lectures/beginner_ch01_prompt_v4.md
-    を精読 4) intermediate_v4_ch01_prompt_function.md を新規作成: テーマ=「プロンプトを関数として設計する」/Emotional
-    Hook=『伝わるプロンプトと再利用できるプロンプトは別物』/全スライドspeaker notes 5) スライド構成(12-15枚目安): Emotional
-    Hook→関数プロンプト概念(入力/処理/出力)→XMLテンプレート解説→Before/After比較→再利用性確認→よくある失敗3選 6) grep確認:
-    ASCII罫線/XML/受講者操作系/本名 全0件 7) marp HTML生成: cd projects/udemy_course/drafts/lectures
-    && npx @marp-team/marp-cli intermediate_v4_ch01_prompt_function.md -o intermediate_v4_ch01_prompt_function.html
-    --allow-local-files 8) git add ... && git commit -m ''feat: cmd_1586 中級編v4 ch01プロンプト関数設計''
-    && git push 9) advisor()呼出 10) inbox_write gunshi QC依頼'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch01_prompt_function.md
-  task_id: subtask_1586_ch01
-  timestamp: '2026-05-03T09:52:12.864968+09:00'
-  completed_at: '2026-05-03T10:15:30'
 - agent: ashigaru2
-  task_id: subtask_1589_ch00
+  task_id: subtask_1607a3
+  status: done
+  parent_cmd: cmd_1607
+  bloom_level: L2
+  description: 'subtask_1607a2 redo: D5修正 — source ~/.bashrc 前に : を挿入して $?=1 短絡問題を解消'
+  target_path: /home/murakami/multi-agent-shogun/scripts/userprompt_semantic_search.sh
+  redo_of: subtask_1607a2
+  steps: '1) Read scripts/userprompt_semantic_search.sh 2) RESULTS=$(...) の行を特定: source
+    ~/.bashrc && timeout ... の前に `:` を挿入 → `RESULTS=$(: ; source ~/.bashrc && timeout
+    30 ...)` 3) bash -x でトレース確認: source後にtimeout実行されることを確認 4) smoke test end-to-end:
+    echo ''{"prompt":"ffmpeg エンコード"}'' | bash scripts/userprompt_semantic_search.sh
+    → stdout にJSON出力・30秒以内完了 5) smoke test: echo ''{"prompt":"review.html 保存できん"}''
+    | bash scripts/userprompt_semantic_search.sh → stdout確認 6) git add scripts/userprompt_semantic_search.sh
+    && git commit && git push 7) inbox karo 完了報告 (smoke test stdoutを証跡添付)'
+  acceptance_criteria:
+  - 'RESULTS=$(: ; source ~/.bashrc && timeout 30 ...) の形式に修正'
+  - 'smoke test: ffmpeg query → JSON stdout出力 (空でない)'
+  - 'smoke test: review.html query → JSON stdout出力 (空でない)'
+  - 30秒以内完了
+  - git commit + push完了
+  notes: 'D5根本原因: ~/.bashrc の case...return が $?=1 を返す → && 短絡 → timeout未実行 → silent
+    exit。修正は1行のみ。D6(index integrity)は別cmdで対応予定'
+  timestamp: '2026-05-03T21:51:59.168066+09:00'
+  completed_at: '2026-05-04T08:16:44+09:00'
+- agent: ashigaru2
+  task_id: subtask_1613a
   status: assigned
-  parent_cmd: cmd_1589
+  parent_cmd: cmd_1613
   bloom_level: L3
-  priority: high
-  description: 'cmd_1589 ch00: 中級編v4 序章を外部公開向けに修正 + lecture_design_rules.md Section
-    12 追記'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch00_intro.md
-  steps: '0) advisor()呼出 1) projects/udemy_course/context/lecture_design_rules.md
-    を精読 2) intermediate_v4_ch00_intro.md を精読 3) 戦国用語を外部公開向けに置換: 将軍→Claude Code (または省略)
-    / 家老→管理スクリプト / 足軽→サブエージェント / 軍師→レビューAI / 殿→ユーザー/開発者 / 御意→了解 / つかまつる→します 等 4) grep確認:
-    ''将軍|家老|足軽|軍師|殿|御意|つかまつる|拙者|候'' が 0件 (説明注釈で使う場合は 1-2箇所まで可) 5) marp HTML再生成: cd
-    projects/udemy_course/drafts/lectures && npx @marp-team/marp-cli intermediate_v4_ch00_intro.md
-    -o intermediate_v4_ch00_intro.html --allow-local-files 6) context/lecture_design_rules.md
-    に Section 12「外部公開用語制限ルール」を追記: 戦国persona用語は内部システム用語・外部公開資料では使用禁止 7) git add projects/udemy_course/drafts/lectures/intermediate_v4_ch00_intro.md
-    projects/udemy_course/drafts/lectures/intermediate_v4_ch00_intro.html projects/udemy_course/context/lecture_design_rules.md
-    && git commit && git push 8) advisor()呼出 9) inbox_write gunshi QC依頼'
+  description: 'cmd_1613 Phase-A: speaker_id.py / transcribe_with_speakers.py / run_speaker_match_only.py
+    の CRITICAL+関連欠陥修正 (STT_C001/C002/M004/M005/M006/L002)'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/speaker_id.py
+  steps: '0) advisor()呼出 1) Read queue/reports/gunshi_stt_contradiction_20260504.yaml
+    で全知識吸収 2) speaker_id.py:24-27 STT_C001: _REPO_SCRIPTS_DIR を str(_SCRIPT_DIR) に変更
+    (親の /scripts/ ではなく自身のディレクトリを指すべき) 3) speaker_id.py:65 STT_M004: コメント「以下なら unknown」→「閾値未満なら
+    unknown」に統一 4) transcribe_with_speakers.py STT_C002: L9の重複 import os を削除し、L8の
+    import whisperx をトップレベルから関数内 lazy import に移動 (transcribe_fine_grained内に移動) 5)
+    transcribe_with_speakers.py STT_M005: _apply_vocab が content_selector 全体を import
+    している問題 → custom_vocabulary.yaml を直接 yaml.safe_load で読み込む独立ロジックに書き換え (content_selector
+    import 除去) 6) transcribe_with_speakers.py:23 STT_L002: PUNCTUATION set に「日本語+英語切れ目を最大公約で網羅」コメント追加
+    7) run_speaker_match_only.py:16-17 STT_M006: 未使用 PROJECT_DIR 変数を削除 8) 動作確認: python3
+    -c ''import sys; sys.path.insert(0,"."); from speaker_id import load_members_from_yaml''
+    in scripts/ 9) git add projects/dozle_kirinuki/scripts/speaker_id.py projects/dozle_kirinuki/scripts/transcribe_with_speakers.py
+    projects/dozle_kirinuki/scripts/run_speaker_match_only.py && git commit -m ''fix(stt):
+    STT_C001/C002/M004/M005/M006/L002 — speaker_id sys.path / whisperx lazy import
+    / _apply_vocab 独立化'' 10) advisor()呼出 11) inbox karo 完了報告'
   acceptance_criteria:
-  - intermediate_v4_ch00_intro.md/.html で戦国用語 0件
-  - lecture_design_rules.md Section 12 追記済み
-  - speaker notes 維持・講師名なぎなたのみ
-  - git commit + push 完了
-  notes:
-  - '殿原文: ''multi-agent-shogun 用語がでてきている あしがるとか adviderよびだしっていCLIだけでいいそれが標準だし あと よびかたの設定と
-    どうゆう claude.md agent設定すると よんでくれるかも記載しておけ — 殿2026-05-03 10:35'''
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T10:31:23.027778+09:00'
-- agent: ashigaru2
-  task_id: subtask_1590_ch06
-  status: done
-  parent_cmd: cmd_1590
-  bloom_level: L3
-  priority: medium
-  description: 'cmd_1590 ch06: 中級編 v4 永続コンテキスト層 .md / .html 作成'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch06_persistent_context.md
-  steps: '0) advisor()呼出 1) projects/udemy_course/context/lecture_design_rules.md
-    を精読 2) projects/udemy_course/drafts/curriculum_intermediate_v4_marp.md の第6章 永続コンテキスト層
-    (claude-mem / MCP memory / Agent Skills)セクションを精読 3) 初級編形式参照: beginner_ch01_prompt_v4.md
-    を参照 4) intermediate_v4_ch06_persistent_context.md を新規作成: Emotional Hook=『AIに忘れない記憶を与える仕組み』/
-    全スライドspeaker notes / なぎなた表記のみ / 戦国用語0件 / 12-15枚 5) grep確認: 戦国用語・ASCII罫線・XML・受講者操作系
-    全0件 6) marp HTML生成: cd projects/udemy_course/drafts/lectures && npx @marp-team/marp-cli
-    intermediate_v4_ch06_persistent_context.md -o intermediate_v4_ch06_persistent_context.html
-    --allow-local-files 7) git add projects/udemy_course/drafts/lectures/intermediate_v4_ch06_persistent_context.md
-    projects/udemy_course/drafts/lectures/intermediate_v4_ch06_persistent_context.html
-    && git commit && git push 8) advisor()呼出 9) inbox_write gunshi QC依頼'
-  acceptance_criteria:
-  - intermediate_v4_ch06_persistent_context.md / .html 作成済み
-  - speaker notes 全スライド
-  - '講師名: なぎなた のみ'
-  - 戦国用語・ASCII罫線・XML・受講者操作系 0件
-  - スライド枚数 12-15枚
-  - git commit + push 完了
-  notes:
-  - '殿原文: ''中級後半も作成を許可する — 殿2026-05-03 10:35'''
-  - '参照アウトライン: curriculum_intermediate_v4_marp.md 第6章 永続コンテキスト層 (claude-mem / MCP
-    memory / Agent Skills)セクション'
-  - cmd_1589の作業が先に割り当てられている場合はそちらを先に完了してからこちらに取りかかれ
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T10:32:43.646254+09:00'
-- agent: ashigaru2
-  task_id: subtask_1595_ch11
-  status: done
-  completed_at: '2026-05-03T12:53:44'
-  parent_cmd: cmd_1595
-  bloom_level: L3
-  priority: medium
-  description: 'cmd_1595 ch11: 中級編v4 第11章「完了 Gate ハーネス」(H1 + H10 統合型)'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch11_completion_gate.md
-  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md 第11章セクション精読 2) lecture_design_rules.md
-    精読 3) intermediate_v4_ch05_context_economics.md を形式参照 4) intermediate_v4_ch11_completion_gate.md
-    新規作成: Emotional Hook=「機械的に完了を検証する門番」/ 完了条件5項目の設計思想 / done_gate.sh 構造解説 / PostToolUse
-    hookとしての登録 / 未完了の完了報告の再現例 / done_gateがBLOCKする仕組み / 実運用での調整ポイント 5) grep確認: 戦国用語・ASCII罫線・XML・受講者操作系・本名
-    全0件 6) marp HTML生成: cd projects/udemy_course/drafts/lectures && npx @marp-team/marp-cli
-    intermediate_v4_ch11_completion_gate.md -o intermediate_v4_ch11_completion_gate.html
-    --allow-local-files 7) git add ... && git commit && git push 8) advisor()呼出 9)
-    inbox_write gunshi QC依頼'
-  acceptance_criteria:
-  - intermediate_v4_ch11_completion_gate.md / .html 作成済
-  - 'speaker notes 全スライド・講師名: なぎなた のみ'
-  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
-  - スライド枚数 12-15枚
-  - git commit + push 完了
-  notes:
-  - '殿原文: 中級編 Phase 3 起票 — 殿2026-05-03 12:40'
-  - '形式参照: intermediate_v4_ch05_context_economics.md'
-  - Bloom L6 Create (curriculum準拠)
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T12:42:19.881207+09:00'
-- task_id: subtask_1597a
-  agent: ashigaru2
-  parent_cmd: cmd_1597
-  status: done
-  completed_at: '2026-05-03T13:26:49'
-  priority: high
-  description: 'cmd_1597: intermediate_v4_ch04_quality_gate.md / .html を advisor公式ツールベースで書き直し'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch04_quality_gate.md
-  steps: '0) advisor()呼出 1) projects/udemy_course/drafts/lectures/intermediate_v4_ch04_quality_gate.md
-    を全文精読 (現行構成把握) 2) lecture_design_rules.md 精読 3) intermediate_v4_ch05_context_economics.md
-    を形式参照 4) ch04_quality_gate.md 書き直し — 以下の構成で再構成: スライドA「advisorとは — Anthropic API公式betaツール」/
-    スライドB「model pairing戦略 — なぜOpus最初じゃダメか (コスト/速度/トレードオフ)」/ スライドC「呼ぶタイミング — Before
-    substantive work / When stuck / When complete」/ スライドD「応答ルール — under 100 words/enumerated
-    steps」/ スライドE「サブエージェントとの違い」★重要★ advisor_proxy.py等の自プロジェクト独自実装には一切触れない (/advisorコマンドのみ解説)
-    5) grep確認: 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件・advisor_proxy.py 0件 6) marp HTML再生成:
-    cd projects/udemy_course/drafts/lectures && npx @marp-team/marp-cli intermediate_v4_ch04_quality_gate.md
-    -o intermediate_v4_ch04_quality_gate.html --allow-local-files 7) git add ... &&
-    git commit && git push 8) advisor()呼出 9) inbox_write gunshi QC依頼 10) queue/reports/2026-05-03_cmd_1597_ch04_advisor_revise.md
-    作成'
-  acceptance_criteria:
-  - ch04_quality_gate.md / .html の advisor セクション書き直し済 (公式ツールベース)
-  - スライド A (advisorとは) / B (model pairing・なぜOpus最初じゃダメか) / C (呼ぶタイミング) / D (応答ルール)
-    / E (サブエージェントとの違い) 配置
-  - サブエージェントとの違いスライド追加
-  - advisor_proxy.py 等自プロジェクト独自実装は完全カット (触れない)
-  - '戦国用語 0 件・講師名: なぎなた のみ・speaker notes 全スライド維持'
-  - 軍師 QC PASS
-  - git commit + push 完了
-  - queue/reports/2026-05-03_cmd_1597_ch04_advisor_revise.md 報告書作成
-  notes:
-  - '殿原文: 「4章advisor呼出しはadvisor設定をするだけでない 実際どうゆう工夫をしているか やadvisorってどうゆうせんたくし opus
-    sonnetがあるのか なぜ最初からopusjゃだめなのか / advisor_proxy.pyは説明いらないだろ /advisorだけでいい — 殿2026-05-03
-    12:55」'
-  - ch04は cmd_1586 ash2作成・cmd_1589で修正済・現行ファイル精読して既存構成把握してから書き直し
-  - advisor は Anthropic API 公式 beta ツール (CLAUDE.md にも記載) — /advisor スラッシュコマンドのみ解説
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T13:09:58.178134+09:00'
-- task_id: subtask_1601a
-  agent: ashigaru2
-  parent_cmd: cmd_1601
-  status: done
-  completed_at: '2026-05-03T14:28:08'
-  priority: medium
-  description: 'cmd_1601: scripts/dashboard/server.py に POST /api/task_update エンドポイント新設'
-  target_path: scripts/dashboard/server.py
-  steps: '0) advisor()呼出 1) scripts/dashboard/server.py を精読 — 既存 POST /api/cmd_status_change
-    の実装 (SQLite更新 + YAML同期) を完全把握・task_update の参考にする 2) POST /api/task_update エンドポイント実装:
-    リクエスト: task_id (必須) + status (必須: assigned/in_progress/done/cancelled/blocked)
-    + reason (optional) + updated_by (optional) / SQLite tasks テーブル更新 / queue/tasks/<agent>.yaml
-    同期更新 3) エラーケース実装: task_id不在 → 400 bad_request / 対象task未発見 → 404 not_found / 不正status
-    → 400 bad_request 4) 単体テスト: curl -X POST /api/task_update -d ''{task_id: subtask_1599a,
-    status: cancelled, reason: cmd_cancelled}'' で subtask_1599a が cancelled になることを確認
-    5) agent_health エンドポイントで ashigaru6 last_task_status が cancelled 反映されることを確認 6)
-    dashboard 再起動不要ならそのまま・必要なら systemctl --user restart mcp-dashboard 7) git add scripts/dashboard/server.py
-    && git commit -m ''feat: cmd_1601 POST /api/task_update エンドポイント新設'' && git push
-    origin main 8) advisor()呼出 9) inbox_write gunshi QC依頼 10) queue/reports/2026-05-03_cmd_1601_task_update_api.md
-    作成'
-  acceptance_criteria:
-  - scripts/dashboard/server.py に POST /api/task_update エンドポイント実装
-  - 'リクエスト: task_id + status (assigned/in_progress/done/cancelled/blocked) + optional
-    reason/updated_by'
-  - SQLite tasks テーブル + YAML (queue/tasks/<agent>.yaml) 同期更新
-  - subtask_1599a を cancelled に更新する単体テスト PASS
-  - ashigaru6 last_task_status が cancelled 反映確認 (agent_health)
-  - エラーケース (404 not_found / 400 bad_request) ハンドリング
-  - 軍師 QC PASS
-  - git commit + push 完了
-  - queue/reports/2026-05-03_cmd_1601_task_update_api.md 報告書作成
-  notes:
-  - '殿原文: 「する (POST /api/task_update API 実装許可) — 殿2026-05-03 14:25」'
-  - cmd_status_change の実装を参考に同様のパターンで実装せよ
-  - 'YAML同期: queue/tasks/<agent>.yaml の該当 task_id の status を更新'
-  - テスト後 subtask_1599a が実際に cancelled になれば家老が事後確認可能
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T14:20:48.042706+09:00'
-- task_id: subtask_1603_ch13_15
-  agent: ashigaru2
-  parent_cmd: cmd_1603
-  status: done
-  priority: high
-  description: 'cmd_1603 ch13-15: 中級編v4 Phase3 ch13/14/15 を業界体系で書き直し'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch13_phase_gate.md
-  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md ch13-15セクション精読 2) lecture_design_rules.md
-    精読 3) intermediate_v4_ch05_context_economics.md 形式参照 4) バックアップ確認: ls projects/udemy_course/drafts/lectures/_archive_phase3_pre_synthesis_20260503/
-    (ash1が既に実施済みのはず。未作成なら自分でバックアップ実行) 5) ch13書き直し(タイトル:「PreToolUse Phase-Gating: タスク起票前の自動検証」・H番号除去・業界用語:
-    PreToolUse/Phase-Gating/Bounded Deterministic Workflows・自プロ実例1-2個のみ+注釈) 6) ch14書き直し(タイトル:「PostToolUse
-    Supervisor: フィードバック自動化パターン」・H番号除去・業界用語: PostToolUse/Supervisor Pattern/slash command・自プロ実例1-2個のみ)
-    7) ch15書き直し(タイトル:「3 Guardrail 分類と Harness 選定フレームワーク」・H番号除去・業界用語: 3 Guardrail categories/選定判断フレームワーク・自プロ実例1-2個のみ)
-    8) marp HTML生成(ch13/14/15各々) 9) grep確認: 戦国用語/ASCII罫線/XML/受講者操作系/本名 0件 10) git
-    add + commit + push 11) advisor()呼出 12) inbox_write gunshi QC依頼'
-  acceptance_criteria:
-  - ch13/14/15 .md/.html 書き直し完了
-  - 章タイトルに H1〜H18 等の独自番号ゼロ件
-  - 業界用語(PreToolUse/PostToolUse/Phase-Gating/Supervisor Pattern/Guardrails)各章に含む
-  - 自プロ独自実装は実例1-2個・注釈『本講座サンプル実装』付き
-  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
-  - speaker notes 全スライド・なぎなた表記のみ
-  - git commit + push 完了
-  notes:
-  - '殿原文: そうだな バックアップしてからかきかえよう (中級編 v4 Phase 3 ch10-15 を業界体系で書き直し) — 殿2026-05-03
-    14:35'
-  - バックアップは ash1(subtask_1603_ch10_12)が担当。未実施なら自分でも可
-  - '形式参照: intermediate_v4_ch05_context_economics.md'
-  - ch10-12 は ash1(subtask_1603_ch10_12)が並行担当
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T14:37:05.387244+09:00'
+  - 'STT_C001: speaker_id.py の _REPO_SCRIPTS_DIR が str(_SCRIPT_DIR) になっている'
+  - 'STT_C002: transcribe_with_speakers.py の whisperx が関数内 lazy import になっている'
+  - 'STT_C002: 重複 import os (L9) が削除されている'
+  - 'STT_M004: speaker_id.py L65 コメントが >= 実装と一致する表現になっている'
+  - 'STT_M005: _apply_vocab が content_selector を import せず yaml 直読みになっている'
+  - 'STT_M006: run_speaker_match_only.py の未使用 PROJECT_DIR 変数が削除されている'
+  - 'STT_L002: PUNCTUATION set にコメントが追加されている'
+  - python3 -c import speaker_id が scripts/ 以外の cwd からも成功する
+  - git commit 完了
+  notes: 'audit報告書: queue/reports/gunshi_stt_contradiction_20260504.yaml を必ず精読。STT_C001
+    は最重要 — _REPO_SCRIPTS_DIR の修正で他cwd からの import 失敗が解消される。STT_M005 は content_selector
+    の全インポートを除去して yaml 直読みに。whisperx lazy import は L107/L138 の実使用箇所の関数内に移動。'
+  params: {}
+  timestamp: '2026-05-04T08:41:48.388716+09:00'

@@ -36,86 +36,98 @@ tasks:
   target_path: /home/murakami/multi-agent-shogun/queue/cmds.db
   task_id: subtask_1516a_qc
   timestamp: '2026-04-28T18:56:09.965487+09:00'
-- agent: gunshi
-  task_id: subtask_1564a
-  status: assigned
-  parent_cmd: cmd_1564
-  bloom_level: L4
-  priority: medium
-  description: 'cmd_1564: STTパイプライン 矛盾検出・死文化スクリプト検出 (読んで報告のみ)'
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_stt_contradiction_1564.yaml
-  steps: 1) advisor()呼出 2) projects/dozle_kirinuki/scripts/ 内のSTT関連スクリプト(assemblyai_stt_clips.py/auto_speaker_mapping.py/apply_speaker_mapping_srt.py/batch_speaker_match.py/auto_fetch.py等)全文精読
-    3) scripts/gemini_transcription_task.py精読 4) scripts/stt_merge.py.bak_1000・scripts/vocal_stt_pipeline.py.bak_1000も参照(現行版との差分確認)
-    5) 矛盾・不整合・deprecated参照・欠落import・dead codeをCRITICAL/HIGH/MEDIUM/LOW分類で列挙(ファイル:行番号形式)
-    6) 報告書YAML作成→target_pathに保存 7) POST /api/dashboard_update で🚨要対応に結果掲載 8) advisor()呼出
-    9) inbox_write karo 完了報告
-  acceptance_criteria:
+- acceptance_criteria:
   - 対象STTスクリプト全文精読済み
   - 矛盾/不整合/dead code をCRITICAL/HIGH/MEDIUM/LOW分類で列挙(ファイル:行番号)
   - queue/reports/gunshi_stt_contradiction_1564.yaml 作成済み
   - dashboard 🚨要対応に結果掲載
   - コード修正なし・テストなし
+  agent: gunshi
+  bloom_level: L4
+  description: 'cmd_1564: STTパイプライン 矛盾検出・死文化スクリプト検出 (読んで報告のみ)'
   notes:
   - コード修正禁止・テスト禁止・読んで報告のみ
   - cmd_828と同じ形式（重要度分類+ファイル:行番号）
   - advisor()呼出必須(作業前・完了前)
-  timestamp: '2026-05-02T06:22:49+09:00'
-- agent: gunshi
-  task_id: subtask_1565a
-  status: pending
-  parent_cmd: cmd_1565
-  bloom_level: L4
+  parent_cmd: cmd_1564
   priority: medium
-  description: 'cmd_1565: 動画制作スクリプト群 矛盾検出・死文化スクリプト検出 (読んで報告のみ)'
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_video_contradiction_1565.yaml
-  steps: 0) advisor()呼出 1) projects/dozle_kirinuki/scripts/ の動画制作系スクリプト全文精読 (main.py/make_expression_shorts.py/vertical_convert.py/make_shorts.py等)
-    2) remotion-project/src/*.tsx 精読 3) 矛盾・不整合・deprecated参照・欠落import・dead codeをCRITICAL/HIGH/MEDIUM/LOW分類で列挙(ファイル:行番号)
-    4) 報告書YAML作成→target_pathに保存 5) POST /api/dashboard_update で🚨要対応に結果掲載 6) advisor()呼出
-    7) inbox_write karo 完了報告
-  acceptance_criteria:
+  status: assigned
+  steps: 1) advisor()呼出 2) projects/dozle_kirinuki/scripts/ 内のSTT関連スクリプト(assemblyai_stt_clips.py/auto_speaker_mapping.py/apply_speaker_mapping_srt.py/batch_speaker_match.py/auto_fetch.py等)全文精読
+    3) scripts/gemini_transcription_task.py精読 4) scripts/stt_merge.py.bak_1000・scripts/vocal_stt_pipeline.py.bak_1000も参照(現行版との差分確認)
+    5) 矛盾・不整合・deprecated参照・欠落import・dead codeをCRITICAL/HIGH/MEDIUM/LOW分類で列挙(ファイル:行番号形式)
+    6) 報告書YAML作成→target_pathに保存 7) POST /api/dashboard_update で🚨要対応に結果掲載 8) advisor()呼出
+    9) inbox_write karo 完了報告
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_stt_contradiction_1564.yaml
+  task_id: subtask_1564a
+  timestamp: '2026-05-02T06:22:49+09:00'
+- acceptance_criteria:
   - 動画制作スクリプト全文精読済み
   - 矛盾/不整合/dead code をCRITICAL/HIGH/MEDIUM/LOW分類で列挙(ファイル:行番号)
   - queue/reports/gunshi_video_contradiction_1565.yaml 作成済み
   - dashboard 🚨要対応に結果掲載
   - コード修正なし・テストなし
+  agent: gunshi
+  bloom_level: L4
+  description: 'cmd_1565: 動画制作スクリプト群 矛盾検出・死文化スクリプト検出 (読んで報告のみ)'
   notes:
   - コード修正禁止・テスト禁止・読んで報告のみ
   - cmd_828と同じ形式（重要度分類+ファイル:行番号）
   - cmd_1564完了後に着手せよ (家老からinbox通知)
-  timestamp: '2026-05-02T06:24:02.143253+09:00'
-- agent: gunshi
-  task_id: subtask_1566a
-  status: pending
-  parent_cmd: cmd_1566
-  bloom_level: L4
+  parent_cmd: cmd_1565
   priority: medium
-  description: 'cmd_1566: インフラスクリプト群 矛盾検出・死文化スクリプト検出 (読んで報告のみ)'
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_infra_contradiction_1566.yaml
-  steps: 0) advisor()呼出 1) インフラ系スクリプト全文精読 (scripts/nightly_audit.sh / inbox_write.sh
-    / inbox_watcher.sh / ntfy.sh / context_monitor.sh / agent_status.sh / cron関連 /
-    silent_fail_watcher.sh / dashboard_lifecycle.sh等) 2) 矛盾・不整合・deprecated参照・dead
-    codeをCRITICAL/HIGH/MEDIUM/LOW分類で列挙(ファイル:行番号) 3) 報告書YAML作成→target_pathに保存 4) POST
-    /api/dashboard_update で🚨要対応に結果掲載 5) advisor()呼出 6) inbox_write karo 完了報告
-  acceptance_criteria:
+  status: pending
+  steps: 0) advisor()呼出 1) projects/dozle_kirinuki/scripts/ の動画制作系スクリプト全文精読 (main.py/make_expression_shorts.py/vertical_convert.py/make_shorts.py等)
+    2) remotion-project/src/*.tsx 精読 3) 矛盾・不整合・deprecated参照・欠落import・dead codeをCRITICAL/HIGH/MEDIUM/LOW分類で列挙(ファイル:行番号)
+    4) 報告書YAML作成→target_pathに保存 5) POST /api/dashboard_update で🚨要対応に結果掲載 6) advisor()呼出
+    7) inbox_write karo 完了報告
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_video_contradiction_1565.yaml
+  task_id: subtask_1565a
+  timestamp: '2026-05-02T06:24:02.143253+09:00'
+- acceptance_criteria:
   - インフラ系スクリプト全文精読済み (inbox_write/watcher/ntfy/cron/agent管理系/context_monitor)
   - 矛盾/不整合/dead code をCRITICAL/HIGH/MEDIUM/LOW分類で列挙(ファイル:行番号)
   - queue/reports/gunshi_infra_contradiction_1566.yaml 作成済み
   - dashboard 🚨要対応に結果掲載
   - コード修正なし・テストなし
+  agent: gunshi
+  bloom_level: L4
+  description: 'cmd_1566: インフラスクリプト群 矛盾検出・死文化スクリプト検出 (読んで報告のみ)'
   notes:
   - コード修正禁止・テスト禁止・読んで報告のみ
   - cmd_828と同じ形式（重要度分類+ファイル:行番号）
   - cmd_1565完了後に着手せよ (家老からinbox通知)
   - cmd_1563(cron API統一)と対象が一部重複するが、こちらは矛盾検出(分析)のみ
-  timestamp: '2026-05-02T06:24:02.186883+09:00'
-- agent: gunshi
-  task_id: subtask_1572a
-  status: assigned
-  parent_cmd: cmd_1572
-  bloom_level: L5
+  parent_cmd: cmd_1566
   priority: medium
+  status: pending
+  steps: 0) advisor()呼出 1) インフラ系スクリプト全文精読 (scripts/nightly_audit.sh / inbox_write.sh
+    / inbox_watcher.sh / ntfy.sh / context_monitor.sh / agent_status.sh / cron関連 /
+    silent_fail_watcher.sh / dashboard_lifecycle.sh等) 2) 矛盾・不整合・deprecated参照・dead
+    codeをCRITICAL/HIGH/MEDIUM/LOW分類で列挙(ファイル:行番号) 3) 報告書YAML作成→target_pathに保存 4) POST
+    /api/dashboard_update で🚨要対応に結果掲載 5) advisor()呼出 6) inbox_write karo 完了報告
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_infra_contradiction_1566.yaml
+  task_id: subtask_1566a
+  timestamp: '2026-05-02T06:24:02.186883+09:00'
+- acceptance_criteria:
+  - DESIGN_gpt_image_cdp.md が存在する
+  - 既存Gemini CDP 3スクリプトの動作機序が記載
+  - GPT候補比較と推奨候補1つの根拠が記載
+  - 3面図リファレンスのアップロード方式・キャラ一貫性検証方針が記載
+  - Gemini版とのI/F互換性方針が記載 (cdp_manga_panel.py モデル切替構造)
+  - 後続実装cmdのTODOリスト(PoC優先順)が記載
+  - git commit + push 完了 (submodule)
+  - 軍師レポートに残課題と推奨follow-up cmd提示
+  agent: gunshi
+  bloom_level: L5
   description: 'cmd_1572: GPT版CDP画像生成スクリプトの設計書作成 (実装は後続cmd・軍師は設計のみ)'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/manga_poc/DESIGN_gpt_image_cdp.md
+  notes:
+  - '殿原文: ''CDPでGemini画像生成スクリプトがあるが、GPT版を作成してほしいので設計から軍師にやらせてくれ。プロンプトは、generate_manga_short.pyのsimple相当でできることは確認ずみ
+    gemini_prompts_simple_3views わたすリファレンスも３面図でよいことも確認済み'''
+  - 実装禁止・設計書作成のみ
+  - advisor()必須(作業前・完了前)
+  parent_cmd: cmd_1572
+  priority: medium
+  status: assigned
   steps: '0) advisor()呼出 1) 既存Gemini CDP 3スクリプトを精読: projects/dozle_kirinuki/scripts/manga_poc/cdp_manga_panel.py
     / generate_manga_short.py (--simple相当の部分) / gemini_prompts_simple_3views 関連コード
     2) 3面図リファレンス(わたす・3面図でよい)の既存アップロード方式確認 3) GPT候補比較: ChatGPT 4o image (gpt-4o) /
@@ -125,38 +137,10 @@ tasks:
     6) git add projects/dozle_kirinuki/scripts/manga_poc/DESIGN_gpt_image_cdp.md &&
     git commit ''feat: cmd_1572 GPT版CDP設計書'' && git push origin main (submodule push)
     7) advisor()呼出 8) inbox_write karo 完了報告(残課題と推奨follow-up cmd提示)'
-  acceptance_criteria:
-  - DESIGN_gpt_image_cdp.md が存在する
-  - 既存Gemini CDP 3スクリプトの動作機序が記載
-  - GPT候補比較と推奨候補1つの根拠が記載
-  - 3面図リファレンスのアップロード方式・キャラ一貫性検証方針が記載
-  - Gemini版とのI/F互換性方針が記載 (cdp_manga_panel.py モデル切替構造)
-  - 後続実装cmdのTODOリスト(PoC優先順)が記載
-  - git commit + push 完了 (submodule)
-  - 軍師レポートに残課題と推奨follow-up cmd提示
-  notes:
-  - '殿原文: ''CDPでGemini画像生成スクリプトがあるが、GPT版を作成してほしいので設計から軍師にやらせてくれ。プロンプトは、generate_manga_short.pyのsimple相当でできることは確認ずみ
-    gemini_prompts_simple_3views わたすリファレンスも３面図でよいことも確認済み'''
-  - 実装禁止・設計書作成のみ
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-02T08:14:35.664070+09:00'
-- agent: gunshi
-  task_id: subtask_1572b
-  status: assigned
-  parent_cmd: cmd_1572
-  bloom_level: L4
-  priority: high
-  description: 'cmd_1572 設計書追記: 殿追加指示「同一チャット内での連続生成・セッション維持」制約を DESIGN_gpt_image_cdp.md
-    に明記'
   target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/manga_poc/DESIGN_gpt_image_cdp.md
-  steps: '0) advisor()呼出 1) DESIGN_gpt_image_cdp.md 全文精読(既読だがconfirm) 2) 以下4点を設計書に追記・修正:
-    (A)新規セクション「## 5.5 セッション維持設計(必須要件)」追加 — Gemini版との根本差異として「ChatGPTは同一チャット内で連続生成すること(背景コンテキスト統一のため)」を明記・1漫画ショート分のパネル群(例8パネル)を同一チャット内で順次生成する設計
-    (B)クラッシュ/タブ閉じ時のリカバリ方針 — セッションURL復元方法・生成済みパネルの中断再開設計 (C)別漫画ショート移行時の新チャット判断基準 —
-    「ショート境界でのみ新チャット起動」設計 (D)レート制限への対策(連続生成時) — 同一チャット内連続で詰まる可能性・RETRY_DELAY_SEC 見直し
-    3) 第9章残課題4を修正 — 「temporary-chat で同一chat contextを避ける」を「同一チャット継続が正解・contextを活用して背景統一」に書き換え
-    4) git add + commit ''feat: cmd_1572b 設計書追記 セッション維持必須要件(殿追加指示)'' + git push origin
-    main (submodule) 5) advisor()呼出 6) inbox_write karo 完了報告(追記内容サマリ付)'
-  acceptance_criteria:
+  task_id: subtask_1572a
+  timestamp: '2026-05-02T08:14:35.664070+09:00'
+- acceptance_criteria:
   - セッション維持が必須要件として明記 (背景一貫性の根拠付き)
   - 同一チャット内での連続生成設計 (1ショート=同一チャット) が明記
   - クラッシュ/タブ閉じ時のリカバリ方針が設計書に記載
@@ -164,20 +148,45 @@ tasks:
   - 連続生成時のレート制限対策が記載
   - 第9章残課題4の誤記述(temporary-chatで回避)が修正済み
   - git commit + push完了 (submodule)
+  agent: gunshi
+  bloom_level: L4
+  description: 'cmd_1572 設計書追記: 殿追加指示「同一チャット内での連続生成・セッション維持」制約を DESIGN_gpt_image_cdp.md
+    に明記'
   notes:
   - '殿原文: ''同一チャット内で連続生成すると、ChatGPTがコンテキストを保持し背景が統一される。新規チャットを毎回起こすと背景がバラバラになる。'''
   - 第9章残課題4の現記述「temporary-chat=true で対処」は殿意図と逆。修正必須
   - 実装禁止・設計書更新のみ
   - advisor()必須(作業前・完了前)
+  parent_cmd: cmd_1572
+  priority: high
+  status: assigned
+  steps: '0) advisor()呼出 1) DESIGN_gpt_image_cdp.md 全文精読(既読だがconfirm) 2) 以下4点を設計書に追記・修正:
+    (A)新規セクション「## 5.5 セッション維持設計(必須要件)」追加 — Gemini版との根本差異として「ChatGPTは同一チャット内で連続生成すること(背景コンテキスト統一のため)」を明記・1漫画ショート分のパネル群(例8パネル)を同一チャット内で順次生成する設計
+    (B)クラッシュ/タブ閉じ時のリカバリ方針 — セッションURL復元方法・生成済みパネルの中断再開設計 (C)別漫画ショート移行時の新チャット判断基準 —
+    「ショート境界でのみ新チャット起動」設計 (D)レート制限への対策(連続生成時) — 同一チャット内連続で詰まる可能性・RETRY_DELAY_SEC 見直し
+    3) 第9章残課題4を修正 — 「temporary-chat で同一chat contextを避ける」を「同一チャット継続が正解・contextを活用して背景統一」に書き換え
+    4) git add + commit ''feat: cmd_1572b 設計書追記 セッション維持必須要件(殿追加指示)'' + git push origin
+    main (submodule) 5) advisor()呼出 6) inbox_write karo 完了報告(追記内容サマリ付)'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/manga_poc/DESIGN_gpt_image_cdp.md
+  task_id: subtask_1572b
   timestamp: '2026-05-02T08:22:02.773681+09:00'
-- task_id: subtask_1582a
-  parent_cmd: cmd_1582
+- acceptance_criteria:
+  - 対象スクリプト全ファイル精読済み
+  - 矛盾・死文化を HIGH/MEDIUM/LOW 分類して列挙
+  - ファイル名+行番号+問題内容の証跡あり
+  - テスト・コード修正は一切なし
+  - queue/reports/gunshi_cmd_1582_audit.yaml 作成・commit済み
+  - git commit + push 完了
   agent: gunshi
   bloom_level: L4
+  description: 'cmd_1582: YouTube/外部連携スクリプト群の矛盾検出・死文化検出 (読んで報告するだけ・修正禁止)'
+  notes:
+  - '殿原文: ''本日のカテゴリ: YouTube/外部連携（youtube_uploader.py, downloader.py, note系, API連携）。テストを書くな。コードを修正するな。読んで報告するだけ'''
+  - advisor()必須(作業前・完了前)
+  - venv配下(projects/dozle_kirinuki/venv/)は対象外
+  parent_cmd: cmd_1582
   priority: medium
   status: assigned
-  description: 'cmd_1582: YouTube/外部連携スクリプト群の矛盾検出・死文化検出 (読んで報告するだけ・修正禁止)'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/youtube_uploader.py
   steps: '0) advisor()呼出 1) 以下の対象ファイルを全文精読 (venv配下は除外): projects/dozle_kirinuki/scripts/youtube_uploader.py
     / projects/dozle_kirinuki/scripts/downloader.py / scripts/youtube_lang_batch_update.py
     / scripts/youtube_analytics_snapshot.py / scripts/yt_set_related_video.py / scripts/genai_daily_fetch.py
@@ -187,58 +196,26 @@ tasks:
     queue/reports/gunshi_cmd_1582_audit.yaml に作成: HIGH/MEDIUM/LOW分類・ファイル名+行番号+問題内容・修正推奨の有無
     4) git add queue/reports/ && git commit -m ''feat: cmd_1582 YouTube/外部連携矛盾検出レポート''
     && git push 5) advisor()呼出 6) inbox_write karo 完了報告 (HIGH件数・推奨アクション提示)'
-  acceptance_criteria:
-  - 対象スクリプト全ファイル精読済み
-  - 矛盾・死文化を HIGH/MEDIUM/LOW 分類して列挙
-  - ファイル名+行番号+問題内容の証跡あり
-  - テスト・コード修正は一切なし
-  - queue/reports/gunshi_cmd_1582_audit.yaml 作成・commit済み
-  - git commit + push 完了
-  notes:
-  - '殿原文: ''本日のカテゴリ: YouTube/外部連携（youtube_uploader.py, downloader.py, note系, API連携）。テストを書くな。コードを修正するな。読んで報告するだけ'''
-  - advisor()必須(作業前・完了前)
-  - venv配下(projects/dozle_kirinuki/venv/)は対象外
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/youtube_uploader.py
+  task_id: subtask_1582a
   timestamp: '2026-05-03T02:05:31.106717+09:00'
-- agent: gunshi
-  task_id: subtask_1584a
-  status: done
-  parent_cmd: cmd_1584
-  bloom_level: L5
-  priority: medium
-  description: 'cmd_1584: 現行リポを精査し @import 化候補/維持候補を判定・改修計画書を出力 (実装は殿レビュー後に家老が実施)'
-  target_path: /tmp/cmd_1584_audit_report.md
-  steps: '0) advisor()呼出 1) 対象ファイルを全文精読: CLAUDE.md / instructions/shogun.md / instructions/karo.md
-    / instructions/ashigaru.md / instructions/gunshi.md / memory/MEMORY.md / shared_context/procedures/
-    配下全ファイル 2) 各ファイルについて A/B/C 判定: A=@import化推奨(常時必要・重複多・肥大化) B=維持(lazy load が正しい・参照頻度低)
-    C=要検討(部分的に切り出し可) 3) @import 化推奨セットを具体的なファイル名+切り出し範囲で明示: CLAUDE.md のどのセクションをどのファイルに切り出すか等
-    4) procedures/*.md はLazy load維持（@import化対象外）と明記 5) 重複削減見積（行数・token概算）+ コンテキスト総消費見積を含む
-    6) 実装フェーズ分け (Phase 1/2/...) をリスク低→高の順で提示 7) /tmp/cmd_1584_audit_report.md に書き出し
-    8) advisor()呼出 9) inbox_write karo 完了報告 (report全文を添付)'
-  acceptance_criteria:
-  - 軍師 audit_report.md が /tmp/cmd_1584_audit_report.md に作成済み
-  - 全候補ファイル (CLAUDE.md/instructions/*.md/MEMORY.md/shared_context/procedures/*) について
-    A/B/C 判定済み
-  - '@import 化推奨セットが具体的なファイル名+切り出し範囲で明示'
-  - procedures/*.md は @import 化対象外と明記 (lazy load 維持)
-  - 重複削減見積 + コンテキスト総消費見積を含む
-  - 実装フェーズ分け (Phase 1/2/...) を含む
-  - karo inbox 通知済み
-  - 殿レビュー前は実装に着手しない
-  notes:
-  - '殿原文: ''ぐんしによりと精査せよ そっからかえるように ちゃんとコンテキスト注入の背景もつたえておけ — 殿2026-05-03 09:00'''
-  - 'north_star: Claude Code の @import 機能を活用し、CLAUDE.md / instructions / shared_context
-    の重複を削減 + 一貫性向上。ただしコンテキスト消費を増やさず、Udemy ch03 で自プロジェクトの実例として紹介可能なレベルまで整備する'
-  - 実装禁止・計画書作成のみ
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T09:38:03.049696+09:00'
-- agent: gunshi
-  task_id: subtask_1590_ch07_ch09_qc
-  status: assigned
-  parent_cmd: cmd_1590
+- acceptance_criteria:
+  - ch07 intermediate_v4_ch07_restart_resilience.md / .html 存在確認
+  - ch09 intermediate_v4_ch09_context_decay.md / .html 存在確認
+  - 両章 戦国用語0件 (候補・指示など現代語false positive除外)
+  - 両章 speaker notes 全スライド
+  - 両章 講師名なぎなたのみ (本名grep 0件)
+  - gunshi_cmd_1590_ch07_ch09_qc.yaml 作成済
+  agent: gunshi
   bloom_level: L4
-  priority: medium
   description: 'cmd_1590 ch07+ch09 QC: 中級編v4 セッション再起動耐性 + コンテキスト劣化検出スライド品質確認'
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_cmd_1590_ch07_ch09_qc.yaml
+  notes:
+  - 'ch08 QC時に判明: grep ''候'' が ''候補'' (現代日本語) を false positive 検出。同様の注意が必要'
+  - ch06 (ashigaru2 進行中) は別途QC予定・このタスクはch07+ch09のみ
+  - advisor()必須(作業前・完了前)
+  parent_cmd: cmd_1590
+  priority: medium
+  status: assigned
   steps: '0) advisor()呼出 1) ashigaru3_report_subtask_1590_ch07.yaml を精読 2) ashigaru5_report_subtask_1590_ch09.yaml
     を精読 3) projects/udemy_course/context/lecture_design_rules.md の外部公開制限ルール(Section
     12)確認 4) ch07 検証: intermediate_v4_ch07_restart_resilience.md を実読 (スライド14枚確認・speaker
@@ -246,15 +223,123 @@ tasks:
     を実読 (スライド15枚・speaker notes・戦国用語・本名確認) 6) 注意: grep 候補・指示・実装の「候」false positive に注意
     (現代日本語「候補」「指示」等は除外) 7) QC報告書 queue/reports/gunshi_cmd_1590_ch07_ch09_qc.yaml 作成
     (ch07+ch09 各AC検証結果) 8) advisor()呼出 9) inbox_write karo QC結果報告'
-  acceptance_criteria:
-  - ch07 intermediate_v4_ch07_restart_resilience.md / .html 存在確認
-  - ch09 intermediate_v4_ch09_context_decay.md / .html 存在確認
-  - 両章 戦国用語0件 (候補・指示など現代語false positive除外)
-  - 両章 speaker notes 全スライド
-  - 両章 講師名なぎなたのみ (本名grep 0件)
-  - gunshi_cmd_1590_ch07_ch09_qc.yaml 作成済
-  notes:
-  - 'ch08 QC時に判明: grep ''候'' が ''候補'' (現代日本語) を false positive 検出。同様の注意が必要'
-  - ch06 (ashigaru2 進行中) は別途QC予定・このタスクはch07+ch09のみ
-  - advisor()必須(作業前・完了前)
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_cmd_1590_ch07_ch09_qc.yaml
+  task_id: subtask_1590_ch07_ch09_qc
   timestamp: '2026-05-03T10:49:58.789287+09:00'
+- acceptance_criteria:
+  - 'timeout: 30s (script内 + settings.json)'
+  - --source procedures フィルタなし
+  - semantic_search.py stdout が JSON only (進捗ログがstderrに分離)
+  - 'threshold: 0.45'
+  - 'smoke test: ffmpeg query → JSON stdout 30秒以内'
+  - 'smoke test: review.html query → JSON stdout'
+  - shogun/karo以外のpane(ashigaru環境)では無出力
+  agent: gunshi
+  bloom_level: L4
+  description: 'cmd_1607 QC再検査: userprompt_semantic_search.sh D1-D4修正後の動作確認'
+  notes: 'redo_of: subtask_1607b。ashigaru2報告: panel_review_claude_gen.md/ffmpeg_nvenc.mdがtop100未出現。D4+D2修正で改善見込みあり。QC注意点:
+    top10にこれらのファイルが出なくてもJSONパースOK+スコア付き結果があればPASSとする'
+  parent_cmd: cmd_1607
+  status: assigned
+  steps: '1) scripts/userprompt_semantic_search.sh を精読 (timeout/threshold/--source有無確認)
+    2) scripts/semantic_search.py の print→stderr変更 4箇所確認 3) .claude/settings.json
+    の hook timeout=30 確認 4) end-to-end smoke test: echo ''{"prompt":"ffmpeg エンコード"}''
+    | bash scripts/userprompt_semantic_search.sh → stdout にJSON出力 + 30秒以内完了 5) echo
+    ''{"prompt":"review.html 保存できん"}'' | bash scripts/userprompt_semantic_search.sh
+    → stdout確認 6) stderr分離: 上記コマンドで stderr行が stdout に混入しないこと確認 7) 結果YAMLをqueue/reports/gunshi_report_qc_1607b_r.yamlに保存
+    8) inbox karo QC結果報告'
+  target_path: /home/murakami/multi-agent-shogun/scripts/userprompt_semantic_search.sh
+  task_id: subtask_1607b_r
+  timestamp: '2026-05-03T21:42:30.572333+09:00'
+- agent: gunshi
+  task_id: subtask_1611c
+  status: assigned
+  parent_cmd: cmd_1611
+  bloom_level: L4
+  description: 'cmd_1611 QC: p07(T2_A) + p11(軽い挨拶版) 画像品質確認'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1611c.yaml
+  steps: '0) advisor()呼出 1) panels_chatgpt_cdp_p07_p11.json を精読してp07/p11のdirector_notes・characters・ref_images確認
+    2) 最新p07 PNG確認: chatgpt_20260504_052659_p07_oo_men_doctchi_dozle_tsukomi_00.png
+    (T2_A: 2チーム対立構図・組分け帽・背景bg_kumiwake_dai.png) 3) 最新p11 PNG確認: chatgpt_20260504_052948_p11_dozle_onegaishimasu_00.png
+    (軽い挨拶版・ドズルが控えめにお願い) 4) p01-p10 (v2) のうち代表3枚確認: 背景・組分け帽の一貫性チェック 5) 報告書YAML: queue/reports/gunshi_report_qc_1611c.yaml
+    6) inbox karo QC結果報告'
+  acceptance_criteria:
+  - 'p07 最新版(052659): T2_A構図・組分け帽・背景確認'
+  - 'p11 最新版(052948): 軽い挨拶版・ドズル控えめ表現確認'
+  - 'p01-p10 v2代表サンプル: 背景・組分け帽の一貫性'
+  - PASS/FAIL明記・問題点はファイル名+内容で具体的に記載
+  - '報告書: queue/reports/gunshi_report_qc_1611c.yaml'
+  notes: '画像URLベース: http://192.168.2.7:8770/projects/dozle_kirinuki/work/20260503_季節外れの雪合戦でガチ対決！【マイクラ】/images_chatgpt_cdp_yukigassen_base/
+    p12-p15は未生成(殿確認後に判断)。QC対象はp07+p11+p01-p10代表サンプルのみ'
+  timestamp: '2026-05-04T05:31:42.102588+09:00'
+- agent: gunshi
+  task_id: subtask_1612b
+  status: blocked
+  blocked_by:
+  - subtask_1612a
+  parent_cmd: cmd_1612
+  bloom_level: L4
+  description: 'cmd_1612 QC: CHK11動作確認 + migration完了確認'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1612b.yaml
+  steps: 0) advisor()呼出 1) pretool_check.sh のCHK11実装を精読 2) bash -c 'echo test > /tmp/test_qc.json
+    && curl --data @/tmp/test_qc.json http://example.com' のpretool実行でBLOCK確認 3) queue/cmd_payloads/archive_20260504_tmp_migration/
+    のファイル数確認 4) shared_context/procedures/dashboard_api_usage.md のpayloadルール追記確認 5)
+    報告書作成 6) inbox karo QC結果
+  acceptance_criteria:
+  - 'CHK11: curl --data @/tmp/ → BLOCK確認'
+  - 'CHK11: curl --data @queue/cmd_payloads/ → PASS確認'
+  - 'migration: archive_20260504_tmp_migration/ に41件以上'
+  - dashboard_api_usage.md payload ルール追記確認
+  - PASS/FAIL明記
+  notes: subtask_1612a完了後に実行
+  timestamp: '2026-05-04T07:58:39.853920+09:00'
+- agent: gunshi
+  task_id: subtask_1607b_r2
+  status: assigned
+  parent_cmd: cmd_1607
+  bloom_level: L4
+  description: 'cmd_1607 QC最終: D5修正(; 区切り)後のend-to-end動作確認'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1607b_r2.yaml
+  steps: '0) advisor()呼出 1) scripts/userprompt_semantic_search.sh を精読: source ~/.bashrc
+    2>/dev/null; timeout 30 ... の形式を確認 2) smoke test end-to-end: echo ''{"prompt":"ffmpeg
+    エンコード"}'' | bash scripts/userprompt_semantic_search.sh → stdout にJSON出力・30秒以内完了
+    3) smoke test: echo ''{"prompt":"review.html 保存できん"}'' | bash scripts/userprompt_semantic_search.sh
+    → stdout確認 4) stderr分離確認: 進捗ログがstdoutに混入しないこと 5) 報告書YAML: queue/reports/gunshi_report_qc_1607b_r2.yaml
+    6) inbox karo QC結果'
+  acceptance_criteria:
+  - source ~/.bashrc 2>/dev/null; timeout 30 ... の ; 区切り形式確認
+  - 'smoke test: ffmpeg query → JSON stdout (空でない・30秒以内)'
+  - 'smoke test: review.html query → JSON stdout (空でない)'
+  - 'stderr分離: stdout にログ行なし'
+  - PASS/FAIL明記
+  notes: 'D5根本原因: ~/.bashrc の return が $?=1 → &&短絡。; 区切りで解消。UserPromptSubmit hookが実際に発火しスコア0.62を返したことを参考情報として記録。報告書はqueue/reports/gunshi_report_qc_1607b_r2.yaml'
+  timestamp: '2026-05-04T08:19:01.832523+09:00'
+- agent: gunshi
+  task_id: subtask_1613f_qc
+  status: blocked
+  parent_cmd: cmd_1613
+  bloom_level: L4
+  description: 'cmd_1613 QC: STT audit 20件全修正の検証 (PASS/FAIL判定 + regression確認)'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1613.yaml
+  blocked_by:
+  - subtask_1613e
+  steps: '0) advisor()呼出 1) Read queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md
+    で修正内容を把握 2) Read queue/reports/gunshi_stt_contradiction_20260504.yaml で元の20件と対照
+    3) 各ファイルの実装を確認: speaker_id.py (C001/M004), transcribe_with_speakers.py (C002/M005/L002),
+    run_speaker_match_only.py (M006), vocal_stt_pipeline.py (H001/H002/H004/M001/M002/L001),
+    stt_merge.py (H003/H005/M003/L003), apply_speaker_mapping_srt.py (H006), subtitle_speaker_qc.py
+    (M007/L005), batch_speaker_match.py (L004) 4) acceptance_criteria 全件確認: cmd_1613
+    に記載の8条件を全て目視検証 5) python3 -m py_compile で全修正ファイルの文法確認 6) regression: git log で4
+    subtask commit 確認 + vocal_stt_pipeline import エラー無し確認 7) QC報告書: queue/reports/gunshi_report_qc_1613.yaml
+    (qa_decision: PASS|FAIL, 全20件の個別確認結果) 8) inbox karo QC結果報告'
+  acceptance_criteria:
+  - 全20件 finding が対応するコード修正で解消されている
+  - cmd_1613 acceptance_criteria 8条件が全て PASS
+  - vocal_stt_pipeline.py の import が成功する (ModuleNotFoundError無し)
+  - py_compile エラーなし (全修正ファイル)
+  - 報告書 queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md が存在し全20件記載
+  notes: 'subtask_1613e完了後に開始。QCテンプレート: shared_context/qc_template.md 参照。実ファイルを目視確認必須
+    (grepカウントのみ禁止)。STT_C001が最重要 — _REPO_SCRIPTS_DIR が str(_SCRIPT_DIR) になっているか、plus
+    vocal_stt_pipeline.py/stt_merge.py先頭の sys.path.insert 追加を確認。'
+  params: {}
+  timestamp: '2026-05-04T08:42:03.736911+09:00'

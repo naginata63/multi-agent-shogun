@@ -1,144 +1,39 @@
 tasks:
 - agent: ashigaru7
-  task_id: subtask_1585a
-  status: done
-  parent_cmd: cmd_1585
+  task_id: subtask_1613c
+  status: assigned
+  parent_cmd: cmd_1613
   bloom_level: L3
-  priority: high
-  description: 'cmd_1585: ch04_history_v4.md に L1/L2/L3 各層の誕生イベントをスライドとして明示追記'
-  target_path: projects/udemy_course/drafts/lectures/beginner_ch04_history_v4.md
-  steps: '0) advisor()呼出 1) projects/udemy_course/drafts/lectures/beginner_ch04_history_v4.md
-    を全文精読し現在の年表構成を把握 2) projects/udemy_course/context/lecture_design_rules.md を精読
-    (Section 10=歴史章制約・Section 11=作者名ルール等) 3) 以下3スライドを年表の適切な位置に追加: [L1誕生スライド] ChatGPT/2022頃〜プロンプトエンジニアリングが職能として確立された時期・背景・代表事例+speaker
-    notes / [L2誕生スライド] CLAUDE.md/.cursorrules等のコンテキストファイル文化が定着した2023〜2024年頃・背景・代表事例+speaker
-    notes / [L3誕生スライド] Claude Code/Cursor等のハーネスツール登場2024〜2025年・背景・代表事例+speaker notes
-    4) 各スライドに 時期+背景+代表事例 を含む speaker notes を記載 5) grep確認: ASCII罫線/XML系/受講者操作系 0件・講師名=なぎなたのみ
-    6) スライド総枚数が 12-15枚に収まることを確認 7) marp で .html 再生成: cd projects/udemy_course/drafts/lectures
-    && npx @marp-team/marp-cli beginner_ch04_history_v4.md -o beginner_ch04_history_v4.html
-    --allow-local-files 8) git add projects/udemy_course/drafts/lectures/beginner_ch04_history_v4.md
-    projects/udemy_course/drafts/lectures/beginner_ch04_history_v4.html && git commit
-    && git push 9) advisor()呼出 10) inbox_write gunshi QC依頼'
+  description: 'cmd_1613 Phase-C: stt_merge.py / apply_speaker_mapping_srt.py 修正 (STT_H003/H005/H006/M003/L003)
+    + STT_C001 sys.path 補完'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/stt_merge.py
+  steps: '0) advisor()呼出 1) Read queue/reports/gunshi_stt_contradiction_20260504.yaml
+    で findings 把握 2) stt_merge.py:36 STT_C001補完: sys.path.insert(0, str(Path(__file__).resolve().parent))
+    を追加 3) STT_H003 detect_timestamp_unit 修正: ヒューリスティック廃止し、load_assemblyai() は ms固定・load_deepgram()
+    は s固定で明示変換するよう修正 (unit フィールドも metadata に追記) 4) STT_H005 stt_merge.py:203 の自己代入
+    ''gap_threshold_ms = gap_threshold_ms'' 行を削除 5) STT_M003 legacy mode でも output_json
+    と同ディレクトリから {video_id}_subs.json / {video_id}.ja.vtt を探索する分岐を追加 6) STT_L003 ''ぺけたん''
+    キーワードに出典コメント追加: ''# YouTube字幕で頻出した誤認識単語 (過去動画 固定除外)'' 7) apply_speaker_mapping_srt.py
+    STT_H006: MAPPINGS dict の内容を projects/dozle_kirinuki/context/speaker_mappings.yaml
+    に書き出し、スクリプトは yaml.safe_load で読み込む実装に変更 8) speaker_mappings.yaml を git add して commit
+    対象に含める 9) python3 -m py_compile で stt_merge.py / apply_speaker_mapping_srt.py
+    文法確認 10) git add projects/dozle_kirinuki/scripts/stt_merge.py projects/dozle_kirinuki/scripts/apply_speaker_mapping_srt.py
+    projects/dozle_kirinuki/context/speaker_mappings.yaml && git commit -m ''fix(stt):
+    STT_H003/H005/H006/M003/L003 — timestamp unit固定化/no-op削除/MAPPINGS外部化'' 11) advisor()呼出
+    12) inbox karo 完了報告'
   acceptance_criteria:
-  - ch04_history_v4.md に L1 誕生スライド明示
-  - ch04_history_v4.md に L2 コンテキストエンジニアリング誕生スライド追加
-  - ch04_history_v4.md に L3 ハーネスエンジニアリング誕生スライド追加
-  - 各層誕生に時期+背景+代表事例を含む speaker notes
-  - 年表全体が3階層統合の必然性を時系列で示す構成
-  - '講師名: なぎなた のみ (cmd_1583 整合)'
-  - ASCII罫線/XML/受講者操作系 0件
-  - スライド枚数 12-15枚
-  - git commit + push 完了
-  notes:
-  - '殿原文: ''４章 生成AIエンジニアリング年表 に コンテキストエンジニアリング誕生 ハーネスエンジニアリング誕生がない — 殿2026-05-03 09:05'''
-  - 現在の ch04 は17スライド構成(cmd_1580で作成)。3スライド追加で20枚になる可能性あり → 既存スライドを統合/圧縮して12-15枚に収めよ
-  - lecture_design_rules.md Section 10 の制約(生成AI史に限定・DevOps/SRE禁止)を遵守
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T09:39:17.517950+09:00'
-- agent: ashigaru7
-  task_id: subtask_1589_ch04
-  status: done
-  parent_cmd: cmd_1589
-  bloom_level: L3
-  priority: high
-  description: 'cmd_1589 ch04: 中級編v4 第4章を外部公開向けに修正 + advisor CLI標準呼出に絞る'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch04_quality_gate.md
-  steps: '0) advisor()呼出 1) intermediate_v4_ch04_quality_gate.md を精読 2) 戦国用語を外部公開向けに置換
-    3) advisor の説明を CLI 標準呼出のみに絞る: 削除対象=multi-agent-shogun 固有のadvisor_proxy.py / カスタムスクリプト経由の呼出
-    / 「軍師に審査させる」等の内部表現 → 置換後=「Claude Code 組み込みの advisor 機能 (CLIから直接呼出可能)」のみ / advisor()
-    の CLI 標準的な使い方 (claude --advisor または同等) を記載 4) grep確認 5) marp HTML再生成 6) git add
-    ... && git commit && git push 7) advisor()呼出 8) inbox_write gunshi QC依頼'
-  acceptance_criteria:
-  - intermediate_v4_ch04_quality_gate.md/.html で戦国用語 0件
-  - advisor説明がCLI標準呼出のみに絞られている
-  - speaker notes 維持・講師名なぎなたのみ
-  - git commit + push 完了
-  notes:
-  - '殿原文: ''adviderよびだしっていCLIだけでいいそれが標準だし — 殿2026-05-03 10:35'''
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T10:31:23.472556+09:00'
-- task_id: subtask_1595_ch15
-  agent: ashigaru7
-  parent_cmd: cmd_1595
-  status: done
-  priority: medium
-  description: 'cmd_1595 ch15: 中級編v4 第15章「残り 7 ハーネスカタログと選定判断」'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch15_harness_catalog.md
-  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md 第15章セクション精読 2) lecture_design_rules.md
-    精読 3) intermediate_v4_ch05_context_economics.md を形式参照 4) intermediate_v4_ch15_harness_catalog.md
-    新規作成: Emotional Hook=「12種類の道具を知って、全部欲しくなりましたか？この章ではあなたのプロジェクトに必要な3つだけを選ぶ方法を解説します」/
-    12ハーネスの適用条件・コスト・効果の比較表 / 失敗記録との照らし合わせ方法 / 選定の3ステップ(分類→優先順位付け→必要最小限) / 選定表の書き方
-    / 実装ロードマップの作成方法 / よくある選定ミス3選 5) grep確認: 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件 6) marp
-    HTML生成: cd projects/udemy_course/drafts/lectures && npx @marp-team/marp-cli intermediate_v4_ch15_harness_catalog.md
-    -o intermediate_v4_ch15_harness_catalog.html --allow-local-files 7) git add ...
-    && git commit && git push 8) advisor()呼出 9) inbox_write gunshi QC依頼'
-  acceptance_criteria:
-  - intermediate_v4_ch15_harness_catalog.md / .html 作成済
-  - 'speaker notes 全スライド・講師名: なぎなた のみ'
-  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
-  - スライド枚数 12-15枚
-  - 12ハーネス比較表 掲載
-  - git commit + push 完了
-  notes:
-  - '殿原文: 中級編 Phase 3 起票 — 殿2026-05-03 12:40'
-  - '形式参照: intermediate_v4_ch05_context_economics.md'
-  - Bloom L4 Analyze + L5 Evaluate (curriculum準拠)
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T12:45:40.076768+09:00'
-- task_id: subtask_1602_appendix_ac
-  agent: ashigaru7
-  parent_cmd: cmd_1602
-  status: done
-  priority: medium
-  description: 'cmd_1602 附録A+C: 中級編v4 附録A「差別化戦略」+ 附録C「トラブルシュート集」(各20min・合計40min)'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_appendix_a_differentiation.md
-  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md 附録A・附録Cセクション精読 2) lecture_design_rules.md
-    精読 3) intermediate_v4_ch05_context_economics.md を形式参照 4) intermediate_v4_appendix_a_differentiation.md
-    新規作成: 「3階層統合は市場ゼロ」調査根拠(60件分析データ) / 18 hook実装カタログ / 受講生が自分のニッチを見つける3ステップ 5) marp
-    HTML生成: appendix_a_differentiation 6) 続いて intermediate_v4_appendix_c_troubleshoot.md
-    新規作成: Claude Code設定ファイル競合 / hookが発火しない5大原因 / claude-mem書き込み失敗時の復旧 / cost爆発の防衛策
-    7) marp HTML生成: appendix_c_troubleshoot 8) grep確認: 両ファイルとも戦国用語・ASCII罫線・XML・受講者操作系・本名
-    0件 9) git add ... && git commit && git push 10) advisor()呼出 11) inbox_write gunshi
-    QC依頼(両ファイルまとめて)'
-  acceptance_criteria:
-  - intermediate_v4_appendix_a_differentiation.md / .html 作成済
-  - intermediate_v4_appendix_c_troubleshoot.md / .html 作成済
-  - 'speaker notes 全スライド・講師名: なぎなた のみ'
-  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
-  - 各8-12枚 (附録は短め可)
-  - git commit + push 完了
-  notes:
-  - '殿原文: 起票(中級編 v4 Phase 4 着手) — 殿2026-05-03 14:30'
-  - 附録A(差別化戦略20min)+附録C(トラブルシュート20min)を1セッションで作成
-  - '形式参照: intermediate_v4_ch05_context_economics.md'
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T14:29:07.579737+09:00'
-- task_id: subtask_1604_ch07_09
-  agent: ashigaru7
-  parent_cmd: cmd_1604
-  status: done
-  priority: high
-  description: 'cmd_1604 ch07-09: 中級編v4 Phase2 ch07/08/09 を LangChain 4戦略体系で書き直し'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch07_restart_resilience.md
-  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md ch07-09セクション精読 2) lecture_design_rules.md
-    精読 3) バックアップ確認: ls lectures/_archive_phase2_pre_synthesis_20260503/ (ash4が作成済みのはず)
-    4) ch07書き直し(セッション再起動耐性 → LangChain Compress戦略/handoff設計/PreCompact hook・自プロ実例1-2個+注釈)
-    5) ch08書き直し(コンテキスト運用ベストプラクティス → LangChain Isolate戦略/Context Window Budget/トレードオフ分析・自プロ実例1-2個+注釈)
-    6) ch09書き直し(コンテキスト劣化検出と自動更新 → Context Rot統計/Chroma/劣化検出パターン・自プロ実例1-2個+注釈) 7) marp
-    HTML生成(ch07/08/09) 8) grep確認: 戦国用語/ASCII罫線/XML/受講者操作系/本名 0件 9) git add + commit
-    + push 10) advisor()呼出 11) inbox_write gunshi QC依頼'
-  acceptance_criteria:
-  - ch07/08/09 .md/.html 書き直し完了
-  - 章タイトルに Write/Select/Compress/Isolate いずれか含む
-  - 業界用語(Context Rot/LangChain/Compress/Isolate/Chroma)各章に含む
-  - 自プロ独自実装は実例1-2個・注釈『本講座サンプル実装』付き
-  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
-  - speaker notes 全スライド・なぎなた表記のみ
-  - git commit + push 完了
-  notes:
-  - '殿原文: する (Phase 2 修正・LangChain 4 戦略で書き直し許可) — 殿2026-05-03 14:50'
-  - バックアップは ash4(subtask_1604_ch05_06)が担当済みのはず
-  - '形式参照: 既存 ch07 の構成 (ただし内容を業界体系に刷新)'
-  - ch05-06 は ash4(subtask_1604_ch05_06)が並行担当
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T14:44:18.592004+09:00'
-  completed_at: '2026-05-03T15:01:55+09:00'
+  - 'STT_C001補完: stt_merge.py先頭に sys.path.insert(0, ...) が追加されている'
+  - 'STT_H003: load_assemblyai()はms固定・load_deepgram()はs固定の明示変換になっている'
+  - 'STT_H005: stt_merge.py L203 の自己代入行が削除されている'
+  - 'STT_H006: apply_speaker_mapping_srt.py が YAML ファイルを読み込む実装になっている'
+  - 'STT_H006: projects/dozle_kirinuki/context/speaker_mappings.yaml が作成されている'
+  - 'STT_M003: legacy mode でも YouTube字幕を自動検出する分岐が追加されている'
+  - 'STT_L003: ぺけたん行にコメントが追加されている'
+  - py_compile エラーなし (両ファイル)
+  - git commit 完了
+  notes: 'STT_H006 が重要 — MAPPINGS dict を context/speaker_mappings.yaml に外部化する際、現在のハードコードされたマッピングを全て
+    YAML に移植すること (例: merged_AyNILJgjIco.srt: {A: nekooji, B: dozle, ...})。apply_speaker_mapping_srt.py
+    は YAML path を引数で上書き可能にするのが理想 (--mappings オプション)。STT_H003 は AssemblyAI/Deepgram
+    の load 関数に単位変換の固定化が核心 — heuristic (max_start >= 10000) を削除して良い。'
+  params: {}
+  timestamp: '2026-05-04T08:41:55.344497+09:00'

@@ -1,209 +1,4 @@
 tasks:
-- agent: ashigaru1
-  task_id: subtask_1583a
-  status: done
-  parent_cmd: cmd_1583
-  bloom_level: L2
-  priority: high
-  description: 'cmd_1583: 初級編 v4 全7章+curriculum で講師名を『なぎなた』のみに統一・本名削除'
-  target_path: projects/udemy_course/drafts/lectures/
-  steps: '0) advisor()呼出 1) 本名パターン確認: grep -rn ''村上|誠治|seiji|Murakami|murakami'' projects/udemy_course/drafts/lectures/*v4*.md
-    projects/udemy_course/drafts/curriculum_beginner_v4_marp.md 2) 全 v4 .md ファイル (ch00〜ch06)
-    を sed 等で一括置換: 村上誠治/村上 誠治/Seiji Murakami/seiji murakami/murakami 等→なぎなた / speaker
-    notes の自己紹介文も自然な日本語に (例: ''なぎなたと申します'') 3) curriculum_beginner_v4_marp.md も同様に置換
-    4) 各 .md を marp で .html 再生成 (npx @marp-team/marp-cli <file>.md -o <file>.html
-    --allow-local-files) 5) grep確認: grep -c ''村上|誠治|seiji|Murakami|murakami'' projects/udemy_course/drafts/lectures/*v4*.md
-    projects/udemy_course/drafts/curriculum_beginner_v4_marp.md (全件 0 件) 6) context/lecture_design_rules.md
-    に Section 11 作者名統一ルール追記: 外部公開資料は『なぎなた』表記のみ・本名禁止 7) git add projects/udemy_course/drafts/lectures/
-    projects/udemy_course/drafts/curriculum_beginner_v4_marp.md projects/udemy_course/drafts/curriculum_beginner_v4.html
-    projects/udemy_course/context/lecture_design_rules.md && git commit && git push
-    8) advisor()呼出 9) inbox_write karo 完了報告'
-  acceptance_criteria:
-  - 全 v4 .md / .html (ch00-ch06) で『村上 誠治 seiji Murakami murakami』表記 0 件
-  - 全 v4 .md / .html で『なぎなた』表記が各章1箇所以上
-  - curriculum_beginner_v4_marp.md / .html でも本名 0 件
-  - speaker notes の自己紹介が日本語として自然 (なぎなたと申します等)
-  - context/lecture_design_rules.md に作者名統一ルール追記
-  - git commit + push 完了
-  notes:
-  - '殿原文: ''作者はなぎなたで 村上誠治はだすな — 殿2026-05-03 08:51'''
-  - drafts/index.html は本名含まないが念のり確認せよ
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T09:31:18.276351+09:00'
-- agent: ashigaru1
-  task_id: subtask_1586_ch00
-  status: done
-  parent_cmd: cmd_1586
-  bloom_level: L3
-  priority: medium
-  description: 'cmd_1586 ch00: 中級編 v4 序章 intermediate_v4_ch00_intro.md / .html 作成'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch00_intro.md
-  steps: '0) advisor()呼出 1) projects/udemy_course/context/lecture_design_rules.md
-    を全文精読 2) projects/udemy_course/drafts/curriculum_intermediate_v4_marp.md の序章セクション
-    (『序章: AI開発 3階層モデルとは』) を精読 3) 初級編の形式参照: projects/udemy_course/drafts/lectures/beginner_ch00_intro_v4.md
-    を精読 4) intermediate_v4_ch00_intro.md を新規作成: テーマ=「AI開発 3階層モデルとは」/購買誘導型(序章特別ルールSection9に従う)/全スライドspeaker
-    notes/なぎなた表記のみ 5) スライド構成(10-13枚目安): つかみ→before/after体験→3分タイムラプスで3層システム稼働を見せる→序章の受講者感情曲線
-    6) grep確認: ASCII罫線/XML/受講者操作系/本名 全0件 7) marp HTML生成: cd projects/udemy_course/drafts/lectures
-    && npx @marp-team/marp-cli intermediate_v4_ch00_intro.md -o intermediate_v4_ch00_intro.html
-    --allow-local-files 8) git add projects/udemy_course/drafts/lectures/intermediate_v4_ch00_intro.md
-    projects/udemy_course/drafts/lectures/intermediate_v4_ch00_intro.html && git commit
-    -m ''feat: cmd_1586 中級編v4 ch00序章'' && git push 9) advisor()呼出 10) inbox_write
-    gunshi QC依頼'
-  acceptance_criteria:
-  - intermediate_v4_ch00_intro.md / .html 作成済み
-  - speaker notes 全スライド
-  - '講師名: なぎなた のみ (本名 grep 0件)'
-  - ASCII罫線/XML/受講者操作系 0件
-  - スライド枚数 10-13枚
-  - git commit + push 完了
-  notes:
-  - '殿原文: ''中級も作成開始せよ — 殿2026-05-03 09:48'''
-  - '参照アウトライン: curriculum_intermediate_v4_marp.md 序章セクション'
-  - '形式参照: beginner_ch00_intro_v4.md (初級編序章・購買誘導型)'
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T09:52:12.772169+09:00'
-- agent: ashigaru1
-  task_id: subtask_1588a
-  status: done
-  parent_cmd: cmd_1588
-  bloom_level: L4
-  priority: medium
-  description: 'cmd_1588 Phase 1: shared_context/agent_common.md 新設 + instructions
-    4本の重複セクション削除・参照化'
-  target_path: shared_context/agent_common.md
-  steps: '0) advisor()呼出 1) /tmp/cmd_1584_audit_report.md を全文精読 (Phase 1 の詳細手順・集約対象9セクションを把握)
-    2) instructions/shogun.md / karo.md / gunshi.md / ashigaru.md / CLAUDE.md を精読
-    3) shared_context/agent_common.md を新規作成 (~150行): 以下9セクションを集約: セマンティック検索(Gemini
-    Embedding 2) / Dashboard API 利用(cmd_1494)概要テーブル / Agent Self-Watch Phase Rules(cmd_107)
-    / Language & Tone / Self-Identification(tmux display-message) / Timestamp Rule
-    / Compaction Recovery 共通骨子 / /clear Recovery 共通骨子 / Shout Mode共通仕様 4) CLAUDE.md
-    の Session Start 手順に Step 4.5 を追記: 『Step 4.5: Read shared_context/agent_common.md
-    (全agent必須・instructions/{role}.md の直後)』 5) instructions/shogun.md から上記9セクションの重複部分を削除
-    → 冒頭に「★共通ルールは shared_context/agent_common.md を参照 (Session Start Step 4.5 で Read
-    済)」ブロック追加・役割固有部分は維持 6) 同様に instructions/karo.md / gunshi.md / ashigaru.md を更新
-    7) git add で変更ファイルを個別追加 (git add . 禁止): git add shared_context/agent_common.md
-    CLAUDE.md instructions/shogun.md instructions/karo.md instructions/gunshi.md instructions/ashigaru.md
-    8) git diff --cached で意図外ファイルが含まれていないか確認 9) git commit -m ''feat: cmd_1588 Phase1
-    agent_common.md新設・instructions4本重複削除'' && git push 10) advisor()呼出 11) inbox_write
-    gunshi QC依頼'
-  acceptance_criteria:
-  - shared_context/agent_common.md 新設・9セクション集約・~150行程度
-  - CLAUDE.md の Session Start に Step 4.5 (agent_common.md Read) 追記
-  - instructions/shogun.md / karo.md / gunshi.md / ashigaru.md から共通9セクション削除済み
-  - 各 instructions に共通ルール参照ブロック追加・役割固有部分は維持
-  - git commit + push 完了
-  - 軍師 QC PASS
-  notes:
-  - '殿原文: ''OK (cmd_1584 audit Phase 1 着手承認) — 殿2026-05-03 10:30'''
-  - '設計詳細: /tmp/cmd_1584_audit_report.md を必ず参照 (Phase 1 節を精読)'
-  - CLAUDE.md と instructions/*.md 4本を同時に変更する重要作業。慎重に進めよ
-  - git add . 禁止・個別ファイル指定で add すること (CLAUDE.md 誤変更防止)
-  - 既存の roles 固有セクションは絶対に削除しないこと (家老の Task Design 5問・将軍の North Star等)
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T10:20:00.955964+09:00'
-- agent: ashigaru1
-  task_id: subtask_1590_ch05
-  status: done
-  parent_cmd: cmd_1590
-  bloom_level: L3
-  priority: medium
-  description: 'cmd_1590 ch05: 中級編 v4 コンテキストウィンドウ経済学 .md / .html 作成'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch05_context_economics.md
-  steps: '0) advisor()呼出 1) projects/udemy_course/context/lecture_design_rules.md
-    を精読 2) projects/udemy_course/drafts/curriculum_intermediate_v4_marp.md の第5章 コンテキストウィンドウ経済学セクションを精読
-    3) 初級編形式参照: beginner_ch01_prompt_v4.md を参照 4) intermediate_v4_ch05_context_economics.md
-    を新規作成: Emotional Hook=『コンテキストウィンドウは財布です。無限にあると思うと空っぽになります』/ 全スライドspeaker notes
-    / なぎなた表記のみ / 戦国用語0件 / 12-15枚 5) grep確認: 戦国用語・ASCII罫線・XML・受講者操作系 全0件 6) marp HTML生成:
-    cd projects/udemy_course/drafts/lectures && npx @marp-team/marp-cli intermediate_v4_ch05_context_economics.md
-    -o intermediate_v4_ch05_context_economics.html --allow-local-files 7) git add
-    projects/udemy_course/drafts/lectures/intermediate_v4_ch05_context_economics.md
-    projects/udemy_course/drafts/lectures/intermediate_v4_ch05_context_economics.html
-    && git commit && git push 8) advisor()呼出 9) inbox_write gunshi QC依頼'
-  acceptance_criteria:
-  - intermediate_v4_ch05_context_economics.md / .html 作成済み
-  - speaker notes 全スライド
-  - '講師名: なぎなた のみ'
-  - 戦国用語・ASCII罫線・XML・受講者操作系 0件
-  - スライド枚数 12-15枚
-  - git commit + push 完了
-  notes:
-  - '殿原文: ''中級後半も作成を許可する — 殿2026-05-03 10:35'''
-  - '参照アウトライン: curriculum_intermediate_v4_marp.md 第5章 コンテキストウィンドウ経済学セクション'
-  - cmd_1589の作業が先に割り当てられている場合はそちらを先に完了してからこちらに取りかかれ
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T10:32:43.448077+09:00'
-- agent: ashigaru1
-  task_id: subtask_1591a
-  status: done
-  parent_cmd: cmd_1591
-  bloom_level: L3
-  priority: high
-  description: 'cmd_1591: agent_common.md Lazy Load化 + CLAUDE.md Step4.5変更 + instructions4本更新
-    + AC5/7補完レポート作成'
-  target_path: /home/murakami/multi-agent-shogun/shared_context/agent_common.md
-  steps: '0) advisor()呼出 1) 現状把握: CLAUDE.md のSession Start手順を全文精読(Step 4.5の現在の記述を確認)
-    2) shared_context/agent_common.md を全文精読(冒頭部分・Lazy Loadヘッダ未追記を確認) 3) instructions/shogun.md
-    / karo.md / gunshi.md / ashigaru.md の参照ブロック(''★共通ルール''行)を確認 4) 【変更①】shared_context/agent_common.md
-    冒頭(frontmatterの直後)に以下のLazy Loadヘッダを追記: ''> **Lazy Load指示**: このファイルはタスク該当時のみ Read。Session
-    Start では常時 Read しない。必要時にのみ参照せよ。'' 5) 【変更②】CLAUDE.md Step 4.5 を変更: ''全agent必須・instructions/{role}.md
-    の直後'' → ''Lazy Load — タスク該当時のみ Read (Session Start での常時注入禁止)。共通ルール(セマンティック検索/Self-Watch/Tone等)が必要なタスクの着手前のみ
-    Read。'' 6) 【変更③】instructions 4本の参照ブロックを更新: ''(Session Start Step 4.5 で Read 済)''
-    → ''(Lazy Load: タスク該当時のみ Read)'' に全置換(shogun.md / karo.md / gunshi.md / ashigaru.md)
-    7) 【AC5補完】queue/reports/2026-05-03_cmd_1588_phase1_agent_common.md を作成: cmd_1588
-    Phase1の完了報告書(内容=agent_common.md新設9セクション集約・instructions4本削減行数・commit 11b111f・CONDITIONAL_PASS理由と解消策=cmd_1591)
-    8) grep確認: CLAUDE.md Step 4.5 に ''常時注入禁止'' の文字があることを確認 / agent_common.md 冒頭に ''Lazy
-    Load指示'' があることを確認 9) git add shared_context/agent_common.md CLAUDE.md instructions/shogun.md
-    instructions/karo.md instructions/gunshi.md instructions/ashigaru.md queue/reports/2026-05-03_cmd_1588_phase1_agent_common.md
-    10) git diff --cached で意図外ファイルが含まれていないか確認 11) git commit -m ''feat: cmd_1591 agent_common.md
-    Lazy Load化・Step4.5更新・AC5補完'' && git push 12) 【AC7実証】変更後CLAUDE.md Step 4.5の行数を
-    grep-c で計測し、Session Start コンテキスト消費±0 (agent_common.md 134行が削除対象)を数値で示せ 13) advisor()呼出
-    14) inbox_write gunshi QC依頼: AC1-3/5/7/9の検証依頼・report_id=subtask_1591a 15) queue/reports/2026-05-03_cmd_1591_lazy_load_fix.md
-    を作成(完了報告書)'
-  acceptance_criteria:
-  - CLAUDE.md Step 4.5 が Lazy Load 指示に変更 (常時注入禁止の文言を含む)
-  - 'instructions 4本の参照ブロックが ''Lazy Load: タスク該当時のみ Read'' 形式に書換'
-  - agent_common.md 冒頭に Lazy Load ヘッダ追記
-  - queue/reports/2026-05-03_cmd_1588_phase1_agent_common.md 作成 (AC5補完)
-  - Session Start コンテキスト消費 ±0 tokens 実証 (agent_common.md 134行が非必読化)
-  - 軍師 QC PASS
-  - git commit + push 完了
-  - queue/reports/2026-05-03_cmd_1591_lazy_load_fix.md 報告書作成
-  notes:
-  - '殿原文: ''A (cmd_1588 案 A: agent_common.md を Lazy Load 化) — 殿2026-05-03 10:50'''
-  - AC4(shared_context/README.md更新)は既に完了済み(commit 4879ffd)→スキップ
-  - 'AC6(実機確認)は軍師QCで代替検証: Step4.5の文面確認で代替'
-  - '注意: git add . 禁止・個別ファイル指定のみ'
-  - '注意: instructions固有セクション(家老のTask Design 5問・将軍のNorth Star等)は絶対削除禁止'
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T10:45:18.025250+09:00'
-- agent: ashigaru1
-  task_id: subtask_1595_ch10
-  status: done
-  parent_cmd: cmd_1595
-  bloom_level: L3
-  priority: medium
-  description: 'cmd_1595 ch10: 中級編v4 第10章「ハーネスとは」— Claude Code lifecycle 7イベント'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch10_harness_lifecycle.md
-  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md 第10章セクション精読 2) lecture_design_rules.md
-    精読 3) intermediate_v4_ch05_context_economics.md を形式参照 4) intermediate_v4_ch10_harness_lifecycle.md
-    新規作成: Emotional Hook=「AIに監視カメラを付ける」/ 7イベントflow図解(SessionStart→PreToolUse→PostToolUse→...→Stop)
-    / 各イベント用途 / 最小hookの構造 / settings.json登録方法 / hook発火確認方法 / 18本hookカタログ概観 5) grep確認:
-    戦国用語・ASCII罫線・XML・受講者操作系・本名 全0件 6) marp HTML生成: cd projects/udemy_course/drafts/lectures
-    && npx @marp-team/marp-cli intermediate_v4_ch10_harness_lifecycle.md -o intermediate_v4_ch10_harness_lifecycle.html
-    --allow-local-files 7) git add ... && git commit && git push 8) advisor()呼出 9)
-    inbox_write gunshi QC依頼'
-  acceptance_criteria:
-  - intermediate_v4_ch10_harness_lifecycle.md / .html 作成済
-  - 'speaker notes 全スライド・講師名: なぎなた のみ'
-  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
-  - スライド枚数 12-15枚
-  - git commit + push 完了
-  notes:
-  - '殿原文: 中級編 Phase 3 起票 — 殿2026-05-03 12:40'
-  - '形式参照: intermediate_v4_ch05_context_economics.md'
-  - Bloom L2 Understand + L3 Apply (curriculum準拠)
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T12:42:12.727623+09:00'
 - task_id: subtask_1598a
   agent: ashigaru1
   parent_cmd: cmd_1598
@@ -233,45 +28,6 @@ tasks:
   - dashboard の再起動は supervisorctl or systemctl で行う可能性あり — server.py の起動方法確認
   - advisor()必須(作業前・完了前)
   timestamp: '2026-05-03T13:09:10.316913+09:00'
-- task_id: subtask_1600a
-  agent: ashigaru1
-  parent_cmd: cmd_1600
-  status: done
-  priority: high
-  description: 'cmd_1600: subtitle_speaker_qc.py の detect_speaker_pil_ocr() を v2ロジックで本番更新・全114行再判定'
-  target_path: projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py
-  steps: '0) advisor()呼出 1) projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py
-    を全文精読 — detect_speaker_pil_ocr() の現行実装 (v1ロジック) を把握 2) work/ 配下に test_pil_ocr_bbox_v2
-    または test_pil_ocr_few.py があれば精読して v2ロジックを確認 (y_min >= h_img*0.5 + bh >= h_img*0.08
-    + margin=0) 3) detect_speaker_pil_ocr() を v2ロジックに更新: bbox フィルタ条件を y_min >= h_img*0.5
-    (下半分) かつ bh >= h_img*0.08 (フォント大) かつ margin=0 に変更 4) ★注意★ cmd_1599 (ash6作業放棄分)
-    の未コミット変更が残っている可能性あり → git -C projects/dozle_kirinuki status で確認・不要な未コミット変更は git
-    -C projects/dozle_kirinuki checkout -- scripts/subtitle_speaker_qc.py でリセット後に
-    v2 変更を適用 5) tono_clip_base.mp4 全 114 行で動作検証: python3 projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py
-    --method pil_ocr <raw.json> 6) nekooji 偏重 (旧 62/114=54%) が解消されていること確認 7) 旧 vs
-    新 結果比較表を記録 8) git -C projects/dozle_kirinuki add scripts/subtitle_speaker_qc.py
-    && git -C projects/dozle_kirinuki commit -m ''fix: cmd_1600 detect_speaker_pil_ocr
-    v2ロジック本番反映'' && git -C projects/dozle_kirinuki push origin main 9) advisor()呼出
-    10) inbox_write gunshi QC依頼 11) queue/reports/2026-05-03_cmd_1600_pil_ocr_v2_final.md
-    作成'
-  acceptance_criteria:
-  - subtitle_speaker_qc.py の detect_speaker_pil_ocr() を v2ロジック (y_min >= h_img*0.5
-    + bh >= h_img*0.08 + margin=0) に更新
-  - tono_clip_base.mp4 全 114 行で動作検証
-  - nekooji 偏重 (旧 62/114=54%) 解消
-  - 旧 vs 新 結果比較表を報告書記載
-  - 軍師 QC PASS
-  - git commit + push 完了
-  - queue/reports/2026-05-03_cmd_1600_pil_ocr_v2_final.md 報告書作成
-  notes:
-  - '殿原文: 「完了よ 1-04は字幕なし (test_pil_ocr_bbox_v2 検証で殿OK・本番反映許可) — 殿2026-05-03 13:50」'
-  - 'cmd_1599 ash6作業放棄分: git -C projects/dozle_kirinuki status で未コミット変更確認し、不要なら checkout
-    -- でリセット'
-  - 'v2ロジック: work/ 配下の test_pil_ocr_bbox_v2.py or test_pil_ocr_few.py を参照'
-  - git push は dozle_kirinuki submodule (git -C projects/dozle_kirinuki push)・parent
-    repo push は家老がやる
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T14:05:46.130772+09:00'
 - task_id: subtask_1603_ch10_12
   agent: ashigaru1
   parent_cmd: cmd_1603
@@ -308,23 +64,149 @@ tasks:
   - ch13-15 は ash2(subtask_1603_ch13_15)が並行担当
   - advisor()必須(作業前・完了前)
   timestamp: '2026-05-03T14:37:04.627412+09:00'
-- task_id: subtask_1603_ch11_12_patch
+- task_id: subtask_1606a
   agent: ashigaru1
-  parent_cmd: cmd_1603
-  status: done
-  priority: medium
-  description: 'cmd_1603 補完: ch11/ch12 に『本講座サンプル実装』注釈追加 + check.sh実行 + .md報告書確認'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch11_completion_gate.md
-  steps: 1) intermediate_v4_ch11 を読み、自プロ独自実装コード例スライドに『※本講座サンプル実装』注釈を1-2箇所追加 2) 同様に
-    intermediate_v4_ch12 も注釈追加 3) marp HTML再生成(ch11/ch12) 4) bash scripts/lecture-speaker-notes-grep-check.sh
-    projects/udemy_course/drafts/lectures/intermediate_v4_ch1{0,1,2}*.md で check.sh実行・PASS確認
-    5) queue/reports/2026-05-03_cmd_1603_phase3_rewrite_ch10_12.md が存在しなければ簡易報告書作成
-    6) git add + commit + push 7) inbox_write karo 完了報告
+  parent_cmd: cmd_1606
+  status: assigned
+  priority: high
+  description: 'cmd_1606: subtitle_speaker_qc.py detect_speaker_pil_ocr() color pass
+    に nekooji 除外修正を本番反映'
+  target_path: projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py
+  steps: '0) advisor()呼出 1) projects/dozle_kirinuki/scripts/ にある test_pil_ocr_few.py
+    を確認 (正しい挙動の参照) 2) subtitle_speaker_qc.py の detect_speaker_pil_ocr() color pass
+    ループ (member_colors を走査するfor文) を確認 3) color pass ループ内に ''if key == "nekooji": continue''
+    を追加 4) cd projects/dozle_kirinuki/scripts && python3 subtitle_speaker_qc.py --input
+    panels_yukigassen_base_raw.json --video tono_clip_base.mp4 --method pil_ocr --mode
+    strict --output subtitle_qc_report_nekooji_fix.md 5) 結果確認: nekooji比率が36%→10%程度に低下・bon/oo_men
+    が5+件検出 6) frame_1-33.png 単発テスト (test_pil_ocr_few.py 実行 or フレーム直接確認) で oo_men 判定確認
+    7) git -C projects/dozle_kirinuki add scripts/subtitle_speaker_qc.py && git -C
+    projects/dozle_kirinuki commit -m ''...'' 8) 報告書: queue/reports/2026-05-03_cmd_1606_nekooji_double_count_fix.md
+    作成 9) advisor()呼出 10) inbox_write gunshi QC依頼'
   acceptance_criteria:
-  - ch11/ch12 に独自実装注釈 1-2箇所追加済み
-  - check.sh PASS確認
-  - git commit + push完了
+  - 'detect_speaker_pil_ocr() color pass に if key == ''nekooji'': continue 追加済み'
+  - tono_clip_base.mp4 で全114行再判定完了
+  - nekooji比率 36% → 10%程度に低下
+  - bon / oo_men が 0件 → 5+件検出
+  - frame_1-33.png 単発で oo_men 判定確認
+  - git commit完了
+  - queue/reports/2026-05-03_cmd_1606_nekooji_double_count_fix.md 報告書作成済み
   notes:
-  - 'gunshi LOW指摘: AC5 独自注釈0件・AC8 check.sh未確認・AC10 .md report未確認'
-  - 軽微補完のみ・ch10-12全体再作成ではない
-  timestamp: '2026-05-03T14:54:24.332992+09:00'
+  - '殿原文: できてるじゃん test_pyじゃなくて本番用にとりこんでくれよ — 殿2026-05-03 16:00'
+  - test_pil_ocr_few.py で実証済みの nekooji 除外ロジックを subtitle_speaker_qc.py 本体に反映
+  - cmd_1600 (v2ロジック ash1担当) の後継修正・同ファイル経験者として割り当て
+  - advisor()必須(作業前・完了前)
+  - git push は家老責務 (HTTPS認証エラー回避)
+  timestamp: '2026-05-03T15:57:14.484917+09:00'
+- agent: ashigaru1
+  task_id: subtask_1610c
+  status: blocked
+  blocked_by:
+  - subtask_1610b
+  parent_cmd: cmd_1610
+  bloom_level: L1
+  description: 'cmd_1610 完了処理: 報告書作成 + git commit & push'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/2026-05-03_cmd_1610_silent_fail_watcher_fix.md
+  steps:
+  - 1. queue/reports/2026-05-03_cmd_1610_silent_fail_watcher_fix.md 作成 (修正概要・regex変更内容・テスト結果・重複起動原因)
+  - 2. git add scripts/silent_fail_watcher.sh queue/reports/2026-05-03_cmd_1610_silent_fail_watcher_fix.md
+  - 3. git diff --cached で確認
+  - '4. git commit -m ''fix(watcher): cmd_1610 silent_fail_watcher false positive
+    撲滅 + 多重起動防止'''
+  - 5. git push origin main
+  - 6. 完了報告を POST /api/inbox_write で karo へ送信
+  timestamp: '2026-05-03T20:34:58.808992+09:00'
+- agent: ashigaru1
+  task_id: subtask_1612a
+  status: done
+  parent_cmd: cmd_1612
+  bloom_level: L3
+  description: 'cmd_1612: pretool_check.sh CHK11実装 + /tmp payload migration + shared_context更新'
+  target_path: /home/murakami/multi-agent-shogun/scripts/pretool_check.sh
+  steps: '0) advisor()呼出 1) Read scripts/pretool_check.sh で現在のCHK番号確認 (最後のCHKN番号を把握)
+    2) CHK11追加: curl コマンドに --data @/tmp/ または -d @/tmp/ が含まれる場合 BLOCK (エラーメッセージ: ''BLOCKED:
+    /tmp への payload 書出し禁止。queue/cmd_payloads/<cmd_XXX>.json に書け'') 3) /tmp の .json
+    ファイル (41件) を queue/cmd_payloads/archive_20260504_tmp_migration/ にコピー保全: mkdir
+    -p queue/cmd_payloads/archive_20260504_tmp_migration && cp /tmp/*.json queue/cmd_payloads/archive_20260504_tmp_migration/
+    4) shared_context/procedures/dashboard_api_usage.md に「payload ファイル必須ルール」追記: curl
+    --data @/tmp/ 禁止・queue/cmd_payloads/cmd_XXXX.json に書き出してから curl --data @<path>
+    で投入 5) 動作検証: echo ''{"test":1}'' > /tmp/test_payload.json && curl --data @/tmp/test_payload.json
+    → BLOCK確認 / echo ''{"test":1}'' > queue/cmd_payloads/test_1612.json && curl --data
+    @queue/cmd_payloads/test_1612.json → PASS確認 (後者はcurl実行せず pretool のみ検証) 6) git
+    add scripts/pretool_check.sh shared_context/procedures/dashboard_api_usage.md
+    queue/cmd_payloads/archive_20260504_tmp_migration/ && git commit && git push 7)
+    advisor()呼出 8) inbox karo 完了報告'
+  acceptance_criteria:
+  - 'pretool_check.sh に CHK11 追加: curl --data @/tmp/*.json を BLOCK'
+  - /tmp/*.json 41件を queue/cmd_payloads/archive_20260504_tmp_migration/ にコピー保全
+  - shared_context/procedures/dashboard_api_usage.md に payload ファイル必須ルール追記
+  - '動作検証: /tmp経由BLOCK + queue/cmd_payloads/経由PASS'
+  - git commit + push完了
+  notes: CHK番号は既存の最後番号+1。/tmp ファイルはコピー(削除しない)。curl実行はしないこと(api投入テストはpretool mockのみ)
+  timestamp: '2026-05-04T07:58:31.212434+09:00'
+- agent: ashigaru1
+  task_id: subtask_1613d
+  status: assigned
+  parent_cmd: cmd_1613
+  bloom_level: L2
+  description: 'cmd_1613 Phase-D: subtitle_speaker_qc.py / batch_speaker_match.py
+    修正 (STT_M007/L004/L005)'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py
+  steps: '0) advisor()呼出 1) Read queue/reports/gunshi_stt_contradiction_20260504.yaml
+    で STT_M007/L004/L005 把握 2) subtitle_speaker_qc.py:247-252 STT_M007: Part.from_bytes
+    使用箇所を特定。--method gemini に対して RuntimeError(''Part.from_bytes は廃止。--method pil_ocr
+    を使用してください'') を発生させる deprecated 処理に変更 (GCS URI方式への完全移行は別cmdで判断) 3) subtitle_speaker_qc.py:961-963
+    STT_L005: generate_report の audio_merge_path 引数を ''args.merge_stt_json or args.audio_merge''
+    に変更し、ラベルも STT merge / Audio merge を分岐表示 4) batch_speaker_match.py:70-74 STT_L004:
+    no-op の if video_id.startswith(''_''): video_id = video_id を削除し、代わりに ''# video_id
+    は _sVuKf5Zu4A 形式 (先頭 _) もそのまま OK'' コメントを追加 5) python3 -m py_compile で subtitle_speaker_qc.py
+    / batch_speaker_match.py 文法確認 6) git add projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py
+    projects/dozle_kirinuki/scripts/batch_speaker_match.py && git commit -m ''fix(stt):
+    STT_M007/L004/L005 — gemini方式deprecated/audio_merge_path/no-op削除'' 7) advisor()呼出
+    8) inbox karo 完了報告'
+  acceptance_criteria:
+  - 'STT_M007: subtitle_speaker_qc.py の --method gemini が RuntimeError (deprecated
+    メッセージ付き) を発生させる'
+  - 'STT_M007: エラーメッセージが pil_ocr への切替を案内している'
+  - 'STT_L005: generate_report が merge_stt_json or audio_merge を正しく受け取る'
+  - 'STT_L004: batch_speaker_match.py の no-op if 分岐が削除されコメントに置き換わっている'
+  - py_compile エラーなし (両ファイル)
+  - git commit 完了
+  notes: STT_M007 は MEMORY.md「Vertex AI 画像入力は GCS URI 方式のみ・Part.from_bytes 禁止」ルール準拠。今回は
+    deprecated エラーにして次回 cmd で GCS URI 移行する方針。subtitle_speaker_qc.py L247 付近の _check_with_gemini()
+    関数内に Part.from_bytes がある。batch_speaker_match.py:70-74 は完全な no-op 分岐なので単純削除。
+  params: {}
+  timestamp: '2026-05-04T08:41:59.365614+09:00'
+- agent: ashigaru1
+  task_id: subtask_1613e
+  status: blocked
+  parent_cmd: cmd_1613
+  bloom_level: L2
+  description: 'cmd_1613 Phase-E: regression test (vocal_stt_pipeline) + git push
+    + 完了報告書生成'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md
+  blocked_by:
+  - subtask_1613a
+  - subtask_1613b
+  - subtask_1613c
+  - subtask_1613d
+  steps: '0) advisor()呼出 1) git log --oneline -10 で全4 subtask (1613a/b/c/d) の commit
+    が入っていることを確認 2) tono_clip_base.mp4 の存在確認: find projects/dozle_kirinuki/work -name
+    ''tono_clip_base.mp4'' 2>/dev/null 3) 存在する場合のみ: cd projects/dozle_kirinuki &&
+    python3 scripts/vocal_stt_pipeline.py [実際のtono_clip_base.mp4パス] --dry-run 2>&1
+    | head -30 でimport成功確認 4) import エラーがなければ识別率テスト実行 (実行時間が長いので --dry-run でimport確認のみでも可)
+    5) git push origin main で全 commits を push 6) 報告書作成: queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md
+    に全20件の修正内容・commit hash・regression結果を記載 (markdownフォーマット) 7) git add queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md
+    && git commit -m ''docs(report): cmd_1613完了報告書 — STT audit 20件修正完了'' && git push
+    8) advisor()呼出 9) inbox karo 完了報告'
+  acceptance_criteria:
+  - 全4 subtask (a/b/c/d) の commit が git log に存在する
+  - python3 scripts/vocal_stt_pipeline.py でImportError / ModuleNotFoundError が出ない
+  - git push origin main 完了
+  - queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md が作成されている
+  - 報告書に全20件 (C001/C002/H001-H006/M001-M007/L001-L005) の修正完了が記載されている
+  - 報告書に commit hash と finding ID の対応表がある
+  notes: 全subtask完了待ちのため status=blocked。全4件 done 確認後に開始。tono_clip_base.mp4 は実際の話者識別テスト用素材。パスが不明な場合は
+    find で探してから実行。実行に数分かかる場合は --dry-run オプション (なければ import 確認のみ) でも可。報告書はMarkdown形式で全20件のfinding
+    ID/severity/file/修正概要/commit_hashを表形式で。
+  params: {}
+  timestamp: '2026-05-04T08:42:02.809416+09:00'
