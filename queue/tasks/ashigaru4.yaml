@@ -292,7 +292,7 @@ tasks:
 - task_id: subtask_1604_ch05_06
   agent: ashigaru4
   parent_cmd: cmd_1604
-  status: assigned
+  status: done
   priority: high
   description: 'cmd_1604 ch05-06: 中級編v4 Phase2 ch05/06 を LangChain 4戦略体系で書き直し + 全5章バックアップ'
   target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch05_context_economics.md
@@ -324,7 +324,7 @@ tasks:
 - task_id: subtask_1604_ch05_06_patch
   agent: ashigaru4
   parent_cmd: cmd_1604
-  status: assigned
+  status: done
   priority: medium
   description: 'cmd_1604 補完: ch05/06 に独自注釈追加 + Context Rot grep確認 + check.sh実行'
   target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch05_context_economics.md

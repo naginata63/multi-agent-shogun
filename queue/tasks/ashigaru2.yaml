@@ -94,7 +94,7 @@ tasks:
   timestamp: '2026-05-03T10:31:23.027778+09:00'
 - agent: ashigaru2
   task_id: subtask_1590_ch06
-  status: assigned
+  status: done
   parent_cmd: cmd_1590
   bloom_level: L3
   priority: medium
@@ -124,3 +124,138 @@ tasks:
   - cmd_1589の作業が先に割り当てられている場合はそちらを先に完了してからこちらに取りかかれ
   - advisor()必須(作業前・完了前)
   timestamp: '2026-05-03T10:32:43.646254+09:00'
+- agent: ashigaru2
+  task_id: subtask_1595_ch11
+  status: done
+  completed_at: '2026-05-03T12:53:44'
+  parent_cmd: cmd_1595
+  bloom_level: L3
+  priority: medium
+  description: 'cmd_1595 ch11: 中級編v4 第11章「完了 Gate ハーネス」(H1 + H10 統合型)'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch11_completion_gate.md
+  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md 第11章セクション精読 2) lecture_design_rules.md
+    精読 3) intermediate_v4_ch05_context_economics.md を形式参照 4) intermediate_v4_ch11_completion_gate.md
+    新規作成: Emotional Hook=「機械的に完了を検証する門番」/ 完了条件5項目の設計思想 / done_gate.sh 構造解説 / PostToolUse
+    hookとしての登録 / 未完了の完了報告の再現例 / done_gateがBLOCKする仕組み / 実運用での調整ポイント 5) grep確認: 戦国用語・ASCII罫線・XML・受講者操作系・本名
+    全0件 6) marp HTML生成: cd projects/udemy_course/drafts/lectures && npx @marp-team/marp-cli
+    intermediate_v4_ch11_completion_gate.md -o intermediate_v4_ch11_completion_gate.html
+    --allow-local-files 7) git add ... && git commit && git push 8) advisor()呼出 9)
+    inbox_write gunshi QC依頼'
+  acceptance_criteria:
+  - intermediate_v4_ch11_completion_gate.md / .html 作成済
+  - 'speaker notes 全スライド・講師名: なぎなた のみ'
+  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
+  - スライド枚数 12-15枚
+  - git commit + push 完了
+  notes:
+  - '殿原文: 中級編 Phase 3 起票 — 殿2026-05-03 12:40'
+  - '形式参照: intermediate_v4_ch05_context_economics.md'
+  - Bloom L6 Create (curriculum準拠)
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T12:42:19.881207+09:00'
+- task_id: subtask_1597a
+  agent: ashigaru2
+  parent_cmd: cmd_1597
+  status: done
+  completed_at: '2026-05-03T13:26:49'
+  priority: high
+  description: 'cmd_1597: intermediate_v4_ch04_quality_gate.md / .html を advisor公式ツールベースで書き直し'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch04_quality_gate.md
+  steps: '0) advisor()呼出 1) projects/udemy_course/drafts/lectures/intermediate_v4_ch04_quality_gate.md
+    を全文精読 (現行構成把握) 2) lecture_design_rules.md 精読 3) intermediate_v4_ch05_context_economics.md
+    を形式参照 4) ch04_quality_gate.md 書き直し — 以下の構成で再構成: スライドA「advisorとは — Anthropic API公式betaツール」/
+    スライドB「model pairing戦略 — なぜOpus最初じゃダメか (コスト/速度/トレードオフ)」/ スライドC「呼ぶタイミング — Before
+    substantive work / When stuck / When complete」/ スライドD「応答ルール — under 100 words/enumerated
+    steps」/ スライドE「サブエージェントとの違い」★重要★ advisor_proxy.py等の自プロジェクト独自実装には一切触れない (/advisorコマンドのみ解説)
+    5) grep確認: 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件・advisor_proxy.py 0件 6) marp HTML再生成:
+    cd projects/udemy_course/drafts/lectures && npx @marp-team/marp-cli intermediate_v4_ch04_quality_gate.md
+    -o intermediate_v4_ch04_quality_gate.html --allow-local-files 7) git add ... &&
+    git commit && git push 8) advisor()呼出 9) inbox_write gunshi QC依頼 10) queue/reports/2026-05-03_cmd_1597_ch04_advisor_revise.md
+    作成'
+  acceptance_criteria:
+  - ch04_quality_gate.md / .html の advisor セクション書き直し済 (公式ツールベース)
+  - スライド A (advisorとは) / B (model pairing・なぜOpus最初じゃダメか) / C (呼ぶタイミング) / D (応答ルール)
+    / E (サブエージェントとの違い) 配置
+  - サブエージェントとの違いスライド追加
+  - advisor_proxy.py 等自プロジェクト独自実装は完全カット (触れない)
+  - '戦国用語 0 件・講師名: なぎなた のみ・speaker notes 全スライド維持'
+  - 軍師 QC PASS
+  - git commit + push 完了
+  - queue/reports/2026-05-03_cmd_1597_ch04_advisor_revise.md 報告書作成
+  notes:
+  - '殿原文: 「4章advisor呼出しはadvisor設定をするだけでない 実際どうゆう工夫をしているか やadvisorってどうゆうせんたくし opus
+    sonnetがあるのか なぜ最初からopusjゃだめなのか / advisor_proxy.pyは説明いらないだろ /advisorだけでいい — 殿2026-05-03
+    12:55」'
+  - ch04は cmd_1586 ash2作成・cmd_1589で修正済・現行ファイル精読して既存構成把握してから書き直し
+  - advisor は Anthropic API 公式 beta ツール (CLAUDE.md にも記載) — /advisor スラッシュコマンドのみ解説
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T13:09:58.178134+09:00'
+- task_id: subtask_1601a
+  agent: ashigaru2
+  parent_cmd: cmd_1601
+  status: done
+  completed_at: '2026-05-03T14:28:08'
+  priority: medium
+  description: 'cmd_1601: scripts/dashboard/server.py に POST /api/task_update エンドポイント新設'
+  target_path: scripts/dashboard/server.py
+  steps: '0) advisor()呼出 1) scripts/dashboard/server.py を精読 — 既存 POST /api/cmd_status_change
+    の実装 (SQLite更新 + YAML同期) を完全把握・task_update の参考にする 2) POST /api/task_update エンドポイント実装:
+    リクエスト: task_id (必須) + status (必須: assigned/in_progress/done/cancelled/blocked)
+    + reason (optional) + updated_by (optional) / SQLite tasks テーブル更新 / queue/tasks/<agent>.yaml
+    同期更新 3) エラーケース実装: task_id不在 → 400 bad_request / 対象task未発見 → 404 not_found / 不正status
+    → 400 bad_request 4) 単体テスト: curl -X POST /api/task_update -d ''{task_id: subtask_1599a,
+    status: cancelled, reason: cmd_cancelled}'' で subtask_1599a が cancelled になることを確認
+    5) agent_health エンドポイントで ashigaru6 last_task_status が cancelled 反映されることを確認 6)
+    dashboard 再起動不要ならそのまま・必要なら systemctl --user restart mcp-dashboard 7) git add scripts/dashboard/server.py
+    && git commit -m ''feat: cmd_1601 POST /api/task_update エンドポイント新設'' && git push
+    origin main 8) advisor()呼出 9) inbox_write gunshi QC依頼 10) queue/reports/2026-05-03_cmd_1601_task_update_api.md
+    作成'
+  acceptance_criteria:
+  - scripts/dashboard/server.py に POST /api/task_update エンドポイント実装
+  - 'リクエスト: task_id + status (assigned/in_progress/done/cancelled/blocked) + optional
+    reason/updated_by'
+  - SQLite tasks テーブル + YAML (queue/tasks/<agent>.yaml) 同期更新
+  - subtask_1599a を cancelled に更新する単体テスト PASS
+  - ashigaru6 last_task_status が cancelled 反映確認 (agent_health)
+  - エラーケース (404 not_found / 400 bad_request) ハンドリング
+  - 軍師 QC PASS
+  - git commit + push 完了
+  - queue/reports/2026-05-03_cmd_1601_task_update_api.md 報告書作成
+  notes:
+  - '殿原文: 「する (POST /api/task_update API 実装許可) — 殿2026-05-03 14:25」'
+  - cmd_status_change の実装を参考に同様のパターンで実装せよ
+  - 'YAML同期: queue/tasks/<agent>.yaml の該当 task_id の status を更新'
+  - テスト後 subtask_1599a が実際に cancelled になれば家老が事後確認可能
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T14:20:48.042706+09:00'
+- task_id: subtask_1603_ch13_15
+  agent: ashigaru2
+  parent_cmd: cmd_1603
+  status: done
+  priority: high
+  description: 'cmd_1603 ch13-15: 中級編v4 Phase3 ch13/14/15 を業界体系で書き直し'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch13_phase_gate.md
+  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md ch13-15セクション精読 2) lecture_design_rules.md
+    精読 3) intermediate_v4_ch05_context_economics.md 形式参照 4) バックアップ確認: ls projects/udemy_course/drafts/lectures/_archive_phase3_pre_synthesis_20260503/
+    (ash1が既に実施済みのはず。未作成なら自分でバックアップ実行) 5) ch13書き直し(タイトル:「PreToolUse Phase-Gating: タスク起票前の自動検証」・H番号除去・業界用語:
+    PreToolUse/Phase-Gating/Bounded Deterministic Workflows・自プロ実例1-2個のみ+注釈) 6) ch14書き直し(タイトル:「PostToolUse
+    Supervisor: フィードバック自動化パターン」・H番号除去・業界用語: PostToolUse/Supervisor Pattern/slash command・自プロ実例1-2個のみ)
+    7) ch15書き直し(タイトル:「3 Guardrail 分類と Harness 選定フレームワーク」・H番号除去・業界用語: 3 Guardrail categories/選定判断フレームワーク・自プロ実例1-2個のみ)
+    8) marp HTML生成(ch13/14/15各々) 9) grep確認: 戦国用語/ASCII罫線/XML/受講者操作系/本名 0件 10) git
+    add + commit + push 11) advisor()呼出 12) inbox_write gunshi QC依頼'
+  acceptance_criteria:
+  - ch13/14/15 .md/.html 書き直し完了
+  - 章タイトルに H1〜H18 等の独自番号ゼロ件
+  - 業界用語(PreToolUse/PostToolUse/Phase-Gating/Supervisor Pattern/Guardrails)各章に含む
+  - 自プロ独自実装は実例1-2個・注釈『本講座サンプル実装』付き
+  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
+  - speaker notes 全スライド・なぎなた表記のみ
+  - git commit + push 完了
+  notes:
+  - '殿原文: そうだな バックアップしてからかきかえよう (中級編 v4 Phase 3 ch10-15 を業界体系で書き直し) — 殿2026-05-03
+    14:35'
+  - バックアップは ash1(subtask_1603_ch10_12)が担当。未実施なら自分でも可
+  - '形式参照: intermediate_v4_ch05_context_economics.md'
+  - ch10-12 は ash1(subtask_1603_ch10_12)が並行担当
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T14:37:05.387244+09:00'
