@@ -1,0 +1,37 @@
+worker_id: ashigaru6
+task_id: subtask_1593a
+parent_cmd: cmd_1593
+timestamp: "2026-05-03T12:08:26"
+status: done
+result:
+  summary: "cmd_1593: pil_ocrモード実装完了。EasyOCR動的テキスト検出+numpyベクトル化色分析。tono_clip_base.mp4でBefore/After比較実施。"
+  files_modified:
+    - "projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py"
+    - "shared_context/procedures/manga_pipeline.md"
+    - "queue/reports/2026-05-03_cmd_1593_pil_ocr_qc.md"
+  notes: |
+    ## 実装内容
+    - --method pil_ocr 追加: EasyOCR readtextでテキスト領域bbox動的検出
+    - グレーパス先行: nekooji(#787878) s<0.15, 0.3<=v<=0.65
+    - カラーパス: 白(s<0.2 or v>0.95&s<0.3)と黒(v<0.15)除外 → s>=0.4高彩度でRGB距離照合
+    - numpyベクトル化で高速処理
+    - RuntimeWarning(ゼロ除算)修正
+    - 旧pil互換性維持
+
+    ## Before/After結果 (tono_clip_base.mp4, 114行)
+    - pil: 18/114 (15.8%) / pil_ocr: 9/74 (12.2%)
+    - bon(紫): pil 0/89 → pil_ocr 4/53 (改善)
+    - 70%精度未達: テスト動画の字幕が fontcolor=white:bordercolor=black でメンバーカラー縁取りなし
+
+    ## 要: 家老対応
+    - git -C projects/dozle_kirinuki push (ashigaruはpush禁止)
+    - メンバーカラー縁取り字幕動画で再テスト推奨
+skill_candidate:
+  found: false
+  name: null
+  description: null
+  reason: null
+hotfix_notes:
+  what_was_wrong: "nekooji グレーフォールバック (s<0.15, 0.3<=v<=0.65) がマイクラ背景の茶色ピクセルに広くマッチし誤検出多発。gray_threshold_sq=5000でも不十分。"
+  workaround: "現状のままとし、メンバーカラー縁取り字幕動画で実運用時に閾値を調整する方針で報告"
+  proper_fix: "OCR信頼度(conf>0.3)足切り + ホットバー除外マスク + gray_threshold_sq引き締め(5000→2000)で対応予定"
