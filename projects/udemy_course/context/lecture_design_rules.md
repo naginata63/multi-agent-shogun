@@ -243,3 +243,30 @@ style: |
 - 外部受講者にとって「将軍」「足軽」等の用語は意味不明であり、学習の阻害要因になる
 - CLI標準の用語（CLAUDE.md・hook・advisor等）を使用することで、他のClaude Codeユーザーにも通用する知識を提供できる
 - 殿命令 (2026-05-03): 「あしがるとか adviderよびだしっていCLIだけでいい それが標準だし」
+
+## 13. Skill検証ルール — check.sh による自動検証
+
+講義スライド(.md)の品質は `skills/lecture-speaker-notes-grep-check/check.sh` で自動検証する。
+
+### 検証項目
+
+| 項目 | チェック内容 |
+|------|-------------|
+| Speaker Notes | 全スライドにHTMLコメント(`<!-- ... -->`)が存在するか |
+| 戦国用語 | 御意・つかまつる・ござる・拙者・候(候補等除外)が含まれていないか |
+| 本名 | 「村上」が含まれていないか |
+
+### 実行コマンド
+
+```bash
+bash skills/lecture-speaker-notes-grep-check/check.sh \
+  projects/udemy_course/drafts/lectures/beginner_*_v4.md \
+  projects/udemy_course/drafts/lectures/intermediate_v4_ch0*.md
+```
+
+### FAIL検出時の対応
+
+- check.sh は検証のみを行い、修正はしない
+- FAILは報告書に「過去cmd漏れ」として明記
+- 修正は別cmdで対応
+- 新規講義作成時はcommit前に必ずcheck.shを実行し、FAIL 0件を確認すること
