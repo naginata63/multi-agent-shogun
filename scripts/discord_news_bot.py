@@ -12,6 +12,7 @@ import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlparse
 
 import discord
 from discord.ext import tasks
@@ -33,6 +34,15 @@ CATEGORY_COLORS = {
     "📄": 0x95A5A6,  # グレー
 }
 DEFAULT_COLOR = 0x7F8C8D
+
+
+def is_valid_image_url(url: str) -> bool:
+    """ogp_image URLの妥当性チェック。scheme=http/https・netloc非空を確認。"""
+    try:
+        p = urlparse(url)
+        return p.scheme in ("http", "https") and bool(p.netloc)
+    except Exception:
+        return False
 
 
 # --- 環境変数読み込み（discord_bot.envから） ---
@@ -164,7 +174,7 @@ def build_topic_embed(topic: dict, date: str) -> discord.Embed:
     embed.set_author(name="📰 GenAI Daily", url="https://genai-daily.pages.dev/")
     embed.set_footer(text=f"{stars}  |  {date}")
 
-    if ogp_image and len(ogp_image) <= 2048:
+    if ogp_image and is_valid_image_url(ogp_image) and len(ogp_image) <= 2048:
         embed.set_image(url=ogp_image)
 
     if url:
@@ -192,7 +202,13 @@ async def send_daily_news(topics: list, date: str):
     log(f"個別Embed配信開始: {len(topics)}件")
     for topic in topics:
         embed = build_topic_embed(topic, date)
-        msg = await channel.send(embed=embed)
+        try:
+            msg = await channel.send(embed=embed)
+        except discord.HTTPException as e:
+            title = topic.get("title", "")
+            log(f"ERROR: 記事送信失敗 (skip): {title[:40]} — {e.status} {e.text}")
+            await asyncio.sleep(1.0)
+            continue
         # ⭐/👎リアクションを自動付与
         for emoji in ["⭐", "👎"]:
             await msg.add_reaction(emoji)
