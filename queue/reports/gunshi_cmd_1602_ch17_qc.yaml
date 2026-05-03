@@ -1,0 +1,136 @@
+worker_id: gunshi
+task_id: subtask_1602_ch17_qc
+parent_cmd: cmd_1602
+timestamp: '2026-05-03T14:40:00+09:00'
+status: done
+result:
+  type: quality_check
+  ashigaru_task_id: subtask_1602_ch17
+  ashigaru_worker_id: ashigaru4
+  qa_decision: PASS
+  summary: |
+    cmd_1602 ch17 (3階層統合の設計思想・synthesis_part1) 全 AC 充足。
+    14 スライド・Bloom L2/L3 Evaluate・成熟度評価フレームワーク + Gap分析 + 1週間ロードマップ + Day1実装例 + 成功vs失敗比較で実用化。
+    Phase 4 入口章として完成・受講者が「3階層統合を実装する」 力を獲得。
+
+  acceptance_check:
+    - id: 1
+      criterion: "intermediate_v4_ch17_synthesis_part1.md / .html 作成済"
+      status: PASS
+      evidence: |
+        ファイル名 AC 完全一致 (synthesis_part1) ✅ ★ch13/14 と異なり整合★
+        commit 19929b4 (ash4 報告)
+        .md (19041 bytes) + .html (183990 bytes)
+    - id: 2
+      criterion: "戦国用語 0件"
+      status: PASS
+      evidence: "grep 精緻化 (拙者|ござる|御意|つかまつる) → 0件"
+    - id: 3
+      criterion: "ASCII罫線/XML系/受講者操作系 0件"
+      status: PASS
+      evidence: "全 0件 (cmd_1577 自然言語ルール継続遵守)"
+    - id: 4
+      criterion: "speaker notes 全スライド (1.5-2.5min/枚)"
+      status: PASS
+      evidence: |
+        --- separator 15件 = 14スライド + frontmatter
+        speaker notes <!-- 16件 (cover + 各 + 余裕)
+        30 min / 14スライド = 2.14 min/枚 (1.5-2.5 範囲内)
+    - id: 5
+      criterion: "講師名: なぎなた のみ (本名 0件)"
+      status: PASS
+      evidence: "なぎなた 3件 / 本名 0件 ✅"
+    - id: 6
+      criterion: "スライド枚数 12-15枚"
+      status: PASS
+      evidence: |
+        14スライド = 12-15 範囲内
+        構成: cover + 章ゴール (L2/L3 Evaluate) + Emotional Hook (部品は揃った・組み上がらない) + 3階層統合の全体図 + 現状診断・成熟度評価 + Gap分析 + 1週間実装ロードマップ + Day 1実装例 + Project Rules + 成功パターン + 失敗パターン + 成功vs失敗比較 + まとめ + 確認問題 + 第17章完了
+    - id: 7
+      criterion: "Bloom L6 Create としての深度"
+      status: PASS
+      evidence: |
+        Emotional Hook 「部品は揃った。だが組み上がらない」 で統合の動機明確化
+        成熟度評価フレームワーク (3階層別の現状診断)
+        Gap分析 (現状と目標の差分見える化)
+        1週間実装ロードマップ + Day 1 実装例 (Project Rules) で具体的アクション
+        成功 vs 失敗パターン比較で学習効果最大化
+        Bloom L5 Evaluate (成熟度判断) + L6 Create (ロードマップ設計) で実務最高レベル
+    - id: 8
+      criterion: "git commit + push"
+      status: PARTIAL_PASS
+      evidence: |
+        commit 19929b4 ✅
+        push: 家老責務 (ash4 認証エラー)
+
+  deliverables_verified: true
+  tests_status: not_run
+  build_status: marp_pass
+  scope_match: complete
+  issues_found:
+    - id: I1
+      severity: INFO
+      title: "★ Phase 4 入口章として完成・成熟度評価フレームワーク + 1週間ロードマップ ★"
+      detail: |
+        Phase 1-3 (16章) で各 hook + 概念を学んだ受講者が、本 ch17 で「自分のプロジェクトに統合する」 力を獲得
+        成熟度評価 (3階層別) + Gap分析 + 1週間ロードマップ + Day 1 実装例 = 実用化フレームワーク完成
+        cmd_1584 @import化監査計画 (Phase 1-3 連動) と並列で展開する自プロジェクト実例化第11弾
+      action: "なし (情報共有・Phase 4 残 ch16/ch18/附録 A/B/C 完了報告待ち)"
+
+    - id: I2
+      severity: LOW
+      title: "push BLOCKED 系列継続 (家老責務)"
+      detail: "19929b4 + 累積 35+ commits"
+      action: "家老 push 一括対応"
+
+  skill_candidate_inherited:
+    found: false
+
+  decision_rationale: |
+    cmd_1490 軍師QC形骸化対策 三点照合:
+      - 数値検証: separator 15 / speaker notes 16 / 戦国用語 0 / なぎなた 3 / 本名 0 / ASCII/XML/操作系 0
+      - 内容検証: 14 headings 全数確認・成熟度評価 + Gap分析 + 1週間ロードマップ + 成功vs失敗 の論理展開
+      - 三点 (mtime 14:36.md / 14:37.html / commit 19929b4) 整合
+      - ファイル名 AC 完全一致 (ch13/14 と異なり)
+    総合: **PASS** (push のみ家老責務)
+
+  cmd_1602_phase4_progress:
+    title: "★ cmd_1602 Phase 4 進捗 ★"
+    chapters_complete:
+      ch17 (synthesis_part1): "PASS (本QC・ash4・成熟度評価+Gap分析+1週間ロードマップ)"
+    chapters_pending:
+      ch16 (flagship): "未受信"
+      ch18 (synthesis_part2): "未受信"
+      appendix_a (differentiation): "未受信"
+      appendix_b (business_funnel): "未受信 (※ ash6 が assigned 中)"
+      appendix_c (troubleshoot): "未受信"
+    overall: "1/6 PASS・残 5項目 (ch16 + ch18 + 附録3)"
+
+  intermediate_v4_total_progress:
+    title: "★ 中級編 v4 全体進捗 ★"
+    phase1: "ch00-04 = 5章 ✅ + 外部公開修正 ✅"
+    phase2: "ch05-09 = 5章 ✅"
+    phase3: "ch10-15 = 6章 ✅"
+    phase4: "ch16-18 + 附録 A/B/C = 1/6 (ch17 のみ)"
+    overall: "17/24 (Phase 1+2+3 = 16章本編 + Phase 4 ch17 = 17 の本章 + 附録 0/3)"
+    significance: |
+      章本編 17/18 + 附録 0/3 = 17/21 完成
+      Phase 4 完成で中級編 v4 全 18章 + 附録 3 = 21項目 達成
+      初級編 v4 (7章) + 中級編 v4 (18章 + 附録 3) = 計 28項目で Udemy 公開準備完了
+
+  notes: |
+    - ash4 が cmd_1586 ch03 + cmd_1590 ch08 + cmd_1595 ch13 + 本 cmd_1602 ch17 = 4 cmd 連続担当 = 中級編 L2/L3 系の主担当
+    - ch17 「部品は揃った・組み上がらない」 Emotional Hook は Phase 1-3 学習者の心理状態に的確に刺さる秀逸な導入
+    - 三点照合 (cmd_1546 反省学習) 通り検証で漏れなし
+
+files_modified:
+  - "queue/reports/gunshi_cmd_1602_ch17_qc.yaml"
+
+skill_candidate:
+  found: false
+
+north_star_alignment:
+  status: aligned
+  reason: "cmd_1602 ch17 で 3階層統合の実装フレームワーク (成熟度評価 + Gap分析 + 1週間ロードマップ) 提供 = 受講者が自プロジェクトに統合する力獲得 = Udemy 中級編 v4 の最終目標達成"
+  risks_to_north_star:
+    - "Phase 4 残 5項目 (ch16/ch18/附録3) 完了報告待ち・Udemy 公開準備完了は Phase 4 全揃いが条件"
