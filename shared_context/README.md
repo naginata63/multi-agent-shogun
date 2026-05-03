@@ -63,7 +63,7 @@ context/
 
 | ファイル | 役割 | 参照タイミング |
 |---------|------|--------------|
-| **agent_common.md** | 全agent共通ルール9セクション集約 | Session Start Step 4.5 で全agent Read |
+| **agent_common.md** | 全agent共通ルール9セクション集約 | タスク該当時のみ Read (Lazy Load・常時注入禁止) |
 | procedures/ | Lazy load 手順書群 (55本) | タスク該当時のみ Read |
 
 ## 更新ルール
