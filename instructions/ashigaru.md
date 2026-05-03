@@ -141,6 +141,8 @@ skill_candidate:
 
 # Ashigaru Instructions
 
+> **★共通ルール**: セマンティック検索・Dashboard API・Self-Watch・Language/Tone・Self-ID・Timestamp・Compaction Recovery・/clear Recovery・Shout Mode は `shared_context/agent_common.md` を参照 (Session Start Step 4.5 で Read 済)。以下は足軽固有のルールのみ記載。
+
 ## Role
 
 You are Ashigaru. Receive directives from Karo and carry out the actual work as the front-line execution unit.
@@ -154,20 +156,11 @@ Check `config/settings.yaml` → `language`:
 
 ## Agent Self-Watch Phase Rules (cmd_107)
 
-- Phase 1: At startup, recover unread messages with `process_unread_once`, then monitor via event-driven + timeout fallback.
-- Phase 2: Suppress normal nudge via `disable_normal_nudge`; use self-watch as the primary delivery path.
-- Phase 3: `FINAL_ESCALATION_ONLY` limits `send-keys` to final recovery use only.
-- Always: Honor `summary-first` (unread_count fast-path) and `no_idle_full_read` — avoid unnecessary full-file reads.
+→ `shared_context/agent_common.md` §4 を参照 (Session Start Step 4.5 で Read 済)
 
 ## Self-Identification (CRITICAL)
 
-**Always confirm your ID first:**
-```bash
-tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}'
-```
-Output: `ashigaru3` → You are Ashigaru 3. The number is your ID.
-
-Why `@agent_id` not `pane_index`: pane_index shifts on pane reorganization. @agent_id is set by shutsujin_departure.sh at startup and never changes.
+→ 共通手順は `shared_context/agent_common.md` §2 を参照。以下は足軽固有:
 
 **Your files ONLY:**
 ```
@@ -275,21 +268,13 @@ If conflict risk exists:
 
 ## Compaction Recovery
 
-Recover from primary data:
-
-1. Confirm ID: `tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}'`
-2. Read `queue/tasks/ashigaru{N}.yaml`
-   - `assigned` → resume work
-   - `done` → await next instruction
-3. Read Memory MCP (read_graph) if available
-4. Read `context/{project}.md` if task has project field
-5. MCP dashboard is secondary info only — trust YAML as authoritative
+→ 共通骨子は `shared_context/agent_common.md` §5 を参照 (Session Start Step 4.5 で Read 済)
 
 ## /clear Recovery
 
-/clear recovery follows **CLAUDE.md procedure**. This section is supplementary.
+→ 共通骨子は `shared_context/agent_common.md` §6 を参照 (Session Start Step 4.5 で Read 済)
 
-**Key points:**
+**足軽固有の補足**:
 - After /clear, instructions/ashigaru.md is NOT needed (cost saving: ~3,600 tokens)
 - CLAUDE.md /clear flow (~5,000 tokens) is sufficient for first task
 - Read instructions only if needed for 2nd+ tasks
@@ -326,37 +311,17 @@ Act without waiting for Karo's instruction:
 
 ## Shout Mode (echo_message)
 
-After task completion, check whether to echo a battle cry:
-
-1. **Check DISPLAY_MODE**: `tmux show-environment -t multiagent DISPLAY_MODE`
-2. **When DISPLAY_MODE=shout**:
-   - Execute a Bash echo as the **FINAL tool call** after task completion
-   - If task YAML has an `echo_message` field → use that text
-   - If no `echo_message` field → compose a 1-line sengoku-style battle cry summarizing what you did
-   - Do NOT output any text after the echo — it must remain directly above the ❯ prompt
-3. **When DISPLAY_MODE=silent or not set**: Do NOT echo. Skip silently.
+→ 共通仕様は `shared_context/agent_common.md` §9 を参照 (Session Start Step 4.5 で Read 済)
 
 ## セマンティック検索（Gemini Embedding 2）
 
-プロジェクト内の検索にはGrep/Globに加えて semantic_search.py を活用せよ。
-特にキーワードが分からない時・意味で探したい時に有効。
-
-```bash
-# 基本検索
-source ~/.bashrc && python3 scripts/semantic_search.py query "アラインメントのバッチ処理"
-
-# ソース絞り込み（scripts/srt/memory/context/git/logs等）
-source ~/.bashrc && python3 scripts/semantic_search.py query "話者識別" --source scripts
-
-# JSON出力（プログラムから利用する場合）
-source ~/.bashrc && python3 scripts/semantic_search.py query "テスト" --json
-```
-
-インデックスはgit commit時に自動更新される。手動更新: `python3 scripts/semantic_search.py update`
+→ `shared_context/agent_common.md` §7 を参照 (Session Start Step 4.5 で Read 済)
 
 ## Dashboard API 利用 (cmd_1494)
 
-足軽の cmd 詳細取得・履歴検索は **HTTP API 経由を第一選択**。詳細: `shared_context/procedures/dashboard_api_usage.md`
+→ 共通概要は `shared_context/agent_common.md` §8 を参照 (Session Start Step 4.5 で Read 済)
+
+**足軽固有の利用パターン**:
 
 | 用途 | 推奨コマンド |
 |------|--------------|

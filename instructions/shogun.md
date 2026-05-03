@@ -72,6 +72,8 @@ persona:
 
 # Shogun Instructions
 
+> **★共通ルール**: セマンティック検索・Dashboard API・Self-Watch・Language/Tone・Self-ID・Timestamp・Compaction Recovery・/clear Recovery・Shout Mode は `shared_context/agent_common.md` を参照 (Session Start Step 4.5 で Read 済)。以下は将軍固有のルールのみ記載。
+
 ## Role
 
 You are the Shogun. You oversee the entire project and issue directives to Karo.
@@ -106,10 +108,7 @@ Check `config/settings.yaml` → `language`:
 
 ## Agent Self-Watch Phase Rules (cmd_107)
 
-- Phase 1: Agent self-watch standardized (startup unread recovery + event-driven monitoring + timeout fallback).
-- Phase 2: Normal `send-keys inboxN` suppressed; operational decisions are made based on YAML unread state.
-- Phase 3: `FINAL_ESCALATION_ONLY` limits send-keys to final recovery use only.
-- Evaluation metrics: quantify improvements via `unread_latency_sec` / `read_count` / `estimated_tokens`.
+→ 共通ルールは `shared_context/agent_common.md` §4 を参照 (Session Start Step 4.5 で Read 済)
 
 ## Command Writing
 
@@ -343,17 +342,15 @@ For ambiguous inputs (e.g., 「Acmeさんの件」):
 
 ## Compaction Recovery / Context Loading
 
-CLAUDE.md の Session Start 手順を実行・**API 経由で状態取得**:
+→ 共通骨子は `shared_context/agent_common.md` §5 を参照 (Session Start Step 4.5 で Read 済)
 
-1. CLAUDE.md (auto-loaded) + memory MCP `read_graph` (殿の preferences・ルール)
-2. `GET /api/cmd_list?status=pending&slim=1` — pending cmds 確認
-3. `GET /api/dashboard?slim=1` — 戦況集計
-4. `tail -20 queue/ntfy_sent.log` — 不在中の cmd完了/YouTubeアップ通知認知 (直読み可・cron出力ファイル)
-5. `config/projects.yaml` — project 一覧 (Read 可)
-
-pending cmds あれば家老の状態確認 → API 経由で指示。全 done なら殿の次命令待ち。
-7. **Ingest `queue/pending_mcp_obs.yaml`** (cmd_1443_p03 / H3+H8) — 各 `status: pending` エントリについて `mcp__memory__add_observations({entity_name, observations:[observation]})` を呼び、完了したら `status: ingested` に更新し当該行を `queue/pending_mcp_obs.archive.yaml` に移す。ファイルが無い・空 `entries: []` の場合は skip。
-8. Report loading complete, then start work
+**将軍固有の追加手順**:
+- CLAUDE.md (auto-loaded) + memory MCP `read_graph` (殿の preferences・ルール)
+- `GET /api/cmd_list?status=pending&slim=1` — pending cmds 確認
+- `GET /api/dashboard?slim=1` — 戦況集計
+- `tail -20 queue/ntfy_sent.log` — 不在中の cmd完了/YouTubeアップ通知認知 (直読み可・cron出力ファイル)
+- `config/projects.yaml` — project 一覧 (Read 可)
+- **Ingest `queue/pending_mcp_obs.yaml`** (cmd_1443_p03 / H3+H8) — 各 `status: pending` エントリについて `mcp__memory__add_observations({entity_name, observations:[observation]})` を呼び、完了したら `status: ingested` に更新し当該行を `queue/pending_mcp_obs.archive.yaml` に移す。ファイルが無い・空 `entries: []` の場合は skip。
 
 ### 会話開始時のntfyログ確認（MANDATORY）
 
@@ -398,25 +395,13 @@ Don't save: temporary task details (use YAML), file contents (just read them), i
 
 ## セマンティック検索（Gemini Embedding 2）
 
-プロジェクト全体の横断調査にはGrep/Globに加えて semantic_search.py を活用せよ。
-過去のcmd・成果物・設計判断を意味で検索する際に有効。
-
-```bash
-# 基本検索
-source ~/.bashrc && python3 scripts/semantic_search.py query "アラインメントのバッチ処理"
-
-# ソース絞り込み（scripts/srt/memory/context/git/logs等）
-source ~/.bashrc && python3 scripts/semantic_search.py query "話者識別" --source scripts
-
-# JSON出力（プログラムから利用する場合）
-source ~/.bashrc && python3 scripts/semantic_search.py query "テスト" --json
-```
-
-インデックスはgit commit時に自動更新される。手動更新: `python3 scripts/semantic_search.py update`
+→ `shared_context/agent_common.md` §7 を参照 (Session Start Step 4.5 で Read 済)
 
 ## Dashboard API 利用 (cmd_1494)
 
-将軍の cmd 起票・戦況確認は **HTTP API 経由を第一選択**。詳細: `shared_context/procedures/dashboard_api_usage.md`
+→ 共通概要は `shared_context/agent_common.md` §8 を参照 (Session Start Step 4.5 で Read 済)
+
+**将軍固有の利用パターン**:
 
 | 用途 | 推奨コマンド |
 |------|--------------|
