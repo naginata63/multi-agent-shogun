@@ -2983,6 +2983,86 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path == '/api/task_update':
+            # POST /api/task_update — task status更新 (SQLite + YAML dual-path)
+            # body: {task_id (req), status (req), reason (opt), updated_by (opt)}
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length).decode('utf-8'))
+                task_id = (body.get('task_id') or '').strip()
+                new_status = (body.get('status') or '').strip()
+                reason = body.get('reason')
+                updated_by = body.get('updated_by', 'unknown')
+                valid = {'assigned', 'in_progress', 'done', 'cancelled', 'blocked'}
+                if not task_id:
+                    self.send_response(400); self.send_header('Content-Type', 'application/json'); self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'task_id is required'}).encode('utf-8'))
+                    return
+                if new_status not in valid:
+                    self.send_response(400); self.send_header('Content-Type', 'application/json'); self.end_headers()
+                    self.wfile.write(json.dumps({'error': f'status must be one of {sorted(valid)}'}).encode('utf-8'))
+                    return
+                now_jst = datetime.now(timezone(timedelta(hours=9))).strftime('%Y-%m-%dT%H:%M:%S+09:00')
+                # SQLite UPDATE
+                _conn = sqlite3.connect(DB_PATH, timeout=5)
+                try:
+                    # Find agent first (needed for YAML path)
+                    row = _conn.execute('SELECT agent FROM tasks WHERE task_id=?', (task_id,)).fetchone()
+                    if not row:
+                        self.send_response(404); self.send_header('Content-Type', 'application/json'); self.end_headers()
+                        self.wfile.write(json.dumps({'error': f'task not found: {task_id}'}).encode('utf-8'))
+                        return
+                    agent = row[0]
+                    completed_at = now_jst if new_status == 'done' else None
+                    if new_status == 'done':
+                        _conn.execute('UPDATE tasks SET status=?, completed_at=? WHERE task_id=?',
+                                      (new_status, completed_at, task_id))
+                    elif new_status == 'blocked':
+                        _conn.execute('UPDATE tasks SET status=?, blocked_reason=?, blocked_at=? WHERE task_id=?',
+                                      (new_status, reason, now_jst, task_id))
+                    else:
+                        _conn.execute('UPDATE tasks SET status=? WHERE task_id=?',
+                                      (new_status, task_id))
+                    _conn.commit()
+                finally:
+                    _conn.close()
+                # YAML update (best effort)
+                yaml_path = os.path.join(TASKS_DIR, f'{agent}.yaml')
+                try:
+                    import fcntl as _fc3
+                    lock_path = yaml_path + '.lock'
+                    with open(lock_path, 'w') as _lf:
+                        _fc3.flock(_lf, _fc3.LOCK_EX)
+                        try:
+                            with open(yaml_path, 'r', encoding='utf-8') as f:
+                                ydata = yaml.safe_load(f) or {}
+                            for t in (ydata.get('tasks') or []):
+                                if t.get('task_id') == task_id:
+                                    t['status'] = new_status
+                                    if completed_at:
+                                        t['completed_at'] = completed_at
+                                    if new_status == 'blocked' and reason:
+                                        t.setdefault('notes', [])
+                                        if isinstance(t.get('notes'), list):
+                                            t['notes'].append(f'blocked: {reason}')
+                                    break
+                            with open(yaml_path, 'w', encoding='utf-8') as f:
+                                yaml.dump(ydata, f, allow_unicode=True,
+                                           sort_keys=False, default_flow_style=False)
+                        finally:
+                            _fc3.flock(_lf, _fc3.LOCK_UN)
+                except Exception as _ye:
+                    print(f"[task_update] WARN YAML update: {_ye}")
+                resp = json.dumps({
+                    'ok': True, 'task_id': task_id, 'status': new_status,
+                    'agent': agent, 'completed_at': completed_at,
+                    'updated_by': updated_by,
+                }, ensure_ascii=False).encode('utf-8')
+                self.send_response(200); self.send_header('Content-Type', 'application/json; charset=utf-8'); self.send_header('Content-Length', str(len(resp))); self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500); self.send_header('Content-Type', 'application/json'); self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         elif self.path == '/api/dashboard_update':
             # POST /api/dashboard_update — dashboard.md 書き換え (家老の Edit 直叩き廃止)
             # body: {"content": "<markdown 全文>"} で全文上書き
