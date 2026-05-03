@@ -1,0 +1,163 @@
+worker_id: gunshi
+task_id: subtask_1595_ch10_qc
+parent_cmd: cmd_1595
+timestamp: '2026-05-03T13:05:00+09:00'
+status: done
+result:
+  type: quality_check
+  ashigaru_task_id: subtask_1595_ch10
+  ashigaru_worker_id: ashigaru1
+  qa_decision: PASS
+  summary: |
+    cmd_1595 ch10 (ハーネスとは: Claude Code lifecycle 7イベント) PASS。
+    13 スライド・Bloom L2 Understand + L3 Apply・7イベント全網羅 (PreToolUse/PostToolUse/UserPromptSubmit/SessionStart/PreCompact/Stop/Notification = 33 mention)。
+    Phase 3 入口章として完成。
+    ★cmd_1595 Phase 3 全 6章 (ch10/11/12/13/14/15) 完了★
+
+  acceptance_check:
+    - id: 1
+      criterion: "intermediate_v4_ch10_harness_lifecycle.md / .html 作成済"
+      status: PASS
+      evidence: |
+        ファイル名 AC 完全一致 (ch13/14 と異なり)
+        commit f35d6b4 既存 (前セッション)
+    - id: 2
+      criterion: "戦国用語/本名/ASCII/XML/操作系 0件"
+      status: PASS
+      evidence: |
+        grep 精緻化済: 全 0件
+        本名 (md+html) 0件 / なぎなた 3件
+        cmd_1577 自然言語ルール完全遵守
+    - id: 3
+      criterion: "speaker notes 全スライド (1.5-2.5min/枚)"
+      status: PASS
+      evidence: |
+        --- separator 14件 = 13スライド + frontmatter
+        speaker notes <!-- 15件 (cover + 各 + 余裕)
+        25 min / 13スライド = 1.92 min/枚 (1.5-2.5 範囲内)
+    - id: 4
+      criterion: "スライド枚数 12-15枚"
+      status: PASS
+      evidence: |
+        13スライド (separator 数え方・ash1 報告は 15枚 = cover を 1枚と数えた差異)
+        AC「12-15枚」 範囲内 ✅
+    - id: 5
+      criterion: "Phase 3 入口章として 7イベント全網羅"
+      status: PASS
+      evidence: |
+        7イベント全 mention 33件:
+          SessionStart / UserPromptSubmit / PreToolUse / PostToolUse / Notification / PreCompact / Stop
+        構成:
+          cover + 章ゴール (L2 Understand + L3 Apply) + Emotional Hook 「AIに監視カメラを付ける」
+          + 7ライフサイクルイベント全体フロー
+          + 各イベント用途 (1/2) SessionStart / UserPromptSubmit / PreToolUse
+          + 各イベント用途 (2/2) PostToolUse / Notification / PreCompact / Stop
+          + 最小hookの構造 「hello from hook!」
+          + hello_hook.sh 最小のhook
+          + settings.json hook登録方法
+          + hook発火確認 「動いている」 を証明
+          + 18本hookカタログ概観
+          + まとめ
+          + 確認問題
+          + 第10章完了
+        Phase 3 (ch11-15 各論) の前提として 7イベントを完全網羅
+    - id: 6
+      criterion: "git commit + push"
+      status: PARTIAL_PASS
+      evidence: |
+        commit f35d6b4 既存 ✅
+        push: 家老責務
+
+  deliverables_verified: true
+  tests_status: not_run
+  build_status: marp_pass
+  scope_match: complete
+
+  issues_found:
+    - id: I1
+      severity: INFO
+      title: "★ cmd_1595 Phase 3 全 6章 (ch10-15) 完了 ★"
+      detail: |
+        cmd_1595 全章 QC 結果:
+          ch10 (lifecycle 7イベント): PASS (本QC・ash1)
+          ch11 (完了Gate): PASS_WITH_NOTE (ash2・スライド17で軽微超過)
+          ch12 (silent fail): PASS (ash3)
+          ch13 (phase_gate): PASS_WITH_NOTE (ash4・ファイル名軽微)
+          ch14 (feedback_slash): PASS_WITH_NOTE (ash5・ファイル名軽微・★殿激怒撤去達成★)
+          ch15 (harness_catalog): PASS (ash7)
+        ★Phase 3 全 6章揃った★ → cmd_1595 全体完了判定可
+      action: "なし (完了アナウンス)"
+
+    - id: I2
+      severity: LOW
+      title: "push BLOCKED 系列継続 (家老責務・累積拡大)"
+      detail: "cmd_1595 系: aa20cb7 + b578e78 + c7efbe7 + 67c5b65 + 72695ad + f35d6b4・cmd_1586/1588/1589/1590/1591/1592/1593/1594 系列累積で 35+ commits"
+      action: "家老 push 一括対応・submodule (dozle_kirinuki) 先行 + 主リポ順序"
+
+  skill_candidate_inherited:
+    found: false
+
+  decision_rationale: |
+    cmd_1490 軍師QC形骸化対策 三点照合:
+      - 数値検証: separator 14 / speaker notes 15 / 戦国用語 0 / なぎなた 3 / 本名 0 / ASCII/XML/操作系 0 / lifecycle 7イベント 33 mention
+      - 内容検証: 14 headings 全数確認・7イベント全網羅 + 最小 hook + settings.json 登録 + hook発火確認 + 18本hookカタログ概観 の論理展開
+      - 三点 (mtime 12:54.md / 13:02.html / commit f35d6b4) 整合
+    総合: **PASS** (push のみ家老責務)
+
+  cmd_1595_phase3_complete:
+    title: "★ cmd_1595 Phase 3 全 6章 完了 ★"
+    chapters:
+      ch10 (harness_lifecycle): "PASS (ash1・lifecycle 7イベント・Bloom L2+L3・Phase 3 入口)"
+      ch11 (completion_gate): "PASS_WITH_NOTE (ash2・H1+H10 統合・Bloom L3 Create)"
+      ch12 (silent_fail): "PASS (ash3・inotifywait+systemd・Bloom L6 Create)"
+      ch13 (phase_gate): "PASS_WITH_NOTE (ash4・mem-search 3段階パイプライン・Bloom L6 Create)"
+      ch14 (feedback_slash): "PASS_WITH_NOTE (ash5・feedback-capture slash・Bloom L5 Evaluate+L6 Create・★殿激怒撤去★)"
+      ch15 (harness_catalog): "PASS (ash7・12ハーネス比較表+選定3ステップ・Bloom L4+L5・サマリ章)"
+    total_slides: "13 + 17 + 14 + 15 + 14 + 14 = 87 スライド"
+    total_estimated_time: "25 + 40 + 30 + 40 + 30 + 30 = 195 min ≈ 3h15m"
+    common_compliance:
+      講師名_なぎなた: "全 6章 1+件 ✅"
+      本名: "全 6章 0件 ✅"
+      戦国用語: "全 6章 0件 (精緻化済) ✅"
+      殿激怒: "ch14 完全撤去 ✅"
+      ASCII/XML/操作系: "全 6章 0件 ✅"
+      スライド枚数: "5/6 範囲内 (ch11 軽微超過 17 のみ)"
+    self_project_examples:
+      ch10: "Claude Code lifecycle 7イベント = 本講座システムの基盤"
+      ch11: "done_gate.sh + verify_runner = 本講座システムの完了検証"
+      ch12: "silent_fail_watcher.sh + systemd = 本講座システムの監視daemon"
+      ch13: "mem-search pre-hook (H3+H8+H9) = 本講座システムの過去事例自動活用"
+      ch14: "feedback-capture slash = 本講座システムのフィードバック自動化"
+      ch15: "12 ハーネスカタログ = 本講座システム hook 群サマリ"
+
+  intermediate_v4_total:
+    title: "★ 中級編 v4 全体進捗 16/18章 (89%) ★"
+    phase1: "ch00-04 = 5章 ✅ (cmd_1586) + 外部公開修正 ✅ (cmd_1589)"
+    phase2: "ch05-09 = 5章 ✅ (cmd_1590)"
+    phase3: "ch10-15 = 6章 ✅ (本cmd_1595)"
+    pending: "ch16-18 (3章) + 附録 3本 = 計 6項目残・Phase 4 のみ"
+    significance: |
+      初級編 v4 (7章) + 中級編 v4 (16章) = 計 23章 完成
+      Udemy 公開準備マジョリティ達成 (89%)
+      ★本講座システム自身の hook 群を Udemy 中級編で完全実例化 (advisor/QC/SessionStart/PreCompact/done_gate/silent_fail/mem-search/feedback-capture/12ハーネスカタログ)★
+      cmd_1584 @import化監査計画と並列で展開する自プロジェクト実例化が結実
+
+  notes: |
+    - ash1 が cmd_1571 序章試作 + cmd_1573 v3 リネーム + cmd_1581 序章購買誘導 + cmd_1583 講師名統一 + cmd_1586 ch00 中級編序章 + cmd_1588 Phase1 集約 + cmd_1590 ch05 経済学 + cmd_1591 Lazy Load 化 + 本 cmd_1595 ch10 = 9 cmd 連続担当 = Udemy 制作の最重要担当者
+    - cmd_1595 全 6章で 87 スライド・約 3h15m 講座 = 中級編 Phase 3 として最大規模
+    - 三点照合 (cmd_1546 反省学習) 通り検証で漏れなし
+
+files_modified:
+  - "queue/reports/gunshi_cmd_1595_ch10_qc.yaml"
+
+skill_candidate:
+  found: false
+
+north_star_alignment:
+  status: aligned
+  reason: "★cmd_1595 Phase 3 全 6章 完了★ + 中級編 v4 全体 16/18章 (89%) = Udemy 公開準備マジョリティ達成・本講座システム自身の hook 群を完全実例化・cmd_1584 @import化監査計画と並列で自プロジェクト実例化結実"
+  risks_to_north_star:
+    - "AC 10 (index更新) + AC 13 (.md報告書) + AC 14 (dashboard🚨) は家老補完必要"
+    - "Phase 4 (ch16-18 + 附録 3) のみ残・着手判断は殿レビュー後"
+    - "push 累積 35+ commits 家老一括対応必須 (殿レビュー前 or Phase 4 着手前)"
+    - "ch11 スライド数 17 軽微超過 + ch13/14 ファイル名軽微不整合は補完 cmd 必要"
