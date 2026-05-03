@@ -1514,8 +1514,10 @@ def _run_suggest_director_notes(job_id, payload):
 - 日本語で、簡潔かつ具体的に
 - 余計な説明や前置きは不要。director_notesテキストのみ出力してください"""
         # claude CLI 引数順序: --model を先に、-p prompt を最後に（-p直後がpromptとして解釈されるため）
+        # 絶対パス指定: server.py プロセス環境に ~/.local/bin が無い場合の "No such file or directory: 'claude'" 対策
+        claude_bin = os.path.expanduser('~/.local/bin/claude')
         result = subprocess.run(
-            ['claude', '--model', 'sonnet', '-p', prompt],
+            [claude_bin, '--model', 'sonnet', '-p', prompt],
             capture_output=True, text=True, timeout=180
         )
         if result.returncode != 0:
