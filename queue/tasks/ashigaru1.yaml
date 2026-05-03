@@ -1,7 +1,7 @@
 tasks:
 - agent: ashigaru1
   task_id: subtask_1583a
-  status: assigned
+  status: done
   parent_cmd: cmd_1583
   bloom_level: L2
   priority: high
@@ -32,7 +32,7 @@ tasks:
   timestamp: '2026-05-03T09:31:18.276351+09:00'
 - agent: ashigaru1
   task_id: subtask_1586_ch00
-  status: assigned
+  status: done
   parent_cmd: cmd_1586
   bloom_level: L3
   priority: medium
