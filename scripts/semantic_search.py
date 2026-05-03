@@ -559,7 +559,7 @@ def embed_texts(client, texts: list[str], task_type: str = "RETRIEVAL_DOCUMENT")
     for i in range(0, len(texts), BATCH_SIZE):
         batch = texts[i: i + BATCH_SIZE]
         batch_idx = i // BATCH_SIZE + 1
-        print(f"  Embedding batch {batch_idx}/{total_batches} ({len(batch)} items)...")
+        print(f"  Embedding batch {batch_idx}/{total_batches} ({len(batch)} items)...", file=sys.stderr)
         succeeded = False
         for attempt in range(3):
             try:
@@ -580,7 +580,7 @@ def embed_texts(client, texts: list[str], task_type: str = "RETRIEVAL_DOCUMENT")
                 err_s = str(e)
                 if "429" in err_s or "RESOURCE_EXHAUSTED" in err_s:
                     wait = 60 * (attempt + 1)
-                    print(f"  [quota] batch {batch_idx} hit 429 quota; waiting {wait}s before retry {attempt+2}/3", flush=True)
+                    print(f"  [quota] batch {batch_idx} hit 429 quota; waiting {wait}s before retry {attempt+2}/3", flush=True, file=sys.stderr)
                     time.sleep(wait)
                     continue
                 # 非クォータ系エラーはそのまま上位へ
@@ -606,7 +606,7 @@ def _load_json_tolerant(path):
     except json.JSONDecodeError:
         decoder = json.JSONDecoder()
         obj, end = decoder.raw_decode(data)
-        print(f"  WARN: {path} had {len(data) - end} bytes trailing garbage — recovered valid prefix", flush=True)
+        print(f"  WARN: {path} had {len(data) - end} bytes trailing garbage — recovered valid prefix", flush=True, file=sys.stderr)
         return obj
 
 
@@ -818,7 +818,7 @@ def main():
     except QuotaExhaustedError as e:
         # 429 quota枯渇は既知状況。Traceback ではなく1行 WARN で終了。
         # 次の cron サイクルで自動リトライされる（チャンクは hash未登録のまま保持）。
-        print(f"[quota-skip] {e}", flush=True)
+        print(f"[quota-skip] {e}", flush=True, file=sys.stderr)
         sys.exit(0)
 
 

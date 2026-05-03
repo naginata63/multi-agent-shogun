@@ -24,21 +24,18 @@ SEARCH_PY="${SCRIPT_DIR}/semantic_search.py"
 
 [[ ! -f "$SEARCH_PY" ]] && exit 0
 
-# search with --source procedures first
-RESULTS=$(source ~/.bashrc && timeout 3 python3 "$SEARCH_PY" query "$PROMPT" --top 5 --source procedures --json 2>/dev/null || true)
-
-# fallback: no source filter if procedures had no hits
-if [[ -z "$RESULTS" || "$RESULTS" == "[]" ]]; then
-    RESULTS=$(source ~/.bashrc && timeout 3 python3 "$SEARCH_PY" query "$PROMPT" --top 5 --json 2>/dev/null || true)
-fi
+# D2 fix: search all sources (no --source filter, avoids faiss reconstruct error)
+# D1 fix: timeout 30s (embedding model load takes ~10s)
+RESULTS=$(source ~/.bashrc && timeout 30 python3 "$SEARCH_PY" query "$PROMPT" --top 5 --json 2>/dev/null || true)
 
 [[ -z "$RESULTS" || "$RESULTS" == "[]" ]] && exit 0
 
 # parse JSON, filter by threshold, format output
+# D4 fix: threshold 0.55 → 0.45
 FORMATTED=$(echo "$RESULTS" | python3 -c "
 import sys, json
 
-THRESHOLD = 0.55
+THRESHOLD = 0.45
 results = json.load(sys.stdin)
 hits = [r for r in results if r.get('score', 0) >= THRESHOLD]
 if not hits:
