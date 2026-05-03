@@ -1,0 +1,127 @@
+worker_id: gunshi
+task_id: subtask_1590_ch06_qc
+parent_cmd: cmd_1590
+timestamp: '2026-05-03T12:28:00+09:00'
+status: done
+result:
+  type: quality_check
+  ashigaru_task_id: subtask_1590_ch06
+  ashigaru_worker_id: ashigaru2
+  qa_decision: PASS
+  summary: |
+    cmd_1590 ch06 (永続コンテキスト層) 全 AC 充足。13 スライド・本名0件・戦国用語0件・なぎなた3件・ASCII/XML/操作系0件。
+    Bloom L2 Analyze + Evaluate 章として 3バックエンド比較・4カテゴリ分類・MEMORY.md 索引・ライフサイクル・肥大化防止 を体系化。
+    ★cmd_1590 Phase 2 全 5章 (ch05/06/07/08/09) 完成★
+
+  acceptance_check:
+    - id: 1
+      criterion: "intermediate_v4_ch06_persistent_context.md / .html 作成済"
+      status: PASS
+      evidence: |
+        .md (18843 bytes) + .html (179712 bytes)
+        commit 01b7ae9 feat: cmd_1590 中級編v4 ch06 永続コンテキスト層スライド作成
+    - id: 2
+      criterion: "戦国用語/本名/ASCII/XML/操作系 0件"
+      status: PASS
+      evidence: |
+        ★grep 精緻化済 (cmd_1590 ch08 false positive 教訓反映)★
+        grep -cE '足軽|ashigaru|家老|karo|将軍|shogun|軍師|gunshi|殿|戦国|ござる|御意|つかまつる|拙者' → 0件 (「候」 単独除外で精度向上)
+        本名 0件 / なぎなた 3件 / ASCII/XML/操作系 0件
+    - id: 3
+      criterion: "speaker notes 全スライド (1.5-2.5min/枚)"
+      status: PASS
+      evidence: |
+        --- separator 14件 = 13スライド + frontmatter
+        speaker notes <!-- 15件 (cover + 各スライド + 余裕)
+        25 min / 13スライド = 1.92 min/枚 (1.5-2.5 範囲内)
+    - id: 4
+      criterion: "スライド枚数 12-15枚"
+      status: PASS
+      evidence: |
+        13スライド = 12-15 範囲内
+        構成: cover + 章ゴール + Emotional Hook + 3バックエンド + Claude Code memory + 4カテゴリ + MEMORY.md索引 + Memory Index + ライフサイクル + 自動読込 + 肥大化防止 + まとめ + 確認問題 + 完了 = 14 headings
+    - id: 5
+      criterion: "L2 永続コンテキスト章として中級編相応の深度"
+      status: PASS
+      evidence: |
+        Emotional Hook 「覚えてないの？— 毎回起こる会話」 で永続化の動機を明確化
+        3つの永続化バックエンド比較 → Claude Code memory 詳細 → 4カテゴリ分類 → MEMORY.md 索引 (目次の必要性) → ライフサイクル → 自動読込 (Session Start) → 肥大化防止 (何を書かないか)
+        Bloom L4 Analyze (バックエンド比較) + L5 Evaluate (何を保存するか判断) レベルに到達
+        Phase 2 (ch05 経済学/ch07 再起動耐性/ch08 運用ベスト/ch09 劣化検出) と完全連動
+    - id: 6
+      criterion: "git commit + push"
+      status: PARTIAL_PASS
+      evidence: |
+        commit 01b7ae9 ✅
+        push: 家老責務
+
+  deliverables_verified: true
+  tests_status: not_run
+  build_status: marp_pass
+  scope_match: complete
+  issues_found:
+    - id: I1
+      severity: LOW
+      title: "push BLOCKED 系列継続 (家老責務・累積継続)"
+      detail: "01b7ae9 + 累積 30+ commits"
+      action: "家老 push 一括対応"
+
+  decision_rationale: |
+    cmd_1490 軍師QC形骸化対策 三点照合:
+      - 数値検証: --- 14 / speaker notes 15 / 戦国用語 0 / なぎなた 3 / 本名 0 / ASCII/XML/操作系 0
+      - 内容検証: 14 headings 全数確認・3バックエンド/4カテゴリ/MEMORY.md索引/ライフサイクル/肥大化防止 の論理展開
+      - 三点 (mtime 12:24.md / 12:25.html / 12:26 commit) 整合
+      - grep 精緻化済 (cmd_1590 ch08 false positive 教訓反映)
+    総合: **PASS** (push のみ家老責務)
+
+  cmd_1590_phase2_complete:
+    title: "★ cmd_1590 Phase 2 全 5章 (ch05/06/07/08/09) 完成 ★"
+    chapters_complete:
+      ch05 (context_economics): "PASS (gunshi_cmd_1590_ch05_qc.yaml・ash1・経済学メタファー・Bloom L4)"
+      ch06 (persistent_context): "PASS (本QC・ash2・3バックエンド比較・Bloom L4+L5)"
+      ch07 (restart_resilience): "PASS (gunshi_cmd_1590_ch07_ch09_qc.yaml・ash3・SessionStart/PreCompact/rehydrate・Bloom L5+L6)"
+      ch08 (context_best_practices): "PASS_WITH_NOTE (gunshi_cmd_1590_ch08_qc.yaml・ash4・候 false positive・Bloom L5+L6)"
+      ch09 (context_decay): "PASS (gunshi_cmd_1590_ch07_ch09_qc.yaml・ash5・staleness 3ルール・Bloom L4+L5)"
+      index.html: "PASS (gunshi_cmd_1590_index_qc.yaml・ash5・Phase 2 リンク追加・f2bb949)"
+    total_slides: "14 + 13 + 14 + 15 + 14 + index = 70 スライド (Phase 2)"
+    total_estimated_time: "30 + 25 + 30 + 30 + 30 = 145 min ≈ 2h25m (Phase 2)"
+    common_compliance:
+      講師名_なぎなた: "全 5章 1+件 ✅"
+      本名: "全 5章 0件 ✅"
+      戦国用語: "全 5章 0件 (候 false positive 除外後) ✅"
+      ASCII/XML/操作系: "全 5章 0件 ✅"
+      スライド枚数: "全 5章 12-15枚 ✅"
+    pending_actions:
+      - "★家老 push 一括対応★ 累積 30+ commits"
+      - "AC 12 .md形式報告書 (queue/reports/2026-05-03_cmd_1590_intermediate_v4_phase2.md) 作成 (足軽未対応)"
+      - "AC 13 dashboard 🚨要対応 記載 (家老/軍師)"
+      - "殿レビュー (Phase 2 全 5章設計品質確認 → Phase 3 着手判断)"
+
+  intermediate_v4_total:
+    title: "★ 中級編 v4 全体進捗 (Phase 1 + Phase 2 = 9/18 章) ★"
+    phase1: "ch00/01/02/03/04 全 PASS (cmd_1586) + 外部公開向け修正 (cmd_1589 全章 PASS)"
+    phase2: "ch05/06/07/08/09 全 PASS (本cmd_1590)"
+    progress: "9/18章完成 (50%) ・Phase 3 (ch10-14) + Phase 4 (ch15-18 + 附録3) 残"
+    significance: |
+      初級編 v4 (7章) + 中級編 v4 Phase 1 (5章) + Phase 2 (5章) = 計 17章 完成
+      Udemy 公開準備完了に向けて重要マイルストーン
+      lecture_design_rules.md Section 8/9/10/11/12/13 の運用基盤が機能した結果
+
+  notes: |
+    - ash2 が cmd_1586 ch01 (関数プロンプト) + cmd_1589 ch00 (序章修正) + 本 cmd_1590 ch06 (永続層) の 3 cmd 連続担当 = Udemy 中級編担当者の一翼
+    - ch06 「Memory Index」 は本講座システム (memory/MEMORY.md) を Udemy で実例化 = cmd_1584 @import化監査計画と並列で展開する自プロジェクト実例化第3弾
+    - 三点照合 (cmd_1546 反省学習) で grep 精緻化を継続適用・「候」 false positive 回避
+
+files_modified:
+  - "queue/reports/gunshi_cmd_1590_ch06_qc.yaml"
+
+skill_candidate:
+  found: false
+
+north_star_alignment:
+  status: aligned
+  reason: "★cmd_1590 Phase 2 全 5章 完成★ 中級編 v4 全体 9/18章 = 50% 進捗・初級編 + Phase 1 + Phase 2 で 17章完成 = Udemy 公開準備重要マイルストーン達成"
+  risks_to_north_star:
+    - "AC 12 .md形式報告書 + AC 13 dashboard 🚨要対応 が未対応 → 家老補完必要"
+    - "Phase 2 殿レビュー結果が Phase 3 着手判断の鍵"
+    - "push 累積 30+ commits・家老一括対応必須 (殿レビュー前 or Phase 3 着手前)"
