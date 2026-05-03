@@ -1,0 +1,26 @@
+worker_id: ashigaru2
+task_id: subtask_1607a
+parent_cmd: cmd_1607
+timestamp: "2026-05-03T20:29:06"
+status: done
+result:
+  summary: "UserPromptSubmit hook 新設完了。userprompt_semantic_search.sh 作成 + settings.json 追記。"
+  files_modified:
+    - "scripts/userprompt_semantic_search.sh (新規)"
+    - ".claude/settings.json (hook追記)"
+  notes: |
+    実装内容:
+    - agent_filter: shogun/karoのみ実行・他agentは即exit 0
+    - prompt < 5文字: exit 0 (silent)
+    - semantic_search.py query --source procedures --top 5 --json (3s timeout)
+    - fallback: proceduresヒット0件→全ソース再試行
+    - threshold: score >= 0.55のみ表示
+    - output: 📚ヘッダ + file名 + score + snippet (非空非コメント行80文字)
+    - エラー時は必ずexit 0 (ハング禁止)
+    smoke test:
+    - echo '{"prompt":"ffmpeg エンコード"}' | exit 0 (agent_filterでblock = 期待通り)
+    - echo '{"prompt":"aaaa"}' | exit 0 (短文 = 期待通り)
+    - JSONパース単体テスト: score 0.72/0.61表示・0.48除外・snippet正抽出
+skill_candidate:
+  found: false
+hotfix_notes: null
