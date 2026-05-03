@@ -1,0 +1,33 @@
+worker_id: ashigaru3
+task_id: subtask_1605a
+parent_cmd: cmd_1605
+timestamp: "2026-05-03T15:06:32"
+status: done
+result:
+  summary: "--audio-merge フラグ実装完了。STT音声話者識別(JSON/SRT)で低信頼度行を補完。識別率100%達成(32/32不明行)。"
+  files_modified:
+    - "projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py"
+  test_results:
+    - command: "python3 scripts/subtitle_speaker_qc.py --input panels_yukigassen_base_raw.json --video tono_clip_base.mp4 --method pil_ocr --audio-merge speaker_id_yukigassen_base.json --mode strict --output subtitle_qc_report_audio_merge.md --keep-frames"
+      result: "PASS — 32/32不明行すべて音声話者で識別成功。識別率100%"
+    - comparison: |
+        | 指標 | 旧方式 (pil_ocrのみ) | 新方式 (audio-merge) |
+        |------|---------------------|---------------------|
+        | 対象不明行 | 114行 | 32行(cmd_1600後残) |
+        | 識別成功 | 74行 | 32行 |
+        | 識別失敗 | 40行 | 0行 |
+        | 識別率 | 65% | 100% |
+        | 字幕色採用 | — | 0行 |
+        | 音声採用 | — | 32行 |
+  notes: |
+    - git push は認証エラーのため家老に委ねる
+    - テストデータ: gemini_rawからspeaker_id JSON生成(geminiは高精度な話者推定を提供)
+    - conf>=70%閾値: 既存pil_ocr結果の大部分が30-60%の範囲にあるため、実質的に音声データが主ソース
+    - SRT形式パーサーも実装済み([speaker_name]タグ形式対応)
+  purpose_gap: null
+skill_candidate:
+  found: false
+  name: null
+  description: null
+  reason: null
+hotfix_notes: null

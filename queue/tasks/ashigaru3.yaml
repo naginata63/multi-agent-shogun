@@ -159,3 +159,88 @@ tasks:
   - FAIL=修正指摘ではなく記録のみ。修正は別cmd。
   - advisor()必須(作業前・完了前)
   timestamp: '2026-05-03T11:02:20.369197+09:00'
+- agent: ashigaru3
+  task_id: subtask_1595_ch12
+  status: assigned
+  parent_cmd: cmd_1595
+  bloom_level: L3
+  priority: medium
+  description: 'cmd_1595 ch12: 中級編v4 第12章「silent fail 検出ハーネス」(H4)'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch12_silent_fail.md
+  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md 第12章セクション精読 2) lecture_design_rules.md
+    精読 3) intermediate_v4_ch05_context_economics.md を形式参照 4) intermediate_v4_ch12_silent_fail.md
+    新規作成: Emotional Hook=「沈黙を破る監視員」/ silent failとは(エラーなし≠成功の3事例) / logからsilent fail候補抽出方法
+    / inotifywait監視daemonの仕組み / exclusion filter設計(self-feedback防止) / systemd user
+    service化 / 検出から通知までのフロー図解 5) grep確認: 戦国用語・ASCII罫線・XML・受講者操作系・本名 全0件 6) marp HTML生成:
+    cd projects/udemy_course/drafts/lectures && npx @marp-team/marp-cli intermediate_v4_ch12_silent_fail.md
+    -o intermediate_v4_ch12_silent_fail.html --allow-local-files 7) git add ... &&
+    git commit && git push 8) advisor()呼出 9) inbox_write gunshi QC依頼'
+  acceptance_criteria:
+  - intermediate_v4_ch12_silent_fail.md / .html 作成済
+  - 'speaker notes 全スライド・講師名: なぎなた のみ'
+  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
+  - スライド枚数 12-15枚
+  - git commit + push 完了
+  notes:
+  - '殿原文: 中級編 Phase 3 起票 — 殿2026-05-03 12:40'
+  - '形式参照: intermediate_v4_ch05_context_economics.md'
+  - Bloom L6 Create (curriculum準拠)
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T12:42:26.720161+09:00'
+- task_id: subtask_1602_ch16
+  agent: ashigaru3
+  parent_cmd: cmd_1602
+  status: assigned
+  priority: medium
+  description: 'cmd_1602 ch16: 中級編v4 第16章「flagship: 三層アーキ実装パターン (L1+L2+L3 統合)」★本講座最重要章★'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch16_flagship.md
+  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md 第16章セクション精読 2) lecture_design_rules.md
+    精読 3) intermediate_v4_ch05_context_economics.md を形式参照 4) intermediate_v4_ch16_flagship.md
+    新規作成: ★本講座クライマックス★ Emotional Hook=「ここまで学んだすべてが1つのhookスクリプトに結実」/ 問題設定:タスク起票時の過去事例検索忘れ
+    / L1層解説:mem-searchクエリ生成ルール / L2層解説:4系統自動add_observations / L3層解説:PreToolUse hook登録と発火
+    / fallback3点:監査ログ+pending queue+SessionStart ingest / 5ファイル構成の3層統合hook全体図 5) grep確認:
+    戦国用語・ASCII罫線・XML・受講者操作系・本名 0件 6) marp HTML生成: cd projects/udemy_course/drafts/lectures
+    && npx @marp-team/marp-cli intermediate_v4_ch16_flagship.md -o intermediate_v4_ch16_flagship.html
+    --allow-local-files 7) git add ... && git commit && git push 8) advisor()呼出 9)
+    inbox_write gunshi QC依頼'
+  acceptance_criteria:
+  - intermediate_v4_ch16_flagship.md / .html 作成済
+  - 'speaker notes 全スライド・講師名: なぎなた のみ'
+  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
+  - スライド枚数 12-15枚
+  - 3層統合(L1+L2+L3)を体系的に解説
+  - git commit + push 完了
+  notes:
+  - '殿原文: 起票(中級編 v4 Phase 4 着手) — 殿2026-05-03 14:30'
+  - '形式参照: intermediate_v4_ch05_context_economics.md'
+  - Bloom L6 Create (本講座最重要章・45min想定)
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T14:29:05.028593+09:00'
+- task_id: subtask_1605a
+  agent: ashigaru3
+  parent_cmd: cmd_1605
+  status: done
+  priority: high
+  description: 'cmd_1605: subtitle_speaker_qc.py に --audio-merge フラグ追加・STT話者ラベルで字幕なし発言を補完'
+  target_path: projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py
+  steps: '0) advisor()呼出 1) git -C projects/dozle_kirinuki pull origin main で最新取得
+    2) subtitle_speaker_qc.py 現行実装確認 (detect_speaker_pil_ocr v2 ロジック把握) 3) --audio-merge
+    フラグ追加: SRT or JSON 形式の音声話者識別ファイルを引数で受取 4) マージロジック実装: pil_ocr confidence >= 70%
+    → 字幕色採用/以下 → 音声話者採用 5) report.md に採用ソース [字幕]/[音声]/[不明] 列追加 6) tono_clip_base.mp4
+    + STT出力ファイルで動作検証・識別率80%以上確認 7) 旧 vs 新比較表を報告書に記載 8) git -C projects/dozle_kirinuki
+    add scripts/subtitle_speaker_qc.py && commit && push 9) advisor()呼出 10) inbox_write
+    gunshi QC依頼'
+  acceptance_criteria:
+  - --audio-merge フラグ実装・SRT/JSON読込対応
+  - 'マージロジック: confidence >= 70% で字幕色採用・以下は音声話者採用'
+  - report.md に [字幕]/[音声]/[不明] ソース記載
+  - tono_clip_base.mp4 + STT出力で動作検証・識別率80%以上
+  - 旧 vs 新比較表を報告書記載
+  - git commit + push 完了 (submodule)
+  - queue/reports/2026-05-03_cmd_1605_audio_merge.md 報告書作成
+  notes:
+  - '殿原文: する (音声 STT マージ機能の再起票・cmd_1599 reject 後の OCR 機能化を経て条件整った) — 殿2026-05-03 14:55'
+  - '前提: cmd_1600 で v2 ロジック本番化済み (nekooji偏重解消・字幕なし誤検出0%)'
+  - 'STT出力ファイル形式: SRT または JSON (どちらか対応・引数で指定)'
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T14:46:29.285961+09:00'
