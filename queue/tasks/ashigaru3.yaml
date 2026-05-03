@@ -1,62 +1,5 @@
 tasks:
 - agent: ashigaru3
-  task_id: subtask_1563a
-  status: done
-  parent_cmd: cmd_1563
-  bloom_level: L3
-  priority: medium
-  description: 'cmd_1563: cron発令スクリプトのinbox書込をAPI経由に統一・dual-path不整合解消'
-  target_path: /home/murakami/multi-agent-shogun/scripts/nightly_audit.sh
-  steps: '0) advisor()呼出 1) crontab -l の全cronと grep -rl で inbox YAML直書き箇所を全て洗い出し一覧化
-    2) nightly_audit.sh の inbox書込部分を curl -s -X POST http://192.168.2.7:8770/api/inbox_write
-    に置換 3) bash syntax確認 4) テスト発火: 実際に1件発火しSQLite/YAML双方に反映確認 (curl /api/inbox_messages?agent=karo&unread=1
-    とqueue/inbox/karo.yaml の件数一致) 5) 残りの全スクリプトも同様に置換 6) git add scripts/ && git commit
-    (cmd_1563) 7) advisor()呼出 8) inbox_write gunshi QC依頼'
-  acceptance_criteria:
-  - inbox YAML直書きを行う全cronスクリプトを洗い出し一覧化(crontab + scripts/)
-  - nightly_audit.shを含む全対象スクリプトをcurl POST /api/inbox_write経由に置換
-  - テスト発火でYAML/SQLite双方に反映・GET /api/inbox_messages?agent=karo&unread=1 の件数が一致
-  - git commit完了
-  - gunshi QC PASS
-  notes:
-  - inbox_write.sh は障害時フォールバック用途で残してよい。cronスクリプトの直書きのみ置換
-  - 'curl POST /api/inbox_write の JSON形式: {"to":"karo","from":"system","type":"nightly_audit","message":"..."}'
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-02T06:23:15.074351+09:00'
-- agent: ashigaru3
-  task_id: subtask_1571a
-  status: done
-  parent_cmd: cmd_1571
-  bloom_level: L3
-  priority: medium
-  description: 'cmd_1571: 初級編 序章 Marp 講義スライド + speaker notes を完成させ量産フォーマット確定'
-  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/beginner_ch00_intro.md
-  steps: '0) advisor()呼出 1) projects/udemy_course/drafts/lectures/intermediate_ch00_intro.md
-    を全文精読 (形式・speaker notes記法・スライド構成を把握) 2) projects/udemy_course/drafts/curriculum_beginner_v2_marp.md
-    の序章セクションを精読 (カバーすべきトピック確認) 3) beginner_ch00_intro.md を新規作成: intermediate_ch00_intro.md
-    と同形式 / テーマ=''Claude Codeとは — AI開発の新しい形'' / 全スライドにspeaker notes (HTMLコメント <!--
-    ... -->) / 受講者操作系語句なし / 講師実演ベースで説明 4) grep確認: grep -c ''演習|ハンズオン|実装してください|手元で試''
-    beginner_ch00_intro.md (0件) 5) marp --html beginner_ch00_intro.md -o beginner_ch00_intro.html
-    (CLIなければnpx @marp-team/marp-cli) 6) projects/udemy_course/drafts/index.html を読んで
-    ''🎬 講義資料 (lectures)'' セクションを追加し beginner_ch00_intro.html へのリンクを記載 7) git add projects/udemy_course/drafts/lectures/
-    projects/udemy_course/drafts/index.html && git commit ''feat: cmd_1571 初級序章 Marp講義スライド完成・量産フォーマット確定''
-    && git push origin main 8) advisor()呼出 9) inbox_write gunshi QC依頼(speaker notes全スライド確認・grep
-    0件・HTML生成・index.html追加・量産フォーマット評価)'
-  acceptance_criteria:
-  - drafts/lectures/beginner_ch00_intro.md が intermediate_ch00_intro.md と同形式で存在
-  - Marp HTML版 (beginner_ch00_intro.html) が生成済み
-  - 全スライドに speaker notes が記載 (HTMLコメント形式)
-  - 受講者操作系の語句が0件 (grep確認)
-  - drafts/index.html に序章ページリンク追加 (🎬 講義資料 セクション)
-  - git commit + push 完了
-  - 次章以降の量産用フォーマットとして使える完成度 (軍師が評価)
-  notes:
-  - '形式参照: projects/udemy_course/drafts/lectures/intermediate_ch00_intro.md'
-  - '内容参照: projects/udemy_course/drafts/curriculum_beginner_v2_marp.md の序章セクション'
-  - '殿原文: ''１ — 試作として初級編 序章1本のみ先行作成し、フォーマット確定後に残り章を展開する戦略'''
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-02T08:07:23.040273+09:00'
-- agent: ashigaru3
   task_id: subtask_1573a
   status: assigned
   parent_cmd: cmd_1573
@@ -92,3 +35,127 @@ tasks:
   - v3 HTML は drafts/ 直下に出力
   - advisor()必須(作業前・完了前)
   timestamp: '2026-05-02T08:23:45.607934+09:00'
+- agent: ashigaru3
+  task_id: subtask_1586_ch02
+  status: assigned
+  parent_cmd: cmd_1586
+  bloom_level: L3
+  priority: medium
+  description: 'cmd_1586 ch02: 中級編 v4 第2章 intermediate_v4_ch02_structured_prompt.md
+    / .html 作成'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch02_structured_prompt.md
+  steps: '0) advisor()呼出 1) projects/udemy_course/context/lecture_design_rules.md
+    を全文精読 2) projects/udemy_course/drafts/curriculum_intermediate_v4_marp.md の第2章セクション
+    (『第2章 構造化プロンプトと失敗パターン』) を精読 3) 初級編の形式参照: projects/udemy_course/drafts/lectures/beginner_ch01_prompt_v4.md
+    を精読 4) intermediate_v4_ch02_structured_prompt.md を新規作成: テーマ=「構造化プロンプトと失敗パターン」/Emotional
+    Hook=『プロンプトの病気を見分ける力』/全スライドspeaker notes 5) スライド構成(12-15枚目安): Emotional Hook→診断チェックリスト10項目→失敗プロンプト3本の解剖(症状・原因・修正・結果)→修正後比較→設計原則3点
+    6) grep確認 7) marp HTML生成 8) git commit + push 9) advisor()呼出 10) inbox_write gunshi
+    QC依頼'
+  acceptance_criteria:
+  - intermediate_v4_ch02_structured_prompt.md / .html 作成済み
+  - speaker notes 全スライド
+  - '講師名: なぎなた のみ'
+  - ASCII罫線/XML/受講者操作系 0件
+  - スライド枚数 12-15枚
+  - git commit + push 完了
+  notes:
+  - '殿原文: ''中級も作成開始せよ — 殿2026-05-03 09:48'''
+  - '参照アウトライン: curriculum_intermediate_v4_marp.md 第2章'
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T09:52:12.939715+09:00'
+- agent: ashigaru3
+  task_id: subtask_1589_ch01
+  status: done
+  parent_cmd: cmd_1589
+  bloom_level: L3
+  priority: high
+  description: 'cmd_1589 ch01: 中級編v4 第1章を外部公開向けに修正 + サブエージェント命名スライド追加'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch01_prompt_function.md
+  steps: '0) advisor()呼出 1) intermediate_v4_ch01_prompt_function.md を精読 2) 戦国用語を外部公開向けに置換
+    3) サブエージェント命名と設定方法のスライドを1枚追加: 内容=「エージェントに名前をつける — CLAUDE.md と .claude/agents 設定」/
+    .claude/agents/ ディレクトリにエージェント定義ファイルを置く方法 / CLAUDE.md でエージェント名・役割を定義する方法 / エージェント名がプロンプト内で認識される仕組み
+    4) grep確認 5) marp HTML再生成 6) git add ... && git commit && git push 7) advisor()呼出
+    8) inbox_write gunshi QC依頼'
+  acceptance_criteria:
+  - intermediate_v4_ch01_prompt_function.md/.html で戦国用語 0件
+  - サブエージェント命名・CLAUDE.md/.claude/agents設定スライド追加済み
+  - speaker notes 維持・講師名なぎなたのみ
+  - git commit + push 完了
+  notes:
+  - '殿原文: ''multi-agent-shogun 用語がでてきている あしがるとか adviderよびだしっていCLIだけでいいそれが標準だし あと よびかたの設定と
+    どうゆう claude.md agent設定すると よんでくれるかも記載しておけ — 殿2026-05-03 10:35'''
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T10:31:23.137555+09:00'
+- agent: ashigaru3
+  task_id: subtask_1590_ch07
+  status: done
+  parent_cmd: cmd_1590
+  bloom_level: L3
+  priority: medium
+  description: 'cmd_1590 ch07: 中級編 v4 セッション再起動耐性 .md / .html 作成'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch07_restart_resilience.md
+  steps: '0) advisor()呼出 1) projects/udemy_course/context/lecture_design_rules.md
+    を精読 2) projects/udemy_course/drafts/curriculum_intermediate_v4_marp.md の第7章 セッション再起動耐性
+    (SessionStart / PreCompact / rehydrate)セクションを精読 3) 初級編形式参照: beginner_ch01_prompt_v4.md
+    を参照 4) intermediate_v4_ch07_restart_resilience.md を新規作成: Emotional Hook=『昨日の作業を今日再開したらAIが初めましてと言ってきた絶望感』/
+    全スライドspeaker notes / なぎなた表記のみ / 戦国用語0件 / 12-15枚 5) grep確認: 戦国用語・ASCII罫線・XML・受講者操作系
+    全0件 6) marp HTML生成: cd projects/udemy_course/drafts/lectures && npx @marp-team/marp-cli
+    intermediate_v4_ch07_restart_resilience.md -o intermediate_v4_ch07_restart_resilience.html
+    --allow-local-files 7) git add projects/udemy_course/drafts/lectures/intermediate_v4_ch07_restart_resilience.md
+    projects/udemy_course/drafts/lectures/intermediate_v4_ch07_restart_resilience.html
+    && git commit && git push 8) advisor()呼出 9) inbox_write gunshi QC依頼'
+  acceptance_criteria:
+  - intermediate_v4_ch07_restart_resilience.md / .html 作成済み
+  - speaker notes 全スライド
+  - '講師名: なぎなた のみ'
+  - 戦国用語・ASCII罫線・XML・受講者操作系 0件
+  - スライド枚数 12-15枚
+  - git commit + push 完了
+  notes:
+  - '殿原文: ''中級後半も作成を許可する — 殿2026-05-03 10:35'''
+  - '参照アウトライン: curriculum_intermediate_v4_marp.md 第7章 セッション再起動耐性 (SessionStart / PreCompact
+    / rehydrate)セクション'
+  - cmd_1589の作業が先に割り当てられている場合はそちらを先に完了してからこちらに取りかかれ
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T10:32:43.810401+09:00'
+- agent: ashigaru3
+  task_id: subtask_1592a
+  status: assigned
+  parent_cmd: cmd_1592
+  bloom_level: L3
+  priority: medium
+  description: 'cmd_1592: Claude Code Skill lecture-speaker-notes-grep-check 新設 (SKILL.md
+    + check.sh + README + examples + lecture_design_rules.md更新 + 12章動作確認)'
+  target_path: /home/murakami/multi-agent-shogun/skills/lecture-speaker-notes-grep-check/SKILL.md
+  steps: '0) advisor()呼出 1) 既存Skill構造参照: ls skills/ で既存Skillの構造を確認(SKILL.md frontmatter・check.sh形式等)
+    2) projects/udemy_course/context/lecture_design_rules.md を精読(Section 12: 外部公開用語制限・grep精緻化注意事項確認)
+    3) 既存講義ファイル確認: ls projects/udemy_course/drafts/lectures/*_v4*.md | wc -l で12章確認
+    4) skills/lecture-speaker-notes-grep-check/ ディレクトリ作成 5) SKILL.md 作成 (frontmatter:
+    name/description/version/author/tags + 本文: 用途/引数/出力形式/使用方法) 6) check.sh 作成・内容:
+    (a) 対象 .md ファイルをglob取得 (b) frontmatter(---区切り)を除いた各スライドにHTMLコメント<!-- ... -->のspeaker
+    notesが存在するか確認 (c) 追加チェック: 戦国用語grep(御意|つかまつる|ござる|拙者|候[^補選手者])でfalse positive注意・本名grep(村上)
+    (d) PASS/FAIL を件数・ファイル名と共に出力 7) chmod +x skills/lecture-speaker-notes-grep-check/check.sh
+    8) README.md 作成 (概要・使い方・出力例) 9) examples/ ディレクトリ作成・PASS例とFAIL例の .md サンプル作成 10)
+    context/lecture_design_rules.md に新セクション追記: ''Section 13: Skill検証ルール — check.sh
+    による自動検証手順・FAIL検出時の対処'' 11) 動作確認: bash skills/lecture-speaker-notes-grep-check/check.sh
+    projects/udemy_course/drafts/lectures/beginner_*_v4.md projects/udemy_course/drafts/lectures/intermediate_v4_ch0*.md
+    で12章全チェック実行 12) FAIL検出時は「過去cmd漏れ」として出力結果を報告書に明記(修正は別cmd) 13) git add skills/lecture-speaker-notes-grep-check/
+    context/lecture_design_rules.md && git diff --cached && git commit -m ''feat:
+    cmd_1592 lecture-speaker-notes-grep-check Skill新設'' && git push 14) advisor()呼出
+    15) inbox_write gunshi QC依頼(12章動作確認結果添付) 16) queue/reports/2026-05-03_cmd_1592_lecture_qc_skill.md
+    作成'
+  acceptance_criteria:
+  - skills/lecture-speaker-notes-grep-check/SKILL.md 作成済 (frontmatter + 本文)
+  - skills/lecture-speaker-notes-grep-check/check.sh 実装済・実行権限あり
+  - skills/lecture-speaker-notes-grep-check/README.md と examples/ 整備
+  - context/lecture_design_rules.md に Skill検証ルール(Section 13)追記
+  - 既存12章(初級v4 7章 + 中級v4 Phase1 5章)で check.sh 動作確認済
+  - FAIL検出時は「過去cmd漏れ」として報告書に明記(修正は別cmd)
+  - git commit + push 完了
+  - queue/reports/2026-05-03_cmd_1592_lecture_qc_skill.md 報告書作成
+  notes:
+  - '殿原文: ''lecture_speaker_notes_grep_check許可 — 殿2026-05-03 11:00'''
+  - 'check.sh のgrep戦国用語パターン注意: 候[^補選手者] 等でfalse positive回避(cmd_1590 ch08教訓)'
+  - FAIL=修正指摘ではなく記録のみ。修正は別cmd。
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T11:02:20.369197+09:00'

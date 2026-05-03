@@ -170,3 +170,91 @@ tasks:
   - 実装禁止・設計書更新のみ
   - advisor()必須(作業前・完了前)
   timestamp: '2026-05-02T08:22:02.773681+09:00'
+- task_id: subtask_1582a
+  parent_cmd: cmd_1582
+  agent: gunshi
+  bloom_level: L4
+  priority: medium
+  status: assigned
+  description: 'cmd_1582: YouTube/外部連携スクリプト群の矛盾検出・死文化検出 (読んで報告するだけ・修正禁止)'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/youtube_uploader.py
+  steps: '0) advisor()呼出 1) 以下の対象ファイルを全文精読 (venv配下は除外): projects/dozle_kirinuki/scripts/youtube_uploader.py
+    / projects/dozle_kirinuki/scripts/downloader.py / scripts/youtube_lang_batch_update.py
+    / scripts/youtube_analytics_snapshot.py / scripts/yt_set_related_video.py / scripts/genai_daily_fetch.py
+    / scripts/genai_daily_report.sh / projects/note_mcp_server/articles/ 配下の.py群 2)
+    矛盾検出観点: (a)スクリプト間の設定値不整合(APIキー変数名・チャンネルID・認証方式) (b)import/依存関係の破損・未使用import (c)コメントと実装の乖離
+    (d)廃止されたAPIエンドポイントや旧形式の呼び出し (e)死文化スクリプト(呼び出し元なし・cron未登録・別スクリプトに機能移管済) 3) レポートを
+    queue/reports/gunshi_cmd_1582_audit.yaml に作成: HIGH/MEDIUM/LOW分類・ファイル名+行番号+問題内容・修正推奨の有無
+    4) git add queue/reports/ && git commit -m ''feat: cmd_1582 YouTube/外部連携矛盾検出レポート''
+    && git push 5) advisor()呼出 6) inbox_write karo 完了報告 (HIGH件数・推奨アクション提示)'
+  acceptance_criteria:
+  - 対象スクリプト全ファイル精読済み
+  - 矛盾・死文化を HIGH/MEDIUM/LOW 分類して列挙
+  - ファイル名+行番号+問題内容の証跡あり
+  - テスト・コード修正は一切なし
+  - queue/reports/gunshi_cmd_1582_audit.yaml 作成・commit済み
+  - git commit + push 完了
+  notes:
+  - '殿原文: ''本日のカテゴリ: YouTube/外部連携（youtube_uploader.py, downloader.py, note系, API連携）。テストを書くな。コードを修正するな。読んで報告するだけ'''
+  - advisor()必須(作業前・完了前)
+  - venv配下(projects/dozle_kirinuki/venv/)は対象外
+  timestamp: '2026-05-03T02:05:31.106717+09:00'
+- agent: gunshi
+  task_id: subtask_1584a
+  status: done
+  parent_cmd: cmd_1584
+  bloom_level: L5
+  priority: medium
+  description: 'cmd_1584: 現行リポを精査し @import 化候補/維持候補を判定・改修計画書を出力 (実装は殿レビュー後に家老が実施)'
+  target_path: /tmp/cmd_1584_audit_report.md
+  steps: '0) advisor()呼出 1) 対象ファイルを全文精読: CLAUDE.md / instructions/shogun.md / instructions/karo.md
+    / instructions/ashigaru.md / instructions/gunshi.md / memory/MEMORY.md / shared_context/procedures/
+    配下全ファイル 2) 各ファイルについて A/B/C 判定: A=@import化推奨(常時必要・重複多・肥大化) B=維持(lazy load が正しい・参照頻度低)
+    C=要検討(部分的に切り出し可) 3) @import 化推奨セットを具体的なファイル名+切り出し範囲で明示: CLAUDE.md のどのセクションをどのファイルに切り出すか等
+    4) procedures/*.md はLazy load維持（@import化対象外）と明記 5) 重複削減見積（行数・token概算）+ コンテキスト総消費見積を含む
+    6) 実装フェーズ分け (Phase 1/2/...) をリスク低→高の順で提示 7) /tmp/cmd_1584_audit_report.md に書き出し
+    8) advisor()呼出 9) inbox_write karo 完了報告 (report全文を添付)'
+  acceptance_criteria:
+  - 軍師 audit_report.md が /tmp/cmd_1584_audit_report.md に作成済み
+  - 全候補ファイル (CLAUDE.md/instructions/*.md/MEMORY.md/shared_context/procedures/*) について
+    A/B/C 判定済み
+  - '@import 化推奨セットが具体的なファイル名+切り出し範囲で明示'
+  - procedures/*.md は @import 化対象外と明記 (lazy load 維持)
+  - 重複削減見積 + コンテキスト総消費見積を含む
+  - 実装フェーズ分け (Phase 1/2/...) を含む
+  - karo inbox 通知済み
+  - 殿レビュー前は実装に着手しない
+  notes:
+  - '殿原文: ''ぐんしによりと精査せよ そっからかえるように ちゃんとコンテキスト注入の背景もつたえておけ — 殿2026-05-03 09:00'''
+  - 'north_star: Claude Code の @import 機能を活用し、CLAUDE.md / instructions / shared_context
+    の重複を削減 + 一貫性向上。ただしコンテキスト消費を増やさず、Udemy ch03 で自プロジェクトの実例として紹介可能なレベルまで整備する'
+  - 実装禁止・計画書作成のみ
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T09:38:03.049696+09:00'
+- agent: gunshi
+  task_id: subtask_1590_ch07_ch09_qc
+  status: assigned
+  parent_cmd: cmd_1590
+  bloom_level: L4
+  priority: medium
+  description: 'cmd_1590 ch07+ch09 QC: 中級編v4 セッション再起動耐性 + コンテキスト劣化検出スライド品質確認'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_cmd_1590_ch07_ch09_qc.yaml
+  steps: '0) advisor()呼出 1) ashigaru3_report_subtask_1590_ch07.yaml を精読 2) ashigaru5_report_subtask_1590_ch09.yaml
+    を精読 3) projects/udemy_course/context/lecture_design_rules.md の外部公開制限ルール(Section
+    12)確認 4) ch07 検証: intermediate_v4_ch07_restart_resilience.md を実読 (スライド14枚確認・speaker
+    notes全スライド・戦国用語grep・講師名確認・本名grep) 5) ch09 検証: intermediate_v4_ch09_context_decay.md
+    を実読 (スライド15枚・speaker notes・戦国用語・本名確認) 6) 注意: grep 候補・指示・実装の「候」false positive に注意
+    (現代日本語「候補」「指示」等は除外) 7) QC報告書 queue/reports/gunshi_cmd_1590_ch07_ch09_qc.yaml 作成
+    (ch07+ch09 各AC検証結果) 8) advisor()呼出 9) inbox_write karo QC結果報告'
+  acceptance_criteria:
+  - ch07 intermediate_v4_ch07_restart_resilience.md / .html 存在確認
+  - ch09 intermediate_v4_ch09_context_decay.md / .html 存在確認
+  - 両章 戦国用語0件 (候補・指示など現代語false positive除外)
+  - 両章 speaker notes 全スライド
+  - 両章 講師名なぎなたのみ (本名grep 0件)
+  - gunshi_cmd_1590_ch07_ch09_qc.yaml 作成済
+  notes:
+  - 'ch08 QC時に判明: grep ''候'' が ''候補'' (現代日本語) を false positive 検出。同様の注意が必要'
+  - ch06 (ashigaru2 進行中) は別途QC予定・このタスクはch07+ch09のみ
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T10:49:58.789287+09:00'

@@ -444,426 +444,6 @@ commands:
   - git commit に cmd_1554 明記 + 追加件数記載
   - 軍師 QC PASS
   notify_karo: true
-- id: cmd_1563
-  status: done
-  priority: medium
-  purpose: cron発令スクリプトの inbox 書込を API 経由に統一・dual-path 不整合を解消
-  timestamp: '2026-05-02T06:18:54+09:00'
-  project: infrastructure
-  north_star: dashboard 表示と API 応答の整合性を担保し、未読検出の信頼性を回復する。cmd_1488 dual-path / cmd_1494
-    SQLite移行で残った最後の負債を解消し、運用判断の根拠を一本化する。
-  acceptance_criteria:
-  - 夜間矛盾検出 cron など inbox 書込を行う全 cron スクリプトを `POST /api/inbox_write` 経由に書き換える
-  - 書き換え対象スクリプトを `crontab -l` から洗い出し一覧化（少なくとも nightly_audit 系含む）
-  - 書き換え後、テスト発火で yaml と sqlite 双方に反映されることを確認
-  - GET /api/inbox_messages?agent=karo&unread=1 と queue/inbox/karo.yaml の未読件数が一致する
-  - ashigaru ではなく gunshi に矛盾検出風に依頼するのではなく、ashigaru による実装タスクとして処理
-  lord_original: 軍師案件、これもやらせよ — 殿2026-05-02 06:18 (cron が yaml 直書きで API 読み出しと乖離している件の修正指示)
-  command: '夜間矛盾検出 cron をはじめとする inbox 書込 cron スクリプト群を POST /api/inbox_write 経由に統一せよ。
-
-
-    背景: cron は queue/inbox/<agent>.yaml に直接書き込んでいるため、SQLite を読む API (/api/inbox_messages?unread=1)
-    では未読扱いされず、dashboard R5 検出とAPI応答が乖離する。実例: 2026-05-02 06:15 時点で karo.yaml に nightly_audit
-    3件が read:false で残っているが API は 0件未読と返した。
-
-
-    対応:
-
-    1) crontab -l と scripts/cron 配下を grep し inbox 書込を行う全スクリプトを洗い出す (nightly_audit,
-    dashboard_lifecycle, 他)
-
-    2) 各スクリプトの YAML 直書きロジックを `curl POST /api/inbox_write` (dual-path 自動同期) に置換
-
-    3) 旧 inbox_write.sh フォールバックを使っている箇所も同様に置換
-
-    4) 1件試発火→ YAML/SQLite 双方に反映されること・unread API が正しく拾うこと・dashboard R5 が正しく消えることを確認
-
-    5) 残りを順次置換し本番 crontab に反映
-
-    6) 完了後、再度同じテストで全 cron が API 経由になっていることを QC
-
-
-    注意: 家老に振らず ashigaru 実装タスクとして処理せよ。テストは家老/軍師が実施。'
-  notify_karo: true
-  completed_at: '2026-05-02T06:53:43+09:00'
-- id: cmd_1564
-  status: done
-  priority: medium
-  purpose: STTパイプライン 矛盾検出・死文化スクリプト検出 (nightly_audit 2026-04-30自動発令)
-  timestamp: '2026-05-02T06:21:59+09:00'
-  lord_original: 【夜間矛盾検出・自動発令 2026-04-30】STTパイプライン（vocal_stt_pipeline.py, stt_merge.py,
-    speaker_id系, 成果物）。軍師に矛盾検出タスクを振れ。テストを書くな。コードを修正するな。読んで報告するだけ。
-  notify_karo: false
-  completed_at: '2026-05-02T06:32:37+09:00'
-- id: cmd_1565
-  status: done
-  priority: medium
-  purpose: 動画制作スクリプト群 矛盾検出・死文化スクリプト検出 (nightly_audit 2026-05-01自動発令)
-  timestamp: '2026-05-02T06:21:59+09:00'
-  lord_original: 【夜間矛盾検出・自動発令 2026-05-01】動画制作（main.py, make_expression_shorts.py,
-    Remotion, vertical_convert.py, make_shorts系）。軍師に矛盾検出タスクを振れ。テストを書くな。コードを修正するな。読んで報告するだけ。
-  notify_karo: false
-  completed_at: '2026-05-02T06:36:57+09:00'
-- id: cmd_1566
-  status: done
-  priority: medium
-  purpose: インフラスクリプト群 矛盾検出・死文化スクリプト検出 (nightly_audit 2026-05-02自動発令)
-  timestamp: '2026-05-02T06:22:00+09:00'
-  lord_original: 【夜間矛盾検出・自動発令 2026-05-02】インフラ（inbox_write/watcher, ntfy, cron, agent管理系,
-    context_monitor等）。軍師に矛盾検出タスクを振れ。テストを書くな。コードを修正するな。読んで報告するだけ。
-  notify_karo: false
-  completed_at: '2026-05-02T06:42:22+09:00'
-- id: cmd_1567
-  status: done
-  priority: medium
-  purpose: cmd_1564 STT パイプライン HIGH 2 + MEDIUM 4 と cmd_1565 動画制作 HIGH 2 + MEDIUM 4
-    を一体整理し、矛盾を解消する
-  timestamp: '2026-05-02T06:39:11+09:00'
-  project: infrastructure
-  lord_original: あーやらせよ — 殿2026-05-02 06:38 (cmd_1564 STT 矛盾検出 HIGH 2/MEDIUM 4 + cmd_1565
-    動画制作 矛盾検出 HIGH 2/MEDIUM 4 を一体整理 follow-up cmd 起票指示・軍師進言 45分推奨に同意)
-  north_star: 矛盾検出で発見された死文化スクリプト・hardcoded path・二重実装・skill doc 漏れを実際に解消し、scripts/
-    の信頼性と再利用性を回復する。検出フェーズ(軍師)→修正フェーズ(足軽)の分業設計を完遂する。
-  command_text: "殿原文: あーやらせよ\n\n軍師による矛盾検出 cmd_1564 (STT) + cmd_1565 (動画制作) で発見された問題を実際に修正せよ。軍師は\
-    \ 45分推奨。\n\n=== cmd_1564 STT パイプライン ===\n\nHIGH 2件:\nH1) gemini_transcription_task.py\
-    \ が hardcoded path で再利用不可\n  - L8: SEGMENTS_DIR = projects/dozle_kirinuki/work/highlight_rDYmTp/output/diarize_tmp/segments\n\
-    \  - L9: OUTPUT_FILE = projects/dozle_kirinuki/work/highlight_... 等\n  → 引数化 or\
-    \ 設定ファイル化して再利用可能にせよ\n\nH2) STT パイプライン .bak_1000 が runtime 直下 (scripts/) に残存\n\
-    \  - 現行版は projects/dozle_kirinuki/scripts/ 配下\n  - .bak_1000 は scripts/ runtime\
-    \ 直下 = 紛らわしい配置\n  → scripts/archive/ 等へ退避 or 削除\n\nMEDIUM 4件:\nM1) cmd_487 関連実験スクリプト\
-    \ 4件 dead code (cross-ref 0)\n  → 削除 (git log に履歴は残る)\nM2) 古い Whisper-only transcribe_*.py\
-    \ が dead code\n  → 削除\nM3) vocal_stt_pipeline.py 内 run_speaker_identification\
-    \ 二重実装\n  → 1本に統合\nM4) auto_speaker_mapping.py が stt_merge と機能重複\n  → どちらか削除 or\
-    \ 役割明確化\n\n=== cmd_1565 動画制作スクリプト ===\n\nHIGH 2件:\nH3) generate_thumbnail.py スクリプト\
-    \ と main.py 内 generate_thumbnail() 関数 同名衝突\n  - generate_thumbnail.py: Gemini\
-    \ API CLI ツール (cross-ref 0)\n  - main.py L305: 独立関数 (内部呼出のみ・L1127, L1458)\n  →\
-    \ どちらかリネーム (例: gemini_thumbnail_cli.py) or 統合\n\nH4) vertical_convert.py に cmd_1548\
-    \ 教訓警告がない\n  - cmd_1548 で将軍誤指定 → 殿激おこ事案\n  - cmd_1550 で procedure 化済 (shared_context/procedures/video_vertical_crop_upload.md)\n\
-    \  → vertical_convert.py docstring 冒頭に 「procedure 経由必須・直接呼出 NG」 警告を追記\n\nMEDIUM\
-    \ 4件:\nM5) 孤立 7 ファイル dead code (旧 cmd hardcoded・実験完了済)\n  → 削除\nM6) add_chapters.py\
-    \ と generate_chapters.py 役割重複可能性\n  → 差異を確認し統合 or 役割明確化\nM7) manga_poc 配下スクリプトが\
-    \ SKILL.md に未記載 (analyze_clip_scene.py, manga_short_composer.py)\n  → manga-short\
-    \ skill の SKILL.md に追記\nM8) remotion-project Root.tsx 内 FULL_SEC=4795 hardcoded\n\
-    \  → cmd 起動時に動的設定する仕組みに変更 (env var or 引数)\n\n=== 共通ルール ===\n- 削除前に必ず git log で履歴確認\
-    \ (誤削除防止)\n- スクリプト削除時は .gitignore 化や archive/ 配置で「消した形跡」を残す方針も可\n- 既存テストがあれば実行\
-    \ (.venv 内)\n- LOW 3件 (各レポート) は本cmd対象外・別途判断\n- 詳細レポート: queue/reports/gunshi_stt_contradiction_1564.yaml\
-    \ と queue/reports/gunshi_video_contradiction_1565.yaml を必読\n\n=== 完了条件 ===\n-\
-    \ HIGH 4件 (H1〜H4) すべて修正済み\n- MEDIUM 8件 (M1〜M8) すべて修正済み or 明示 skip 判断 (rationale\
-    \ 記載)\n- 動作確認: 修正したスクリプトが既存呼出元から呼んだ際に正常動作\n- git commit + push 完了\n- 修正ファイル一覧と修正内容を\
-    \ report YAML に記載"
-  acceptance_criteria:
-  - cmd_1564 HIGH H1 (gemini_transcription_task.py hardcoded path) が引数化または設定ファイル化されている
-  - cmd_1564 HIGH H2 (.bak_1000 runtime直下残存) が scripts/archive/ 配下に移動 or 削除されている
-  - cmd_1564 MEDIUM M1-M4 が削除/統合/明示skip のいずれかで処理済み
-  - cmd_1565 HIGH H3 (generate_thumbnail 名前衝突) がリネーム or 統合で解消
-  - cmd_1565 HIGH H4 (vertical_convert.py 警告なし) で docstring に procedure 経由必須警告が追記
-  - cmd_1565 MEDIUM M5-M8 が削除/統合/skill doc追記/動的設定化のいずれかで処理済み
-  - git commit + push まで完了し submodule pointer も親リポで更新
-  - 完了レポートに修正ファイル一覧と各 H/M 項目の処置内容が明記
-  notify_karo: true
-  completed_at: '2026-05-02T07:09:41+09:00'
-- id: cmd_1568
-  status: done
-  priority: high
-  purpose: cmd_1566 インフラ矛盾検出 HIGH 3 + MEDIUM 4 を解消し、特に最優先の silent_fail_watcher.sh
-    の常時起動を確立する
-  timestamp: '2026-05-02T06:48:39+09:00'
-  project: infrastructure
-  lord_original: 起票 — 殿2026-05-02 06:43 (cmd_1566 インフラ矛盾検出 HIGH 3/MEDIUM 4 follow-up
-    cmd 起票指示・最優先 silent_fail_watcher.sh cron未登録は Gemini 課金事故型silent fail検知の機能不全リスクのため
-    high 扱い)
-  north_star: 課金事故型 silent fail (Gemini 22K円事案・cmd_1443_p04 H4) の検知不在を即解消し、運用安全網を回復する。同時にインフラ系の死文化スクリプトと
-    bak 残存・dashboard_lifecycle 残骸を整理する。
-  command_text: "殿原文: 起票\n\n軍師 cmd_1566 (インフラ矛盾検出) で発見された問題を実際に修正せよ。最優先は H2 (silent_fail_watcher.sh\
-    \ cron 未登録 = 課金事故検知不在)。\n\n=== HIGH 3件 ===\n\nH1) context_monitor.sh が DISABLED\
-    \ 状態で exit 0 のまま残存\n  - L5-L7: 「DISABLED ... echo ... exit 0」 の dead code\n  -\
-    \ cross-reference 0 件・cron 0 件・5.2KB 全体が死文化\n  - 後継: context_watcher.sh (但し cross-ref\
-    \ 0)\n  → 削除 or scripts/archive/ 退避。後継 context_watcher.sh の起動経路は H1 に含めず M1 で対応\n\
-    \nH2) silent_fail_watcher.sh が cron 未登録 = 設計目的不履行【最優先】\n  - 設計: ログ内 ERROR/WARN/FALLBACK/COST/BILLING\
-    \ を即検知し ntfy 通知\n  - 目的: Gemini 22K円課金事故型 silent fail を即時検知 (cmd_1443_p04 H4)\n\
-    \  - 実装: inotifywait + 追記検知 → daemon 想定\n  - 現状: crontab/systemd unit 未登録・watcher_supervisor.sh\
-    \ も非参照\n  → systemd user unit 化 (cmd_1542 worker と同形式) で常時起動。@reboot cron では不可\
-    \ (再起動時のみ)\n  → 起動後に意図的にテスト ERROR を吐いて ntfy 着弾を確認すること\n\nH3) inbox_watcher.sh.bak\
-    \ が 2 件残存 (紛らわしい配置)\n  - 現行: scripts/inbox_watcher.sh (57.9KB・cmd_1526 SQLite\
-    \ 切替後)\n  - bak.cmd_1453: 55.8KB / bak_1004: 55.7KB\n  - cmd_1564 H2 と同パターン (.bak\
-    \ が runtime に同居)\n  → scripts/archive/ 退避 or 削除\n\n=== MEDIUM 4件 ===\n\nM1) context_watcher.sh\
-    \ の cron 未登録・cross-ref 0\n  - context_monitor.sh DISABLED の後継だが起動経路不明\n  - tmux\
-    \ pane 常駐想定だが docstring に明示なし\n  → 起動経路を docstring に明記。常駐させるなら systemd user unit\
-    \ 化\n\nM2) ntfy 系 3 種 (ntfy.sh / ntfy_listener.sh / ntfy_voice.sh) 役割重複\n  - ntfy_voice.sh:\
-    \ 用途不明・3/27作成以降変更なし・参照2件\n  → 各スクリプトの役割を docstring 冒頭に1行記載。ntfy_voice.sh が dead\
-    \ なら削除\n\nM3) dashboard_lifecycle.sh L4 [LEGACY] セクション残存 (cmd_1556 廃止後)\n  - dashboard.md\
-    \ は cmd_1556 で git rm 廃止済\n  - lifecycle スクリプト内に廃止セクションのコメント残存\n  → [LEGACY] 関連コード/コメントを除去\n\
-    \nM4) crontab 内 #disabled エントリ 5 件残存・cron_inventory との整合確認要\n  - 5件: auto_fetch\
-    \ / scene_search / post_fetch_recommend / chat-retry\n  - cron_inventory.md Disabled\
-    \ セクション D01-D05 と一致するか未確認\n  - 不一致なら nightly_audit.sh の drift 検知が ntfy 警告を発火\n\
-    \  → diff を取り、不一致なら cron_inventory.md を更新\n\n=== 共通ルール ===\n- 削除前に必ず git log 確認\n\
-    - systemd user unit は ~/.config/systemd/user/ 配下に配置 (cmd_1542 参考)\n- LOW 3件 (各レポート)\
-    \ は本cmd対象外\n- 詳細レポート: queue/reports/gunshi_infra_contradiction_1566.yaml を必読\n\
-    \n=== 完了条件 ===\n- silent_fail_watcher.sh が systemd user service として常時起動 (status\
-    \ active)\n- 意図的なテスト ERROR で ntfy が着弾することを実証\n- HIGH 3件 / MEDIUM 4件 すべて修正済 or\
-    \ 明示 skip 判断 (rationale 記載)\n- git commit + push 完了 (.config/systemd 配下も対象なら手順を\
-    \ report に明記)\n- 修正ファイル一覧と各 H/M 項目の処置内容を report YAML に記載"
-  acceptance_criteria:
-  - silent_fail_watcher.sh が systemd user service で常時起動 (systemctl --user status で
-    active)
-  - 意図的にテスト ERROR を発生させ ntfy 通知が着弾することを実証 (ログまたはスクリーンショット)
-  - context_monitor.sh が削除 or scripts/archive/ 退避済 (dead code 解消)
-  - inbox_watcher.sh.bak 2件が scripts/archive/ 退避 or 削除済
-  - context_watcher.sh の起動経路が docstring に明記 or systemd 化
-  - ntfy 系 3 種それぞれの役割が docstring 冒頭に明記 (ntfy_voice.sh は要否判定)
-  - dashboard_lifecycle.sh の [LEGACY] 関連コード/コメント除去
-  - 'crontab #disabled 5件 と cron_inventory.md D01-D05 の整合確認・必要なら更新'
-  - git commit + push まで完了
-  notify_karo: true
-  completed_at: '2026-05-02T06:59:45+09:00'
-- id: cmd_1569
-  status: done
-  priority: low
-  purpose: R2 検出ロジックの unblock_types に `qc_request` を追加し、過去の cmd_1568 のような誤検出を防ぐ
-  timestamp: '2026-05-02T07:13:32+09:00'
-  project: infrastructure
-  lord_original: それで — 殿2026-05-02 07:13 (R2ブロック報告検出残骸の恒久対処指示)
-  north_star: R2 ブロック報告検出ルールの誤検出を恒久解消し、ダッシュボードの信頼性を上げる。`qc_request` を送った時点で実質ブロック解消なのに
-    R2 が残り続ける現象を排除する。
-  command_text: "殿原文: それで\n\n背景:\ncmd_1568 で ashigaru4 が report_blocked → 将軍が PID\
-    \ kill → ashigaru4 が直接 qc_request 送信、という流れで実質 block は解消したが、R2 検出ロジックは qc_request\
-    \ を unblock 指標として認識せず、ブロック残骸が48時間ダッシュボードに残った。\n\n対象ファイル:\nscripts/dashboard/server.py\
-    \ L234 付近\n  _R2_UNBLOCK_TYPES = {\"report_done\", \"report_completed\", \"unblock\"\
-    , \"report_received\", \"qc_done\"}\n\n修正:\nこの集合に \"qc_request\" を追加せよ。理由は、qc_request\
-    \ は ashigaru/gunshi が成果物を完成させて QC を要求する送信であり、ブロック状態とは両立しない。\n\nテスト:\n1) 既存 unit\
-    \ test がある場合は pass を確認\n2) 修正後、本番 dashboard で R2 件数が減ることを目視確認 (cmd_1568 残骸が消えるはず)\n\
-    3) 偽陽性を生まないか念のため軽くレビュー (qc_request 送ったが直後に再ブロックする極稀ケースは別途 report_blocked が発火するので問題なし)\n\
-    \n完了条件:\n- _R2_UNBLOCK_TYPES に qc_request 追加済\n- dashboard /api/dashboard 応答で\
-    \ cmd_1568 関連 R2 残骸が消える\n- git commit + push 完了"
-  acceptance_criteria:
-  - scripts/dashboard/server.py の _R2_UNBLOCK_TYPES に "qc_request" が含まれる
-  - GET /api/dashboard 応答の action_required から ashigaru4→shogun/karo の R2 ブロック残骸が消える
-  - dashboard server がエラーなく起動・既存検出 (R1〜R6) が引き続き機能する
-  - git commit + push 完了
-  notify_karo: true
-  completed_at: '2026-05-02T07:32:15+09:00'
-- id: cmd_1570
-  status: done
-  priority: medium
-  purpose: 初級編・中級編のカリキュラムからハンズオン要素を全削除し、講義オンリー形式に再構成する
-  timestamp: '2026-05-02T07:31:37+09:00'
-  project: udemy_course
-  lord_original: すまん。ハンズオンなしで構成し直せ。講義オンリーで — 殿2026-05-02 07:32 (Udemy講座を講義オンリー形式に再構成する指示)
-  north_star: Udemy講座を『見るだけで理解できる講義オンリー形式』に再構成し、視聴ハードルを下げ完走率を上げる。受講者がコードを書く時間を排除し、講師の実演とストーリーで習得させる。受託・コンサル導線への基盤を最短で確立する。
-  command_text: "殿原文: すまん。ハンズオンなしで構成し直せ。講義オンリーで\n\n背景:\n現在のカリキュラム (drafts/curriculum_beginner_v1_marp.md\
-    \ / curriculum_intermediate_v3_marp.md) は『ストーリー + ハンズオン + 学習目標』の3点構成で受講者が手を動かす演習が含まれている。殿の方針転換により、講義オンリー\
-    \ (受講者は視聴するのみ) に再構成する。\n\n=== 対象ファイル ===\n初級編:\n- projects/udemy_course/drafts/curriculum_beginner_v1_marp.md\
-    \ (Marpソース)\n- projects/udemy_course/drafts/curriculum_beginner_v1.md\n- projects/udemy_course/drafts/curriculum_beginner_v1.html\
-    \ (再ビルド)\n- projects/udemy_course/drafts/toc_beginner_v1.html (再ビルド)\n\n中級編:\n\
-    - projects/udemy_course/drafts/curriculum_intermediate_v3_marp.md\n- projects/udemy_course/drafts/curriculum_intermediate_v3.md\n\
-    - projects/udemy_course/drafts/curriculum_intermediate_v3.html\n- projects/udemy_course/drafts/toc_intermediate_v3.html\n\
-    \n=== 再構成方針 ===\n\n1. ハンズオン要素を全削除\n   - 「演習」「実装してください」「手元で試して」「コードを書いて」等の受講者操作セクションを削除\n\
-    \   - 章末の確認課題・宿題・成果物提出も削除\n\n2. 講師実演に置換\n   - 削除した演習部分は『講師がデモする』『画面録画で示す』方式に書換\n\
-    \   - 例: ❌「受講者がhookを書く」→ ✅「講師が完成形のhookを画面で読み解く・なぜこの実装かを語る」\n\n3. ストーリー・ケーススタディ強化\n\
-    \   - 既存の失敗事例(Gemini課金事故等)・成功事例(漫画ショート74本投稿)を講義のメインに\n   - 『私はこう考えた・こう失敗した・こう直した』の一人称ナラティブで構成\n\
-    \n4. 学習目標の表現を変更\n   - 旧: 『〜できるようになる』(技能習得目標)\n   - 新: 『〜が分かる・〜の判断基準が持てる』(理解・判断基準習得目標)\n\
-    \n5. 完走率・尺の見直し\n   - ハンズオン削除で総時間は短縮見込み (中級編17.5h → 12-14h目安)\n   - 各章の尺を 30-50min\
-    \ を中心に再配分\n\n6. v3とv1の連番管理\n   - 初級編は curriculum_beginner_v2_marp.md として新規作成 (v1は残す)\n\
-    \   - 中級編は curriculum_intermediate_v4_marp.md として新規作成 (v3は残す)\n   - 旧版の差分根拠が後から辿れるよう\
-    \ version log を追記\n\n=== 完了条件 ===\n- v2 (初級) / v4 (中級) marp ソース作成\n- HTML 再ビルド\
-    \ (marp-cli)\n- TOC HTML 再ビルド\n- 旧版のハンズオン記述が新版に1つも残らない (grep '演習\\|ハンズオン\\|実装してください\\\
-    |手元で' で 0件)\n- 各章の冒頭に新方針の version log 記載\n- git commit + push\n\n=== 共通ルール ===\n\
-    - 既存メモリ memory/project_udemy_3engineering.md の 3階層フレーム (L1プロンプト/L2コンテキスト/L3ハーネス)\
-    \ は維持\n- 既存マーケ計画 (marketing_plan_*) との整合は別cmdで対応 (本cmdではカリキュラム本体のみ)\n- 新規スクリプト作成禁止。既存\
-    \ marp-cli のみ使用"
-  acceptance_criteria:
-  - drafts/curriculum_beginner_v2_marp.md が存在し講義オンリー形式 (ハンズオン記述なし)
-  - drafts/curriculum_intermediate_v4_marp.md が存在し講義オンリー形式 (ハンズオン記述なし)
-  - 両 marp ソースから HTML が再ビルド済 (curriculum_*_v2.html / curriculum_*_v4.html)
-  - toc_beginner_v2.html / toc_intermediate_v4.html が再ビルド済
-  - 新版に grep '演習\|ハンズオン\|実装してください\|手元で試' で 0件
-  - 各 marp ソース冒頭に方針転換の version log (旧版→新版の差分) が明記
-  - 中級編の総時間が 12-14h 程度に短縮されている
-  - git commit + push 完了
-  notify_karo: true
-  completed_at: '2026-05-02T07:47:54+09:00'
-- id: cmd_1571
-  status: done
-  priority: medium
-  purpose: 初級編 序章 (Claude Code とは — AI開発の新しい形) の Marp 講義スライド + speaker notes を完成させ、残り章の量産フォーマット雛形とする
-  timestamp: '2026-05-02T08:06:25+09:00'
-  project: udemy_course
-  lord_original: １ — 殿2026-05-02 08:08 (cmd_1570 v2/v4 が設計書だったため、実際の講義スライド/原稿を作成。試作として初級編
-    序章 1本のみ先行作成し、フォーマット確定後に残り章を展開する戦略)
-  north_star: Udemy初級編の序章を講義スライド形式で完成させ、残り全章 (1〜6章+終章) の展開フォーマットを確定する。試作1本で型を固めることで、以降の章作成を並列足軽展開可能にし、講座完成までの最短経路を確立する。
-  command_text: '殿原文: １
-
-
-    背景:
-
-    cmd_1570 で生成した curriculum_beginner_v2_marp.md は『カリキュラム設計書』であって実際の講義資料ではない。本cmdでは初級編
-    序章のみ先行で『実際の講義 Marp スライド』として作成し、量産フォーマットを確定する。
-
-
-    === フォーマット参照 ===
-
-    既存の中級編序章を厳格な雛形とせよ:
-
-    - projects/udemy_course/drafts/lectures/intermediate_ch00_intro.md (274行・Marpカバー+本編+speaker
-    notes)
-
-
-    上記ファイルの構造:
-
-    1. Marp フロントマター (theme/style)
-
-    2. カバースライド (class:cover・タイトル・サブタイトル・FREE PREVIEWバッジ・講師名)
-
-    3. 章ゴール (この30分で得られること 4-5項目)
-
-    4. ストーリー導入 (受講者の現状を一人称ナラティブで描く)
-
-    5. 章本編 (章ごとのテーマを5-10スライドで解説)
-
-    6. まとめスライド
-
-    7. 次章への橋渡し
-
-
-    各スライドに必ず HTML コメントの speaker notes を入れること。
-
-
-    === 出力先 ===
-
-    projects/udemy_course/drafts/lectures/beginner_ch00_intro.md
-
-
-    === 内容ガイド ===
-
-    v2 curriculum (curriculum_beginner_v2_marp.md L 序章節) より抜粋:
-
-
-    章タイトル: Claude Code とは — AI開発の新しい形
-
-    所要: 15 min (無料プレビュー)
-
-    Level: L1: Remember
-
-
-    ストーリー導入:
-
-    > 「今までのAI開発は『ブラウザを開いてチャットする』だけでした。Claude Codeは、あなたのターミナルの中でAIが直接コードを読み、書き、実行する——まったく新しい開発体験です。」
-
-
-    学習目標 (新表現・判断基準型):
-
-    - Claude Code と他の AI ツール (ChatGPT/Cursor 等) の違いが分かる
-
-    - なぜ CLI で AI を使うのかの理由が腑に落ちる
-
-    - 本講座の終着点 (3つの到達点) を把握する
-
-
-    解説アウトライン (講師実演中心・受講者操作なし):
-
-    1. AI 開発ツールの現在地 (2026年): Chat / IDE拡張 / CLI の 3 形態
-
-    2. Claude Code の立ち位置: CLI 特化 × Anthropic 製 × 開発者向け
-
-    3. 他のAIツールとの違い: Cursor / GitHub Copilot CLI / Aider との比較表
-
-    4. 本講座のゴール: 3 つの到達点プレビュー (実画面キャプチャを講師が見せる)
-
-    5. 中級編へのブリッジ
-
-
-    講師: 村上誠治 (なぎなた)
-
-
-    === ルール ===
-
-    - ハンズオン要素を一切入れない (受講者が操作する記述は禁止)
-
-    - 『講師がやってみせる・解説する』『受講者が見て理解する』スタイル
-
-    - speaker notes は 各スライド毎に必ず記載 (なぎなた一人称で・録画原稿として使えるレベル)
-
-    - intermediate_ch00_intro.md の Marp スタイル (font-size, color, blockquote, big class
-    等) を踏襲
-
-    - 末尾に 『この型でch01以降も展開する』旨の version log を記載
-
-
-    === 完了条件 ===
-
-    - drafts/lectures/beginner_ch00_intro.md (250行〜) を作成
-
-    - marp-cli で beginner_ch00_intro.html を生成し閲覧可能
-
-    - speaker notes が全スライドにある (grep ''<!--'' で 10件以上)
-
-    - 受講者操作系の語句がない (grep ''演習\|ハンズオン\|手元で\|やってみよう'' で 0件)
-
-    - git commit + push
-
-    - index.html (drafts/index.html) に 序章ページへのリンクを追加'
-  acceptance_criteria:
-  - drafts/lectures/beginner_ch00_intro.md が intermediate_ch00_intro.md と同形式で存在する
-  - Marp HTML 版 (beginner_ch00_intro.html) が生成済み
-  - 全スライドに speaker notes が記載 (HTML コメント形式)
-  - 受講者操作系の語句が0件 (grep で確認)
-  - drafts/index.html に序章ページリンク追加 (新セクション '🎬 講義資料 (lectures)')
-  - git commit + push 完了
-  - 次章以降の量産用フォーマットとして使える完成度 (講師録画原稿として実使用可能なレベル)
-  notify_karo: true
-  completed_at: '2026-05-02T08:17:46+09:00'
-- id: cmd_1572
-  status: done
-  priority: medium
-  purpose: GPT版CDP画像生成スクリプトの設計書を軍師が作成する (実装は後続cmdで足軽担当)
-  timestamp: '2026-05-02T08:13:52+09:00'
-  project: dozle_kirinuki
-  lord_original: CDPでGemini画像生成スクリプトがあるが、GPT版を作成してほしいので設計から軍師にやらせてくれ。プロンプトは、generate_manga_short.py
-    のsimple相当でできることは確認ずみ gemini_prompts_simple_3views わたすリファレンスも３面図でよいことも確認済み — 殿2026-05-02
-    08:25
-  north_star: Gemini CDP画像生成の代替・補完として GPT (ChatGPT 4o image / Sora 等) ベースの画像生成パイプラインを獲得し、画像クオリティ・キャラ一貫性の比較検証を可能にする。漫画ショート量産の頭打ち
-    (Gemini単独依存) を回避し、複数モデルガチャ戦略の基盤を確立する。
-  command_text: "殿原文: CDPでGemini画像生成スクリプトがあるが、GPT版を作成してほしいので設計から軍師にやらせてくれ。プロンプトは、generate_manga_short.py\
-    \ のsimple相当でできることは確認ずみ。わたすリファレンスも３面図でよいことも確認済み\n\n=== 本cmdの位置づけ ===\nPhase1 (本cmd):\
-    \ 軍師が設計書 (DESIGN.md) を作成\nPhase2 (後続cmd): 足軽が設計書に基づき実装\n\n本cmdでは実装には踏み込まない。設計書のみ。\n\
-    \n=== 既存資産 (軍師は精読せよ) ===\n\n参照スクリプト (Gemini CDP実装):\n- projects/dozle_kirinuki/scripts/cdp_gemini_image_poc.py\
-    \ (563行)\n- projects/dozle_kirinuki/scripts/cdp_gemini_with_ref.py (550行)\n- projects/dozle_kirinuki/scripts/cdp_manga_panel.py\
-    \ (407行・PromptBuilder利用)\n- projects/dozle_kirinuki/scripts/manga_prompt_builder.py\
-    \ (共通プロンプトモジュール)\n- projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py\
-    \ (simple モード相当が殿確認済の入力プロンプト)\n\n確認済みの入出力サンプル:\n- 入力プロンプト例: projects/dozle_kirinuki/work/20260428_じゃんけんで決まるエンドラ討伐/gemini_prompts_simple_3views/*.prompt.txt\n\
-    - 入力リファレンス: projects/dozle_kirinuki/assets/dozle_jp/character/3views/*.png (bon/dozle/oo_men/orafu/qnly/nekooji/daifugo_oji\
-    \ の三面図)\n- リファレンス指定方式: *.refs.txt (各プロンプトに対応する画像リスト)\n\n=== 軍師の調査・設計タスク ===\n\n\
-    1) 既存 Gemini CDP の動作機序を完全に把握 (3スクリプトを読み解き)\n   - CDP attach 方式 (既存Chrome起動への接続)\
-    \ か Playwright launch 方式か\n   - ログイン状態の維持方法 (user-data-dir / cookies)\n   - プロンプト入力\
-    \ → リファレンス画像アップロード → 生成完了検出 → 画像URL取得 → ダウンロードまでの DOM/event フロー\n   - 失敗時のリトライ・タイムアウト設計\n\
-    \   - レート制限・スロットリング対策\n\n2) GPT 側の調査\n   - 候補: ChatGPT 4o image generation (chatgpt.com)\
-    \ / Sora / DALL·E 3 (Bing含む)\n   - 各候補のWeb UIで以下が可能か検証:\n     a. プロンプト入力\n   \
-    \  b. 複数リファレンス画像アップロード (三面図PNG x 1〜3枚)\n     c. キャラ一貫性 (同じ三面図から複数パネル生成して同一キャラと認識されるか)\n\
-    \     d. 生成画像の取得 (右クリック保存 or DOM経由ダウンロード)\n     e. レート制限・回数制限\n   - 推奨候補1つを選定し、根拠を設計書に明記\n\
-    \n3) アーキテクチャ設計\n   - スクリプト名と配置: 例 scripts/cdp_gpt_image_poc.py / cdp_gpt_with_ref.py\
-    \ / cdp_gpt_manga_panel.py\n   - Gemini版とのI/F互換性: 引数・出力ディレクトリ構造を可能な限り一致させ、cdp_manga_panel.py\
-    \ からモデル切替で呼び分けられる設計\n   - 共通PromptBuilder (manga_prompt_builder.py) の流用可否\n  \
-    \ - 三面図リファレンスのアップロード方式\n   - 失敗モード・リトライ・タイムアウト・コスト管理\n\n4) 比較表 (Gemini vs GPT)\n\
-    \   - 画質・キャラ一貫性・速度・コスト・レート制限・実装難度\n   - 用途別の使い分け推奨 (どのシーンに Gemini / どのシーンに GPT)\n\
-    \n5) 実装フェーズへの引き渡し\n   - 後続cmdで足軽が着手する際の TODO リスト (PoC優先順)\n   - PoC スコープ最小化案 (1パネル生成\
-    \ → 3パネル一貫性検証 → 漫画ショート1本通し)\n\n=== 出力物 ===\n- projects/dozle_kirinuki/scripts/manga_poc/DESIGN_gpt_image_cdp.md\
-    \ (設計書本体)\n- 設計書の HTML プレビュー (任意)\n\n=== ルール ===\n- 軍師は読んで設計するのみ。コード実装はするな (advisor()\
-    \ 推奨)\n- ChatGPT/Sora の検証で実際にブラウザ操作する場合は手順を記録し再現性を担保\n- セキュリティ: APIキー漏洩・cookies\
-    \ 流出対策を設計書に明記\n- 実装可否の不明箇所は『要PoC』として残し、後続cmdで足軽が確認するTODOに含めよ\n- 既存cmd_28 (Gemini画像生成コスト教訓・1パネル試打ち必須)\
-    \ のナレッジを GPT 側にも適用検討せよ\n\n=== 完了条件 ===\n- DESIGN_gpt_image_cdp.md が存在し、上記5項目 (機序把握・GPT調査・アーキ設計・比較表・引き渡し)\
-    \ を網羅\n- gunshi report で要約 + 設計判断点 + 残課題を提示\n- 家老が後続cmdを発令可能な粒度で TODO が記載\n- git\
-    \ commit + push"
-  acceptance_criteria:
-  - projects/dozle_kirinuki/scripts/manga_poc/DESIGN_gpt_image_cdp.md が存在する
-  - DESIGN内に 既存Gemini CDP 3スクリプトの動作機序の図解 or 箇条書き把握結果が記載
-  - DESIGN内に GPT候補(ChatGPT 4o image / Sora / DALL·E 3 等)の比較と推奨候補1つの根拠記載
-  - DESIGN内に 3面図リファレンスのアップロード方式・キャラ一貫性検証方針が記載
-  - DESIGN内に Gemini版とのI/F互換性方針 (cdp_manga_panel.py のモデル切替で呼び分けできる構造) が記載
-  - DESIGN内に 後続実装cmdの TODO リスト (PoC優先順) が記載
-  - git commit + push 完了
-  - 軍師レポートに 残課題と推奨フォローアップcmdが提示されている
-  notify_karo: true
-  completed_at: '2026-05-02T08:24:49+09:00'
 - id: cmd_1573
   status: in_progress
   priority: medium
@@ -907,4 +487,1639 @@ commands:
   - lectures/beginner_ch01_claude_code.md (旧 ch00_intro) が存在しリンクが index.html で更新済
   - drafts/index.html で v3 が NEW表示・v2 が旧版表示
   - git commit + push 完了
+  notify_karo: true
+- id: cmd_1583
+  status: done
+  priority: high
+  purpose: 初級編 v4 全7章の .md / .html および curriculum で講師名表記を『なぎなた』のみに統一・本名削除
+  timestamp: '2026-05-03T09:29:59+09:00'
+  project: udemy_course
+  lord_original: 作者はなぎなたで 村上誠治はだすな — 殿2026-05-03 08:51
+  north_star: Udemy 公開コンテンツの講師名表記を一貫して『なぎなた』に統一する。本名『村上誠治』は外部公開資料に出さない (殿の方針)。
+  command_text: "殿原文: 作者はなぎなたで 村上誠治はだすな\n\n=== 修正対象ファイル ===\n\nlectures/ 配下 (v4 のみ):\n\
+    - beginner_ch00_intro_v4.md / .html\n- beginner_ch01_prompt_v4.md / .html\n- beginner_ch02_claude_md_v4.md\
+    \ / .html\n- beginner_ch03_md_family_v4.md / .html\n- beginner_ch04_history_v4.md\
+    \ / .html\n- beginner_ch05_hook_v4.md / .html\n- beginner_ch06_outro_v4.md / .html\n\
+    \ndrafts 配下:\n- curriculum_beginner_v4_marp.md / curriculum_beginner_v4.html (要\
+    \ grep 確認)\n- index.html (drafts ホーム・要 grep 確認)\n\n=== 置換ルール ===\n1. 全 .md スライド冒頭の『講師:\
+    \ 村上誠治 (なぎなた)』 → 『講師: なぎなた』\n2. speaker notes 内の自己紹介:\n   - 『講師の村上誠治、ニックネームでは「なぎなた」と申します』\
+    \ → 『講師のなぎなたと申します』\n   - 『講師の村上誠治、ニックネーム「なぎなた」と申します』 → 『講師のなぎなたと申します』\n   - その他『村上誠治』『seiji』『Murakami』等の本名関連表記を全削除し『なぎなた』に置換\n\
+    3. .html は .md からビルドし直し (現在のビルド方式踏襲・Marp)\n\n=== 完了条件 ===\n- 全 v4 .md / .html\
+    \ で `grep -E '村上|誠治|seiji|Murakami|murakami' (大文字小文字含)` が 0 件\n- 全 v4 .md / .html\
+    \ で『なぎなた』表記が各章1箇所以上 (講師名スライド)\n- curriculum_beginner_v4_marp.md / .html / index.html\
+    \ も同様に 0 件 (もし該当あれば)\n- スライドレイアウト・font-size 等は現行維持\n- speaker notes 自然性を維持 (機械的置換で日本語崩れない)\n\
+    - git commit + push 完了\n\n=== ナレッジ更新 ===\n- context/lecture_design_rules.md に『Udemy\
+    \ 公開コンテンツの作者表記は「なぎなた」のみ。本名は出さない』を追記\n- memory/user_profile.md (もし扱う場合) には『公開時の名義はなぎなた』と注記\
+    \ (内部記録は本名維持してよい)"
+  acceptance_criteria:
+  - 全 v4 .md / .html (ch00-ch06) で『村上 誠治 seiji Murakami murakami』表記 0 件
+  - 全 v4 .md / .html で『なぎなた』表記が各章1箇所以上
+  - curriculum_beginner_v4_marp.md / .html / drafts/index.html でも本名 0 件
+  - speaker notes の自己紹介が日本語として自然 (なぎなたと申します等)
+  - context/lecture_design_rules.md に作者名統一ルール追記
+  - git commit + push 完了
+  notify_karo: true
+  completed_at: '2026-05-03T09:38:22+09:00'
+- id: cmd_1584
+  status: in_progress
+  priority: medium
+  purpose: (1) 軍師が現行リポを精査し @import 化候補/維持候補を判定 (2) 判定一覧 + 改修計画書を出力 (3) 殿レビュー後、家老が実装
+  timestamp: '2026-05-03T09:37:23+09:00'
+  project: multi-agent-shogun
+  lord_original: ぐんしにより精査せよ そっからかえるように ちゃんとコンテキスト注入の背景もつたえておけ — 殿2026-05-03 09:00
+  north_star: Claude Code の @import 機能を活用し、CLAUDE.md / instructions / shared_context
+    の重複を削減 + 一貫性向上。ただしコンテキスト消費を増やさず、Udemy ch03 で自プロジェクトの実例として紹介可能なレベルまで整備する。
+  command_text: '殿原文: ぐんしにより精査せよ そっからかえるように ちゃんとコンテキスト注入の背景もつたえておけ
+
+
+    === 背景 (殿との議論経緯) ===
+
+
+    本日 (2026-05-03) Udemy 初級編 v4 ch03 で「.md仲間たち」(CLAUDE.md / agents / skills / commands
+    / @import) を扱うため、自プロジェクトの @import 実装状況を確認したところ:
+
+    - CLAUDE.md に `@path/file.md` 記法は **0件** (一切未使用)
+
+    - instructions/*.md にも 0件
+
+    - memory/MEMORY.md は通常 Markdown リンク `[title](file.md)` で auto-import ではない
+
+
+    殿御指摘: 「変えた方が良くないか」→ 一部 @import 化を検討。
+
+
+    === コンテキスト注入の重要原則 (殿御指摘・絶対遵守) ===
+
+
+    **Claude Code の `@path/file.md` 記法は lazy load ではない・session start 時に全展開され常時 context
+    に注入される**
+
+
+    影響:
+
+    - @import したファイルの内容は **毎セッションで context window を消費** する
+
+    - 5階層まで再帰展開・循環防止あり (公式仕様)
+
+    - これは MEMORY.md auto-load と同じ挙動
+
+
+    意味:
+
+    - 「該当タスク時のみ参照」を期待する文書 (procedures/*.md 等) を @import すると context 圧迫の原因
+
+    - 「常に必要」な文書 (forbidden_actions・global safety rules) は @import 化して重複削減してよい
+
+
+    === 軍師 audit タスク内容 ===
+
+
+    ## Step 1: 現状把握
+
+    以下のファイル群を全て読み、内容と「全エージェントで常時必要か」「特定タスク時のみ必要か」を判定:
+
+    - /home/murakami/multi-agent-shogun/CLAUDE.md (auto-load 対象)
+
+    - /home/murakami/multi-agent-shogun/instructions/shogun.md
+
+    - /home/murakami/multi-agent-shogun/instructions/karo.md
+
+    - /home/murakami/multi-agent-shogun/instructions/ashigaru.md
+
+    - /home/murakami/multi-agent-shogun/instructions/gunshi.md
+
+    - /home/murakami/multi-agent-shogun/instructions/git_safety.md
+
+    - /home/murakami/.claude/projects/-home-murakami-multi-agent-shogun/memory/MEMORY.md
+    (auto-load 対象)
+
+    - /home/murakami/multi-agent-shogun/shared_context/procedures/*.md (Read on-demand)
+
+    - /home/murakami/multi-agent-shogun/shared_context/qc_template.md
+
+    - /home/murakami/multi-agent-shogun/shared_context/dashboard_api_usage.md (CLAUDE.md
+    から参照されるが @import なし)
+
+
+    ## Step 2: ファイル毎判定
+
+
+    各ファイルについて以下の3カテゴリ判定:
+
+
+    A) **@import 化推奨** ── 全エージェントが常時必要・他ファイルからも参照されている共通ルール
+
+    B) **現状維持 (Read on-demand)** ── 特定タスク時のみ必要 (動画 ffmpeg・countdown 等)
+
+    C) **重複削除/統合候補** ── 同じ内容が複数 instructions に散在しており共通化価値あり
+
+
+    ## Step 3: 改修計画書
+
+
+    判定結果を以下フォーマットで /tmp/cmd_1584_audit_report.md に出力:
+
+
+    ```markdown
+
+    # cmd_1584 軍師 audit レポート
+
+
+    ## 1. ファイル毎判定一覧
+
+    | ファイル | 判定 | 理由 | コンテキスト消費影響 |
+
+    |---|---|---|---|
+
+    | ... | A/B/C | ... | 増/減/中立 |
+
+
+    ## 2. @import 化推奨セット
+
+    ### CLAUDE.md に追加すべき @import 行
+
+    - @shared_context/safety/destructive_ops.md (元: CLAUDE.md 内 Tier1-3 セクション切り出し)
+
+    - @shared_context/safety/git_safety.md (元: CLAUDE.md 内 Git Safety Protocol)
+
+    - ...
+
+
+    ### 各 instructions/*.md に共通追加すべき @import
+
+    - @instructions/shared/forbidden_common.md (元: 全エージェントの forbidden_actions 共通部)
+
+
+    ## 3. 重複削減見積
+
+    - CLAUDE.md 行数: X → Y (Z%削減)
+
+    - instructions 合計行数: X → Y (Z%削減)
+
+
+    ## 4. コンテキスト総消費見積
+
+    - 現状 (auto-load 合計): X tokens
+
+    - 改修後: Y tokens (差分 ±Z)
+
+    - procedures/*.md は **@import 化しない** ことを明示
+
+
+    ## 5. リスクと注意
+
+    - @import 化で auto-load 範囲が増える可能性
+
+    - 対策: ...
+
+
+    ## 6. 推奨実装フェーズ
+
+    Phase 1: ...(最小リスク・最大効果)
+
+    Phase 2: ...
+
+    ```
+
+
+    ## Step 4: 軍師→家老→殿 報告
+
+
+    - 軍師は audit_report.md を完成 → karo inbox へ通知 (POST /api/inbox_write)
+
+    - 家老は内容確認 → MCP dashboard 🚨要対応に「cmd_1584 audit 完了・殿レビュー要」を記載
+
+    - 殿レビュー後、別 cmd で実装 (家老→足軽)
+
+
+    === 完了条件 ===
+
+
+    - 軍師 audit が上記フォーマットで /tmp/cmd_1584_audit_report.md に出力済
+
+    - ファイル毎判定が全候補ファイルを網羅
+
+    - @import 化推奨セットが具体的なファイル名 + 切り出し範囲で明示されている
+
+    - procedures/*.md が @import 化対象外であることを明記 (殿御指摘の context 注入原則)
+
+    - karo inbox 通知済 + dashboard 🚨要対応 記載済
+
+    - 殿レビュー前に実装に着手しない (本 cmd は audit のみ)'
+  acceptance_criteria:
+  - 軍師 audit_report.md が /tmp/cmd_1584_audit_report.md に作成済
+  - 全候補ファイル (CLAUDE.md/instructions/*.md/MEMORY.md/shared_context/procedures/*) について
+    A/B/C 判定済
+  - '@import 化推奨セットが具体的なファイル名+切り出し範囲で明示'
+  - procedures/*.md は @import 化対象外と明記 (lazy load 維持)
+  - 重複削減見積 + コンテキスト総消費見積を含む
+  - 実装フェーズ分け (Phase 1/2/...) を含む
+  - karo inbox 通知済 + dashboard 🚨要対応記載済
+  - 殿レビュー前は実装に着手しない
+  notify_karo: true
+- id: cmd_1585
+  status: done
+  priority: high
+  purpose: ch04_history_v4 の年表に L1/L2/L3 各層の誕生イベントを明示追記
+  timestamp: '2026-05-03T09:38:35+09:00'
+  project: udemy_course
+  lord_original: ４章 生成AIエンジニアリング年表 に コンテキストエンジニアリング誕生 ハーネスエンジニアリング誕生がない — 殿2026-05-03
+    09:05
+  north_star: 初級編 v4 第4章「生成AIエンジニアリングの歴史」が3階層誕生の歴史的必然を完全網羅し、受講者が『なぜ3階層なのか』を時系列で理解できる構造にする。
+  command_text: "殿原文: ４章 生成AIエンジニアリング年表 に コンテキストエンジニアリング誕生 ハーネスエンジニアリング誕生がない\n\n===\
+    \ 修正対象 ===\n- lectures/beginner_ch04_history_v4.md (cmd_1580 で生成AI史化済・しかし3階層各誕生が欠落)\n\
+    - lectures/beginner_ch04_history_v4.html (再ビルド)\n\n=== 殿の意図 ===\n第4章は『生成AIエンジニアリング年表』として、各層\
+    \ (L1プロンプト/L2コンテキスト/L3ハーネス) の **誕生イベント** を時系列上に明示すべき:\n\n- **L1 プロンプトエンジニアリング誕生**\
+    \ (現状あり?要確認・なければ追加)\n- **L2 コンテキストエンジニアリング誕生** ← 抜けている\n- **L3 ハーネスエンジニアリング誕生**\
+    \ ← 抜けている\n\n各誕生イベントには『なぜ生まれたか』の背景・代表的事例を添える。\n\n=== 推奨追加内容 (年表マイルストーン) ===\n\n\
+    1. **2022/11 ChatGPT 公開** — LLM 一般化の起点\n2. **2023〜 プロンプトエンジニアリング誕生 (L1)** — 自然言語で\
+    \ AI を制御する技法体系化・Few-shot/CoT 等が広まる・『プロンプトを工夫する』が共通言語に\n3. **2023〜 長文脈時代 (Claude\
+    \ 100K→200K→1M)** — context window 爆発・大量情報投入可能に\n4. **2024〜 ツール使用・エージェント時代** —\
+    \ Claude Tool Use / OpenAI Function Calling・AI が手を動かす時代\n5. **2024 Claude Code\
+    \ 登場 / Cursor / Cline** — IDE/CLI 統合・コーディング AI 実用段階\n6. **2024〜 コンテキストエンジニアリング誕生\
+    \ (L2)** ← **追加必須**\n   - CLAUDE.md / AGENTS.md / .cursorrules 等『AI への指示書』が登場\n\
+    \   - 『プロンプトだけでは足りない・プロジェクト全体を AI に教える必要がある』という気付き\n   - サブエージェント/スキル/コマンドなど構造化\n\
+    7. **2024〜 ハーネスエンジニアリング誕生 (L3)** ← **追加必須**\n   - 『AI が暴走する/危険な操作をする』という現実的脅威に対し制御層登場\n\
+    \   - Claude Code の hook (PreToolUse/PostToolUse 等)\n   - permission モデル (Allow/Ask/Deny)\n\
+    \   - GitHub Actions の auto-merge ガード等\n   - 『任せる範囲を制御』という発想の体系化\n8. **2025+ 3階層統合の必要性**\
+    \ — L1+L2+L3 のどれが欠けても破綻する事例多発・3階層が共通言語に\n\n=== ルール継承 ===\n- font-size: 1.7em /\
+    \ display:flex !important / justify-content: flex-start !important\n- カバースライドのみ\
+    \ justify-content: center !important\n- speaker notes 全スライド必須\n- ASCII罫線禁止 → Markdown\
+    \ 表のみ\n- 受講者操作系語句 0件\n- スライド枚数: 25min ÷ 2 = 12-13枚目安 (現行に1-2枚追加してよい・年表が主役なので情報密度許容)\n\
+    - 講師名: なぎなた のみ (cmd_1583 と整合)\n\n=== 完了条件 ===\n- ch04_history_v4.md / .html が\
+    \ L1/L2/L3 各誕生イベントを年表上で明示\n- L2 コンテキストエンジニアリング誕生スライド (CLAUDE.md / AGENTS.md 等の登場・誕生背景を含む)\n\
+    - L3 ハーネスエンジニアリング誕生スライド (hook / permission の登場・誕生背景を含む)\n- 各誕生イベントに『なぜ生まれたか』『何が引き金か』を\
+    \ speaker notes で語れる詳細\n- 年表全体が『単独層では破綻 → 各層が次々誕生 → 3階層統合が必然』の流れになっている\n- 講師名:\
+    \ なぎなた のみ (本名なし)\n- ASCII罫線/XML/受講者操作系 0件\n- git commit + push 完了"
+  acceptance_criteria:
+  - ch04_history_v4.md / .html に L1 誕生スライド明示
+  - ch04_history_v4.md / .html に L2 コンテキストエンジニアリング誕生スライド追加
+  - ch04_history_v4.md / .html に L3 ハーネスエンジニアリング誕生スライド追加
+  - 各層誕生に時期+背景+代表事例を含む speaker notes
+  - 年表全体が 3階層統合の必然性を時系列で示す構成
+  - '講師名: なぎなた のみ (cmd_1583 整合)'
+  - ASCII罫線/XML/受講者操作系 0件
+  - スライド枚数 12-15枚 (1.5-2.5min/枚範囲)
+  - git commit + push 完了
+  notify_karo: true
+  completed_at: '2026-05-03T09:52:46+09:00'
+- id: cmd_1586
+  status: done
+  priority: medium
+  purpose: 中級編 v4 Phase 1 (序章+第1〜4章) の .md / .html 作成・殿レビュー資料化
+  timestamp: '2026-05-03T09:50:17+09:00'
+  project: udemy_course
+  lord_original: 中級も作成開始せよ — 殿2026-05-03 09:48
+  north_star: Udemy 中級編 v4 (3階層エンジニアリング完全解説・序+18章+附録3) を初級編 v4 同等品質で展開。まずは Phase 1
+    (序+ch01-04) を作成・殿レビューで設計品質を確認後 Phase 2 以降に進む。
+  command_text: '殿原文: 中級も作成開始せよ
+
+
+    === 背景 ===
+
+    中級編 v4 curriculum は既に確定済 (`drafts/curriculum_intermediate_v4_marp.md`):
+
+    - 副題『AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全解説』
+
+    - 講義オンリー版 (v3 のハンズオン → v4 で解説中心に転換)
+
+    - 序章 + 18章 + 附録3 の大規模
+
+
+    殿レビュー負荷を抑えるため Phase 分割で着手・本 cmd は **Phase 1 (序+ch01-04)** のみ。
+
+
+    === Phase 1 対象 ===
+
+    - 序章: AI開発 3階層モデルとは (L0: Remember + Understand)
+
+    - 第1章: プロンプトを『関数』として設計する
+
+    - 第2章: 構造化プロンプトと失敗パターン
+
+    - 第3章: 階層的プロンプト (CLAUDE.md / instructions / task YAML の役割分担)
+
+    - 第4章: プロンプト品質 Gate (advisor() と QC template)
+
+
+    各章は curriculum_intermediate_v4_marp.md の対応セクションに従う (家老が読んで詳細把握)。
+
+
+    === ファイル ===
+
+    新規作成:
+
+    - lectures/intermediate_v4_ch00_intro.md / .html
+
+    - lectures/intermediate_v4_ch01_prompt_function.md / .html
+
+    - lectures/intermediate_v4_ch02_structured_prompt.md / .html
+
+    - lectures/intermediate_v4_ch03_hierarchical_prompt.md / .html
+
+    - lectures/intermediate_v4_ch04_quality_gate.md / .html
+
+
+    命名規約: `intermediate_v4_ch{NN}_{topic}.md` (旧 v3 と区別)
+
+
+    === ルール (初級 v4 から継承・全 cmd 整合) ===
+
+    - font-size: 1.7em / display:flex !important / justify-content: flex-start !important
+
+    - カバースライドのみ justify-content: center !important
+
+    - speaker notes 全スライド必須 (録画原稿レベル)
+
+    - ASCII罫線禁止 → Markdown 表のみ
+
+    - 受講者操作系語句 0件 (演習・ハンズオン・手元で・やってみよう)
+
+    - XML/JSON 構造化プロンプト指導禁止 (自然言語のみ・第2章で『API向け概念は中級でも扱わない』とする)
+
+    - **講師名: なぎなた のみ**・本名 (村上誠治・seiji 等) 出すな (cmd_1583 整合)
+
+    - スライド枚数 = 講義時間(min)/2 目安・範囲 1.5-2.5min/枚
+
+    - インストール手順は本編に入れない
+
+    - context/lecture_design_rules.md に従う
+
+    - 自プロジェクト (multi-agent-shogun) の実装を実例として活用してよい (CLAUDE.md / instructions/*.md
+    / queue/*.yaml 等)
+
+
+    === 中級ならではの設計指針 ===
+
+    - 中級は『L0 Remember + Understand』レベル (curriculum 1.2 受講生最終学習到達点 参照)・実装ではなく『理解』中心
+
+    - 各章で『なぜそうするか・何を理解すべきか』を厚く語る
+
+    - 自プロジェクトの実コード/実 YAML を画面投影しながら『これがその実例』と紹介
+
+    - 関数プロンプト・階層プロンプト・advisor 等の中級概念を初級者でも理解できる順序で導入
+
+
+    === 完了条件 (Phase 1) ===
+
+    - 5章分 .md / .html 作成済 (序章 + ch01-04)
+
+    - 講師名: なぎなた のみ
+
+    - ASCII罫線/XML系/受講者操作系 全章 0件
+
+    - speaker notes 全スライド・1.5-2.5min/枚
+
+    - index.html (drafts ホーム) に Phase 1 章リンク追加
+
+    - toc_intermediate_v4.html 更新 (5章分追加)
+
+    - git commit + push 完了
+
+    - 軍師 QC PASS
+
+    - 殿レビュー待ち状態で『Phase 1 完了・Phase 2 (ch05-09) 着手判断願う』を dashboard 🚨要対応 に記載'
+  acceptance_criteria:
+  - intermediate_v4_ch00_intro.md / .html 作成済
+  - intermediate_v4_ch01_prompt_function.md / .html 作成済
+  - intermediate_v4_ch02_structured_prompt.md / .html 作成済
+  - intermediate_v4_ch03_hierarchical_prompt.md / .html 作成済
+  - intermediate_v4_ch04_quality_gate.md / .html 作成済
+  - '全章で講師名: なぎなた のみ (本名 grep 0件)'
+  - 全章で ASCII罫線/XML系/受講者操作系 0件
+  - speaker notes 全スライド・1.5-2.5min/枚
+  - index.html / toc_intermediate_v4.html 更新
+  - 軍師 QC PASS
+  - git commit + push 完了
+  - Phase 2 着手判断のため dashboard 🚨要対応 記載
+  notify_karo: true
+  completed_at: '2026-05-03T10:18:09+09:00'
+- id: cmd_1587
+  status: done
+  priority: high
+  purpose: 字幕色 → 話者キー紐付け QC スクリプトを新規作成し、_raw.json の『不明』行を解消・QC レポートを出力する
+  timestamp: '2026-05-03T10:13:10+09:00'
+  project: dozle_kirinuki
+  lord_original: だめなとき用とQCようにスクショとりClaudeで字幕と話者の紐付けをやるスクリプトを作成せよ — 殿2026-05-03 10:15
+  north_star: Gemini が動画解析時に話者識別を『不明』にしてしまう問題の救済策 + QC 用に、動画スクショを Claude に渡して字幕色から話者キーを紐付けるスクリプトを整備し、漫画パイプラインの話者識別精度を保証する。
+  command_text: "殿原文: だめなとき用とQCようにスクショとりClaudeで字幕と話者の紐付けをやるスクリプトを作成せよ\n\n=== 背景 ===\n\
+    \n2026-05-03 cmd_1584 関連で panel_candidate_prompt.txt を v3 化したが、Gemini Video Understanding\
+    \ は話者識別を『不明』にしがち (字幕色判別が確実ではない)。これに対する救済策 + 通常の QC として、動画スクショを Claude CLI に渡して字幕色から話者キーを紐付けるスクリプトを新規作成する。\n\
+    \n=== スクリプト仕様 ===\n\n## ファイル\n- 配置: `projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py`\n\
+    - 新規作成可 (殿の明示指示・通常の『新規.py禁止』ルール例外)\n\n## 入力\n- `--clip <path>`: 動画ファイル (mp4/mkv)\n\
+    - `--raw-json <path>`: 既存 _raw.json (話者『不明』行を更新する対象)\n- `--output <path>`: 更新済\
+    \ _raw.json 出力先 (省略時は元ファイル上書き・--in-place オプション)\n- `--qc-report <path>`: QC レポート出力先\
+    \ (省略時は同ディレクトリに `subtitle_qc_report.md`)\n- `--mode strict|update`: strict=不明行のみ更新\
+    \ / update=全行を再判定 (デフォルト: strict)\n\n## 処理フロー\n\n1. **_raw.json 読み込み**: rows 配列の各行\
+    \ (id/timestamp/speaker/text) を取得\n2. **対象行の選定**: \n   - mode=strict → speaker=='不明'\
+    \ の行のみ対象\n   - mode=update → 全行対象\n3. **スクショ抽出**: 各対象行の timestamp で ffmpeg で 1\
+    \ frame 切り出し\n   - 出力: `/tmp/subtitle_qc_<scene>/frame_<id>_<mm-ss>.jpg`\n   -\
+    \ ffmpeg コマンド: `ffmpeg -ss <timestamp> -i <clip> -frames:v 1 -q:v 2 <output.jpg>`\n\
+    4. **Claude CLI で字幕色判定**:\n   - スクショ画像を Claude (claude --image) に渡し、以下のプロンプトで判定:\n\
+    \     ```\n     この画像はマイクラ動画の 1 frame。画面下部 or 上部の字幕テロップの色を確認し、以下のメンバーカラー表と照合して話者キーを返せ。\n\
+    \     \n     | 話者キー | 字幕テロップ色 (HEX) |\n     |---------|---------------------|\n\
+    \     | dozle | 赤 #C80000 |\n     | bon | 紫 #733C93 |\n     | qnly | 黄 #FCC700\
+    \ |\n     | orafu | 水色 #54C3F1 |\n     | oo_men | ピンク #EB6D9A |\n     | nekooji\
+    \ | 金 #C0A060 |\n     \n     字幕テロップが写っている場合: 話者キーを 1 単語で返せ (dozle/bon/qnly/orafu/oo_men/nekooji)\n\
+    \     字幕テロップが写っていない or 色判別不能: 不明 と返せ\n     余計な説明は不要。1 単語のみ。\n     \n     対象セリフ:\
+    \ 「<row.text>」\n     ```\n   - Claude 出力 (1 単語) をパースして話者キー取得\n5. **_raw.json 更新**:\n\
+    \   - 各対象行の speaker を Claude 判定結果で更新\n   - 元の speaker と Claude 判定が異なる場合は QC レポートに記録\
+    \ (mode=update 時)\n6. **QC レポート出力 (Markdown)**:\n   - 対象行数 / 確定行数 / 不明残行数 / 元と異なる判定数\n\
+    \   - 各行の元 speaker・Claude 判定・差分\n   - スクショパスへのリンク\n\n## 既存活用\n- ffmpeg コマンドは `shared_context/procedures/ffmpeg_nvenc.md`\
+    \ 等のルール準拠 (frame 抽出は libx264/nvenc 関係なし・単フレーム抽出)\n- Claude CLI は既に他スクリプト (candidate_summarizer.py\
+    \ など) で使用例あり・コマンド形式参照可\n- メンバーカラー表は context/member_profiles.yaml から読み込んでハードコード回避してよい\n\
+    \n## エラーハンドリング\n- ffmpeg 失敗 (timestamp out of range 等) → 該当行をスキップ + ログ\n- Claude\
+    \ CLI タイムアウト → 該当行を 不明 で返す\n- スクショ画像が大きすぎる場合は resize (Claude API 制限対策)\n\n## 使用例\n\
+    ```bash\ncd /home/murakami/multi-agent-shogun\npython3 projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py\
+    \ \\\n  --clip projects/dozle_kirinuki/work/.../tono_clip_base.mp4 \\\n  --raw-json\
+    \ projects/dozle_kirinuki/work/.../panels_yukigassen_base_raw.json \\\n  --in-place\
+    \ \\\n  --qc-report projects/dozle_kirinuki/work/.../subtitle_qc_report.md\n```\n\
+    \n=== ナレッジ更新 ===\n- `shared_context/procedures/manga_pipeline.md` (なければ新規作成) に『話者識別\
+    \ QC』フェーズを追記:\n  - generate_panel_candidates.py の出力 _raw.json で『不明』が一定割合あれば subtitle_speaker_qc.py\
+    \ を実行する\n\n=== 完了条件 ===\n\n- `projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py`\
+    \ 作成済\n- 既存 _raw.json (例: 20260503_yukigassen_base_raw.json) に対し動作確認 (114 行・全\
+    \ 不明 → Claude 判定で更新)\n- QC レポート (Markdown) が指定パスに出力\n- スクショは /tmp/subtitle_qc_<scene>/\
+    \ に保存 (テスト用)\n- mode=strict と mode=update の両モード動作確認\n- shared_context/procedures/manga_pipeline.md\
+    \ に話者識別 QC フェーズ追記\n- README あるいはスクリプト docstring で使い方明記\n- git commit + push 完了\
+    \ (dozle_kirinuki repo 内)\n- 報告書: queue/reports/2026-05-03_cmd_1587_subtitle_qc_report.md\
+    \ (動作確認結果含む)"
+  acceptance_criteria:
+  - projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py 作成済
+  - 既存 panels_yukigassen_base_raw.json (114 行・全不明) に対し動作確認・話者識別が更新される
+  - QC レポート (Markdown) 出力済
+  - mode=strict と mode=update 両モード対応
+  - shared_context/procedures/manga_pipeline.md に話者識別 QC フェーズ追記
+  - queue/reports/2026-05-03_cmd_1587_subtitle_qc_report.md に動作確認結果記載
+  - git commit + push (dozle_kirinuki repo) 完了
+  notify_karo: true
+  completed_at: '2026-05-03T10:51:02+09:00'
+- id: cmd_1588
+  status: done
+  priority: medium
+  purpose: 'Phase 1 実装: shared_context/agent_common.md 新設 + instructions 4本から重複セクション削除
+    + 参照化'
+  timestamp: '2026-05-03T10:19:00+09:00'
+  project: multi-agent-shogun
+  lord_original: OK (cmd_1584 audit Phase 1 着手承認) — 殿2026-05-03 10:30
+  north_star: instructions/*.md 4本に散在する共通セクションを shared_context/agent_common.md に集約。一貫性向上
+    + 単一 source 化を実現し、Udemy ch03 で『共通ファイル参照パターン』の実例として紹介可能にする。コンテキスト消費は維持または微減。
+  command_text: '殿原文: OK (cmd_1584 audit Phase 1 着手承認)
+
+
+    === 背景 ===
+
+    cmd_1584 軍師 audit (queue/reports/2026-05-03_cmd_1584_at_import_audit.md) の Phase
+    1 を実装する。Phase 2/3 は別 cmd で順次起票・本 cmd は Phase 1 のみ。
+
+
+    === 実装内容 ===
+
+
+    ## Step 1: shared_context/agent_common.md 新設 (~150行)
+
+
+    以下 9 セクションを集約:
+
+
+    1. **セマンティック検索 (Gemini Embedding 2)** ── 各 instructions/* に重複
+
+    2. **Dashboard API 利用 (cmd_1494) 概要テーブル** ── 各 instructions/* に重複
+
+    3. **Agent Self-Watch Phase Rules (cmd_107)** ── shogun/karo/ashigaru に重複
+
+    4. **Language & Tone (config/settings.yaml 参照規約)** ── karo/gunshi に重複
+
+    5. **Self-Identification (tmux display-message)** ── gunshi/ashigaru に重複
+
+    6. **Timestamp Rule (date 必須)** ── karo/ashigaru に重複
+
+    7. **Compaction Recovery 共通骨子** ── 4 ファイル全てに重複
+
+    8. **/clear Recovery 共通骨子** ── gunshi/ashigaru に重複
+
+    9. **Shout Mode (echo_message) 共通仕様** ── gunshi/ashigaru に重複
+
+
+    各セクションは:
+
+    - 元の最も詳細な記載を採用 (短縮版があるファイルではなく、長い版を引用)
+
+    - 役割固有部分は agent_common.md には書かず、各 instructions に残す
+
+    - ファイル冒頭に「このファイルは全 agent (shogun/karo/gunshi/ashigaru) が Session Start 時に Read
+    することで重複ルールを 1 source 化する。役割固有ルールは instructions/{role}.md に残る」と明記
+
+
+    ## Step 2: CLAUDE.md の Session Start に追記
+
+
+    現状の Session Start 手順 (Step 1-6) で、Step 4 (instructions/{role}.md Read) の直後に:
+
+
+    ```markdown
+
+    4.5. **Read `shared_context/agent_common.md`** (全 agent 共通) — 重複ルール集約版。Session
+    Start で必ず Read せよ。役割固有ルールは Step 4 で読んだ instructions/{role}.md に書いてある。
+
+    ```
+
+
+    を追記。Step 5 以降は番号繰り下げ or 「Step 4.5」として挿入 (将軍判断)。
+
+
+    ## Step 3: instructions/shogun.md / karo.md / gunshi.md / ashigaru.md から重複セクション削除
+
+
+    各 instructions ファイルから 9 セクション (該当があるもの) を削除し、ファイル冒頭か該当位置に:
+
+
+    ```markdown
+
+    ## 共通ルール (全 agent 共有)
+
+
+    以下のルールは全 agent 共通ゆえ `shared_context/agent_common.md` に集約済。**Session Start で必ず
+    Read せよ**。
+
+    - セマンティック検索 / Dashboard API / Self-Watch / Language & Tone / Self-Identification
+    / Timestamp / Compaction Recovery / /clear Recovery / Shout Mode
+
+
+    本ファイルには **{role} 固有のルール** のみ記載する。
+
+    ```
+
+
+    を 1 ブロックで記載。役割固有部分は維持:
+
+    - shogun.md: SayTask Routing / cmd 起票ガイドライン / 殿 ntfy ハンドリング 等
+
+    - karo.md: Task Decomposition 5 問 / 動画系チェックリスト / 軍師 inbox patterns 等
+
+    - gunshi.md: North Star Alignment / QC template / Karo-Gunshi Patterns 等
+
+    - ashigaru.md: Race Condition / 役割別実装スタイル / 報告書 yaml 形式 等
+
+
+    ## Step 4: 動作検証 (家老が ashigaru1 に振った後の足軽報告で確認)
+
+
+    - 4 agent (shogun/karo/gunshi/ashigaru1) を /clear → Session Start
+
+    - Step 4 (instructions/{role}.md Read) → Step 4.5 (agent_common.md Read) の順で Read
+    成功確認
+
+    - 各 agent が共通ルール (例: セマンティック検索の使い方) を回答できるか軽く確認
+
+
+    ## Step 5: ナレッジ更新
+
+
+    - CLAUDE.md の `# Context Layers` セクションに `shared_context/agent_common.md` 追加 (Layer
+    4 = Session context にカテゴライズ)
+
+    - shared_context/README.md (なければ新設) に agent_common.md の役割を記載
+
+
+    === ルール ===
+
+
+    - **新規 .py 禁止** (本 cmd は .md 編集のみ)
+
+    - **メモリ消失防止**: 既存の役割固有ルール削除厳禁・共通部のみ移動
+
+    - **記載漏れ防止**: agent_common.md と各 instructions の双方を git diff で目視確認
+
+    - **担当**: ashigaru1 単独実施 (instructions 4本同時編集ゆえ RACE-001 回避)
+
+    - **検証**: 家老が ashigaru1 完了後に shogun/karo/gunshi 全員に /clear → Session Start を実施し、共通ルール理解できているか確認
+
+    - **報告書**: queue/reports/2026-05-03_cmd_1588_phase1_agent_common.md に動作確認結果含めて記載
+
+
+    === 完了条件 ===
+
+
+    - shared_context/agent_common.md 新設 (~150 行・9 セクション集約)
+
+    - CLAUDE.md の Session Start に Step 4.5 (agent_common.md Read) 追記
+
+    - instructions/shogun.md / karo.md / gunshi.md / ashigaru.md から重複 9 セクション削除済 +
+    共通ルール参照ブロック追記済
+
+    - 各 instructions の役割固有部分は維持
+
+    - 4 agent /clear → Session Start で共通ルール正しく Read 動作確認済
+
+    - shared_context/README.md または該当箇所で agent_common.md の役割明記
+
+    - queue/reports/2026-05-03_cmd_1588_phase1_agent_common.md に実装結果 + 行数差分 + 検証結果記載
+
+    - git commit + push 完了
+
+    - 軍師 QC PASS (参考: cmd_1584 audit との整合確認)'
+  acceptance_criteria:
+  - shared_context/agent_common.md 新設・9 セクション集約・~150 行程度
+  - CLAUDE.md の Session Start に Step 4.5 (agent_common.md Read) 追記
+  - instructions/shogun.md / karo.md / gunshi.md / ashigaru.md から共通 9 セクション削除済
+  - 各 instructions に共通ルール参照ブロック追加・役割固有部分は維持
+  - 4 agent /clear → Session Start で共通ルール Read 動作確認済
+  - shared_context/README.md などで agent_common.md の役割明記
+  - queue/reports/2026-05-03_cmd_1588_phase1_agent_common.md 報告書作成済
+  - git commit + push 完了
+  - 軍師 QC PASS
+  notify_karo: true
+  completed_at: '2026-05-03T10:59:26+09:00'
+- id: cmd_1589
+  status: done
+  priority: high
+  purpose: 中級編 v4 Phase 1 (序章+ch01-04) を外部公開向けに修正
+  timestamp: '2026-05-03T10:29:58+09:00'
+  project: udemy_course
+  lord_original: multi-agent-shogun 用語がでてきている あしがるとか advidorよびだしってCLIだけでいいそれが標準だしあと
+    よびかたの設定とどうゆう claude.md agent設定するとよんでくれるかも記載しておけ — 殿2026-05-03 10:35
+  north_star: Udemy 中級編 v4 Phase 1 を外部公開可能な品質に整える。multi-agent-shogun の内部用語 (戦国 persona)
+    を排除し、advisor は CLI 標準呼出に絞り、エージェント名カスタマイズ方法を CLAUDE.md / .claude/agents 設定例として追加する。
+  command_text: '殿原文: multi-agent-shogun 用語がでてきている あしがるとか advidorよびだしってCLIだけでいいそれが標準だしあと
+    よびかたの設定とどうゆう claude.md agent設定するとよんでくれるかも記載しておけ
+
+
+    === 修正対象 ===
+
+    - lectures/intermediate_v4_ch00_intro.md / .html
+
+    - lectures/intermediate_v4_ch01_prompt_function.md / .html
+
+    - lectures/intermediate_v4_ch02_structured_prompt.md / .html
+
+    - lectures/intermediate_v4_ch03_hierarchical_prompt.md / .html
+
+    - lectures/intermediate_v4_ch04_quality_gate.md / .html
+
+    - context/lecture_design_rules.md (恒久ルール追記)
+
+
+    === 修正項目 ===
+
+
+    ## A. multi-agent-shogun 内部用語の排除 (最重要)
+
+
+    対象用語 (これらは multi-agent-shogun プロジェクト固有の戦国 persona・外部公開には不適切):
+
+    - 将軍 / shogun
+
+    - 家老 / karo
+
+    - 足軽 / ashigaru
+
+    - 軍師 / gunshi
+
+    - 殿 / tono / lord
+
+    - 戦国 / 戦況 / 戦況報告 / 御意 / つかまつる 等の戦国口調
+
+
+    置換方針 (一般エージェント用語に):
+
+    - 将軍 → オーケストレーター / 統括エージェント / Orchestrator
+
+    - 家老 → マネージャーエージェント / Manager / リーダーエージェント
+
+    - 足軽 → ワーカーエージェント / サブエージェント / Worker / Subagent
+
+    - 軍師 → レビュアーエージェント / 戦略エージェント / Strategist / Reviewer
+
+    - 殿 → ユーザー / 開発者 / プロジェクトオーナー
+
+    - 戦国口調 → 通常の説明文 (敬体・常体)
+
+
+    スライド本文 + speaker notes 全てで grep して 0 件にせよ。
+
+    例外: 自プロジェクトの実例として multi-agent-shogun を紹介する場面でのみ「(自プロジェクトでは『将軍/家老/足軽/軍師』と呼んでいるが、これは個人的な命名)」と注釈付きで言及してよい
+    (1〜2 箇所限定)。
+
+
+    ## B. advisor() 呼び出しは CLI 標準のみ
+
+
+    ch04 (プロンプト品質 Gate) で advisor() について説明する際、以下の修正を行う:
+
+    - API 呼出例・MCP 設定方法・Tool Use 引数等の詳細解説は **削除**
+
+    - 「advisor は **CLI で呼び出すのが標準**。Claude Code の Tool として登録すれば `advisor()` を AI が必要に応じて呼ぶ」という
+    1〜2 行の説明に絞る
+
+    - 殿曰く『それが標準だし』 → 標準ルートのみ伝える・カスタマイズや実装詳細は中級では不要
+
+
+    ## C. エージェント呼び方の設定 (CLAUDE.md / .claude/agents) を追加
+
+
+    ch03 (階層的プロンプト) または ch01/ch04 のいずれかに、以下の機能を新設スライドで解説:
+
+
+    ### 1. CLAUDE.md でのエージェント呼び方
+
+    ```markdown
+
+    # エージェント定義
+
+    本プロジェクトでは以下のサブエージェントを利用する:
+
+    - @reviewer: コードレビュー専任 (.claude/agents/reviewer.md 参照)
+
+    - @qc-checker: QC 検査専任 (.claude/agents/qc-checker.md 参照)
+
+    ```
+
+    → プロジェクト独自のサブエージェント名を CLAUDE.md で宣言する方法
+
+
+    ### 2. .claude/agents/<name>.md でのサブエージェント定義
+
+    ```markdown
+
+    ---
+
+    name: reviewer
+
+    description: コードレビュー専任エージェント
+
+    tools: [Read, Grep]
+
+    ---
+
+
+    # Role
+
+    変更されたコードを読み、(1) 既存規約との整合 (2) セキュリティ問題 (3) 単純化余地 を検査する。
+
+    ```
+
+    → Anthropic 公式の Claude Code subagent 機能 (frontmatter 形式) で独自名サブエージェントを定義
+
+
+    ### 3. 呼び出し方法
+
+    - ユーザーが Claude Code で `@reviewer このコードをレビューして` と書けば自動でサブエージェントが呼ばれる
+
+    - 自動で呼ばれる条件は description に書く
+
+
+    ### 推奨スライド配置
+
+    - ch01 末尾 or ch03 序盤に新設「**サブエージェント命名と呼出方法**」スライド (1-2 枚)
+
+    - 自プロジェクト multi-agent-shogun を実例として「ここでは reviewer を gunshi (軍師) と命名している」と紹介可
+
+
+    ## D. context/lecture_design_rules.md に恒久ルール追記
+
+
+    以下を Section X として追記:
+
+
+    ```markdown
+
+    ## X. 外部公開コンテンツの用語制限
+
+
+    - multi-agent-shogun の戦国 persona 用語 (将軍/家老/足軽/軍師/殿/御意/つかまつる 等) は **外部公開コンテンツでは使わない**
+
+    - Udemy 等の公開教材では一般エージェント用語 (オーケストレーター/マネージャー/ワーカー/レビュアー) を使う
+
+    - 自プロジェクト実例として戦国名を出す場合は 1〜2 箇所に限定し、注釈付き
+
+    ```
+
+
+    === ルール継承 (既存全 cmd 整合) ===
+
+    - font-size: 1.7em / display:flex !important / justify-content: flex-start !important
+
+    - カバースライドのみ justify-content: center !important
+
+    - speaker notes 全スライド必須
+
+    - ASCII罫線禁止 → Markdown 表のみ
+
+    - 受講者操作系語句 0件
+
+    - XML/JSON 構造化プロンプト指導禁止 (自然言語のみ)
+
+    - 講師名: なぎなた のみ・本名 (村上誠治・seiji 等) 0件 (cmd_1583 整合)
+
+    - スライド枚数 = 講義時間(min)/2 目安・1.5-2.5min/枚
+
+
+    === 完了条件 ===
+
+    - 全 5 章 (.md / .html) で『将軍/家老/足軽/軍師/殿/御意/つかまつる』等戦国用語 grep 0 件 (例外注釈の 1-2 箇所のみ可)
+
+    - ch04 で advisor 説明が CLI 標準呼出 1-2 行に絞られている
+
+    - ch01/ch03 にサブエージェント命名と CLAUDE.md/.claude/agents 設定方法のスライド (1-2 枚) 追加
+
+    - context/lecture_design_rules.md に外部公開用語制限ルール追記
+
+    - 全章で speaker notes 維持・1.5-2.5min/枚
+
+    - 講師名: なぎなた のみ
+
+    - 軍師 QC PASS
+
+    - git commit + push 完了
+
+    - 報告書: queue/reports/2026-05-03_cmd_1589_intermediate_v4_phase1_fix.md'
+  acceptance_criteria:
+  - 全 5 章 (.md/.html) で 将軍/家老/足軽/軍師/殿/御意/つかまつる 等戦国用語 0 件 (注釈例外 1-2 箇所のみ可)
+  - ch04 advisor 説明が CLI 標準呼出のみに絞られている
+  - ch01/ch03 にサブエージェント命名と CLAUDE.md/.claude/agents 設定方法のスライド追加 (1-2 枚)
+  - context/lecture_design_rules.md に外部公開用語制限ルール追記
+  - '全章で speaker notes 維持・講師名: なぎなた のみ'
+  - 軍師 QC PASS
+  - git commit + push 完了
+  - queue/reports/2026-05-03_cmd_1589_intermediate_v4_phase1_fix.md 報告書作成済
+  notify_karo: true
+  completed_at: '2026-05-03T10:47:18+09:00'
+- id: cmd_1590
+  status: in_progress
+  priority: medium
+  purpose: 中級編 v4 Phase 2 (第5〜9章) の .md / .html 作成
+  timestamp: '2026-05-03T10:30:27+09:00'
+  project: udemy_course
+  lord_original: 中級後半も作成を許可する — 殿2026-05-03 10:35
+  north_star: 'Udemy 中級編 v4 Phase 2 (第5〜9章: コンテキスト窓経済学/永続層/再起動耐性/運用ベスト/劣化検出) を初級編+Phase
+    1 同等品質で展開。L2 コンテキストエンジニアリングの実践編として完成させる。'
+  command_text: '殿原文: 中級後半も作成を許可する
+
+
+    === 背景 ===
+
+    中級編 v4 curriculum (drafts/curriculum_intermediate_v4_marp.md) は確定済。Phase 1 (序章+ch01-04)
+    は cmd_1586 で完成・cmd_1589 で外部公開向け修正中。本 cmd は Phase 2 の作成。
+
+
+    === Phase 2 対象 ===
+
+    - 第5章: コンテキストウィンドウ経済学
+
+    - 第6章: 永続コンテキスト層 (claude-mem / MCP memory / Agent Skills)
+
+    - 第7章: セッション再起動耐性 (SessionStart / PreCompact / rehydrate)
+
+    - 第8章: コンテキスト運用ベストプラクティス
+
+    - 第9章: コンテキスト劣化検出と自動更新
+
+
+    各章は curriculum_intermediate_v4_marp.md の対応セクションに従う。
+
+
+    === ファイル ===
+
+    新規作成:
+
+    - lectures/intermediate_v4_ch05_context_economics.md / .html
+
+    - lectures/intermediate_v4_ch06_persistent_context.md / .html
+
+    - lectures/intermediate_v4_ch07_restart_resilience.md / .html
+
+    - lectures/intermediate_v4_ch08_context_best_practices.md / .html
+
+    - lectures/intermediate_v4_ch09_context_decay.md / .html
+
+
+    命名規約: `intermediate_v4_ch{NN}_{topic}.md`
+
+
+    === ルール (cmd_1589 修正方針も継承) ===
+
+
+    ## 共通
+
+    - font-size: 1.7em / display:flex !important / justify-content: flex-start !important
+
+    - カバースライドのみ justify-content: center !important
+
+    - speaker notes 全スライド必須 (録画原稿レベル)
+
+    - ASCII罫線禁止 → Markdown 表のみ
+
+    - 受講者操作系語句 0件 (演習・ハンズオン・手元で・やってみよう)
+
+    - XML/JSON 構造化プロンプト指導禁止 (自然言語のみ)
+
+    - 講師名: なぎなた のみ・本名 0件 (cmd_1583 整合)
+
+    - スライド枚数 = 講義時間(min)/2 目安・1.5-2.5min/枚
+
+    - インストール手順は本編に入れない
+
+
+    ## cmd_1589 由来の追加ルール (外部公開向け)
+
+    - multi-agent-shogun 内部用語 (将軍/家老/足軽/軍師/殿/御意/つかまつる 等戦国 persona) **使うな**
+
+    - 一般エージェント用語 (オーケストレーター/マネージャー/ワーカー/レビュアー) を使う
+
+    - 自プロジェクト実例として戦国名を出すなら 1-2 箇所限定 + 注釈付き
+
+    - advisor 呼出は CLI 標準のみ・API/MCP 詳細は不要
+
+    - サブエージェント解説は CLAUDE.md / .claude/agents 設定方式に統一
+
+
+    ## 中級ならではの設計指針
+
+    - L0 Remember + Understand レベル (curriculum 1.2 参照)・実装でなく『理解』中心
+
+    - 各章で『なぜそうするか・何を理解すべきか』を厚く語る
+
+    - 自プロジェクト multi-agent-shogun の実コード/実 YAML を画面投影しながら『これがその実例 (ここでは内部用語で reviewer
+    を軍師と呼んでいる)』と紹介
+
+    - claude-mem / MCP memory / Agent Skills 等の概念を初級者でも理解できる順序で
+
+
+    === 完了条件 ===
+
+    - 5 章分 .md / .html 作成済 (ch05-09)
+
+    - 講師名: なぎなた のみ
+
+    - multi-agent-shogun 内部用語 (戦国 persona) 0 件 (注釈例外 1-2 箇所のみ可)
+
+    - ASCII罫線/XML系/受講者操作系 全章 0件
+
+    - speaker notes 全スライド・1.5-2.5min/枚
+
+    - index.html (drafts ホーム) に Phase 2 章リンク追加
+
+    - toc_intermediate_v4.html 更新 (5 章分追加)
+
+    - git commit + push 完了
+
+    - 軍師 QC PASS
+
+    - 殿レビュー待ち状態で ''Phase 2 完了・Phase 3 (ch10-15 ハーネス章) 着手判断願う'' を dashboard 🚨要対応 に記載
+
+    - 報告書: queue/reports/2026-05-03_cmd_1590_intermediate_v4_phase2.md'
+  acceptance_criteria:
+  - intermediate_v4_ch05_context_economics.md / .html 作成済
+  - intermediate_v4_ch06_persistent_context.md / .html 作成済
+  - intermediate_v4_ch07_restart_resilience.md / .html 作成済
+  - intermediate_v4_ch08_context_best_practices.md / .html 作成済
+  - intermediate_v4_ch09_context_decay.md / .html 作成済
+  - 全章で multi-agent-shogun 戦国用語 0 件 (注釈例外 1-2 箇所のみ可)
+  - 全章で ASCII罫線/XML/受講者操作系 0 件
+  - 'speaker notes 全スライド・講師名: なぎなた のみ'
+  - index.html / toc_intermediate_v4.html 更新
+  - 軍師 QC PASS
+  - git commit + push 完了
+  - queue/reports/2026-05-03_cmd_1590_intermediate_v4_phase2.md 報告書作成済
+  - Phase 3 着手判断のため dashboard 🚨要対応 記載
+  notify_karo: true
+- id: cmd_1591
+  status: done
+  priority: high
+  purpose: agent_common.md を Lazy Load 化 (Session Start 必読 → 必要時のみ Read) + AC 5/6/7
+    補完
+  timestamp: '2026-05-03T10:41:05+09:00'
+  project: multi-agent-shogun
+  lord_original: 'A (cmd_1588 案 A: agent_common.md を Lazy Load 化) — 殿2026-05-03 10:50'
+  north_star: cmd_1588 で発生したコンテキスト消費 +1,683〜2,159 tokens/agent の問題を Lazy Load 化で解消し、殿要求『コンテキスト消費を増やさず』を完全達成する。同時に
+    AC 5/6/7 を補完して Phase 1 を完全完了。
+  command_text: '殿原文: A (cmd_1588 案 A 採用)
+
+
+    === 背景 ===
+
+    cmd_1588 (Phase 1) で agent_common.md を新設し instructions/*.md 4本の重複を集約したが、各 agent
+    の Session Start で +99〜+127 行 (+1,683〜+2,159 tokens) 増加し north_star 違反 (殿『コンテキスト消費を増やさず』)。
+
+
+    殿御判断 (案 A): agent_common.md を **Lazy Load 化** ── Session Start で全部 Read するのをやめ、必要時のみ参照する設計に切替。これでコンテキスト消費
+    ±0 に戻る。
+
+
+    === 修正対象 ===
+
+    - CLAUDE.md (Session Start 手順)
+
+    - instructions/shogun.md / karo.md / gunshi.md / ashigaru.md (共通ルール参照ブロック)
+
+    - shared_context/agent_common.md (Lazy Load 用ヘッダ追記)
+
+    - shared_context/README.md (AC 6 補完)
+
+    - queue/reports/2026-05-03_cmd_1588_phase1_agent_common.md (AC 7 補完)
+
+
+    === 実装内容 ===
+
+
+    ## Step 1: CLAUDE.md の Step 4.5 を Lazy Load 指示に変更
+
+
+    旧 (必読):
+
+    ```
+
+    4.5. Read shared_context/agent_common.md (全agent必須) — instructions/{role}.md で参照される共通ルールの実体。Step
+    4 の直後に Read すること。
+
+    ```
+
+
+    新 (Lazy Load):
+
+    ```
+
+    4.5. **Note (Lazy Load)**: shared_context/agent_common.md は全 agent 共通ルール集約版。Session
+    Start で全部 Read する必要はなく、instructions/{role}.md 内に "共通ルール §N は shared_context/agent_common.md
+    参照" と書かれた箇所で **その §N が必要なタスク時のみ Read** せよ。Session Start 時の常時 Read 禁止 (コンテキスト圧迫回避)。
+
+    ```
+
+
+    ## Step 2: 各 instructions/{role}.md の参照ブロックを Lazy Load 形式に書換
+
+
+    各 instructions の冒頭にある「★共通ルール」 ブロックを以下の形式に修正:
+
+
+    ```markdown
+
+    ## 共通ルール (Lazy Load 参照)
+
+
+    以下 9 セクションは全 agent 共通で `shared_context/agent_common.md` に集約済。
+
+    **Session Start で全部 Read するな** ── 該当タスク時のみ §N を参照すること:
+
+
+    - §1 Language & Tone (config/settings.yaml 参照規約)
+
+    - §2 Self-Identification (tmux display-message)
+
+    - §3 Timestamp Rule (date 必須)
+
+    - §4 Agent Self-Watch Phase Rules (cmd_107)
+
+    - §5 Compaction Recovery 共通骨子
+
+    - §6 /clear Recovery 共通骨子
+
+    - §7 セマンティック検索 (Gemini Embedding 2)
+
+    - §8 Dashboard API 利用 (cmd_1494)
+
+    - §9 Shout Mode (echo_message)
+
+
+    本ファイルには **{role} 固有のルール** のみ記載する。
+
+    ```
+
+
+    各 §参照 (gunshi 7箇所 / karo 6箇所 / shogun 4箇所 / ashigaru 6箇所) も同様に「§N は agent_common.md
+    参照 (必要時のみ)」 と明記。
+
+
+    ## Step 3: agent_common.md にヘッダ追記
+
+
+    ファイル冒頭に以下を追加:
+
+
+    ```markdown
+
+    # 共通ルール集約 (Lazy Load 専用)
+
+
+    本ファイルは全 agent (shogun/karo/gunshi/ashigaru) の共通ルールを 1 source 化したもの。
+
+
+    **重要**: Session Start で全部 Read するな (コンテキスト消費を増やさないため)。
+
+    instructions/{role}.md 内の §N 参照箇所で、**該当 §N が必要なタスク時のみ Read** せよ。
+
+
+    例: セマンティック検索を使うタスクなら → §7 を Read / VF task の時のみ → 該当節を Read 等。
+
+
+    以下 9 セクション収録:
+
+    ```
+
+
+    ## Step 4: AC 5 補完 (実機 /clear 動作確認)
+
+
+    - shogun pane / karo pane / gunshi pane / ashigaru1 pane を /clear → Session Start
+    実行
+
+    - 各 agent が Step 4.5 の Lazy Load 指示通り **常時 Read を回避** していることを確認
+
+    - 共通ルール (例: Self-ID) を必要に応じて Read することを確認
+
+    - 結果を queue/reports/2026-05-03_cmd_1591_lazy_load_verify.yaml に記録
+
+
+    ## Step 5: AC 6 補完 (shared_context/README.md に agent_common.md 役割追記)
+
+
+    shared_context/README.md に以下を追記:
+
+
+    ```markdown
+
+    ## agent_common.md
+
+
+    全 agent (shogun/karo/gunshi/ashigaru) の共通ルール集約版。Lazy Load 専用 ── Session Start
+    で全部 Read するな・タスク該当時のみ §N を参照。詳細は cmd_1584 audit_report (queue/reports/2026-05-03_cmd_1584_at_import_audit.md)
+    参照。
+
+    ```
+
+
+    ## Step 6: AC 7 補完 (.md 形式報告書作成)
+
+
+    queue/reports/2026-05-03_cmd_1588_phase1_agent_common.md を新規作成:
+
+    - ashigaru1_report_subtask_1588a.yaml の内容を .md 化
+
+    - 行数差分・実装内容・残課題を含む
+
+    - cmd_1591 で Lazy Load 化されたことも追記
+
+
+    === ルール ===
+
+    - **新規 .py 禁止** (本 cmd は .md 編集のみ)
+
+    - **agent_common.md は削除しない** (内容維持・Lazy Load 化のみ)
+
+    - **担当**: ashigaru1 単独 (cmd_1588 と同じ・instructions 4本同時編集ゆえ RACE-001 回避)
+
+    - **検証**: 家老が ashigaru1 完了後に shogun/karo/gunshi 全員に /clear → Session Start を実機実施し
+    Lazy Load 動作確認
+
+    - **コンテキスト消費再計測**: 各 agent の Session Start tokens を再測定し報告書に記載 (cmd_1588 比 ±0 確認)
+
+    - **報告書**: queue/reports/2026-05-03_cmd_1591_lazy_load_fix.md
+
+    - **軍師 QC PASS 必須** (前回見積エラーの反省を踏まえ厳格検証)
+
+
+    === 完了条件 ===
+
+    - CLAUDE.md Step 4.5 が Lazy Load 指示に変更済
+
+    - instructions 4 本の参照ブロックが Lazy Load 形式に書換済
+
+    - agent_common.md 冒頭に Lazy Load ヘッダ追記済
+
+    - shared_context/README.md に agent_common.md 役割追記済 (AC 6 補完)
+
+    - queue/reports/2026-05-03_cmd_1588_phase1_agent_common.md 作成済 (AC 7 補完)
+
+    - 4 agent /clear → Session Start 動作確認済 (常時 Read 回避確認)
+
+    - コンテキスト消費再計測: 各 agent +0 行/+0 tokens (cmd_1588 比) を実証
+
+    - 軍師 QC PASS
+
+    - git commit + push 完了
+
+    - 報告書: queue/reports/2026-05-03_cmd_1591_lazy_load_fix.md (cmd_1591 用)'
+  acceptance_criteria:
+  - CLAUDE.md Step 4.5 が Lazy Load 指示に変更
+  - instructions 4 本 (shogun/karo/gunshi/ashigaru) の参照ブロックが Lazy Load 形式に書換
+  - agent_common.md 冒頭に Lazy Load ヘッダ追記
+  - shared_context/README.md に agent_common.md 役割追記 (AC 6 補完)
+  - queue/reports/2026-05-03_cmd_1588_phase1_agent_common.md 作成 (AC 7 補完)
+  - 4 agent /clear → Session Start で常時 Read 回避を実機確認
+  - Session Start コンテキスト消費が cmd_1588 比 ±0 行/±0 tokens を実証
+  - 軍師 QC PASS (前回見積エラーを踏まえ厳格検証)
+  - git commit + push 完了
+  - queue/reports/2026-05-03_cmd_1591_lazy_load_fix.md 報告書作成
+  notify_karo: true
+  completed_at: '2026-05-03T10:59:26+09:00'
+- id: cmd_1592
+  status: done
+  priority: medium
+  purpose: Claude Code Skill として lecture-speaker-notes-grep-check を新設・SKILL.md + 検証スクリプト
+    + lecture_design_rules.md 連携を整備
+  timestamp: '2026-05-03T11:01:24+09:00'
+  project: multi-agent-shogun
+  lord_original: lecture_speaker_notes_grep_check許可 — 殿2026-05-03 11:00
+  north_star: Marp lecture .md の speaker notes 完備を自動検証する Skill を整備し、Udemy 講座制作 (初級/中級/今後の上級)
+    の品質保証を標準化する。手動 grep を撲滅し、家老/足軽の QC 工数を削減。
+  command_text: '殿原文: lecture_speaker_notes_grep_check許可
+
+
+    === 背景 ===
+
+    軍師 cmd_1586_ch04_qc で skill_candidate として識別:
+
+    - name: lecture_speaker_notes_grep_check
+
+    - description: Marp lecture .md 生成後の speaker notes 完備自動検証スクリプト
+
+    - reason: ash5 self-detect proper_fix・lecture_design_rules.md への検証ルール追加と並列で必須化
+
+
+    殿が 2026-05-03 11:00 に承認 → 本 cmd で skill 化実装。
+
+
+    === Skill 概要 ===
+
+
+    ## 名前
+
+    `lecture-speaker-notes-grep-check`
+
+
+    ## 配置
+
+    `/home/murakami/multi-agent-shogun/skills/lecture-speaker-notes-grep-check/`
+
+
+    ## 機能
+
+    Marp lecture .md ファイル群に対し、以下を grep ベースで自動検証:
+
+    1. **speaker notes 存在**: 各スライドに HTML コメント形式の speaker note (<!-- ... -->) が含まれているか
+
+    2. **speaker notes 内容**: 単なる空コメント (<!-- -->) でなく実質的な録画原稿レベルのテキストが入っているか
+
+    3. **スライド枚数 vs notes 数**: スライド数 (---  区切り) と notes 数の整合
+
+    4. **1.5-2.5min/枚 範囲**: 講義時間と枚数の比率検証 (オプション)
+
+    5. **講師名統一** (cmd_1583 整合): 「なぎなた」のみ・本名 (村上誠治・seiji 等) 0件
+
+    6. **ASCII罫線・XML系・受講者操作系語句** 0件
+
+
+    ## 入力
+
+    - 対象 .md ファイル (個別 or ディレクトリ globbing)
+
+    - 期待スライド枚数 / 講義時間 (オプション・YAML config or 引数)
+
+
+    ## 出力
+
+    - 検証結果レポート (PASS/FAIL + 詳細違反箇所)
+
+    - 終了コード: PASS=0 / WARNING=1 / FAIL=2
+
+
+    === 実装内容 ===
+
+
+    ## Step 1: Skill ディレクトリ + SKILL.md 作成
+
+
+    ```
+
+    skills/lecture-speaker-notes-grep-check/
+
+    ├── SKILL.md          # frontmatter + skill 定義
+
+    ├── check.sh          # grep ベース検証スクリプト (bash)
+
+    ├── README.md         # 詳細使い方
+
+    └── examples/         # 検証 PASS/FAIL のサンプル
+
+    ```
+
+
+    ### SKILL.md の frontmatter
+
+    ```yaml
+
+    ---
+
+    name: lecture-speaker-notes-grep-check
+
+    description: Marp lecture .md の speaker notes 完備・講師名・禁止用語を自動検証する Skill。Udemy 講座制作の
+    QC で利用。
+
+    tools: [Bash, Read, Grep]
+
+    ---
+
+    ```
+
+
+    ### SKILL.md 本文
+
+    - Skill 利用シーン (Marp lecture 完成後・cmd 完了前 QC)
+
+    - 起動コマンド: `bash skills/lecture-speaker-notes-grep-check/check.sh <target.md or
+    dir>`
+
+    - 期待出力フォーマット
+
+    - 違反時の対応 (足軽が修正・軍師が再 QC)
+
+
+    ## Step 2: check.sh スクリプト実装
+
+
+    bash + grep + awk で以下を実装:
+
+    - speaker notes 存在 grep (`<!-- .* -->`)
+
+    - 空 notes 検出 (`<!-- *-->`)
+
+    - スライド数 (`---` separator) カウント
+
+    - 講師名チェック (`村上|誠治|seiji|Murakami|murakami` で 0 件確認)
+
+    - ASCII 罫線検出 (`[─━│┌┐└┘├┤┬┴┼]`)
+
+    - XML 系語句検出 (`<input>|<task>|<output_format>|XML`)
+
+    - 受講者操作系語句検出 (`演習|ハンズオン|手元で|やってみよう`)
+
+    - 結果集計 + 終了コード
+
+
+    新規 .py 禁止ゆえ bash で実装 (memory ルール継承)。
+
+
+    ## Step 3: lecture_design_rules.md に検証ルール追記
+
+
+    context/lecture_design_rules.md に以下追加:
+
+
+    ```markdown
+
+    ## X. 自動検証 Skill
+
+
+    Marp lecture .md 完成後、家老/足軽は **必ず** 以下 Skill を実行して QC 通過確認:
+
+
+    ```bash
+
+    bash skills/lecture-speaker-notes-grep-check/check.sh <target.md or dir>
+
+    ```
+
+
+    失敗時は当該違反を修正してから cmd 完了報告。軍師 QC 前に Skill PASS 必須。
+
+    ```
+
+
+    ## Step 4: 既存初級/中級 v4 lecture で動作確認
+
+
+    以下のファイル群で `check.sh` を実行し PASS することを確認:
+
+    - projects/udemy_course/drafts/lectures/beginner_ch00_intro_v4.md 〜 ch06_outro_v4.md
+    (初級 7 章)
+
+    - projects/udemy_course/drafts/lectures/intermediate_v4_ch00_intro.md 〜 ch04_quality_gate.md
+    (中級 Phase 1)
+
+
+    FAIL があれば「過去 cmd 漏れ」 として殿に報告 (本 cmd で修正はしない)。
+
+
+    === ルール ===
+
+    - **新規 .py 禁止** (bash 実装)
+
+    - **既存スクリプト活用**: shared_context/procedures/ 等に類似スクリプトがあれば再利用
+
+    - **担当**: ashigaru1 単独 (Udemy 担当継続)
+
+    - **検証**: 家老が ashigaru1 完了後に既存 12 章で動作確認
+
+    - **報告書**: queue/reports/2026-05-03_cmd_1592_lecture_qc_skill.md
+
+
+    === 完了条件 ===
+
+    - skills/lecture-speaker-notes-grep-check/ ディレクトリ作成
+
+    - SKILL.md (frontmatter 含む) 作成済
+
+    - check.sh スクリプト実装 + 実行権限 (chmod +x)
+
+    - README.md と examples/ サンプル整備
+
+    - context/lecture_design_rules.md に検証ルール追記
+
+    - 既存 12 章 (初級 7 + 中級 5) で check.sh 動作確認 (FAIL あれば報告)
+
+    - 軍師 QC PASS
+
+    - git commit + push 完了
+
+    - 報告書: queue/reports/2026-05-03_cmd_1592_lecture_qc_skill.md'
+  acceptance_criteria:
+  - skills/lecture-speaker-notes-grep-check/SKILL.md 作成済 (frontmatter + 本文)
+  - skills/lecture-speaker-notes-grep-check/check.sh 実装済・実行権限あり
+  - skills/lecture-speaker-notes-grep-check/README.md と examples/ 整備
+  - context/lecture_design_rules.md に Skill 検証ルール追記
+  - 既存初級 v4 7 章 + 中級 v4 Phase 1 5 章 = 計 12 章で check.sh 動作確認
+  - FAIL 検出時は『過去 cmd 漏れ』として報告書に明記 (修正は別 cmd)
+  - 軍師 QC PASS
+  - git commit + push 完了
+  - queue/reports/2026-05-03_cmd_1592_lecture_qc_skill.md 報告書作成
+  notify_karo: true
+  completed_at: '2026-05-03T11:17:33+09:00'
+- id: cmd_1593
+  status: in_progress
+  priority: high
+  purpose: subtitle_speaker_qc.py の PIL モード改修 (OCR/text detection 統合) + tono_clip_base.mp4
+    で精度検証
+  timestamp: '2026-05-03T11:15:05+09:00'
+  project: dozle_kirinuki
+  lord_original: Aだけでまずいこう (OCR/text detection で字幕領域を動的特定) — 殿2026-05-03 11:15
+  north_star: subtitle_speaker_qc.py の PIL モードを改修し、字幕テロップ領域を OCR/text detection で動的特定。マイクラ
+    UI (ホットバー紫枠等) との誤認を排除し、字幕色 → 話者紐付け精度を実用レベル (>90%) に引き上げる。
+  command_text: '殿原文: Aだけでまずいこう
+
+
+    === 背景 ===
+
+    cmd_1587 で実装した subtitle_speaker_qc.py の PIL モードは、字幕領域を「画面下部 18% を crop」 と静的決め打ちしており、マイクラ
+    UI (ホットバー紫枠・体力ハート・経験値バー等) が映り込み bon (紫 #733C93) に誤認される。
+
+
+    2026-05-03 tono_clip_base.mp4 (114 行) で実行した結果、bon 89/114 (78%) という偏った分布が出力された
+    (殿確認済)。
+
+
+    殿御判断: 案 A (OCR/text detection で字幕領域を動的特定) で改修。
+
+
+    === 実装内容 ===
+
+
+    ## 改修対象
+
+    - `projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py` (既存改修・新規 .py 禁止)
+
+
+    ## PIL モード改修方針
+
+
+    旧:
+
+    ```python
+
+    top_y = int(h * 0.82)
+
+    subtitle_img = img.crop((0, top_y, w, h))  # 静的下部 18%
+
+    ```
+
+
+    新 (OCR/text detection で動的特定):
+
+    ```python
+
+    # 1. frame をグレースケール変換
+
+    # 2. OCR or text detection で文字矩形を検出 (画面下部 30% に絞ってもよい)
+
+    # 3. 検出された矩形領域のみで色集計
+
+    # 4. メンバーカラー RGB 距離で投票
+
+    ```
+
+
+    ## 推奨実装手段 (家老/足軽が選定)
+
+
+    ### 案 a: OpenCV EAST text detector (cv2.dnn)
+
+    - 標準的な text detection deep model
+
+    - 学習済モデル (`frozen_east_text_detection.pb`) を別途配置
+
+    - 高精度・実行速度速い
+
+
+    ### 案 b: 簡易矩形検出 (Canny + findContours)
+
+    - OpenCV のみで実装可・モデル不要
+
+    - Canny エッジ検出 → findContours → アスペクト比 (幅 > 高さ × 3) + 大きさフィルタ → 文字らしい矩形抽出
+
+    - 軽量・依存最小
+
+
+    ### 案 c: EasyOCR (Python OCR)
+
+    - pip install easyocr (重い・GPU 必須気味)
+
+    - 日本語認識可能・テロップ位置抽出
+
+
+    **推奨は案 b** (依存最小・OpenCV のみ・実装容易)・必要なら案 a に格上げ。
+
+
+    ## モード追加
+
+
+    既存 `--method pil` を維持しつつ、新モード `--method pil_ocr` を追加 (互換性保持):
+
+    - `--method pil`: 旧実装 (静的下部 18%)・後方互換
+
+    - `--method pil_ocr`: 新実装 (動的特定)・推奨
+
+    - `--method gemini`: 既存 (Gemini Vision API)
+
+    - デフォルトを `pil_ocr` に変更
+
+
+    ## 動作検証
+
+
+    tono_clip_base.mp4 (114 行) で `--method pil_ocr --mode update` を実行し、以下を確認:
+
+    - 話者分布が均等化 (bon 偏重 78% → 30%以下)
+
+    - 信頼度向上 (Confidence 平均 50% → 70%+)
+
+    - 各メンバー (dozle/bon/qnly/orafu/oo_men/nekooji) が動画内発言数に近い分布になる
+
+    - マイクラ UI ホットバー誤認が消える
+
+
+    ## QC
+
+
+    動作検証結果を queue/reports/2026-05-03_cmd_1593_pil_ocr_qc.md に記録:
+
+    - 旧 PIL モード結果 vs 新 pil_ocr モード結果の比較表
+
+    - 精度向上数値 (誤認件数 -X 件・偏り改善)
+
+    - 残課題 (不明残行など)
+
+
+    === ルール ===
+
+    - 既存スクリプト改修 (新規 .py 禁止)
+
+    - Python 依存追加可: opencv-python (cv2)・既に他スクリプトで使用例があれば再利用
+
+    - 旧 PIL モードは互換性のため残す (--method pil)
+
+    - 推奨実装は案 b (OpenCV Canny + findContours)・案 a/c にしたい場合は事前に殿確認
+
+    - 担当: ashigaru1 (cmd_1587 担当者継続)
+
+    - 報告書: queue/reports/2026-05-03_cmd_1593_pil_ocr_qc.md
+
+
+    === 完了条件 ===
+
+    - subtitle_speaker_qc.py に --method pil_ocr モード実装済
+
+    - 旧 --method pil モードは互換性維持
+
+    - tono_clip_base.mp4 (114 行) で動作検証済
+
+    - 話者分布が均等化 (bon 偏重解消・各メンバーが動画内発言数に近い)
+
+    - 信頼度平均 70% 以上
+
+    - マイクラ UI 誤認 (ホットバー紫枠等) が消えた証拠を報告書に記載
+
+    - 軍師 QC PASS
+
+    - git commit + push 完了
+
+    - 報告書: queue/reports/2026-05-03_cmd_1593_pil_ocr_qc.md'
+  acceptance_criteria:
+  - subtitle_speaker_qc.py に --method pil_ocr モード追加実装
+  - OCR/text detection で字幕領域を動的特定 (静的下部 18% 排除)
+  - 旧 --method pil 互換性維持
+  - tono_clip_base.mp4 (114 行) で動作検証・話者分布均等化確認
+  - 信頼度平均 70% 以上
+  - マイクラ UI 誤認解消の証拠 (Before/After 比較) を報告書記載
+  - 軍師 QC PASS
+  - git commit + push (dozle_kirinuki repo) 完了
+  - queue/reports/2026-05-03_cmd_1593_pil_ocr_qc.md 報告書作成
   notify_karo: true

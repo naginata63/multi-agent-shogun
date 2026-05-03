@@ -1,22 +1,15 @@
 tasks:
-- task_id: subtask_1467a
-  agent: ashigaru2
-  parent_cmd: cmd_1467
-  bloom_level: L3
-  status: in_progress
-  description: 'Day6 エキドナ サムネ生成: ブザービーター6人・energetic style 3案生成→殿LAN preview通知→選択後
-    thumbnail_final.png 確定→軍師QC。'
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/ashigaru2_report_subtask_1467a.yaml
-  steps: advisor()→thumbnail_echidna/作成→Day5スクリプトcp→コマンド実行(3案生成)→viabilityスコア計測→LANサーバー起動+ntfy通知→家老に報告→殿選択待ち→家老inbox経由で選択番号受信後
-    thumbnail_final.png 確定→advisor()→commit+push→inbox gunshi
-  timestamp: '2026-04-25T13:15:00+09:00'
-  acceptance_criteria:
+- acceptance_criteria:
   - thumbnail_echidna/energetic_1.png / 2.png / 3.png 生成済み
   - viability スコア3案比較をレポートに記載
   - ntfy で殿に LAN URL 通知済み
   - 殿選択後 thumbnail_final.png 確定
   - 軍師QC PASS
   - git commit + push完了
+  agent: ashigaru2
+  bloom_level: L3
+  description: 'Day6 エキドナ サムネ生成: ブザービーター6人・energetic style 3案生成→殿LAN preview通知→選択後
+    thumbnail_final.png 確定→軍師QC。'
   notes:
   - 'DAY5スクリプト: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260415_【#DoZ】5日目
     知ってるか？ヒーラーはな…絶対に仲間を見捨てちゃいけねぇのさ【ドズル社／おおはらMEN視点】/thumbnail_zephyrus/generate_thumbnail.py'
@@ -31,3 +24,103 @@ tasks:
   - advisor()必須(作業前・完了前)
   - '完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi ''足軽2号、subtask_1467a完了(Day6サムネ3案+final確定)。QC依頼。''
     report_completed ashigaru2'
+  parent_cmd: cmd_1467
+  status: in_progress
+  steps: advisor()→thumbnail_echidna/作成→Day5スクリプトcp→コマンド実行(3案生成)→viabilityスコア計測→LANサーバー起動+ntfy通知→家老に報告→殿選択待ち→家老inbox経由で選択番号受信後
+    thumbnail_final.png 確定→advisor()→commit+push→inbox gunshi
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/ashigaru2_report_subtask_1467a.yaml
+  task_id: subtask_1467a
+  timestamp: '2026-04-25T13:15:00+09:00'
+- acceptance_criteria:
+  - intermediate_v4_ch01_prompt_function.md / .html 作成済み
+  - speaker notes 全スライド
+  - '講師名: なぎなた のみ'
+  - ASCII罫線/XML/受講者操作系 0件
+  - スライド枚数 12-15枚
+  - git commit + push 完了
+  agent: ashigaru2
+  bloom_level: L3
+  description: 'cmd_1586 ch01: 中級編 v4 第1章 intermediate_v4_ch01_prompt_function.md
+    / .html 作成'
+  notes:
+  - '殿原文: ''中級も作成開始せよ — 殿2026-05-03 09:48'''
+  - '参照アウトライン: curriculum_intermediate_v4_marp.md 第1章'
+  - '形式参照: beginner_ch01_prompt_v4.md'
+  - advisor()必須(作業前・完了前)
+  parent_cmd: cmd_1586
+  priority: medium
+  status: done
+  steps: '0) advisor()呼出 1) projects/udemy_course/context/lecture_design_rules.md
+    を全文精読 2) projects/udemy_course/drafts/curriculum_intermediate_v4_marp.md の第1章セクション
+    (『第1章 プロンプトを「関数」として設計する』) を精読 3) 初級編の形式参照: projects/udemy_course/drafts/lectures/beginner_ch01_prompt_v4.md
+    を精読 4) intermediate_v4_ch01_prompt_function.md を新規作成: テーマ=「プロンプトを関数として設計する」/Emotional
+    Hook=『伝わるプロンプトと再利用できるプロンプトは別物』/全スライドspeaker notes 5) スライド構成(12-15枚目安): Emotional
+    Hook→関数プロンプト概念(入力/処理/出力)→XMLテンプレート解説→Before/After比較→再利用性確認→よくある失敗3選 6) grep確認:
+    ASCII罫線/XML/受講者操作系/本名 全0件 7) marp HTML生成: cd projects/udemy_course/drafts/lectures
+    && npx @marp-team/marp-cli intermediate_v4_ch01_prompt_function.md -o intermediate_v4_ch01_prompt_function.html
+    --allow-local-files 8) git add ... && git commit -m ''feat: cmd_1586 中級編v4 ch01プロンプト関数設計''
+    && git push 9) advisor()呼出 10) inbox_write gunshi QC依頼'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch01_prompt_function.md
+  task_id: subtask_1586_ch01
+  timestamp: '2026-05-03T09:52:12.864968+09:00'
+  completed_at: '2026-05-03T10:15:30'
+- agent: ashigaru2
+  task_id: subtask_1589_ch00
+  status: assigned
+  parent_cmd: cmd_1589
+  bloom_level: L3
+  priority: high
+  description: 'cmd_1589 ch00: 中級編v4 序章を外部公開向けに修正 + lecture_design_rules.md Section
+    12 追記'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch00_intro.md
+  steps: '0) advisor()呼出 1) projects/udemy_course/context/lecture_design_rules.md
+    を精読 2) intermediate_v4_ch00_intro.md を精読 3) 戦国用語を外部公開向けに置換: 将軍→Claude Code (または省略)
+    / 家老→管理スクリプト / 足軽→サブエージェント / 軍師→レビューAI / 殿→ユーザー/開発者 / 御意→了解 / つかまつる→します 等 4) grep確認:
+    ''将軍|家老|足軽|軍師|殿|御意|つかまつる|拙者|候'' が 0件 (説明注釈で使う場合は 1-2箇所まで可) 5) marp HTML再生成: cd
+    projects/udemy_course/drafts/lectures && npx @marp-team/marp-cli intermediate_v4_ch00_intro.md
+    -o intermediate_v4_ch00_intro.html --allow-local-files 6) context/lecture_design_rules.md
+    に Section 12「外部公開用語制限ルール」を追記: 戦国persona用語は内部システム用語・外部公開資料では使用禁止 7) git add projects/udemy_course/drafts/lectures/intermediate_v4_ch00_intro.md
+    projects/udemy_course/drafts/lectures/intermediate_v4_ch00_intro.html projects/udemy_course/context/lecture_design_rules.md
+    && git commit && git push 8) advisor()呼出 9) inbox_write gunshi QC依頼'
+  acceptance_criteria:
+  - intermediate_v4_ch00_intro.md/.html で戦国用語 0件
+  - lecture_design_rules.md Section 12 追記済み
+  - speaker notes 維持・講師名なぎなたのみ
+  - git commit + push 完了
+  notes:
+  - '殿原文: ''multi-agent-shogun 用語がでてきている あしがるとか adviderよびだしっていCLIだけでいいそれが標準だし あと よびかたの設定と
+    どうゆう claude.md agent設定すると よんでくれるかも記載しておけ — 殿2026-05-03 10:35'''
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T10:31:23.027778+09:00'
+- agent: ashigaru2
+  task_id: subtask_1590_ch06
+  status: assigned
+  parent_cmd: cmd_1590
+  bloom_level: L3
+  priority: medium
+  description: 'cmd_1590 ch06: 中級編 v4 永続コンテキスト層 .md / .html 作成'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch06_persistent_context.md
+  steps: '0) advisor()呼出 1) projects/udemy_course/context/lecture_design_rules.md
+    を精読 2) projects/udemy_course/drafts/curriculum_intermediate_v4_marp.md の第6章 永続コンテキスト層
+    (claude-mem / MCP memory / Agent Skills)セクションを精読 3) 初級編形式参照: beginner_ch01_prompt_v4.md
+    を参照 4) intermediate_v4_ch06_persistent_context.md を新規作成: Emotional Hook=『AIに忘れない記憶を与える仕組み』/
+    全スライドspeaker notes / なぎなた表記のみ / 戦国用語0件 / 12-15枚 5) grep確認: 戦国用語・ASCII罫線・XML・受講者操作系
+    全0件 6) marp HTML生成: cd projects/udemy_course/drafts/lectures && npx @marp-team/marp-cli
+    intermediate_v4_ch06_persistent_context.md -o intermediate_v4_ch06_persistent_context.html
+    --allow-local-files 7) git add projects/udemy_course/drafts/lectures/intermediate_v4_ch06_persistent_context.md
+    projects/udemy_course/drafts/lectures/intermediate_v4_ch06_persistent_context.html
+    && git commit && git push 8) advisor()呼出 9) inbox_write gunshi QC依頼'
+  acceptance_criteria:
+  - intermediate_v4_ch06_persistent_context.md / .html 作成済み
+  - speaker notes 全スライド
+  - '講師名: なぎなた のみ'
+  - 戦国用語・ASCII罫線・XML・受講者操作系 0件
+  - スライド枚数 12-15枚
+  - git commit + push 完了
+  notes:
+  - '殿原文: ''中級後半も作成を許可する — 殿2026-05-03 10:35'''
+  - '参照アウトライン: curriculum_intermediate_v4_marp.md 第6章 永続コンテキスト層 (claude-mem / MCP
+    memory / Agent Skills)セクション'
+  - cmd_1589の作業が先に割り当てられている場合はそちらを先に完了してからこちらに取りかかれ
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T10:32:43.646254+09:00'

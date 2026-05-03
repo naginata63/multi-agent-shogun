@@ -27,7 +27,7 @@ python3 scripts/subtitle_speaker_qc.py \
 python3 scripts/subtitle_speaker_qc.py \
   --input work/{video_dir}/panels_*_raw.json \
   --video work/{video_dir}/final_with_subtitles.mp4 \
-  --method pil \
+  --method pil_ocr \
   --mode update \
   --output queue/reports/{date}_subtitle_qc_report.md
 ```
@@ -36,7 +36,8 @@ python3 scripts/subtitle_speaker_qc.py \
 
 | 方式 | コマンド | 特徴 |
 |------|----------|------|
-| PIL (`--method pil`) | デフォルト | 高速・無料。字幕領域（下部18%）の色ピクセルを分析 |
+| PIL (`--method pil`) | デフォルト | 高速・無料。字幕領域（下部18%固定）の色ピクセルを分析 |
+| PIL+OCR (`--method pil_ocr`) | `--method pil_ocr` | EasyOCRでテキスト領域を動的検出→縁取り色分析。マイクラUI誤認低減 |
 | Gemini Vision (`--method gemini`) | `--method gemini` | 高精度。Gemini 2.0 Flash でAI判定。API利用 |
 
 ### 注意事項

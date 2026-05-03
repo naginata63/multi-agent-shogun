@@ -1,1 +1,58 @@
-tasks: []
+tasks:
+- agent: ashigaru7
+  task_id: subtask_1585a
+  status: done
+  parent_cmd: cmd_1585
+  bloom_level: L3
+  priority: high
+  description: 'cmd_1585: ch04_history_v4.md に L1/L2/L3 各層の誕生イベントをスライドとして明示追記'
+  target_path: projects/udemy_course/drafts/lectures/beginner_ch04_history_v4.md
+  steps: '0) advisor()呼出 1) projects/udemy_course/drafts/lectures/beginner_ch04_history_v4.md
+    を全文精読し現在の年表構成を把握 2) projects/udemy_course/context/lecture_design_rules.md を精読
+    (Section 10=歴史章制約・Section 11=作者名ルール等) 3) 以下3スライドを年表の適切な位置に追加: [L1誕生スライド] ChatGPT/2022頃〜プロンプトエンジニアリングが職能として確立された時期・背景・代表事例+speaker
+    notes / [L2誕生スライド] CLAUDE.md/.cursorrules等のコンテキストファイル文化が定着した2023〜2024年頃・背景・代表事例+speaker
+    notes / [L3誕生スライド] Claude Code/Cursor等のハーネスツール登場2024〜2025年・背景・代表事例+speaker notes
+    4) 各スライドに 時期+背景+代表事例 を含む speaker notes を記載 5) grep確認: ASCII罫線/XML系/受講者操作系 0件・講師名=なぎなたのみ
+    6) スライド総枚数が 12-15枚に収まることを確認 7) marp で .html 再生成: cd projects/udemy_course/drafts/lectures
+    && npx @marp-team/marp-cli beginner_ch04_history_v4.md -o beginner_ch04_history_v4.html
+    --allow-local-files 8) git add projects/udemy_course/drafts/lectures/beginner_ch04_history_v4.md
+    projects/udemy_course/drafts/lectures/beginner_ch04_history_v4.html && git commit
+    && git push 9) advisor()呼出 10) inbox_write gunshi QC依頼'
+  acceptance_criteria:
+  - ch04_history_v4.md に L1 誕生スライド明示
+  - ch04_history_v4.md に L2 コンテキストエンジニアリング誕生スライド追加
+  - ch04_history_v4.md に L3 ハーネスエンジニアリング誕生スライド追加
+  - 各層誕生に時期+背景+代表事例を含む speaker notes
+  - 年表全体が3階層統合の必然性を時系列で示す構成
+  - '講師名: なぎなた のみ (cmd_1583 整合)'
+  - ASCII罫線/XML/受講者操作系 0件
+  - スライド枚数 12-15枚
+  - git commit + push 完了
+  notes:
+  - '殿原文: ''４章 生成AIエンジニアリング年表 に コンテキストエンジニアリング誕生 ハーネスエンジニアリング誕生がない — 殿2026-05-03 09:05'''
+  - 現在の ch04 は17スライド構成(cmd_1580で作成)。3スライド追加で20枚になる可能性あり → 既存スライドを統合/圧縮して12-15枚に収めよ
+  - lecture_design_rules.md Section 10 の制約(生成AI史に限定・DevOps/SRE禁止)を遵守
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T09:39:17.517950+09:00'
+- agent: ashigaru7
+  task_id: subtask_1589_ch04
+  status: assigned
+  parent_cmd: cmd_1589
+  bloom_level: L3
+  priority: high
+  description: 'cmd_1589 ch04: 中級編v4 第4章を外部公開向けに修正 + advisor CLI標準呼出に絞る'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch04_quality_gate.md
+  steps: '0) advisor()呼出 1) intermediate_v4_ch04_quality_gate.md を精読 2) 戦国用語を外部公開向けに置換
+    3) advisor の説明を CLI 標準呼出のみに絞る: 削除対象=multi-agent-shogun 固有のadvisor_proxy.py / カスタムスクリプト経由の呼出
+    / 「軍師に審査させる」等の内部表現 → 置換後=「Claude Code 組み込みの advisor 機能 (CLIから直接呼出可能)」のみ / advisor()
+    の CLI 標準的な使い方 (claude --advisor または同等) を記載 4) grep確認 5) marp HTML再生成 6) git add
+    ... && git commit && git push 7) advisor()呼出 8) inbox_write gunshi QC依頼'
+  acceptance_criteria:
+  - intermediate_v4_ch04_quality_gate.md/.html で戦国用語 0件
+  - advisor説明がCLI標準呼出のみに絞られている
+  - speaker notes 維持・講師名なぎなたのみ
+  - git commit + push 完了
+  notes:
+  - '殿原文: ''adviderよびだしっていCLIだけでいいそれが標準だし — 殿2026-05-03 10:35'''
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T10:31:23.472556+09:00'

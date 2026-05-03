@@ -78,46 +78,28 @@ tasks:
   target_path: /home/murakami/multi-agent-shogun/scripts/sqlite_yaml_audit.py
   task_id: subtask_1488a
   timestamp: '2026-04-25T22:39:00+09:00'
-- agent: ashigaru4
-  task_id: subtask_1568a
-  status: done
-  parent_cmd: cmd_1568
+- acceptance_criteria:
+  - scripts/cdp_chatgpt_login_poc.py が存在しchatgpt.comにログイン状態でアクセス可能
+  - scripts/cdp_chatgpt_image_poc.py が存在しprompt → PNG生成可能 (1024x1024)
+  - cdp_chatgpt_image_poc.py に --ref-image 対応があり三面図参照でdozle一致画像生成可能
+  - 同一chat内で3パネル連続生成成功・背景連続性目視確認
+  - 失敗時リカバリ(再ログインまたはchat復元)のロジックが実装されている
+  - git commit + push完了 (submodule)
+  - 完了reportに各Phaseの成功ログ + 生成画像path記載
+  agent: ashigaru4
   bloom_level: L3
-  priority: high
-  description: 'cmd_1568 Phase1: silent_fail_watcher.sh を systemd user service で常時起動・テスト検証'
-  target_path: /home/murakami/.config/systemd/user/silent-fail-watcher.service
-  steps: '0) advisor()呼出 1) 参考: cat ~/.config/systemd/user/claude-mem-worker.service
-    (Type=simple参考) 2) 現在の watcher プロセス確認: ps aux | grep silent_fail_watcher | grep
-    -v grep 3) ~/.config/systemd/user/silent-fail-watcher.service を新規作成 (Type=simple・ExecStart=bash
-    /home/murakami/multi-agent-shogun/scripts/silent_fail_watcher.sh・WorkingDirectory=/home/murakami/multi-agent-shogun・Restart=on-failure・RestartSec=10・Environment=HOME=/home/murakami)
-    4) 既存プロセス停止: PID確認→kill -SIGTERM $PID && sleep 3 (kill blockedならshogunに依頼) 5)
-    systemctl --user daemon-reload && systemctl --user enable silent-fail-watcher
-    && systemctl --user start silent-fail-watcher 6) systemctl --user status silent-fail-watcher
-    (active(running)確認) 7) テスト検証: echo ''ERROR: test_billing COST=999 triggered''
-    >> logs/nightly_audit.log && sleep 10 (ntfy通知またはlogs/silent_fail_watcher.log に検知ログが記録されること確認)
-    8) systemctl --user is-enabled silent-fail-watcher (enabled確認) 9) advisor()呼出
-    10) inbox_write gunshi QC依頼(systemctl status / is-enabled / テスト検知ログの3点確認依頼)'
-  acceptance_criteria:
-  - ~/.config/systemd/user/silent-fail-watcher.service 作成済み
-  - systemctl --user status silent-fail-watcher が active(running)
-  - systemctl --user is-enabled が enabled
-  - テストERROR注入でlogs/silent_fail_watcher.logに検知ログが記録される
-  - gunshi QC PASS
-  notes:
-  - silent_fail_watcher.sh はmain()でwhile trueループ(foreground)→Type=simple で直接実行可
-  - ExecStart=bash scripts/... ではなく絶対パスで指定
-  - kill BLOCK の場合は殿/将軍に依頼 (D006ルール)
-  - サービスファイルはgit管理外のため commit不要
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-02T06:50:06.308309+09:00'
-- agent: ashigaru4
-  task_id: subtask_1574a
-  status: assigned
-  parent_cmd: cmd_1574
-  bloom_level: L3
-  priority: medium
   description: 'cmd_1574: ChatGPT CDP PoC 実装 (TODO 1〜3: ログイン+画像生成+三面図ref+セッション維持)'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/cdp_chatgpt_image_poc.py
+  notes:
+  - '設計書: projects/dozle_kirinuki/scripts/manga_poc/DESIGN_gpt_image_cdp.md (622行・第11章必読)'
+  - 'I/F参照: cdp_gemini_image_poc.py (同じCookie復号方式・Playwright操作パターン)'
+  - '実装場所: projects/dozle_kirinuki/scripts/ (submodule内・git pushはsubmodule内で行え)'
+  - 'ChatGPT Cookie: peanuts方式がそのまま使えない場合はalt keyring方式を試みよ・失敗はPhase1で即報告'
+  - '三面図パス: assets/dozle_jp/character/3views/ 以下を確認せよ'
+  - 'セッション維持(第11章)は必須要件: 同一chat連続生成=背景統一のため・NewChat禁止'
+  - advisor()必須(作業前・完了前)
+  parent_cmd: cmd_1574
+  priority: medium
+  status: done
   steps: '0) advisor()呼出 1) projects/dozle_kirinuki/scripts/manga_poc/DESIGN_gpt_image_cdp.md
     全文精読 (設計書622行・第11章セッション維持設計必須確認) 2) projects/dozle_kirinuki/scripts/cdp_gemini_image_poc.py
     精読(I/F参照・Cookie復号方式) 3) [Phase1] cdp_chatgpt_login_poc.py 新規作成: (a)Chrome Cookie
@@ -135,20 +117,121 @@ tasks:
     projects/dozle_kirinuki/scripts/cdp_chatgpt_image_poc.py && git diff --cached
     && git commit ''feat: cmd_1574 ChatGPT CDP PoC (login+image_gen+ref+session)''
     && git push origin main (submodule内) 7) advisor()呼出 8) inbox_write karo 完了報告(各Phase成功ログ+生成画像path+失敗時は詳細エラー記載)'
-  acceptance_criteria:
-  - scripts/cdp_chatgpt_login_poc.py が存在しchatgpt.comにログイン状態でアクセス可能
-  - scripts/cdp_chatgpt_image_poc.py が存在しprompt → PNG生成可能 (1024x1024)
-  - cdp_chatgpt_image_poc.py に --ref-image 対応があり三面図参照でdozle一致画像生成可能
-  - 同一chat内で3パネル連続生成成功・背景連続性目視確認
-  - 失敗時リカバリ(再ログインまたはchat復元)のロジックが実装されている
-  - git commit + push完了 (submodule)
-  - 完了reportに各Phaseの成功ログ + 生成画像path記載
-  notes:
-  - '設計書: projects/dozle_kirinuki/scripts/manga_poc/DESIGN_gpt_image_cdp.md (622行・第11章必読)'
-  - 'I/F参照: cdp_gemini_image_poc.py (同じCookie復号方式・Playwright操作パターン)'
-  - '実装場所: projects/dozle_kirinuki/scripts/ (submodule内・git pushはsubmodule内で行え)'
-  - 'ChatGPT Cookie: peanuts方式がそのまま使えない場合はalt keyring方式を試みよ・失敗はPhase1で即報告'
-  - '三面図パス: assets/dozle_jp/character/3views/ 以下を確認せよ'
-  - 'セッション維持(第11章)は必須要件: 同一chat連続生成=背景統一のため・NewChat禁止'
-  - advisor()必須(作業前・完了前)
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/cdp_chatgpt_image_poc.py
+  task_id: subtask_1574a
   timestamp: '2026-05-02T08:26:55.081172+09:00'
+- acceptance_criteria:
+  - intermediate_v4_ch03_hierarchical_prompt.md / .html 作成済み
+  - speaker notes 全スライド
+  - '講師名: なぎなた のみ'
+  - ASCII罫線/XML/受講者操作系 0件
+  - スライド枚数 12-15枚
+  - git commit + push 完了
+  agent: ashigaru4
+  bloom_level: L4
+  description: 'cmd_1586 ch03: 中級編 v4 第3章 intermediate_v4_ch03_hierarchical_prompt.md
+    / .html 作成'
+  notes:
+  - '殿原文: ''中級も作成開始せよ — 殿2026-05-03 09:48'''
+  - '参照アウトライン: curriculum_intermediate_v4_marp.md 第3章'
+  - advisor()必須(作業前・完了前)
+  parent_cmd: cmd_1586
+  priority: medium
+  status: done
+  steps: '0) advisor()呼出 1) projects/udemy_course/context/lecture_design_rules.md
+    を全文精読 2) projects/udemy_course/drafts/curriculum_intermediate_v4_marp.md の第3章セクション
+    (『第3章 階層的プロンプト: CLAUDE.md / instructions / task YAML の役割分担』) を精読 3) 初級編の形式参照:
+    projects/udemy_course/drafts/lectures/beginner_ch02_claude_md_v4.md と beginner_ch03_md_family_v4.md
+    を精読 4) intermediate_v4_ch03_hierarchical_prompt.md を新規作成: テーマ=「階層的プロンプト設計」/Emotional
+    Hook=『CLAUDE.mdに全部書いていませんか?引っ越し荷物を全部リビングに放り込む状態』/全スライドspeaker notes 5) スライド構成(12-15枚目安):
+    Emotional Hook→3層分類基準(変更頻度×適用範囲マトリクス)→CLAUDE.md役割→instructions/*.md役割→task YAML役割→スリム化実例(100行→30行)→正しく動作する仕組み
+    6) grep確認 7) marp HTML生成 8) git commit + push 9) advisor()呼出 10) inbox_write gunshi
+    QC依頼'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch03_hierarchical_prompt.md
+  task_id: subtask_1586_ch03
+  timestamp: '2026-05-03T09:52:13.071327+09:00'
+- acceptance_criteria:
+  - intermediate_v4_ch02_structured_prompt.md/.html で戦国用語 0件
+  - speaker notes 維持・講師名なぎなたのみ
+  - git commit + push 完了
+  agent: ashigaru4
+  bloom_level: L3
+  description: 'cmd_1589 ch02: 中級編v4 第2章を外部公開向けに修正'
+  notes:
+  - '殿原文: ''multi-agent-shogun 用語がでてきている あしがるとか adviderよびだしっていCLIだけでいいそれが標準だし — 殿2026-05-03
+    10:35'''
+  - advisor()必須(作業前・完了前)
+  parent_cmd: cmd_1589
+  priority: high
+  status: done
+  steps: '0) advisor()呼出 1) intermediate_v4_ch02_structured_prompt.md を精読 2) 戦国用語を外部公開向けに置換
+    3) grep確認: 戦国用語 0件 4) marp HTML再生成 5) git add ... && git commit && git push 6)
+    advisor()呼出 7) inbox_write gunshi QC依頼'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch02_structured_prompt.md
+  task_id: subtask_1589_ch02
+  timestamp: '2026-05-03T10:31:23.238470+09:00'
+- acceptance_criteria:
+  - intermediate_v4_ch08_context_best_practices.md / .html 作成済み
+  - speaker notes 全スライド
+  - '講師名: なぎなた のみ'
+  - 戦国用語・ASCII罫線・XML・受講者操作系 0件
+  - スライド枚数 12-15枚
+  - git commit + push 完了
+  agent: ashigaru4
+  bloom_level: L3
+  description: 'cmd_1590 ch08: 中級編 v4 コンテキスト運用ベストプラクティス .md / .html 作成'
+  notes:
+  - '殿原文: ''中級後半も作成を許可する — 殿2026-05-03 10:35'''
+  - '参照アウトライン: curriculum_intermediate_v4_marp.md 第8章 コンテキスト運用ベストプラクティスセクション'
+  - cmd_1589の作業が先に割り当てられている場合はそちらを先に完了してからこちらに取りかかれ
+  - advisor()必須(作業前・完了前)
+  parent_cmd: cmd_1590
+  priority: medium
+  status: done
+  steps: '0) advisor()呼出 1) projects/udemy_course/context/lecture_design_rules.md
+    を精読 2) projects/udemy_course/drafts/curriculum_intermediate_v4_marp.md の第8章 コンテキスト運用ベストプラクティスセクションを精読
+    3) 初級編形式参照: beginner_ch01_prompt_v4.md を参照 4) intermediate_v4_ch08_context_best_practices.md
+    を新規作成: Emotional Hook=『コンテキストは設定して終わりではない』/ 全スライドspeaker notes / なぎなた表記のみ / 戦国用語0件
+    / 12-15枚 5) grep確認: 戦国用語・ASCII罫線・XML・受講者操作系 全0件 6) marp HTML生成: cd projects/udemy_course/drafts/lectures
+    && npx @marp-team/marp-cli intermediate_v4_ch08_context_best_practices.md -o intermediate_v4_ch08_context_best_practices.html
+    --allow-local-files 7) git add projects/udemy_course/drafts/lectures/intermediate_v4_ch08_context_best_practices.md
+    projects/udemy_course/drafts/lectures/intermediate_v4_ch08_context_best_practices.html
+    && git commit && git push 8) advisor()呼出 9) inbox_write gunshi QC依頼'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch08_context_best_practices.md
+  task_id: subtask_1590_ch08
+  timestamp: '2026-05-03T10:32:43.982927+09:00'
+- agent: ashigaru4
+  task_id: subtask_1594a
+  status: done
+  parent_cmd: cmd_1593
+  bloom_level: L2
+  priority: high
+  description: 'nekooji カラー一括訂正: #C0A060 (金・誤り) → #787878 (中灰・確定) 全ファイル置換'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/context/member_profiles.yaml
+  steps: '0) 訂正値確認: nekooji = #787878 (中灰) 殿スクショ確定 1) 対象ファイル特定 (主リポ): grep -rl ''#C0A060''
+    /home/murakami/multi-agent-shogun/ --include=''*.md'' --include=''*.yaml'' --include=''*.txt''
+    --include=''*.py'' 2) 対象ファイル特定 (「金」表記): grep -rl ''nekooji.*金\|金.*nekooji\|ネコおじ.*金\|金.*ネコおじ''
+    /home/murakami/multi-agent-shogun/ 2>/dev/null 3) 各ファイルを Read → Edit で #C0A060
+    → #787878 / 「金」→「灰色 (中灰)」に置換: (a) projects/dozle_kirinuki/context/member_profiles.yaml
+    (b) projects/dozle_kirinuki/context/panel_candidate_prompt.txt (c) projects/dozle_kirinuki/context/gemini_manga_analysis_prompt.md
+    (d) その他grep結果のファイル (archive/historyファイルは対象外) 4) subtitle_speaker_qc.py はashigaru6(cmd_1593)が担当中のためスキップ
+    5) 置換確認: grep ''#C0A060\|金.*ネコ\|ネコ.*金'' <各ファイル> が0件になることを確認 6) git add projects/dozle_kirinuki/context/
+    && git diff --cached (意図外ファイル確認) 7) git -C projects/dozle_kirinuki add context/
+    && git -C projects/dozle_kirinuki commit -m ''fix: nekooji カラー #C0A060(金)→#787878(中灰)
+    訂正'' && git -C projects/dozle_kirinuki push origin main 8) 主リポ側の変更もcommit: git
+    add memory/ (archive除く) && git commit -m ''fix: nekooji カラー #787878 確定 一括訂正''
+    && git push 9) inbox_write karo 完了報告'
+  acceptance_criteria:
+  - 'member_profiles.yaml の nekooji = #787878 に更新'
+  - 'panel_candidate_prompt.txt の nekooji 関連 #C0A060/金 表記を #787878/灰色 に更新'
+  - gemini_manga_analysis_prompt.md の nekooji 関連表記更新
+  - grep '#C0A060' が全対象ファイルで 0 件
+  - dozle_kirinuki submodule git commit + push 完了
+  - 主リポ git commit + push 完了
+  notes:
+  - '殿原文: ''ねこおじカラーは金じゃない スクショとったが 灰色じゃな — 殿2026-05-03 11:18 / 確定#787878 — 殿2026-05-03
+    11:25'''
+  - subtitle_speaker_qc.py は ashigaru6 (cmd_1593) が修正中のためスキップ
+  - memory/ 下の archive ファイルは対象外 (歴史記録のため)
+  - 主リポのmemory/MEMORY.md は家老が既に更新済み
+  timestamp: '2026-05-03T11:20:21.116002+09:00'
