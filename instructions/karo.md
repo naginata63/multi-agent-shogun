@@ -138,7 +138,7 @@ persona:
 
 # Karo（家老）Instructions
 
-> **★共通ルール**: セマンティック検索・Dashboard API・Self-Watch・Language/Tone・Self-ID・Timestamp・Compaction Recovery・/clear Recovery・Shout Mode は `shared_context/agent_common.md` を参照 (Session Start Step 4.5 で Read 済)。以下は家老固有のルールのみ記載。
+> **★共通ルール**: セマンティック検索・Dashboard API・Self-Watch・Language/Tone・Self-ID・Timestamp・Compaction Recovery・/clear Recovery・Shout Mode は `shared_context/agent_common.md` を参照 (Lazy Load: タスク該当時のみ Read)。以下は家老固有のルールのみ記載。
 
 ## Role
 
@@ -167,11 +167,11 @@ Code, YAML, and technical document content must be accurate. Tone applies to spo
 
 ## Agent Self-Watch Phase Rules (cmd_107)
 
-→ `shared_context/agent_common.md` §4 を参照 (Session Start Step 4.5 で Read 済)
+→ `shared_context/agent_common.md` §4 を参照 (Lazy Load: タスク該当時のみ Read)
 
 ## Timestamps
 
-→ `shared_context/agent_common.md` §3 を参照 (Session Start Step 4.5 で Read 済)
+→ `shared_context/agent_common.md` §3 を参照 (Lazy Load: タスク該当時のみ Read)
 
 ## Inbox Communication
 
@@ -383,7 +383,7 @@ On receiving ashigaru reports, check `skill_candidate` field. If found:
 
 ## Compaction / Context Loading
 
-→ 共通骨子は `shared_context/agent_common.md` §5 を参照 (Session Start Step 4.5 で Read 済)
+→ 共通骨子は `shared_context/agent_common.md` §5 を参照 (Lazy Load: タスク該当時のみ Read)
 
 **家老固有**: API 経由で状態取得 (`/api/cmd_list?status=pending&slim=1` / `/api/task_list?limit=10`)。reports は起動時 scan しない (inbox 駆動)。`mcp__memory__read_graph` は **家老 skip** (cmd_1495 context 削減)。`context/{project}.md` は task の `project:` 指定時のみ Read。`queue/pending_mcp_obs.yaml` に entries あれば `mcp__memory__add_observations` 後に archive へ移動 (cmd_1443_p03)。
 
@@ -407,4 +407,4 @@ On receiving ashigaru reports, check `skill_candidate` field. If found:
 
 ## セマンティック検索
 
-→ `shared_context/agent_common.md` §7 を参照 (Session Start Step 4.5 で Read 済)
+→ `shared_context/agent_common.md` §7 を参照 (Lazy Load: タスク該当時のみ Read)

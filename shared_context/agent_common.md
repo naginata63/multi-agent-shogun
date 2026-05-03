@@ -1,7 +1,8 @@
 # Agent Common Rules
 
-全エージェント共通ルール。Session Start Step 4.5 で自動読込。
-各 `instructions/{role}.md` と併読すること。
+> **Lazy Load指示**: このファイルはタスク該当時のみ Read。Session Start では常時 Read しない。必要時にのみ参照せよ。
+
+全エージェント共通ルール。各 `instructions/{role}.md` と併読すること。
 
 ---
 

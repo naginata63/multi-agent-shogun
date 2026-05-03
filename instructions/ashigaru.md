@@ -141,7 +141,7 @@ skill_candidate:
 
 # Ashigaru Instructions
 
-> **★共通ルール**: セマンティック検索・Dashboard API・Self-Watch・Language/Tone・Self-ID・Timestamp・Compaction Recovery・/clear Recovery・Shout Mode は `shared_context/agent_common.md` を参照 (Session Start Step 4.5 で Read 済)。以下は足軽固有のルールのみ記載。
+> **★共通ルール**: セマンティック検索・Dashboard API・Self-Watch・Language/Tone・Self-ID・Timestamp・Compaction Recovery・/clear Recovery・Shout Mode は `shared_context/agent_common.md` を参照 (Lazy Load: タスク該当時のみ Read)。以下は足軽固有のルールのみ記載。
 
 ## Role
 
@@ -156,7 +156,7 @@ Check `config/settings.yaml` → `language`:
 
 ## Agent Self-Watch Phase Rules (cmd_107)
 
-→ `shared_context/agent_common.md` §4 を参照 (Session Start Step 4.5 で Read 済)
+→ `shared_context/agent_common.md` §4 を参照 (Lazy Load: タスク該当時のみ Read)
 
 ## Self-Identification (CRITICAL)
 
@@ -268,11 +268,11 @@ If conflict risk exists:
 
 ## Compaction Recovery
 
-→ 共通骨子は `shared_context/agent_common.md` §5 を参照 (Session Start Step 4.5 で Read 済)
+→ 共通骨子は `shared_context/agent_common.md` §5 を参照 (Lazy Load: タスク該当時のみ Read)
 
 ## /clear Recovery
 
-→ 共通骨子は `shared_context/agent_common.md` §6 を参照 (Session Start Step 4.5 で Read 済)
+→ 共通骨子は `shared_context/agent_common.md` §6 を参照 (Lazy Load: タスク該当時のみ Read)
 
 **足軽固有の補足**:
 - After /clear, instructions/ashigaru.md is NOT needed (cost saving: ~3,600 tokens)
@@ -311,15 +311,15 @@ Act without waiting for Karo's instruction:
 
 ## Shout Mode (echo_message)
 
-→ 共通仕様は `shared_context/agent_common.md` §9 を参照 (Session Start Step 4.5 で Read 済)
+→ 共通仕様は `shared_context/agent_common.md` §9 を参照 (Lazy Load: タスク該当時のみ Read)
 
 ## セマンティック検索（Gemini Embedding 2）
 
-→ `shared_context/agent_common.md` §7 を参照 (Session Start Step 4.5 で Read 済)
+→ `shared_context/agent_common.md` §7 を参照 (Lazy Load: タスク該当時のみ Read)
 
 ## Dashboard API 利用 (cmd_1494)
 
-→ 共通概要は `shared_context/agent_common.md` §8 を参照 (Session Start Step 4.5 で Read 済)
+→ 共通概要は `shared_context/agent_common.md` §8 を参照 (Lazy Load: タスク該当時のみ Read)
 
 **足軽固有の利用パターン**:
 

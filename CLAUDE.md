@@ -75,7 +75,7 @@ language:
 2. `mcp__memory__read_graph` — **shogun/gunshi のみ**実行。karo/ashigaru は skip (instructions/*.md に必要ルール記載済・claude-mem auto-load も karo/ashigaru は無視せよ・context 削減のため)
 3. **Read `memory/MEMORY.md`** (shogun only) — persistent cross-session memory. If file missing, skip. *Claude Code users: this file is also auto-loaded via Claude Code's memory feature.*
 4. **Read your instructions file**: shogun→`instructions/shogun.md`, karo→`instructions/karo.md`, ashigaru→`instructions/ashigaru.md`, gunshi→`instructions/gunshi.md`. **NEVER SKIP** — even if a conversation summary exists. Summaries do NOT preserve persona, speech style, or forbidden actions.
-4.5. **Read `shared_context/agent_common.md`** (全agent必須) — instructions/{role}.md で参照される共通ルールの実体。Step 4 の直後に Read すること。
+4.5. **Read `shared_context/agent_common.md`** — Lazy Load: タスク該当時のみ Read (Session Start での常時注入禁止)。共通ルール(セマンティック検索/Self-Watch/Tone等)が必要なタスクの着手前のみ Read。
 5. Rebuild state from API (`/api/cmd_list?status=pending&slim=1`, `/api/task_list?limit=10`)・**reports は起動時 scan しない** (inbox 駆動・report_received 通知時に個別 `/api/report_detail` 取得)
 6. Review forbidden actions, then start work
 

@@ -72,7 +72,7 @@ persona:
 
 # Shogun Instructions
 
-> **★共通ルール**: セマンティック検索・Dashboard API・Self-Watch・Language/Tone・Self-ID・Timestamp・Compaction Recovery・/clear Recovery・Shout Mode は `shared_context/agent_common.md` を参照 (Session Start Step 4.5 で Read 済)。以下は将軍固有のルールのみ記載。
+> **★共通ルール**: セマンティック検索・Dashboard API・Self-Watch・Language/Tone・Self-ID・Timestamp・Compaction Recovery・/clear Recovery・Shout Mode は `shared_context/agent_common.md` を参照 (Lazy Load: タスク該当時のみ Read)。以下は将軍固有のルールのみ記載。
 
 ## Role
 
@@ -108,7 +108,7 @@ Check `config/settings.yaml` → `language`:
 
 ## Agent Self-Watch Phase Rules (cmd_107)
 
-→ 共通ルールは `shared_context/agent_common.md` §4 を参照 (Session Start Step 4.5 で Read 済)
+→ 共通ルールは `shared_context/agent_common.md` §4 を参照 (Lazy Load: タスク該当時のみ Read)
 
 ## Command Writing
 
@@ -342,7 +342,7 @@ For ambiguous inputs (e.g., 「Acmeさんの件」):
 
 ## Compaction Recovery / Context Loading
 
-→ 共通骨子は `shared_context/agent_common.md` §5 を参照 (Session Start Step 4.5 で Read 済)
+→ 共通骨子は `shared_context/agent_common.md` §5 を参照 (Lazy Load: タスク該当時のみ Read)
 
 **将軍固有の追加手順**:
 - CLAUDE.md (auto-loaded) + memory MCP `read_graph` (殿の preferences・ルール)
@@ -395,11 +395,11 @@ Don't save: temporary task details (use YAML), file contents (just read them), i
 
 ## セマンティック検索（Gemini Embedding 2）
 
-→ `shared_context/agent_common.md` §7 を参照 (Session Start Step 4.5 で Read 済)
+→ `shared_context/agent_common.md` §7 を参照 (Lazy Load: タスク該当時のみ Read)
 
 ## Dashboard API 利用 (cmd_1494)
 
-→ 共通概要は `shared_context/agent_common.md` §8 を参照 (Session Start Step 4.5 で Read 済)
+→ 共通概要は `shared_context/agent_common.md` §8 を参照 (Lazy Load: タスク該当時のみ Read)
 
 **将軍固有の利用パターン**:
 
