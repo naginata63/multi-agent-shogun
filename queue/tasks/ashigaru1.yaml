@@ -1,51 +1,178 @@
 tasks:
-- acceptance_criteria:
-  - clip1_panel_review.html が生成済み・rowsが編集可能な状態
-  - ntfy通知で殿にレビュー依頼送信済み
-  - karoへ完了報告済み
-  agent: ashigaru1
-  bloom_level: L3
-  description: 'cmd_1509 Phase1: tono_clip1.mp4 (1.8MB) を動画解析して panel_review.html
-    生成'
-  notes:
-  - Phase1 = panel_review.html 生成のみ。殿レビュー後の Phase2 は別途指令
-  - source ~/.bashrc && を必ず前置 (VERTEX_API_KEY等の環境変数取得)
-  - ref_images は絶対パス必須 (feedback_panel_refs_absolute.md)
-  - 実際の panel_review_gen.py 引数は scripts/ 配下を確認してから実行
-  - 'ドズル社メンバー: dozle/bon/qnly/orafu/oo_men/nekooji'
-  parent_cmd: cmd_1509
+- agent: ashigaru1
+  task_id: subtask_1583a
   status: assigned
-  steps: 1) shared_context/procedures/ の漫画ショート手順確認 + projects/dozle_kirinuki/context/
-    参照 2) source ~/.bashrc && python3 projects/dozle_kirinuki/scripts/panel_review_gen.py
-    '/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_clip1.mp4'
-    --output '/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/clip1_panel_review.html'
-    (または同等スクリプト・実際の引数は scripts/ 確認) 3) clip1_panel_review.html をブラウザで確認可能なパスに出力 4)
-    bash scripts/ntfy.sh '📋 clip1 panel_review.html 生成完了 - 殿レビュー待ち' 5) inbox_write
-    karo HTMLパス報告
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/clip1_panel_review.html
-  task_id: subtask_1509a
-  timestamp: '2026-04-27T22:54:44.692279+09:00'
-- acceptance_criteria:
-  - /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/panels_tono_clip1.json
-    が存在・panels配列あり
-  - ntfy通知送信済み
-  - karoへ完了報告済み
-  agent: ashigaru1
-  bloom_level: L3
-  description: 'cmd_1509 Phase1 (訂正版): tono_clip1.mp4 → generate_panel_candidates.py
-    で panels JSON 全自動生成'
+  parent_cmd: cmd_1583
+  bloom_level: L2
+  priority: high
+  description: 'cmd_1583: 初級編 v4 全7章+curriculum で講師名を『なぎなた』のみに統一・本名削除'
+  target_path: projects/udemy_course/drafts/lectures/
+  steps: '0) advisor()呼出 1) 本名パターン確認: grep -rn ''村上|誠治|seiji|Murakami|murakami'' projects/udemy_course/drafts/lectures/*v4*.md
+    projects/udemy_course/drafts/curriculum_beginner_v4_marp.md 2) 全 v4 .md ファイル (ch00〜ch06)
+    を sed 等で一括置換: 村上誠治/村上 誠治/Seiji Murakami/seiji murakami/murakami 等→なぎなた / speaker
+    notes の自己紹介文も自然な日本語に (例: ''なぎなたと申します'') 3) curriculum_beginner_v4_marp.md も同様に置換
+    4) 各 .md を marp で .html 再生成 (npx @marp-team/marp-cli <file>.md -o <file>.html
+    --allow-local-files) 5) grep確認: grep -c ''村上|誠治|seiji|Murakami|murakami'' projects/udemy_course/drafts/lectures/*v4*.md
+    projects/udemy_course/drafts/curriculum_beginner_v4_marp.md (全件 0 件) 6) context/lecture_design_rules.md
+    に Section 11 作者名統一ルール追記: 外部公開資料は『なぎなた』表記のみ・本名禁止 7) git add projects/udemy_course/drafts/lectures/
+    projects/udemy_course/drafts/curriculum_beginner_v4_marp.md projects/udemy_course/drafts/curriculum_beginner_v4.html
+    projects/udemy_course/context/lecture_design_rules.md && git commit && git push
+    8) advisor()呼出 9) inbox_write karo 完了報告'
+  acceptance_criteria:
+  - 全 v4 .md / .html (ch00-ch06) で『村上 誠治 seiji Murakami murakami』表記 0 件
+  - 全 v4 .md / .html で『なぎなた』表記が各章1箇所以上
+  - curriculum_beginner_v4_marp.md / .html でも本名 0 件
+  - speaker notes の自己紹介が日本語として自然 (なぎなたと申します等)
+  - context/lecture_design_rules.md に作者名統一ルール追記
+  - git commit + push 完了
   notes:
-  - '主役: generate_panel_candidates.py (panel_review_gen.py ではない・訂正版)'
-  - source config/vertex_api_key.env 必須 (VERTEX_API_KEY)
-  - 'redo_of: subtask_1509a (panel_review_gen.py 誤用版)'
-  parent_cmd: cmd_1509
-  redo_of: subtask_1509a
+  - '殿原文: ''作者はなぎなたで 村上誠治はだすな — 殿2026-05-03 08:51'''
+  - drafts/index.html は本名含まないが念のり確認せよ
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T09:31:18.276351+09:00'
+- agent: ashigaru1
+  task_id: subtask_1586_ch00
   status: assigned
-  steps: '1) source config/vertex_api_key.env 2) python3 projects/dozle_kirinuki/scripts/generate_panel_candidates.py
-    --clip ''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/tono_clip1.mp4''
-    --scene ''tono_clip1'' --title ''86万トンダム掘り切り抜き'' --output ''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/panels_tono_clip1.json''
-    3) cat 出力で panels JSON 確認 4) bash scripts/ntfy.sh ''📋 clip1 panels JSON 生成完了:
-    panels_tono_clip1.json'' 5) inbox_write karo panels_tono_clip1.json のパスを報告'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260427_86万トンの超巨大なダムを埋めるまで終われません！【マイクラ】/panels_tono_clip1.json
-  task_id: subtask_1509a2
-  timestamp: '2026-04-27T22:59:44.005886+09:00'
+  parent_cmd: cmd_1586
+  bloom_level: L3
+  priority: medium
+  description: 'cmd_1586 ch00: 中級編 v4 序章 intermediate_v4_ch00_intro.md / .html 作成'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch00_intro.md
+  steps: '0) advisor()呼出 1) projects/udemy_course/context/lecture_design_rules.md
+    を全文精読 2) projects/udemy_course/drafts/curriculum_intermediate_v4_marp.md の序章セクション
+    (『序章: AI開発 3階層モデルとは』) を精読 3) 初級編の形式参照: projects/udemy_course/drafts/lectures/beginner_ch00_intro_v4.md
+    を精読 4) intermediate_v4_ch00_intro.md を新規作成: テーマ=「AI開発 3階層モデルとは」/購買誘導型(序章特別ルールSection9に従う)/全スライドspeaker
+    notes/なぎなた表記のみ 5) スライド構成(10-13枚目安): つかみ→before/after体験→3分タイムラプスで3層システム稼働を見せる→序章の受講者感情曲線
+    6) grep確認: ASCII罫線/XML/受講者操作系/本名 全0件 7) marp HTML生成: cd projects/udemy_course/drafts/lectures
+    && npx @marp-team/marp-cli intermediate_v4_ch00_intro.md -o intermediate_v4_ch00_intro.html
+    --allow-local-files 8) git add projects/udemy_course/drafts/lectures/intermediate_v4_ch00_intro.md
+    projects/udemy_course/drafts/lectures/intermediate_v4_ch00_intro.html && git commit
+    -m ''feat: cmd_1586 中級編v4 ch00序章'' && git push 9) advisor()呼出 10) inbox_write
+    gunshi QC依頼'
+  acceptance_criteria:
+  - intermediate_v4_ch00_intro.md / .html 作成済み
+  - speaker notes 全スライド
+  - '講師名: なぎなた のみ (本名 grep 0件)'
+  - ASCII罫線/XML/受講者操作系 0件
+  - スライド枚数 10-13枚
+  - git commit + push 完了
+  notes:
+  - '殿原文: ''中級も作成開始せよ — 殿2026-05-03 09:48'''
+  - '参照アウトライン: curriculum_intermediate_v4_marp.md 序章セクション'
+  - '形式参照: beginner_ch00_intro_v4.md (初級編序章・購買誘導型)'
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T09:52:12.772169+09:00'
+- agent: ashigaru1
+  task_id: subtask_1588a
+  status: done
+  parent_cmd: cmd_1588
+  bloom_level: L4
+  priority: medium
+  description: 'cmd_1588 Phase 1: shared_context/agent_common.md 新設 + instructions
+    4本の重複セクション削除・参照化'
+  target_path: shared_context/agent_common.md
+  steps: '0) advisor()呼出 1) /tmp/cmd_1584_audit_report.md を全文精読 (Phase 1 の詳細手順・集約対象9セクションを把握)
+    2) instructions/shogun.md / karo.md / gunshi.md / ashigaru.md / CLAUDE.md を精読
+    3) shared_context/agent_common.md を新規作成 (~150行): 以下9セクションを集約: セマンティック検索(Gemini
+    Embedding 2) / Dashboard API 利用(cmd_1494)概要テーブル / Agent Self-Watch Phase Rules(cmd_107)
+    / Language & Tone / Self-Identification(tmux display-message) / Timestamp Rule
+    / Compaction Recovery 共通骨子 / /clear Recovery 共通骨子 / Shout Mode共通仕様 4) CLAUDE.md
+    の Session Start 手順に Step 4.5 を追記: 『Step 4.5: Read shared_context/agent_common.md
+    (全agent必須・instructions/{role}.md の直後)』 5) instructions/shogun.md から上記9セクションの重複部分を削除
+    → 冒頭に「★共通ルールは shared_context/agent_common.md を参照 (Session Start Step 4.5 で Read
+    済)」ブロック追加・役割固有部分は維持 6) 同様に instructions/karo.md / gunshi.md / ashigaru.md を更新
+    7) git add で変更ファイルを個別追加 (git add . 禁止): git add shared_context/agent_common.md
+    CLAUDE.md instructions/shogun.md instructions/karo.md instructions/gunshi.md instructions/ashigaru.md
+    8) git diff --cached で意図外ファイルが含まれていないか確認 9) git commit -m ''feat: cmd_1588 Phase1
+    agent_common.md新設・instructions4本重複削除'' && git push 10) advisor()呼出 11) inbox_write
+    gunshi QC依頼'
+  acceptance_criteria:
+  - shared_context/agent_common.md 新設・9セクション集約・~150行程度
+  - CLAUDE.md の Session Start に Step 4.5 (agent_common.md Read) 追記
+  - instructions/shogun.md / karo.md / gunshi.md / ashigaru.md から共通9セクション削除済み
+  - 各 instructions に共通ルール参照ブロック追加・役割固有部分は維持
+  - git commit + push 完了
+  - 軍師 QC PASS
+  notes:
+  - '殿原文: ''OK (cmd_1584 audit Phase 1 着手承認) — 殿2026-05-03 10:30'''
+  - '設計詳細: /tmp/cmd_1584_audit_report.md を必ず参照 (Phase 1 節を精読)'
+  - CLAUDE.md と instructions/*.md 4本を同時に変更する重要作業。慎重に進めよ
+  - git add . 禁止・個別ファイル指定で add すること (CLAUDE.md 誤変更防止)
+  - 既存の roles 固有セクションは絶対に削除しないこと (家老の Task Design 5問・将軍の North Star等)
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T10:20:00.955964+09:00'
+- agent: ashigaru1
+  task_id: subtask_1590_ch05
+  status: done
+  parent_cmd: cmd_1590
+  bloom_level: L3
+  priority: medium
+  description: 'cmd_1590 ch05: 中級編 v4 コンテキストウィンドウ経済学 .md / .html 作成'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch05_context_economics.md
+  steps: '0) advisor()呼出 1) projects/udemy_course/context/lecture_design_rules.md
+    を精読 2) projects/udemy_course/drafts/curriculum_intermediate_v4_marp.md の第5章 コンテキストウィンドウ経済学セクションを精読
+    3) 初級編形式参照: beginner_ch01_prompt_v4.md を参照 4) intermediate_v4_ch05_context_economics.md
+    を新規作成: Emotional Hook=『コンテキストウィンドウは財布です。無限にあると思うと空っぽになります』/ 全スライドspeaker notes
+    / なぎなた表記のみ / 戦国用語0件 / 12-15枚 5) grep確認: 戦国用語・ASCII罫線・XML・受講者操作系 全0件 6) marp HTML生成:
+    cd projects/udemy_course/drafts/lectures && npx @marp-team/marp-cli intermediate_v4_ch05_context_economics.md
+    -o intermediate_v4_ch05_context_economics.html --allow-local-files 7) git add
+    projects/udemy_course/drafts/lectures/intermediate_v4_ch05_context_economics.md
+    projects/udemy_course/drafts/lectures/intermediate_v4_ch05_context_economics.html
+    && git commit && git push 8) advisor()呼出 9) inbox_write gunshi QC依頼'
+  acceptance_criteria:
+  - intermediate_v4_ch05_context_economics.md / .html 作成済み
+  - speaker notes 全スライド
+  - '講師名: なぎなた のみ'
+  - 戦国用語・ASCII罫線・XML・受講者操作系 0件
+  - スライド枚数 12-15枚
+  - git commit + push 完了
+  notes:
+  - '殿原文: ''中級後半も作成を許可する — 殿2026-05-03 10:35'''
+  - '参照アウトライン: curriculum_intermediate_v4_marp.md 第5章 コンテキストウィンドウ経済学セクション'
+  - cmd_1589の作業が先に割り当てられている場合はそちらを先に完了してからこちらに取りかかれ
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T10:32:43.448077+09:00'
+- agent: ashigaru1
+  task_id: subtask_1591a
+  status: done
+  parent_cmd: cmd_1591
+  bloom_level: L3
+  priority: high
+  description: 'cmd_1591: agent_common.md Lazy Load化 + CLAUDE.md Step4.5変更 + instructions4本更新
+    + AC5/7補完レポート作成'
+  target_path: /home/murakami/multi-agent-shogun/shared_context/agent_common.md
+  steps: '0) advisor()呼出 1) 現状把握: CLAUDE.md のSession Start手順を全文精読(Step 4.5の現在の記述を確認)
+    2) shared_context/agent_common.md を全文精読(冒頭部分・Lazy Loadヘッダ未追記を確認) 3) instructions/shogun.md
+    / karo.md / gunshi.md / ashigaru.md の参照ブロック(''★共通ルール''行)を確認 4) 【変更①】shared_context/agent_common.md
+    冒頭(frontmatterの直後)に以下のLazy Loadヘッダを追記: ''> **Lazy Load指示**: このファイルはタスク該当時のみ Read。Session
+    Start では常時 Read しない。必要時にのみ参照せよ。'' 5) 【変更②】CLAUDE.md Step 4.5 を変更: ''全agent必須・instructions/{role}.md
+    の直後'' → ''Lazy Load — タスク該当時のみ Read (Session Start での常時注入禁止)。共通ルール(セマンティック検索/Self-Watch/Tone等)が必要なタスクの着手前のみ
+    Read。'' 6) 【変更③】instructions 4本の参照ブロックを更新: ''(Session Start Step 4.5 で Read 済)''
+    → ''(Lazy Load: タスク該当時のみ Read)'' に全置換(shogun.md / karo.md / gunshi.md / ashigaru.md)
+    7) 【AC5補完】queue/reports/2026-05-03_cmd_1588_phase1_agent_common.md を作成: cmd_1588
+    Phase1の完了報告書(内容=agent_common.md新設9セクション集約・instructions4本削減行数・commit 11b111f・CONDITIONAL_PASS理由と解消策=cmd_1591)
+    8) grep確認: CLAUDE.md Step 4.5 に ''常時注入禁止'' の文字があることを確認 / agent_common.md 冒頭に ''Lazy
+    Load指示'' があることを確認 9) git add shared_context/agent_common.md CLAUDE.md instructions/shogun.md
+    instructions/karo.md instructions/gunshi.md instructions/ashigaru.md queue/reports/2026-05-03_cmd_1588_phase1_agent_common.md
+    10) git diff --cached で意図外ファイルが含まれていないか確認 11) git commit -m ''feat: cmd_1591 agent_common.md
+    Lazy Load化・Step4.5更新・AC5補完'' && git push 12) 【AC7実証】変更後CLAUDE.md Step 4.5の行数を
+    grep-c で計測し、Session Start コンテキスト消費±0 (agent_common.md 134行が削除対象)を数値で示せ 13) advisor()呼出
+    14) inbox_write gunshi QC依頼: AC1-3/5/7/9の検証依頼・report_id=subtask_1591a 15) queue/reports/2026-05-03_cmd_1591_lazy_load_fix.md
+    を作成(完了報告書)'
+  acceptance_criteria:
+  - CLAUDE.md Step 4.5 が Lazy Load 指示に変更 (常時注入禁止の文言を含む)
+  - 'instructions 4本の参照ブロックが ''Lazy Load: タスク該当時のみ Read'' 形式に書換'
+  - agent_common.md 冒頭に Lazy Load ヘッダ追記
+  - queue/reports/2026-05-03_cmd_1588_phase1_agent_common.md 作成 (AC5補完)
+  - Session Start コンテキスト消費 ±0 tokens 実証 (agent_common.md 134行が非必読化)
+  - 軍師 QC PASS
+  - git commit + push 完了
+  - queue/reports/2026-05-03_cmd_1591_lazy_load_fix.md 報告書作成
+  notes:
+  - '殿原文: ''A (cmd_1588 案 A: agent_common.md を Lazy Load 化) — 殿2026-05-03 10:50'''
+  - AC4(shared_context/README.md更新)は既に完了済み(commit 4879ffd)→スキップ
+  - 'AC6(実機確認)は軍師QCで代替検証: Step4.5の文面確認で代替'
+  - '注意: git add . 禁止・個別ファイル指定のみ'
+  - '注意: instructions固有セクション(家老のTask Design 5問・将軍のNorth Star等)は絶対削除禁止'
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T10:45:18.025250+09:00'
