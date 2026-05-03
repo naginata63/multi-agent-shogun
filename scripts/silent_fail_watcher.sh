@@ -33,13 +33,12 @@ OFFSET_DIR="$STATE_DIR/offsets"
 mkdir -p "$DEDUP_DIR" "$OFFSET_DIR" "$(dirname "$LOG_FILE")"
 : > "$WARN_BUFFER" 2>/dev/null || true
 
-# PID 記録・二重起動防止
-if [ -f "$PID_FILE" ]; then
-    OLD_PID=$(cat "$PID_FILE" 2>/dev/null || echo "")
-    if [ -n "$OLD_PID" ] && kill -0 "$OLD_PID" 2>/dev/null; then
-        echo "[$(date)] silent_fail_watcher already running (pid=$OLD_PID)" >> "$LOG_FILE"
-        exit 0
-    fi
+# PID 記録・二重起動防止 (flock でアトミックロック)
+exec 200>"$PID_FILE"
+if ! flock -n 200; then
+    OLD_PID=$(cat "$PID_FILE" 2>/dev/null || echo "unknown")
+    echo "[$(date)] silent_fail_watcher already running (pid=$OLD_PID)" >> "$LOG_FILE"
+    exit 0
 fi
 echo $$ > "$PID_FILE"
 
@@ -50,7 +49,7 @@ log "silent_fail_watcher starting (pid=$$)"
 # ── 設定 ──
 DEDUP_WINDOW_SEC="${DEDUP_WINDOW_SEC:-60}"
 WARN_FLUSH_SEC="${WARN_FLUSH_SEC:-300}"
-ERROR_REGEX='(^|[^A-Za-z])(ERROR|Error|error|FAIL|Fail|fail|FATAL|Fatal|CRITICAL|Critical|COST|Cost|BILLING|Billing|billing)([^A-Za-z]|$)'
+ERROR_REGEX='^[0-9]{4}-[0-9]{2}-[0-9]{2}.*\[(ERROR|FATAL|CRITICAL|COST|BILLING)\]|^Traceback \(most recent call last\)'
 WARN_REGEX='(^|[^A-Za-z])(WARN|Warn|warn|WARNING|Warning|FALLBACK|Fallback|fallback)([^A-Za-z]|$)'
 # COST/BILLING は ERROR 扱い (最優先即通知)
 
@@ -65,6 +64,8 @@ is_excluded() {
         */silent_fail_watcher_stderr.log) return 0 ;;
         */ntfy_sent.log) return 0 ;;
         */logs/daily/*) return 0 ;;
+        */advisor_proxy_stdout.log) return 0 ;;
+        */advisor_proxy_stderr.log) return 0 ;;
         */genai_daily.log) return 0 ;;
         */pretool_cmd_check.log) return 0 ;;  # 殿命 2026-04-28: CHK4 は debug log・誤検出ノイズ回避 (実エラーではない)
         *)  return 1 ;;
@@ -288,7 +289,7 @@ main() {
         log "shutting down"
         [ -n "${INOTIFY_PID:-}" ] && kill "$INOTIFY_PID" 2>/dev/null || true
         flush_warn_buffer
-        rm -f "$PID_FILE" "$STATE_DIR/inotify.fifo"
+        rm -f "$STATE_DIR/inotify.fifo"
     }
     trap 'cleanup; exit 0' TERM INT
     trap 'cleanup' EXIT
