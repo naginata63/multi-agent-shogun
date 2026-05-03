@@ -679,6 +679,18 @@ else:
   fi
 fi
 
+# ── チェック11: curl --data @/tmp/ BLOCK (cmd_1612) ──
+# /tmp は再起動で消失するため、API payload を /tmp に置くことを禁止。
+# payload は queue/cmd_payloads/ に保存し、curl --data @<path> で投入せよ。
+if [[ "$TOOL_NAME" == "Bash" ]]; then
+  if echo "$COMMAND" | grep -qE 'curl.*(-d|--data|--data-raw|--data-binary)\s+@/tmp/'; then
+    echo "BLOCKED: /tmp への payload 書出し禁止 (cmd_1612 CHK11)。" >&2
+    echo "理由: /tmp は再起動で消失。queue/cmd_payloads/<cmd_XXX>.json に書け。" >&2
+    echo "例: curl --data @queue/cmd_payloads/cmd_XXXX.json http://..." >&2
+    exit 2
+  fi
+fi
+
 # ── チェック9: full_yaml_blob 参照 BLOCK (cmd_1511 再発防止) ──
 # full_yaml_blob は 3テーブルから削除済。再追加・参照を防止する。
 if [ "$TOOL_NAME" = "Write" ] || [ "$TOOL_NAME" = "Edit" ]; then

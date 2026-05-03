@@ -91,6 +91,20 @@ inbox_write の短文 (200文字以下) は直書き許可。
 - 後回し可: 1回限りの調査・特殊フィールド (full_yaml_blob 等) アクセス
 - API 障害時のフォールバック: SQLite 直読み (`sqlite3 queue/cmds.db ...`) は許可・ただし書込 fallback は禁止 (dual-path 整合崩壊)
 
+## Payload ファイル必須ルール (cmd_1612)
+
+API 投入の JSON payload は **`queue/cmd_payloads/` 配下** にファイル保存し、`curl --data @<path>` で投入せよ。
+
+**禁止パターン**:
+- `curl -d '{...}'` (JSON直書き) → CHK10 で BLOCK
+- `curl --data @/tmp/xxx.json` (/tmp 経由) → CHK11 で BLOCK
+
+**許可パターン**:
+- `curl --data @queue/cmd_payloads/cmd_XXXX.json` (推奨)
+- inbox_write の短文 (message値200文字以下) のみ直書き許可
+
+**例外**: inbox_write の短文 (200文字以下) は CHK10 の例外として直書き許可。
+
 ## 関連
 - スキーマ: `sqlite3 queue/cmds.db ".schema commands"`
 - dual-path 設計: cmd_1488 の `gunshi_design_sqlite_migration_1481.yaml`
