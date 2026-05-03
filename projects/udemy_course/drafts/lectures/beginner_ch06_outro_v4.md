@@ -32,7 +32,7 @@ style: |
 初級編 v4 — 第6章 終章 (約 25 min)<br>
 <span class="free">FREE PREVIEW</span><br><br>
 「Claude Code はじめての一歩 — AI開発の基礎を1日で習得」<br><br>
-講師: 村上誠治 (なぎなた)
+講師: なぎなた
 </div>
 
 <!--

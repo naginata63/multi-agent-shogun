@@ -31,7 +31,7 @@ style: |
 <div class="meta">
 初級編 — 第4章 (L2: Understand / L4: Analyze)<br>
 約 25 min<br><br>
-講師: 村上誠治 (なぎなた)
+講師: なぎなた
 </div>
 
 <!--
