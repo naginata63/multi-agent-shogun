@@ -29,7 +29,7 @@ SHOGUN_TO_KARO = os.path.join(BASE_DIR, "queue", "shogun_to_karo.yaml")
 DASHBOARD_MD = os.path.join(BASE_DIR, "dashboard.md")
 
 # Status values that mean "done / no longer active"
-DONE_STATUSES = {"done", "cancelled", "superseded", "done_ng"}
+DONE_STATUSES = {"done", "cancelled", "superseded", "done_ng", "skipped"}
 ACTIVE_STATUSES = {"pending", "assigned", "in_progress", "blocked"}
 _EXCLUDED_AGENTS_R5 = {"pending", "archive"}
 
@@ -216,6 +216,8 @@ def detect_action_required():
 
     # R1: cmd長期停滞 (active cmd > 24h)
     for cmd in get_active_cmds():
+        if cmd.get("status", "") in DONE_STATUSES:
+            continue
         h = age_hours(cmd.get("timestamp", ""))
         if h > 24:
             days = int(h // 24)
@@ -424,17 +426,37 @@ def detect_action_required():
                 history = json.load(_f)
         else:
             history = {}
+        # Migrate old format (str → dict with ts/cmd_id)
+        migrated = False
+        for k, v in history.items():
+            if isinstance(v, str):
+                history[k] = {"ts": v, "cmd_id": None}
+                migrated = True
+        # Auto-expire: remove entries for done/cancelled/skipped cmds (cmd_1598)
+        done_cmd_ids = set()
+        try:
+            conn = get_db()
+            rows = conn.execute("SELECT id FROM commands WHERE status IN (?, ?, ?, ?, ?)",
+                                list(DONE_STATUSES)).fetchall()
+            done_cmd_ids = {r[0] for r in rows}
+            conn.close()
+        except Exception:
+            pass
+        if done_cmd_ids:
+            before = len(history)
+            history = {k: v for k, v in history.items()
+                       if v.get("cmd_id") is None or v["cmd_id"] not in done_cmd_ids}
         current_keys = set()
         for item in deduped:
             _key_raw = f"{item.get('rule','')}|{item.get('cmd_id','')}|{(item.get('title','') or '')[:50]}"
             _key = hashlib.sha1(_key_raw.encode()).hexdigest()[:12]
             current_keys.add(_key)
             if _key in history:
-                item["first_seen_at"] = history[_key]
+                item["first_seen_at"] = history[_key]["ts"]
             else:
                 item["first_seen_at"] = now_iso
-                history[_key] = now_iso
-        # Purge resolved items
+                history[_key] = {"ts": now_iso, "cmd_id": item.get("cmd_id")}
+        # Purge resolved items (not in current detections)
         history = {k: v for k, v in history.items() if k in current_keys}
         with open(_AR_HIST_PATH, "w") as _f:
             json.dump(history, _f, indent=2)
