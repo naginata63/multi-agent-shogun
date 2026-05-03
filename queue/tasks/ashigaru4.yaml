@@ -235,3 +235,109 @@ tasks:
   - memory/ 下の archive ファイルは対象外 (歴史記録のため)
   - 主リポのmemory/MEMORY.md は家老が既に更新済み
   timestamp: '2026-05-03T11:20:21.116002+09:00'
+- task_id: subtask_1595_ch13
+  agent: ashigaru4
+  parent_cmd: cmd_1595
+  status: done
+  priority: medium
+  description: 'cmd_1595 ch13: 中級編v4 第13章「Phase 間ゲートと cmd intake ハーネス」(H3 + H8 + H9)'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch13_phase_gate.md
+  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md 第13章セクション精読 2) lecture_design_rules.md
+    精読 3) intermediate_v4_ch05_context_economics.md を形式参照 4) intermediate_v4_ch13_phase_gate.md
+    新規作成: Emotional Hook=「過去に解決した問題を、また最初からやり直していませんか？」/ mem-search pre-hookの仕組み(キーワード抽出→検索→結果注入)
+    / hit=0の場合の警告注入 / PreToolUse hookとしての登録方法 / cmd YAML schema拡張の解説 / サンプルcmdでの動作確認例
+    / 検索精度のチューニング方法 5) grep確認: 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件 6) marp HTML生成: cd projects/udemy_course/drafts/lectures
+    && npx @marp-team/marp-cli intermediate_v4_ch13_phase_gate.md -o intermediate_v4_ch13_phase_gate.html
+    --allow-local-files 7) git add ... && git commit && git push 8) advisor()呼出 9)
+    inbox_write gunshi QC依頼'
+  acceptance_criteria:
+  - intermediate_v4_ch13_phase_gate.md / .html 作成済
+  - 'speaker notes 全スライド・講師名: なぎなた のみ'
+  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
+  - スライド枚数 12-15枚
+  - git commit + push 完了
+  notes:
+  - '殿原文: 中級編 Phase 3 起票 — 殿2026-05-03 12:40'
+  - '形式参照: intermediate_v4_ch05_context_economics.md'
+  - Bloom L6 Create (curriculum準拠)
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T12:45:38.855658+09:00'
+- task_id: subtask_1602_ch17
+  agent: ashigaru4
+  parent_cmd: cmd_1602
+  status: done
+  priority: medium
+  description: 'cmd_1602 ch17: 中級編v4 第17章「総合解説 Part 1: 3階層統合の設計思想」'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch17_synthesis_part1.md
+  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md 第17章セクション精読 2) lecture_design_rules.md
+    精読 3) intermediate_v4_ch05_context_economics.md を形式参照 4) intermediate_v4_ch17_synthesis_part1.md
+    新規作成: Emotional Hook=「1-16章のパーツが1つのプロジェクトで統合される全体像」/ 現状診断:3階層別成熟度評価 / Gap分析:現状→目標の差分
+    / 1週間の実装ロードマップ / Day1の実装例 / 成功vs失敗パターン比較 5) grep確認: 戦国用語・ASCII罫線・XML・受講者操作系・本名
+    0件 6) marp HTML生成: cd projects/udemy_course/drafts/lectures && npx @marp-team/marp-cli
+    intermediate_v4_ch17_synthesis_part1.md -o intermediate_v4_ch17_synthesis_part1.html
+    --allow-local-files 7) git add ... && git commit && git push 8) advisor()呼出 9)
+    inbox_write gunshi QC依頼'
+  acceptance_criteria:
+  - intermediate_v4_ch17_synthesis_part1.md / .html 作成済
+  - 'speaker notes 全スライド・講師名: なぎなた のみ'
+  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
+  - スライド枚数 12-15枚
+  - git commit + push 完了
+  notes:
+  - '殿原文: 起票(中級編 v4 Phase 4 着手) — 殿2026-05-03 14:30'
+  - '形式参照: intermediate_v4_ch05_context_economics.md'
+  - Bloom L6 Create (curriculum準拠)
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T14:29:05.802807+09:00'
+- task_id: subtask_1604_ch05_06
+  agent: ashigaru4
+  parent_cmd: cmd_1604
+  status: assigned
+  priority: high
+  description: 'cmd_1604 ch05-06: 中級編v4 Phase2 ch05/06 を LangChain 4戦略体系で書き直し + 全5章バックアップ'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch05_context_economics.md
+  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md ch05-06セクション精読 2) lecture_design_rules.md
+    精読 3) バックアップ: mkdir -p projects/udemy_course/drafts/lectures/_archive_phase2_pre_synthesis_20260503
+    && cp projects/udemy_course/drafts/lectures/intermediate_v4_ch0{5,6,7,8,9}*.md
+    projects/udemy_course/drafts/lectures/_archive_phase2_pre_synthesis_20260503/
+    4) ch05書き直し(コンテキストウィンドウ経済学 → LangChain Write戦略/Goldilocks zone/Context Rot統計・自プロ実例1-2個+注釈)
+    5) ch06書き直し(永続コンテキスト層 → LangChain Select戦略/RAG/Supervisor Pattern・自プロ実例1-2個+注釈)
+    6) marp HTML生成(ch05/06) 7) grep確認: 戦国用語/ASCII罫線/XML/受講者操作系/本名 0件 8) git add +
+    commit + push 9) advisor()呼出 10) inbox_write gunshi QC依頼'
+  acceptance_criteria:
+  - ch05/06 .md/.html 書き直し完了
+  - _archive_phase2_pre_synthesis_20260503/ に ch05-09 全5ファイルバックアップ済み
+  - 章タイトルに Write/Select/Compress/Isolate いずれか含む
+  - 業界用語(Context Rot/Goldilocks zone/RAG/Supervisor Pattern/LangChain)各章に含む
+  - 自プロ独自実装は実例1-2個・注釈『本講座サンプル実装』付き
+  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
+  - speaker notes 全スライド・なぎなた表記のみ
+  - git commit + push 完了
+  notes:
+  - '殿原文: する (Phase 2 修正・LangChain 4 戦略で書き直し許可) — 殿2026-05-03 14:50'
+  - 'LangChain 4戦略: Write/Select/Compress/Isolate'
+  - 'バックアップ先: lectures/_archive_phase2_pre_synthesis_20260503/'
+  - '形式参照: 既存 ch05 の構成 (ただし内容を業界体系に刷新)'
+  - ch07-09 は別足軽(subtask_1604_ch07_09)が並行担当
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T14:41:39.135883+09:00'
+- task_id: subtask_1604_ch05_06_patch
+  agent: ashigaru4
+  parent_cmd: cmd_1604
+  status: assigned
+  priority: medium
+  description: 'cmd_1604 補完: ch05/06 に独自注釈追加 + Context Rot grep確認 + check.sh実行'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch05_context_economics.md
+  steps: 1) ch05 自プロ独自実装コード例スライドに『※本講座サンプル実装』注釈を1-2箇所追加 2) ch06 同様に注釈追加 3) grep -r
+    'Context Rot' lectures/intermediate_v4_ch0{5,6}*.md で業界用語含有確認 4) marp HTML再生成(ch05/06)
+    5) bash scripts/lecture-speaker-notes-grep-check.sh で check.sh実行・PASS確認 6) git
+    add + commit + push 7) inbox_write karo 完了報告
+  acceptance_criteria:
+  - ch05/ch06 独自注釈 1-2箇所追加済み
+  - Context Rot 業界用語含有確認
+  - check.sh PASS
+  - git commit + push完了
+  notes:
+  - 'gunshi MEDIUM: AC4/5/8/10 NOT_VERIFIED (独自注釈/Context Rot/check.sh/.md report)'
+  - 軽微補完のみ・大幅再作成は不要
+  timestamp: '2026-05-03T15:01:02.688884+09:00'

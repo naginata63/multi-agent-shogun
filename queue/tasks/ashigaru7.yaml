@@ -36,7 +36,7 @@ tasks:
   timestamp: '2026-05-03T09:39:17.517950+09:00'
 - agent: ashigaru7
   task_id: subtask_1589_ch04
-  status: assigned
+  status: done
   parent_cmd: cmd_1589
   bloom_level: L3
   priority: high
@@ -56,3 +56,89 @@ tasks:
   - '殿原文: ''adviderよびだしっていCLIだけでいいそれが標準だし — 殿2026-05-03 10:35'''
   - advisor()必須(作業前・完了前)
   timestamp: '2026-05-03T10:31:23.472556+09:00'
+- task_id: subtask_1595_ch15
+  agent: ashigaru7
+  parent_cmd: cmd_1595
+  status: done
+  priority: medium
+  description: 'cmd_1595 ch15: 中級編v4 第15章「残り 7 ハーネスカタログと選定判断」'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch15_harness_catalog.md
+  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md 第15章セクション精読 2) lecture_design_rules.md
+    精読 3) intermediate_v4_ch05_context_economics.md を形式参照 4) intermediate_v4_ch15_harness_catalog.md
+    新規作成: Emotional Hook=「12種類の道具を知って、全部欲しくなりましたか？この章ではあなたのプロジェクトに必要な3つだけを選ぶ方法を解説します」/
+    12ハーネスの適用条件・コスト・効果の比較表 / 失敗記録との照らし合わせ方法 / 選定の3ステップ(分類→優先順位付け→必要最小限) / 選定表の書き方
+    / 実装ロードマップの作成方法 / よくある選定ミス3選 5) grep確認: 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件 6) marp
+    HTML生成: cd projects/udemy_course/drafts/lectures && npx @marp-team/marp-cli intermediate_v4_ch15_harness_catalog.md
+    -o intermediate_v4_ch15_harness_catalog.html --allow-local-files 7) git add ...
+    && git commit && git push 8) advisor()呼出 9) inbox_write gunshi QC依頼'
+  acceptance_criteria:
+  - intermediate_v4_ch15_harness_catalog.md / .html 作成済
+  - 'speaker notes 全スライド・講師名: なぎなた のみ'
+  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
+  - スライド枚数 12-15枚
+  - 12ハーネス比較表 掲載
+  - git commit + push 完了
+  notes:
+  - '殿原文: 中級編 Phase 3 起票 — 殿2026-05-03 12:40'
+  - '形式参照: intermediate_v4_ch05_context_economics.md'
+  - Bloom L4 Analyze + L5 Evaluate (curriculum準拠)
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T12:45:40.076768+09:00'
+- task_id: subtask_1602_appendix_ac
+  agent: ashigaru7
+  parent_cmd: cmd_1602
+  status: done
+  priority: medium
+  description: 'cmd_1602 附録A+C: 中級編v4 附録A「差別化戦略」+ 附録C「トラブルシュート集」(各20min・合計40min)'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_appendix_a_differentiation.md
+  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md 附録A・附録Cセクション精読 2) lecture_design_rules.md
+    精読 3) intermediate_v4_ch05_context_economics.md を形式参照 4) intermediate_v4_appendix_a_differentiation.md
+    新規作成: 「3階層統合は市場ゼロ」調査根拠(60件分析データ) / 18 hook実装カタログ / 受講生が自分のニッチを見つける3ステップ 5) marp
+    HTML生成: appendix_a_differentiation 6) 続いて intermediate_v4_appendix_c_troubleshoot.md
+    新規作成: Claude Code設定ファイル競合 / hookが発火しない5大原因 / claude-mem書き込み失敗時の復旧 / cost爆発の防衛策
+    7) marp HTML生成: appendix_c_troubleshoot 8) grep確認: 両ファイルとも戦国用語・ASCII罫線・XML・受講者操作系・本名
+    0件 9) git add ... && git commit && git push 10) advisor()呼出 11) inbox_write gunshi
+    QC依頼(両ファイルまとめて)'
+  acceptance_criteria:
+  - intermediate_v4_appendix_a_differentiation.md / .html 作成済
+  - intermediate_v4_appendix_c_troubleshoot.md / .html 作成済
+  - 'speaker notes 全スライド・講師名: なぎなた のみ'
+  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
+  - 各8-12枚 (附録は短め可)
+  - git commit + push 完了
+  notes:
+  - '殿原文: 起票(中級編 v4 Phase 4 着手) — 殿2026-05-03 14:30'
+  - 附録A(差別化戦略20min)+附録C(トラブルシュート20min)を1セッションで作成
+  - '形式参照: intermediate_v4_ch05_context_economics.md'
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T14:29:07.579737+09:00'
+- task_id: subtask_1604_ch07_09
+  agent: ashigaru7
+  parent_cmd: cmd_1604
+  status: done
+  priority: high
+  description: 'cmd_1604 ch07-09: 中級編v4 Phase2 ch07/08/09 を LangChain 4戦略体系で書き直し'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch07_restart_resilience.md
+  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md ch07-09セクション精読 2) lecture_design_rules.md
+    精読 3) バックアップ確認: ls lectures/_archive_phase2_pre_synthesis_20260503/ (ash4が作成済みのはず)
+    4) ch07書き直し(セッション再起動耐性 → LangChain Compress戦略/handoff設計/PreCompact hook・自プロ実例1-2個+注釈)
+    5) ch08書き直し(コンテキスト運用ベストプラクティス → LangChain Isolate戦略/Context Window Budget/トレードオフ分析・自プロ実例1-2個+注釈)
+    6) ch09書き直し(コンテキスト劣化検出と自動更新 → Context Rot統計/Chroma/劣化検出パターン・自プロ実例1-2個+注釈) 7) marp
+    HTML生成(ch07/08/09) 8) grep確認: 戦国用語/ASCII罫線/XML/受講者操作系/本名 0件 9) git add + commit
+    + push 10) advisor()呼出 11) inbox_write gunshi QC依頼'
+  acceptance_criteria:
+  - ch07/08/09 .md/.html 書き直し完了
+  - 章タイトルに Write/Select/Compress/Isolate いずれか含む
+  - 業界用語(Context Rot/LangChain/Compress/Isolate/Chroma)各章に含む
+  - 自プロ独自実装は実例1-2個・注釈『本講座サンプル実装』付き
+  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
+  - speaker notes 全スライド・なぎなた表記のみ
+  - git commit + push 完了
+  notes:
+  - '殿原文: する (Phase 2 修正・LangChain 4 戦略で書き直し許可) — 殿2026-05-03 14:50'
+  - バックアップは ash4(subtask_1604_ch05_06)が担当済みのはず
+  - '形式参照: 既存 ch07 の構成 (ただし内容を業界体系に刷新)'
+  - ch05-06 は ash4(subtask_1604_ch05_06)が並行担当
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T14:44:18.592004+09:00'
+  completed_at: '2026-05-03T15:01:55+09:00'

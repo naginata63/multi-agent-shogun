@@ -176,3 +176,155 @@ tasks:
   - '注意: instructions固有セクション(家老のTask Design 5問・将軍のNorth Star等)は絶対削除禁止'
   - advisor()必須(作業前・完了前)
   timestamp: '2026-05-03T10:45:18.025250+09:00'
+- agent: ashigaru1
+  task_id: subtask_1595_ch10
+  status: done
+  parent_cmd: cmd_1595
+  bloom_level: L3
+  priority: medium
+  description: 'cmd_1595 ch10: 中級編v4 第10章「ハーネスとは」— Claude Code lifecycle 7イベント'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch10_harness_lifecycle.md
+  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md 第10章セクション精読 2) lecture_design_rules.md
+    精読 3) intermediate_v4_ch05_context_economics.md を形式参照 4) intermediate_v4_ch10_harness_lifecycle.md
+    新規作成: Emotional Hook=「AIに監視カメラを付ける」/ 7イベントflow図解(SessionStart→PreToolUse→PostToolUse→...→Stop)
+    / 各イベント用途 / 最小hookの構造 / settings.json登録方法 / hook発火確認方法 / 18本hookカタログ概観 5) grep確認:
+    戦国用語・ASCII罫線・XML・受講者操作系・本名 全0件 6) marp HTML生成: cd projects/udemy_course/drafts/lectures
+    && npx @marp-team/marp-cli intermediate_v4_ch10_harness_lifecycle.md -o intermediate_v4_ch10_harness_lifecycle.html
+    --allow-local-files 7) git add ... && git commit && git push 8) advisor()呼出 9)
+    inbox_write gunshi QC依頼'
+  acceptance_criteria:
+  - intermediate_v4_ch10_harness_lifecycle.md / .html 作成済
+  - 'speaker notes 全スライド・講師名: なぎなた のみ'
+  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
+  - スライド枚数 12-15枚
+  - git commit + push 完了
+  notes:
+  - '殿原文: 中級編 Phase 3 起票 — 殿2026-05-03 12:40'
+  - '形式参照: intermediate_v4_ch05_context_economics.md'
+  - Bloom L2 Understand + L3 Apply (curriculum準拠)
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T12:42:12.727623+09:00'
+- task_id: subtask_1598a
+  agent: ashigaru1
+  parent_cmd: cmd_1598
+  status: assigned
+  priority: medium
+  description: 'cmd_1598: dashboard R1ルール修正 + 既存残骸 first_seen_at の自動掃除'
+  target_path: scripts/dashboard/server.py
+  steps: '0) advisor()呼出 1) scripts/dashboard/server.py を精読 — R1 detection rule (stuck
+    cmd検出ロジック) の実装箇所を特定 2) R1ルール修正: status=done/cancelled/skipped のcmdをstuck検出から除外
+    (フィルタ条件追加) 3) first_seen_at history 自動expire実装: cmd status が done/cancelled/skipped
+    になった時点で first_seen_at エントリを削除 4) dashboard サービス再起動テスト: 修正後に dashboard を再起動し、完了済みcmd
+    (例: cmd_1574) の R1 残骸が消えることを確認 5) 既存 active cmd (24h超) の停滞検出は引き続き動作することを確認 6)
+    git add scripts/dashboard/server.py && git commit -m ''fix: cmd_1598 R1ルールdone/cancelled除外+first_seen_at自動expire''
+    && git push origin main 7) advisor()呼出 8) inbox_write gunshi QC依頼 9) queue/reports/2026-05-03_cmd_1598_r1_done_filter_fix.md
+    作成'
+  acceptance_criteria:
+  - scripts/dashboard/server.py の R1 ルールに status=done/cancelled/skipped 除外を確実化
+  - first_seen_at history の自動 expire 実装 (status=done で entry 削除)
+  - dashboard 再起動後 cmd_1574 R1 残骸が消える
+  - 既存 active cmd (24h 超) の停滞検出は引き続き動作
+  - 軍師 QC PASS
+  - git commit + push 完了
+  - queue/reports/2026-05-03_cmd_1598_r1_done_filter_fix.md 報告書作成
+  notes:
+  - '殿原文: 「だす (cron_stuck_check 誤検知の根本修正 cmd 起票許可) — 殿2026-05-03 13:10」'
+  - R1 rule は server.py の dashboard detection logic — まず精読して実装箇所特定
+  - dashboard の再起動は supervisorctl or systemctl で行う可能性あり — server.py の起動方法確認
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T13:09:10.316913+09:00'
+- task_id: subtask_1600a
+  agent: ashigaru1
+  parent_cmd: cmd_1600
+  status: done
+  priority: high
+  description: 'cmd_1600: subtitle_speaker_qc.py の detect_speaker_pil_ocr() を v2ロジックで本番更新・全114行再判定'
+  target_path: projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py
+  steps: '0) advisor()呼出 1) projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py
+    を全文精読 — detect_speaker_pil_ocr() の現行実装 (v1ロジック) を把握 2) work/ 配下に test_pil_ocr_bbox_v2
+    または test_pil_ocr_few.py があれば精読して v2ロジックを確認 (y_min >= h_img*0.5 + bh >= h_img*0.08
+    + margin=0) 3) detect_speaker_pil_ocr() を v2ロジックに更新: bbox フィルタ条件を y_min >= h_img*0.5
+    (下半分) かつ bh >= h_img*0.08 (フォント大) かつ margin=0 に変更 4) ★注意★ cmd_1599 (ash6作業放棄分)
+    の未コミット変更が残っている可能性あり → git -C projects/dozle_kirinuki status で確認・不要な未コミット変更は git
+    -C projects/dozle_kirinuki checkout -- scripts/subtitle_speaker_qc.py でリセット後に
+    v2 変更を適用 5) tono_clip_base.mp4 全 114 行で動作検証: python3 projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py
+    --method pil_ocr <raw.json> 6) nekooji 偏重 (旧 62/114=54%) が解消されていること確認 7) 旧 vs
+    新 結果比較表を記録 8) git -C projects/dozle_kirinuki add scripts/subtitle_speaker_qc.py
+    && git -C projects/dozle_kirinuki commit -m ''fix: cmd_1600 detect_speaker_pil_ocr
+    v2ロジック本番反映'' && git -C projects/dozle_kirinuki push origin main 9) advisor()呼出
+    10) inbox_write gunshi QC依頼 11) queue/reports/2026-05-03_cmd_1600_pil_ocr_v2_final.md
+    作成'
+  acceptance_criteria:
+  - subtitle_speaker_qc.py の detect_speaker_pil_ocr() を v2ロジック (y_min >= h_img*0.5
+    + bh >= h_img*0.08 + margin=0) に更新
+  - tono_clip_base.mp4 全 114 行で動作検証
+  - nekooji 偏重 (旧 62/114=54%) 解消
+  - 旧 vs 新 結果比較表を報告書記載
+  - 軍師 QC PASS
+  - git commit + push 完了
+  - queue/reports/2026-05-03_cmd_1600_pil_ocr_v2_final.md 報告書作成
+  notes:
+  - '殿原文: 「完了よ 1-04は字幕なし (test_pil_ocr_bbox_v2 検証で殿OK・本番反映許可) — 殿2026-05-03 13:50」'
+  - 'cmd_1599 ash6作業放棄分: git -C projects/dozle_kirinuki status で未コミット変更確認し、不要なら checkout
+    -- でリセット'
+  - 'v2ロジック: work/ 配下の test_pil_ocr_bbox_v2.py or test_pil_ocr_few.py を参照'
+  - git push は dozle_kirinuki submodule (git -C projects/dozle_kirinuki push)・parent
+    repo push は家老がやる
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T14:05:46.130772+09:00'
+- task_id: subtask_1603_ch10_12
+  agent: ashigaru1
+  parent_cmd: cmd_1603
+  status: assigned
+  priority: high
+  description: 'cmd_1603 ch10-12: 中級編v4 Phase3 ch10/11/12 を業界体系で書き直し + 全6章バックアップ'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch10_harness_lifecycle.md
+  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md ch10-12セクション精読 2) lecture_design_rules.md
+    精読 3) intermediate_v4_ch05_context_economics.md 形式参照 4) バックアップ: mkdir -p projects/udemy_course/drafts/lectures/_archive_phase3_pre_synthesis_20260503
+    && cp projects/udemy_course/drafts/lectures/intermediate_v4_ch1{0,1,2,3,4,5}*.md
+    projects/udemy_course/drafts/lectures/_archive_phase3_pre_synthesis_20260503/
+    5) ch10書き直し(タイトル:「Agent Harness 入門: AI Control Plane の設計思想」・H番号除去・業界用語: Agent
+    Harness/Control Plane/7イベントflow・自プロ実例1-2個のみ+注釈『本講座サンプル実装』) 6) ch11書き直し(タイトル:「Supervisor
+    Pattern: 完了検証 Gate の実装」・H番号除去・業界用語: Supervisor Pattern/Phase-Gating/PostToolUse・自プロ実例1-2個のみ)
+    7) ch12書き直し(タイトル:「Guardrails 設計: Silent Fail 検出パターン」・H番号除去・業界用語: Guardrails/Bounded
+    Deterministic Workflows/inotifywait・自プロ実例1-2個のみ) 8) marp HTML生成(ch10/11/12各々)
+    9) grep確認: 戦国用語/ASCII罫線/XML/受講者操作系/本名 0件 10) git add + commit + push 11) advisor()呼出
+    12) inbox_write gunshi QC依頼'
+  acceptance_criteria:
+  - ch10/11/12 .md/.html 書き直し完了
+  - _archive_phase3_pre_synthesis_20260503/ に ch10-15 全6ファイルバックアップ済み
+  - 章タイトルに H1〜H18 等の独自番号ゼロ件
+  - 業界用語(Agent Harness/Control Plane/Guardrails/PreToolUse/PostToolUse/Phase-Gating/Supervisor
+    Pattern)各章に含む
+  - 自プロ独自実装は実例1-2個・注釈『本講座サンプル実装』付き
+  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
+  - speaker notes 全スライド・なぎなた表記のみ
+  - git commit + push 完了
+  notes:
+  - '殿原文: そうだな バックアップしてからかきかえよう (中級編 v4 Phase 3 ch10-15 を業界体系で書き直し) — 殿2026-05-03
+    14:35'
+  - 'バックアップ先: lectures/_archive_phase3_pre_synthesis_20260503/'
+  - '形式参照: intermediate_v4_ch05_context_economics.md'
+  - ch13-15 は ash2(subtask_1603_ch13_15)が並行担当
+  - advisor()必須(作業前・完了前)
+  timestamp: '2026-05-03T14:37:04.627412+09:00'
+- task_id: subtask_1603_ch11_12_patch
+  agent: ashigaru1
+  parent_cmd: cmd_1603
+  status: done
+  priority: medium
+  description: 'cmd_1603 補完: ch11/ch12 に『本講座サンプル実装』注釈追加 + check.sh実行 + .md報告書確認'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch11_completion_gate.md
+  steps: 1) intermediate_v4_ch11 を読み、自プロ独自実装コード例スライドに『※本講座サンプル実装』注釈を1-2箇所追加 2) 同様に
+    intermediate_v4_ch12 も注釈追加 3) marp HTML再生成(ch11/ch12) 4) bash scripts/lecture-speaker-notes-grep-check.sh
+    projects/udemy_course/drafts/lectures/intermediate_v4_ch1{0,1,2}*.md で check.sh実行・PASS確認
+    5) queue/reports/2026-05-03_cmd_1603_phase3_rewrite_ch10_12.md が存在しなければ簡易報告書作成
+    6) git add + commit + push 7) inbox_write karo 完了報告
+  acceptance_criteria:
+  - ch11/ch12 に独自実装注釈 1-2箇所追加済み
+  - check.sh PASS確認
+  - git commit + push完了
+  notes:
+  - 'gunshi LOW指摘: AC5 独自注釈0件・AC8 check.sh未確認・AC10 .md report未確認'
+  - 軽微補完のみ・ch10-12全体再作成ではない
+  timestamp: '2026-05-03T14:54:24.332992+09:00'
