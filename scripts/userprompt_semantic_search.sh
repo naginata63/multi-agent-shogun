@@ -26,7 +26,7 @@ SEARCH_PY="${SCRIPT_DIR}/semantic_search.py"
 
 # D2 fix: search all sources (no --source filter, avoids faiss reconstruct error)
 # D1 fix: timeout 30s (embedding model load takes ~10s)
-RESULTS=$(source ~/.bashrc && timeout 30 python3 "$SEARCH_PY" query "$PROMPT" --top 5 --json 2>/dev/null || true)
+RESULTS=$(source ~/.bashrc 2>/dev/null; timeout 30 python3 "$SEARCH_PY" query "$PROMPT" --top 5 --json 2>/dev/null || true)
 
 [[ -z "$RESULTS" || "$RESULTS" == "[]" ]] && exit 0
 
