@@ -154,6 +154,8 @@ PostToolUseイベントで **verify_runner** が発火する仕組み:
 }
 ```
 
+> ※本講座サンプル実装 — 実際のプロジェクトではスクリプトパスやタイムアウト値を調整してください
+
 **実行フロー**:
 1. エージェントがtask YAMLを `Write`/`Edit` する
 2. **PostToolUse hook** が発火
