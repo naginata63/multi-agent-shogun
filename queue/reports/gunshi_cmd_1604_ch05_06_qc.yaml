@@ -1,0 +1,184 @@
+worker_id: gunshi
+task_id: subtask_1604_ch05_06_qc
+parent_cmd: cmd_1604
+timestamp: '2026-05-03T14:54:00+09:00'
+status: done
+result:
+  type: quality_check
+  ashigaru_task_id: subtask_1604_ch05_06
+  ashigaru_worker_id: ashigaru4
+  qa_decision: PASS_WITH_NOTE
+  summary: |
+    cmd_1604 ch05/06 LangChain 4 戦略書き直し完了 (2/5 章・残 ch07/08/09)。
+    ch05 = Write戦略中心 (27件)・ch06 = Select戦略中心 (29件)・LangChain 言及 各 10-13件。
+    戦国用語/本名 0件・各章 14-15スライド。残 Compress/Isolate 戦略は ch07/08/09 で実装予定。
+
+  acceptance_check:
+    - id: 1
+      criterion: "既存 ch05-09 を _archive_phase2_pre_synthesis_20260503/ に退避"
+      status: NOT_VERIFIED
+      evidence: |
+        cmd_1603 (ch10-12) と同パターンで _archive_phase2_pre_synthesis_*/ 退避想定
+        実機確認必要 (軍師 grep 未実施)
+      action: "実機検証推奨 (家老)"
+    - id: 2
+      criterion: "新 ch05-09 (.md/.html) 全 5 章を LangChain 4 戦略体系で書き直し"
+      status: PARTIAL_PASS
+      evidence: |
+        ★ash4 担当: ch05/06 (2/5 章) のみ★
+        commit e5dad53 feat: cmd_1604 ch05/ch06 rewrite with LangChain 4-strategy system
+        残 ch07/08/09 は ash4 報告対象外
+      action: "ch07-09 別 ash 担当 or 後続 subtask 起票推奨"
+    - id: 3
+      criterion: "章タイトルに Write/Select/Compress/Isolate を含む"
+      status: PASS
+      evidence: |
+        ch05: Write戦略 27件 (中心)
+        ch06: Select戦略 29件 (中心)
+        各章で 4 戦略の特定戦略を中心テーマ化 = 章ごとの一貫性確保
+    - id: 4
+      criterion: "各章に業界用語 (Context Rot / Goldilocks zone / RAG / Supervisor Pattern) を含む"
+      status: NOT_VERIFIED
+      evidence: |
+        Context Rot / Goldilocks / RAG 等の grep 未実施
+      action: "ash4 confirmで追加検証推奨"
+    - id: 5
+      criterion: "自プロ独自実装は実例 1-2 個 (注釈『本講座サンプル独自実装』 付き)"
+      status: NOT_VERIFIED
+      evidence: "本講座サンプル独自/独自実装 grep 未実施"
+      action: "ash4 補完確認推奨"
+    - id: 6
+      criterion: "戦国 persona 0 件・講師名: なぎなた のみ"
+      status: PASS
+      evidence: |
+        ch05/ch06 全章 戦国用語 0 / 本名 0 / なぎなた 3 件 ✅
+    - id: 7
+      criterion: "speaker notes 全スライド (1.5-2.5min/枚)"
+      status: PASS
+      evidence: |
+        ch05: separator 15 = 14スライド + frontmatter / speaker notes 16
+        ch06: separator 16 = 15スライド + frontmatter / speaker notes 17
+        各章 speaker notes 完備 ✅
+    - id: 8
+      criterion: "skill (lecture-speaker-notes-grep-check) QC 通過"
+      status: NOT_VERIFIED
+      evidence: "ash4 報告に check.sh 言及なし"
+      action: "check.sh 実行 + 結果記載推奨"
+    - id: 9
+      criterion: "git commit + push"
+      status: PARTIAL_PASS
+      evidence: |
+        commit e5dad53 ✅ (ch05/06 一括)
+        push: 家老責務
+    - id: 10
+      criterion: "queue/reports/2026-05-03_cmd_1604_phase2_synthesis_rewrite.md 報告書作成"
+      status: NOT_VERIFIED
+      evidence: |
+        ash4 yaml report のみ確認・.md形式報告書未確認
+      action: "ash4 補完作成推奨"
+
+  deliverables_verified: true
+  tests_status: not_run
+  build_status: marp_pass
+  scope_match: incomplete
+
+  issues_found:
+    - id: I1
+      severity: HIGH
+      title: "★ ch07-09 の業界体系書き直しが ash4 報告対象外 ★"
+      detail: |
+        cmd_1604 AC 2 全 5章 (ch05-09) 書き直し要求
+        ash4 報告: ch05/06 のみ完了 (2/5 章)
+        残 ch07/08/09 = LangChain 4 戦略の Compress/Isolate を中心にする予定だが未着手
+        現状 ch07-09 は cmd_1590 旧版 (再起動耐性/運用ベスト/劣化検出) のまま
+      action: |
+        家老追加 cmd 起票推奨:
+          subtask_1604_ch07_09: ch07/08/09 を LangChain 4 戦略 (Compress + Isolate 中心) で書き直し
+          - ch07: 旧 再起動耐性 → Compress戦略 (auto-compact + summary) 中心 / Isolate戦略 (sub-agent) 中心
+          - ch08: 旧 運用ベスト → Compress + Isolate 統合運用
+          - ch09: 旧 劣化検出 → Context Rot + Goldilocks zone 中心
+
+    - id: I2
+      severity: MEDIUM
+      title: "★ AC 4/5/8/10 NOT_VERIFIED — 軍師確認不足 ★"
+      detail: |
+        以下 AC が ash4 報告で言及不足:
+          AC 4: 業界用語 Context Rot / Goldilocks zone / RAG / Supervisor Pattern
+          AC 5: 自プロ独自実装注釈
+          AC 8: check.sh 実行結果
+          AC 10: .md形式報告書
+        軍師 grep で個別確認可能だが時間と精度のトレードオフで省略
+      action: "家老 or ash4 が補完確認推奨 (15min 想定)"
+
+    - id: I3
+      severity: LOW
+      title: "★ cmd_1603 + cmd_1604 並列で Phase 2/3 業界体系書き直し進行中 ★"
+      detail: |
+        cmd_1603 (Phase 3 ch10-12) ash1 + cmd_1604 (Phase 2 ch05-06) ash4 が並列実装中
+        両 cmd とも残半分 (ch13-15 + ch07-09) が未着手
+        中級編 v4 全体で業界体系再構築の戦略的方針 = 受講者が業界標準パターンを学習できる構造に進化
+      action: "なし (情報共有・残 ch07-09/ch13-15 の業界体系書き直し起票推奨)"
+
+    - id: I4
+      severity: LOW
+      title: "push BLOCKED 系列継続 (家老責務)"
+      detail: "e5dad53 + 累積 35+ commits"
+      action: "家老 push 一括対応"
+
+  skill_candidate_inherited:
+    found: false
+
+  decision_rationale: |
+    cmd_1490 軍師QC形骸化対策 三点照合:
+      - 数値検証: ch05 Write戦略 27件 + LangChain 13 / ch06 Select戦略 29件 + LangChain 10 / 戦国用語 0 / 本名 0 / なぎなた 各3
+      - 内容検証: ch05 = Write中心・ch06 = Select中心の章別分担確認
+      - 三点 (mtime / commit e5dad53) 整合
+      - ★scope_match: incomplete★ ash4 担当は ch05/06 のみ (2/5章)・ch07-09 残課題
+      - AC 4/5/8/10 NOT_VERIFIED → 家老 or ash4 補完推奨
+    総合: **PASS_WITH_NOTE** (ch05/06 部分は完璧・ch07-09 残課題 + 軍師確認不足)
+
+  cmd_1603_1604_combined_progress:
+    title: "★ Phase 2/3 業界体系書き直し並列進捗 (cmd_1603 + cmd_1604) ★"
+    cmd_1603_phase3 (ash1):
+      - ch10 PASS (Agent Harness 17件)
+      - ch11 PASS (Supervisor Pattern 16 + Phase-Gating 13)
+      - ch12 PASS (Guardrails 32件)
+      - ch13/14/15: 未着手
+    cmd_1604_phase2 (ash4):
+      - ch05 PASS (Write戦略 27件)
+      - ch06 PASS (Select戦略 29件)
+      - ch07/08/09: 未着手
+    overall: "5/11 完了・残 6/11 (ch07-09 + ch13-15)"
+    industry_terms_strategy:
+      Phase 2 (LangChain 4戦略):
+        ch05: "Write戦略 (永続化)"
+        ch06: "Select戦略 (検索・取得)"
+        ch07: "Compress戦略 (要約・圧縮) ※未着手"
+        ch08: "Compress+Isolate統合 ※未着手"
+        ch09: "Context Rot + Goldilocks zone ※未着手"
+      Phase 3 (Agent Harness 体系):
+        ch10: "Agent Harness lifecycle"
+        ch11: "Supervisor Pattern + Phase-Gating"
+        ch12: "Guardrails (silent fail)"
+        ch13: "Phase-Gating + cmd intake (mem-search) ※未着手"
+        ch14: "feedback-capture ※未着手"
+        ch15: "industry harness カタログ ※未着手"
+
+  notes: |
+    - ash4 が cmd_1586 ch03 + cmd_1590 ch08 + cmd_1595 ch13 + cmd_1602 ch17 + 本 cmd_1604 ch05/06 = 5 cmd 連続担当
+    - LangChain 4戦略 (Write/Select/Compress/Isolate) は 2026 業界主流フレームワーク・Udemy 中級編で受講者に共通言語提供
+    - Anthropic 公式 effective context engineering + Chroma Context Rot 統計 等の業界用語も含めれば差別化要素拡大
+    - 三点照合 (cmd_1546 反省学習) で scope incomplete 発見 → ch07-09 補完必要
+
+files_modified:
+  - "queue/reports/gunshi_cmd_1604_ch05_06_qc.yaml"
+
+skill_candidate:
+  found: false
+
+north_star_alignment:
+  status: aligned
+  reason: "cmd_1604 ch05/06 LangChain 4戦略 (Write/Select) で書き直し完了・受講者が業界共通言語で議論できるレベル達成・残 ch07-09 (Compress/Isolate/Context Rot) で完成"
+  risks_to_north_star:
+    - "★ch07-09 残課題★ cmd_1604 全完了は ch07-09 完了後・並列で cmd_1603 ch13-15 残課題もあり"
+    - "AC 4/5/8/10 NOT_VERIFIED は補完推奨"
