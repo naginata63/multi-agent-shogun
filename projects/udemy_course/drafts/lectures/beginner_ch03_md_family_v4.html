@@ -91,7 +91,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <p><img class="emoji" draggable="false" alt="📝" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/1f4dd.svg" data-marp-twemoji=""/> まず名前だけ覚えておきましょう。後ほど詳しく解説します</p>
 </blockquote>
 <blockquote>
-<p><strong>結論</strong>: <strong>必須は CLAUDE.md だけ</strong>。残り5つは「あったら便利」な拡張機能です</p>
+<p><strong>結論</strong>: <strong>必須は CLAUDE.md だけ</strong>。残り5つは Step 2・Step 3 で段階的に導入する拡張機能です</p>
 </blockquote>
 <table>
 <thead>
@@ -111,7 +111,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </tr>
 <tr>
 <td><strong>skills</strong></td>
-<td>複数ステップの作業を自動化する仕組み</td>
+<td>複数ステップの作業を自動化する仕組み（例：テスト→ビルド→デプロイを一発で）</td>
 </tr>
 <tr>
 <td><strong>imports</strong></td>
@@ -205,7 +205,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <h1 id="md%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E7%BE%A4%E3%81%AE%E5%85%A8%E4%BD%93%E5%83%8F">.mdファイル群の全体像</h1>
 <blockquote>
 <p><img class="emoji" draggable="false" alt="🪞" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/1fa9e.svg" data-marp-twemoji=""/> 「CLAUDE.md以外にも、AIが読む説明書がある？」</p>
-<p><strong>結論</strong>: 必須は CLAUDE.md だけ。残り5つは「あったら便利」です</p>
+<p><strong>結論</strong>: 必須は CLAUDE.md だけ。残り5つは Step 2 以降で段階的に導入する拡張機能です</p>
 </blockquote>
 <table>
 <thead>
@@ -343,7 +343,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 ;" data-marpit-pagination-total="17" data-size="16:9">
 <h1 id="agentsmd--%E3%82%A8%E3%83%BC%E3%82%B8%E3%82%A7%E3%83%B3%E3%83%88%E3%81%AE%E8%A1%8C%E5%8B%95%E6%8C%87%E9%87%9D">agents.md — エージェントの行動指針</h1>
 <p><strong>1つのプロジェクトで、AIの「役割」を切り替える仕組み</strong>:</p>
-<p>同じチャット画面で、呼び出し方によってAIの動きが変わります:</p>
+<p>イメージ: 1つの会社に「営業部」「開発部」「品質管理部」があるように、同じAIに役割別のマニュアルを用意します。呼び出し方で切り替わります:</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>/agent frontend    → 「フロントエンド専門」として回答
 /agent backend     → 「バックエンド専門」として回答
 /agent reviewer    → 「レビュー専門」として回答
@@ -489,34 +489,19 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
 ;" data-marpit-pagination-total="17" data-size="16:9">
-<h1 id="skills--%E5%86%8D%E5%88%A9%E7%94%A8%E5%8F%AF%E8%83%BD%E3%81%AA%E3%83%AF%E3%83%BC%E3%82%AF%E3%83%95%E3%83%AD%E3%83%BC">skills — 再利用可能なワークフロー</h1>
+<h1 id="skills-%E3%81%AE%E5%85%B7%E4%BD%93%E4%BE%8B--deploymd">skills の具体例 — deploy.md</h1>
 <p><strong>複数ステップの作業を1コマンドにまとめる仕組み</strong>:</p>
-<table>
-<thead>
-<tr>
-<th>特徴</th>
-<th>commands との違い</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>複数ステップ</strong> を定義可能</td>
-<td>commandsは1回の指示</td>
-</tr>
-<tr>
-<td><strong>条件分岐</strong> を含める</td>
-<td>commandsは固定内容</td>
-</tr>
-<tr>
-<td><strong>ワークフロー全体</strong> を自動化</td>
-<td>commandsは単発操作</td>
-</tr>
-</tbody>
-</table>
-<p>配置場所: <code>.claude/skills/</code></p>
-<blockquote>
-<p>commands = 定型文 / skills = 定型ワークフロー</p>
-</blockquote>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-markdown"><span class="hljs-bullet">1.</span> テストを実行する
+<span class="hljs-bullet">2.</span> テストが成功したらビルドする
+<span class="hljs-bullet">3.</span> ビルドが成功したらデプロイする
+<span class="hljs-bullet">4.</span> 失敗したらエラー内容を報告する
+</code></pre>
+<p>使い方: <code>/deploy</code> と入力するだけ</p>
+<ul>
+<li>commandsの review.md は「レビューして」の <strong>1回きり</strong></li>
+<li>skillsの deploy.md は「テスト→ビルド→デプロイ」の <strong>流れを丸ごと自動化</strong></li>
+<li>失敗時の対応まで <strong>自動で判断</strong> するのが違い</li>
+</ul>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="10" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
@@ -553,19 +538,38 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
 ;" data-marpit-pagination-total="17" data-size="16:9">
-<h1 id="skills-%E3%81%AE%E5%85%B7%E4%BD%93%E4%BE%8B">skills の具体例</h1>
-<p><strong>deploy.md の中身イメージ</strong>:</p>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-markdown"><span class="hljs-bullet">1.</span> テストを実行する
-<span class="hljs-bullet">2.</span> テストが成功したらビルドする
-<span class="hljs-bullet">3.</span> ビルドが成功したらデプロイする
-<span class="hljs-bullet">4.</span> 失敗したらエラー内容を報告する
-</code></pre>
-<p>使い方: <code>/deploy</code> と入力するだけ</p>
-<ul>
-<li>commandsの review.md は「レビューして」の <strong>1回きり</strong></li>
-<li>skillsの deploy.md は「テスト→ビルド→デプロイ」の <strong>流れを丸ごと自動化</strong></li>
-<li>失敗時の対応まで <strong>自動で判断</strong> するのが違い</li>
-</ul>
+<h1 id="skills--%E5%86%8D%E5%88%A9%E7%94%A8%E5%8F%AF%E8%83%BD%E3%81%AA%E3%83%AF%E3%83%BC%E3%82%AF%E3%83%95%E3%83%AD%E3%83%BC">skills — 再利用可能なワークフロー</h1>
+<p>commands と skills の違いを整理しましょう:</p>
+<table>
+<thead>
+<tr>
+<th>特徴</th>
+<th>commands</th>
+<th>skills</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>定義できる内容</td>
+<td>1回の固定指示</td>
+<td><strong>複数ステップの流れ</strong></td>
+</tr>
+<tr>
+<td>条件による分岐</td>
+<td>できない</td>
+<td>できる（成功/失敗で次を変える）</td>
+</tr>
+<tr>
+<td>自動化の範囲</td>
+<td>単発操作</td>
+<td><strong>ワークフロー全体</strong></td>
+</tr>
+</tbody>
+</table>
+<p>配置場所: <code>.claude/skills/</code></p>
+<blockquote>
+<p>commands = 定型文 / skills = 定型ワークフロー</p>
+</blockquote>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="11" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
@@ -931,7 +935,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <p><strong>Q2</strong>: 「同じレビュー指示を毎回手入力している」→ どの機構を使うべきか？</p>
 <details><summary>回答</summary>commands（`.claude/commands/` にテンプレートを配置）</details>
 <p><strong>Q3</strong>: 5つのプロジェクトで共通のコーディング規約を1箇所で管理するには？</p>
-<details><summary>回答</summary>imports（プロジェクト固有のルールを共有する場合）または global CLAUDE.md（あなたの好みを全プロジェクトに適用する場合）。どちらも「1箇所に書いて使い回す」仕組みですが、**imports はプロジェクトのルール**、**global はあなた個人の好み**という違いがあります</details>
+<details><summary>回答</summary>imports または global CLAUDE.md。どちらも「1箇所に書いて使い回す」仕組みです。使い分けの基準: **imports** はプロジェクトのルール（チーム共有向け）、**global CLAUDE.md** はあなた個人の好み（1人で使う設定）</details>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="17" data-paginate="true" data-class="cover" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
