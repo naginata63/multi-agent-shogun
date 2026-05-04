@@ -345,7 +345,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </blockquote>
 <p><strong>予算配分の考え方</strong>:</p>
 <blockquote>
-<p>AIの記憶容量（コンテキストウィンドウ）は約 <strong>10万〜20万トークン</strong>（日本語で約7万〜15万字＝本1〜2冊分）。「トークン」はAIが情報を数える単位で、日本語1文字が約1〜2トークンに相当します。この限られた容量をどう配分するかが設計の鍵です。</p>
+<p>AIの記憶容量（コンテキストウィンドウ）は約 <strong>10万〜20万トークン</strong>（日本語で約7万〜15万字＝本1〜2冊分）。「トークン」はAIが情報を数える単位で、日本語1文字が約1〜2トークンに相当します。下の表は「AIの記憶容量全体のうち、どれくらいを何に使うか」の内訳です。</p>
 </blockquote>
 <table>
 <thead>
@@ -485,7 +485,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 ;" data-marpit-pagination-total="16" data-size="16:9">
 <h1 id="%E3%83%88%E3%83%AC%E3%83%BC%E3%83%89%E3%82%AA%E3%83%95%E5%88%86%E6%9E%90--%E5%88%86%E9%9B%A2%E3%82%B3%E3%82%B9%E3%83%88-vs-%E5%B9%B2%E6%B8%89%E3%83%AA%E3%82%B9%E3%82%AF">トレードオフ分析 — 分離コスト vs 干渉リスク</h1>
 <blockquote>
-<p>完全な分離は理想だが、常にコストがかかる</p>
+<p>削減で「減らす」ことができたら、次は「どこまで分けるか」を判断します。完全な分離は理想ですが、常にコストがかかります。</p>
 </blockquote>
 <table>
 <thead>
@@ -638,13 +638,13 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 ;" data-marpit-pagination-total="16" data-size="16:9">
 <h1 id="%E8%87%AA%E3%83%97%E3%83%AD%E5%AE%9F%E4%BE%8B--%E3%82%BF%E3%82%B9%E3%82%AF%E5%88%86%E9%9B%A2%E3%81%A8%E9%81%8B%E7%94%A8%E3%83%97%E3%83%AC%E3%82%A4%E3%83%96%E3%83%83%E3%82%AF">自プロ実例 — タスク分離と運用プレイブック</h1>
 <blockquote>
-<p>本講座の制作環境でのIsolate戦略の実装例。Claude CodeというAI開発ツールでの実際の運用方法です。前スライドの表を参考に、お使いのツールに読み替えてください。</p>
+<p>本講座の制作環境でのIsolate戦略の実装例。Claude Code（AI開発ツール）での実際の運用方法です。ChatGPTやCursorを使っている方は、「設定ファイル = システムメッセージやルールファイル」「別セッション = 新しいチャット」と読み替えてください。</p>
 </blockquote>
 <p><strong>実例1: タスク別設定ファイルによる論理的分離</strong> 『本講座サンプル実装』</p>
 <ul>
 <li>各タスクを独立した設定ファイル（YAML形式）で管理
 <ul>
-<li>YAML = インデントで構造を表す設定ファイル形式。AIへの指示書として使う</li>
+<li>YAML = 字下げ（インデント）で階層を表す設定ファイル形式。AIへの指示書として使う</li>
 </ul>
 </li>
 <li>1セッション = 1タスクファイル → タスク間の干渉を物理的に防止</li>
@@ -654,7 +654,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <ul>
 <li><code>instructions/</code> フォルダ配下に役割別の指示ファイルを配置</li>
 <li>同一プロジェクト内でも、役割が違えば読み込む指示が違う</li>
-<li>Context Window Budget: システム指示30% + タスク情報50% + 余白20%</li>
+<li>Context Window Budget: 共通ルール30% + タスク情報40% + 会話履歴20% + 余白10%</li>
 </ul>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="11" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
@@ -745,6 +745,14 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </table>
 <blockquote>
 <p>このフォーマットをプロジェクト共通ルールファイルのベースにすることで、Isolate戦略の境界線を明確にする</p>
+</blockquote>
+<p><strong>記入例（セクション1: プロジェクト概要）</strong>:</p>
+<blockquote>
+<p>使用言語: Python / フレームワーク: Django / フォルダ構造: <code>src/</code> 以下に配置<br />
+DB: PostgreSQL / テスト: pytest / デプロイ: GitHub Actions</p>
+</blockquote>
+<blockquote>
+<p>「こういう感じで書き始めればOK」— 完璧を目指さず、まずは1行ずつ埋めていきましょう。</p>
 </blockquote>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="12" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
@@ -989,7 +997,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <p><strong>解答</strong>:</p>
 <p><strong>A1</strong>: Isolate戦略は「情報を分離して干渉を防ぐ」戦略。Write(書き込み)やSelect(選択)が情報の出入りを管理するのに対し、Isolateは情報間の境界を管理する点が異なる。Compress(圧縮)が情報量の削減なら、Isolateは情報の配置の最適化。</p>
 <p><strong>A2</strong>: システム指示20-30%（共通ルールの固定費）、タスク固有情報40-50%（対象ファイルと参照コード）、会話履歴20-30%（やり取りとツール結果）、余白5-10%（予期しない読込用）。「1タスク1つの財布」とは、1つの容量（財布）に複数タスクの情報を混ぜず、タスクごとに独立した容量を割り当てる考え方。</p>
-<p><strong>A3</strong>: 全員が守るルールは共有に、個人の経験則は個人記録に配置する。理由は、共有範囲を広げすぎると更新責任が曖昧になり、逆に狭めすぎるとノウハウが分散してチーム全体の品質が安定しないため。境界線は「変更頻度」と「適用範囲」で引く。</p>
+<p><strong>A3</strong>: 全員が守るルールは共有に、個人の経験則は個人記録に配置する。理由は、共有範囲を広げすぎると更新責任が曖昧になり、逆に狭めすぎるとノウハウが分散してチーム全体の品質が安定しないため。境界線は「更新頻度」と「誰が使うか」で引く（毎日変わる個人の工夫 → 個人、プロジェクト変更時のみ更新 → 共有）。</p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="16" data-paginate="true" data-class="cover" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
