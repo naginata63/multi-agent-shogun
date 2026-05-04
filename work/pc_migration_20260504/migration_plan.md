@@ -310,7 +310,8 @@ df /boot/efi                          # /dev/nvme0n1p1 と表示されること
 df -h /                               # サイズが ~1.8T と表示されること (現状 1T → 拡張済)
 sudo blkid /dev/nvme0n1p1             # FAT32 EFI
 sudo blkid /dev/nvme0n1p2             # ext4 root
-sudo blkid /dev/sde4                  # 旧 root (UUID は元のまま・問題なし・gparted で別 UUID にした方が安全だが必須ではない)
+sudo blkid /dev/sde4                  # 旧 root: UUIDは旧UUIDのままでOK・復旧保険として温存
+                                       # NVMe側 nvme0n1p2 が tune2fs -U random で別UUIDになっているゆえ重複なし
 ```
 
 ### Phase 8: 後片付け
