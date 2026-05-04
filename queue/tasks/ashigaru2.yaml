@@ -1,131 +1,61 @@
 tasks:
-- acceptance_criteria:
-  - thumbnail_echidna/energetic_1.png / 2.png / 3.png 生成済み
-  - viability スコア3案比較をレポートに記載
-  - ntfy で殿に LAN URL 通知済み
-  - 殿選択後 thumbnail_final.png 確定
-  - 軍師QC PASS
-  - git commit + push完了
-  agent: ashigaru2
+- agent: ashigaru2
+  task_id: subtask_1624_stop_hook
+  status: done
+  parent_cmd: cmd_1624
   bloom_level: L3
-  description: 'Day6 エキドナ サムネ生成: ブザービーター6人・energetic style 3案生成→殿LAN preview通知→選択後
-    thumbnail_final.png 確定→軍師QC。'
-  notes:
-  - 'DAY5スクリプト: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260415_【#DoZ】5日目
-    知ってるか？ヒーラーはな…絶対に仲間を見捨てちゃいけねぇのさ【ドズル社／おおはらMEN視点】/thumbnail_zephyrus/generate_thumbnail.py'
-  - '出力先: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260416_【#DoZ】6日目
-    腹から声が出ないヒーラーに命を任せれられるとでも？【ドズル社／おおはらMEN視点】/thumbnail_echidna/'
-  - '背景: /home/murakami/ピクチャ/Screenshots/Screenshot from 2026-04-25 11-32-31.png (ECHIDNA焼き込み済み・加工不要)'
-  - 'oo_men立ち絵: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260411_【#DoZ】Doom
-    or Zenithの世界にキターーーーーー！！！！！！！ 【ドズル社／おおはらMEN視点】/oo_men_goggle_on.png'
-  - 'photo-keys: charlotte,tsurugi,itoi,hendy,haseshin (assets/collab/ 配下の実写画像)'
-  - source config/vertex_api_key.env 必須(Gemini画像生成)
-  - 殿選択inbox到着まで final.png 確定を保留。中間報告で3案URLを inbox_write karo
-  - advisor()必須(作業前・完了前)
-  - '完了後: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi ''足軽2号、subtask_1467a完了(Day6サムネ3案+final確定)。QC依頼。''
-    report_completed ashigaru2'
-  parent_cmd: cmd_1467
-  status: in_progress
-  steps: advisor()→thumbnail_echidna/作成→Day5スクリプトcp→コマンド実行(3案生成)→viabilityスコア計測→LANサーバー起動+ntfy通知→家老に報告→殿選択待ち→家老inbox経由で選択番号受信後
-    thumbnail_final.png 確定→advisor()→commit+push→inbox gunshi
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/ashigaru2_report_subtask_1467a.yaml
-  task_id: subtask_1467a
-  timestamp: '2026-04-25T13:15:00+09:00'
-- agent: ashigaru2
-  task_id: subtask_1607a3
-  status: done
-  parent_cmd: cmd_1607
-  bloom_level: L2
-  description: 'subtask_1607a2 redo: D5修正 — source ~/.bashrc 前に : を挿入して $?=1 短絡問題を解消'
-  target_path: /home/murakami/multi-agent-shogun/scripts/userprompt_semantic_search.sh
-  redo_of: subtask_1607a2
-  steps: '1) Read scripts/userprompt_semantic_search.sh 2) RESULTS=$(...) の行を特定: source
-    ~/.bashrc && timeout ... の前に `:` を挿入 → `RESULTS=$(: ; source ~/.bashrc && timeout
-    30 ...)` 3) bash -x でトレース確認: source後にtimeout実行されることを確認 4) smoke test end-to-end:
-    echo ''{"prompt":"ffmpeg エンコード"}'' | bash scripts/userprompt_semantic_search.sh
-    → stdout にJSON出力・30秒以内完了 5) smoke test: echo ''{"prompt":"review.html 保存できん"}''
-    | bash scripts/userprompt_semantic_search.sh → stdout確認 6) git add scripts/userprompt_semantic_search.sh
-    && git commit && git push 7) inbox karo 完了報告 (smoke test stdoutを証跡添付)'
+  description: '案B: stop_hook_inbox.sh に古い unread 自動既読化ロジックを追加'
+  target_path: /home/murakami/multi-agent-shogun/scripts/stop_hook_inbox.sh
+  steps: '0) advisor()呼出 1) Read scripts/stop_hook_inbox.sh 全文 (272行) 2) unread チェック処理の直前
+    (UNREAD_COUNT= の計算前あたり) に以下のロジックを追加: _auto_expire_stale_inbox() 関数を実装 — API経由
+    (POST http://192.168.2.4:8770/api/inbox_mark_read) で type が report_received または
+    report_completed かつ timestamp が2時間以上前の unread を自動既読化する。実装手順: (a) python3 でinbox
+    APIからunread取得 (b) 各msgのtimestampと現在時刻を比較 (c) 2時間超のものをids収集しmark_read (d) curl失敗は無視(||
+    true)でstop_hook全体を壊さない 3) bash -n scripts/stop_hook_inbox.sh でシンタックスチェック 4) git
+    add scripts/stop_hook_inbox.sh && git commit -m ''feat(hook): stop_hook_inbox
+    古いunread自動既読化ロジック追加 (cmd_1624)'' 5) git push 6) advisor()呼出 7) inbox karo 完了報告'
   acceptance_criteria:
-  - 'RESULTS=$(: ; source ~/.bashrc && timeout 30 ...) の形式に修正'
-  - 'smoke test: ffmpeg query → JSON stdout出力 (空でない)'
-  - 'smoke test: review.html query → JSON stdout出力 (空でない)'
-  - 30秒以内完了
-  - git commit + push完了
-  notes: 'D5根本原因: ~/.bashrc の case...return が $?=1 を返す → && 短絡 → timeout未実行 → silent
-    exit。修正は1行のみ。D6(index integrity)は別cmdで対応予定'
-  timestamp: '2026-05-03T21:51:59.168066+09:00'
-  completed_at: '2026-05-04T08:16:44+09:00'
+  - scripts/stop_hook_inbox.sh に _auto_expire_stale_inbox ロジックが追加されている
+  - bash -n シンタックスチェック PASS
+  - 既存の正常動作を壊さない (unread=0 時の inotifywait ロジック等)
+  - git commit + push 完了
+  notes: curl失敗はsilentに。stop_hook全体のexit codeに影響させるな。2時間の閾値は定数化してコメントで明記。
+  timestamp: '2026-05-05T05:42:48.418983+09:00'
+  completed_at: '2026-05-05T05:55:26+09:00'
 - agent: ashigaru2
-  task_id: subtask_1613a
+  task_id: subtask_1626_main_py_fix
   status: done
-  parent_cmd: cmd_1613
+  parent_cmd: cmd_1626
   bloom_level: L3
-  description: 'cmd_1613 Phase-A: speaker_id.py / transcribe_with_speakers.py / run_speaker_match_only.py
-    の CRITICAL+関連欠陥修正 (STT_C001/C002/M004/M005/M006/L002)'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/speaker_id.py
-  steps: '0) advisor()呼出 1) Read queue/reports/gunshi_stt_contradiction_20260504.yaml
-    で全知識吸収 2) speaker_id.py:24-27 STT_C001: _REPO_SCRIPTS_DIR を str(_SCRIPT_DIR) に変更
-    (親の /scripts/ ではなく自身のディレクトリを指すべき) 3) speaker_id.py:65 STT_M004: コメント「以下なら unknown」→「閾値未満なら
-    unknown」に統一 4) transcribe_with_speakers.py STT_C002: L9の重複 import os を削除し、L8の
-    import whisperx をトップレベルから関数内 lazy import に移動 (transcribe_fine_grained内に移動) 5)
-    transcribe_with_speakers.py STT_M005: _apply_vocab が content_selector 全体を import
-    している問題 → custom_vocabulary.yaml を直接 yaml.safe_load で読み込む独立ロジックに書き換え (content_selector
-    import 除去) 6) transcribe_with_speakers.py:23 STT_L002: PUNCTUATION set に「日本語+英語切れ目を最大公約で網羅」コメント追加
-    7) run_speaker_match_only.py:16-17 STT_M006: 未使用 PROJECT_DIR 変数を削除 8) 動作確認: python3
-    -c ''import sys; sys.path.insert(0,"."); from speaker_id import load_members_from_yaml''
-    in scripts/ 9) git add projects/dozle_kirinuki/scripts/speaker_id.py projects/dozle_kirinuki/scripts/transcribe_with_speakers.py
-    projects/dozle_kirinuki/scripts/run_speaker_match_only.py && git commit -m ''fix(stt):
-    STT_C001/C002/M004/M005/M006/L002 — speaker_id sys.path / whisperx lazy import
-    / _apply_vocab 独立化'' 10) advisor()呼出 11) inbox karo 完了報告'
+  description: 'main.py: H1コメント追加 + M1-M8 矛盾解消 (argparse追加/dead import削除/dead codeコメント化)
+    + 完了報告書作成'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/main.py
+  steps: '0) advisor()呼出 1) Read queue/reports/2026-05-05_cmd_1623_mujun_detection.md
+    (H1+M1-M8 詳細確認) 2) Read projects/dozle_kirinuki/scripts/main.py 全文 3) 以下を順番に修正:
+    (H1) render_with_remotion() 冒頭付近に「# NOTE: ShortsOverlay Remotion レンダリングは remotion-overlay/
+    を使用。remotion-project/ は別用途(DozPreview/DozFull等)」コメント追加 (M1) argparse に --model/--min-duration/--no-integrate-llm
+    の add_argument 追加 (main.py:818,823,825 のgetattr参照箇所に対応) (M2) from detect_scene_changes
+    import の dead symbol (detect_scene_changes, snap_to_scene_change, get_vocals_path)
+    を行から削除 (M3) --scene-snap dead flag は argparse から削除 (定義はあるが args.scene_snap 参照なし)
+    (M4) compute_dbfs_1s dead function (L110-133付近) を削除 (M5) tempfile/TOCTOU: 対応困難のため「#
+    CAUTION: potential TOCTOU race between unlink and proc finish」コメント追加のみで可 (M6)
+    selected_check_hook.sh パス組み立て: os.path.dirname(__file__) ベースの絶対パスに修正 (M7+M8) hook
+    dead branch に「# NOTE: from-candidates経路では hook=None一択。--skip-selectで外部selected.json食わせた場合のみ有効」コメント追加
+    4) python3 -m py_compile projects/dozle_kirinuki/scripts/main.py でシンタックスチェック 5)
+    queue/reports/2026-05-05_cmd_1626_mujun_resolution.md 作成 (各修正項目の対応内容・対応不要判断理由を記録)
+    6) git add projects/dozle_kirinuki/scripts/main.py && git add -f queue/reports/2026-05-05_cmd_1626_mujun_resolution.md
+    && git commit -m ''fix(kirinuki): main.py H1コメント+M1-M8矛盾解消 (cmd_1626)'' 7) git
+    push 8) advisor()呼出 9) inbox karo 完了報告'
   acceptance_criteria:
-  - 'STT_C001: speaker_id.py の _REPO_SCRIPTS_DIR が str(_SCRIPT_DIR) になっている'
-  - 'STT_C002: transcribe_with_speakers.py の whisperx が関数内 lazy import になっている'
-  - 'STT_C002: 重複 import os (L9) が削除されている'
-  - 'STT_M004: speaker_id.py L65 コメントが >= 実装と一致する表現になっている'
-  - 'STT_M005: _apply_vocab が content_selector を import せず yaml 直読みになっている'
-  - 'STT_M006: run_speaker_match_only.py の未使用 PROJECT_DIR 変数が削除されている'
-  - 'STT_L002: PUNCTUATION set にコメントが追加されている'
-  - python3 -c import speaker_id が scripts/ 以外の cwd からも成功する
-  - git commit 完了
-  notes: 'audit報告書: queue/reports/gunshi_stt_contradiction_20260504.yaml を必ず精読。STT_C001
-    は最重要 — _REPO_SCRIPTS_DIR の修正で他cwd からの import 失敗が解消される。STT_M005 は content_selector
-    の全インポートを除去して yaml 直読みに。whisperx lazy import は L107/L138 の実使用箇所の関数内に移動。'
-  params: {}
-  timestamp: '2026-05-04T08:41:48.388716+09:00'
-- agent: ashigaru2
-  task_id: subtask_1613e
-  status: done
-  parent_cmd: cmd_1613
-  bloom_level: L2
-  description: 'cmd_1613 Phase-E: regression test (vocal_stt_pipeline) + git push
-    + 完了報告書生成'
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md
-  steps: '0) advisor()呼出 1) git log --oneline -15 で全4 subtask (1613a/b/c/d) の commit
-    が submodule に入っていることを確認 (ashigaru7の9a0ebeb/ashigaru5のd8ed8bc/ashigaru2自身のcommit等)
-    2) cd projects/dozle_kirinuki && python3 scripts/vocal_stt_pipeline.py --help
-    2>&1 | head -5 でimport成功確認 (ModuleNotFoundError が出ないこと) 3) find projects/dozle_kirinuki/work
-    -name ''tono_clip_base.mp4'' 2>/dev/null でテスト素材の確認 4) python3 -c ''import sys;
-    sys.path.insert(0,"projects/dozle_kirinuki/scripts"); import vocal_stt_pipeline;
-    import speaker_id; import stt_merge; print("ALL IMPORTS OK")'' でimport chain確認
-    5) 報告書 queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md を作成: Phase/finding ID/severity/file/修正概要/commit_hash
-    の対応表 (20件全て) 6) git add queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md 7)
-    submodule の変更を parent repo に反映: cd /home/murakami/multi-agent-shogun && git add
-    projects/dozle_kirinuki && git commit -m ''chore: submodule dozle_kirinuki 更新
-    (cmd_1613 STT audit 20件修正完了)'' && git push origin main 8) git add queue/reports/...
-    && git commit -m ''docs(report): cmd_1613完了報告書 — STT audit 20件修正完了'' && git push
-    9) advisor()呼出 10) inbox karo 完了報告'
-  acceptance_criteria:
-  - 全4 subtask (a/b/c/d) の submodule commit が git log に確認できる
-  - python3 import vocal_stt_pipeline / speaker_id / stt_merge が ModuleNotFoundError
-    なしで成功
-  - queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md が作成されている
-  - 報告書に全20件 (C001/C002/H001-H006/M001-M007/L001-L005) の修正完了が記載されている
-  - 報告書に commit hash と finding ID の対応がある
-  - git push origin main 完了 (submodule + 報告書)
-  notes: 'ashigaru1 が cmd_1614 (Discord) を優先中のため ashigaru2 に再割当。submodule の commit
-    は各 ashigaru が個別に push済 (9a0ebeb=C/d8ed8bc=B)。parent repo の submodule pointer 更新が必要。import
-    chain: vocal_stt_pipeline → members (同dir) / speaker_id → members (同dir修正済) の経路を確認。tono_clip_base.mp4
-    が見つからない場合は import 確認のみで OK。'
-  params: {}
-  timestamp: '2026-05-04T08:57:34.654397+09:00'
+  - 'H1: render_with_remotion() 付近にRemotionパス説明コメント追加済み'
+  - 'M1: --model/--min-duration/--no-integrate-llm の argparse add_argument 追加済み'
+  - 'M2: dead import (detect_scene_changes, snap_to_scene_change, get_vocals_path)
+    削除済み'
+  - 'M3-M8: 各指摘を解消 or 対応不要理由をコメント+報告書に明記'
+  - python3 -m py_compile PASS
+  - queue/reports/2026-05-05_cmd_1626_mujun_resolution.md 作成済み
+  - git commit + push 完了
+  notes: 'RACE-001: main.py はこのタスクのみが修正する (ashigaru3 は別ファイル担当)。M5はコメントで可。L1-L12 は
+    touch 禁止 (scope外)。reports/ は gitignore なので git add -f 必須。'
+  timestamp: '2026-05-05T05:59:07.362136+09:00'
+  completed_at: '2026-05-05T06:08:04+09:00'

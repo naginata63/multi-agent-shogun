@@ -37,7 +37,7 @@ case $DOW in
 esac
 
 MSG="【夜間矛盾検出・自動発令】本日のカテゴリ: ${CATEGORY}。軍師に矛盾検出タスクを振れ。cmd_828と同じ形式で。テストを書くな。コードを修正するな。読んで報告するだけ。朝までにダッシュボードに結果を掲載せよ。"
-curl -sf -X POST "http://192.168.2.7:8770/api/inbox_write" \
+curl -sf -X POST "http://192.168.2.4:8770/api/inbox_write" \
   -H 'Content-Type: application/json' \
   -d "{\"to\":\"karo\",\"from\":\"shogun\",\"type\":\"wake_up\",\"message\":\"${MSG}\"}" \
   > /dev/null 2>&1 || bash "$SCRIPT_DIR/scripts/inbox_write.sh" karo "$MSG" nightly_audit shogun

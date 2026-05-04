@@ -32,8 +32,6 @@
 0 3 * * * sqlite3 /home/murakami/multi-agent-shogun/queue/cmds.db .dump | gzip > /home/murakami/multi-agent-shogun/queue/backup/cmds_$(date +\%Y\%m\%d).sql.gz
 0 4 * * * source /home/murakami/multi-agent-shogun/venv/bin/activate && python3 /home/murakami/multi-agent-shogun/scripts/sqlite_yaml_audit.py --notify-on-fail >> /home/murakami/multi-agent-shogun/logs/sqlite_audit.log 2>&1
 
-# litestream keepalive (cmd_1495) — systemd unit が落ちたら再起動・@reboot で boot 起動の保険
-@reboot sleep 30 && /home/murakami/multi-agent-shogun/scripts/litestream_keepalive.sh
 */5 * * * * /home/murakami/multi-agent-shogun/scripts/litestream_keepalive.sh
 
 # claude-mem hook guard (cmd_1495) — plugin upgrade で shogun フィルタ消失したら再適用
@@ -42,5 +40,8 @@
 # litestream 異常早期検知 (殿命 2026-04-28 恒久対策C)
 */30 * * * * /home/murakami/multi-agent-shogun/scripts/litestream_health_check.sh
 # stuck subtask 検知 (cmd_1525) — */5 * * * *
-*/5 * * * * /home/murakami/multi-agent-shogun/scripts/stuck_subtask_check.sh >> /home/murakami/multi-agent-shogun/logs/stuck_subtask.log 2>&1
 */5 * * * * bash scripts/chroma_mcp_health.sh >> logs/chroma_mcp_health.log 2>&1
+
+# 8773 Udemy preview server (drafts/ root) — PC換装で消失したため永続化 (2026-05-04 殿命)
+@reboot sleep 30 && cd /home/murakami/multi-agent-shogun/projects/udemy_course/drafts && python3 -m http.server 8773 --bind 0.0.0.0 >> /home/murakami/multi-agent-shogun/logs/udemy_8773_server.log 2>&1
+

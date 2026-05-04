@@ -335,3 +335,4 @@
 | 2026-04-24 | ashigaru6 (cmd_1443_p09) | 新設。C01-C10 棚卸し + C11 新規 (cron_health_check) + D01-D05 記録 |
 | 2026-04-24 | ashigaru5 (cmd_1443_p10) | C13 新規 (monthly feedback review / H13)。crontab snapshot 同時更新。 |
 | 2026-04-29 | ashigaru3 (cmd_1540) | C15 新規 (chroma-mcp 健全性監視)。pgrep -fc chroma-mcp ≥ 2 → ntfy alert。 |
+| 2026-05-04 | shogun (PC換装対応) | @reboot Udemy 8773 preview server (drafts/ root) 追加 (PC換装で消失したため永続化・殿命)。crontab snapshot 同時更新。 |

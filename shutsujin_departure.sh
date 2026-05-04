@@ -1045,9 +1045,9 @@ echo ""
 if systemctl --user is-enabled mcp-dashboard.service &>/dev/null; then
     if ! systemctl --user is-active --quiet mcp-dashboard.service; then
         systemctl --user start mcp-dashboard.service 2>/dev/null || true
-        log_info "📊 MCPダッシュボード起動: http://192.168.2.7:8770/"
+        log_info "📊 MCPダッシュボード起動: http://192.168.2.4:8770/"
     else
-        log_info "📊 MCPダッシュボード稼働中: http://192.168.2.7:8770/"
+        log_info "📊 MCPダッシュボード稼働中: http://192.168.2.4:8770/"
     fi
 else
     log_info "📊 MCPダッシュボード: systemdサービス未登録のためスキップ"

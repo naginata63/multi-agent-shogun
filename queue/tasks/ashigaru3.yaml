@@ -1,166 +1,4 @@
 tasks:
-- acceptance_criteria:
-  - curriculum_beginner_v3_marp.md 存在・序章に生成AIとはなにか含む・インストール章なし
-  - curriculum_beginner_v3.html / toc_beginner_v3.html ビルド済
-  - grep 'インストール' curriculum_beginner_v3_marp.md → 0件
-  - grep '生成AIとは' curriculum_beginner_v3_marp.md → 1件以上
-  - lectures/beginner_ch01_claude_code.md (旧 ch00_intro) が存在
-  - drafts/index.html にv3=NEW表示・v2=旧版表示・ch01リンク更新済
-  - git commit + push完了
-  agent: ashigaru3
-  bloom_level: L3
-  description: 'cmd_1573: 初級編カリキュラム v2→v3 再構成 (序章に生成AIとはなにか追加・インストール章削除)'
-  notes:
-  - '殿原文: ''生成AIとはなにか もいれてほしい / インストールは不要'''
-  - 'インストール章削除: grep 0件が証跡。''講師がインストールする'' 等の言及も含めて全削除'
-  - 旧 ch00_intro.md = 「Claude Codeとは」→ ch01_claude_code.md にリネーム (git mv)
-  - v3 HTML は drafts/ 直下に出力
-  - advisor()必須(作業前・完了前)
-  parent_cmd: cmd_1573
-  priority: medium
-  status: assigned
-  steps: '0) advisor()呼出 1) projects/udemy_course/drafts/curriculum_beginner_v2_marp.md
-    全文精読・序章とインストール章の内容確認 2) curriculum_beginner_v3_marp.md を新規作成: v2を基に (a)序章を2部構成に再編成
-    — 新パート「生成AIとはなにか」(生成AI定義・LLM仕組み・ChatGPT/Claude比較・なぜ今重要か)を序章冒頭に追加、旧序章「Claude Codeとは」は序章後半として残す
-    (b)インストール章全削除 (c)冒頭にversion log追記(v2→v3差分: 生成AI序章追加・インストール章削除) 3) grep確認: grep
-    -c ''インストール'' projects/udemy_course/drafts/curriculum_beginner_v3_marp.md (0件必須・講師用手順記述も不可)
-    && grep -c ''生成AIとは'' curriculum_beginner_v3_marp.md (1件以上) 4) marp --html curriculum_beginner_v3_marp.md
-    -o curriculum_beginner_v3.html (CLIなければnpx @marp-team/marp-cli) && toc_beginner_v3.html
-    も生成 5) projects/udemy_course/drafts/lectures/beginner_ch00_intro.md を beginner_ch01_claude_code.md
-    にリネーム (git mv) 6) projects/udemy_course/drafts/index.html 更新: v3をNEW表示でリンク追加・v2を旧版表示に変更・lectures
-    リンクも beginner_ch01_claude_code.html に更新 7) git add projects/udemy_course/drafts/
-    && git diff --cached (意図外ファイル確認) && git commit ''feat: cmd_1573 初級編v3 生成AI序章追加・インストール章削除''
-    && git push origin main 8) advisor()呼出 9) inbox_write gunshi QC依頼(grep 0件確認・生成AIとは確認・ch01リネーム・HTML生成・index.html
-    v3/旧版表示確認)'
-  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/curriculum_beginner_v3_marp.md
-  task_id: subtask_1573a
-  timestamp: '2026-05-02T08:23:45.607934+09:00'
-- acceptance_criteria:
-  - intermediate_v4_ch02_structured_prompt.md / .html 作成済み
-  - speaker notes 全スライド
-  - '講師名: なぎなた のみ'
-  - ASCII罫線/XML/受講者操作系 0件
-  - スライド枚数 12-15枚
-  - git commit + push 完了
-  agent: ashigaru3
-  bloom_level: L3
-  description: 'cmd_1586 ch02: 中級編 v4 第2章 intermediate_v4_ch02_structured_prompt.md
-    / .html 作成'
-  notes:
-  - '殿原文: ''中級も作成開始せよ — 殿2026-05-03 09:48'''
-  - '参照アウトライン: curriculum_intermediate_v4_marp.md 第2章'
-  - advisor()必須(作業前・完了前)
-  parent_cmd: cmd_1586
-  priority: medium
-  status: assigned
-  steps: '0) advisor()呼出 1) projects/udemy_course/context/lecture_design_rules.md
-    を全文精読 2) projects/udemy_course/drafts/curriculum_intermediate_v4_marp.md の第2章セクション
-    (『第2章 構造化プロンプトと失敗パターン』) を精読 3) 初級編の形式参照: projects/udemy_course/drafts/lectures/beginner_ch01_prompt_v4.md
-    を精読 4) intermediate_v4_ch02_structured_prompt.md を新規作成: テーマ=「構造化プロンプトと失敗パターン」/Emotional
-    Hook=『プロンプトの病気を見分ける力』/全スライドspeaker notes 5) スライド構成(12-15枚目安): Emotional Hook→診断チェックリスト10項目→失敗プロンプト3本の解剖(症状・原因・修正・結果)→修正後比較→設計原則3点
-    6) grep確認 7) marp HTML生成 8) git commit + push 9) advisor()呼出 10) inbox_write gunshi
-    QC依頼'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch02_structured_prompt.md
-  task_id: subtask_1586_ch02
-  timestamp: '2026-05-03T09:52:12.939715+09:00'
-- acceptance_criteria:
-  - skills/lecture-speaker-notes-grep-check/SKILL.md 作成済 (frontmatter + 本文)
-  - skills/lecture-speaker-notes-grep-check/check.sh 実装済・実行権限あり
-  - skills/lecture-speaker-notes-grep-check/README.md と examples/ 整備
-  - context/lecture_design_rules.md に Skill検証ルール(Section 13)追記
-  - 既存12章(初級v4 7章 + 中級v4 Phase1 5章)で check.sh 動作確認済
-  - FAIL検出時は「過去cmd漏れ」として報告書に明記(修正は別cmd)
-  - git commit + push 完了
-  - queue/reports/2026-05-03_cmd_1592_lecture_qc_skill.md 報告書作成
-  agent: ashigaru3
-  bloom_level: L3
-  description: 'cmd_1592: Claude Code Skill lecture-speaker-notes-grep-check 新設 (SKILL.md
-    + check.sh + README + examples + lecture_design_rules.md更新 + 12章動作確認)'
-  notes:
-  - '殿原文: ''lecture_speaker_notes_grep_check許可 — 殿2026-05-03 11:00'''
-  - 'check.sh のgrep戦国用語パターン注意: 候[^補選手者] 等でfalse positive回避(cmd_1590 ch08教訓)'
-  - FAIL=修正指摘ではなく記録のみ。修正は別cmd。
-  - advisor()必須(作業前・完了前)
-  parent_cmd: cmd_1592
-  priority: medium
-  status: assigned
-  steps: '0) advisor()呼出 1) 既存Skill構造参照: ls skills/ で既存Skillの構造を確認(SKILL.md frontmatter・check.sh形式等)
-    2) projects/udemy_course/context/lecture_design_rules.md を精読(Section 12: 外部公開用語制限・grep精緻化注意事項確認)
-    3) 既存講義ファイル確認: ls projects/udemy_course/drafts/lectures/*_v4*.md | wc -l で12章確認
-    4) skills/lecture-speaker-notes-grep-check/ ディレクトリ作成 5) SKILL.md 作成 (frontmatter:
-    name/description/version/author/tags + 本文: 用途/引数/出力形式/使用方法) 6) check.sh 作成・内容:
-    (a) 対象 .md ファイルをglob取得 (b) frontmatter(---区切り)を除いた各スライドにHTMLコメント<!-- ... -->のspeaker
-    notesが存在するか確認 (c) 追加チェック: 戦国用語grep(御意|つかまつる|ござる|拙者|候[^補選手者])でfalse positive注意・本名grep(村上)
-    (d) PASS/FAIL を件数・ファイル名と共に出力 7) chmod +x skills/lecture-speaker-notes-grep-check/check.sh
-    8) README.md 作成 (概要・使い方・出力例) 9) examples/ ディレクトリ作成・PASS例とFAIL例の .md サンプル作成 10)
-    context/lecture_design_rules.md に新セクション追記: ''Section 13: Skill検証ルール — check.sh
-    による自動検証手順・FAIL検出時の対処'' 11) 動作確認: bash skills/lecture-speaker-notes-grep-check/check.sh
-    projects/udemy_course/drafts/lectures/beginner_*_v4.md projects/udemy_course/drafts/lectures/intermediate_v4_ch0*.md
-    で12章全チェック実行 12) FAIL検出時は「過去cmd漏れ」として出力結果を報告書に明記(修正は別cmd) 13) git add skills/lecture-speaker-notes-grep-check/
-    context/lecture_design_rules.md && git diff --cached && git commit -m ''feat:
-    cmd_1592 lecture-speaker-notes-grep-check Skill新設'' && git push 14) advisor()呼出
-    15) inbox_write gunshi QC依頼(12章動作確認結果添付) 16) queue/reports/2026-05-03_cmd_1592_lecture_qc_skill.md
-    作成'
-  target_path: /home/murakami/multi-agent-shogun/skills/lecture-speaker-notes-grep-check/SKILL.md
-  task_id: subtask_1592a
-  timestamp: '2026-05-03T11:02:20.369197+09:00'
-- acceptance_criteria:
-  - intermediate_v4_ch12_silent_fail.md / .html 作成済
-  - 'speaker notes 全スライド・講師名: なぎなた のみ'
-  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
-  - スライド枚数 12-15枚
-  - git commit + push 完了
-  agent: ashigaru3
-  bloom_level: L3
-  description: 'cmd_1595 ch12: 中級編v4 第12章「silent fail 検出ハーネス」(H4)'
-  notes:
-  - '殿原文: 中級編 Phase 3 起票 — 殿2026-05-03 12:40'
-  - '形式参照: intermediate_v4_ch05_context_economics.md'
-  - Bloom L6 Create (curriculum準拠)
-  - advisor()必須(作業前・完了前)
-  parent_cmd: cmd_1595
-  priority: medium
-  status: done
-  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md 第12章セクション精読 2) lecture_design_rules.md
-    精読 3) intermediate_v4_ch05_context_economics.md を形式参照 4) intermediate_v4_ch12_silent_fail.md
-    新規作成: Emotional Hook=「沈黙を破る監視員」/ silent failとは(エラーなし≠成功の3事例) / logからsilent fail候補抽出方法
-    / inotifywait監視daemonの仕組み / exclusion filter設計(self-feedback防止) / systemd user
-    service化 / 検出から通知までのフロー図解 5) grep確認: 戦国用語・ASCII罫線・XML・受講者操作系・本名 全0件 6) marp HTML生成:
-    cd projects/udemy_course/drafts/lectures && npx @marp-team/marp-cli intermediate_v4_ch12_silent_fail.md
-    -o intermediate_v4_ch12_silent_fail.html --allow-local-files 7) git add ... &&
-    git commit && git push 8) advisor()呼出 9) inbox_write gunshi QC依頼'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch12_silent_fail.md
-  task_id: subtask_1595_ch12
-  timestamp: '2026-05-03T12:42:26.720161+09:00'
-- acceptance_criteria:
-  - intermediate_v4_ch16_flagship.md / .html 作成済
-  - 'speaker notes 全スライド・講師名: なぎなた のみ'
-  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
-  - スライド枚数 12-15枚
-  - 3層統合(L1+L2+L3)を体系的に解説
-  - git commit + push 完了
-  agent: ashigaru3
-  description: 'cmd_1602 ch16: 中級編v4 第16章「flagship: 三層アーキ実装パターン (L1+L2+L3 統合)」★本講座最重要章★'
-  notes:
-  - '殿原文: 起票(中級編 v4 Phase 4 着手) — 殿2026-05-03 14:30'
-  - '形式参照: intermediate_v4_ch05_context_economics.md'
-  - Bloom L6 Create (本講座最重要章・45min想定)
-  - advisor()必須(作業前・完了前)
-  parent_cmd: cmd_1602
-  priority: medium
-  status: done
-  steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md 第16章セクション精読 2) lecture_design_rules.md
-    精読 3) intermediate_v4_ch05_context_economics.md を形式参照 4) intermediate_v4_ch16_flagship.md
-    新規作成: ★本講座クライマックス★ Emotional Hook=「ここまで学んだすべてが1つのhookスクリプトに結実」/ 問題設定:タスク起票時の過去事例検索忘れ
-    / L1層解説:mem-searchクエリ生成ルール / L2層解説:4系統自動add_observations / L3層解説:PreToolUse hook登録と発火
-    / fallback3点:監査ログ+pending queue+SessionStart ingest / 5ファイル構成の3層統合hook全体図 5) grep確認:
-    戦国用語・ASCII罫線・XML・受講者操作系・本名 0件 6) marp HTML生成: cd projects/udemy_course/drafts/lectures
-    && npx @marp-team/marp-cli intermediate_v4_ch16_flagship.md -o intermediate_v4_ch16_flagship.html
-    --allow-local-files 7) git add ... && git commit && git push 8) advisor()呼出 9)
-    inbox_write gunshi QC依頼'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch16_flagship.md
-  task_id: subtask_1602_ch16
-  timestamp: '2026-05-03T14:29:05.028593+09:00'
 - agent: ashigaru3
   blocked_by:
   - subtask_1607b
@@ -180,3 +18,31 @@ tasks:
   target_path: /home/murakami/multi-agent-shogun/queue/reports/2026-05-03_cmd_1607_userprompt_semantic_search_hook.md
   task_id: subtask_1607c
   timestamp: '2026-05-03T19:42:04.924256+09:00'
+- agent: ashigaru3
+  task_id: subtask_1626_vc_py_and_docs
+  status: done
+  parent_cmd: cmd_1626
+  bloom_level: L2
+  description: 'M9: vertical_convert.py sys.path ガード追加 + shared_context Remotionアーキテクチャドキュメント新規作成'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/vertical_convert.py
+  steps: '0) advisor()呼出 1) Read projects/dozle_kirinuki/scripts/vertical_convert.py
+    冒頭50行 (font_config import 箇所確認) 2) vertical_convert.py の先頭 import 群の前に sys.path
+    ガードを追加: import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    3) python3 -m py_compile projects/dozle_kirinuki/scripts/vertical_convert.py でシンタックスチェック
+    4) shared_context/procedures/remotion_architecture.md を新規作成 (内容: remotion-project/
+    と remotion-overlay/ の用途分離説明・ShortsOverlay は remotion-overlay 側・remotion-project
+    は DozPreview/DozFull/OrarishTelop/OdinCountdownTest 用・main.py render_with_remotion()
+    は remotion-overlay を参照) 5) git add projects/dozle_kirinuki/scripts/vertical_convert.py
+    shared_context/procedures/remotion_architecture.md && git commit -m ''fix(kirinuki):
+    vertical_convert sys.pathガード + Remotionアーキテクチャドキュメント (cmd_1626)'' 6) git push
+    (失敗時は家老依頼) 7) advisor()呼出 8) inbox karo 完了報告'
+  acceptance_criteria:
+  - vertical_convert.py 冒頭に sys.path.insert guard 追加済み
+  - python3 -m py_compile PASS
+  - shared_context/procedures/remotion_architecture.md 作成済み (remotion-overlay vs remotion-project
+    用途分離説明)
+  - git commit + push 完了
+  notes: vertical_convert.py は main.py と別ファイルなのでRAC-001なし。shared_context/procedures/
+    配下の新規ファイルはgit追跡済みなので -f 不要。
+  timestamp: '2026-05-05T05:59:08.101089+09:00'
+  completed_at: '2026-05-05T06:05:47+09:00'

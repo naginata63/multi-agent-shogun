@@ -488,514 +488,255 @@ commands:
   - drafts/index.html で v3 が NEW表示・v2 が旧版表示
   - git commit + push 完了
   notify_karo: true
-- id: cmd_1607
-  status: done
+- id: cmd_1622
+  status: in_progress
   priority: high
-  purpose: 殿発言時に自動セマンティック検索 (claude-mem) を走らせ、関連 procedure/script の path + 1行 snippet
-    を将軍 context に強く注入する UserPromptSubmit hook 新設。今回の panel_review.html 事象 (procedures/panel_review_claude_gen.md
-    スルー → 重複 backend 立てかけ) の再発防止。
-  timestamp: '2026-05-03T19:38:15+09:00'
+  purpose: 中級編 v4 全 22 章のうち 🟢 達成済の ch16 を除く 21 章 (ch00-15/17-18 + appendix_a/b/c)
+    を書き直し/補修し、udemy-checker 再レビューで全章 🟢 を達成する。
+  timestamp: '2026-05-04T23:41:04+09:00'
+  project: udemy_course
+  lord_original: 中級もオールグリーンめざせ (殿命 2026-05-04 23:35 — 初級編 v4 全7章 🟢 達成を受けて、中級編 v4 も全章
+    🟢 達成を求める)
+  north_star: Udemy 中級編 v4 全 22 章を全て 🟢 (初学者完全到達) 化し、初級編と並ぶ品質を達成。L1+L2+L3 統合という市場ゼロの隙間を、初学者が冒頭で離脱しない品質で公開可能に。cmd_1620
+    で 🔴 撲滅は達成済 — 本 cmd で 🟡 残り 21 章を 🟢 へ底上げする最終工程。
+  command_text: '## 背景
+
+
+    - cmd_1620 で 中級編 v4 赤章 6 章 (ch05/06/08/11/13/16) リライト → 🔴 全撲滅 ✅
+
+    - うち ch16 のみ 🟢 到達・残 ch05/06/08/11/13 は 🟡 止まり
+
+    - cmd_1620 リライト対象外の 16 章 (ch00-04/07/09/10/12/14/15/17/18 + appendix_a/b/c) は元
+    🟡 のまま
+
+    - 殿命: 全章 🟢 達成 (初級編 cmd_1621 + ch05 軍師特別編集で全 7 章 🟢 達成 → 中級も同等水準を求める)
+
+
+    ## 対象 21 章
+
+
+    ### グループ A: cmd_1620 既リライト・🟡 残り (5 章)
+
+    - ch05_context_economics
+
+    - ch06_persistent_context
+
+    - ch08_context_best_practices
+
+    - ch11_completion_gate
+
+    - ch13_phase_gate
+
+    → 既存 v2 報告書 (queue/reports/udemy_review_intermediate_chXX_v2.md) の指摘を全て潰し、ピンポイント補修
+
+
+    ### グループ B: 未リライト 16 章 (元 🟡)
+
+    - ch00_intro / ch01_prompt_function / ch02_structured_prompt / ch03_hierarchical_prompt
+    / ch04_quality_gate
+
+    - ch07_restart_resilience / ch09_context_decay / ch10_harness_lifecycle / ch12_silent_fail
+
+    - ch14_feedback_slash / ch15_harness_catalog / ch17_synthesis_part1 / ch18_synthesis_part2
+
+    - appendix_a_differentiation / appendix_b_business_funnel / appendix_c_troubleshoot
+
+    → 既存 元レビュー報告書の指摘を解消・cmd_1620 同等の書き直しルール適用
+
+
+    ## 真ソース
+
+
+    **`.md` が真ソース・`.html` はそこからの派生** (cmd_1620/1621 と同じ運用)。各章 `.md` を編集 → `.html`
+    同期更新。
+
+
+    ## 書き直しルール (cmd_1620/1621 と統一)
+
+
+    1. 専門用語の先出し: 章冒頭に「この章で出てくる用語」ボックス
+
+    2. 1 セクション内 新出カタカナ用語 ≤ 2
+
+    3. 自社固有概念 (Bloom/Harness/Hook/MCP/claude-mem/CLAUDE.md 等) は初出 1 段落で例え話付き説明
+
+    4. 定義の後出し禁止
+
+    5. 数値感覚は「文庫本○ページ相当」「コンビニのレシート○枚分」等の換算併記
+
+    6. 論理破綻の解消 (元 v2 報告書 B.論理破綻 セクション全潰し)
+
+    7. 元 .md/.html はバックアップ (.bak)・git commit
+
+
+    ## リトライ + Escalation (cmd_1621 ch05 先例)
+
+
+    - 各章 **3 回**まで補修トライ可
+
+    - 3 回試行で 🟡 → 🟢 失敗の章 → **軍師特別編集**へ escalate (F003 解除・本 subtask に限り)
+
+    - 軍師特別編集でも 🟢 出ない場合 → 殿に再判断 (🟡 例外許容 / 別案) inbox 通知
+
+
+    ## 並列化
+
+
+    21 章独立ゆえ章単位で並列実行可。家老が足軽 1-7 + (escalate 時) 軍師に分散。1 足軽 2-3 章が目安。bloom_level=L2
+    で配分。
+
+
+    ## 検証
+
+
+    - 各章書き直し後、udemy-checker subagent (or general-purpose 同等) で再レビュー
+
+    - 期待値: 全 21 章 🟢 達成 (🟡 撲滅)
+
+    - 再レビュー報告書は `queue/reports/udemy_review_intermediate_chXX_v3.md` で保存 (v2 上書き禁止)
+
+    - グループ A は v3 として保存・グループ B は v2 として初回 (新規)
+
+
+    ## 共通ルール
+
+
+    - 出力先: 既存 .md / .html を上書き (バックアップ済前提)
+
+    - 新規 .py 禁止 (テキスト編集は Edit tool)
+
+    - python3 -c ワンライナー使い捨て禁止
+
+    - Gemini API はテキスト処理に使うな (Claude CLI Opus 4.6)
+
+    - 中間成果物はファイル化 (/tmp 禁止)
+
+    - git commit & push 済 (章単位 commit 推奨)
+
+    - payload は cmd_payloads ファイル経由必須 (本 cmd_1622.json 踏襲)
+
+    - 殿レビュー URL は新IP **192.168.2.4:8773** で発信
+
+
+    ## 完了報告
+
+
+    - queue/reports/2026-05-04_cmd_1622_intermediate_v4_all_green.md (21 章 before/after
+    サマリ・各章補修内容・最終判定 + 軍師 escalate した章リスト)
+
+    - 殿レビュー用 ntfy 通知 (URL: http://192.168.2.4:8773/)
+
+    '
+  acceptance_criteria:
+  - 中級編 v4 全 21 章 (ch00-15/17-18 + appendix_a/b/c) の .md (真ソース) 全て書き直し済
+  - .html (派生) も同期更新済 (.md と内容一致)
+  - 各章の元レビュー報告書 + v2 報告書 (グループ A) の指摘 (A.わからない / B.論理破綻 / C.飛躍) が全て解消
+  - udemy-checker (or general-purpose 同等) による再レビューで全 21 章 🟢 達成 (🟡 撲滅)
+  - '再レビュー報告書 21 件作成 (グループ A: chXX_v3.md / グループ B: chXX_v2.md)'
+  - ch16 (既 🟢) は touch 不要・スキップで OK
+  - 軍師 escalate した章は v3_gunshi.md として保存・どの章を escalate したか報告書に明記
+  - git commit + push 済 (章単位 commit 推奨)
+  - queue/reports/2026-05-04_cmd_1622_intermediate_v4_all_green.md 完了報告書作成 (21 章のリザルト集約)
+  - 殿レビュー用 ntfy 通知が新IP 192.168.2.4:8773 のレビューURLで送信済
+  notify_karo: true
+- id: cmd_1624
+  status: done
+  priority: normal
+  purpose: 'gunshi inbox 蓄積ループ対策: 案A (ashigaru.md に gunshi_qc フラグルール追加) + 案B (stop_hook_inbox.sh
+    に古い unread 自動既読化ロジック追加)'
+  timestamp: '2026-05-05T05:42:14+09:00'
+  command: '足軽のcmd完了報告が軍師inboxに溜まりstop_hookループが発生した問題を構造的に解消する。案A: subtaskペイロードにgunshi_qc:falseフラグがある場合は
+    inbox karo 直接・gunshi skip するルールをashigaru.mdに追記。案B: stop_hook_inbox.sh にtype=report_received/report_completed
+    で2時間以上前の unread を自動既読化するロジックを追加。コード修正のみ・テスト書くな・動作確認はdry-runで。'
+  lord_original: hookなど仕組みかはできないか
   project: multi-agent-shogun
-  lord_original: '殿原文 (要約): 今までセマンティック検索 hook で関連 procedure が殿発言時に自動注入されてると思っていたが、実態は
-    UserPromptSubmit hook が ntfy チェックのみで、semantic 検索は Bash 実行時にしか走らず stderr 出力ゆえ将軍
-    context に強く出ない。今回事象 (panel_review.html 保存問題で procedures/panel_review_claude_gen.md
-    を見落とし、不要な save_backend.py 立てようとした) を hook で防げ。'
-  north_star: 将軍/家老が手を動かす前に、関連 procedure/document が必ず context に注入される状態を作り、車輪の再発明・既存仕組みスルーによる時間浪費を撲滅する。Udemy
-    ハーネス編 ch『安全網としての hook』の実例として紹介可能になる。
-  command_text: "=== 背景 ===\n2026-05-03 18:00頃、将軍が panel_review.html の保存不能問題に対し、既に\
-    \ dashboard server (8770) の /api/save_panels_json (cmd_1354 で実装済) があるにも関わらず、独自\
-    \ SimpleHTTPServer + save_backend.py を立てようとした。\nshared_context/procedures/panel_review_claude_gen.md\
-    \ に dashboard server 組込み済みと明記されていたが、find でファイル名は見つけたものの Read せずスルーした。\n\n=== 既存\
-    \ hooks の実態 (調査済) ===\n| hook | trigger | 機能 | 殿発言時に動くか |\n|---|---|---|---|\n\
-    | script_hint_search.sh | PreToolUse on Bash | コマンド内 keyword で procedure 検索 →\
-    \ stderr 出力 | × (Bash時のみ・stderr ゆえ context 注入弱い) |\n| semantic_index_hook.sh |\
-    \ PreToolUse | embedding index 更新のみ | × (検索しない) |\n| userprompt_ntfy_check.sh\
-    \ | UserPromptSubmit | ntfy 新着チェックのみ | △ (semantic 検索なし) |\n\n=== 実装内容 ===\n##\
-    \ Step 1: scripts/userprompt_semantic_search.sh 新規作成\n- trigger: UserPromptSubmit\
-    \ (.claude/settings.json に hook 登録)\n- 処理:\n  1. 殿の発言 (stdin の prompt) + 直近 3\
-    \ turn の文脈を seed に query 構築\n  2. claude-mem search (mcp__plugin_claude-mem_mcp-search__search\
-    \ 相当を CLI または curl 経由で叩く・既存 script_hint_search.sh のロジック流用可)\n  3. 関連度閾値 (cosine\
-    \ 0.7+ 推奨) で top 3-5 件抽出\n  4. path + 1 行 snippet を stdout に注入 (stderr ではない・将軍\
-    \ context に強く乗せる)\n  5. 関連度閾値以下なら無注入 (爆発防止)\n  6. timeout 3 秒で打切り (会話遅延防止)\n-\
-    \ 注入フォーマット例:\n  ```\n  \U0001F4D6 関連 procedure (semantic search):\n  - shared_context/procedures/panel_review_claude_gen.md:\
-    \ panel_review.html / Claude Opus パネル候補生成 / dashboard server (8770) /api/save_panels_json\
-    \ と /api/generate_panels_llm 実装 (cmd_1354)\n  - shared_context/procedures/dashboard_api_usage.md:\
-    \ cmd/inbox/task 操作の HTTP API 利用ルール\n  ```\n\n## Step 2: 適用対象エージェントの絞込\n- 将軍 +\
-    \ 家老のみ (足軽は task YAML 駆動ゆえ不要・無駄な hook 発火を避ける)\n- userprompt_ntfy_check.sh と同様に\
-    \ AGENT_ID チェックで絞る\n\n## Step 3: script_hint_search.sh との重複回避\n- 検索コアロジックは共通モジュール化\
-    \ (例: scripts/lib/semantic_search.sh)\n- script_hint_search.sh と userprompt_semantic_search.sh\
-    \ は trigger 元と注入先 (stderr vs stdout) のみ違う\n\n## Step 4: 既存 settings.json への hook\
-    \ 追加\n- .claude/settings.json の UserPromptSubmit セクションに追記\n- userprompt_ntfy_check.sh\
-    \ の後に並列実行\n\n## Step 5: 動作確認\n1. 「review.html 保存できん」発言 → panel_review_claude_gen.md\
-    \ がヒット注入されること\n2. 「ffmpeg エンコード」発言 → ffmpeg_nvenc.md がヒット注入されること\n3. 「OK」「A」等の短い発言\
-    \ → ヒットなし or 直近 3 turn の文脈で適切ヒットすること\n4. timeout 3 秒で打切り確認 (semantic 検索 backend\
-    \ 停止時にハングしないこと)\n5. 関連度閾値以下で無注入確認 (車輪再発明を防ぐ目的なので false positive で context 汚染しないこと)\n\
-    \n=== ルール ===\n- 既存 script_hint_search.sh のロジック再利用 (新規重複コード禁止)\n- 共通化は scripts/lib/semantic_search.sh\
-    \ 等に切出す\n- セマンティック検索 backend は claude-mem (chroma + Gemini Embedding) を流用\n- semantic_index_hook.sh\
-    \ の git log timeout / Gemini quota 問題は別 cmd (本 cmd では対象外・既存 index で検索する前提)\n-\
-    \ 担当: ashigaru (家老配分)\n- 報告書: queue/reports/2026-05-03_cmd_1607_userprompt_semantic_search_hook.md\n\
-    \n=== 完了条件 ===\n- scripts/userprompt_semantic_search.sh 新規作成\n- scripts/lib/semantic_search.sh\
-    \ (共通モジュール) 切出し or script_hint_search.sh との関数共有\n- .claude/settings.json の UserPromptSubmit\
-    \ に hook 追加\n- 将軍 + 家老のみ trigger 確認\n- 動作確認 (上記 5 シナリオ全 PASS)\n- 軍師 QC PASS\n\
-    - git commit + push 完了\n- 報告書: queue/reports/2026-05-03_cmd_1607_userprompt_semantic_search_hook.md"
   acceptance_criteria:
-  - scripts/userprompt_semantic_search.sh 新規作成
-  - 殿発言 + 直近 3 turn を seed に semantic search を走らせ、関連度閾値以上の top 3-5 件の path + 1行 snippet
-    を stdout 注入
-  - 関連度閾値以下なら無注入 (爆発防止)
-  - timeout 3 秒で打切り
-  - 将軍 + 家老のみ trigger (AGENT_ID チェック)
-  - script_hint_search.sh の検索ロジック再利用 (共通化)
-  - .claude/settings.json の UserPromptSubmit hook 追加
-  - '動作確認: 「review.html 保存できん」発言で panel_review_claude_gen.md ヒット注入'
-  - '動作確認: 「ffmpeg エンコード」発言で ffmpeg_nvenc.md ヒット注入'
-  - '動作確認: timeout 3秒打切り (backend 停止時ハング無し)'
-  - 軍師 QC PASS
+  - 'instructions/ashigaru.md に gunshi_qc: false フラグのルールが追記されている'
+  - scripts/stop_hook_inbox.sh に古い unread 自動既読化ロジックが追加されている
+  - 既存のstop_hook動作を壊さない(bash -n でシンタックスチェック)
   - git commit + push 完了
-  - queue/reports/2026-05-03_cmd_1607_userprompt_semantic_search_hook.md 報告書作成
-  notify_karo: true
-  completed_at: '2026-05-04T09:22:44+09:00'
-- id: cmd_1611
+- id: cmd_1625
   status: done
-  priority: high
-  purpose: panels_yukigassen_base_edited.json (殿レビュー済み 15 panel・将軍が ref_images を 3views/
-    絶対パスに修正済み) を ChatGPT CDP 版 (cdp_chatgpt_image_poc.py / Chrome DevTools Protocol
-    経由 ChatGPT 4o ImageGen) で全 15 panel 画像生成する。cmd_1609 が誤って Gemini UI 想定 (cdp_manga_panel.py)
-    を起動していたため supersede。API 版 (cmd_1608) と並行・出力比較可能にする。
-  timestamp: '2026-05-03T20:48:13+09:00'
-  project: dozle_kirinuki
-  lord_original: '殿原文 (要約): 動くべきは GPT の CDP なんだが (Gemini ではなく ChatGPT 経由で生成)。足軽 (ashigaru5)
-    が違うスクリプト (cdp_manga_panel.py = Gemini) を起動した。再認証しよう→ Cookie 健全 (logged_in 確認済)
-    ゆえ ChatGPT CDP 版で再起票せよ。'
-  north_star: ChatGPT 4o ImageGen と Vertex AI Gemini Imagen の 2 ルートで同じ panels JSON
-    から画像生成し、漫画ショート品質の最適ルートを比較検証する。今後の量産フローで標準ルート決定の根拠データを蓄積。
-  command_text: '=== 経緯 ===
-
-    cmd_1609 で『CDP GPT 版』として起票したが、ashigaru5 が起動したスクリプト cdp_manga_panel.py は Gemini
-    UI 想定 (NOT ChatGPT)。殿のご意向は ChatGPT (GPT) UI 経由ゆえ、cmd_1609 を supersede し本 cmd で再実装。
-
-
-    ## cmd_1609 への対応 (家老責務)
-
-    - cmd_1609 status を cancelled に変更 (shogun_to_karo.yaml 編集 or cmd_update API 経由)
-
-    - ashigaru5 への STOP 通知は将軍が既に送信済み (msg_id: msg_20260503_204018_d31684a6)
-
-
-    ## ChatGPT ログイン状態確認
-
-    将軍が cdp_chatgpt_login_poc.py を実行済み・結果: logged_in (Cookie 32件健全)・再認証不要。
-
-
-    ## panels JSON 修正完了 (将軍責務分・完了済)
-
-    - panels_yukigassen_base_edited.json の ref_images を 3views/ 絶対パスに修正済み (selected/
-    → 3views/ 置換)
-
-    - 全 13 件 ref_images ファイル存在確認 PASS
-
-    - 注意: 同 panels JSON には komawari_templates パスも含まれる (ChatGPT 用には不要・cdp_chatgpt_image_poc.py
-    側で 3views のみ抽出して --ref-image 渡しを推奨)
-
-
-    === 入力 ===
-
-    - panels JSON: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260503_季節外れの雪合戦でガチ対決！【マイクラ】/panels_yukigassen_base_edited.json
-
-    - 殿レビュー済み 15 panel・全 25 行カバー
-
-    - ref_images: 3views/<key>_3views.png (絶対パス・既修正)
-
-
-    === 実行手順 ===
-
-    ## Step 1: 出力先確保
-
-    mkdir -p /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260503_季節外れの雪合戦でガチ対決！【マイクラ】/images_chatgpt_cdp_yukigassen_base
-
-
-    ## Step 2: USAGE_chatgpt_cdp.md と cdp_chatgpt_image_poc.py の使い方確認 (必須)
-
-    - Read: projects/dozle_kirinuki/scripts/manga_poc/USAGE_chatgpt_cdp.md
-
-    - Read: projects/dozle_kirinuki/scripts/cdp_chatgpt_image_poc.py の冒頭 docstring
-
-
-    ## Step 3: venv + DISPLAY 準備
-
-    cd projects/dozle_kirinuki && source venv/bin/activate
-
-    export DISPLAY=:0
-
-
-    ## Step 4: panel 1 件試打ち (batch=1 QC gate・shared_context/procedures/batch_processing.md
-    準拠)
-
-    - panel id p01_opening_kumiwakebou をプロンプト + ref_images で生成
-
-    - DISPLAY=:0 python3 scripts/cdp_chatgpt_image_poc.py --prompt "<P01 のプロンプト>"
-    --ref-image /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/assets/dozle_jp/character/3views/dozle_3views.png
-    --ref-image /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/assets/dozle_jp/character/3views/oo_men_3views.png
-    --out work/20260503_季節外れの雪合戦でガチ対決！【マイクラ】/images_chatgpt_cdp_yukigassen_base/
-
-    → p01 PNG 生成確認・殿目視レビュー判断 (家老が殿に ntfy 通知して GO/NO-GO 確認)
-
-
-    ## Step 5: 試打ち PASS なら残り 14 panel 連続生成
-
-    - 同一 chat 内で連続生成 (--count or --resume オプション活用)
-
-    - 各 panel ごとに characters の ref_images を添付 (panels JSON の ref_images から 3views
-    のみ抽出)
-
-    - panel_id を出力ファイル名にする (p01_opening_kumiwakebou.png 等)
-
-
-    ## Step 6: 出力確認
-
-    ls images_chatgpt_cdp_yukigassen_base/ | wc -l → 15
-
-    python3 -c "from PIL import Image; img=Image.open(''images_chatgpt_cdp_yukigassen_base/p01_opening_kumiwakebou.png'');
-    print(img.size)"
-
-
-    ## Step 7: 軍師 QC
-
-    軍師に視覚検査を依頼:
-
-    - 全 15 panel が出力されているか
-
-    - ref_images (3views) のキャラ外見が反映されているか
-
-    - バストアップ・配置一貫性が director_notes 通りか
-
-    - API 版 (cmd_1608) と画質比較できる状態か
-
-
-    ## Step 8: 報告書生成
-
-    queue/reports/2026-05-03_cmd_1611_chatgpt_cdp_panels_yukigassen.md に:
-
-    - 出力 PNG 一覧 (パス + サイズ)
-
-    - 失敗 panel (あれば・retry 結果含む)
-
-    - API 版 (cmd_1608) との簡易比較メモ (キャラ再現度・背景・セリフ配置等)
-
-    - 殿目視レビュー用の URL: http://192.168.2.7:8770/work/20260503_季節外れの雪合戦でガチ対決！【マイクラ】/images_chatgpt_cdp_yukigassen_base/
-
-    - ChatGPT 4o ImageGen の特徴・限界 (cmd_1574 知見との比較)
-
-
-    === ルール ===
-
-    - 既存スクリプト cdp_chatgpt_image_poc.py 使用 (新規 .py 禁止)
-
-    - USAGE_chatgpt_cdp.md 準拠
-
-    - batch=1 試打ち → 殿 GO 後に残り 14 連続生成 (QC gate 必須)
-
-    - ガチャ上限: 殿の指示がない限り各 panel 1 回
-
-    - 担当: ashigaru5 (STOP 受領済み・再 assign 推奨) もしくは別足軽 (家老判断)
-
-    - 出力先: images_chatgpt_cdp_yukigassen_base/ (Gemini 版・API 版と分離)
-
-    - ref_images の komawari_templates は除外 (ChatGPT には 3views のみ渡す)
-
-    - 報告書: queue/reports/2026-05-03_cmd_1611_chatgpt_cdp_panels_yukigassen.md
-
-
-    === 完了条件 ===
-
-    - panels_yukigassen_base_edited.json 全 15 panel を cdp_chatgpt_image_poc.py で画像生成
-
-    - 出力先 images_chatgpt_cdp_yukigassen_base/ に p01〜p15 の PNG が存在
-
-    - ref_images (3views) が反映され、キャラ外見が一貫
-
-    - batch=1 試打ち → 殿 GO 後に残り 14 連続生成 (QC gate 通過)
-
-    - 軍師 QC PASS
-
-    - queue/reports/2026-05-03_cmd_1611_chatgpt_cdp_panels_yukigassen.md 報告書作成 (API
-    版との比較メモ含む)
-
-    - 殿レビュー用 URL 提示
-
-    - 家老 ntfy 通知
-
-    - cmd_1609 を cancelled に更新済み (家老責務)'
-  acceptance_criteria:
-  - panels_yukigassen_base_edited.json 全 15 panel を cdp_chatgpt_image_poc.py で画像生成
-  - 出力先 images_chatgpt_cdp_yukigassen_base/ に p01〜p15 の PNG が存在
-  - ref_images (3views) が反映され、キャラ外見が一貫
-  - batch=1 試打ち → 殿 GO 後に残り 14 連続生成 (QC gate 通過)
-  - 軍師 QC PASS
-  - queue/reports/2026-05-03_cmd_1611_chatgpt_cdp_panels_yukigassen.md 報告書作成 (API
-    版との比較メモ含む)
-  - 殿レビュー用 URL 提示 (http://192.168.2.7:8770/work/.../images_chatgpt_cdp_yukigassen_base/)
-  - 家老 ntfy 通知
-  - cmd_1609 を cancelled に更新済み (家老責務)
-  notify_karo: true
-  completed_at: '2026-05-04T09:21:23+09:00'
-- id: cmd_1612
-  status: done
-  priority: high
-  purpose: pretool_check.sh hook を拡張し、curl --data @/tmp/*.json 形式の API 投入を BLOCK する。家老/足軽が
-    /tmp に payload を書く悪習を恒久撲滅し、queue/cmd_payloads/ への書出を強制する。加えて既存 /tmp/*.json (家老連発分
-    14 ファイル) を queue/cmd_payloads/archive_<date>/ にバックアップ移動する。
-  timestamp: '2026-05-04T07:57:42+09:00'
+  priority: medium
+  purpose: dashboard_lifecycle.sh が nightly_audit.sh 経由 (毎日 02:02) で exit 非 0 になる根本原因を特定し、修正する。手動実行では成功するため
+    cron 環境固有の問題と推定される。
+  timestamp: '2026-05-05T05:55:08+09:00'
   project: multi-agent-shogun
-  lord_original: '殿原文 (要約): なんで /tmp に置くの → B (pretool_check 拡張で恒久対策) しつつ /tmp の状況チェック'
-  north_star: 全 API 投入 payload を queue/cmd_payloads/ に集約し、git で監査追跡可能な状態を作る。今後の障害調査・経緯確認で『家老が何を送ったか』を
-    git log で再現できる。Udemy ハーネス編で『観測性のあるエージェント運用』の実例強化。
-  command_text: "=== 背景 ===\n2026-05-04 朝、殿が家老 pane で `cat > /tmp/task_1611_p12p15.json\
-    \ << 'ENDJSON'` 形式のコマンドを発見。家老が API payload を /tmp に書き出してから curl --data @/tmp/...\
-    \ で投入していた。\n\n## 既存ルール\n- CLAUDE.md: cmd_create payload は queue/cmd_payloads/cmd_XXXX.json\
-    \ 必須 (cmd_1546 CHK10)\n- 現行 pretool_check.sh: cmd_create の JSON 直書きは BLOCK するが、`/tmp/*.json`\
-    \ 経由は素通り (漏れ穴)\n\n## 問題\n- /tmp は再起動で消える → 履歴消失\n- git に残らない → 監査追跡不能\n- 将軍が『家老が何を送ったか』後追いできない\n\
-    \n## 直近 6h 以内の /tmp 放置 payload (14 件)\ntask_1607b, task_1607c, task_1607b_r, task_1610a,\
-    \ task_1610b, task_1611a, task_1611b_r2, task_1611b_p07p11, task_1611_p11_redo,\
-    \ task_1611_p12p15, task_1611c, task_1608b, task_stt_audit, inbox_ash5_*, inbox_gunshi_*,\
-    \ inbox_1607a2, inbox_nudge, inbox_mark_read2, dashboard_alert, dashboard_1611_qc,\
-    \ dashboard_1611_status\n\n=== 修正内容 ===\n\n## Step 1: scripts/pretool_check.sh\
-    \ の hook 拡張\n\n### 新 BLOCK ルール (CHK11 仮称)\n対象: Bash tool で curl 実行時\n判定: コマンド文字列に以下のパターンが含まれれば\
-    \ BLOCK\n  - `curl ... --data @/tmp/*.json` (相対パスでも /tmp 始まりなら検出)\n  - `curl ...\
-    \ -d @/tmp/...`\n  - `curl ... --data-binary @/tmp/...`\n\n対象 endpoint (より厳密にする場合):\n\
-    \  - /api/cmd_create\n  - /api/inbox_write\n  - /api/task_create\n  - /api/task_update\n\
-    \n### BLOCK メッセージ例\n```\nBLOCKED (CHK11): /tmp/*.json を curl --data @ で投入禁止 (CLAUDE.md\
-    \ cmd_1546 CHK10 拡張)\npayload は queue/cmd_payloads/ に書出 → curl --data @queue/cmd_payloads/<file>.json\
-    \ で送信せよ\n理由: 監査追跡・git 記録のため\n```\n\n### 既存 CHK10 との関係\n- CHK10: cmd_create で JSON\
-    \ 直書き禁止 → 既に cmd_payloads ファイル経由必須\n- CHK11 (新): /tmp/*.json での curl 投入を全 API\
-    \ endpoint で禁止\n- 互換性: 既存の queue/cmd_payloads/ 経由は素通り\n\n## Step 2: 既存 /tmp/*.json\
-    \ の archive 移動\n\n### Step 2a: 該当ファイル一覧\nfind /tmp -maxdepth 2 -mmin -1440 -type\
-    \ f -user murakami \\(\n  -name 'task_*.json' -o -name 'inbox_*.json' -o -name\
-    \ 'cmd_*.json'\n  -o -name 'dashboard_*.json' -o -name 'subtask_*.json'\n\\) 2>/dev/null\n\
-    \n### Step 2b: queue/cmd_payloads/archive_20260504_tmp_migration/ に移動\n```\nmkdir\
-    \ -p queue/cmd_payloads/archive_20260504_tmp_migration\ncp -p /tmp/<対象>.json queue/cmd_payloads/archive_20260504_tmp_migration/\n\
-    ```\n(rm /tmp/... はしない・元ファイルは残す・archive はあくまで保全)\n\n## Step 3: ドキュメント更新\n- shared_context/procedures/payload_file_rule.md\
-    \ (新規) もしくは既存 dashboard_api_usage.md に追記:\n  - 「全 API 投入は queue/cmd_payloads/\
-    \ ファイル必須・/tmp 禁止」\n  - 命名規約: `cmd_XXXX.json`, `inbox_<to>_<context>.json`, `task_<id>.json`\
-    \ 等\n\n## Step 4: 動作検証\n1. `curl --data @/tmp/test.json http://192.168.2.7:8770/api/inbox_write`\
-    \ を試行 → BLOCK されること\n2. `curl --data @queue/cmd_payloads/test.json ...` は素通りすること\n\
-    3. 既存の inbox_write 通常運用に影響しないこと\n4. archive 移動の整合性確認 (元 /tmp ファイル + archive 両方存在)\n\
-    \n## Step 5: 家老/足軽への通知\n- 家老 inbox: 『今後 /tmp/*.json への payload 書出禁止・queue/cmd_payloads/\
-    \ に書け』\n- 足軽全員 (ashigaru1-7): 同様の周知\n\n=== ルール ===\n- 既存 pretool_check.sh の改修\
-    \ (新規 hook 禁止)\n- 担当: 家老配分\n- 報告書: queue/reports/2026-05-04_cmd_1612_pretool_tmp_payload_block.md\n\
-    \n=== 完了条件 ===\n- pretool_check.sh CHK11 実装 (curl --data @/tmp/*.json BLOCK)\n\
-    - 既存 /tmp/*.json (14+件) を queue/cmd_payloads/archive_20260504_tmp_migration/ にコピー保全\n\
-    - shared_context/procedures/ に payload ファイルルール追記\n- 動作検証 4 項目 PASS\n- 家老/足軽通知\n\
-    - 軍師 QC PASS\n- git commit + push 完了\n- 報告書 queue/reports/2026-05-04_cmd_1612_pretool_tmp_payload_block.md\
-    \ 作成"
+  lord_original: 'A C 続行 (将軍提案 A: C05 dashboard_lifecycle 毎日 02:02 nightly_audit 経由失敗の根本調査・別
+    cmd 起票)'
+  north_star: cron 健全性は multi-agent ハーネスの基盤・毎日繰返す silent fail を放置すると本物の障害を埋もれさせる。dashboard_lifecycle
+    の cron 環境固有失敗を撲滅し、cron_health_check の C05 検知を恒久解消。
+  command_text: "## 背景\n\n- 5/2, 5/3, 5/4, 5/5 と毎日 02:02 に nightly_audit.log に「dashboard_lifecycle\
+    \ failed (continuing)」が記録されている\n- cron_health_check.sh が hourly でこれを検知 → ntfy「[C05]」発火\
+    \ (殿スマホに毎日通知)\n- 将軍が手動 `bash scripts/dashboard_lifecycle.sh` 実行 = exit 0・成功\n\
+    - → **cron (nightly_audit 経由) 環境固有の失敗** と推定\n\n## 調査仮説\n\n1. PATH 違い (cron 環境では\
+    \ `/usr/bin:/bin` のみ・ローカル install 済 binary 未到達)\n2. flock 競合 (毎時 cron `0 * * *\
+    \ *` の dashboard_lifecycle と nightly_audit 02:02 起動が衝突)\n3. set -euo pipefail\
+    \ で cron 環境特有の失敗 (CWD 違い・変数未定義 等)\n4. dashboard.md ファイル不在で curl/jq 系が exit 非 0\n\
+    5. 192.168.2.4:8770 への curl が cron 環境で名前解決 or 接続失敗\n\n## 対応方針\n\n1. dashboard_lifecycle.sh\
+    \ に **詳細 verbose ログ出力**を追加 (どこで exit したか特定)\n2. cron 環境再現テスト (`env -i bash -c\
+    \ '/path/to/dashboard_lifecycle.sh'`)\n3. nightly_audit.sh 経由実行を再現 (set -e 違いの可能性)\n\
+    4. 根本原因特定 → 修正 → 5/6 02:02 nightly_audit で「failed」が出ないこと確認\n\n## 補助情報\n\n- 関連ファイル:\n\
+    \  - scripts/dashboard_lifecycle.sh\n  - scripts/nightly_audit.sh (line 47: dashboard_lifecycle\
+    \ 呼出)\n  - scripts/cron_health_check.sh (line 31: C05 監視)\n  - logs/dashboard_lifecycle.log\
+    \ (start のみ・本体無し = early exit)\n  - logs/nightly_audit.log (failed メッセージ)\n- 毎時\
+    \ cron は同 script を `0 * * * *` で実行・こちらも内部 fail している可能性 (ログ出力なしで判別困難)\n\n## 共通ルール\n\
+    \n- 新規 .py 禁止・既存スクリプトの修正のみ\n- python3 -c ワンライナー使い捨て禁止\n- Gemini API はテキスト処理に使うな\n\
+    - 中間成果物はファイル化 (/tmp 禁止)\n- git commit & push 済 (修正完了時)\n- payload は cmd_payloads\
+    \ ファイル経由必須\n\n## 完了報告\n\n- queue/reports/2026-05-05_cmd_1625_dashboard_lifecycle_root_cause.md\
+    \ (根本原因 + 修正内容 + 検証結果)\n- 5/6 02:02 nightly_audit で C05 検知が出ないこと確認\n"
   acceptance_criteria:
-  - 'pretool_check.sh CHK11 実装: curl --data @/tmp/*.json を全 API endpoint で BLOCK'
-  - 既存 /tmp 配下の payload 14+ 件を queue/cmd_payloads/archive_20260504_tmp_migration/
-    にコピー保全
-  - shared_context/procedures/ に payload ファイル必須ルール追記
-  - '動作検証: /tmp 経由 BLOCK + queue/cmd_payloads/ 経由素通り'
-  - 家老/足軽全員に inbox 通知 (今後 /tmp 禁止)
-  - 軍師 QC PASS
+  - dashboard_lifecycle.sh が cron 環境 (nightly_audit 02:02 経由) でも exit 0 になる
+  - 5/6 02:02 nightly_audit.log に「dashboard_lifecycle failed」が出ない
+  - 5/6 02:30 cron_health_check.log に C05 HIT が出ない
+  - 根本原因が報告書 (queue/reports/2026-05-05_cmd_1625_dashboard_lifecycle_root_cause.md)
+    に記録されている
   - git commit + push 完了
-  - queue/reports/2026-05-04_cmd_1612_pretool_tmp_payload_block.md 報告書作成
   notify_karo: true
-  completed_at: '2026-05-04T09:22:45+09:00'
-- id: cmd_1613
+  completed_at: '2026-05-05T06:08:21+09:00'
+- id: cmd_1626
   status: done
-  priority: high
-  purpose: 夜間 audit (queue/reports/gunshi_stt_contradiction_20260504.yaml) で検出した STT
-    パイプライン矛盾 全 20 件 (CRITICAL ×2 / HIGH ×6 / MEDIUM ×7 / LOW ×5) を全件修正する。最重要 STT_C001
-    (speaker_id.py の sys.path 偶発成功) と STT_C002 (transcribe_with_speakers.py 重複 import
-    + whisperx tightly-coupled) は即対処、HIGH 以下は計画的に。修正後 vocal_stt_pipeline 動作検証で regression
-    無し確認。
-  timestamp: '2026-05-04T08:31:13+09:00'
+  priority: medium
+  purpose: cmd_1623 矛盾検出報告書 (queue/reports/2026-05-05_cmd_1623_mujun_detection.md)
+    の H1 (致命) を必ず解消し、M1-M9 (重要) のうち main.py 関連の dead code / silent fail を整理する。L1-L12
+    (軽微) は本 cmd の scope 外。
+  timestamp: '2026-05-05T05:55:18+09:00'
   project: dozle_kirinuki
-  lord_original: '殿原文: 全部対応起票して (夜間 audit STT パイプライン 20件)'
-  north_star: STT パイプラインの隠れた破綻リスクを撲滅し、本番運用で『同一 cwd 限定で偶発的に動く』状態を解消する。Udemy ハーネス編で『夜間
-    audit による隠れバグ検出』の実例として紹介可能にする。
-  command_text: "=== 元データ ===\nqueue/reports/gunshi_stt_contradiction_20260504.yaml\
-    \ (全 findings 詳細)\n\n=== 対象 20 件 ===\n\n## \U0001F534 CRITICAL (即対処)\n- **STT_C001**\
-    \ speaker_id.py:24-27 — sys.path に存在しないディレクトリ追加・members import 偶発成功\n- **STT_C002**\
-    \ transcribe_with_speakers.py:8-9 — 重複 import (os) + whisperx top-level 強制\n\n\
-    ## \U0001F7E1 HIGH (即〜計画)\n- **STT_H001** vocal_stt_pipeline.py:154-182 — WAV\
-    \ concat -c copy / サンプルフォーマット不一致リスク\n- **STT_H002** vocal_stt_pipeline.py:209-224\
-    \ — AssemblyAI 400 fallback で speakers_detected=0 → direct 強制 (視認性ゼロ)\n- **STT_H003**\
-    \ stt_merge.py:39-56 — detect_timestamp_unit ヒューリスティックが短尺 (<10s) で誤判定\n- **STT_H004**\
-    \ vocal_stt_pipeline.py:277-279 — 空文字混在で speakers_detected=0 → 意図せず direct 切替\n\
-    - **STT_H005** stt_merge.py:191-245 — gap_threshold_ms 自己代入 (no-op dead code)\n\
-    - **STT_H006** apply_speaker_mapping_srt.py:17-46 — マッピング辞書ハードコード (yaml 外部化)\n\
-    \n## \U0001F7E2 MEDIUM (計画)\n- **STT_M001** vocal_stt_pipeline.py:397-645/648-904\
-    \ — run_speaker_identification と direct の 250+250 行重複\n- **STT_M002** vocal_stt_pipeline.py:44-46\
-    \ — 閾値定義位置分散・direct 内で再 hardcode\n- **STT_M003** stt_merge.py:700-720 — YouTube\
-    \ 字幕 auto-detect が auto_mode のみ\n- **STT_M004** speaker_id.py:211 — 閾値判定 >= ↔\
-    \ コメント (以下 unknown) 矛盾\n- **STT_M005** transcribe_with_speakers.py:11-22 — _apply_vocab\
-    \ が content_selector 38KB 副作用 import\n- **STT_M006** run_speaker_match_only.py:16-19\
-    \ — PROJECT_DIR unused / sys.path 4スクリプトで 4種類\n- **STT_M007** subtitle_speaker_qc.py:247-252\
-    \ — Part.from_bytes 使用 (memory ルール違反・MEMORY.md 2026-04-11)\n\n## ⚪ LOW (改善)\n\
-    - **STT_L001** vocal_stt_pipeline.py:924-933 — --gemini deprecated 表記が曖昧\n- **STT_L002**\
-    \ transcribe_with_speakers.py:23 — PUNCTUATION 半角全角混在・出典コメントなし\n- **STT_L003**\
-    \ stt_merge.py:461-474 — garbage keyword 'ぺけたん' に出典コメントなし\n- **STT_L004** batch_speaker_match.py:70-74\
-    \ — video_id no-op 分岐\n- **STT_L005** subtitle_speaker_qc.py:962 — generate_report\
-    \ の audio_merge_path 引数が --merge-stt-json 時に伝わらない\n\n=== 推奨実装計画 (家老判断で subtask\
-    \ 分割) ===\n\n## Phase 1 (即対処・本番影響)\n- subtask_1613_critical: STT_C001 + STT_C002\
-    \ 修正\n  - speaker_id.py: sys.path 修正 (`_REPO_SCRIPTS_DIR` を `str(_SCRIPT_DIR)`\
-    \ に or 相対 import に統一)\n  - transcribe_with_speakers.py: L9 重複 os 削除 + whisperx\
-    \ を関数内 lazy import 化\n  - 動作検証: speaker_id.py を別 cwd から `python3 -c 'from speaker_id\
-    \ import ...'` で ModuleNotFoundError 出ないこと\n  - 工数: 1-2h\n\n## Phase 2 (HIGH 6\
-    \ 件)\n- subtask_1613_high_pipeline: STT_H001/H002/H004 (vocal_stt_pipeline.py\
-    \ 関連 3 件)\n- subtask_1613_high_merge: STT_H003/H005 (stt_merge.py 2 件)\n- subtask_1613_high_apply:\
-    \ STT_H006 (apply_speaker_mapping_srt.py マッピング yaml 外部化)\n  - 工数: 計 4-6h\n\n##\
-    \ Phase 3 (MEDIUM 7 件)\n- subtask_1613_med_refactor: STT_M001 (重複コード共通化) ← 最も時間かかる・別途切出推奨\n\
-    - subtask_1613_med_other: STT_M002〜M007 (6 件まとめ)\n  - STT_M007 は memory ルール違反ゆえ\
-    \ Phase 2 と一緒でも可\n  - 工数: 計 6-10h\n\n## Phase 4 (LOW 5 件)\n- subtask_1613_low:\
-    \ STT_L001〜L005 まとめ\n  - dead code 削除 + コメント追加中心\n  - 工数: 1-2h\n\n## Phase 5 (動作検証\
-    \ + 報告)\n- subtask_1613_qc: vocal_stt_pipeline 全パスで regression 無し確認\n  - 既存テスト動画\
-    \ (work/.../tono_clip_base.mp4 等) で 1 度フル実行\n  - 識別率が前と同等以上であること\n  - subtitle_qc_report\
-    \ で speaker 分布が同等\n\n=== ルール ===\n- 既存スクリプト改修 (新規 .py 禁止)\n- audit yaml の各 finding\
-    \ `recommendation:` フィールドの提案を尊重\n- 1 phase ごとに git commit 推奨 (revert しやすく)\n-\
-    \ subtask 分割は家老判断 (上記 Phase は推奨案)\n- 報告書: queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md\
-    \ (Phase 別進捗 + 最終 regression 結果)\n- ガチャ可: 動作検証で問題出たら Phase 単位で revert\n\n=== 完了条件\
-    \ ===\n- audit 20 件全件 fix (各 finding に対応 commit が紐付く)\n- speaker_id.py を別 cwd\
-    \ から import で ModuleNotFoundError 出ないこと\n- transcribe_with_speakers.py が whisperx\
-    \ 未インストール環境でも import 通ること\n- vocal_stt_pipeline 既存動画 (tono_clip_base.mp4) で識別率が前と同等以上\n\
-    - subtitle_speaker_qc.py が --method gemini で Part.from_uri 経由実行できること (or deprecated\
-    \ 化)\n- apply_speaker_mapping_srt.py がマッピング yaml 外部化済み\n- 軍師 QC PASS\n- git commit\
-    \ + push 完了 (Phase 別 commit 推奨)\n- queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md\
-    \ 報告書作成 (各 finding ID と修正 commit ハッシュの対応表含む)"
+  lord_original: 'A C 続行 (将軍提案 C: cmd_1623 矛盾検出報告書の後続 cmd 起票・H1 致命の Remotion 経路不一致解消優先)'
+  north_star: 動画制作スクリプト群 (main.py + remotion-overlay + make_expression_shorts.py 等)
+    の構造的矛盾を解消し、ハイライト/ショート動画パイプラインの停止リスクを撲滅。cmd_1623 で検出された H1 (Remotion 経路不一致) は致命的・後続cmd必要と明示されている。
+  command_text: "## 背景\n\n- 5/5 02:15 cmd_1623 が動画制作スクリプト矛盾を検出 (gunshi + Plan agent\
+    \ 委任で報告書作成)\n- 検出件数: H=1 / M=9 / L=12\n- H1: **main.py が参照する Remotion ディレクトリと\
+    \ cmd 指定対象の不一致** (致命) → 後続 cmd 必要\n- 本 cmd で H1 + M1-M9 (重要) を解消・L は後日別 cmd\n\n\
+    ## 必読 (作業開始前)\n\n- queue/reports/2026-05-05_cmd_1623_mujun_detection.md (報告書全文)\n\
+    - 該当ファイル:\n  - projects/dozle_kirinuki/scripts/main.py (1471行)\n  - projects/dozle_kirinuki/scripts/make_expression_shorts.py\
+    \ (351行)\n  - projects/dozle_kirinuki/scripts/vertical_convert.py (459行)\n  -\
+    \ projects/dozle_kirinuki/remotion-overlay/ (実体・ShortsOverlay 経路)\n  - remotion-project/\
+    \ (cmd_1623 で対象指定された別物)\n\n## 修正方針\n\n### H1 (致命・必須対応)\n\n問題: main.py の `render_with_remotion()`\
+    \ が `remotion-overlay/` を参照するが、cmd_1623 対象指定や周辺ドキュメントは `remotion-project/` を Shorts\
+    \ 用と誤認している。\n\n対応:\n1. main.py のコメント or docstring に「Shorts 用 Remotion = remotion-overlay/」を明記\n\
+    2. 該当箇所 (main.py L164-217 render_with_remotion) のコメント追加\n3. README or shared_context\
+    \ に Remotion 経路マップを追記 (remotion-overlay = Shorts 用 / remotion-project = DozPreview/DozFull/OrarishTelop/OdinCountdownTest\
+    \ 用)\n4. cmd_1623 対象指定の訂正は記録のみ (報告書内で訂正済)\n\n### M1-M9 (重要・解消)\n\n報告書を読んで以下を実施:\n\
+    - M1: getattr で silent fail している `--model` `--min-duration` `--no-integrate-llm`\
+    \ を argparse に正しく add_argument 追加\n- M2: detect_scene_changes 関連の dead import\
+    \ を削除\n- M3-M9: 報告書記載の各指摘を解消\n\n### L1-L12 (軽微・本 cmd 対象外)\n\n後日別 cmd で対応・本 cmd\
+    \ では touch しない\n\n## 検証\n\n- bash -n / python3 -m py_compile で構文確認\n- main.py\
+    \ --help で argparse が新引数を表示すること (M1 検証)\n- import 動作確認 (M2 検証)\n- ハイライト/ショート動画生成パイプラインが壊れていないことを軽量\
+    \ dry-run で確認 (家老判断・テスト範囲は最小限)\n\n## 共通ルール\n\n- 新規 .py 禁止・既存スクリプト修正のみ\n- Gemini\
+    \ API はテキスト処理に使うな\n- 中間成果物はファイル化 (/tmp 禁止)\n- git commit & push (commit message\
+    \ 例: `fix(scripts): cmd_1626 H1+M1-M9 — Remotion 経路明示 + dead code 整理`)\n- payload\
+    \ は cmd_payloads ファイル経由必須\n\n## 完了報告\n\n- queue/reports/2026-05-05_cmd_1626_mujun_resolution.md\
+    \ (H1+M1-M9 各項目の解消方法 + 検証結果 + L1-L12 の後日対応リスト)\n"
   acceptance_criteria:
-  - audit 20 件 (STT_C001/C002 + STT_H001-H006 + STT_M001-M007 + STT_L001-L005) 全件
-    fix
-  - 'STT_C001: speaker_id.py を別 cwd から import で ModuleNotFoundError 解消'
-  - 'STT_C002: transcribe_with_speakers.py が whisperx 未インストール環境で import 通る'
-  - 'STT_H006: apply_speaker_mapping_srt.py のマッピング辞書を yaml 外部化'
-  - 'STT_M007: subtitle_speaker_qc.py の Part.from_bytes を Part.from_uri (GCS URI)
-    経由に or deprecated 化'
-  - 'STT_M001: run_speaker_identification と run_direct の重複コードをヘルパー関数に共通化'
-  - vocal_stt_pipeline 既存動画 (tono_clip_base.mp4) で識別率が前と同等以上 (regression なし)
-  - 軍師 QC PASS
-  - git commit + push 完了 (Phase 別 commit 推奨・各 finding ID と commit ハッシュの対応表を報告書に記載)
-  - queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md 報告書作成
-  notify_karo: true
-- id: cmd_1614
-  status: done
-  priority: high
-  purpose: discord_news_bot.py の embed.image.url バリデーション追加で、不正 URL 検出時に当該 image を
-    skip (or embed ごと skip) し、後続記事の Discord 配信を継続させる。現在 4/30 の 1 件目 embed で 400 Bad
-    Request (Invalid Form Body) → 5 日分 (4/30〜5/4) の pending が累積詰まり中。修正後に累積 pending
-    を flush 配信。
-  timestamp: '2026-05-04T08:51:18+09:00'
-  project: multi-agent-shogun
-  lord_original: '殿原文 (要約): AI NEWS 生成がここ数日投稿されていない → 確認 → Discord 配信が 4/30 から詰まり
-    (image.url 不正 → 400) → C (バリデーション cmd) 起票'
-  north_star: AI NEWS の Discord 配信信頼性を回復し、1 件の bad URL で全停止する単一障害点を撲滅。今後の運用で『記事 1
-    件の異常がチャンネル全体を止める』状態を防ぎ、Udemy ハーネス編で『観測性 + graceful degradation』の実例として活用。
-  command_text: "=== 背景 ===\n2026-05-04 朝、殿が『AI NEWS が数日投稿されてない』と指摘。logs/genai_daily.log\
-    \ 調査で原因判明:\n```\n2026-05-04 07:12:05 [ERROR] discord.client: Ignoring exception\
-    \ in on_ready\n  ...\n  File '/home/murakami/multi-agent-shogun/scripts/discord_news_bot.py',\
-    \ line 195, in send_daily_news\n    msg = await channel.send(embed=embed)\n  ...\n\
-    \  discord.errors.HTTPException: 400 Bad Request (error code: 50035): Invalid\
-    \ Form Body\n  In embeds.0.image.url: Not a well formed URL.\n```\n\n## 詳細\n-\
-    \ 生成 (genai_daily_report.sh) は毎日成功 ✅ (Cloudflare Pages デプロイ済)\n- Discord 配信は **4/30\
-    \ の pending 10 件配信開始 → 1 件目 embed で image.url が不正** → 400 → 全停止\n- 累積 5 日分 (4/30,\
-    \ 5/1, 5/2, 5/3, 5/4) が Discord に流れていない\n- 8:43:41 にも RESUMED session 試行が見られるが同じエラーで失敗中\n\
-    \n=== 修正内容 ===\n\n## Step 1: scripts/discord_news_bot.py に URL バリデーション追加\n\n###\
-    \ 推奨実装位置\n- send_daily_news 関数 (L195 付近) の embed 作成箇所\n- もしくは embed.set_image(url=image_url)\
-    \ 直前\n\n### バリデーション基準\n```python\nfrom urllib.parse import urlparse\n\ndef is_valid_image_url(url:\
-    \ str) -> bool:\n    if not url:\n        return False\n    try:\n        parsed\
-    \ = urlparse(url)\n        if parsed.scheme not in ('http', 'https'):\n      \
-    \      return False\n        if not parsed.netloc:\n            return False\n\
-    \        # 一般的な画像拡張子チェック (オプション)\n        # ただし Discord は拡張子なし URL も受ける場合があるので緩めに\n\
-    \        return True\n    except Exception:\n        return False\n```\n\n###\
-    \ 適用方法\n```python\nimage_url = item.get('image_url', '')\nif is_valid_image_url(image_url):\n\
-    \    embed.set_image(url=image_url)\nelse:\n    if image_url:\n        logger.warning(f'invalid\
-    \ image_url skipped: {image_url[:80]}')\n    # image なしで embed を継続\n```\n\n##\
-    \ Step 2: send 失敗時の graceful degradation\n\n### embed 投稿の try/except\n```python\n\
-    for topic in topics:\n    embed = build_embed(topic)\n    try:\n        msg =\
-    \ await channel.send(embed=embed)\n    except discord.HTTPException as e:\n  \
-    \      logger.error(f'embed send failed (skipped): {e} / topic={topic.get(\"title\"\
-    , \"?\")[:50]}')\n        continue  # 次の topic へ\n```\n\n## Step 3: 累積 pending\
-    \ の flush\n\n### 修正後の手動実行\n```bash\ncd /home/murakami/multi-agent-shogun\nbash\
-    \ scripts/genai_daily_report.sh  # or python3 scripts/discord_news_bot.py --flush\n\
-    ```\n→ 4/30, 5/1, 5/2, 5/3, 5/4 の 5 日分が順次配信されること確認\n\n## Step 4: 不正 URL の root\
-    \ cause 調査 (オプション)\n\n### reports/genai_daily/2026-04-30.md 内の image_url を grep\n\
-    ```bash\ngrep -E 'image_url:|^!\\[' reports/genai_daily/2026-04-30.md | head -10\n\
-    ```\n→ どの記事の image_url が malformed か特定 → 元 RSS フィードの不具合確認\n\n## Step 5: 動作検証\n\
-    1. test_invalid_image_url.py 作成 (5 ケース: 空・http なし・空 netloc・javascript: scheme・正常)\n\
-    2. 修正版 discord_news_bot.py で test 実行\n3. 修正後 --flush で 5 日分 pending が Discord\
-    \ に届くこと確認\n4. logs/genai_daily.log に '[ERROR] discord.client' が出ないこと\n\n=== ルール\
-    \ ===\n- 既存 scripts/discord_news_bot.py の改修 (新規 .py 禁止)\n- 担当: 家老配分\n- 報告書: queue/reports/2026-05-04_cmd_1614_discord_url_validation.md\
-    \ (修正内容 + 累積 pending 配信結果 + bad URL の root cause)\n\n=== 完了条件 ===\n- discord_news_bot.py\
-    \ に is_valid_image_url() 追加・bad URL skip 動作確認\n- send 失敗時 try/except で次の topic\
-    \ へ継続 (1 件失敗で全停止しない)\n- 累積 5 日分 pending (4/30〜5/4) が Discord #生成ai-news に配信完了\n\
-    - bad URL の root cause 特定 (reports/genai_daily/.md のどの記事か)\n- 軍師 QC PASS\n- git\
-    \ commit + push 完了\n- queue/reports/2026-05-04_cmd_1614_discord_url_validation.md\
-    \ 報告書作成\n- 殿に ntfy 通知 (Discord 復活完了)"
-  acceptance_criteria:
-  - discord_news_bot.py に is_valid_image_url() バリデーション関数追加
-  - send_daily_news で image_url が不正なら set_image をスキップして embed 継続
-  - channel.send try/except で 1 件失敗が後続記事を止めないこと (graceful degradation)
-  - '累積 5 日分 pending (4/30〜5/4) が Discord #生成ai-news に配信完了'
-  - bad URL の root cause 特定 (どの記事の image_url が malformed か報告書記載)
-  - logs/genai_daily.log に discord 400 エラーが出ないこと
-  - 軍師 QC PASS
+  - H1 (Remotion 経路不一致) が解消されている (main.py コメント + shared_context ドキュメント追記)
+  - 'M1: `--model` `--min-duration` `--no-integrate-llm` が argparse に追加され、--help で表示される'
+  - 'M2: detect_scene_changes の dead import が削除されている'
+  - 'M3-M9: 報告書記載の各指摘が解消されている (一部は対応不要と判断する場合は報告書に明記)'
+  - L1-L12 は touch されていない (本 cmd の scope 外・後日別 cmd で対応リスト化)
+  - main.py + make_expression_shorts.py + vertical_convert.py の構文チェック PASS (bash -n
+    / python3 -m py_compile)
   - git commit + push 完了
-  - queue/reports/2026-05-04_cmd_1614_discord_url_validation.md 報告書作成
-  - 殿に ntfy 通知 (Discord 復活)
+  - queue/reports/2026-05-05_cmd_1626_mujun_resolution.md 完了報告書作成
   notify_karo: true
-  completed_at: '2026-05-04T09:22:57+09:00'
-- id: cmd_1615
-  status: done
-  priority: high
-  purpose: 雪合戦動画 tono_edit.mkv (1920×1080 FFV1) を縦型 1080×1920 にクロップし、YouTube に非公開アップロードする。概要欄は過去のドズル切り抜き
-    channel 標準テンプレを準拠して記載。
-  timestamp: '2026-05-04T09:04:19+09:00'
-  project: dozle_kirinuki
-  lord_original: '殿原文: ''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260503_季節外れの雪合戦でガチ対決！【マイクラ】/tono_edit.mkv''
-    縦書きにクロップして非公開アップ 過去の概要欄も参考にして記載せよ'
-  north_star: 雪合戦動画を YouTube ショート (縦型 9:16) として殿レビュー可能な状態にし、本番公開判断を仰ぐ。漫画ショートとは別ルート
-    (実動画) の制作プロセスを完成させる。
-  command_text: "=== 入力 ===\n- 元動画: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260503_季節外れの雪合戦でガチ対決！【マイクラ】/tono_edit.mkv\n\
-    - 仕様: 1920×1080 / 60fps / FFV1 mkv / FLAC音声 / 1.87GB\n- 関連 panel JSON: panels_yukigassen_base_edited.json\
-    \ (15 panel・参考用)\n- 元動画タイトル: 季節外れの雪合戦でガチ対決！【マイクラ】 (channel: ドズル社切り抜き想定)\n\n===\
-    \ 実行手順 ===\n\n## Step 1: 縦型クロップ (1920×1080 → 1080×1920)\n```bash\ncd /home/murakami/multi-agent-shogun\n\
-    python3 projects/dozle_kirinuki/scripts/vertical_convert.py \\\n  --input 'projects/dozle_kirinuki/work/20260503_季節外れの雪合戦でガチ対決！【マイクラ】/tono_edit.mkv'\
-    \ \\\n  --output 'projects/dozle_kirinuki/work/20260503_季節外れの雪合戦でガチ対決！【マイクラ】/tono_edit_vertical.mp4'\n\
-    ```\n\n注意:\n- vertical_convert.py の引数仕様を Read で先に確認 (--input/--output 形式・cropping\
-    \ 中心位置等)\n- cropping は中央寄せ default の場合、おおはらMEN/oo_men 中心構図になっているか確認\n- NVENC エンコード必須\
-    \ (h264_nvenc・shared_context/procedures/ffmpeg_nvenc.md 準拠)\n- FFV1 → mp4 の変換ゆえファイルサイズ大幅減\
-    \ (1.87GB → 100-300MB 想定)\n\n## Step 2: 出力動画の検証\n- ffprobe で 1080×1920 / 60fps\
-    \ / h264 確認\n- 再生テストで視聴可能か (殿スマホ用)\n\n## Step 3: 概要欄テンプレ参照\n```bash\n# 過去の概要欄テンプレ確認\
-    \ (家老が場所特定)\nls shared_context/procedures/ | grep -E 'description|youtube|shorts'\n\
-    find projects/dozle_kirinuki -name 'shorts_description*' -o -name 'manga_short_description*'\
-    \ 2>/dev/null\n```\n\n推奨参照:\n- shared_context/procedures/manga_short_description_format.md\n\
-    - projects/dozle_kirinuki/context/shorts_command_template.md (もし存在)\n\n概要欄に含める要素:\n\
-    - 元動画タイトル + チャンネル名\n- 元動画 URL (https://youtu.be/X9BWyuqSy_k 等・要確認)\n- メンバー紹介 (出演者リンク)\n\
-    - ハッシュタグ (#ドズル社 #マイクラ #切り抜き #ショート 等)\n- 切り抜き channel の固定文 (過去動画から踏襲)\n\n## Step\
-    \ 4: YouTube 非公開アップロード\n```bash\npython3 projects/dozle_kirinuki/scripts/youtube_uploader.py\
-    \ \\\n  --file <tono_edit_vertical.mp4> \\\n  --title '雪合戦でおおはらMENが組み分け帽になってチーム決め\
-    \ (組み分けハッ卑怯! 編)' \\\n  --description-file <概要欄テンプレ.txt> \\\n  --privacy unlisted\
-    \ \\\n  --shorts\n```\n\n注意:\n- youtube_uploader.py の引数を先に Read 確認\n- privacy:\
-    \ 殿明示で『非公開』ゆえ unlisted (or private)・**public 禁止**\n- shorts フラグで縦型ショート判定 (60秒以内であれば自動)\n\
-    - タイトル案は家老/足軽が proposal・殿レビュー判断は別途\n\n## Step 5: 殿レビュー用通知\n- 完了後 ntfy で殿に YouTube\
-    \ URL 送信\n- 通知例: '\U0001F3AC 雪合戦縦型ショート非公開アップ完了 https://youtu.be/<id>'\n\n=== ルール\
-    \ ===\n- 既存スクリプト使用 (vertical_convert.py / youtube_uploader.py・新規 .py 禁止)\n- NVENC\
-    \ 必須 (libx264 禁止・shared_context/procedures/ffmpeg_nvenc.md)\n- ffmpeg 中間成果物は必ずファイル化\
-    \ (1分+処理は intermediate_artifact ルール)\n- privacy: unlisted (or private) 厳守・public\
-    \ 絶対禁止\n- 担当: 家老配分\n- 報告書: queue/reports/2026-05-04_cmd_1615_yukigassen_vertical_upload.md\
-    \ (動画情報 + URL + 概要欄テンプレ参照元)\n\n=== 完了条件 ===\n- tono_edit_vertical.mp4 (1080×1920\
-    \ / 60fps / h264_nvenc) 生成\n- ffprobe で寸法・コーデック確認\n- YouTube 非公開アップロード完了 (URL\
-    \ 取得)\n- 概要欄に過去テンプレ準拠で記載 (元動画 URL + メンバー + ハッシュタグ含む)\n- 殿レビュー用 ntfy 通知 (URL 送信)\n\
-    - 軍師 QC PASS (動画 4 点セット: ffprobe + sync_record + drawtext_params_diff + bitrate)\n\
-    - git commit + push (work/ は git-ignored ゆえ報告書のみ)\n- 報告書 queue/reports/2026-05-04_cmd_1615_yukigassen_vertical_upload.md\
-    \ 作成"
-  acceptance_criteria:
-  - tono_edit_vertical.mp4 (1080×1920 / 60fps / h264_nvenc) 生成 (NVENC 必須・libx264 禁止)
-  - ffprobe で寸法・コーデック・bitrate 確認 PASS
-  - YouTube 非公開 (unlisted or private) アップロード完了 (URL 取得)
-  - '概要欄: 元動画 URL + メンバー + ハッシュタグ含む (過去テンプレ準拠)'
-  - 殿レビュー用 ntfy 通知 (YouTube URL 送信)
-  - '軍師 QC PASS (動画 4 点セット: ffprobe + sync_record + drawtext_params_diff + bitrate)'
-  - git commit (報告書のみ・work/ は git-ignored)
-  - queue/reports/2026-05-04_cmd_1615_yukigassen_vertical_upload.md 報告書作成
-  notify_karo: true
-  completed_at: '2026-05-04T09:21:23+09:00'
+  completed_at: '2026-05-05T06:08:21+09:00'

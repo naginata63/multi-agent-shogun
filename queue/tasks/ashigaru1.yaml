@@ -2,7 +2,7 @@ tasks:
 - task_id: subtask_1598a
   agent: ashigaru1
   parent_cmd: cmd_1598
-  status: assigned
+  status: done
   priority: medium
   description: 'cmd_1598: dashboard R1ルール修正 + 既存残骸 first_seen_at の自動掃除'
   target_path: scripts/dashboard/server.py
@@ -31,7 +31,7 @@ tasks:
 - task_id: subtask_1603_ch10_12
   agent: ashigaru1
   parent_cmd: cmd_1603
-  status: assigned
+  status: done
   priority: high
   description: 'cmd_1603 ch10-12: 中級編v4 Phase3 ch10/11/12 を業界体系で書き直し + 全6章バックアップ'
   target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch10_harness_lifecycle.md
@@ -64,39 +64,6 @@ tasks:
   - ch13-15 は ash2(subtask_1603_ch13_15)が並行担当
   - advisor()必須(作業前・完了前)
   timestamp: '2026-05-03T14:37:04.627412+09:00'
-- task_id: subtask_1606a
-  agent: ashigaru1
-  parent_cmd: cmd_1606
-  status: assigned
-  priority: high
-  description: 'cmd_1606: subtitle_speaker_qc.py detect_speaker_pil_ocr() color pass
-    に nekooji 除外修正を本番反映'
-  target_path: projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py
-  steps: '0) advisor()呼出 1) projects/dozle_kirinuki/scripts/ にある test_pil_ocr_few.py
-    を確認 (正しい挙動の参照) 2) subtitle_speaker_qc.py の detect_speaker_pil_ocr() color pass
-    ループ (member_colors を走査するfor文) を確認 3) color pass ループ内に ''if key == "nekooji": continue''
-    を追加 4) cd projects/dozle_kirinuki/scripts && python3 subtitle_speaker_qc.py --input
-    panels_yukigassen_base_raw.json --video tono_clip_base.mp4 --method pil_ocr --mode
-    strict --output subtitle_qc_report_nekooji_fix.md 5) 結果確認: nekooji比率が36%→10%程度に低下・bon/oo_men
-    が5+件検出 6) frame_1-33.png 単発テスト (test_pil_ocr_few.py 実行 or フレーム直接確認) で oo_men 判定確認
-    7) git -C projects/dozle_kirinuki add scripts/subtitle_speaker_qc.py && git -C
-    projects/dozle_kirinuki commit -m ''...'' 8) 報告書: queue/reports/2026-05-03_cmd_1606_nekooji_double_count_fix.md
-    作成 9) advisor()呼出 10) inbox_write gunshi QC依頼'
-  acceptance_criteria:
-  - 'detect_speaker_pil_ocr() color pass に if key == ''nekooji'': continue 追加済み'
-  - tono_clip_base.mp4 で全114行再判定完了
-  - nekooji比率 36% → 10%程度に低下
-  - bon / oo_men が 0件 → 5+件検出
-  - frame_1-33.png 単発で oo_men 判定確認
-  - git commit完了
-  - queue/reports/2026-05-03_cmd_1606_nekooji_double_count_fix.md 報告書作成済み
-  notes:
-  - '殿原文: できてるじゃん test_pyじゃなくて本番用にとりこんでくれよ — 殿2026-05-03 16:00'
-  - test_pil_ocr_few.py で実証済みの nekooji 除外ロジックを subtitle_speaker_qc.py 本体に反映
-  - cmd_1600 (v2ロジック ash1担当) の後継修正・同ファイル経験者として割り当て
-  - advisor()必須(作業前・完了前)
-  - git push は家老責務 (HTTPS認証エラー回避)
-  timestamp: '2026-05-03T15:57:14.484917+09:00'
 - agent: ashigaru1
   task_id: subtask_1610c
   status: blocked
@@ -115,67 +82,6 @@ tasks:
   - 5. git push origin main
   - 6. 完了報告を POST /api/inbox_write で karo へ送信
   timestamp: '2026-05-03T20:34:58.808992+09:00'
-- agent: ashigaru1
-  task_id: subtask_1612a
-  status: done
-  parent_cmd: cmd_1612
-  bloom_level: L3
-  description: 'cmd_1612: pretool_check.sh CHK11実装 + /tmp payload migration + shared_context更新'
-  target_path: /home/murakami/multi-agent-shogun/scripts/pretool_check.sh
-  steps: '0) advisor()呼出 1) Read scripts/pretool_check.sh で現在のCHK番号確認 (最後のCHKN番号を把握)
-    2) CHK11追加: curl コマンドに --data @/tmp/ または -d @/tmp/ が含まれる場合 BLOCK (エラーメッセージ: ''BLOCKED:
-    /tmp への payload 書出し禁止。queue/cmd_payloads/<cmd_XXX>.json に書け'') 3) /tmp の .json
-    ファイル (41件) を queue/cmd_payloads/archive_20260504_tmp_migration/ にコピー保全: mkdir
-    -p queue/cmd_payloads/archive_20260504_tmp_migration && cp /tmp/*.json queue/cmd_payloads/archive_20260504_tmp_migration/
-    4) shared_context/procedures/dashboard_api_usage.md に「payload ファイル必須ルール」追記: curl
-    --data @/tmp/ 禁止・queue/cmd_payloads/cmd_XXXX.json に書き出してから curl --data @<path>
-    で投入 5) 動作検証: echo ''{"test":1}'' > /tmp/test_payload.json && curl --data @/tmp/test_payload.json
-    → BLOCK確認 / echo ''{"test":1}'' > queue/cmd_payloads/test_1612.json && curl --data
-    @queue/cmd_payloads/test_1612.json → PASS確認 (後者はcurl実行せず pretool のみ検証) 6) git
-    add scripts/pretool_check.sh shared_context/procedures/dashboard_api_usage.md
-    queue/cmd_payloads/archive_20260504_tmp_migration/ && git commit && git push 7)
-    advisor()呼出 8) inbox karo 完了報告'
-  acceptance_criteria:
-  - 'pretool_check.sh に CHK11 追加: curl --data @/tmp/*.json を BLOCK'
-  - /tmp/*.json 41件を queue/cmd_payloads/archive_20260504_tmp_migration/ にコピー保全
-  - shared_context/procedures/dashboard_api_usage.md に payload ファイル必須ルール追記
-  - '動作検証: /tmp経由BLOCK + queue/cmd_payloads/経由PASS'
-  - git commit + push完了
-  notes: CHK番号は既存の最後番号+1。/tmp ファイルはコピー(削除しない)。curl実行はしないこと(api投入テストはpretool mockのみ)
-  timestamp: '2026-05-04T07:58:31.212434+09:00'
-- agent: ashigaru1
-  task_id: subtask_1613d
-  status: done
-  parent_cmd: cmd_1613
-  bloom_level: L2
-  description: 'cmd_1613 Phase-D: subtitle_speaker_qc.py / batch_speaker_match.py
-    修正 (STT_M007/L004/L005)'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py
-  steps: '0) advisor()呼出 1) Read queue/reports/gunshi_stt_contradiction_20260504.yaml
-    で STT_M007/L004/L005 把握 2) subtitle_speaker_qc.py:247-252 STT_M007: Part.from_bytes
-    使用箇所を特定。--method gemini に対して RuntimeError(''Part.from_bytes は廃止。--method pil_ocr
-    を使用してください'') を発生させる deprecated 処理に変更 (GCS URI方式への完全移行は別cmdで判断) 3) subtitle_speaker_qc.py:961-963
-    STT_L005: generate_report の audio_merge_path 引数を ''args.merge_stt_json or args.audio_merge''
-    に変更し、ラベルも STT merge / Audio merge を分岐表示 4) batch_speaker_match.py:70-74 STT_L004:
-    no-op の if video_id.startswith(''_''): video_id = video_id を削除し、代わりに ''# video_id
-    は _sVuKf5Zu4A 形式 (先頭 _) もそのまま OK'' コメントを追加 5) python3 -m py_compile で subtitle_speaker_qc.py
-    / batch_speaker_match.py 文法確認 6) git add projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py
-    projects/dozle_kirinuki/scripts/batch_speaker_match.py && git commit -m ''fix(stt):
-    STT_M007/L004/L005 — gemini方式deprecated/audio_merge_path/no-op削除'' 7) advisor()呼出
-    8) inbox karo 完了報告'
-  acceptance_criteria:
-  - 'STT_M007: subtitle_speaker_qc.py の --method gemini が RuntimeError (deprecated
-    メッセージ付き) を発生させる'
-  - 'STT_M007: エラーメッセージが pil_ocr への切替を案内している'
-  - 'STT_L005: generate_report が merge_stt_json or audio_merge を正しく受け取る'
-  - 'STT_L004: batch_speaker_match.py の no-op if 分岐が削除されコメントに置き換わっている'
-  - py_compile エラーなし (両ファイル)
-  - git commit 完了
-  notes: STT_M007 は MEMORY.md「Vertex AI 画像入力は GCS URI 方式のみ・Part.from_bytes 禁止」ルール準拠。今回は
-    deprecated エラーにして次回 cmd で GCS URI 移行する方針。subtitle_speaker_qc.py L247 付近の _check_with_gemini()
-    関数内に Part.from_bytes がある。batch_speaker_match.py:70-74 は完全な no-op 分岐なので単純削除。
-  params: {}
-  timestamp: '2026-05-04T08:41:59.365614+09:00'
 - agent: ashigaru1
   task_id: subtask_1613e
   status: blocked
@@ -211,41 +117,46 @@ tasks:
   params: {}
   timestamp: '2026-05-04T08:42:02.809416+09:00'
 - agent: ashigaru1
-  task_id: subtask_1614a
+  task_id: subtask_1624_ashigaru_md
   status: done
-  parent_cmd: cmd_1614
+  parent_cmd: cmd_1624
   bloom_level: L2
-  description: 'cmd_1614: discord_news_bot.py embed.image.url バリデーション追加 + 5日分 pending
-    flush'
-  target_path: /home/murakami/multi-agent-shogun/scripts/discord_news_bot.py
-  steps: '0) advisor()呼出 1) Read scripts/discord_news_bot.py で build_topic_embed()
-    (L142-173) と send_daily_news() (L177-206) の全体を把握 2) is_valid_image_url(url: str)
-    -> bool 関数を追加: urllib.parse.urlparse で scheme=http/https・netloc 非空・無効文字なしを確認 (discord
-    400 の原因 malformed URL を弾く) 3) build_topic_embed() L167: 既存の `if ogp_image and
-    len(ogp_image) <= 2048:` を `if ogp_image and is_valid_image_url(ogp_image) and
-    len(ogp_image) <= 2048:` に変更 4) send_daily_news() L194-195: channel.send 呼び出しを
-    try/except discord.HTTPException に包み、1件失敗しても continue で後続記事を配信 (graceful degradation)
-    5) queue/discord_pending.json を調査: 各 entry の ogp_image URL を確認し、malformed URL
-    の記事を特定してログ出力 6) python3 -c ''from pathlib import Path; import sys; sys.path.insert(0,".");
-    exec(open("scripts/discord_news_bot.py").read().split("async def")[0]); print(is_valid_image_url("https://example.com/img.jpg"),
-    is_valid_image_url(""), is_valid_image_url("malformed"))'' で動作確認 7) git add scripts/discord_news_bot.py
-    && git commit -m ''fix(discord): embed.image.url バリデーション + graceful degradation
-    (cmd_1614)'' && git push 8) python3 scripts/discord_news_bot.py --flush で 5日分
-    pending 配信 (Discord #生成ai-news チャンネルへ) 9) 配信ログで 400 エラーなし・全記事配信確認 10) 報告書: queue/reports/2026-05-04_cmd_1614_discord_url_validation.md
-    (bad URL 記事一覧 + commit hash + 配信件数) 11) git add queue/reports/... && git commit
-    && git push 12) advisor()呼出 13) inbox karo 完了報告'
+  description: '案A: instructions/ashigaru.md に gunshi_qc フラグルールを追記'
+  target_path: /home/murakami/multi-agent-shogun/instructions/ashigaru.md
+  steps: '0) advisor()呼出 1) Read instructions/ashigaru.md 全文 2) 以下の変更を加える: (a) inbox
+    セクション (to_gunshi_on_completion: true の近く) に以下ルールを追記: 『gunshi_qc ルール: サブタスクペイロードに
+    gunshi_qc: false がある場合、完了報告は inbox karo 直接 (gunshi skip)。gunshi_qc フィールドがない・または
+    true の場合はデフォルト通り gunshi に送る』(b) 完了報告の例文セクションにも条件付き説明を追加 3) git add instructions/ashigaru.md
+    && git commit -m ''feat(instructions): ashigaru gunshi_qc:false フラグルール追加 (cmd_1624)''
+    4) git push 5) advisor()呼出 6) inbox karo 完了報告'
   acceptance_criteria:
-  - is_valid_image_url() 関数が追加されている
-  - build_topic_embed() で ogp_image が is_valid_image_url() で検証されてから set_image に渡される
-  - channel.send が try/except discord.HTTPException で包まれ、1件失敗後も後続継続
-  - python3 --flush 実行後 discord_pending.json が空になる or 送信済みエントリが削除される
-  - bad URL の root cause が報告書に記載されている (どの記事の ogp_image が malformed か)
-  - discord 400 エラーなしで配信完了
-  - queue/reports/2026-05-04_cmd_1614_discord_url_validation.md 作成済み
+  - 'instructions/ashigaru.md に gunshi_qc: false フラグのルールが追記されている'
+  - 既存ルールを壊していない
   - git commit + push 完了
-  notes: discord_pending.json は 2403行・5日分の記事が詰まっている。build_topic_embed() L167 に既に len
-    <= 2048 チェックがあるが、URL形式の妥当性チェックがない。is_valid_image_url は urlparse.scheme in ('http','https')
-    and bool(urlparse.netloc) で十分。send_daily_news の try/except は discord.HTTPException
-    のみキャッチし、予期外エラーは再 raise でよい。--flush モードは L55 の FLUSH_MODE フラグで制御されている。
-  params: {}
-  timestamp: '2026-05-04T08:54:35.148105+09:00'
+  notes: 追記のみ。既存行の削除は最小限。ルール変更ではなく条件追加。
+  timestamp: '2026-05-05T05:42:47.233854+09:00'
+  completed_at: '2026-05-05T05:47:55+09:00'
+- agent: ashigaru1
+  task_id: subtask_1625_dashboard_lifecycle
+  status: done
+  parent_cmd: cmd_1625
+  bloom_level: L3
+  description: dashboard_lifecycle.sh が nightly_audit.sh 経由 (cron 02:02) で exit 非0になる根本原因特定と修正
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard_lifecycle.sh
+  steps: '0) advisor()呼出 1) Read scripts/dashboard_lifecycle.sh 全文 2) Read scripts/nightly_audit.sh
+    全文 (どう呼び出しているか確認) 3) 根本原因特定: PATH/HOME等の環境変数差異・依存コマンドの cron 環境でのパス問題・set -e 挙動・shebang
+    等を調査 (bash -x scripts/dashboard_lifecycle.sh で詳細出力確認推奨) 4) 修正: PATH を明示的にセット or
+    コマンドの絶対パス化 or set -e → set +e 等 5) bash -n でシンタックスチェック 6) queue/reports/2026-05-05_cmd_1625_dashboard_lifecycle_root_cause.md
+    に根本原因+修正内容を記録 (gitignore対象のためgit add -fが必要) 7) git add scripts/dashboard_lifecycle.sh
+    && git add -f queue/reports/2026-05-05_cmd_1625_dashboard_lifecycle_root_cause.md
+    && git commit -m ''fix(cron): dashboard_lifecycle.sh cron環境exit非0の根本修正 (cmd_1625)''
+    8) git push (失敗時は家老依頼) 9) advisor()呼出 10) inbox karo 完了報告'
+  acceptance_criteria:
+  - dashboard_lifecycle.sh が cron 環境 (nightly_audit 経由) でも exit 0 になる修正が施されている
+  - bash -n シンタックスチェック PASS
+  - queue/reports/2026-05-05_cmd_1625_dashboard_lifecycle_root_cause.md に根本原因記録済み
+  - git commit + push 完了
+  notes: 手動実行では成功・cron環境固有の問題。PATH・環境変数・絶対パス指定・set -e の挙動を確認せよ。test -n 等条件分岐の false
+    返し可能性も調査すること。reports/ は gitignore なので git add -f 必須。
+  timestamp: '2026-05-05T05:59:06.560183+09:00'
+  completed_at: '2026-05-05T06:08:04+09:00'
