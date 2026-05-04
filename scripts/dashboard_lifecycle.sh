@@ -3,7 +3,7 @@
 # cmd_1442 H2拡張 (cmd_1443_p02) / cmd_1556後LEGACY整理
 #
 # 目的:
-#   (2) MCPダッシュボード (http://192.168.2.7:8770/api/dashboard) の残骸
+#   (2) MCPダッシュボード (http://192.168.2.4:8770/api/dashboard) の残骸
 #       (action_required に cmd_id があるのに recent_done に同一 cmd_id がある状態)
 #       を検出し、家老に ntfy で削除依頼通知
 #
@@ -26,7 +26,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DASHBOARD_MD="${SCRIPT_DIR}/dashboard.md"
 ARCHIVE_DIR="${SCRIPT_DIR}/dashboard_archive"
 LOG_FILE="${SCRIPT_DIR}/logs/dashboard_lifecycle.log"
-MCP_URL="http://192.168.2.7:8770/api/dashboard"
+MCP_URL="http://192.168.2.4:8770/api/dashboard"
 NTFY="${SCRIPT_DIR}/scripts/ntfy.sh"
 
 DRY_RUN=0
@@ -48,7 +48,7 @@ mkdir -p "$(dirname "$LOG_FILE")" "$ARCHIVE_DIR"
 log() {
   local msg="[$(date '+%Y-%m-%dT%H:%M:%S%z')] $*"
   echo "$msg" >> "$LOG_FILE"
-  [[ $VERBOSE -eq 1 ]] && echo "$msg"
+  if [[ $VERBOSE -eq 1 ]]; then echo "$msg"; fi
 }
 
 ntfy_best_effort() {
