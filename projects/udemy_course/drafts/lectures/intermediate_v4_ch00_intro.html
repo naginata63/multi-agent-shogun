@@ -129,7 +129,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </tbody>
 </table>
 <blockquote>
-<p>これらは初級編で学ぶ概念です。この序章では「ざっくり何か」が分かればOK</p>
+<p>これらは初級編で学んだ概念です。この序章では「ざっくり何か」が分かればOK</p>
 </blockquote>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="3" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
@@ -407,19 +407,19 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <td><strong>L1</strong></td>
 <td>プロンプト</td>
 <td>指示の工夫（AIに伝える基本）</td>
-<td>関数プロンプト・品質Gate</td>
+<td>何度も使えるひな形作り・品質チェックの関所</td>
 </tr>
 <tr>
 <td><strong>L2</strong></td>
 <td>コンテキスト</td>
 <td>.mdの書き方（AIに資料を渡す）</td>
-<td>運用設計・劣化対策</td>
+<td>資料を常に最新に保つ仕組み・古くなったら自動検知</td>
 </tr>
 <tr>
 <td><strong>L3</strong></td>
 <td>ハーネス</td>
 <td>hook入門（AIの行動を監視）</td>
-<td>連携自動化・カタログ選定</td>
+<td>複数の監視を連動させる・安全装置の一覧から選ぶ</td>
 </tr>
 </tbody>
 </table>
@@ -475,9 +475,9 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <p><strong>After</strong>: 3層が連携して稼働する状態</p>
 </blockquote>
 <ul>
-<li>L1（プロンプト）→ L2のコンテキストを<strong>自動参照</strong>して再現性UP</li>
-<li>L2（コンテキスト）→ L3のhookで<strong>自動更新</strong>されて劣化防止</li>
-<li>L3（ハーネス）→ L1の品質を<strong>自動検証</strong>して改善ループ完結</li>
+<li>L1（プロンプト）→ L2のコンテキストを<strong>自動参照</strong>して再現性UP（AIが説明書を読みに行く）</li>
+<li>L2（コンテキスト）→ L3のhookで<strong>自動更新</strong>されて劣化防止（監視員が「古くなったよ」と知らせる）</li>
+<li>L3（ハーネス）→ L1の品質を<strong>自動検証</strong>して改善ループ完結（安全装置が結果をチェックする）</li>
 </ul>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="10" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
@@ -517,8 +517,8 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 ;" data-marpit-pagination-total="13" data-size="16:9">
 <h1 id="%E3%81%93%E3%81%AE%E8%AC%9B%E5%BA%A7%E3%81%AE%E4%BD%8D%E7%BD%AE%E3%81%A5%E3%81%91">この講座の位置づけ</h1>
 <blockquote>
-<p>市場のAI開発講座は「単独層」まで。3層統合の解説は<strong>存在しない</strong><br />
-（2026年5月時点・Udemy / Coursera 等の主要講座60件を調査）</p>
+<p>市場のAI開発講座は「単独層」まで。3層統合の解説は<strong>ほぼ見当たりません</strong><br />
+（2026年5月時点・Udemy / Coursera 等の主要プラットフォーム60講座を調査）</p>
 </blockquote>
 <table>
 <thead>
@@ -595,7 +595,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <li><strong>L1</strong>（プロンプト） — プロンプトを再利用可能な「ひな形」（何度も使える定型文）として設計できる</li>
 <li><strong>L2</strong>（コンテキスト） — コンテキストの寿命を管理し、劣化を自動検出できる</li>
 <li><strong>L3</strong>（ハーネス） — 複数ハーネスを連携させ、完了を自動検証できる</li>
-<li><strong>統合</strong> — 3層連携アーキテクチャを設計・説明できる</li>
+<li><strong>統合</strong> — 3層連携の「全体設計図」を描き、説明できる</li>
 </ul>
 <p><strong>約13時間で、AI開発の中級者に進めます</strong></p>
 </section>
@@ -651,37 +651,37 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </tr>
 <tr>
 <td>第1章 [L1]</td>
-<td>プロンプトを関数として</td>
+<td>プロンプトをひな形として</td>
 <td>30 min</td>
 </tr>
 <tr>
 <td>第2章 [L1]</td>
-<td>構造化とfailure診断</td>
+<td>構造化と失敗診断</td>
 <td>30 min</td>
 </tr>
 <tr>
 <td>第3章 [L1+L2]</td>
-<td>階層的プロンプト</td>
+<td>階層ごとのプロンプト</td>
 <td>30 min</td>
 </tr>
 <tr>
 <td>第4章 [L1]</td>
-<td>品質Gateテンプレート</td>
+<td>品質チェック関所</td>
 <td>30 min</td>
 </tr>
 <tr>
 <td>第5-9章 [L2]</td>
-<td>コンテキスト実装</td>
+<td>資料の運用実装</td>
 <td>各40 min</td>
 </tr>
 <tr>
 <td>第10-15章 [L3]</td>
-<td>ハーネス実装</td>
+<td>安全装置の実装</td>
 <td>各40 min</td>
 </tr>
 <tr>
 <td>第16章</td>
-<td>総仕上げ: 三層アーキテクチャ</td>
+<td>総仕上げ: 三層の組み合わせ設計</td>
 <td>45 min</td>
 </tr>
 <tr>
@@ -746,7 +746,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 2つ目の壁です。初級編でCLAUDE.mdの書き方やinstructions/*.mdの役割を学びました。「プロジェクトの説明書を書けばAIが理解してくれる」。確かに書いた時点では正しい。でも、1週間後、1ヶ月後はどうでしょう。プロジェクトの構成が変わったのにCLAUDE.mdは古いまま。新しいルールを追加したら、古いルールと矛盾している。AIに読ませるコンテキストが間違っていたら、どんなに良いプロンプトを書いても結果は歪みます。コンテキスト（AIに渡す資料）には「賞味期限」があるんです。この劣化問題にどう対処するかを第5章から第9章で学びます。</p></div><div class="bespoke-marp-note" data-index="5" tabindex="0"><p>スピーカーノート:
 3つ目の壁です。初級編でhookの基本を学びました。「AIがdangerous operationをしようとしたらBLOCKする」。これは確かに安心安全装置として機能します。でも、もう一段階先を考えてみてください。done_gateが「このタスクは完了していません」とBLOCKしたとします。AIは「完了しました」と報告したのに、実際には完了していなかった。門番が止めてくれた、良いですね。でも、AIはどう直せばいいか分かりません。検出はできたけど、改善に繋がらない。L3（ハーネス）をL1（プロンプト）やL2（コンテキスト）と連携させると、「検出→原因特定→自動修正」のループが回るようになります。この仕組みを第10章から第15章で学びます。</p></div><div class="bespoke-marp-note" data-index="6" tabindex="0"><p>スピーカーノート:
 ここまで3つの壁を見てきました。プロンプトの再現性限界、コンテキストの劣化問題、ハーネスの検出限界。それぞれ別の問題に見えますが、実は根本原因は1つです。3つの層がバラバラに動いているから、どれも限界にぶつかる。L1（プロンプト）だけで頑張っても、前提知識がないから再現しない。L2（コンテキスト）だけで頑張っても、時間が経てば劣化する。L3（ハーネス）だけで頑張っても、検出はできても直せない。でも、3層を連携させると面白いことが起きます。L1のプロンプトがL2のコンテキストを自動参照する。L2のコンテキストがL3のhookで自動更新される。L3のハーネスがL1の品質を自動検証する。この連携ループが回ると、3つの壁が大きく軽くなるんです。次のスライドで、この連携モデルの全体像を見せます。</p></div><div class="bespoke-marp-note" data-index="7" tabindex="0"><p>スピーカーノート:
-3階層モデルの全体像です。初級編では、L1は「プロンプトの工夫」、L2は「CLAUDE.mdの書き方」、L3は「hookの入門」を学びました。中級編では、それぞれを一段深めます。L1は「プロンプトを再利用可能な関数として設計する」に進化させます。L2は「コンテキストの運用設計と劣化対策」に進化させます。L3は「複数ハーネスの連携と自動化」に進化させます。そして最終的に、この3層を統合したアーキテクチャを設計できるようになります。ここでは「初級編で知った内容を、どう深めるか」という全体像だけ掴んでください。各章で具体的に学んでいきます。</p></div><div class="bespoke-marp-note" data-index="8" tabindex="0"><p>スピーカーノート:
+3階層モデルの全体像です。初級編では、L1は「プロンプトの工夫」、L2は「CLAUDE.mdの書き方」、L3は「hookの入門」を学びました。中級編では、それぞれを一段深めます。L1は「プロンプトを再利用可能なひな形として設計する」に進化させます。L2は「コンテキストの運用設計と劣化対策」に進化させます。L3は「複数ハーネスの連携と自動化」に進化させます。そして最終的に、この3層を統合した全体設計を描けるようになります。ここでは「初級編で知った内容を、どう深めるか」という全体像だけ掴んでください。各章で具体的に学んでいきます。</p></div><div class="bespoke-marp-note" data-index="8" tabindex="0"><p>スピーカーノート:
 beforeとafterを比べてみましょう。Beforeは、3つの層がバラバラに動いている状態です。プロンプトは毎回ゼロから書く。CLAUDE.mdは書いて満足して、あとは放置。hookは設定して安心する。それぞれ単独では機能していますが、連携していない。Afterは、3つの層が連携して稼働する状態です。L1のプロンプトがL2のコンテキストを自動参照するので、プロンプトの再現性が上がります。L2のコンテキストがL3のhookで自動更新されるので、劣化を防げます。L3のハーネスがL1の品質を自動検証するので、改善ループが完結します。このBeforeからAfterへの変化が、中級編で目指すゴールです。</p></div><div class="bespoke-marp-note" data-index="9" tabindex="0"><p>スピーカーノート:
 現在、AI開発関連のオンライン講座は数多く存在します。でも、調べてみるとほとんどが「単独層」までの解説です。プロンプト特化型の講座はL1だけ。ツールの使い方を教える講座は、L1の一部だけ。AI開発を概論として扱う講座は、L1とL2の概要まで。L1、L2、L3の3層を通貫して解説し、さらに3層を連携させるアーキテクチャまで教える講座は、市場に存在しません。60件の調査で確認しました。本講座は、この空白を埋める唯一の講座です。単独層の知識は他でも得られますが、3層統合の設計思想はここでしか学べません。</p></div><div class="bespoke-marp-note" data-index="10" tabindex="0"><p>スピーカーノート:
 この中級編を最後まで学ぶと、どう変わるでしょうか。L1では、プロンプトを1回書いて終わる「口頭指示」から、何度でも使える「関数」として設計できるようになります。L2では、コンテキストの賞味期限を管理し、劣化を自動検出できるようになります。L3では、複数のハーネスを連携させ、完了を機械的に検証できるようになります。そして最終的に、L1+L2+L3の3層連携アーキテクチャを自分のプロジェクトに適用して設計できるようになります。全部で約13時間。各章は独立して視聴できるので、自分のペースで進めて大丈夫です。ただし、L1からL2、L3への順番は守ることをお勧めします。各章が前の章の内容を前提としているからです。</p></div><div class="bespoke-marp-note" data-index="11" tabindex="0"><p>スピーカーノート:
