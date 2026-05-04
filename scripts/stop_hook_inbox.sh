@@ -186,7 +186,7 @@ if [ -n "$LAST_MSG" ]; then
     # Shogun doesn't report to karo — skip notification
     if [ -n "$NOTIFY_TYPE" ] && [ "$AGENT_ID" != "shogun" ]; then
         (
-            DASHBOARD_API='http://192.168.2.7:8770'
+            DASHBOARD_API='http://192.168.2.4:8770'
             PAYLOAD=$(jq -n --arg to 'karo' --arg from "$AGENT_ID" --arg message "$NOTIFY_CONTENT" --arg type "$NOTIFY_TYPE" '{to:$to,from:$from,message:$message,type:$type}')
             if curl -s -X POST "$DASHBOARD_API/api/inbox_write" -H 'Content-Type: application/json' --max-time 5 -d "$PAYLOAD" | grep -q '"success":true'; then
                 : # API success
@@ -196,6 +196,65 @@ if [ -n "$LAST_MSG" ]; then
         ) &
     fi
 fi
+
+# ─── Auto-expire stale inbox messages (cmd_1624) ───
+# report_received / report_completed messages older than STALE_THRESHOLD_HOURS
+# are automatically marked as read via API to prevent context bloat.
+STALE_THRESHOLD_HOURS=2
+_auto_expire_stale_inbox() {
+    DASHBOARD_API='http://192.168.2.4:8770' \
+    STALE_THRESHOLD_HOURS="$STALE_THRESHOLD_HOURS" \
+    AGENT_ID="$AGENT_ID" \
+    python3 -c "
+import json, os, urllib.request
+from datetime import datetime, timedelta, timezone
+
+api = os.environ['DASHBOARD_API']
+agent = os.environ['AGENT_ID']
+stale_hours = int(os.environ['STALE_THRESHOLD_HOURS'])
+
+try:
+    url = f'{api}/api/inbox_messages?agent={agent}&unread=1&full=1&limit=100'
+    with urllib.request.urlopen(url, timeout=5) as resp:
+        data = json.loads(resp.read())
+    messages = data.get('messages', data) if isinstance(data, dict) else data
+
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(hours=stale_hours)
+    stale_ids = []
+
+    for msg in messages:
+        msg_type = msg.get('type', '')
+        if msg_type not in ('report_received', 'report_completed'):
+            continue
+        ts_str = msg.get('timestamp', '')
+        if not ts_str:
+            continue
+        try:
+            ts = datetime.fromisoformat(ts_str.replace('Z', '+00:00'))
+        except (ValueError, TypeError):
+            continue
+        if ts.tzinfo is None:
+            ts = ts.replace(tzinfo=timezone.utc)
+        if ts < cutoff:
+            msg_id = msg.get('id', '')
+            if msg_id:
+                stale_ids.append(msg_id)
+
+    if stale_ids:
+        payload = json.dumps({'agent': agent, 'ids': stale_ids}).encode()
+        req = urllib.request.Request(
+            f'{api}/api/inbox_mark_read',
+            data=payload,
+            headers={'Content-Type': 'application/json'},
+            method='POST'
+        )
+        urllib.request.urlopen(req, timeout=5)
+except Exception:
+    pass
+" 2>/dev/null || true
+}
+_auto_expire_stale_inbox
 
 # ─── Check inbox for unread messages ───
 # INBOX is already defined at L48 (stop_hook_inbox.sh INBOX二重定義修正)
