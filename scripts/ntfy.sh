@@ -24,6 +24,7 @@ done < <(ntfy_get_auth_args "$SCRIPT_DIR/config/ntfy_auth.env")
 
 # ローカルIPをTailscale IPに自動置換（殿のスマホからアクセスできるように）
 MSG="${1//192.168.2.7/100.66.15.93}"
+MSG="${MSG//192.168.2.4/100.66.15.93}"
 
 # shellcheck disable=SC2086
 curl -s "${AUTH_ARGS[@]}" -H "Tags: outbound" -d "$MSG" "https://ntfy.sh/$TOPIC" > /dev/null
