@@ -50,6 +50,7 @@ style: |
 |------|--------|----------------|
 | **Silent Fail** | サイレント・フェイル | エラーメッセージが出ないのに、結果が間違っている失敗（静かな失敗） |
 | **自動検査ライン（Guardrails）** | — | エージェントの出力が正しいか自動チェックする仕組み |
+| **exit code 0** | — | プログラムが正常終了したことを示す番号（0＝成功、0以外＝エラー） |
 | **inotifywait** | イノティファイ・ウェイト | Linuxでファイルの作成・変更・削除をリアルタイム検知するツール |
 | **Exclusion Filter** | — | 監視システム自身の書込を無視して、無限ループを防ぐ仕組み |
 | **daemon** | デーモン | バックグラウンドで常に動き続けるプログラム |
@@ -213,6 +214,7 @@ EXCLUDE_PATTERNS=(
 )
 
 # 配列から正規表現を組み立ててinotifywaitに渡す
+# （この行はbash中級テクニックです。詳細は飛ばしてOK。配列の内容を|で繋いでいるだけです）
 EXCLUDE_REGEX=$(IFS='|'; echo "(${EXCLUDE_PATTERNS[*]})")
 inotifywait -m --exclude "$EXCLUDE_REGEX" \
   -e create,modify /path/to/watch/
@@ -270,10 +272,11 @@ LOG_FILE="/tmp/silent_fail.log"
 # inotifywaitで監視開始
 # -m: 永続的に監視（終了しない）
 # -e create,modify: 作成と変更イベントのみ監視
-# --exclude: tmpとlogファイルを除外
+# 除外パターン: tmpとlogファイルを監視対象外に（Exclusion Filter）
 # --format '%w%f': 出力形式を「ディレクトリパス+ファイル名」に
+EXCLUDE_REGEX='(\.tmp|\.log)'
 inotifywait -m -e create,modify \
-  --exclude '(\.tmp|\.log)' \
+  --exclude "$EXCLUDE_REGEX" \
   --format '%w%f' "$WATCH_DIR" | \
 # パイプで1行ずつ処理
 while read -r filepath; do

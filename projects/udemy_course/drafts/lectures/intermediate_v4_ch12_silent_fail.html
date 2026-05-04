@@ -110,6 +110,11 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <td>エージェントの出力が正しいか自動チェックする仕組み</td>
 </tr>
 <tr>
+<td><strong>exit code 0</strong></td>
+<td>—</td>
+<td>プログラムが正常終了したことを示す番号（0＝成功、0以外＝エラー）</td>
+</tr>
+<tr>
 <td><strong>inotifywait</strong></td>
 <td>イノティファイ・ウェイト</td>
 <td>Linuxでファイルの作成・変更・削除をリアルタイム検知するツール</td>
@@ -579,6 +584,7 @@ EXCLUDE_PATTERNS=(
 )
 
 # 配列から正規表現を組み立ててinotifywaitに渡す
+# （この行はbash中級テクニックです。詳細は飛ばしてOK。配列の内容を|で繋いでいるだけです）
 EXCLUDE_REGEX=$(IFS='|'; echo &quot;(${EXCLUDE_PATTERNS[*]})&quot;)
 inotifywait -m --exclude &quot;$EXCLUDE_REGEX&quot; \
   -e create,modify /path/to/watch/
@@ -692,10 +698,11 @@ LOG_FILE=<span class="hljs-string">&quot;/tmp/silent_fail.log&quot;</span>
 <span class="hljs-comment"># inotifywaitで監視開始</span>
 <span class="hljs-comment"># -m: 永続的に監視（終了しない）</span>
 <span class="hljs-comment"># -e create,modify: 作成と変更イベントのみ監視</span>
-<span class="hljs-comment"># --exclude: tmpとlogファイルを除外</span>
+<span class="hljs-comment"># 除外パターン: tmpとlogファイルを監視対象外に（Exclusion Filter）</span>
 <span class="hljs-comment"># --format &#x27;%w%f&#x27;: 出力形式を「ディレクトリパス+ファイル名」に</span>
+EXCLUDE_REGEX=<span class="hljs-string">&#x27;(\.tmp|\.log)&#x27;</span>
 inotifywait -m -e create,modify \
-  --exclude <span class="hljs-string">&#x27;(\.tmp|\.log)&#x27;</span> \
+  --exclude <span class="hljs-string">&quot;<span class="hljs-variable">$EXCLUDE_REGEX</span>&quot;</span> \
   --format <span class="hljs-string">&#x27;%w%f&#x27;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$WATCH_DIR</span>&quot;</span> | \
 <span class="hljs-comment"># パイプで1行ずつ処理</span>
 <span class="hljs-keyword">while</span> <span class="hljs-built_in">read</span> -r filepath; <span class="hljs-keyword">do</span>
