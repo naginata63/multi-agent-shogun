@@ -124,25 +124,82 @@ EOF
 
 ---
 
-### 💡 USB メモリ持込み案 (上級者向け・万全策)
+### 💡 推奨: clonezilla USB の空き領域に script 保管 (1 本完結)
 
-事前に殿が:
+殿の発想 (2026-05-05): **clonezilla USB 自体に script 入れておけば 1 本で完結**。ネット不要・別 USB 不要。
+
+#### 事前準備 (殿の通常 PC で 1 度だけ)
+
+clonezilla USB は ISO 部分が read-only ゆえ、**USB の空き領域に第 2 partition (ext4 または fat32) を作る**。
+
+##### 方法 A: gparted で USB に第 2 partition 追加
 
 ```bash
-# 殿の通常 PC で 1 度だけ実行
-cp /home/murakami/multi-agent-shogun/scripts/migration_nvme_phase45.sh /media/murakami/<USB メモリ>/
+# 1. clonezilla USB を挿す
+# 2. lsblk で USB の device 名確認 (例 /dev/sdb)
+lsblk
+
+# 3. gparted 起動
+sudo gparted /dev/sdb
 ```
 
-clonezilla live USB ブート後・別 USB メモリを刺して:
+gparted GUI:
+- USB のデバイスを選択 (右上ドロップダウン)
+- 末尾の **未割り当て (unallocated) 領域**を右クリック → New
+- File system: **ext4**・Label: `migration_data`・Size: 残り全部 (1GB あれば十分)
+- Apply
+
+##### script 保管
 
 ```bash
-# USB を mount
+# USB の第 2 partition が /dev/sdb2 (gparted の output で確認) として
+sudo mount /dev/sdb2 /media/murakami/migration_data
+sudo cp /home/murakami/multi-agent-shogun/scripts/migration_nvme_phase45.sh /media/murakami/migration_data/
+sudo cp /home/murakami/multi-agent-shogun/work/pc_migration_20260504/migration_plan.md /media/murakami/migration_data/
+sudo umount /media/murakami/migration_data
+```
+
+これで USB に **clonezilla + 移行 script + 手順書 md** 全部入った 1 本の USB が完成。
+
+#### 移行作業時 (clonezilla live USB ブート後)
+
+```bash
+# USB の第 2 partition を mount (live USB の中で USB 自身を別マウント)
 sudo mkdir -p /mnt/usb
-sudo mount /dev/sdX1 /mnt/usb     # X は USB のデバイス名 (lsblk で確認)
+sudo lsblk           # USB のデバイス名確認 (例 /dev/sda2)
+sudo mount /dev/sda2 /mnt/usb
+
+# script 実行
 sudo bash /mnt/usb/migration_nvme_phase45.sh
 ```
 
-ネット接続不要・script 完全制御下。
+ネット繋がっていなくても OK・GitHub アクセス不要・全制御下。
+
+#### 殿のスマホで md を見たい場合
+
+`migration_plan.md` も USB 第 2 partition に入っているゆえ、
+- 別 PC から USB を読む (殿が他 PC 持っているなら)
+- live USB 内の vim / less で `/mnt/usb/migration_plan.md` を開いて読む
+- 事前に殿のスマホに md を保存しておく (Termux や Markor アプリで読む)
+
+---
+
+### 🔄 USB メモリ別持ち込み案 (clonezilla USB 1 本では難しい場合)
+
+clonezilla USB が ISO 焼き直し済 + 第 2 partition 作成不可の場合・別 USB メモリで対応:
+
+```bash
+# 殿の通常 PC で別 USB に保管
+cp /home/murakami/multi-agent-shogun/scripts/migration_nvme_phase45.sh /media/murakami/<別USB>/
+```
+
+clonezilla live USB ブート後・別 USB を追加で刺す:
+
+```bash
+sudo mkdir -p /mnt/usb
+sudo mount /dev/sdX1 /mnt/usb     # X は別 USB のデバイス名 (lsblk で確認)
+sudo bash /mnt/usb/migration_nvme_phase45.sh
+```
 
 ---
 
