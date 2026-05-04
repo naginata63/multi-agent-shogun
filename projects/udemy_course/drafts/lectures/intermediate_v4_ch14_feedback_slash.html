@@ -251,6 +251,9 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <h1 id="supervisor-pattern--%E3%83%84%E3%83%BC%E3%83%AB%E5%AE%9F%E8%A1%8C%E5%BE%8C%E3%81%AE%E7%9B%A3%E7%9D%A3%E8%80%85">Supervisor Pattern — ツール実行後の監督者</h1>
 <p><strong>Supervisor Pattern</strong> = AIのツール実行結果を監視し、必要に応じて介入するパターン</p>
 <blockquote>
+<p><strong>「ツール」とは？</strong> → Claude Code が使う機能のこと（ファイルの読み書き、コマンド実行、Web検索など）。人間が使う「道具」のAI版と考えてください。</p>
+</blockquote>
+<blockquote>
 <p>なぜ「監督者」と呼ぶのか？ → 監督者は選手（AI）のプレー（ツール実行）を見守り、必要に応じてタイムをかける（介入する）役割だからです。Observer（観察者）がただ見るだけなのに対し、Supervisorは介入権を持つ点が異なります。</p>
 </blockquote>
 <ul>
@@ -328,6 +331,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <th>段階</th>
 <th>入力</th>
 <th>出力</th>
+<th>手動/自動</th>
 </tr>
 </thead>
 <tbody>
@@ -335,21 +339,25 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <td><strong>Capture</strong></td>
 <td>ステークホルダーの生の発言</td>
 <td>テキスト</td>
+<td><strong>手動</strong>（あなたが入力）</td>
 </tr>
 <tr>
 <td><strong>Analyze</strong></td>
 <td>感情・文脈・改善ヒントの抽出</td>
 <td>構造化データ</td>
+<td><strong>自動</strong>（AIが分析）</td>
 </tr>
 <tr>
 <td><strong>Draft</strong></td>
 <td>フィードバック文書の自動作成</td>
 <td>.mdファイル</td>
+<td><strong>自動</strong>（AIが生成）</td>
 </tr>
 <tr>
 <td><strong>Review</strong></td>
 <td>人間による承認・修正・破棄</td>
 <td>最終版</td>
+<td><strong>手動</strong>（あなたが判定）</td>
 </tr>
 </tbody>
 </table>
@@ -518,6 +526,9 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
 ;" data-marpit-pagination-total="15" data-size="16:9">
 <h1 id="%E3%82%AB%E3%82%B9%E3%82%BF%E3%83%A0-slash-command-%E3%81%AE%E4%BD%9C%E6%88%90">カスタム Slash Command の作成</h1>
+<blockquote>
+<p><strong>ここから実装編です。</strong> 概念理解だけで十分な方は、次の「変換実例」まで進んでOKです。自分でも作ってみたい方は続きをどうぞ。</p>
+</blockquote>
 <p>Claude Codeのslash command = <code>.claude/commands/</code> に置いた <code>.md</code> ファイル</p>
 <p><strong>作成手順</strong>（ターミナルで実行）:</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code># 1. ディレクトリを作る（プロジェクトのルートで）
@@ -530,7 +541,7 @@ echo '# Feedback Capture
 
 # 3. Claude Code を再起動すると /feedback-capture が使えるようになる
 </code></pre>
-<p><strong>ファイルの中身</strong> = プロンプトテンプレート:</p>
+<p><strong>ファイルの配置</strong>:</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>.claude/
   commands/
     feedback-capture.md    ← /feedback-capture で呼び出せる
@@ -602,7 +613,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <li><strong>What</strong>: 型アノテーションが欠如していた</li>
 <li><strong>Impact</strong>: コードの可読性と保守性が低下</li>
 <li><strong>Fix</strong>: 全関数に型ヒントを追加するルールを設定</li>
-<li><strong>Prevention</strong>: <code>ruff</code> や <code>mypy</code> による自動チェック</li>
+<li><strong>Prevention</strong>: <code>ruff</code>（Pythonコードの自動検査ツール）や <code>mypy</code>（型チェックツール）による自動チェック</li>
 </ul>
 </blockquote>
 </section>
@@ -659,7 +670,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <li><strong>What</strong>: 要件外の変更が無断で行われていた</li>
 <li><strong>Impact</strong>: ステークホルダーの意図との乖離</li>
 <li><strong>Fix</strong>: スコープ外変更の禁止ルールを明文化</li>
-<li><strong>Prevention</strong>: 実装前にadvisorで要件適合性を確認</li>
+<li><strong>Prevention</strong>: 実装前にadvisor（Claude Codeの品質レビュー機能）で要件適合性を確認</li>
 </ul>
 </blockquote>
 </section>

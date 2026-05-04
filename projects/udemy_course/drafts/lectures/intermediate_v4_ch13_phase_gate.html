@@ -252,7 +252,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 ;" data-marpit-pagination-total="17" data-size="16:9">
 <h1 id="hook%E3%81%A8%E3%81%AF%E4%BD%95%E3%81%8B--%E8%87%AA%E5%8B%95%E7%99%BA%E5%8B%95%E3%81%AE%E4%BB%95%E7%B5%84%E3%81%BF">hookとは何か？ — 自動発動の仕組み</h1>
 <blockquote>
-<p><strong>hook</strong> = 「特定のタイミングで勝手に動く小さなプログラム」</p>
+<p><strong>hook</strong> = 「特定のタイミングで勝手に動く小さなプログラム」（一般的なソフトウェアの概念です）</p>
 </blockquote>
 <p>例え話:</p>
 <ul>
@@ -264,7 +264,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <strong>AIが特定の操作をする直前</strong> に自動でプログラムが走ります</p>
 </li>
 <li>
-<p><strong>どこに書く？</strong> → Claude Code の設定ファイル（プロジェクト内の <code>.claude/settings.json</code> または <code>~/.claude/settings.json</code>）</p>
+<p><strong>どこに書く？</strong> → Claude Code の設定ファイル（プロジェクト内の <code>.claude/settings.json</code> または <code>~/.claude/settings.json</code>）に書くと、この一般概念が Claude Code で実装できます</p>
 </li>
 <li>
 <p><strong>何がいい？</strong> → 人間が毎回指示しなくても、自動で安全確認が走る</p>
@@ -540,6 +540,15 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <li>この3段階を <strong>ツール実行前のhook</strong> として自動化</li>
 <li>タスク開始前に必ず過去事例を検索 — 人間の介入なし</li>
 </ul>
+<blockquote>
+<p><strong>具体例 — プロンプトの末尾に自動追記されるイメージ</strong>:</p>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code>AIへの指示: 「データベース移行のスクリプトを作成して」
+↓ （自動注入）
+[自動検索結果] 過去の類似事例:
+  1. &quot;DB移行&quot; → 手動移行はミスが起きやすいとの記録あり
+  2. &quot;DB変更&quot; → バックアップ必須の手順が過去に確立済み
+</code></pre>
+</blockquote>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="10" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
@@ -578,32 +587,23 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 ;" data-marpit-pagination-total="17" data-size="16:9">
 <h1 id="embedding%E5%9F%8B%E3%82%81%E8%BE%BC%E3%81%BF%E3%81%A8%E3%81%AF">Embedding（埋め込み）とは</h1>
 <blockquote>
-<p><strong>Embedding</strong> = テキストの「意味」を数字の列に変換する技術</p>
+<p><strong>Embedding</strong> = テキストの「意味」を数字の列に変換する技術<br />
+<strong>何が嬉しい？</strong> → 言葉が違っても「意味が似ている」過去事例を自動で見つけてくれる</p>
 </blockquote>
-<p>例:</p>
 <ul>
-<li>
-<p>「データベースの移行」→ <code>[0.23, -0.15, 0.87, ...]</code></p>
-</li>
-<li>
-<p>「DBの引越し」→ <code>[0.21, -0.14, 0.85, ...]</code></p>
-</li>
-<li>
-<p>2つの数字の列は <strong>とても似ている</strong> → 「似ている話題」と判定できる</p>
-</li>
-<li>
-<p><strong>Embeddingの似ている度合い</strong> を数値で計測する</p>
-</li>
-<li>
-<p>上位N件（通常3〜5件）を結果として返す</p>
-</li>
-<li>
-<p>注入量は <strong>1件あたり約200トークン</strong>（日本語で約130文字程度）に制限</p>
-</li>
+<li>上位N件（通常3〜5件）を結果として返す</li>
+<li>注入量は <strong>1件あたり約200トークン</strong>（日本語で約130文字程度）に制限</li>
 </ul>
 <blockquote>
 <p><strong>安心してください</strong>: Embeddingの変換計算は <strong>裏側で自動的に行われます</strong>。あなたが数式を書く必要はありません。検索APIを呼ぶだけで、似ている文書が自動で見つかります。</p>
 </blockquote>
+<p><strong>仕組み（興味がある人向け）</strong>:</p>
+<ul>
+<li>「データベースの移行」→ <code>[0.23, -0.15, 0.87, ...]</code></li>
+<li>「DBの引越し」→ <code>[0.21, -0.14, 0.85, ...]</code></li>
+<li>2つの数字の列は <strong>とても似ている</strong> → 「似ている話題」と判定できる</li>
+<li><strong>Embeddingの似ている度合い</strong> を数値で計測する</li>
+</ul>
 <p><strong>自分で書くとこうなる</strong>（Pythonの例）:</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> claude_mem <span class="hljs-keyword">import</span> search
 results = search(query=<span class="hljs-string">&quot;データベース移行&quot;</span>, limit=<span class="hljs-number">3</span>)
@@ -838,6 +838,9 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
 ;" data-marpit-pagination-total="17" data-size="16:9">
 <h1 id="%E6%A4%9C%E7%B4%A2%E7%B2%BE%E5%BA%A6%E3%81%AE%E3%83%81%E3%83%A5%E3%83%BC%E3%83%8B%E3%83%B3%E3%82%B0--5%E3%81%A4%E3%81%AE%E8%AA%BF%E6%95%B4%E3%83%9D%E3%82%A4%E3%83%B3%E3%83%88">検索精度のチューニング — 5つの調整ポイント</h1>
+<blockquote>
+<p><strong>最初は #2 の除外キーワードだけ設定すればOK</strong> です。それ以外は初期値のままで十分機能します。必要に応じて少しずつ調整してください。</p>
+</blockquote>
 <table>
 <thead>
 <tr>
@@ -849,32 +852,32 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </thead>
 <tbody>
 <tr>
-<td>1</td>
-<td><strong>キーワード重み</strong></td>
-<td>タスクの説明文（description）を一番重視し、メモ（notes）、タスクID（task_id）の順に重み付け</td>
-<td>重要な項目を優先</td>
-</tr>
-<tr>
-<td>2</td>
-<td><strong>除外キーワード</strong></td>
+<td><strong>★2</strong></td>
+<td><strong>除外キーワード</strong> ← まずこれ</td>
 <td>「初心者」「入門」などの汎用語を除外指定</td>
 <td>ノイズ削減</td>
 </tr>
 <tr>
+<td>1</td>
+<td>キーワード重み</td>
+<td>タスクの説明文（description）を一番重視し、メモ（notes）、タスクID（task_id）の順に重み付け</td>
+<td>重要な項目を優先</td>
+</tr>
+<tr>
 <td>3</td>
-<td><strong>結果件数</strong></td>
+<td>結果件数</td>
 <td><code>max_results</code> を調整</td>
 <td>入力サイズの制御</td>
 </tr>
 <tr>
 <td>4</td>
-<td><strong>Embeddingモデル</strong></td>
+<td>Embeddingモデル</td>
 <td>より高精度なモデルに変更</td>
 <td>意味検索の精度向上</td>
 </tr>
 <tr>
 <td>5</td>
-<td><strong>類似度の閾値</strong></td>
+<td>類似度の閾値</td>
 <td>最低閾値を設定</td>
 <td>関連の薄い事例を除外</td>
 </tr>
