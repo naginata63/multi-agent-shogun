@@ -249,7 +249,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </blockquote>
 <ul>
 <li>プロジェクト構成が変わるのに、CLAUDE.mdが<strong>古いまま</strong></li>
-<li>複数の<strong>instructions</strong>（CLAUDE.mdとは別の、個別のルールファイル）が<strong>矛盾</strong>し始める</li>
+<li>CLAUDE.mdとは別の<strong>個別ルールファイル</strong>同士が<strong>矛盾</strong>し始める</li>
 <li>原因: コンテキストは<strong>書いて終わり</strong>ではなく、運用が必要</li>
 </ul>
 </section>
@@ -293,8 +293,8 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <p>hook（現場の検査員）がエラーを検出した。でも、どう直せばいい？</p>
 </blockquote>
 <ul>
-<li><strong>done_gate</strong>（「本当に完了した？」と確認する門番）がBLOCKした → でも<strong>修正方法</strong>が分からない</li>
-<li><strong>silent fail</strong>（エラーメッセージが出ないのに、実は失敗している状態）を検出した → でも<strong>原因特定</strong>は人間任せ</li>
+<li><strong>done_gate</strong>（「本当に完了した？」と確認する門番）が止めた → でも<strong>修正方法</strong>が分からない</li>
+<li>エラーメッセージが出ないのに、<strong>実は失敗している</strong>状態も検出した → でも<strong>原因特定</strong>は人間任せ</li>
 <li>原因: L3（ルールブック全体）だけでは<strong>検出止まり</strong>、改善に繋がらない</li>
 </ul>
 </section>
@@ -464,6 +464,9 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <li>L2（コンテキスト）→ L3のhookで<strong>自動更新</strong>されて劣化防止（監視員が「古くなったよ」と知らせる）</li>
 <li>L3（ハーネス）→ L1の品質を<strong>自動検証</strong>して改善ループ完結（安全装置が結果をチェックする）</li>
 </ul>
+<blockquote>
+<p>※「どうやって自動になるのか」は各章で詳しく説明します。ここでは「連携すると良さそう」程度でOK</p>
+</blockquote>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="10" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
