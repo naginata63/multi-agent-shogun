@@ -95,7 +95,7 @@ tasks:
   timestamp: '2026-05-04T08:41:48.388716+09:00'
 - agent: ashigaru2
   task_id: subtask_1613e
-  status: assigned
+  status: done
   parent_cmd: cmd_1613
   bloom_level: L2
   description: 'cmd_1613 Phase-E: regression test (vocal_stt_pipeline) + git push

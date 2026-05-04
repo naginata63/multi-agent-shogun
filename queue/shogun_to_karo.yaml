@@ -874,7 +874,7 @@ commands:
   - queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md 報告書作成
   notify_karo: true
 - id: cmd_1614
-  status: in_progress
+  status: done
   priority: high
   purpose: discord_news_bot.py の embed.image.url バリデーション追加で、不正 URL 検出時に当該 image を
     skip (or embed ごと skip) し、後続記事の Discord 配信を継続させる。現在 4/30 の 1 件目 embed で 400 Bad
@@ -940,7 +940,7 @@ commands:
   - 殿に ntfy 通知 (Discord 復活)
   notify_karo: true
 - id: cmd_1615
-  status: pending
+  status: in_progress
   priority: high
   purpose: 雪合戦動画 tono_edit.mkv (1920×1080 FFV1) を縦型 1080×1920 にクロップし、YouTube に非公開アップロードする。概要欄は過去のドズル切り抜き
     channel 標準テンプレを準拠して記載。
