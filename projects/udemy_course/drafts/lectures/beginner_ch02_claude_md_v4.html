@@ -45,7 +45,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 ;" data-marpit-pagination-total="16" data-size="16:9">
 <h1 id="claudemd-%E3%83%9F%E3%83%8B%E3%83%9E%E3%83%A0">CLAUDE.md ミニマム</h1>
 <h2 id="%E3%83%97%E3%83%AD%E3%82%B8%E3%82%A7%E3%82%AF%E3%83%88%E3%81%AE%E8%AA%AC%E6%98%8E%E6%9B%B8">プロジェクトの「説明書」</h2>
-<h3 id="%E3%82%B3%E3%83%B3%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%8B%E3%82%A2%E3%83%AA%E3%83%B3%E3%82%B0">コンテキストエンジニアリング（AIに渡す情報の整え方）</h3>
+<h3 id="%E3%82%B3%E3%83%B3%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%8B%E3%82%A2%E3%83%AA%E3%83%B3%E3%82%B0ai%E3%81%AB%E6%B8%A1%E3%81%99%E6%83%85%E5%A0%B1%E3%81%AE%E6%95%B4%E3%81%88%E6%96%B9">コンテキストエンジニアリング（AIに渡す情報の整え方）</h3>
 <div class="meta">
 初級編 — 第2章 (約 30 min)<br /><br />
 「Claude Code はじめての一歩 — AI開発の基礎を1日で習得」<br /><br />
@@ -94,6 +94,9 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <li><strong>あり/なしでAIの振る舞いが変わる理由</strong> を説明できる</li>
 <li><strong>よくある書き方の失敗</strong> を避けられる</li>
 </ol>
+<blockquote>
+<p><img class="emoji" draggable="false" alt="💡" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/1f4a1.svg" data-marp-twemoji=""/> <strong>キーワード</strong>: AIに渡す情報を整理する手法を「<strong>コンテキストエンジニアリング</strong>」と呼びます。難しそうに聞こえますが、要は「AIに読ませる説明書を書くこと」です。この章でその基本を身につけます。</p>
+</blockquote>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="3" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
@@ -290,7 +293,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <tbody>
 <tr>
 <td>1</td>
-<td>使用言語・FW</td>
+<td>使用言語・FW（フレームワーク）</td>
 <td>何を使っているか</td>
 <td>Python 3.12 / FastAPI</td>
 </tr>
@@ -361,23 +364,23 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 ;" data-marpit-pagination-total="16" data-size="16:9">
 <h1 id="30%E8%A1%8C%E3%83%9F%E3%83%8B%E3%83%9E%E3%83%A0%E7%89%88%E3%81%AE%E4%BE%8B">30行ミニマム版の例</h1>
 <blockquote>
-<p>以下はPythonの例ですが、<strong>中身が読めなくても構いません</strong>。構造（5セクション・箇条書き）だけ見てください。ご自身の言語に置き換えて考えましょう。</p>
+<p>以下はPythonの例ですが、<strong>中身が読めなくても構いません</strong>。この例はPythonですが、JavaScriptでもGoでも構造は同じです。セクションの構成（5つ）が重要で、中身の技術用語はご自身の使う言語に置き換えてください。構造（5セクション・箇条書き）だけ見てください。</p>
 </blockquote>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-markdown"><span class="hljs-section"># CLAUDE.md</span>
 
 <span class="hljs-section">## 使用言語・フレームワーク</span>
 <span class="hljs-bullet">-</span> Python 3.12 / FastAPI
-<span class="hljs-bullet">-</span> ORM: SQLAlchemy 2.0
+<span class="hljs-bullet">-</span> ORM（データベースを扱いやすくする仕組み）: SQLAlchemy 2.0
 
 <span class="hljs-section">## コーディング規約</span>
 <span class="hljs-bullet">-</span> インデント: 4スペース
-<span class="hljs-bullet">-</span> 型ヒント必須 (mypy strict)
-<span class="hljs-bullet">-</span> docstringはGoogle形式
+<span class="hljs-bullet">-</span> 型ヒント必須（変数の種類を明示する書き方）
+<span class="hljs-bullet">-</span> 関数の説明書き（docstring）はGoogle形式
 
 <span class="hljs-section">## よく使うコマンド</span>
 <span class="hljs-bullet">-</span> テスト: pytest tests/
 <span class="hljs-bullet">-</span> 起動: uvicorn app.main:app --reload
-<span class="hljs-bullet">-</span> lint: ruff check .
+<span class="hljs-bullet">-</span> コード検査（lint）: ruff check .
 
 <span class="hljs-section">## 禁止事項</span>
 <span class="hljs-bullet">-</span> 本番DBの直接操作禁止
@@ -386,7 +389,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <span class="hljs-section">## プロジェクト構造</span>
 <span class="hljs-bullet">-</span> app/ = アプリ本体
 <span class="hljs-bullet">-</span> tests/ = テスト
-<span class="hljs-bullet">-</span> migrations/ = DBマイグレーション
+<span class="hljs-bullet">-</span> migrations/ = データベースの変更履歴（マイグレーション）
 </code></pre>
 <p><strong>保存の手順 (3ステップ)</strong>:</p>
 <ol>
@@ -395,7 +398,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <li>Claude Codeを再起動 → 自動的に読み込まれる</li>
 </ol>
 <blockquote>
-<p>💡 <strong>確認方法</strong>: Claude Codeを起動して「CLAUDE.mdの内容を教えて」と聞けば、正しく読み込まれているかすぐ確認できます</p>
+<p><img class="emoji" draggable="false" alt="💡" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/1f4a1.svg" data-marp-twemoji=""/> <strong>確認方法</strong>: Claude Codeを起動して「CLAUDE.mdの内容を教えて」と聞けば、正しく読み込まれているかすぐ確認できます</p>
 </blockquote>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="8" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
@@ -434,10 +437,13 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
 ;" data-marpit-pagination-total="16" data-size="16:9">
 <h1 id="%E3%82%BB%E3%82%AF%E3%82%B7%E3%83%A7%E3%83%B3%E8%A9%B3%E7%B4%B0--%E4%BD%BF%E7%94%A8%E8%A8%80%E8%AA%9E%E3%83%BBfw-%E3%81%A8-%E3%82%B3%E3%83%BC%E3%83%87%E3%82%A3%E3%83%B3%E3%82%B0%E8%A6%8F%E7%B4%84">セクション詳細 — 使用言語・FW と コーディング規約</h1>
+<blockquote>
+<p><img class="emoji" draggable="false" alt="💡" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/1f4a1.svg" data-marp-twemoji=""/> <strong>ここから先はPython固有の用語が出てきます。「そういう設定項目があるんだな」程度に読み流してOK</strong> です。ご自身の言語に置き換えて考えましょう。</p>
+</blockquote>
 <p><strong>使用言語・フレームワーク</strong>:</p>
 <ul>
 <li>言語のバージョンまで書く → AIが使える機能を正しく判断</li>
-<li>例: 「Python 3.12」と書けば、walrus演算子（<code>:=</code> で値を代入しつつ比較できる書き方）を使えると判断</li>
+<li>例: 「Python 3.12」と書けば、最新の文法機能（例: 値を代入しつつ比較できる <code>:=</code> 演算子）を使えると判断</li>
 </ul>
 <p><strong>コーディング規約</strong>:</p>
 <ul>
@@ -487,7 +493,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <h1 id="%E3%82%BB%E3%82%AF%E3%82%B7%E3%83%A7%E3%83%B3%E8%A9%B3%E7%B4%B0--%E3%82%88%E3%81%8F%E4%BD%BF%E3%81%86%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89-%E3%81%A8-%E7%A6%81%E6%AD%A2%E4%BA%8B%E9%A0%85">セクション詳細 — よく使うコマンド と 禁止事項</h1>
 <p><strong>よく使うコマンド</strong>:</p>
 <ul>
-<li>テスト、ビルド、Lint の実行コマンドを書く</li>
+<li>テスト、ビルド（プログラムを動かせる形に変換すること）、Lint（コードの問題を自動検査すること）の実行コマンドを書く</li>
 <li>AIがコード修正後に <strong>テストを実行して確認</strong> する（実行前に人間へ確認することもあります）</li>
 </ul>
 <table>
@@ -801,7 +807,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <p>CLAUDE.mdでルールを教えたら、次はAIに「作業」を頼んでみましょう。</p>
 </blockquote>
 <ul>
-<li>AIの自律作業フロー (Read → 分析 → Edit → Test → 完了)</li>
+<li>AIの自律作業フロー (ファイル読み込み → 分析 → 編集 → テスト → 完了)</li>
 <li>バグ修正の実例解説</li>
 <li>人間のレビューが必須な理由</li>
 </ul>
