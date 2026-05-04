@@ -410,7 +410,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <p><strong>YAML (ヤムル)</strong>: AIへの指示書を書くためのファイル形式。インデント (字下げ) で階層を表します。メモ書きのようなシンプルな見た目が特徴です。</p>
 </blockquote>
 <blockquote>
-<p><strong>YAMLの読み方</strong>: 左端に書かれた <code>post_steps</code> や <code>verify</code> が大項目です。その下の行で字下げされている <code>- path/to/...</code> が小項目（大項目に属する内容）です。</p>
+<p><strong>YAMLの読み方</strong>: 左端に書かれた <code>post_steps</code> や <code>verify</code> が大項目です。その下の行で字下げされている <code>- path/to/...</code> が小項目（大項目に属する内容）です。行頭の <code>-</code>（ハイフン）は「リストの1項目」を意味する記号で、マイナスではありません。</p>
 </blockquote>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-yaml"><span class="hljs-comment"># task YAML の宣言例 (AIへの指示書)</span>
 <span class="hljs-attr">post_steps:</span>
@@ -492,16 +492,19 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 ;" data-marpit-pagination-total="14" data-size="16:9">
 <h1 id="hook-%E3%81%AB%E3%82%88%E3%82%8B%E8%87%AA%E5%8B%95%E6%A4%9C%E8%A8%BC">hook による自動検証</h1>
 <blockquote>
+<p>前スライドで「verify欄を書かなければ素通り（opt-in）」と説明しました。では、<strong>verify欄を書いた場合</strong>はどうなるか — それがこのhookの仕組みです。</p>
+</blockquote>
+<blockquote>
 <p><strong>hook (フック)</strong>: 「〇〇が起きたら、自動で△△を実行する」という仕掛け。ここでは「ファイル編集が終わったら、自動でテストを実行」します。</p>
 </blockquote>
 <blockquote>
-<p><strong>PostToolUse</strong>: ツール実行の直後に発火するライフサイクルイベント。ファイル保存の直後に自動検証を走らせるのに最適なタイミングです。第10章で紹介した7イベントのうち、完了検証Gateは主にこのPostToolUseをトリガーにします。</p>
+<p><strong>PostToolUse</strong>: ツール実行の直後に<strong>自動で起動</strong>（発火）するタイミングのこと。「ライフサイクルイベント」とは、AIが作業する一連の流れの中で決まったタイミングで自動実行される仕組みです。第10章で紹介した7イベントのうち、完了検証Gateは主にこのPostToolUseをトリガーにします。</p>
 </blockquote>
 <p><strong>実行フロー</strong> (4ステップ):</p>
 <ol>
 <li>AIがYAMLファイルを編集する</li>
 <li><strong>hook</strong> が「編集された!」を検知して自動発火</li>
-<li><code>verify_result: pending</code> を見つけたら → 検証コマンドを実行</li>
+<li><strong>hook</strong> が <code>verify_result: pending</code> を見つけたら → 検証コマンドを自動実行</li>
 <li>結果で <code>verify_result</code> を <code>pass</code> (合格) / <code>fail</code> (不合格) に更新</li>
 </ol>
 <blockquote>
@@ -614,6 +617,9 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
 ;" data-marpit-pagination-total="14" data-size="16:9">
 <h1 id="%E6%9C%AA%E5%AE%8C%E4%BA%86%E3%81%AE%E5%AE%8C%E4%BA%86%E5%A0%B1%E5%91%8A%E3%81%AE%E5%86%8D%E7%8F%BE%E4%BE%8B">「未完了の完了報告」の再現例</h1>
+<blockquote>
+<p>AIは「完了した」と報告しました。しかし実際には、テストはまだ実行されておらず、成果物のファイルも存在していません。この<strong>矛盾</strong>をYAMLコードで見てみましょう。</p>
+</blockquote>
 <p>AIが <code>status: done</code> (完了) を宣言したが、実際には:</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-yaml"><span class="hljs-comment"># YAML (AIが書いた状態)</span>
 <span class="hljs-bullet">-</span> <span class="hljs-attr">task_id:</span> <span class="hljs-string">subtask_build_widget</span>
@@ -671,7 +677,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 ;" data-marpit-pagination-total="14" data-size="16:9">
 <h1 id="%E5%AE%9F%E9%81%8B%E7%94%A8%E3%81%A7%E3%81%AE%E8%AA%BF%E6%95%B4%E3%83%9D%E3%82%A4%E3%83%B3%E3%83%88">実運用での調整ポイント</h1>
 <blockquote>
-<p>※本講座サンプル実装 — 本講座の制作環境では、5項目の完了検証GateをPostToolUse hookとして運用し、AIエージェントが宣言した<code>status: done</code>を自動検証しています。初期導入は3項目から開始し、運用経験を積んで5項目に拡張しました。</p>
+<p>※本講座サンプル実装: 本講座の制作環境でもこの仕組みを実際に運用しています。初期導入は3項目から開始し、運用経験を積んで5項目に拡張しました。</p>
 </blockquote>
 <p><strong>条件の追加</strong>:</p>
 <ul>
