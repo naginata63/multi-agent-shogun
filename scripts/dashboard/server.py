@@ -2866,6 +2866,20 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps({'error': 'to and message are required'}).encode('utf-8'))
                     return
 
+                # bloom_level filter: L1-L3 reports to gunshi redirect to karo (cmd_1629)
+                if target == 'gunshi' and msg_type in ('report_received', 'report_completed'):
+                    _tid = body.get('task_id', '')
+                    if _tid:
+                        try:
+                            _conn = sqlite3.connect(DB_PATH, timeout=5)
+                            _cur = _conn.execute('SELECT bloom_level FROM tasks WHERE task_id=?', (_tid,))
+                            _row = _cur.fetchone()
+                            _conn.close()
+                            if _row and _row[0] in ('L1', 'L2', 'L3'):
+                                target = 'karo'
+                        except Exception:
+                            pass
+
                 script_path = os.path.join(BASE_DIR, 'scripts', 'inbox_write.sh')
                 result = subprocess.run(
                     ['bash', script_path, target, message, msg_type, from_agent],
