@@ -84,6 +84,68 @@ sudo bash migration_nvme_phase45.sh
 
 ---
 
+### 🆘 wget 失敗時の救済策 (手動 1 ブロック・コピペ用)
+
+ネット繋がらない or GitHub アクセス不可なら、以下を **そのままターミナルに貼付** (heredoc で 1 度に流し込む形):
+
+```bash
+sudo bash <<'EOF'
+set -e
+NVME_ROOT=/dev/nvme0n1p2
+NVME_EFI=/dev/nvme0n1p1
+MNT=/mnt
+echo "=== Phase 4: resize2fs ==="
+e2fsck -fy "$NVME_ROOT"
+resize2fs "$NVME_ROOT"
+e2fsck -fy "$NVME_ROOT"
+echo "=== Phase 5-A: mount ==="
+mount "$NVME_ROOT" "$MNT"
+mkdir -p "$MNT/boot/efi"
+mount "$NVME_EFI" "$MNT/boot/efi"
+for f in proc sys dev dev/pts run; do mount --bind "/$f" "$MNT/$f"; done
+echo "=== Phase 5-B: fstab 自動書換 ==="
+NEW_EFI_UUID=$(blkid -s UUID -o value "$NVME_EFI")
+echo "新 EFI UUID: $NEW_EFI_UUID"
+cp "$MNT/etc/fstab" "$MNT/etc/fstab.bak.migration"
+sed -i -E "s|^UUID=[A-Fa-f0-9-]+(\\s+/boot/efi\\s)|UUID=$NEW_EFI_UUID\\1|" "$MNT/etc/fstab"
+echo "=== Phase 5-C: chroot で grub-install ==="
+chroot "$MNT" /bin/bash -c '
+  grub-install --efi-directory=/boot/efi --bootloader-id=ubuntu /dev/nvme0n1
+  update-grub
+  update-initramfs -u
+'
+echo "=== Phase 5-D: umount ==="
+umount -R "$MNT"
+echo "✅ 完了 — 再起動して BIOS で NVMe 起動優先"
+EOF
+```
+
+スマホで本 md を見ながら PC ターミナルに**手入力**。長いゆえ慎重に・誤打したら Ctrl+C で中断 → やり直し可。
+
+---
+
+### 💡 USB メモリ持込み案 (上級者向け・万全策)
+
+事前に殿が:
+
+```bash
+# 殿の通常 PC で 1 度だけ実行
+cp /home/murakami/multi-agent-shogun/scripts/migration_nvme_phase45.sh /media/murakami/<USB メモリ>/
+```
+
+clonezilla live USB ブート後・別 USB メモリを刺して:
+
+```bash
+# USB を mount
+sudo mkdir -p /mnt/usb
+sudo mount /dev/sdX1 /mnt/usb     # X は USB のデバイス名 (lsblk で確認)
+sudo bash /mnt/usb/migration_nvme_phase45.sh
+```
+
+ネット接続不要・script 完全制御下。
+
+---
+
 ### Phase 4: ファイルシステム拡張 (sde4 サイズ → 1.8T へ) — 手動コマンド版 (参考)
 
 > ⚠️ **以降は clonezilla GUI ではなく live USB の「ターミナル (黒い画面)」で操作**。
