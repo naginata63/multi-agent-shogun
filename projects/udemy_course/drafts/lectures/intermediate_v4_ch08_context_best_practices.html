@@ -42,7 +42,7 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="15" data-size="16:9">
+;" data-marpit-pagination-total="16" data-size="16:9">
 <h1 id="%E3%82%B3%E3%83%B3%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88%E9%81%8B%E7%94%A8%E3%83%99%E3%82%B9%E3%83%88%E3%83%97%E3%83%A9%E3%82%AF%E3%83%86%E3%82%A3%E3%82%B9-isolate%E6%88%A6%E7%95%A5">コンテキスト運用ベストプラクティス (Isolate戦略)</h1>
 <h2 id="%E3%82%BF%E3%82%B9%E3%82%AF%E9%96%93%E3%81%AE%E5%B9%B2%E6%B8%89%E3%82%92%E9%98%B2%E3%81%90%E5%88%86%E9%9B%A2%E3%81%AE%E6%8A%80%E8%A1%93">タスク間の干渉を防ぐ「分離」の技術</h2>
 <div class="meta">
@@ -85,7 +85,7 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="15" data-size="16:9">
+;" data-marpit-pagination-total="16" data-size="16:9">
 <h2 id="%E3%81%93%E3%81%AE%E7%AB%A0%E3%81%A7%E5%87%BA%E3%81%A6%E3%81%8F%E3%82%8B%E7%94%A8%E8%AA%9E">この章で出てくる用語</h2>
 <blockquote>
 <p>この章で使う重要な用語をまとめました。初めて見る用語があっても安心してください。スライドの中で改めて説明します。</p>
@@ -100,30 +100,25 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <tbody>
 <tr>
 <td><strong>Isolate（分離）</strong></td>
-<td>タスクごとにコンテキストを独立させる戦略</td>
+<td>タスクごとにAIの記憶を独立させる戦略。「部屋を分ける」イメージ</td>
 </tr>
 <tr>
 <td><strong>コンテキストウィンドウ</strong></td>
-<td>AIが一度に読み書きできる情報の容量（メモリ）</td>
+<td>AIが一度に覚えていられる情報の上限（＝AIの作業机の広さ）</td>
 </tr>
 <tr>
 <td><strong>Context Window Budget</strong></td>
-<td>コンテキストウィンドウの容量を「予算」として管理する考え方</td>
+<td>その上限を「予算」としてタスク別に割り当てる考え方</td>
 </tr>
 <tr>
-<td><strong>Bloom分類</strong></td>
-<td>学習目標を6段階(L1〜L6)で分類する教育モデル。本章はL5(評価)とL6(創造)レベル</td>
-</tr>
-<tr>
-<td><strong>CLAUDE.md</strong></td>
-<td>Claude Code（AI開発ツール）が読み込むプロジェクト共通ルールファイル</td>
-</tr>
-<tr>
-<td><strong>YAML（ヤムル）</strong></td>
-<td>インデントで構造を表す設定ファイル形式。AIへの指示書として使う</td>
+<td><strong>トークン</strong></td>
+<td>AIが情報を数える単位。日本語1文字≈1〜2トークン。10万トークン≈本1冊分</td>
 </tr>
 </tbody>
 </table>
+<blockquote>
+<p>この表は「後で見返す用」です。今はざっと目を通すだけでOK — 各用語はスライドの中でも説明します。</p>
+</blockquote>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="3" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
@@ -159,10 +154,10 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="15" data-size="16:9">
-<h2 id="%E3%81%93%E3%81%AE%E7%AB%A0%E3%81%A7%E5%AD%A6%E3%81%B6%E3%81%93%E3%81%A8-bloom%E5%88%86%E9%A1%9E-l5-evaluate--l6-create">この章で学ぶこと [Bloom分類 L5: Evaluate + L6: Create]</h2>
+;" data-marpit-pagination-total="16" data-size="16:9">
+<h2 id="%E3%81%93%E3%81%AE%E7%AB%A0%E3%81%A7%E5%AD%A6%E3%81%B6%E3%81%93%E3%81%A8">この章で学ぶこと</h2>
 <blockquote>
-<p>Bloom分類とは、学習目標を6段階（L1記憶→L6創造）で分類する教育モデルです。本章は上級レベルのL5(評価)とL6(創造)を目指します。</p>
+<p>中級編の締めくくりとして、「自分で判断して設計できる」レベルを目指します。</p>
 </blockquote>
 <ol>
 <li><strong>Isolate戦略</strong> の概念と他戦略との違いを説明できる</li>
@@ -210,7 +205,7 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="15" data-size="16:9">
+;" data-marpit-pagination-total="16" data-size="16:9">
 <h1 id="4%E3%81%A4%E3%81%AE%E6%88%A6%E7%95%A5--isolate%E3%81%AE%E4%BD%8D%E7%BD%AE%E3%81%A5%E3%81%91">4つの戦略 — Isolateの位置づけ</h1>
 <blockquote>
 <p>前章までで3つの戦略を学びました。この章は4番目です。</p>
@@ -290,7 +285,7 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="15" data-size="16:9">
+;" data-marpit-pagination-total="16" data-size="16:9">
 <h1 id="%E3%82%B3%E3%83%B3%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88%E3%81%AE%E5%B9%B2%E6%B8%89%E3%81%8C%E8%B5%B7%E3%81%8D%E3%82%8B%E7%9E%AC%E9%96%93">「コンテキストの干渉」が起きる瞬間</h1>
 <blockquote>
 <p>タスクA: 「Excelの売上マクロを修正中」<br />
@@ -343,14 +338,14 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="15" data-size="16:9">
+;" data-marpit-pagination-total="16" data-size="16:9">
 <h1 id="context-window-budget--%E3%82%BF%E3%82%B9%E3%82%AF%E5%88%A5%E3%81%AE%E8%B2%A1%E5%B8%83%E8%A8%AD%E8%A8%88">Context Window Budget — タスク別の「財布」設計</h1>
 <blockquote>
 <p>AIの記憶容量を「財布」として管理する。タスクごとに別の財布を持つイメージ</p>
 </blockquote>
 <p><strong>予算配分の考え方</strong>:</p>
 <blockquote>
-<p>AIの記憶容量（コンテキストウィンドウ）は約 <strong>10万〜20万トークン</strong>（日本語で約7万〜15万字＝本1〜2冊分）。この限られた容量をどう配分するかが設計の鍵です。</p>
+<p>AIの記憶容量（コンテキストウィンドウ）は約 <strong>10万〜20万トークン</strong>（日本語で約7万〜15万字＝本1〜2冊分）。「トークン」はAIが情報を数える単位で、日本語1文字が約1〜2トークンに相当します。この限られた容量をどう配分するかが設計の鍵です。</p>
 </blockquote>
 <table>
 <thead>
@@ -362,9 +357,9 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </thead>
 <tbody>
 <tr>
-<td><strong>システム指示</strong></td>
+<td><strong>共通ルール</strong>（システム指示）</td>
 <td>20-30%</td>
-<td>共通ルールファイル（前章で説明）</td>
+<td>AIに常に守らせたいルール（前章で説明）</td>
 </tr>
 <tr>
 <td><strong>タスク固有情報</strong></td>
@@ -383,6 +378,9 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </tr>
 </tbody>
 </table>
+<blockquote>
+<p><strong>初めての方へ</strong>: この%配分を自分で計算する必要はありません。「1タスク＝1セッション（＝1つの財布）」だけ意識すればOK。本講座のサンプル設定を使えば自動で管理されます。</p>
+</blockquote>
 <p><strong>Isolate戦略のポイント</strong>:</p>
 <ul>
 <li><strong>1タスク = 1つの財布</strong>: 複数タスクの情報を同じ財布に詰め込まない</li>
@@ -424,7 +422,7 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="15" data-size="16:9">
+;" data-marpit-pagination-total="16" data-size="16:9">
 <h1 id="%E5%89%8A%E6%B8%9B5%E5%8E%9F%E5%89%87--%E5%B9%B2%E6%B8%89%E6%BA%90%E3%82%92%E5%8F%96%E3%82%8A%E9%99%A4%E3%81%8F">削減5原則 — 干渉源を取り除く</h1>
 <blockquote>
 <p>Isolate戦略の前提: 不要な情報を減らしてから分離する</p>
@@ -437,9 +435,9 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <blockquote>
 <p>3ヶ月以上更新されていない古い情報 → 確認して不要なら削除</p>
 </blockquote>
-<p><strong>原則3: 推論可能な情報は書かない</strong></p>
+<p><strong>原則3: AIが自分で分かることは書かない</strong></p>
 <blockquote>
-<p>AIがコードから自分で読み取れる内容はルールに書かない</p>
+<p>コードを見れば分かる内容（例: 関数名から処理内容が分かる）はルールに書かない。AIがコードを読めば自動で理解できるからです。</p>
 </blockquote>
 <p><strong>原則4: 終了プロジェクトの情報を残さない</strong></p>
 <blockquote>
@@ -484,7 +482,7 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="15" data-size="16:9">
+;" data-marpit-pagination-total="16" data-size="16:9">
 <h1 id="%E3%83%88%E3%83%AC%E3%83%BC%E3%83%89%E3%82%AA%E3%83%95%E5%88%86%E6%9E%90--%E5%88%86%E9%9B%A2%E3%82%B3%E3%82%B9%E3%83%88-vs-%E5%B9%B2%E6%B8%89%E3%83%AA%E3%82%B9%E3%82%AF">トレードオフ分析 — 分離コスト vs 干渉リスク</h1>
 <blockquote>
 <p>完全な分離は理想だが、常にコストがかかる</p>
@@ -563,27 +561,45 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="15" data-size="16:9">
-<h1 id="%E8%87%AA%E3%83%97%E3%83%AD%E5%AE%9F%E4%BE%8B--%E3%82%BF%E3%82%B9%E3%82%AF%E5%88%86%E9%9B%A2%E3%81%A8%E9%81%8B%E7%94%A8%E3%83%97%E3%83%AC%E3%82%A4%E3%83%96%E3%83%83%E3%82%AF">自プロ実例 — タスク分離と運用プレイブック</h1>
+;" data-marpit-pagination-total="16" data-size="16:9">
+<h1 id="%E3%83%84%E3%83%BC%E3%83%AB%E5%88%A5%E3%81%AE%E5%88%86%E9%9B%A2--%E3%81%82%E3%81%AA%E3%81%9F%E3%81%AE%E7%92%B0%E5%A2%83%E3%81%A7%E3%81%AF">ツール別の分離 — あなたの環境では？</h1>
 <blockquote>
-<p>本講座の制作環境でのIsolate戦略の実装例。Claude CodeというAI開発ツールでの実際の運用方法です。</p>
+<p>Isolate戦略はClaude Code以外でも使えます。普段使っているツールでの読み替え例です。</p>
 </blockquote>
-<p><strong>実例1: タスク別設定ファイルによる論理的分離</strong> 『本講座サンプル実装』</p>
-<ul>
-<li>各タスクを独立した設定ファイル（YAML形式）で管理
-<ul>
-<li>YAML = インデントで構造を表す設定ファイル形式。AIへの指示書として使う</li>
-</ul>
-</li>
-<li>1セッション = 1タスクファイル → タスク間の干渉を物理的に防止</li>
-<li>共通ルールファイル（CLAUDE.md = プロジェクト全体のルールを書くファイル）は共有、タスク固有情報はタスクファイルに分離</li>
-</ul>
-<p><strong>実例2: 役割別指示ファイルによる分離</strong> 『本講座サンプル実装』</p>
-<ul>
-<li><code>instructions/</code> フォルダ配下に役割別の指示ファイルを配置</li>
-<li>同一プロジェクト内でも、役割が違えば読み込む指示が違う</li>
-<li>Context Window Budget: システム指示30% + タスク情報50% + 余白20%</li>
-</ul>
+<table>
+<thead>
+<tr>
+<th>ツール</th>
+<th>物理的分離</th>
+<th>論理的分離</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ChatGPT</strong></td>
+<td>新しいチャットを開始する</td>
+<td>システムメッセージでルールを書く</td>
+</tr>
+<tr>
+<td><strong>Cursor</strong></td>
+<td>ワークスペースを分ける</td>
+<td><code>.cursorrules</code> ファイルで共通ルールを設定</td>
+</tr>
+<tr>
+<td><strong>Claude Code</strong></td>
+<td>別セッション（別ターミナル）</td>
+<td><code>CLAUDE.md</code> + タスク別YAML</td>
+</tr>
+<tr>
+<td><strong>GitHub Copilot</strong></td>
+<td>別ファイル・別プロジェクト</td>
+<td><code>.github/copilot-instructions.md</code> で設定</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>どのツールでも「タスクごとに分ける」「共通ルールを分ける」という2つの軸は同じです。</p>
+</blockquote>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="10" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
@@ -619,7 +635,63 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="15" data-size="16:9">
+;" data-marpit-pagination-total="16" data-size="16:9">
+<h1 id="%E8%87%AA%E3%83%97%E3%83%AD%E5%AE%9F%E4%BE%8B--%E3%82%BF%E3%82%B9%E3%82%AF%E5%88%86%E9%9B%A2%E3%81%A8%E9%81%8B%E7%94%A8%E3%83%97%E3%83%AC%E3%82%A4%E3%83%96%E3%83%83%E3%82%AF">自プロ実例 — タスク分離と運用プレイブック</h1>
+<blockquote>
+<p>本講座の制作環境でのIsolate戦略の実装例。Claude CodeというAI開発ツールでの実際の運用方法です。前スライドの表を参考に、お使いのツールに読み替えてください。</p>
+</blockquote>
+<p><strong>実例1: タスク別設定ファイルによる論理的分離</strong> 『本講座サンプル実装』</p>
+<ul>
+<li>各タスクを独立した設定ファイル（YAML形式）で管理
+<ul>
+<li>YAML = インデントで構造を表す設定ファイル形式。AIへの指示書として使う</li>
+</ul>
+</li>
+<li>1セッション = 1タスクファイル → タスク間の干渉を物理的に防止</li>
+<li>共通ルールファイル（CLAUDE.md = プロジェクト全体のルールを書くファイル）は共有、タスク固有情報はタスクファイルに分離</li>
+</ul>
+<p><strong>実例2: 役割別指示ファイルによる分離</strong> 『本講座サンプル実装』</p>
+<ul>
+<li><code>instructions/</code> フォルダ配下に役割別の指示ファイルを配置</li>
+<li>同一プロジェクト内でも、役割が違えば読み込む指示が違う</li>
+<li>Context Window Budget: システム指示30% + タスク情報50% + 余白20%</li>
+</ul>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="11" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+section h1:first-child, section h2:first-child { margin-top: 0; }
+section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
+section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
+section.cover h2 { font-size: 1.0em; color: #fde68a; }
+section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
+h2 { color: #2563eb; font-size: 1.1em; }
+h3 { color: #4b5563; font-size: 1.0em; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
+code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
+table { font-size: 0.78em; border-collapse: collapse; }
+th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
+td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
+.big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
+.free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
+" lang="ja-JP" data-marpit-pagination="11" style="--paginate:true;--theme:default;--style:section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+section h1:first-child, section h2:first-child { margin-top: 0; }
+section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
+section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
+section.cover h2 { font-size: 1.0em; color: #fde68a; }
+section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
+h2 { color: #2563eb; font-size: 1.1em; }
+h3 { color: #4b5563; font-size: 1.0em; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
+code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
+table { font-size: 0.78em; border-collapse: collapse; }
+th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
+td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
+.big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
+.free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
+;" data-marpit-pagination-total="16" data-size="16:9">
 <h1 id="%E9%81%8B%E7%94%A8%E3%83%97%E3%83%AC%E3%82%A4%E3%83%96%E3%83%83%E3%82%AF--isolate%E6%88%A6%E7%95%A5%E3%81%AE%E6%A8%99%E6%BA%96%E3%83%95%E3%82%A9%E3%83%BC%E3%83%9E%E3%83%83%E3%83%88">運用プレイブック — Isolate戦略の標準フォーマット</h1>
 <blockquote>
 <p>プロジェクト独自の運用マニュアルで、分離ルールを明文化する</p>
@@ -675,7 +747,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <p>このフォーマットをプロジェクト共通ルールファイルのベースにすることで、Isolate戦略の境界線を明確にする</p>
 </blockquote>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="11" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="12" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
 section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
 section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
@@ -692,7 +764,7 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-" lang="ja-JP" data-marpit-pagination="11" style="--paginate:true;--theme:default;--style:section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+" lang="ja-JP" data-marpit-pagination="12" style="--paginate:true;--theme:default;--style:section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
 section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
 section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
@@ -709,7 +781,7 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="15" data-size="16:9">
+;" data-marpit-pagination-total="16" data-size="16:9">
 <h1 id="%E3%83%81%E3%83%BC%E3%83%A0%E9%81%8B%E7%94%A8--%E5%85%B1%E6%9C%89-vs-%E5%80%8B%E4%BA%BA%E3%81%AE%E5%88%86%E9%9B%A2%E7%B7%9A">チーム運用 — 共有 vs 個人の分離線</h1>
 <blockquote>
 <p>Isolate戦略の究極の形は「誰の情報か」を分離すること</p>
@@ -754,7 +826,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <p>3レベル分離のメリット: 個人レベルになるほど「自分だけのルール」を自由に変えられる。共有ルールは変更にチーム合意が必要だが、個人ルールは自分の判断で即座に変更可能。この「変更の自由度」が分離レベルが高いほど増える理由です。</p>
 </blockquote>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="12" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="13" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
 section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
 section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
@@ -771,7 +843,7 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-" lang="ja-JP" data-marpit-pagination="12" style="--paginate:true;--theme:default;--style:section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+" lang="ja-JP" data-marpit-pagination="13" style="--paginate:true;--theme:default;--style:section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
 section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
 section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
@@ -788,7 +860,7 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="15" data-size="16:9">
+;" data-marpit-pagination-total="16" data-size="16:9">
 <h1 id="%E9%81%8B%E7%94%A8%E3%82%AB%E3%83%AC%E3%83%B3%E3%83%80%E3%83%BC--isolate%E6%88%A6%E7%95%A5%E3%81%AE%E7%BF%92%E6%85%A3%E5%8C%96">運用カレンダー — Isolate戦略の習慣化</h1>
 <table>
 <thead>
@@ -825,63 +897,6 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <p>「いつやるか」を決めることで、Isolate戦略が習慣化する</p>
 </blockquote>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="13" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
-section h1:first-child, section h2:first-child { margin-top: 0; }
-section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
-section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
-section.cover h2 { font-size: 1.0em; color: #fde68a; }
-section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
-h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
-h2 { color: #2563eb; font-size: 1.1em; }
-h3 { color: #4b5563; font-size: 1.0em; }
-blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
-code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
-pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
-table { font-size: 0.78em; border-collapse: collapse; }
-th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
-td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
-.big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
-.free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-" lang="ja-JP" data-marpit-pagination="13" style="--paginate:true;--theme:default;--style:section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
-section h1:first-child, section h2:first-child { margin-top: 0; }
-section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
-section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
-section.cover h2 { font-size: 1.0em; color: #fde68a; }
-section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
-h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
-h2 { color: #2563eb; font-size: 1.1em; }
-h3 { color: #4b5563; font-size: 1.0em; }
-blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
-code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
-pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
-table { font-size: 0.78em; border-collapse: collapse; }
-th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
-td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
-.big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
-.free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="15" data-size="16:9">
-<h1 id="%E3%81%BE%E3%81%A8%E3%82%81--isolate%E6%88%A6%E7%95%A5%E3%81%AE%E5%85%A8%E4%BD%93%E5%83%8F">まとめ — Isolate戦略の全体像</h1>
-<p><strong>この章で学んだこと</strong>:</p>
-<blockquote>
-<p>Isolate戦略は「部屋を分ける」こと。4つの戦略（Write/Select/Compress/Isolate）の中で、情報の「境界」を管理するのがIsolateの役割です。</p>
-</blockquote>
-<ol>
-<li><strong>Isolate戦略</strong> = タスク間の情報干渉を防ぐ体系的手法</li>
-<li><strong>Context Window Budget</strong> で「1タスク1つの財布」を設計・配分する</li>
-<li><strong>削減5原則</strong> で不要情報を特定し、干渉源を取り除く</li>
-<li><strong>トレードオフ分析</strong> で「干渉リスク」と「分離コスト」の最適バランスを決める</li>
-<li><strong>運用プレイブック</strong> で分離ルールを明文化し、チームで共有する</li>
-<li><strong>3レベル分離</strong> (共有/チーム/個人) で「誰の情報か」を明確にする</li>
-</ol>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>Isolate戦略の3レベル:
-  物理的分離 → 別セッション・別タスクファイル
-  論理的分離 → Context Window Budget・役割別指示
-  組織的分離 → 共有/チーム/個人の3レベル
-</code></pre>
-<blockquote>
-<p>Isolate = 「部屋を分ける」ことで、それぞれの部屋の品質を最大化する</p>
-</blockquote>
-</section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="14" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
 section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
@@ -916,7 +931,57 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="15" data-size="16:9">
+;" data-marpit-pagination-total="16" data-size="16:9">
+<h1 id="%E3%81%BE%E3%81%A8%E3%82%81--isolate%E6%88%A6%E7%95%A5%E3%81%AE%E5%85%A8%E4%BD%93%E5%83%8F">まとめ — Isolate戦略の全体像</h1>
+<blockquote>
+<p>Isolate戦略の核心は「部屋を分ける」こと。本章では6つの観点からこの戦略を解説しました。</p>
+</blockquote>
+<p><strong>Isolate戦略の3つの分離レベル</strong>:</p>
+<ol>
+<li><strong>物理的分離</strong> — 別セッション・別タスクファイルで完全に独立させる</li>
+<li><strong>論理的分離</strong> — Context Window Budgetで容量を「タスク別の財布」として管理する</li>
+<li><strong>組織的分離</strong> — 共有/チーム/個人の3レベルで「誰の情報か」を明確にする</li>
+</ol>
+<p><strong>実践の流れ</strong>: まず削減5原則で不要情報を取り除き、トレードオフ分析で最適な分離度を決め、運用プレイブックに定着させる。</p>
+<blockquote>
+<p>Isolate = 「部屋を分ける」ことで、それぞれの部屋の品質を最大化する</p>
+</blockquote>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="15" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+section h1:first-child, section h2:first-child { margin-top: 0; }
+section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
+section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
+section.cover h2 { font-size: 1.0em; color: #fde68a; }
+section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
+h2 { color: #2563eb; font-size: 1.1em; }
+h3 { color: #4b5563; font-size: 1.0em; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
+code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
+table { font-size: 0.78em; border-collapse: collapse; }
+th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
+td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
+.big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
+.free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
+" lang="ja-JP" data-marpit-pagination="15" style="--paginate:true;--theme:default;--style:section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+section h1:first-child, section h2:first-child { margin-top: 0; }
+section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
+section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
+section.cover h2 { font-size: 1.0em; color: #fde68a; }
+section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
+h2 { color: #2563eb; font-size: 1.1em; }
+h3 { color: #4b5563; font-size: 1.0em; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
+code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
+table { font-size: 0.78em; border-collapse: collapse; }
+th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
+td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
+.big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
+.free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
+;" data-marpit-pagination-total="16" data-size="16:9">
 <h1 id="%E7%A2%BA%E8%AA%8D%E5%95%8F%E9%A1%8C">確認問題</h1>
 <p><strong>Q1</strong>: Isolate戦略の目的を、他の3つの戦略（Write/Select/Compress）と対比して説明せよ。</p>
 <p><strong>Q2</strong>: Context Window Budgetの配分割合と、「1タスク1つの財布」の考え方を説明せよ。</p>
@@ -926,7 +991,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <p><strong>A2</strong>: システム指示20-30%（共通ルールの固定費）、タスク固有情報40-50%（対象ファイルと参照コード）、会話履歴20-30%（やり取りとツール結果）、余白5-10%（予期しない読込用）。「1タスク1つの財布」とは、1つの容量（財布）に複数タスクの情報を混ぜず、タスクごとに独立した容量を割り当てる考え方。</p>
 <p><strong>A3</strong>: 全員が守るルールは共有に、個人の経験則は個人記録に配置する。理由は、共有範囲を広げすぎると更新責任が曖昧になり、逆に狭めすぎるとノウハウが分散してチーム全体の品質が安定しないため。境界線は「変更頻度」と「適用範囲」で引く。</p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="15" data-paginate="true" data-class="cover" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="16" data-paginate="true" data-class="cover" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
 section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
 section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
@@ -943,7 +1008,7 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-" lang="ja-JP" class="cover" data-marpit-pagination="15" style="--paginate:true;--class:cover;--theme:default;--style:section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+" lang="ja-JP" class="cover" data-marpit-pagination="16" style="--paginate:true;--class:cover;--theme:default;--style:section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
 section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
 section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
@@ -960,7 +1025,7 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="15" data-size="16:9">
+;" data-marpit-pagination-total="16" data-size="16:9">
 <h1 id="%E7%AC%AC8%E7%AB%A0-%E5%AE%8C%E4%BA%86">第8章 完了</h1>
 <h2 id="%E6%AC%A1%E3%81%AF-%E7%AC%AC9%E7%AB%A0context-rot-%E6%A4%9C%E5%87%BA%E3%81%A8%E8%87%AA%E5%8B%95%E6%9B%B4%E6%96%B0">次は 第9章「Context Rot 検出と自動更新」</h2>
 <div class="meta">
@@ -975,5 +1040,5 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </section>
 <script>!function(){"use strict";const t={h1:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"1"},style:"display: block; font-size: 2em; margin-block-start: 0.67em; margin-block-end: 0.67em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h2:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"2"},style:"display: block; font-size: 1.5em; margin-block-start: 0.83em; margin-block-end: 0.83em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h3:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"3"},style:"display: block; font-size: 1.17em; margin-block-start: 1em; margin-block-end: 1em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h4:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"4"},style:"display: block; margin-block-start: 1.33em; margin-block-end: 1.33em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h5:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"5"},style:"display: block; font-size: 0.83em; margin-block-start: 1.67em; margin-block-end: 1.67em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h6:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"6"},style:"display: block; font-size: 0.67em; margin-block-start: 2.33em; margin-block-end: 2.33em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},span:{proto:()=>HTMLSpanElement},pre:{proto:()=>HTMLElement,style:"display: block; font-family: monospace; white-space: pre; margin: 1em 0; --marp-auto-scaling-white-space: pre;"}},e="data-marp-auto-scaling-wrapper",i="data-marp-auto-scaling-svg",n="data-marp-auto-scaling-container";class s extends HTMLElement{container;containerSize;containerObserver;svg;svgComputedStyle;svgPreserveAspectRatio="xMinYMid meet";wrapper;wrapperSize;wrapperObserver;constructor(){super();const t=t=>([e])=>{const{width:i,height:n}=e.contentRect;this[t]={width:i,height:n},this.updateSVGRect()};this.attachShadow({mode:"open"}),this.containerObserver=new ResizeObserver(t("containerSize")),this.wrapperObserver=new ResizeObserver((...e)=>{t("wrapperSize")(...e),this.flushSvgDisplay()})}static get observedAttributes(){return["data-downscale-only"]}connectedCallback(){this.shadowRoot.innerHTML=`\n<style>\n  svg[${i}] { display: block; width: 100%; height: auto; vertical-align: top; }\n  span[${n}] { display: table; white-space: var(--marp-auto-scaling-white-space, nowrap); width: max-content; }\n</style>\n<div ${e}>\n  <svg part="svg" ${i}>\n    <foreignObject><span ${n}><slot></slot></span></foreignObject>\n  </svg>\n</div>\n    `.split(/\n\s*/).join(""),this.wrapper=this.shadowRoot.querySelector(`div[${e}]`)??void 0;const t=this.svg;this.svg=this.wrapper?.querySelector(`svg[${i}]`)??void 0,this.svg!==t&&(this.svgComputedStyle=this.svg?window.getComputedStyle(this.svg):void 0),this.container=this.svg?.querySelector(`span[${n}]`)??void 0,this.observe()}disconnectedCallback(){this.svg=void 0,this.svgComputedStyle=void 0,this.wrapper=void 0,this.container=void 0,this.observe()}attributeChangedCallback(){this.observe()}flushSvgDisplay(){const{svg:t}=this;t&&(t.style.display="inline",requestAnimationFrame(()=>{t.style.display=""}))}observe(){this.containerObserver.disconnect(),this.wrapperObserver.disconnect(),this.wrapper&&this.wrapperObserver.observe(this.wrapper),this.container&&this.containerObserver.observe(this.container),this.svgComputedStyle&&this.observeSVGStyle(this.svgComputedStyle)}observeSVGStyle(t){const e=()=>{const i=(()=>{const e=t.getPropertyValue("--preserve-aspect-ratio");if(e)return e.trim();return`x${(({textAlign:t,direction:e})=>{if(t.endsWith("left"))return"Min";if(t.endsWith("right"))return"Max";if("start"===t||"end"===t){let i="rtl"===e;return"end"===t&&(i=!i),i?"Max":"Min"}return"Mid"})(t)}YMid meet`})();i!==this.svgPreserveAspectRatio&&(this.svgPreserveAspectRatio=i,this.updateSVGRect()),t===this.svgComputedStyle&&requestAnimationFrame(e)};e()}updateSVGRect(){let t=Math.ceil(this.containerSize?.width??0);const e=Math.ceil(this.containerSize?.height??0);void 0!==this.dataset.downscaleOnly&&(t=Math.max(t,this.wrapperSize?.width??0));const i=this.svg?.querySelector(":scope > foreignObject");if(i?.setAttribute("width",`${t}`),i?.setAttribute("height",`${e}`),this.svg&&(this.svg.setAttribute("viewBox",`0 0 ${t} ${e}`),this.svg.setAttribute("preserveAspectRatio",this.svgPreserveAspectRatio),this.svg.style.height=t<=0||e<=0?"0":""),this.container){const t=this.svgPreserveAspectRatio.toLowerCase();this.container.style.marginLeft=t.startsWith("xmid")||t.startsWith("xmax")?"auto":"0",this.container.style.marginRight=t.startsWith("xmi")?"auto":"0"}}}const r=(t,{attrs:e={},style:i})=>class extends t{constructor(...t){super(...t);for(const[t,i]of Object.entries(e))this.hasAttribute(t)||this.setAttribute(t,i);this._shadow()}static get observedAttributes(){return["data-auto-scaling"]}connectedCallback(){this._update()}attributeChangedCallback(){this._update()}_shadow(){if(!this.shadowRoot)try{this.attachShadow({mode:"open"})}catch(t){if(!(t instanceof Error&&"NotSupportedError"===t.name))throw t}return this.shadowRoot}_update(){const t=this._shadow();if(t){const e=i?`<style>:host { ${i} }</style>`:"";let n="<slot></slot>";const{autoScaling:s}=this.dataset;if(void 0!==s){n=`<marp-auto-scaling exportparts="svg:auto-scaling" ${"downscale-only"===s?"data-downscale-only":""}>${n}</marp-auto-scaling>`}t.innerHTML=e+n}}};let o;const a=Symbol(),l=()=>o??(o=!!document.createElement("div",{is:"marp-auto-scaling"}).outerHTML.startsWith("<div is"),o);let c;const d="marpitSVGPolyfill:setZoomFactor,",h=Symbol(),g=Symbol();const p=()=>{const t="Apple Computer, Inc."===navigator.vendor,e=t?[v]:[],i={then:e=>(t?(async()=>{if(void 0===c){const t=document.createElement("canvas");t.width=10,t.height=10;const e=t.getContext("2d"),i=new Image(10,10),n=new Promise(t=>{i.addEventListener("load",()=>t())});i.crossOrigin="anonymous",i.src="data:image/svg+xml;charset=utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2210%22%20height%3D%2210%22%20viewBox%3D%220%200%201%201%22%3E%3CforeignObject%20width%3D%221%22%20height%3D%221%22%20requiredExtensions%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxhtml%22%3E%3Cdiv%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxhtml%22%20style%3D%22width%3A%201px%3B%20height%3A%201px%3B%20background%3A%20red%3B%20position%3A%20relative%22%3E%3C%2Fdiv%3E%3C%2FforeignObject%3E%3C%2Fsvg%3E",await n,e.drawImage(i,0,0),c=e.getImageData(5,5,1,1).data[3]<128}return c})().then(t=>{null==e||e(t?[v]:[])}):null==e||e([]),i)};return Object.assign(e,i)};let m,u;function v(t){const e="object"==typeof t&&t.target||document,i="object"==typeof t?t.zoom:t;window[g]||(Object.defineProperty(window,g,{configurable:!0,value:!0}),document.body.style.zoom=1.0001,document.body.offsetHeight,document.body.style.zoom=1,window.addEventListener("message",({data:t,origin:e})=>{if(e===window.origin)try{if(t&&"string"==typeof t&&t.startsWith(d)){const[,e]=t.split(","),i=Number.parseFloat(e);Number.isNaN(i)||(u=i)}}catch(t){console.error(t)}}));let n=!1;Array.from(e.querySelectorAll("svg[data-marpit-svg]"),t=>{var e,s,r,o;t.style.transform||(t.style.transform="translateZ(0)");const a=i||u||t.currentScale||1;m!==a&&(m=a,n=a);const l=t.getBoundingClientRect(),{length:c}=t.children;for(let i=0;i<c;i+=1){const n=t.children[i];if(n.getScreenCTM){const t=n.getScreenCTM();if(t){const i=null!==(s=null===(e=n.x)||void 0===e?void 0:e.baseVal.value)&&void 0!==s?s:0,c=null!==(o=null===(r=n.y)||void 0===r?void 0:r.baseVal.value)&&void 0!==o?o:0,d=n.children.length;for(let e=0;e<d;e+=1){const s=n.children[e];if("SECTION"===s.tagName){const{style:e}=s;e.transformOrigin||(e.transformOrigin=`${-i}px ${-c}px`),e.transform=`scale(${a}) matrix(${t.a}, ${t.b}, ${t.c}, ${t.d}, ${t.e-l.left}, ${t.f-l.top}) translateZ(0.0001px)`;break}}}}}}),!1!==n&&Array.from(e.querySelectorAll("iframe"),({contentWindow:t})=>{null==t||t.postMessage(`${d}${n}`,"null"===window.origin?"*":window.origin)})}function w({once:t=!1,target:e=document}={}){const i=function(t=document){if(t[h])return t[h];let e=!0;const i=()=>{e=!1,delete t[h]};Object.defineProperty(t,h,{configurable:!0,value:i});let n=[],s=!1;(async()=>{try{n=await p()}finally{s=!0}})();const r=()=>{for(const e of n)e({target:t});s&&0===n.length||e&&window.requestAnimationFrame(r)};return r(),i}(e);return t?(i(),()=>{}):i}m=1,u=void 0;const b=Symbol(),y=(e=document)=>{if("undefined"==typeof window)throw new Error("Marp Core's browser script is valid only in browser context.");if(((e=document)=>{const i=window[a];i||customElements.define("marp-auto-scaling",s);for(const n of Object.keys(t)){const s=`marp-${n}`,o=t[n].proto();l()&&o!==HTMLElement?i||customElements.define(s,r(o,{style:t[n].style}),{extends:n}):(i||customElements.define(s,r(HTMLElement,t[n])),e.querySelectorAll(`${n}[is="${s}"]`).forEach(t=>{t.outerHTML=t.outerHTML.replace(new RegExp(`^<${n}`,"i"),`<${s}`).replace(new RegExp(`</${n}>$`,"i"),`</${s}>`)}))}window[a]=!0})(e),e[b])return e[b];const i=w({target:e}),n=()=>{i(),delete e[b]},o=Object.assign(n,{cleanup:n,update:()=>y(e)});return Object.defineProperty(e,b,{configurable:!0,value:o}),o},f=document.currentScript;y(f?f.getRootNode():document)}();
 </script></foreignObject></svg></div><div class="bespoke-marp-note" data-index="0" tabindex="0"><p>スピーカーノート:
-中級編第8章へようこそ。前章では「情報を圧縮して容量を節約する」Compress戦略を学びました。この章では4番目の戦略、Isolate（分離）戦略を解説します。コンテキストを日々の開発でどう読み、どう書き、どう使い回すか。そして、複数のタスクを同時に進めるときにコンテキストが混ざってしまう問題をどう解決するか。これがIsolate戦略のテーマです。なぎなたと申します。</p></div><div class="bespoke-marp-note" data-index="1" tabindex="0"><p>この章で出てくる用語のまとめです。Isolateは分離、コンテキストウィンドウはAIのメモリ容量です。Context Window Budgetはその容量を予算として管理する考え方。Bloom分類は学習レベルを6段階で表す教育モデルで、この章は評価と創造の高度なレベルを扱います。CLAUDE.mdはAI開発ツールであるClaude Codeが読む設定ファイル。YAMLはAIへの指示書に使うファイル形式です。各用語はスライド内でも改めて説明します。</p></div><div class="bespoke-marp-note" data-index="2" tabindex="0"><p>この章では6つの到達点を目指します。まずIsolate戦略の概念を理解します。次にContext Window Budgetを設計してタスク別に配分する方法を学びます。削減5原則で不要コンテキストを特定し、トレードオフ分析で分離コストと干渉リスクを評価します。運用プレイブックの標準フォーマットを作成し、チーム運用での共有と個人の分離を設計します。</p></div><div class="bespoke-marp-note" data-index="3" tabindex="0"><p>Isolate戦略は4つの戦略の4つ目です。Writeが書き込み、Selectが選択、Compressが圧縮なら、Isolateは分離による管理です。異なるタスクの情報が混ざると、AIがタスクAの前提をタスクBに適用してしまい、混乱が生じます。部屋の例えで言うと、全部屋に荷物を広げるのではなく、部屋ごとに整理するイメージです。</p></div><div class="bespoke-marp-note" data-index="4" tabindex="0"><p>コンテキストの干渉が起きる典型的な場面です。Excelのマクロ修正とPowerPointの資料作成を同じセッションで行うと、AIがExcelの数式をPowerPointに書き込んでしまったり、タスクAの未解決課題がBの判断に影響したりします。Isolate戦略の解決策は、タスクごとに独立したコンテキストを維持すること。物理的な分離として別セッションを使う方法と、論理的な分離としてContext Window Budgetを使う方法があります。</p></div><div class="bespoke-marp-note" data-index="5" tabindex="0"><p>Context Window Budgetは、AIの記憶容量をタスク別に予算として管理する考え方です。AIの記憶容量は約10万から20万トークン、日本語で本1〜2冊分です。システム指示に20から30%、タスク固有の情報に40から50%、会話履歴に20から30%、余白に5から10%を配分します。家計簿ではなく「タスク別の財布」と考えるのがポイント。1つの財布に複数タスクのレシートを詰め込むと、どれがどのタスクの費用か分からなくなります。タスクごとに別の財布を持つことで、干渉を防ぎます。</p></div><div class="bespoke-marp-note" data-index="6" tabindex="0"><p>Isolate戦略を実践する前に、まず不要な情報を減らします。5つの原則です。重複排除は同じ情報の二重管理を防ぎます。期限切れ削除は古い情報の混入を防ぎます。推論可能な情報の排除は、AIがコードから自分で読み取れる内容をコンテキストに書かないことです。終了プロジェクトの情報は不要です。そして1ファイル100行以内（日本語約3,000字、A4で1〜2枚程度）で読込コストを抑えます。</p></div><div class="bespoke-marp-note" data-index="7" tabindex="0"><p>Isolate戦略のトレードオフ分析です。完全な分離は理想ですが、常にコストがかかります。同一セッションは分離度が低いですがコストゼロ。タスク切り替えは中程度の分離。別セッションは完全分離ですが起動コストがかかります。判断基準は、タスク間で前提が共通なら同一セッションでもOK。使うツールが異なるなら分離推奨。情報が競合するなら必須分離です。</p></div><div class="bespoke-marp-note" data-index="8" tabindex="0"><p>本講座の制作環境での実装例を2つ紹介します。1つ目はタスク別設定ファイルによる論理的分離です。YAMLはインデントで構造を表す設定ファイル形式で、AIへの指示書として使います。各タスクを独立したYAMLファイルで管理し、1セッションで1つのタスクファイルだけを読み込みます。共通ルールはCLAUDE.mdに書き、タスク固有情報はYAMLに分離します。2つ目は役割別指示ファイルによる分離です。同じプロジェクトでも役割に応じた指示を読み分けます。</p></div><div class="bespoke-marp-note" data-index="9" tabindex="0"><p>Isolate戦略を定着させるための運用プレイブックです。5から7セクションの標準フォーマットで、分離ルールを明文化します。プロジェクト概要には使う技術とフォルダ構造を記載し、開発ルールには命名規則や禁止操作をまとめます。このフォーマットを共通ルールファイルのベースとして使うことで、Isolate戦略の境界線が明確になり、チーム全員が同じ分離ルールに従えるようになります。</p></div><div class="bespoke-marp-note" data-index="10" tabindex="0"><p>チームでのIsolate戦略では、「誰の情報か」を3レベルで分離します。共有レベルは全員が守るルール、チームレベルは役割別の手順、個人レベルは個人の経験則です。分離レベルが高いほど自由度が高くなる理由は、個人レベルなら自分の判断だけで変更できるからです。共有ルールはチーム合意が必要ですが、個人ルールは即座に変更可能。この自由度の違いが分離のメリットです。</p></div><div class="bespoke-marp-note" data-index="11" tabindex="0"><p>Isolate戦略を習慣化するためのカレンダーです。毎日は不要な個人記録の確認で干渉源を除去します。毎週は削減5原則の見直しで情報の健康診断を行います。マイルストーン毎には共通ルールファイルを更新して共有情報を同期します。フェーズ変更時には役割別指示を更新してチーム分離を再設計します。</p></div><div class="bespoke-marp-note" data-index="12" tabindex="0"><p>まとめです。Isolate戦略は情報の境界を管理する戦略です。Context Window Budgetでタスク別の財布を設計し、削減5原則で干渉源を取り除き、トレードオフ分析で最適な分離度を決めます。物理的分離は別セッションや別ファイル、論理的分離はBudgetや役割別の指示、組織的分離は共有とチームと個人の3レベルです。部屋を分けることで、それぞれの部屋の品質を最大化する。これがIsolate戦略です。</p></div><div class="bespoke-marp-note" data-index="13" tabindex="0"><p>確認問題です。Q1はIsolate戦略の位置づけを4戦略の中で説明させる問題です。Q2はContext Window Budgetの実践的な設計を問います。Q3はチーム運用でのIsolate戦略の応用を問います。3問とも正解できれば、Isolate戦略を実践的に理解できています。</p></div><div class="bespoke-marp-note" data-index="14" tabindex="0"><p>ご視聴ありがとうございました。この章ではIsolate戦略を、コンテキスト運用の観点から解説しました。Context Window Budgetの設計、削減5原則、トレードオフ分析、運用プレイブック、チーム運用の3レベル分離。これらを実践することで、タスク間の干渉を防ぎ、コンテキストの品質を最大化できます。次の第9章では、Context Rotという情報の劣化問題とその検出・対処を解説します。</p></div><script>/*!! License: https://unpkg.com/@marp-team/marp-cli@4.3.1/lib/bespoke.js.LICENSE.txt */
+中級編第8章へようこそ。前章では「情報を圧縮して容量を節約する」Compress戦略を学びました。この章では4番目の戦略、Isolate（分離）戦略を解説します。コンテキストを日々の開発でどう読み、どう書き、どう使い回すか。そして、複数のタスクを同時に進めるときにコンテキストが混ざってしまう問題をどう解決するか。これがIsolate戦略のテーマです。なぎなたと申します。この章は中級編の締めくくりで、「自分で判断して設計できる」レベルを目指します。</p></div><div class="bespoke-marp-note" data-index="1" tabindex="0"><p>この章で出てくる用語のまとめです。Isolateは「分離」、コンテキストウィンドウは「AIの作業机の広さ」です。Context Window Budgetはその広さをタスク別に割り当てる考え方。トークンはAIが情報を数える単位で、日本語1文字が約1〜2トークンです。CLAUDE.mdとYAMLは後のスライドで説明します。この表は「後で見返す用」なので、今はざっと目を通すだけで大丈夫です。</p></div><div class="bespoke-marp-note" data-index="2" tabindex="0"><p>この章では6つの到達点を目指します。まずIsolate戦略の概念を理解します。次にContext Window Budgetを設計してタスク別に配分する方法を学びます。削減5原則で不要コンテキストを特定し、トレードオフ分析で分離コストと干渉リスクを評価します。運用プレイブックの標準フォーマットを作成し、チーム運用での共有と個人の分離を設計します。中級編の締めくくりとして、自分で判断して設計できるレベルを目指します。</p></div><div class="bespoke-marp-note" data-index="3" tabindex="0"><p>Isolate戦略は4つの戦略の4つ目です。Writeが書き込み、Selectが選択、Compressが圧縮なら、Isolateは分離による管理です。異なるタスクの情報が混ざると、AIがタスクAの前提をタスクBに適用してしまい、混乱が生じます。部屋の例えで言うと、全部屋に荷物を広げるのではなく、部屋ごとに整理するイメージです。</p></div><div class="bespoke-marp-note" data-index="4" tabindex="0"><p>コンテキストの干渉が起きる典型的な場面です。Excelのマクロ修正とPowerPointの資料作成を同じセッションで行うと、AIがExcelの数式をPowerPointに書き込んでしまったり、タスクAの未解決課題がBの判断に影響したりします。Isolate戦略の解決策は、タスクごとに独立したコンテキストを維持すること。物理的な分離として別セッションを使う方法と、論理的な分離としてContext Window Budgetを使う方法があります。</p></div><div class="bespoke-marp-note" data-index="5" tabindex="0"><p>Context Window Budgetは、AIの記憶容量をタスク別に予算として管理する考え方です。AIの記憶容量は約10万から20万トークン、日本語で本1〜2冊分です。トークンはAIが情報を数える単位で、日本語1文字が約1〜2トークンに相当します。共通ルールに20から30%、タスク固有の情報に40から50%、会話履歴に20から30%、余白に5から10%を配分します。ただし、この%配分を自分で計算する必要はありません。まずは「1タスク＝1セッション」だけ意識してください。本講座のサンプル設定を使えば自動で管理されます。</p></div><div class="bespoke-marp-note" data-index="6" tabindex="0"><p>Isolate戦略を実践する前に、まず不要な情報を減らします。5つの原則です。重複排除は同じ情報の二重管理を防ぎます。期限切れ削除は古い情報の混入を防ぎます。「AIが自分で分かることは書かない」は、例えばコードの関数名を見れば処理内容が分かる場合、わざわざルールに書かなくてもAIがコードを読めば理解できるということです。終了プロジェクトの情報は不要です。そして1ファイル100行以内（日本語約3,000字、A4で1〜2枚程度）で読込コストを抑えます。</p></div><div class="bespoke-marp-note" data-index="7" tabindex="0"><p>Isolate戦略のトレードオフ分析です。完全な分離は理想ですが、常にコストがかかります。同一セッションは分離度が低いですがコストゼロ。タスク切り替えは中程度の分離。別セッションは完全分離ですが起動コストがかかります。判断基準は、タスク間で前提が共通なら同一セッションでもOK。使うツールが異なるなら分離推奨。情報が競合するなら必須分離です。</p></div><div class="bespoke-marp-note" data-index="8" tabindex="0"><p>Isolate戦略は特定のツールに限らず、どのAIツールでも応用できます。ChatGPTなら新しいチャットを開始するのが物理的分離、システムメッセージにルールを書くのが論理的分離です。Cursorならワークスペースを分けるのが物理的分離で、.cursorrulesファイルが論理的分離。Claude Codeなら別セッションとCLAUDE.md＋YAML。GitHub Copilotなら別ファイルとcopilot-instructions.md。どのツールでも「タスクごとに分ける」「共通ルールを分ける」の2軸は同じです。</p></div><div class="bespoke-marp-note" data-index="9" tabindex="0"><p>本講座の制作環境での実装例を2つ紹介します。1つ目はタスク別設定ファイルによる論理的分離です。YAMLはインデントで構造を表す設定ファイル形式で、AIへの指示書として使います。各タスクを独立したYAMLファイルで管理し、1セッションで1つのタスクファイルだけを読み込みます。共通ルールはCLAUDE.mdに書き、タスク固有情報はYAMLに分離します。2つ目は役割別指示ファイルによる分離です。同じプロジェクトでも役割に応じた指示を読み分けます。</p></div><div class="bespoke-marp-note" data-index="10" tabindex="0"><p>Isolate戦略を定着させるための運用プレイブックです。5から7セクションの標準フォーマットで、分離ルールを明文化します。プロジェクト概要には使う技術とフォルダ構造を記載し、開発ルールには命名規則や禁止操作をまとめます。このフォーマットを共通ルールファイルのベースとして使うことで、Isolate戦略の境界線が明確になり、チーム全員が同じ分離ルールに従えるようになります。</p></div><div class="bespoke-marp-note" data-index="11" tabindex="0"><p>チームでのIsolate戦略では、「誰の情報か」を3レベルで分離します。共有レベルは全員が守るルール、チームレベルは役割別の手順、個人レベルは個人の経験則です。分離レベルが高いほど自由度が高くなる理由は、個人レベルなら自分の判断だけで変更できるからです。共有ルールはチーム合意が必要ですが、個人ルールは即座に変更可能。この自由度の違いが分離のメリットです。</p></div><div class="bespoke-marp-note" data-index="12" tabindex="0"><p>Isolate戦略を習慣化するためのカレンダーです。毎日は不要な個人記録の確認で干渉源を除去します。毎週は削減5原則の見直しで情報の健康診断を行います。マイルストーン毎には共通ルールファイルを更新して共有情報を同期します。フェーズ変更時には役割別指示を更新してチーム分離を再設計します。</p></div><div class="bespoke-marp-note" data-index="13" tabindex="0"><p>まとめです。Isolate戦略は情報の境界を管理する戦略です。Context Window Budgetでタスク別の財布を設計し、削減5原則で干渉源を取り除き、トレードオフ分析で最適な分離度を決めます。物理的分離は別セッションや別ファイル、論理的分離はBudgetや役割別の指示、組織的分離は共有とチームと個人の3レベルです。部屋を分けることで、それぞれの部屋の品質を最大化する。これがIsolate戦略です。</p></div><div class="bespoke-marp-note" data-index="14" tabindex="0"><p>確認問題です。Q1はIsolate戦略の位置づけを4戦略の中で説明させる問題です。Q2はContext Window Budgetの実践的な設計を問います。Q3はチーム運用でのIsolate戦略の応用を問います。3問とも正解できれば、Isolate戦略を実践的に理解できています。</p></div><div class="bespoke-marp-note" data-index="15" tabindex="0"><p>ご視聴ありがとうございました。この章ではIsolate戦略を、コンテキスト運用の観点から解説しました。Context Window Budgetの設計、削減5原則、トレードオフ分析、運用プレイブック、チーム運用の3レベル分離。これらを実践することで、タスク間の干渉を防ぎ、コンテキストの品質を最大化できます。次の第9章では、Context Rotという情報の劣化問題とその検出・対処を解説します。</p></div><script>/*!! License: https://unpkg.com/@marp-team/marp-cli@4.3.1/lib/bespoke.js.LICENSE.txt */
 !function(){"use strict";function e(e){return e&&e.__esModule&&Object.prototype.hasOwnProperty.call(e,"default")?e.default:e}var t,n,r=(n||(n=1,t={from:function(e,t){var n,r=1===(e.parent||e).nodeType?e.parent||e:document.querySelector(e.parent||e),o=[].filter.call("string"==typeof e.slides?r.querySelectorAll(e.slides):e.slides||r.children,function(e){return"SCRIPT"!==e.nodeName}),i={},a=function(e,t){return(t=t||{}).index=o.indexOf(e),t.slide=e,t},s=function(e,t){i[e]=(i[e]||[]).filter(function(e){return e!==t})},l=function(e,t){return(i[e]||[]).reduce(function(e,n){return e&&!1!==n(t)},!0)},c=function(e,t){o[e]&&(n&&l("deactivate",a(n,t)),n=o[e],l("activate",a(n,t)))},d=function(e,t){var r=o.indexOf(n)+e;l(e>0?"next":"prev",a(n,t))&&c(r,t)},u={off:s,on:function(e,t){return(i[e]||(i[e]=[])).push(t),s.bind(null,e,t)},fire:l,slide:function(e,t){if(!arguments.length)return o.indexOf(n);l("slide",a(o[e],t))&&c(e,t)},next:d.bind(null,1),prev:d.bind(null,-1),parent:r,slides:o,destroy:function(e){l("destroy",a(n,e)),i={}}};return(t||[]).forEach(function(e){e(u)}),n||c(0),u}}),t),o=e(r);const i=document.body,a=(...e)=>history.replaceState(...e),s="",l="presenter",c="next",d="overview",u=["",l,d,c],f="bespoke-marp-",m=`data-${f}`,g=(e,{protocol:t,host:n,pathname:r,hash:o}=location)=>{const i=e.toString();return`${t}//${n}${r}${i?"?":""}${i}${o}`},p=()=>i.dataset.bespokeView,v=e=>new URLSearchParams(location.search).get(e),h=(e,t={})=>{const n={location,setter:a,...t},r=new URLSearchParams(n.location.search);for(const t of Object.keys(e)){const n=e[t];"string"==typeof n?r.set(t,n):r.delete(t)}try{n.setter({...window.history.state??{}},"",g(r,n.location))}catch(e){console.error(e)}},w=(()=>{const e="bespoke-marp";try{return localStorage.setItem(e,e),localStorage.removeItem(e),!0}catch{return!1}})(),y=e=>{try{return localStorage.getItem(e)}catch{return null}},b=(e,t)=>{try{return localStorage.setItem(e,t),!0}catch{return!1}},k=e=>{try{return localStorage.removeItem(e),!0}catch{return!1}},x=(e,t)=>{const n="aria-hidden";t?e.setAttribute(n,"true"):e.removeAttribute(n)},E=e=>{e.parent.classList.add(`${f}parent`),e.slides.forEach(e=>e.classList.add(`${f}slide`)),e.on("activate",t=>{const n=`${f}active`,r=t.slide,o=r.classList,i=!o.contains(n);if(e.slides.forEach(e=>{e.classList.remove(n),x(e,!0)}),o.add(n),x(r,!1),i){const e=`${n}-ready`;o.add(e),document.body.clientHeight,o.remove(e)}})},$=e=>{let t=0,n=0;Object.defineProperty(e,"fragments",{enumerable:!0,value:e.slides.map(e=>[null,...e.querySelectorAll("[data-marpit-fragment]")])});const r=r=>void 0!==e.fragments[t][n+r],o=(r,o)=>{t=r,n=o,e.fragments.forEach((e,t)=>{e.forEach((e,n)=>{if(null==e)return;const i=t<r||t===r&&n<=o;e.setAttribute(`${m}fragment`,(i?"":"in")+"active");const a=`${m}current-fragment`;t===r&&n===o?e.setAttribute(a,"current"):e.removeAttribute(a)})}),e.fragmentIndex=o;const i={slide:e.slides[r],index:r,fragments:e.fragments[r],fragmentIndex:o};e.fire("fragment",i)};e.on("next",({fragment:i=!0})=>{if(i){if(r(1))return o(t,n+1),!1;const i=t+1;e.fragments[i]&&o(i,0)}else{const r=e.fragments[t].length;if(n+1<r)return o(t,r-1),!1;const i=e.fragments[t+1];i&&o(t+1,i.length-1)}}),e.on("prev",({fragment:i=!0})=>{if(r(-1)&&i)return o(t,n-1),!1;const a=t-1;e.fragments[a]&&o(a,e.fragments[a].length-1)}),e.on("slide",({index:t,fragment:n})=>{let r=0;if(void 0!==n){const o=e.fragments[t];if(o){const{length:e}=o;r=-1===n?e-1:Math.min(Math.max(n,0),e-1)}}o(t,r)}),o(0,0)},L=document,S=()=>!(!L.fullscreenEnabled&&!L.webkitFullscreenEnabled),P=()=>!(!L.fullscreenElement&&!L.webkitFullscreenElement),_=e=>{e.fullscreen=()=>{S()&&(async()=>{P()?(L.exitFullscreen||L.webkitExitFullscreen)?.call(L):((e=L.body)=>{(e.requestFullscreen||e.webkitRequestFullscreen)?.call(e)})()})()},document.addEventListener("keydown",t=>{"f"!==t.key&&"F11"!==t.key||t.altKey||t.ctrlKey||t.metaKey||!S()||(e.fullscreen(),t.preventDefault())})},O=`${f}inactive`,T=(e=2e3)=>({parent:t,fire:n})=>{const r=t.classList,o=e=>n(`marp-${e?"":"in"}active`);let i;const a=()=>{i&&clearTimeout(i),i=setTimeout(()=>{r.add(O),o()},e),r.contains(O)&&(r.remove(O),o(!0))};for(const e of["mousedown","mousemove","touchend"])document.addEventListener(e,a);setTimeout(a,0)},I=["AUDIO","BUTTON","INPUT","SELECT","TEXTAREA","VIDEO"],M=e=>{e.parent.addEventListener("keydown",e=>{if(!e.target)return;const t=e.target;(I.includes(t.nodeName)||"true"===t.contentEditable)&&e.stopPropagation()})},A=e=>{window.addEventListener("load",()=>{for(const t of e.slides){const e=t.querySelector("marp-auto-scaling, [data-auto-scaling], [data-marp-fitting]");t.setAttribute(`${m}load`,e?"":"hideable")}})},C=({interval:e=250}={})=>t=>{document.addEventListener("keydown",e=>{if(" "===e.key&&e.shiftKey)t.prev();else if("ArrowLeft"===e.key||"ArrowUp"===e.key||"PageUp"===e.key)t.prev({fragment:!e.shiftKey});else if(" "!==e.key||e.shiftKey)if("ArrowRight"===e.key||"ArrowDown"===e.key||"PageDown"===e.key)t.next({fragment:!e.shiftKey});else if("End"===e.key)t.slide(t.slides.length-1,{fragment:-1});else{if("Home"!==e.key)return;t.slide(0)}else t.next();e.preventDefault()});let n,r,o=0;t.parent.addEventListener("wheel",i=>{let a=!1;const s=(e,t)=>{e&&(a=a||((e,t)=>((e,t)=>{const n="X"===t?"Width":"Height";return e[`client${n}`]<e[`scroll${n}`]})(e,t)&&((e,t)=>{const{overflow:n}=e,r=e[`overflow${t}`];return"auto"===n||"scroll"===n||"auto"===r||"scroll"===r})(getComputedStyle(e),t))(e,t)),e?.parentElement&&s(e.parentElement,t)};if(0!==i.deltaX&&s(i.target,"X"),0!==i.deltaY&&s(i.target,"Y"),a)return;i.preventDefault();const l=Math.sqrt(i.deltaX**2+i.deltaY**2);if(void 0!==i.wheelDelta){if(void 0===i.webkitForce&&Math.abs(i.wheelDelta)<40)return;if(i.deltaMode===i.DOM_DELTA_PIXEL&&l<4)return}else if(i.deltaMode===i.DOM_DELTA_PIXEL&&l<12)return;r&&clearTimeout(r),r=setTimeout(()=>{n=0},e);const c=Date.now()-o<e,d=l<=n;if(n=l,c||d)return;let u;(i.deltaX>0||i.deltaY>0)&&(u="next"),(i.deltaX<0||i.deltaY<0)&&(u="prev"),u&&(t[u](),o=Date.now())})},D=(e=`.${f}osc`)=>{const t=document.querySelector(e);if(!t)return()=>{};const n=(e,n)=>{t.querySelectorAll(`[${m}osc=${JSON.stringify(e)}]`).forEach(n)};if(S()||n("fullscreen",e=>e.style.display="none"),!w){const e=(e,t)=>{e.disabled=!0,e.title=`${t} is disabled due to restricted localStorage.`};n("presenter",t=>e(t,"Presenter view")),n("overview",t=>e(t,"Overview view"))}return e=>{t.addEventListener("click",t=>{if(t.target instanceof HTMLElement){const{bespokeMarpOsc:n}=t.target.dataset;n&&t.target.blur();const r={fragment:!t.shiftKey};"next"===n?e.next(r):"prev"===n?e.prev(r):"fullscreen"===n?e?.fullscreen():"presenter"===n?e.openPresenterView():"overview"===n&&e.toggleOverviewView()}}),e.parent.appendChild(t),e.on("activate",({index:t})=>{n("page",n=>n.textContent=`Page ${t+1} of ${e.slides.length}`)}),e.on("fragment",({index:t,fragments:r,fragmentIndex:o})=>{n("prev",e=>e.disabled=0===t&&0===o),n("next",n=>n.disabled=t===e.slides.length-1&&o===r.length-1)}),e.on("marp-active",()=>x(t,!1)),e.on("marp-inactive",()=>x(t,!0)),S()&&(e=>{for(const t of["","webkit"])L.addEventListener(t+"fullscreenchange",e)})(()=>n("fullscreen",e=>e.classList.toggle("exit",S()&&P())))}},N=e=>{if(e.syncKey&&"string"==typeof e.syncKey)return!0;throw new Error("The current instance of Bespoke.js is incompatible with Marp bespoke sync plugin.")},B=(e={})=>{const t=e.key||window.history.state?.marpBespokeSyncKey||Math.random().toString(36).slice(2),n=`bespoke-marp-sync-${t}`;var r;r={marpBespokeSyncKey:t},h({},{setter:(e,...t)=>a({...e,...r},...t)});const o=()=>{const e=y(n);return e?JSON.parse(e):Object.create(null)},i=e=>{const t=o(),r={...t,...e(t)};return b(n,JSON.stringify(r)),r},s=()=>{window.removeEventListener("pageshow",s),i(e=>({reference:(e.reference||0)+1}))};return e=>{s(),Object.defineProperty(e,"syncKey",{value:t,enumerable:!0});let r=!0;setTimeout(()=>{e.on("fragment",e=>{r&&i(()=>({index:e.index,fragmentIndex:e.fragmentIndex}))})},0),window.addEventListener("storage",t=>{if(t.key===n&&t.oldValue&&t.newValue){const n=JSON.parse(t.oldValue),o=JSON.parse(t.newValue);if(n.index!==o.index||n.fragmentIndex!==o.fragmentIndex)try{r=!1,e.slide(o.index,{fragment:o.fragmentIndex,forSync:!0})}finally{r=!0}}});const a=()=>{const{reference:e}=o();void 0===e||e<=1?k(n):i(()=>({reference:e-1}))};window.addEventListener("pagehide",e=>{e.persisted&&window.addEventListener("pageshow",s),a()}),e.on("destroy",a)}},K=e=>{w&&document.addEventListener("keydown",t=>{("o"!==t.key||t.altKey||t.ctrlKey||t.metaKey)&&"Escape"!==t.key||(t.preventDefault(),e())})};let q=null;const V=({closeOnSelect:e=!0}={})=>t=>{N(t);const n=n=>{const r=(()=>{if(!q||!q.isConnected){q=document.createElement("div"),q.className=`${f}overview`,q.inert=!0;const n=document.createElement("iframe");n.src=(()=>{const n=new URLSearchParams(location.search);return n.set("view","overview"),n.set("sync",t.syncKey),e&&n.set("closeOnSelect","1"),g(n)})(),q.append(n),document.body.append(q)}return q})(),o=n??!r.dataset.open;setTimeout(()=>{if(r.dataset.open=o?"1":"",r.inert=!o,t.skipTransition=o,o){const e=r.querySelector("iframe");try{e?.contentWindow?.focus()}catch{e?.focus()}}else window.focus()},0)};Object.defineProperties(t,{toggleOverviewView:{enumerable:!0,value:n}}),window.addEventListener("message",e=>{e.origin===window.origin&&"closeOverview"===e.data&&n(!1)}),K(n)},j=e=>{const{title:t}=document;document.title="[Overview]"+(t?` - ${t}`:"");const n=!!v("closeOnSelect"),r=()=>{window.parent.postMessage("closeOverview","null"===window.origin?"*":window.origin)};if(e.slides.forEach((t,o)=>{t.tabIndex=0;const i=()=>{e.slide(o,{fragment:-1}),n&&r()};t.addEventListener("click",i),t.addEventListener("keydown",e=>{"Enter"!==e.key&&" "!==e.key||(e.preventDefault(),i())})}),window.addEventListener("keydown",t=>{const n=e.slide(),r=t=>{const r=t=>{const n=e.slides[t].getBoundingClientRect();return[Math.round((n.left+n.right)/2),Math.round((n.top+n.bottom)/2)]};let o=null,i=n;do{const e=r(i);if(o){if(Math.abs(e[0]-o[0])<2)return i}else o=e;i+=t}while(i>=0&&i<e.slides.length);return n};if("ArrowLeft"===t.key)e.slide(Math.max(n-1,0),{fragment:-1});else if("ArrowRight"===t.key)e.slide(Math.min(n+1,e.slides.length-1),{fragment:-1});else if("ArrowUp"===t.key)e.slide(r(-1),{fragment:-1});else if("ArrowDown"===t.key)e.slide(r(1),{fragment:-1});else if("End"===t.key)e.slide(e.slides.length-1,{fragment:-1});else{if("Home"!==t.key)return;e.slide(0,{fragment:-1})}t.preventDefault();const o=e.slide();e.slides[o]?.focus?.(),e.slides[o]?.scrollIntoView?.({behavior:"smooth",block:"nearest"})}),e.on("slide",({index:t})=>{e.slides[t]?.scrollIntoView?.({behavior:"smooth",block:"nearest"})}),window.parent!==window){K(r);const e=document.createElement("header");e.className=`${f}overview-header`;const t=document.createElement("button");t.className=`${f}overview-close`,t.type="button",t.title="Close overview",t.textContent=t.title,t.addEventListener("click",r),e.append(t),document.body.prepend(e)}},F=()=>{const e=p();return{[s]:V(),[l]:V({closeOnSelect:!1}),[d]:j}[e]},U=e=>{window.addEventListener("message",t=>{if(t.origin!==window.origin)return;const[n,r]=t.data.split(":");if("navigate"===n){const[t,n]=r.split(",");let o=Number.parseInt(t,10),i=Number.parseInt(n,10)+1;i>=e.fragments[o].length&&(o+=1,i=0),e.slide(o,{fragment:i})}})};var R,X,H,W,J,Y,z,G={exports:{}},Q=(R||(R=1,G.exports=(X=["area","base","br","col","command","embed","hr","img","input","keygen","link","meta","param","source","track","wbr"],H=function(e){return String(e).replace(/[&<>"']/g,function(e){return"&"+W[e]+";"})},W={"&":"amp","<":"lt",">":"gt",'"':"quot","'":"apos"},J="dangerouslySetInnerHTML",Y={className:"class",htmlFor:"for"},z={},function(e,t){var n=[],r="";t=t||{};for(var o=arguments.length;o-- >2;)n.push(arguments[o]);if("function"==typeof e)return t.children=n.reverse(),e(t);if(e){if(r+="<"+e,t)for(var i in t)!1!==t[i]&&null!=t[i]&&i!==J&&(r+=" "+(Y[i]?Y[i]:H(i))+'="'+H(t[i])+'"');r+=">"}if(-1===X.indexOf(e)){if(t[J])r+=t[J].__html;else for(;n.length;){var a=n.pop();if(a)if(a.pop)for(var s=a.length;s--;)n.push(a[s]);else r+=!0===z[a]?a:H(a)}r+=e?"</"+e+">":""}return z[r]=!0,r})),G.exports),Z=e(Q);const ee=({children:e})=>Z(null,null,...e),te=`${f}presenter-`,ne={container:`${te}container`,dragbar:`${te}dragbar-container`,next:`${te}next`,nextContainer:`${te}next-container`,noteContainer:`${te}note-container`,noteWrapper:`${te}note-wrapper`,noteButtons:`${te}note-buttons`,infoContainer:`${te}info-container`,infoPageArea:`${te}info-page-area`,infoPage:`${te}info-page`,infoPagePrev:`${te}info-page-prev`,infoPageNext:`${te}info-page-next`,noteButtonsBigger:`${te}note-bigger`,noteButtonsSmaller:`${te}note-smaller`,infoTime:`${te}info-time`,infoTimer:`${te}info-timer`},re=e=>{const{title:t}=document;document.title="[Presenter view]"+(t?` - ${t}`:"");const n={},r=e=>(n[e]=n[e]||document.querySelector(`.${e}`),n[e]);document.body.appendChild((e=>{const t=document.createElement("div");return t.className=ne.container,t.appendChild(e),t.insertAdjacentHTML("beforeend",Z(ee,null,Z("div",{class:ne.nextContainer},Z("iframe",{class:ne.next,src:"?view=next"})),Z("div",{class:ne.dragbar}),Z("div",{class:ne.noteContainer},Z("div",{class:ne.noteWrapper}),Z("div",{class:ne.noteButtons},Z("button",{class:ne.noteButtonsSmaller,tabindex:"-1",title:"Smaller notes font size"},"Smaller notes font size"),Z("button",{class:ne.noteButtonsBigger,tabindex:"-1",title:"Bigger notes font size"},"Bigger notes font size"))),Z("div",{class:ne.infoContainer},Z("div",{class:ne.infoPageArea},Z("button",{class:ne.infoPagePrev,tabindex:"-1",title:"Previous"},"Previous"),Z("button",{class:ne.infoPage}),Z("button",{class:ne.infoPageNext,tabindex:"-1",title:"Next"},"Next")),Z("time",{class:ne.infoTime,title:"Current time"}),Z("time",{class:ne.infoTimer,title:"Timer"})))),t})(e.parent)),(e=>{let t=!1;r(ne.dragbar).addEventListener("mousedown",()=>{t=!0,r(ne.dragbar).classList.add("active")}),window.addEventListener("mouseup",()=>{t=!1,r(ne.dragbar).classList.remove("active")}),window.addEventListener("mousemove",e=>{if(!t)return;const n=e.clientX/document.documentElement.clientWidth*100;r(ne.container).style.setProperty("--bespoke-marp-presenter-split-ratio",`${Math.max(0,Math.min(100,n))}%`)}),r(ne.nextContainer).addEventListener("click",()=>e.next());const n=r(ne.next),o=(i=n,(e,t)=>i.contentWindow?.postMessage(`navigate:${e},${t}`,"null"===window.origin?"*":window.origin));var i;n.addEventListener("load",()=>{r(ne.nextContainer).classList.add("active"),o(e.slide(),e.fragmentIndex),e.on("fragment",({index:e,fragmentIndex:t})=>o(e,t))});const a=document.querySelectorAll(".bespoke-marp-note");a.forEach(e=>{e.addEventListener("keydown",e=>e.stopPropagation()),r(ne.noteWrapper).appendChild(e)}),e.on("activate",()=>a.forEach(t=>t.classList.toggle("active",t.dataset.index==e.slide())));let s=0;const l=e=>{s=Math.max(-5,s+e),r(ne.noteContainer).style.setProperty("--bespoke-marp-note-font-scale",(1.2**s).toFixed(4))},c=()=>l(1),d=()=>l(-1),u=r(ne.noteButtonsBigger),f=r(ne.noteButtonsSmaller);u.addEventListener("click",()=>{u.blur(),c()}),f.addEventListener("click",()=>{f.blur(),d()}),document.addEventListener("keydown",e=>{"+"===e.key&&c(),"-"===e.key&&d()},!0);const m=r(ne.infoPage);e.on("activate",({index:t})=>{m.textContent=`${t+1} / ${e.slides.length}`}),m.addEventListener("click",()=>{m.blur(),e.toggleOverviewView()});const g=r(ne.infoPagePrev),p=r(ne.infoPageNext);g.addEventListener("click",t=>{g.blur(),e.prev({fragment:!t.shiftKey})}),p.addEventListener("click",t=>{p.blur(),e.next({fragment:!t.shiftKey})}),e.on("fragment",({index:t,fragments:n,fragmentIndex:r})=>{g.disabled=0===t&&0===r,p.disabled=t===e.slides.length-1&&r===n.length-1});let v=new Date;const h=()=>{const e=new Date,t=e=>`${Math.floor(e)}`.padStart(2,"0"),n=e.getTime()-v.getTime(),o=t(n/1e3%60),i=t(n/1e3/60%60),a=t(n/36e5%24);r(ne.infoTime).textContent=e.toLocaleTimeString(),r(ne.infoTimer).textContent=`${a}:${i}:${o}`};h(),setInterval(h,250),r(ne.infoTimer).addEventListener("click",()=>{v=new Date})})(e)},oe=e=>{N(e),Object.defineProperties(e,{openPresenterView:{enumerable:!0,value:ie},presenterUrl:{enumerable:!0,get:ae}}),w&&document.addEventListener("keydown",t=>{"p"!==t.key||t.altKey||t.ctrlKey||t.metaKey||(t.preventDefault(),e.openPresenterView())})};function ie(){const{max:e,floor:t}=Math,n=e(t(.85*window.innerWidth),640),r=e(t(.85*window.innerHeight),360);return window.open(this.presenterUrl,te+this.syncKey,`width=${n},height=${r},menubar=no,toolbar=no`)}function ae(){const e=new URLSearchParams(location.search);return e.set("view","presenter"),e.set("sync",this.syncKey),g(e)}const se=e=>{const t=p();return t===c&&e.appendChild(document.createElement("span")),{[s]:oe,[l]:re,[c]:U}[t]},le=e=>{e.on("activate",t=>{document.querySelectorAll(".bespoke-progress-parent > .bespoke-progress-bar").forEach(n=>{n.style.flexBasis=100*t.index/(e.slides.length-1)+"%"})})},ce=e=>{const t=Number.parseInt(e,10);return Number.isNaN(t)?null:t},de=(e={})=>{const t={history:!0,...e};return e=>{let n=!0;const r=e=>{const t=n;try{return n=!0,e()}finally{n=t}},o=(t={fragment:!0})=>{let n=t.fragment?ce(v("f")||""):null;((t,n)=>{const{min:r,max:o}=Math,{fragments:i,slides:a}=e,s=o(0,r(t,a.length-1)),l=o(0,r(n||0,i[s].length-1));s===e.slide()&&l===e.fragmentIndex||e.slide(s,{fragment:l})})((()=>{if(location.hash){const[t]=location.hash.slice(1).split(":~:");if(/^\d+$/.test(t))return(ce(t)??1)-1;const r=document.getElementById(t)||document.querySelector(`a[name="${CSS.escape(t)}"]`);if(r){const{length:t}=e.slides;for(let o=0;o<t;o+=1)if(e.slides[o].contains(r)){const t=e.fragments?.[o],i=r.closest("[data-marpit-fragment]");if(t&&i){const e=t.indexOf(i);e>=0&&(n=e)}return o}}}return 0})(),n)};e.on("fragment",({index:e,fragmentIndex:r})=>{n||h({f:0===r||r.toString()},{location:{...location,hash:`#${e+1}`},setter:(...e)=>t.history?history.pushState(...e):history.replaceState(...e)})}),setTimeout(()=>{o(),window.addEventListener("hashchange",()=>r(()=>{o({fragment:!1}),h({f:void 0})})),window.addEventListener("popstate",()=>{n||r(()=>o())}),n=!1},0)}},{PI:ue,abs:fe,sqrt:me,atan2:ge}=Math,pe={passive:!0},ve=({slope:e=-.7,swipeThreshold:t=30}={})=>n=>{let r;const o=n.parent,i=e=>{const t=o.getBoundingClientRect();return{x:e.pageX-(t.left+t.right)/2,y:e.pageY-(t.top+t.bottom)/2}};o.addEventListener("touchstart",({touches:e})=>{r=1===e.length?i(e[0]):void 0},pe),o.addEventListener("touchmove",e=>{if(r)if(1===e.touches.length){e.preventDefault();const t=i(e.touches[0]),n=t.x-r.x,o=t.y-r.y;r.delta=me(fe(n)**2+fe(o)**2),r.radian=ge(n,o)}else r=void 0}),o.addEventListener("touchend",o=>{if(r){if(r.delta&&r.delta>=t&&r.radian){const t=(r.radian-e+ue)%(2*ue)-ue;n[t<0?"next":"prev"](),o.stopPropagation()}r=void 0}},pe)},he=new Map;he.clear(),he.set("none",{backward:{both:void 0,incoming:void 0,outgoing:void 0},forward:{both:void 0,incoming:void 0,outgoing:void 0}});const we={both:"",outgoing:"outgoing-",incoming:"incoming-"},ye={forward:"",backward:"-backward"},be=e=>`--marp-bespoke-transition-animation-${e}`,ke=e=>`--marp-transition-${e}`,xe=be("name"),Ee=be("duration"),$e=e=>new Promise(t=>{const n={},r=document.createElement("div"),o=e=>{r.remove(),t(e)};r.addEventListener("animationstart",()=>o(n)),Object.assign(r.style,{animationName:e,animationDuration:"1s",animationFillMode:"both",animationPlayState:"paused",position:"absolute",pointerEvents:"none"}),document.body.appendChild(r);const i=getComputedStyle(r).getPropertyValue(ke("duration"));i&&Number.parseFloat(i)>=0&&(n.defaultDuration=i),((e,t)=>{requestAnimationFrame(()=>{e.style.animationPlayState="running",requestAnimationFrame(()=>t(void 0))})})(r,o)}),Le=async e=>he.has(e)?he.get(e):(e=>{const t={},n=[];for(const[r,o]of Object.entries(we))for(const[i,a]of Object.entries(ye)){const s=`marp-${o}transition${a}-${e}`;n.push($e(s).then(e=>{t[i]=t[i]||{},t[i][r]=e?{...e,name:s}:void 0}))}return Promise.all(n).then(()=>t)})(e).then(t=>(he.set(e,t),t)),Se=e=>Object.values(e).flatMap(Object.values).every(e=>!e),Pe=(e,{type:t,backward:n})=>{const r=e[n?"backward":"forward"],o=(()=>{const e=r[t],n=e=>({[xe]:e.name});if(e)return n(e);if(r.both){const e=n(r.both);return"incoming"===t&&(e[be("direction")]="reverse"),e}})();return!o&&n?Pe(e,{type:t,backward:!1}):o||{[xe]:"__bespoke_marp_transition_no_animation__"}},_e=e=>{if(e)try{const t=JSON.parse(e);if((e=>{if("object"!=typeof e)return!1;const t=e;return"string"==typeof t.name&&(void 0===t.duration||"string"==typeof t.duration)})(t))return t}catch{}},Oe="_tSId",Te="_tA",Ie="bespoke-marp-transition-warming-up",Me=window.matchMedia("(prefers-reduced-motion: reduce)"),Ae="__bespoke_marp_transition_reduced_outgoing__",Ce="__bespoke_marp_transition_reduced_incoming__",De={forward:{both:void 0,incoming:{name:Ce},outgoing:{name:Ae}},backward:{both:void 0,incoming:{name:Ce},outgoing:{name:Ae}}},Ne=e=>{if(!document.startViewTransition)return;const t=t=>(void 0!==t&&(e._tD=t),e._tD);let n;t(!1),((...e)=>{CSS.registerProperty({name:ke("duration"),syntax:"<time>",inherits:!0,initialValue:"-1s"});const t=[...new Set(e).values()];return Promise.all(t.map(e=>Le(e))).then()})(...Array.from(document.querySelectorAll("section[data-transition], section[data-transition-back]")).flatMap(e=>[e.dataset.transition,e.dataset.transitionBack].flatMap(e=>{const t=_e(e);return[t?.name,t?.builtinFallback?`__builtin__${t.name}`:void 0]}).filter(e=>!!e))).then(()=>{document.querySelectorAll("style").forEach(e=>{e.innerHTML=e.innerHTML.replace(/--marp-transition-duration:[^;}]*[;}]/g,e=>e.slice(0,-1)+"!important"+e.slice(-1))})});const r=(n,{back:r,cond:o})=>i=>{const a=t();if(a)return!!i[Te]||!("object"!=typeof a||(a.skipTransition(),!i.forSync));if(e.skipTransition)return!0;if(!o(i))return!0;const s=e.slides[e.slide()],l=()=>i.back??r,c="data-transition"+(l()?"-back":""),d=s.querySelector(`section[${c}]`);if(!d)return!0;const u=_e(d.getAttribute(c)??void 0);return!u||((async(e,{builtinFallback:t=!0}={})=>{let n=await Le(e);if(Se(n)){if(!t)return;return n=await Le(`__builtin__${e}`),Se(n)?void 0:n}return n})(u.name,{builtinFallback:u.builtinFallback}).then(e=>{if(!e){t(!0);try{n(i)}finally{t(!1)}return}let r=e;Me.matches&&(console.warn("Use a constant animation to transition because preferring reduced motion by viewer has detected."),r=De);const o=document.getElementById(Oe);o&&o.remove();const a=document.createElement("style");a.id=Oe,document.head.appendChild(a),((e,t)=>{const n=[`:root{${ke("direction")}:${t.backward?-1:1};}`,":root:has(.bespoke-marp-inactive){cursor:none;}"],r=t=>{const n=e[t].both?.defaultDuration||e[t].outgoing?.defaultDuration||e[t].incoming?.defaultDuration;return"forward"===t?n:n||r("forward")},o=t.duration||r(t.backward?"backward":"forward");void 0!==o&&n.push(`::view-transition-group(*){${Ee}:${o};}`);const i=e=>Object.entries(e).map(([e,t])=>`${e}:${t};`).join("");return n.push(`::view-transition-old(root){${i(Pe(e,{...t,type:"outgoing"}))}}`,`::view-transition-new(root){${i(Pe(e,{...t,type:"incoming"}))}}`),n})(r,{backward:l(),duration:u.duration}).forEach(e=>a.sheet?.insertRule(e));const s=document.documentElement.classList;s.add(Ie);let c=!1;const d=()=>{c||(n(i),c=!0,s.remove(Ie))},f=()=>{t(!1),a.remove(),s.remove(Ie)};try{t(!0);const e=document.startViewTransition(d);t(e),e.finished.finally(f)}catch(e){console.error(e),d(),f()}}),!1)};e.on("prev",r(t=>e.prev({...t,[Te]:!0}),{back:!0,cond:e=>e.index>0&&!((e.fragment??1)&&n.fragmentIndex>0)})),e.on("next",r(t=>e.next({...t,[Te]:!0}),{cond:t=>t.index+1<e.slides.length&&!(n.fragmentIndex+1<n.fragments.length)})),setTimeout(()=>{e.on("slide",r(t=>e.slide(t.index,{...t,[Te]:!0}),{cond:t=>{const n=e.slide();return t.index!==n&&(t.back=t.index<n,!0)}}))},0),e.on("fragment",e=>{n=e})};let Be;const Ke=()=>(void 0===Be&&(Be="wakeLock"in navigator&&navigator.wakeLock),Be),qe=async()=>{const e=Ke();if(e)try{return await e.request("screen")}catch(e){console.warn(e)}return null},Ve=async()=>{if(!Ke())return;let e;const t=()=>{e&&"visible"===document.visibilityState&&qe()};for(const e of["visibilitychange","fullscreenchange"])document.addEventListener(e,t);return e=await qe(),e};((e=document.getElementById(":$p"))=>{(()=>{const e=v("view");i.dataset.bespokeView=u.some(t=>t&&t===e)?e:""})();const t=(e=>{const t=v(e);return h({[e]:void 0}),t})("sync")||void 0;o.from(e,((...e)=>{const t=u.findIndex(e=>p()===e);return e.map(([e,n])=>e[t]&&n).filter(e=>e)})([[1,1,1,0],B({key:t})],[[1,1,0,1],se(e)],[[1,1,0,0],M],[[1,1,1,1],E],[[1,0,0,0],T()],[[1,1,1,1],A],[[1,1,1,1],de({history:!1})],[[1,1,0,0],C()],[[1,1,1,0],_],[[1,0,0,0],le],[[1,1,0,0],ve()],[[1,0,0,0],D()],[[1,1,1,0],F()],[[1,0,0,0],Ne],[[1,1,1,1],$],[[1,1,1,0],Ve]))})()}();</script></body></html>
