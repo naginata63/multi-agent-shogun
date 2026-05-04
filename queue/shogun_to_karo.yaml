@@ -554,6 +554,7 @@ commands:
   - git commit + push 完了
   - queue/reports/2026-05-03_cmd_1607_userprompt_semantic_search_hook.md 報告書作成
   notify_karo: true
+  completed_at: '2026-05-04T09:22:44+09:00'
 - id: cmd_1611
   status: done
   priority: high
@@ -737,6 +738,7 @@ commands:
   - 家老 ntfy 通知
   - cmd_1609 を cancelled に更新済み (家老責務)
   notify_karo: true
+  completed_at: '2026-05-04T09:21:23+09:00'
 - id: cmd_1612
   status: done
   priority: high
@@ -797,8 +799,9 @@ commands:
   - git commit + push 完了
   - queue/reports/2026-05-04_cmd_1612_pretool_tmp_payload_block.md 報告書作成
   notify_karo: true
+  completed_at: '2026-05-04T09:22:45+09:00'
 - id: cmd_1613
-  status: in_progress
+  status: done
   priority: high
   purpose: 夜間 audit (queue/reports/gunshi_stt_contradiction_20260504.yaml) で検出した STT
     パイプライン矛盾 全 20 件 (CRITICAL ×2 / HIGH ×6 / MEDIUM ×7 / LOW ×5) を全件修正する。最重要 STT_C001
@@ -939,8 +942,9 @@ commands:
   - queue/reports/2026-05-04_cmd_1614_discord_url_validation.md 報告書作成
   - 殿に ntfy 通知 (Discord 復活)
   notify_karo: true
+  completed_at: '2026-05-04T09:22:57+09:00'
 - id: cmd_1615
-  status: in_progress
+  status: done
   priority: high
   purpose: 雪合戦動画 tono_edit.mkv (1920×1080 FFV1) を縦型 1080×1920 にクロップし、YouTube に非公開アップロードする。概要欄は過去のドズル切り抜き
     channel 標準テンプレを準拠して記載。
@@ -994,3 +998,4 @@ commands:
   - git commit (報告書のみ・work/ は git-ignored)
   - queue/reports/2026-05-04_cmd_1615_yukigassen_vertical_upload.md 報告書作成
   notify_karo: true
+  completed_at: '2026-05-04T09:21:23+09:00'
