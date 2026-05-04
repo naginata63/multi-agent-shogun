@@ -41,7 +41,7 @@ cd /home/murakami/multi-agent-shogun && git pull origin main
 ## テスト
 
 ```bash
-curl http://192.168.2.7:8770/api/dashboard | python3 -c "import sys,json; d=json.load(sys.stdin); print(json.dumps(d.get('advisor_proxy',{}), indent=2))"
+curl http://192.168.2.4:8770/api/dashboard | python3 -c "import sys,json; d=json.load(sys.stdin); print(json.dumps(d.get('advisor_proxy',{}), indent=2))"
 ```
 - `advisor_proxy` キーが存在すること
 - プロキシ停止中なら `{"status": "down"}` であること

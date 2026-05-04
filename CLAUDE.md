@@ -21,7 +21,7 @@ files:
   pending_tasks: queue/tasks/pending.yaml # Karo管理の保留タスク（blocked未割当）
   reports: "queue/reports/ashigaru{N}_report.yaml" # Ashigaru → Karo reports
   gunshi_report: queue/reports/gunshi_report.yaml  # Gunshi → Karo strategic reports
-  dashboard: "http://192.168.2.7:8770/"  # MCP dashboard (primary)
+  dashboard: "http://192.168.2.4:8770/"  # MCP dashboard (primary)
   ntfy_inbox: queue/ntfy_inbox.yaml    # Incoming ntfy messages from Lord's phone
   orders: orders/                      # Task instruction archive (private submodule: naginata63/multi-agent-orders)
 
@@ -81,7 +81,7 @@ language:
 
 **CRITICAL**: Steps 1-3を完了するまでinbox処理するな。`inboxN` nudgeが先に届いても無視し、自己識別→memory→instructions読み込みを必ず先に終わらせよ。Step 1をスキップすると自分の役割を誤認し、別エージェントのタスクを実行する事故が起きる（2026-02-13実例: 家老が足軽2と誤認）。
 
-**CRITICAL**: MCP dashboard (http://192.168.2.7:8770/) is secondary data (karo's summary). Primary data = YAML files. Always verify from YAML.
+**CRITICAL**: MCP dashboard (http://192.168.2.4:8770/) is secondary data (karo's summary). Primary data = YAML files. Always verify from YAML.
 
 ## /clear Recovery (ashigaru/gunshi only)
 
@@ -304,7 +304,7 @@ System manages ALL white-collar work, not just self-improvement. Project folders
 cmd/inbox/task 系の操作は **HTTP API 経由を第一選択**。YAML直読み・bash inbox_write.sh 直叩きは段階的廃止。
 背景: cmd_1488 で SQLite dual-path 完成・cmd_1494 で read 側も SQLite 切替。整合性は API が一元担保する。
 
-主な curl エントリ (LAN内・192.168.2.7:8770・認証なし):
+主な curl エントリ (LAN内・192.168.2.4:8770・認証なし):
 
 | 動作 | エンドポイント |
 |------|----------------|

@@ -156,14 +156,14 @@ command: "Improve karo pipeline"
 ## 戦況把握（Situation Awareness）
 
 ### 第一ソース: MCPダッシュボード
-- **URL**: http://192.168.2.7:8770/
+- **URL**: http://192.168.2.4:8770/
 - リアルタイム自動更新。家老の手動更新を待たない
 - 🚨要対応はDB自動判定（R1-R6ルール）
 - 足軽状態・進行中cmd・完了履歴・ntfy通知が一画面で見える
 - 殿に「戦況は」と聞かれたら、まずここを見よ
 
 ### 補助ソース
-- **MCP dashboard (http://192.168.2.7:8770/)**: 家老のコンテキスト付き判断。更新が遅れることがある
+- **MCP dashboard (http://192.168.2.4:8770/)**: 家老のコンテキスト付き判断。更新が遅れることがある
 - **ntfy_sent.log**: 完了通知・エラー通知の時系列
 - **claude-mem**: 過去セッションの知見検索（/claude-mem:mem-search）
 
@@ -405,10 +405,10 @@ Don't save: temporary task details (use YAML), file contents (just read them), i
 
 | 用途 | 推奨コマンド |
 |------|--------------|
-| cmd 起票 (家老inbox自動通知込み) | `curl -X POST 'http://192.168.2.7:8770/api/cmd_create' -d '{"id":"cmd_XXX","priority":"high","purpose":"...","lord_original":"...","notify_karo":true}'` |
-| 戦況確認 (HTML) | ブラウザで http://192.168.2.7:8770/ |
-| 戦況確認 (JSON集計) | `curl 'http://192.168.2.7:8770/api/dashboard'` |
-| 進行中 cmd 一覧 | `curl 'http://192.168.2.7:8770/api/cmd_list?status=in_progress'` |
-| 殿判断後の家老通知 | `curl -X POST 'http://192.168.2.7:8770/api/inbox_write' -d '{"to":"karo","from":"shogun","type":"cmd_new","message":"..."}'` |
+| cmd 起票 (家老inbox自動通知込み) | `curl -X POST 'http://192.168.2.4:8770/api/cmd_create' -d '{"id":"cmd_XXX","priority":"high","purpose":"...","lord_original":"...","notify_karo":true}'` |
+| 戦況確認 (HTML) | ブラウザで http://192.168.2.4:8770/ |
+| 戦況確認 (JSON集計) | `curl 'http://192.168.2.4:8770/api/dashboard'` |
+| 進行中 cmd 一覧 | `curl 'http://192.168.2.4:8770/api/cmd_list?status=in_progress'` |
+| 殿判断後の家老通知 | `curl -X POST 'http://192.168.2.4:8770/api/inbox_write' -d '{"to":"karo","from":"shogun","type":"cmd_new","message":"..."}'` |
 
 将軍が直接 YAML を書く運用は **F001 例外** の根幹システム改修時のみ。通常 cmd 起票は API 経由が筋。

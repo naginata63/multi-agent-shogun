@@ -104,7 +104,7 @@ cmd/inbox/task 系の操作は **HTTP API 経由を第一選択**。
 YAML 直読み・bash inbox_write.sh 直叩きは段階的廃止。
 詳細: `shared_context/procedures/dashboard_api_usage.md`
 
-主なエンドポイント (LAN内・192.168.2.7:8770・認証なし):
+主なエンドポイント (LAN内・192.168.2.4:8770・認証なし):
 
 | 動作 | エンドポイント |
 |------|----------------|

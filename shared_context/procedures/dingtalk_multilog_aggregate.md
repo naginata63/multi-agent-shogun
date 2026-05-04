@@ -20,7 +20,7 @@
 ## テスト
 
 ```bash
-curl http://192.168.2.7:8770/api/dashboard | python3 -m json.tool | grep -A20 "dingtalk_qc"
+curl http://192.168.2.4:8770/api/dashboard | python3 -m json.tool | grep -A20 "dingtalk_qc"
 ```
 - `total` が全ファイル合算値であること
 - `sources` に各ファイルの件数が含まれること

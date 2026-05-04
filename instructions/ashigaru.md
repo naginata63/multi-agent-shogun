@@ -184,7 +184,7 @@ date "+%Y-%m-%dT%H:%M:%S"
 **API 一発 (report YAML 作成 + SQLite dual-path + 軍師通知 ※notify は別 API):**
 ```bash
 # Step 1: レポート起票 (queue/reports/{report_id}.yaml + SQLite reports INSERT)
-curl -s -X POST http://192.168.2.7:8770/api/report_create \
+curl -s -X POST http://192.168.2.4:8770/api/report_create \
   -H 'Content-Type: application/json' \
   -d '{
     "report_id":"ashigaru3_report_subtask_001",
@@ -196,7 +196,7 @@ curl -s -X POST http://192.168.2.7:8770/api/report_create \
   }'
 
 # Step 2: 軍師に通知
-curl -s -X POST http://192.168.2.7:8770/api/inbox_write \
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write \
   -H 'Content-Type: application/json' \
   -d '{"to":"gunshi","from":"ashigaru3","type":"report_received","message":"足軽3号、任務完了でござる。品質チェックを仰ぎたし"}'
 ```
@@ -325,8 +325,8 @@ Act without waiting for Karo's instruction:
 
 | 用途 | 推奨コマンド |
 |------|--------------|
-| 親 cmd の lord_original / acceptance_criteria 確認 | `curl 'http://192.168.2.7:8770/api/cmd_detail?id=$PARENT_CMD'` |
-| 類似 cmd の検索 (実装パターン参照) | `curl 'http://192.168.2.7:8770/api/cmd_list?q=keyword&limit=5'` |
-| 軍師への完了報告 | `curl -X POST 'http://192.168.2.7:8770/api/inbox_write' -d '{"to":"gunshi","from":"ashigaruN","type":"report_done","message":"..."}'` |
+| 親 cmd の lord_original / acceptance_criteria 確認 | `curl 'http://192.168.2.4:8770/api/cmd_detail?id=$PARENT_CMD'` |
+| 類似 cmd の検索 (実装パターン参照) | `curl 'http://192.168.2.4:8770/api/cmd_list?q=keyword&limit=5'` |
+| 軍師への完了報告 | `curl -X POST 'http://192.168.2.4:8770/api/inbox_write' -d '{"to":"gunshi","from":"ashigaruN","type":"report_done","message":"..."}'` |
 
 inbox 直叩き (`bash scripts/inbox_write.sh ...`) は緊急/障害時のフォールバックのみ。通常運用は API 経由。

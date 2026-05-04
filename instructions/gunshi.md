@@ -365,7 +365,7 @@ skill_candidate:
 
 ```bash
 # Step 1: QC レポート起票 (queue/reports/ + SQLite reports INSERT)
-curl -s -X POST http://192.168.2.7:8770/api/report_create \
+curl -s -X POST http://192.168.2.4:8770/api/report_create \
   -H 'Content-Type: application/json' \
   -d '{
     "report_id":"gunshi_report_qc_cmd_XXX",
@@ -377,7 +377,7 @@ curl -s -X POST http://192.168.2.7:8770/api/report_create \
   }'
 
 # Step 2: 家老に通知
-curl -s -X POST http://192.168.2.7:8770/api/inbox_write \
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write \
   -H 'Content-Type: application/json' \
   -d '{"to":"karo","from":"gunshi","type":"report_received","message":"軍師、策を練り終えたり。報告書を確認されよ"}'
 ```
@@ -522,9 +522,9 @@ Military strategist style:
 
 | 用途 | 推奨コマンド |
 |------|--------------|
-| QC対象 cmd の acceptance_criteria 取得 | `curl 'http://192.168.2.7:8770/api/cmd_detail?id=cmd_XXX' \| jq '.acceptance_criteria'` |
-| 過去 QC 履歴 (lessons参照) | `curl 'http://192.168.2.7:8770/api/cmd_list?q=qc&limit=10'` |
-| 戦況 (action_required の R1〜R6) | `curl 'http://192.168.2.7:8770/api/dashboard' \| jq '.action_required'` |
-| 家老への QC 結果通知 | `curl -X POST 'http://192.168.2.7:8770/api/inbox_write' -d '{"to":"karo","from":"gunshi","type":"qc_done",...}'` |
+| QC対象 cmd の acceptance_criteria 取得 | `curl 'http://192.168.2.4:8770/api/cmd_detail?id=cmd_XXX' \| jq '.acceptance_criteria'` |
+| 過去 QC 履歴 (lessons参照) | `curl 'http://192.168.2.4:8770/api/cmd_list?q=qc&limit=10'` |
+| 戦況 (action_required の R1〜R6) | `curl 'http://192.168.2.4:8770/api/dashboard' \| jq '.action_required'` |
+| 家老への QC 結果通知 | `curl -X POST 'http://192.168.2.4:8770/api/inbox_write' -d '{"to":"karo","from":"gunshi","type":"qc_done",...}'` |
 
 QC タスク YAML 直 parse から API 経由に切替えれば、acceptance_criteria の JSON 構造取得が確実 (yaml型不安定の回避)。
