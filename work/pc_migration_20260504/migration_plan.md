@@ -64,7 +64,7 @@
 | 3.5 | 完了時間目安: 30-60 分 (~580G コピー) |
 | 3.6 | クローン完了後、sde4 の中身が nvme0n1p2 に block-level コピーされる |
 
-### 🚀 Phase 4+5 まとめて自動実行 (推奨・楽な方法)
+### 🚀 Phase 4+5 まとめて自動実行 (推奨・楽な方法・安全版 v2)
 
 clonezilla live USB の terminal で **2 行だけ**打てば全自動:
 
@@ -73,54 +73,34 @@ wget https://raw.githubusercontent.com/naginata63/multi-agent-shogun/main/script
 sudo bash migration_nvme_phase45.sh
 ```
 
-実行内容:
-- Phase 4 (resize2fs) + Phase 5 (mount + fstab 自動書換 + chroot で grub-install + update-grub + update-initramfs + umount)
-- 開始時に「y で続行」確認プロンプト 1 度のみ
-- エラー時は `set -e` で即停止 (安全)
-- 新 EFI UUID 自動検出 + fstab 自動更新 (sed・nano 不要)
-- 失敗時は fstab.bak.migration がバックアップとして残る
+#### 📋 安全版 v2 (2026-05-05・SHA256 `e349a791...5da9c3`) の機能
 
-⚠️ **前提**: Phase 1-3 (gparted + clonezilla) 完了済であること。
+実行前チェック:
+- ✅ **UEFI モード確認** (`/sys/firmware/efi` 存在チェック・Legacy BIOS なら即エラー停止)
+- ✅ **デバイス存在確認** (nvme0n1p1 / nvme0n1p2 / sde4 が block device として存在)
+- ✅ **ファイルシステム種別確認** (nvme0n1p1=vfat / nvme0n1p2=ext4)
+- ✅ **mount 状態確認** (nvme0n1p2 や /mnt が既使用なら即エラー停止)
+- ✅ **lsblk 表示**で殿に現状確認させる
+- ✅ **「y で続行」プロンプト** で殿確認
+
+実行内容:
+- Phase 4: e2fsck → resize2fs → e2fsck (1.8T 拡張)
+- **🚨 UUID 重複対策 (致命的問題の解消)**: `tune2fs -U random /dev/nvme0n1p2` で **新 root UUID 生成** → sde4 と別 UUID になる
+- Phase 5-A: mount (root + EFI + bind proc/sys/dev/dev-pts/run)
+- Phase 5-B: fstab 自動書換 (`/` 行 + `/boot/efi` 行を **両方とも新 UUID へ**・元 fstab.bak.migration バックアップ)
+- Phase 5-C: chroot → `grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ubuntu --recheck /dev/nvme0n1` → update-grub → **update-initramfs -u -k all** (`-k all` で全カーネル更新)
+- Phase 5-D: boot files 確認 (find で grub install 結果表示)
+- 終了時: cleanup trap で **失敗時も確実 umount** (障害時の手動 fallback 不要)
+
+⚠️ **前提**: Phase 1-3 (gparted + clonezilla) 完了済 + UEFI モードで Live USB 起動済 + sde4 残置 (touch しない・保険用)
 
 ---
 
-### 🆘 wget 失敗時の救済策 (手動 1 ブロック・コピペ用)
+### 🆘 wget 失敗時の救済策
 
-ネット繋がらない or GitHub アクセス不可なら、以下を **そのままターミナルに貼付** (heredoc で 1 度に流し込む形):
+⚠️ **以前ここにあった手動 1 ブロックは削除しました** (root UUID 重複対策が含まれていなかったため危険)。
 
-```bash
-sudo bash <<'EOF'
-set -e
-NVME_ROOT=/dev/nvme0n1p2
-NVME_EFI=/dev/nvme0n1p1
-MNT=/mnt
-echo "=== Phase 4: resize2fs ==="
-e2fsck -fy "$NVME_ROOT"
-resize2fs "$NVME_ROOT"
-e2fsck -fy "$NVME_ROOT"
-echo "=== Phase 5-A: mount ==="
-mount "$NVME_ROOT" "$MNT"
-mkdir -p "$MNT/boot/efi"
-mount "$NVME_EFI" "$MNT/boot/efi"
-for f in proc sys dev dev/pts run; do mount --bind "/$f" "$MNT/$f"; done
-echo "=== Phase 5-B: fstab 自動書換 ==="
-NEW_EFI_UUID=$(blkid -s UUID -o value "$NVME_EFI")
-echo "新 EFI UUID: $NEW_EFI_UUID"
-cp "$MNT/etc/fstab" "$MNT/etc/fstab.bak.migration"
-sed -i -E "s|^UUID=[A-Fa-f0-9-]+(\\s+/boot/efi\\s)|UUID=$NEW_EFI_UUID\\1|" "$MNT/etc/fstab"
-echo "=== Phase 5-C: chroot で grub-install ==="
-chroot "$MNT" /bin/bash -c '
-  grub-install --efi-directory=/boot/efi --bootloader-id=ubuntu /dev/nvme0n1
-  update-grub
-  update-initramfs -u
-'
-echo "=== Phase 5-D: umount ==="
-umount -R "$MNT"
-echo "✅ 完了 — 再起動して BIOS で NVMe 起動優先"
-EOF
-```
-
-スマホで本 md を見ながら PC ターミナルに**手入力**。長いゆえ慎重に・誤打したら Ctrl+C で中断 → やり直し可。
+wget 失敗時は **下記の「USB 1 本完結」案を使用してください**。USB の第 2 partition に migration_nvme_phase45.sh 安全版を保管 → live USB から実行で同じ効果を達成。
 
 ---
 
@@ -265,15 +245,19 @@ sudo blkid /dev/nvme0n1p1
 
 sudo blkid /dev/nvme0n1p2
 # 出力例: /dev/nvme0n1p2: UUID="99c1fa6d-..." TYPE="ext4" ...
-# → 新 root UUID (clonezilla クローンで sde4 と同 UUID = 99c1fa6d-... のまま・修正不要)
+# 🚨 ここで sde4 と同 UUID = UUID重複 (致命的) → 新 UUID 生成必須
 
-# 5-B-2. fstab 確認 + 編集 (新 EFI UUID の書換のみ)
+# 5-B-2. 🚨 NVMe root UUID 新規生成 (UUID重複対策・必須)
+sudo tune2fs -U random /dev/nvme0n1p2
+sudo e2fsck -fy /dev/nvme0n1p2
+sudo blkid /dev/nvme0n1p2     # 新 root UUID を控える
+
+# 5-B-3. fstab 確認 + 編集 (root と /boot/efi 両方 UUID 書換)
 sudo nano /mnt/etc/fstab
 # nano 編集モードで:
-#   /boot/efi の行を探す (UUID=51FA-F860 等が書いてある)
-#   その UUID を 5-B-1 で控えた新 EFI UUID に書換
+#   (a) /boot/efi の行: 古い EFI UUID を新 EFI UUID (5-B-1) に書換
+#   (b) / (root) の行: 古い root UUID を新 root UUID (5-B-2) に書換
 #   Ctrl+O で保存・Enter・Ctrl+X で終了
-# (root の UUID は同じゆえ書換不要)
 ```
 
 #### 5-C. chroot に入って grub-install
@@ -283,15 +267,15 @@ sudo nano /mnt/etc/fstab
 sudo chroot /mnt /bin/bash
 
 # 5-C-2. (chroot 内) grub-install で 新 EFI に bootloader 書込
-grub-install --efi-directory=/boot/efi --bootloader-id=ubuntu /dev/nvme0n1
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ubuntu --recheck /dev/nvme0n1
 # 期待出力: 「Installation finished. No error reported.」
 
 # 5-C-3. (chroot 内) grub.cfg 再生成
 update-grub
 # 期待出力: Linux イメージ + initrd を見つけて grub.cfg 生成
 
-# 5-C-4. (chroot 内) initramfs 再生成
-update-initramfs -u
+# 5-C-4. (chroot 内) initramfs 再生成 — -k all で全カーネル更新 (live USB chroot 必須)
+update-initramfs -u -k all
 # 期待出力: update-initramfs: Generating /boot/initrd.img-...
 
 # 5-C-5. (chroot 内) chroot から exit
