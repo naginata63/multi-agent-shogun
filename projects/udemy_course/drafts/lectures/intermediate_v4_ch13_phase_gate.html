@@ -210,7 +210,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 1ヶ月前に直したバグと同じ調査を、また最初からやり直している。</p>
 </blockquote>
 <ul>
-<li>コンテキストウィンドウには限界がある</li>
+<li>コンテキストウィンドウ（＝ AIが一度に記憶できる情報の上限）には限界がある</li>
 <li>すべての過去履歴を常時ロードすることは不可能</li>
 <li><strong>必要なときに必要な過去事例だけを自動検索する仕組み</strong> が必要</li>
 </ul>
@@ -264,7 +264,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <strong>AIが特定の操作をする直前</strong> に自動でプログラムが走ります</p>
 </li>
 <li>
-<p><strong>どこに書く？</strong> → <code>settings.json</code> という設定ファイル</p>
+<p><strong>どこに書く？</strong> → Claude Code の設定ファイル（プロジェクト内の <code>.claude/settings.json</code> または <code>~/.claude/settings.json</code>）</p>
 </li>
 <li>
 <p><strong>何がいい？</strong> → 人間が毎回指示しなくても、自動で安全確認が走る</p>
@@ -307,7 +307,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
 ;" data-marpit-pagination-total="17" data-size="16:9">
 <h1 id="hook%E3%81%AE%E7%99%BB%E9%8C%B2%E6%96%B9%E6%B3%95">hookの登録方法</h1>
-<p>設定ファイル（<code>settings.json</code>）に書くだけでOK:</p>
+<p>設定ファイル（<code>settings.json</code>）に書くだけでOK（<code>.claude/settings.json</code> をテキストエディタで開いて追記します）:</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-json"><span class="hljs-punctuation">{</span>
   <span class="hljs-attr">&quot;hooks&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
     <span class="hljs-attr">&quot;PreToolUse&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
@@ -327,6 +327,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </li>
 <li><strong><code>&quot;command&quot;</code></strong>: 発動時に実行するプログラム</li>
 <li><strong><code>&quot;PreToolUse&quot;</code></strong>: 「ツールを使う前」というタイミング</li>
+<li><strong>スクリプトは？</strong> → チームの共通スクリプトを使うか、自分で <code>scripts/</code> フォルダに用意します</li>
 </ul>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="7" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
@@ -532,6 +533,9 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </tr>
 </tbody>
 </table>
+<blockquote>
+<p><strong>「注入」とは？</strong> → AIが読む入力テキスト（プロンプト）の末尾に、検索結果を自動的に追記することです。人間がコピペする必要はありません。</p>
+</blockquote>
 <ul>
 <li>この3段階を <strong>ツール実行前のhook</strong> として自動化</li>
 <li>タスク開始前に必ず過去事例を検索 — 人間の介入なし</li>
@@ -597,6 +601,14 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <p>注入量は <strong>1件あたり約200トークン</strong>（日本語で約130文字程度）に制限</p>
 </li>
 </ul>
+<blockquote>
+<p><strong>安心してください</strong>: Embeddingの変換計算は <strong>裏側で自動的に行われます</strong>。あなたが数式を書く必要はありません。検索APIを呼ぶだけで、似ている文書が自動で見つかります。</p>
+</blockquote>
+<p><strong>自分で書くとこうなる</strong>（Pythonの例）:</p>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> claude_mem <span class="hljs-keyword">import</span> search
+results = search(query=<span class="hljs-string">&quot;データベース移行&quot;</span>, limit=<span class="hljs-number">3</span>)
+<span class="hljs-comment"># → 過去事例が自動でEmbedding検索され、上位3件が返ってくる</span>
+</code></pre>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="11" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
@@ -693,8 +705,8 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
 ;" data-marpit-pagination-total="17" data-size="16:9">
 <h1 id="%E3%82%BF%E3%82%B9%E3%82%AF%E5%AE%9A%E7%BE%A9%E3%81%AE%E6%A4%9C%E7%B4%A2%E8%A8%AD%E5%AE%9A">タスク定義の検索設定</h1>
-<p>検索動作をタスク定義ファイルで制御できます:</p>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-yaml"><span class="hljs-attr">task_id:</span> <span class="hljs-string">task_1001</span>
+<p>検索動作をタスク定義ファイルで制御できます（このYAMLは <code>queue/tasks/</code> フォルダ内のタスクファイルに書きます）:</p>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-yaml"><span class="hljs-attr">task_id:</span> <span class="hljs-string">task_1001</span>            <span class="hljs-comment"># ← タスクごとの固有ID（任意の名前でOK）</span>
 <span class="hljs-attr">description:</span> <span class="hljs-string">&quot;工程検問の仕組みの設計&quot;</span>
 <span class="hljs-attr">search_config:</span>
   <span class="hljs-attr">enabled:</span> <span class="hljs-literal">true</span>
@@ -774,7 +786,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 ;" data-marpit-pagination-total="17" data-size="16:9">
 <h1 id="%E3%83%97%E3%83%AD%E3%82%B8%E3%82%A7%E3%82%AF%E3%83%88%E5%AE%9F%E8%A3%85%E4%BE%8B">プロジェクト実装例</h1>
 <blockquote>
-<p><strong>本講座サンプル実装</strong>: 以下は具体例です。概念の理解に役立ててください。</p>
+<p><strong>本講座サンプル実装</strong>: 以下は本講座の架空プロジェクト（「SQLite」というデータベース技術を使うチーム）の例です。「SQLite」「監査」は本章で初めて出てきますが、具体例として眺めてください。</p>
 </blockquote>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>Step 1: キーワード抽出 → &quot;SQLite&quot;, &quot;監査&quot;, &quot;スクリプト&quot;
 Step 2: 記憶検索 → 3件ヒット
@@ -839,13 +851,13 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <tr>
 <td>1</td>
 <td><strong>キーワード重み</strong></td>
-<td>description &gt; notes &gt; task_id</td>
+<td>タスクの説明文（description）を一番重視し、メモ（notes）、タスクID（task_id）の順に重み付け</td>
 <td>重要な項目を優先</td>
 </tr>
 <tr>
 <td>2</td>
 <td><strong>除外キーワード</strong></td>
-<td>汎用語を除外</td>
+<td>「初心者」「入門」などの汎用語を除外指定</td>
 <td>ノイズ削減</td>
 </tr>
 <tr>
@@ -869,7 +881,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </tbody>
 </table>
 <blockquote>
-<p><strong>チューニングのコツ</strong>: 初期設定で1週間運用 → ログ分析 → 1点ずつ調整</p>
+<p><strong>チューニングのコツ</strong>: 初期設定で1週間運用 → ログファイル（検索結果ゼロの回数・除外された事例など）を確認 → 1点ずつ調整。一度に全部変えると効果判定ができなくなります。</p>
 </blockquote>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="15" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }

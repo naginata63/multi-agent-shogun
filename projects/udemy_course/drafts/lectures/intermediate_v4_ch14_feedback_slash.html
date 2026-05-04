@@ -42,9 +42,12 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="14" data-size="16:9">
+;" data-marpit-pagination-total="15" data-size="16:9">
 <h1 id="posttooluse-supervisor">PostToolUse Supervisor</h1>
-<h2 id="%E3%83%95%E3%82%A3%E3%83%BC%E3%83%89%E3%83%90%E3%83%83%E3%82%AF%E8%87%AA%E5%8B%95%E5%8C%96%E3%83%91%E3%82%BF%E3%83%BC%E3%83%B3">フィードバック自動化パターン</h2>
+<h2 id="%E3%83%84%E3%83%BC%E3%83%AB%E5%AE%9F%E8%A1%8C%E5%BE%8C%E3%81%AE%E8%87%AA%E5%8B%95%E7%9B%A3%E8%A6%96%E3%81%A8%E3%83%95%E3%82%A3%E3%83%BC%E3%83%89%E3%83%90%E3%83%83%E3%82%AF%E8%87%AA%E5%8B%95%E5%8C%96">ツール実行後の自動監視とフィードバック自動化</h2>
+<blockquote>
+<p><strong>PostToolUse Supervisor</strong> = 「AIがツール（ファイル書き込み等）を使った直後に、自動で監視・記録する仕組み」のことです。</p>
+</blockquote>
 <div class="meta">
 中級編 v4 — 第14章 (約 40 min)<br />
 <p>「AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全解説」<br /><br /><br />
@@ -85,15 +88,37 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="14" data-size="16:9">
-<h2 id="%E3%81%93%E3%81%AE%E7%AB%A0%E3%81%A7%E5%AD%A6%E3%81%B6%E3%81%93%E3%81%A8-l3-evaluate--create">この章で学ぶこと [L3: Evaluate + Create]</h2>
-<ol>
-<li><strong>Supervisor Pattern</strong> の概念を説明できる</li>
-<li><strong>PostToolUse hook</strong> によるフィードバック自動化を設計できる</li>
-<li><strong>カスタムslash command</strong> の作成方法を習得する</li>
-<li><strong>感情→構造化変換パイプライン</strong> の仕組みを理解する</li>
-<li><strong>チーム運用</strong> の方法を設計できる</li>
-</ol>
+;" data-marpit-pagination-total="15" data-size="16:9">
+<h2 id="%E3%81%93%E3%81%AE%E7%AB%A0%E3%81%A7%E5%87%BA%E3%81%A6%E3%81%8F%E3%82%8B%E7%94%A8%E8%AA%9E">この章で出てくる用語</h2>
+<blockquote>
+<p>この章では以下の用語を使います。最初はざっと目を通すだけでOKです。章の中でまた説明します。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>用語</th>
+<th>ここでの意味</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>hook（フック）</strong></td>
+<td>「特定のタイミングで自動実行される小さなプログラム」。前章で学んだ仕組みです</td>
+</tr>
+<tr>
+<td><strong>PostToolUse</strong></td>
+<td>「AIがツールを使った直後」のタイミングを指す名前</td>
+</tr>
+<tr>
+<td><strong>Supervisor</strong></td>
+<td>「監督者」＝ 結果を監視して必要に応じて記録する役割</td>
+</tr>
+<tr>
+<td><strong>slash command</strong></td>
+<td>Claude Codeのチャット欄で <code>/</code> から始めて呼び出すコマンドのこと</td>
+</tr>
+</tbody>
+</table>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="3" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
@@ -129,20 +154,15 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="14" data-size="16:9">
-<h1 id="%E3%82%B9%E3%83%86%E3%83%BC%E3%82%AF%E3%83%9B%E3%83%AB%E3%83%80%E3%83%BC%E3%81%AE%E4%B8%8D%E6%BA%80--%E6%9C%80%E9%AB%98%E3%81%AE%E5%93%81%E8%B3%AA%E6%94%B9%E5%96%84%E3%83%87%E3%83%BC%E3%82%BF">ステークホルダーの不満 = 最高の品質改善データ</h1>
-<blockquote>
-<p>「なんでこんな簡単なこともできないんだ！」<br />
-— この発言の中に <strong>3つの改善ヒント</strong> が埋まっています。</p>
-</blockquote>
-<ul>
-<li><strong>何が期待されていたか</strong> = 品質基準の再定義</li>
-<li><strong>何が期待を裏切ったか</strong> = 改善ポイントの特定</li>
-<li><strong>どうすべきだったか</strong> = 具体的な修正方向</li>
-</ul>
-<blockquote>
-<p>ほとんどの場合、この情報は口頭で消え、再発防止に活かされません</p>
-</blockquote>
+;" data-marpit-pagination-total="15" data-size="16:9">
+<h2 id="%E3%81%93%E3%81%AE%E7%AB%A0%E3%81%A7%E5%AD%A6%E3%81%B6%E3%81%93%E3%81%A8">この章で学ぶこと</h2>
+<ol>
+<li><strong>Supervisor Pattern</strong> の概念を説明できる</li>
+<li><strong>PostToolUse hook</strong> によるフィードバック自動化を設計できる</li>
+<li><strong>カスタムslash command</strong> の作成方法を習得する</li>
+<li><strong>感情→構造化変換パイプライン</strong> の仕組みを理解する</li>
+<li><strong>チーム運用</strong> の方法を設計できる</li>
+</ol>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="4" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
@@ -178,45 +198,20 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="14" data-size="16:9">
-<h1 id="supervisor-pattern--%E3%83%84%E3%83%BC%E3%83%AB%E5%AE%9F%E8%A1%8C%E5%BE%8C%E3%81%AE%E7%9B%A3%E7%9D%A3%E8%80%85">Supervisor Pattern — ツール実行後の監督者</h1>
-<p><strong>Supervisor Pattern</strong> = AIのツール実行結果を監視し、必要に応じて介入するパターン</p>
+;" data-marpit-pagination-total="15" data-size="16:9">
+<h1 id="%E3%82%B9%E3%83%86%E3%83%BC%E3%82%AF%E3%83%9B%E3%83%AB%E3%83%80%E3%83%BC%E3%81%AE%E4%B8%8D%E6%BA%80--%E6%9C%80%E9%AB%98%E3%81%AE%E5%93%81%E8%B3%AA%E6%94%B9%E5%96%84%E3%83%87%E3%83%BC%E3%82%BF">ステークホルダーの不満 = 最高の品質改善データ</h1>
+<blockquote>
+<p>「なんでこんな簡単なこともできないんだ！」<br />
+— この発言の中に <strong>3つの改善ヒント</strong> が埋まっています。</p>
+</blockquote>
 <ul>
-<li><strong>PostToolUse hook</strong> で実現: ツール実行後に自動で監視処理を実行</li>
-<li><strong>介入の3レベル</strong>:
-<ul>
-<li><strong>Log</strong>: 結果を記録するだけ（低コスト）</li>
-<li><strong>Validate</strong>: 結果が基準を満たすか検証（中コスト）</li>
-<li><strong>Block</strong>: 基準違反の場合に実行を取り消し（高コスト）</li>
+<li><strong>何が期待されていたか</strong> = 品質基準の再定義</li>
+<li><strong>何が期待を裏切ったか</strong> = 改善ポイントの特定</li>
+<li><strong>どうすべきだったか</strong> = 具体的な修正方向</li>
 </ul>
-</li>
-</ul>
-<table>
-<thead>
-<tr>
-<th>レベル</th>
-<th>用途</th>
-<th>例</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Log</td>
-<td>フィードバック蓄積</td>
-<td>ユーザーの反応を記録</td>
-</tr>
-<tr>
-<td>Validate</td>
-<td>品質確認</td>
-<td>出力フォーマットの検証</td>
-</tr>
-<tr>
-<td>Block</td>
-<td>安全確保</td>
-<td>危険な出力の阻止</td>
-</tr>
-</tbody>
-</table>
+<blockquote>
+<p>ほとんどの場合、この情報は口頭で消え、再発防止に活かされません</p>
+</blockquote>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="5" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
@@ -252,7 +247,79 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="14" data-size="16:9">
+;" data-marpit-pagination-total="15" data-size="16:9">
+<h1 id="supervisor-pattern--%E3%83%84%E3%83%BC%E3%83%AB%E5%AE%9F%E8%A1%8C%E5%BE%8C%E3%81%AE%E7%9B%A3%E7%9D%A3%E8%80%85">Supervisor Pattern — ツール実行後の監督者</h1>
+<p><strong>Supervisor Pattern</strong> = AIのツール実行結果を監視し、必要に応じて介入するパターン</p>
+<blockquote>
+<p>なぜ「監督者」と呼ぶのか？ → 監督者は選手（AI）のプレー（ツール実行）を見守り、必要に応じてタイムをかける（介入する）役割だからです。Observer（観察者）がただ見るだけなのに対し、Supervisorは介入権を持つ点が異なります。</p>
+</blockquote>
+<ul>
+<li><strong>PostToolUse hook</strong> で実現: ツール実行後に自動で監視処理を実行</li>
+<li><strong>本章で使うレベル</strong>: <strong>Log（記録）</strong> に特化します</li>
+<li>介入には他にも Validate（検証）や Block（阻止）のレベルがありますが、それらは後の章で扱います</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>レベル</th>
+<th>用途</th>
+<th>扱う章</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Log</strong> ← 本章</td>
+<td>フィードバック蓄積</td>
+<td>この章</td>
+</tr>
+<tr>
+<td>Validate</td>
+<td>品質確認</td>
+<td>後続章</td>
+</tr>
+<tr>
+<td>Block</td>
+<td>安全確保</td>
+<td>後続章</td>
+</tr>
+</tbody>
+</table>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="6" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+section h1:first-child, section h2:first-child { margin-top: 0; }
+section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
+section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
+section.cover h2 { font-size: 1.0em; color: #fde68a; }
+section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
+h2 { color: #2563eb; font-size: 1.1em; }
+h3 { color: #4b5563; font-size: 1.0em; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
+code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
+table { font-size: 0.78em; border-collapse: collapse; }
+th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
+td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
+.big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
+.free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
+" lang="ja-JP" data-marpit-pagination="6" style="--paginate:true;--theme:default;--style:section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+section h1:first-child, section h2:first-child { margin-top: 0; }
+section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
+section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
+section.cover h2 { font-size: 1.0em; color: #fde68a; }
+section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
+h2 { color: #2563eb; font-size: 1.1em; }
+h3 { color: #4b5563; font-size: 1.0em; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
+code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
+table { font-size: 0.78em; border-collapse: collapse; }
+th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
+td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
+.big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
+.free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
+;" data-marpit-pagination-total="15" data-size="16:9">
 <h1 id="%E3%83%95%E3%82%A3%E3%83%BC%E3%83%89%E3%83%90%E3%83%83%E3%82%AF%E5%A4%89%E6%8F%9B%E3%83%91%E3%82%A4%E3%83%97%E3%83%A9%E3%82%A4%E3%83%B3">フィードバック変換パイプライン</h1>
 <p><strong>4段階のパイプライン</strong>で感情を構造化データに変換:</p>
 <table>
@@ -291,55 +358,6 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <li><strong>なぜAIにやらせるか</strong>: 感情を除去し、事実ベースの構造化が得意</li>
 </ul>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="6" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
-section h1:first-child, section h2:first-child { margin-top: 0; }
-section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
-section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
-section.cover h2 { font-size: 1.0em; color: #fde68a; }
-section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
-h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
-h2 { color: #2563eb; font-size: 1.1em; }
-h3 { color: #4b5563; font-size: 1.0em; }
-blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
-code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
-pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
-table { font-size: 0.78em; border-collapse: collapse; }
-th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
-td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
-.big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
-.free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-" lang="ja-JP" data-marpit-pagination="6" style="--paginate:true;--theme:default;--style:section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
-section h1:first-child, section h2:first-child { margin-top: 0; }
-section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
-section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
-section.cover h2 { font-size: 1.0em; color: #fde68a; }
-section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
-h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
-h2 { color: #2563eb; font-size: 1.1em; }
-h3 { color: #4b5563; font-size: 1.0em; }
-blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
-code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
-pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
-table { font-size: 0.78em; border-collapse: collapse; }
-th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
-td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
-.big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
-.free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="14" data-size="16:9">
-<h1 id="stage-1-2-capture-%E2%86%92-analyze">Stage 1-2: Capture → Analyze</h1>
-<h3 id="capture-%E7%99%BA%E8%A8%80%E3%81%AE%E5%8F%97%E3%81%91%E5%8F%96%E3%82%8A">Capture: 発言の受け取り</h3>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>/feedback-capture
-「またテスト落ちてるじゃないか！マージ前に確認しろって
-何度も言ったのに！」
-</code></pre>
-<h3 id="analyze-ai%E3%81%AB%E3%82%88%E3%82%8B%E5%88%86%E6%9E%90">Analyze: AIによる分析</h3>
-<ul>
-<li><strong>感情ラベル</strong>: 怒り (強)</li>
-<li><strong>本質</strong>: マージ前のテスト実行が漏れている</li>
-<li><strong>改善ヒント</strong>: PostToolUse hook でテスト実行を強制</li>
-<li><strong>影響度</strong>: 高 — リリース品質に直結</li>
-</ul>
-</section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="7" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
 section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
@@ -374,7 +392,57 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="14" data-size="16:9">
+;" data-marpit-pagination-total="15" data-size="16:9">
+<h1 id="stage-1-2-capture-%E2%86%92-analyze">Stage 1-2: Capture → Analyze</h1>
+<h3 id="capture-%E7%99%BA%E8%A8%80%E3%81%AE%E5%8F%97%E3%81%91%E5%8F%96%E3%82%8A">Capture: 発言の受け取り</h3>
+<p>（Claude Code のチャット入力欄に <code>/feedback-capture</code> と打ち、続けて発言内容を書きます）</p>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code>/feedback-capture
+「またテスト落ちてるじゃないか！マージ前に確認しろって
+何度も言ったのに！」
+</code></pre>
+<h3 id="analyze-ai%E3%81%AB%E3%82%88%E3%82%8B%E5%88%86%E6%9E%90">Analyze: AIによる分析</h3>
+<ul>
+<li><strong>感情ラベル</strong>: 怒り (強)</li>
+<li><strong>本質</strong>: マージ前のテスト実行が漏れている</li>
+<li><strong>改善ヒント</strong>: PostToolUse hook でテスト実行を強制</li>
+<li><strong>影響度</strong>: 高 — リリース品質に直結</li>
+</ul>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="8" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+section h1:first-child, section h2:first-child { margin-top: 0; }
+section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
+section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
+section.cover h2 { font-size: 1.0em; color: #fde68a; }
+section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
+h2 { color: #2563eb; font-size: 1.1em; }
+h3 { color: #4b5563; font-size: 1.0em; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
+code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
+table { font-size: 0.78em; border-collapse: collapse; }
+th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
+td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
+.big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
+.free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
+" lang="ja-JP" data-marpit-pagination="8" style="--paginate:true;--theme:default;--style:section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+section h1:first-child, section h2:first-child { margin-top: 0; }
+section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
+section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
+section.cover h2 { font-size: 1.0em; color: #fde68a; }
+section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
+h2 { color: #2563eb; font-size: 1.1em; }
+h3 { color: #4b5563; font-size: 1.0em; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
+code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
+table { font-size: 0.78em; border-collapse: collapse; }
+th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
+td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
+.big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
+.free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
+;" data-marpit-pagination-total="15" data-size="16:9">
 <h1 id="stage-3-4-draft-%E2%86%92-review">Stage 3-4: Draft → Review</h1>
 <h3 id="draft-%E6%A7%8B%E9%80%A0%E5%8C%96%E3%83%95%E3%82%A3%E3%83%BC%E3%83%89%E3%83%90%E3%83%83%E3%82%AF%E3%81%AE%E8%87%AA%E5%8B%95%E7%94%9F%E6%88%90">Draft: 構造化フィードバックの自動生成</h3>
 <blockquote>
@@ -414,61 +482,6 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </tbody>
 </table>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="8" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
-section h1:first-child, section h2:first-child { margin-top: 0; }
-section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
-section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
-section.cover h2 { font-size: 1.0em; color: #fde68a; }
-section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
-h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
-h2 { color: #2563eb; font-size: 1.1em; }
-h3 { color: #4b5563; font-size: 1.0em; }
-blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
-code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
-pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
-table { font-size: 0.78em; border-collapse: collapse; }
-th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
-td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
-.big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
-.free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-" lang="ja-JP" data-marpit-pagination="8" style="--paginate:true;--theme:default;--style:section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
-section h1:first-child, section h2:first-child { margin-top: 0; }
-section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
-section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
-section.cover h2 { font-size: 1.0em; color: #fde68a; }
-section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
-h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
-h2 { color: #2563eb; font-size: 1.1em; }
-h3 { color: #4b5563; font-size: 1.0em; }
-blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
-code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
-pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
-table { font-size: 0.78em; border-collapse: collapse; }
-th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
-td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
-.big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
-.free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="14" data-size="16:9">
-<h1 id="%E3%82%AB%E3%82%B9%E3%82%BF%E3%83%A0-slash-command-%E3%81%AE%E4%BD%9C%E6%88%90">カスタム Slash Command の作成</h1>
-<p>Claude Codeのslash command = <code>.claude/commands/</code> に置いた <code>.md</code> ファイル</p>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>.claude/
-  commands/
-    feedback-capture.md    ← /feedback-capture で呼び出せる
-</code></pre>
-<p><strong>ファイルの中身</strong> = プロンプトテンプレート:</p>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-markdown"><span class="hljs-section"># Feedback Capture</span>
-
-以下のステークホルダー発言を分析し、
-構造化フィードバックの草案を作成せよ。
-
-発言内容: $ARGUMENTS
-</code></pre>
-<ul>
-<li><code>$ARGUMENTS</code> = コマンド後に続くテキストが自動挿入</li>
-<li>ファイル名 = コマンド名</li>
-<li>複数階層も可能: <code>commands/team/feedback.md</code> → <code>/team feedback</code></li>
-</ul>
-</section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="9" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
 section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
@@ -503,28 +516,38 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="14" data-size="16:9">
-<h1 id="%E5%A4%89%E6%8F%9B%E5%AE%9F%E4%BE%8B-%E3%82%B3%E3%83%BC%E3%83%89%E5%93%81%E8%B3%AA%E3%81%B8%E3%81%AE%E4%B8%8D%E6%BA%80">変換実例: コード品質への不満</h1>
-<p><strong>入力</strong>:</p>
-<blockquote>
-<p>「この関数、引数の型すら書いてない。プロとしてどうなの？」</p>
-</blockquote>
-<p><strong>AI分析結果</strong>:</p>
+;" data-marpit-pagination-total="15" data-size="16:9">
+<h1 id="%E3%82%AB%E3%82%B9%E3%82%BF%E3%83%A0-slash-command-%E3%81%AE%E4%BD%9C%E6%88%90">カスタム Slash Command の作成</h1>
+<p>Claude Codeのslash command = <code>.claude/commands/</code> に置いた <code>.md</code> ファイル</p>
+<p><strong>作成手順</strong>（ターミナルで実行）:</p>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code># 1. ディレクトリを作る（プロジェクトのルートで）
+mkdir -p .claude/commands
+
+# 2. コマンドファイルを作る
+echo '# Feedback Capture
+以下のステークホルダー発言を分析し、構造化フィードバックの草案を作成せよ。
+発言内容: $ARGUMENTS' &gt; .claude/commands/feedback-capture.md
+
+# 3. Claude Code を再起動すると /feedback-capture が使えるようになる
+</code></pre>
+<p><strong>ファイルの中身</strong> = プロンプトテンプレート:</p>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code>.claude/
+  commands/
+    feedback-capture.md    ← /feedback-capture で呼び出せる
+</code></pre>
+<p><strong>ファイルの中身</strong> = プロンプトテンプレート:</p>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-markdown"><span class="hljs-section"># Feedback Capture</span>
+
+以下のステークホルダー発言を分析し、
+構造化フィードバックの草案を作成せよ。
+
+発言内容: $ARGUMENTS
+</code></pre>
 <ul>
-<li><strong>感情</strong>: 呆れ (中)</li>
-<li><strong>本質</strong>: 型アノテーションの欠如</li>
-<li><strong>改善</strong>: 型ヒント追加のルール化</li>
+<li><code>$ARGUMENTS</code> = コマンド名の後に続くテキストが自動的にここに入ります（コマンドに引数を渡す仕組みです）</li>
+<li>ファイル名 = コマンド名</li>
+<li>複数階層も可能: <code>commands/team/feedback.md</code> → <code>/team feedback</code></li>
 </ul>
-<p><strong>生成されたフィードバック</strong>:</p>
-<blockquote>
-<p><code>feedback_type_annotations.md</code></p>
-<ul>
-<li><strong>What</strong>: 型アノテーションが欠如していた</li>
-<li><strong>Impact</strong>: コードの可読性と保守性が低下</li>
-<li><strong>Fix</strong>: 全関数に型ヒントを追加するルールを設定</li>
-<li><strong>Prevention</strong>: <code>ruff</code> や <code>mypy</code> による自動チェック</li>
-</ul>
-</blockquote>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="10" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
@@ -560,26 +583,26 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="14" data-size="16:9">
-<h1 id="%E5%A4%89%E6%8F%9B%E5%AE%9F%E4%BE%8B-%E3%82%B9%E3%82%B3%E3%83%BC%E3%83%97%E9%80%B8%E8%84%B1%E3%81%B8%E3%81%AE%E4%B8%8D%E6%BA%80">変換実例: スコープ逸脱への不満</h1>
+;" data-marpit-pagination-total="15" data-size="16:9">
+<h1 id="%E5%A4%89%E6%8F%9B%E5%AE%9F%E4%BE%8B-%E3%82%B3%E3%83%BC%E3%83%89%E5%93%81%E8%B3%AA%E3%81%B8%E3%81%AE%E4%B8%8D%E6%BA%80">変換実例: コード品質への不満</h1>
 <p><strong>入力</strong>:</p>
 <blockquote>
-<p>「要件書いてあるでしょ？ なんで勝手にUI変えてるの？」</p>
+<p>「この関数、引数の型すら書いてない。プロとしてどうなの？」</p>
 </blockquote>
 <p><strong>AI分析結果</strong>:</p>
 <ul>
-<li><strong>感情</strong>: 不信感 (中)</li>
-<li><strong>本質</strong>: AIの自律的な変更と要件の乖離</li>
-<li><strong>改善</strong>: 変更前の確認プロセス</li>
+<li><strong>感情</strong>: 呆れ (中)</li>
+<li><strong>本質</strong>: 型アノテーションの欠如</li>
+<li><strong>改善</strong>: 型ヒント追加のルール化</li>
 </ul>
 <p><strong>生成されたフィードバック</strong>:</p>
 <blockquote>
-<p><code>feedback_scope_control.md</code></p>
+<p><code>feedback_type_annotations.md</code></p>
 <ul>
-<li><strong>What</strong>: 要件外の変更が無断で行われていた</li>
-<li><strong>Impact</strong>: ステークホルダーの意図との乖離</li>
-<li><strong>Fix</strong>: スコープ外変更の禁止ルールを明文化</li>
-<li><strong>Prevention</strong>: 実装前にadvisorで要件適合性を確認</li>
+<li><strong>What</strong>: 型アノテーションが欠如していた</li>
+<li><strong>Impact</strong>: コードの可読性と保守性が低下</li>
+<li><strong>Fix</strong>: 全関数に型ヒントを追加するルールを設定</li>
+<li><strong>Prevention</strong>: <code>ruff</code> や <code>mypy</code> による自動チェック</li>
 </ul>
 </blockquote>
 </section>
@@ -617,44 +640,27 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="14" data-size="16:9">
-<h1 id="%E3%83%81%E3%83%BC%E3%83%A0%E3%81%A7%E3%81%AE%E9%81%8B%E7%94%A8%E6%96%B9%E6%B3%95">チームでの運用方法</h1>
-<h3 id="%E3%83%AD%E3%83%BC%E3%83%AB%E5%88%86%E6%8B%85">ロール分担</h3>
-<table>
-<thead>
-<tr>
-<th>ロール</th>
-<th>担当</th>
-<th>頻度</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>入力者</strong></td>
-<td>全メンバー</td>
-<td>不満発生時いつでも</td>
-</tr>
-<tr>
-<td><strong>レビュー者</strong></td>
-<td>テックリード / PM</td>
-<td>週次</td>
-</tr>
-<tr>
-<td><strong>蓄積先</strong></td>
-<td><code>memory/</code> (Claude Code)</td>
-<td>自動</td>
-</tr>
-</tbody>
-</table>
-<h3 id="%E9%81%8B%E7%94%A8%E3%82%B5%E3%82%A4%E3%82%AF%E3%83%AB">運用サイクル</h3>
-<ol>
-<li><strong>Capture</strong>: メンバーが <code>/feedback-capture</code> で入力</li>
-<li><strong>Review</strong>: テックリードが y/e/n で判定</li>
-<li><strong>Store</strong>: 承認されたものを <code>memory/</code> に保存</li>
-<li><strong>Act</strong>: 週次で蓄積されたフィードバックを確認し、改善策を実行</li>
-</ol>
+;" data-marpit-pagination-total="15" data-size="16:9">
+<h1 id="%E5%A4%89%E6%8F%9B%E5%AE%9F%E4%BE%8B-%E3%82%B9%E3%82%B3%E3%83%BC%E3%83%97%E9%80%B8%E8%84%B1%E3%81%B8%E3%81%AE%E4%B8%8D%E6%BA%80">変換実例: スコープ逸脱への不満</h1>
+<p><strong>入力</strong>:</p>
 <blockquote>
-<p><strong>ポイント</strong>: フィードバックは「誰が言ったか」ではなく「何が課題か」に焦点を当てる</p>
+<p>「要件書いてあるでしょ？ なんで勝手にUI変えてるの？」</p>
+</blockquote>
+<p><strong>AI分析結果</strong>:</p>
+<ul>
+<li><strong>感情</strong>: 不信感 (中)</li>
+<li><strong>本質</strong>: AIの自律的な変更と要件の乖離</li>
+<li><strong>改善</strong>: 変更前の確認プロセス</li>
+</ul>
+<p><strong>生成されたフィードバック</strong>:</p>
+<blockquote>
+<p><code>feedback_scope_control.md</code></p>
+<ul>
+<li><strong>What</strong>: 要件外の変更が無断で行われていた</li>
+<li><strong>Impact</strong>: ステークホルダーの意図との乖離</li>
+<li><strong>Fix</strong>: スコープ外変更の禁止ルールを明文化</li>
+<li><strong>Prevention</strong>: 実装前にadvisorで要件適合性を確認</li>
+</ul>
 </blockquote>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="12" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
@@ -691,15 +697,45 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="14" data-size="16:9">
-<h1 id="%E3%81%93%E3%81%AE%E7%AB%A0%E3%81%AE%E3%81%BE%E3%81%A8%E3%82%81">この章のまとめ</h1>
-<ul>
-<li><strong>Supervisor Pattern</strong> = PostToolUse hookでツール実行結果を監視するパターン</li>
-<li><strong>フィードバック変換パイプライン</strong> = Capture → Analyze → Draft → Review の4段階</li>
-<li><strong>カスタムslash command</strong> = <code>.claude/commands/</code> に <code>.md</code> を置くだけで作成可能</li>
-<li><strong>y/e/n レビュー</strong> = 人間が取捨選択し、品質を担保する仕組み</li>
-<li><strong>チーム運用</strong> = 入力者全員、レビュー者週次、蓄積は自動</li>
-</ul>
+;" data-marpit-pagination-total="15" data-size="16:9">
+<h1 id="%E3%83%81%E3%83%BC%E3%83%A0%E3%81%A7%E3%81%AE%E9%81%8B%E7%94%A8%E6%96%B9%E6%B3%95">チームでの運用方法</h1>
+<h3 id="%E3%83%AD%E3%83%BC%E3%83%AB%E5%88%86%E6%8B%85">ロール分担</h3>
+<table>
+<thead>
+<tr>
+<th>ロール</th>
+<th>担当</th>
+<th>頻度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>入力者</strong></td>
+<td>全メンバー</td>
+<td>不満発生時いつでも</td>
+</tr>
+<tr>
+<td><strong>レビュー者</strong></td>
+<td>テックリード / PM</td>
+<td>週次</td>
+</tr>
+<tr>
+<td><strong>蓄積先</strong></td>
+<td><code>memory/</code> (Claude Code)</td>
+<td>承認後に自動保存</td>
+</tr>
+</tbody>
+</table>
+<h3 id="%E9%81%8B%E7%94%A8%E3%82%B5%E3%82%A4%E3%82%AF%E3%83%AB">運用サイクル</h3>
+<ol>
+<li><strong>Capture</strong>: メンバーが <code>/feedback-capture</code> で入力</li>
+<li><strong>Review</strong>: テックリードが y/e/n で判定</li>
+<li><strong>Store</strong>: 承認されたものを <code>memory/</code> に保存</li>
+<li><strong>Act</strong>: 週次で蓄積されたフィードバックを確認し、改善策を実行</li>
+</ol>
+<blockquote>
+<p><strong>ポイント</strong>: フィードバックは「誰が言ったか」ではなく「何が課題か」に焦点を当てる</p>
+</blockquote>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="13" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
@@ -735,11 +771,55 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="14" data-size="16:9">
-<h1 id="%E7%A2%BA%E8%AA%8D%E5%95%8F%E9%A1%8C">確認問題</h1>
-<p><strong>Q1</strong>: Supervisor Patternで「Block」レベルの介入は何をするか？</p>
+;" data-marpit-pagination-total="15" data-size="16:9">
+<h1 id="%E3%81%93%E3%81%AE%E7%AB%A0%E3%81%AE%E3%81%BE%E3%81%A8%E3%82%81">この章のまとめ</h1>
 <ul>
-<li>A: 結果を記録するだけ</li>
+<li><strong>Supervisor Pattern</strong> = PostToolUse hookでツール実行結果を監視するパターン</li>
+<li><strong>フィードバック変換パイプライン</strong> = Capture → Analyze → Draft → Review の4段階</li>
+<li><strong>カスタムslash command</strong> = <code>.claude/commands/</code> に <code>.md</code> を置くだけで作成可能</li>
+<li><strong>y/e/n レビュー</strong> = 人間が取捨選択し、品質を担保する仕組み</li>
+<li><strong>チーム運用</strong> = 入力者全員、レビュー者週次、蓄積は自動</li>
+</ul>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="14" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+section h1:first-child, section h2:first-child { margin-top: 0; }
+section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
+section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
+section.cover h2 { font-size: 1.0em; color: #fde68a; }
+section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
+h2 { color: #2563eb; font-size: 1.1em; }
+h3 { color: #4b5563; font-size: 1.0em; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
+code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
+table { font-size: 0.78em; border-collapse: collapse; }
+th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
+td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
+.big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
+.free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
+" lang="ja-JP" data-marpit-pagination="14" style="--paginate:true;--theme:default;--style:section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+section h1:first-child, section h2:first-child { margin-top: 0; }
+section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
+section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
+section.cover h2 { font-size: 1.0em; color: #fde68a; }
+section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
+h2 { color: #2563eb; font-size: 1.1em; }
+h3 { color: #4b5563; font-size: 1.0em; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
+code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
+table { font-size: 0.78em; border-collapse: collapse; }
+th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
+td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
+.big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
+.free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
+;" data-marpit-pagination-total="15" data-size="16:9">
+<h1 id="%E7%A2%BA%E8%AA%8D%E5%95%8F%E9%A1%8C">確認問題</h1>
+<p><strong>Q1</strong>: Supervisor Patternで本章で扱う「Log」レベルの介入は何をするか？</p>
+<ul>
+<li>A: 結果を記録する（フィードバック蓄積）</li>
 <li>B: 基準違反の場合に実行を取り消す</li>
 <li>C: 新しいセッションを開始する</li>
 </ul>
@@ -756,7 +836,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <li>C: 「何が課題か」に焦点を当て、人間が取捨選択する</li>
 </ul>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="14" data-paginate="true" data-class="cover" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="15" data-paginate="true" data-class="cover" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
 section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
 section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
@@ -773,7 +853,7 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-" lang="ja-JP" class="cover" data-marpit-pagination="14" style="--paginate:true;--class:cover;--theme:default;--style:section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+" lang="ja-JP" class="cover" data-marpit-pagination="15" style="--paginate:true;--class:cover;--theme:default;--style:section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
 section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
 section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
@@ -790,7 +870,7 @@ th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
 td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
 .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
-;" data-marpit-pagination-total="14" data-size="16:9">
+;" data-marpit-pagination-total="15" data-size="16:9">
 <h1 id="%E7%AC%AC14%E7%AB%A0-%E5%AE%8C%E4%BA%86">第14章 完了!</h1>
 <h2 id="posttooluse-supervisor%E3%83%91%E3%82%BF%E3%83%BC%E3%83%B3%E3%82%92%E7%90%86%E8%A7%A3%E3%81%97%E3%81%9F%E3%81%8B">PostToolUse Supervisorパターンを理解したか?</h2>
 <p><strong>到達点チェック</strong>:</p>
@@ -808,5 +888,5 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </section>
 <script>!function(){"use strict";const t={h1:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"1"},style:"display: block; font-size: 2em; margin-block-start: 0.67em; margin-block-end: 0.67em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h2:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"2"},style:"display: block; font-size: 1.5em; margin-block-start: 0.83em; margin-block-end: 0.83em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h3:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"3"},style:"display: block; font-size: 1.17em; margin-block-start: 1em; margin-block-end: 1em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h4:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"4"},style:"display: block; margin-block-start: 1.33em; margin-block-end: 1.33em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h5:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"5"},style:"display: block; font-size: 0.83em; margin-block-start: 1.67em; margin-block-end: 1.67em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h6:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"6"},style:"display: block; font-size: 0.67em; margin-block-start: 2.33em; margin-block-end: 2.33em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},span:{proto:()=>HTMLSpanElement},pre:{proto:()=>HTMLElement,style:"display: block; font-family: monospace; white-space: pre; margin: 1em 0; --marp-auto-scaling-white-space: pre;"}},e="data-marp-auto-scaling-wrapper",i="data-marp-auto-scaling-svg",n="data-marp-auto-scaling-container";class s extends HTMLElement{container;containerSize;containerObserver;svg;svgComputedStyle;svgPreserveAspectRatio="xMinYMid meet";wrapper;wrapperSize;wrapperObserver;constructor(){super();const t=t=>([e])=>{const{width:i,height:n}=e.contentRect;this[t]={width:i,height:n},this.updateSVGRect()};this.attachShadow({mode:"open"}),this.containerObserver=new ResizeObserver(t("containerSize")),this.wrapperObserver=new ResizeObserver((...e)=>{t("wrapperSize")(...e),this.flushSvgDisplay()})}static get observedAttributes(){return["data-downscale-only"]}connectedCallback(){this.shadowRoot.innerHTML=`\n<style>\n  svg[${i}] { display: block; width: 100%; height: auto; vertical-align: top; }\n  span[${n}] { display: table; white-space: var(--marp-auto-scaling-white-space, nowrap); width: max-content; }\n</style>\n<div ${e}>\n  <svg part="svg" ${i}>\n    <foreignObject><span ${n}><slot></slot></span></foreignObject>\n  </svg>\n</div>\n    `.split(/\n\s*/).join(""),this.wrapper=this.shadowRoot.querySelector(`div[${e}]`)??void 0;const t=this.svg;this.svg=this.wrapper?.querySelector(`svg[${i}]`)??void 0,this.svg!==t&&(this.svgComputedStyle=this.svg?window.getComputedStyle(this.svg):void 0),this.container=this.svg?.querySelector(`span[${n}]`)??void 0,this.observe()}disconnectedCallback(){this.svg=void 0,this.svgComputedStyle=void 0,this.wrapper=void 0,this.container=void 0,this.observe()}attributeChangedCallback(){this.observe()}flushSvgDisplay(){const{svg:t}=this;t&&(t.style.display="inline",requestAnimationFrame(()=>{t.style.display=""}))}observe(){this.containerObserver.disconnect(),this.wrapperObserver.disconnect(),this.wrapper&&this.wrapperObserver.observe(this.wrapper),this.container&&this.containerObserver.observe(this.container),this.svgComputedStyle&&this.observeSVGStyle(this.svgComputedStyle)}observeSVGStyle(t){const e=()=>{const i=(()=>{const e=t.getPropertyValue("--preserve-aspect-ratio");if(e)return e.trim();return`x${(({textAlign:t,direction:e})=>{if(t.endsWith("left"))return"Min";if(t.endsWith("right"))return"Max";if("start"===t||"end"===t){let i="rtl"===e;return"end"===t&&(i=!i),i?"Max":"Min"}return"Mid"})(t)}YMid meet`})();i!==this.svgPreserveAspectRatio&&(this.svgPreserveAspectRatio=i,this.updateSVGRect()),t===this.svgComputedStyle&&requestAnimationFrame(e)};e()}updateSVGRect(){let t=Math.ceil(this.containerSize?.width??0);const e=Math.ceil(this.containerSize?.height??0);void 0!==this.dataset.downscaleOnly&&(t=Math.max(t,this.wrapperSize?.width??0));const i=this.svg?.querySelector(":scope > foreignObject");if(i?.setAttribute("width",`${t}`),i?.setAttribute("height",`${e}`),this.svg&&(this.svg.setAttribute("viewBox",`0 0 ${t} ${e}`),this.svg.setAttribute("preserveAspectRatio",this.svgPreserveAspectRatio),this.svg.style.height=t<=0||e<=0?"0":""),this.container){const t=this.svgPreserveAspectRatio.toLowerCase();this.container.style.marginLeft=t.startsWith("xmid")||t.startsWith("xmax")?"auto":"0",this.container.style.marginRight=t.startsWith("xmi")?"auto":"0"}}}const r=(t,{attrs:e={},style:i})=>class extends t{constructor(...t){super(...t);for(const[t,i]of Object.entries(e))this.hasAttribute(t)||this.setAttribute(t,i);this._shadow()}static get observedAttributes(){return["data-auto-scaling"]}connectedCallback(){this._update()}attributeChangedCallback(){this._update()}_shadow(){if(!this.shadowRoot)try{this.attachShadow({mode:"open"})}catch(t){if(!(t instanceof Error&&"NotSupportedError"===t.name))throw t}return this.shadowRoot}_update(){const t=this._shadow();if(t){const e=i?`<style>:host { ${i} }</style>`:"";let n="<slot></slot>";const{autoScaling:s}=this.dataset;if(void 0!==s){n=`<marp-auto-scaling exportparts="svg:auto-scaling" ${"downscale-only"===s?"data-downscale-only":""}>${n}</marp-auto-scaling>`}t.innerHTML=e+n}}};let o;const a=Symbol(),l=()=>o??(o=!!document.createElement("div",{is:"marp-auto-scaling"}).outerHTML.startsWith("<div is"),o);let c;const d="marpitSVGPolyfill:setZoomFactor,",h=Symbol(),g=Symbol();const p=()=>{const t="Apple Computer, Inc."===navigator.vendor,e=t?[v]:[],i={then:e=>(t?(async()=>{if(void 0===c){const t=document.createElement("canvas");t.width=10,t.height=10;const e=t.getContext("2d"),i=new Image(10,10),n=new Promise(t=>{i.addEventListener("load",()=>t())});i.crossOrigin="anonymous",i.src="data:image/svg+xml;charset=utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2210%22%20height%3D%2210%22%20viewBox%3D%220%200%201%201%22%3E%3CforeignObject%20width%3D%221%22%20height%3D%221%22%20requiredExtensions%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxhtml%22%3E%3Cdiv%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxhtml%22%20style%3D%22width%3A%201px%3B%20height%3A%201px%3B%20background%3A%20red%3B%20position%3A%20relative%22%3E%3C%2Fdiv%3E%3C%2FforeignObject%3E%3C%2Fsvg%3E",await n,e.drawImage(i,0,0),c=e.getImageData(5,5,1,1).data[3]<128}return c})().then(t=>{null==e||e(t?[v]:[])}):null==e||e([]),i)};return Object.assign(e,i)};let m,u;function v(t){const e="object"==typeof t&&t.target||document,i="object"==typeof t?t.zoom:t;window[g]||(Object.defineProperty(window,g,{configurable:!0,value:!0}),document.body.style.zoom=1.0001,document.body.offsetHeight,document.body.style.zoom=1,window.addEventListener("message",({data:t,origin:e})=>{if(e===window.origin)try{if(t&&"string"==typeof t&&t.startsWith(d)){const[,e]=t.split(","),i=Number.parseFloat(e);Number.isNaN(i)||(u=i)}}catch(t){console.error(t)}}));let n=!1;Array.from(e.querySelectorAll("svg[data-marpit-svg]"),t=>{var e,s,r,o;t.style.transform||(t.style.transform="translateZ(0)");const a=i||u||t.currentScale||1;m!==a&&(m=a,n=a);const l=t.getBoundingClientRect(),{length:c}=t.children;for(let i=0;i<c;i+=1){const n=t.children[i];if(n.getScreenCTM){const t=n.getScreenCTM();if(t){const i=null!==(s=null===(e=n.x)||void 0===e?void 0:e.baseVal.value)&&void 0!==s?s:0,c=null!==(o=null===(r=n.y)||void 0===r?void 0:r.baseVal.value)&&void 0!==o?o:0,d=n.children.length;for(let e=0;e<d;e+=1){const s=n.children[e];if("SECTION"===s.tagName){const{style:e}=s;e.transformOrigin||(e.transformOrigin=`${-i}px ${-c}px`),e.transform=`scale(${a}) matrix(${t.a}, ${t.b}, ${t.c}, ${t.d}, ${t.e-l.left}, ${t.f-l.top}) translateZ(0.0001px)`;break}}}}}}),!1!==n&&Array.from(e.querySelectorAll("iframe"),({contentWindow:t})=>{null==t||t.postMessage(`${d}${n}`,"null"===window.origin?"*":window.origin)})}function w({once:t=!1,target:e=document}={}){const i=function(t=document){if(t[h])return t[h];let e=!0;const i=()=>{e=!1,delete t[h]};Object.defineProperty(t,h,{configurable:!0,value:i});let n=[],s=!1;(async()=>{try{n=await p()}finally{s=!0}})();const r=()=>{for(const e of n)e({target:t});s&&0===n.length||e&&window.requestAnimationFrame(r)};return r(),i}(e);return t?(i(),()=>{}):i}m=1,u=void 0;const b=Symbol(),y=(e=document)=>{if("undefined"==typeof window)throw new Error("Marp Core's browser script is valid only in browser context.");if(((e=document)=>{const i=window[a];i||customElements.define("marp-auto-scaling",s);for(const n of Object.keys(t)){const s=`marp-${n}`,o=t[n].proto();l()&&o!==HTMLElement?i||customElements.define(s,r(o,{style:t[n].style}),{extends:n}):(i||customElements.define(s,r(HTMLElement,t[n])),e.querySelectorAll(`${n}[is="${s}"]`).forEach(t=>{t.outerHTML=t.outerHTML.replace(new RegExp(`^<${n}`,"i"),`<${s}`).replace(new RegExp(`</${n}>$`,"i"),`</${s}>`)}))}window[a]=!0})(e),e[b])return e[b];const i=w({target:e}),n=()=>{i(),delete e[b]},o=Object.assign(n,{cleanup:n,update:()=>y(e)});return Object.defineProperty(e,b,{configurable:!0,value:o}),o},f=document.currentScript;y(f?f.getRootNode():document)}();
 </script></foreignObject></svg></div><div class="bespoke-marp-note" data-index="0" tabindex="0"><p>スピーカーノート:
-中級編第14章へようこそ。この章ではPostToolUse Supervisorパターンを解説します。AIのツール実行後に自動でフィードバックを収集し、構造化された学習データに変換する仕組みです。ステークホルダーの感情を客観的な改善データに変える方法を学びます。なぎなたと申します。</p></div><div class="bespoke-marp-note" data-index="1" tabindex="0"><p>この章では5つの到達点を目指します。Supervisor Patternの概念、PostToolUse hookによるフィードバック自動化の設計、カスタムslash commandの作成、感情から構造化データへの変換パイプライン、チーム運用の設計方法を学びます。</p></div><div class="bespoke-marp-note" data-index="2" tabindex="0"><p>このスライドがつかみです。ステークホルダーの怒りや不満の裏には、品質改善のヒントが隠れています。しかし残念なことに、ほとんどの場合この情報は口頭で消えてしまい、二度と活用されません。この章では、消えてしまう情報を自動的に永続化する仕組みを解説します。</p></div><div class="bespoke-marp-note" data-index="3" tabindex="0"><p>Supervisor Patternの概念です。PostToolUse hookを使ってAIのツール実行結果を監視します。介入は3つのレベルに分かれます。Logは結果を記録するだけ、Validateは基準を満たすか検証、Blockは基準違反の場合に実行を取り消します。フィードバック自動化では主にLogレベルを使います。</p></div><div class="bespoke-marp-note" data-index="4" tabindex="0"><p>フィードバック変換パイプラインの全体像です。Capture、Analyze、Draft、Reviewの4段階で構成されます。Captureで生の発言を受け取り、Analyzeで感情と改善ヒントを抽出し、Draftで文書を自動生成し、Reviewで人間が判定します。AIは感情を除去して事実ベースの構造化が得意なので、この変換に適しています。</p></div><div class="bespoke-marp-note" data-index="5" tabindex="0"><p>CaptureとAnalyzeの詳細です。Captureではステークホルダーの発言をそのまま入力します。カギカッコや感嘆符が含まれていてもそのまま渡します。AnalyzeでAIが分析します。感情のラベリング、本質の抽出、改善ヒントの提案、影響度の評価を自動で行います。この例では、怒りの背後にある本質はマージ前のテスト実行漏れです。</p></div><div class="bespoke-marp-note" data-index="6" tabindex="0"><p>DraftとReviewの詳細です。DraftではWhat、Impact、Fix、Preventionの4要素で構造化されたフィードバックを自動生成します。Reviewでは人間がy、e、nの3つのアクションから選択します。すべてのフィードバックを保存する必要はなく、取捨選択を人間が行うことが品質の鍵です。</p></div><div class="bespoke-marp-note" data-index="7" tabindex="0"><p>カスタムslash commandの作成方法です。.claude/commands/ディレクトリに.mdファイルを置くだけでslash commandとして認識されます。$ARGUMENTSという変数にコマンド後のテキストが自動挿入されます。ファイル名がコマンド名になり、複数階層のディレクトリ構造もサポートされています。</p></div><div class="bespoke-marp-note" data-index="8" tabindex="0"><p>変換の実例です。コード品質に対する不満を入力すると、AIは呆れの感情を検出し、本質が型アノテーションの欠如であることを抽出します。生成されるフィードバックはWhat、Impact、Fix、Preventionの4要素で構造化されます。これがyで承認されればmemoryディレクトリに保存されます。</p></div><div class="bespoke-marp-note" data-index="9" tabindex="0"><p>2つ目の実例です。スコープ逸脱に対する不満の変換例です。「要件書いてあるでしょ？なんで勝手にUI変えてるの？」という発言から、AIは不信感を検出します。本質はAIが自律的に要件外の変更を行ったことです。生成されるフィードバックではスコープ外変更の禁止と、実装前の要件適合性確認を推奨しています。</p></div><div class="bespoke-marp-note" data-index="10" tabindex="0"><p>チームでの運用方法です。入力者は全メンバー、レビュー者はテックリードやPMが週次で担当します。運用サイクルはCapture、Review、Store、Actの4ステップです。重要なのはフィードバックを誰が言ったかではなく何が課題かに焦点を当てることです。個人の攻撃ではなくプロセス改善に繋げるのが目的です。</p></div><div class="bespoke-marp-note" data-index="11" tabindex="0"><p>この章のまとめです。Supervisor PatternはPostToolUse hookでツール実行結果を監視するパターンです。フィードバック変換パイプラインは4段階で感情を構造化データに変換します。カスタムslash commandは簡単に作成でき、y/e/nレビューで人間が品質を担保します。チーム運用では全メンバーが入力し、テックリードが週次レビューします。</p></div><div class="bespoke-marp-note" data-index="12" tabindex="0"><p>確認問題です。Q1、Blockレベルは基準違反の場合に実行を取り消します。正解はBです。Q2、カスタムslash commandのディレクトリは.claude/commands/です。正解はBです。Q3、最も重要な原則は何が課題かに焦点を当て人間が取捨選択することです。正解はCです。</p></div><div class="bespoke-marp-note" data-index="13" tabindex="0"><p>第14章完了です。PostToolUse Supervisorパターンを理解できましたか。到達点を振り返りましょう。Supervisor Pattern、PostToolUse hook、カスタムslash command、変換パイプライン、チーム運用の5つを理解できていれば完璧です。次章ではGuardrail分類とHarness選定フレームワークを解説します。</p></div><script>/*!! License: https://unpkg.com/@marp-team/marp-cli@4.3.1/lib/bespoke.js.LICENSE.txt */
+中級編第14章へようこそ。この章ではPostToolUse Supervisorパターンを解説します。AIのツール実行後に自動でフィードバックを収集し、構造化された学習データに変換する仕組みです。ステークホルダーの感情を客観的な改善データに変える方法を学びます。なぎなたと申します。</p></div><div class="bespoke-marp-note" data-index="2" tabindex="0"><p>この章では5つの到達点を目指します。Supervisor Patternの概念、PostToolUse hookによるフィードバック自動化の設計、カスタムslash commandの作成、感情から構造化データへの変換パイプライン、チーム運用の設計方法を学びます。</p></div><div class="bespoke-marp-note" data-index="3" tabindex="0"><p>このスライドがつかみです。ステークホルダーの怒りや不満の裏には、品質改善のヒントが隠れています。しかし残念なことに、ほとんどの場合この情報は口頭で消えてしまい、二度と活用されません。この章では、消えてしまう情報を自動的に永続化する仕組みを解説します。</p></div><div class="bespoke-marp-note" data-index="4" tabindex="0"><p>Supervisor Patternの概念です。PostToolUse hookを使ってAIのツール実行結果を監視します。介入は3つのレベルに分かれます。Logは結果を記録するだけ、Validateは基準を満たすか検証、Blockは基準違反の場合に実行を取り消します。フィードバック自動化では主にLogレベルを使います。</p></div><div class="bespoke-marp-note" data-index="5" tabindex="0"><p>フィードバック変換パイプラインの全体像です。Capture、Analyze、Draft、Reviewの4段階で構成されます。Captureで生の発言を受け取り、Analyzeで感情と改善ヒントを抽出し、Draftで文書を自動生成し、Reviewで人間が判定します。AIは感情を除去して事実ベースの構造化が得意なので、この変換に適しています。</p></div><div class="bespoke-marp-note" data-index="6" tabindex="0"><p>CaptureとAnalyzeの詳細です。Captureではステークホルダーの発言をそのまま入力します。カギカッコや感嘆符が含まれていてもそのまま渡します。AnalyzeでAIが分析します。感情のラベリング、本質の抽出、改善ヒントの提案、影響度の評価を自動で行います。この例では、怒りの背後にある本質はマージ前のテスト実行漏れです。</p></div><div class="bespoke-marp-note" data-index="7" tabindex="0"><p>DraftとReviewの詳細です。DraftではWhat、Impact、Fix、Preventionの4要素で構造化されたフィードバックを自動生成します。Reviewでは人間がy、e、nの3つのアクションから選択します。すべてのフィードバックを保存する必要はなく、取捨選択を人間が行うことが品質の鍵です。</p></div><div class="bespoke-marp-note" data-index="8" tabindex="0"><p>カスタムslash commandの作成方法です。.claude/commands/ディレクトリに.mdファイルを置くだけでslash commandとして認識されます。$ARGUMENTSという変数にコマンド後のテキストが自動挿入されます。ファイル名がコマンド名になり、複数階層のディレクトリ構造もサポートされています。</p></div><div class="bespoke-marp-note" data-index="9" tabindex="0"><p>変換の実例です。コード品質に対する不満を入力すると、AIは呆れの感情を検出し、本質が型アノテーションの欠如であることを抽出します。生成されるフィードバックはWhat、Impact、Fix、Preventionの4要素で構造化されます。これがyで承認されればmemoryディレクトリに保存されます。</p></div><div class="bespoke-marp-note" data-index="10" tabindex="0"><p>2つ目の実例です。スコープ逸脱に対する不満の変換例です。「要件書いてあるでしょ？なんで勝手にUI変えてるの？」という発言から、AIは不信感を検出します。本質はAIが自律的に要件外の変更を行ったことです。生成されるフィードバックではスコープ外変更の禁止と、実装前の要件適合性確認を推奨しています。</p></div><div class="bespoke-marp-note" data-index="11" tabindex="0"><p>チームでの運用方法です。入力者は全メンバー、レビュー者はテックリードやPMが週次で担当します。運用サイクルはCapture、Review、Store、Actの4ステップです。重要なのはフィードバックを誰が言ったかではなく何が課題かに焦点を当てることです。個人の攻撃ではなくプロセス改善に繋げるのが目的です。</p></div><div class="bespoke-marp-note" data-index="12" tabindex="0"><p>この章のまとめです。Supervisor PatternはPostToolUse hookでツール実行結果を監視するパターンです。フィードバック変換パイプラインは4段階で感情を構造化データに変換します。カスタムslash commandは簡単に作成でき、y/e/nレビューで人間が品質を担保します。チーム運用では全メンバーが入力し、テックリードが週次レビューします。</p></div><div class="bespoke-marp-note" data-index="13" tabindex="0"><p>確認問題です。Q1、Logレベルは結果を記録してフィードバックを蓄積します。正解はAです。Q2、カスタムslash commandのディレクトリは.claude/commands/です。正解はBです。Q3、最も重要な原則は何が課題かに焦点を当て人間が取捨選択することです。正解はCです。</p></div><div class="bespoke-marp-note" data-index="14" tabindex="0"><p>第14章完了です。PostToolUse Supervisorパターンを理解できましたか。到達点を振り返りましょう。Supervisor Pattern、PostToolUse hook、カスタムslash command、変換パイプライン、チーム運用の5つを理解できていれば完璧です。次章ではGuardrail分類とHarness選定フレームワークを解説します。</p></div><script>/*!! License: https://unpkg.com/@marp-team/marp-cli@4.3.1/lib/bespoke.js.LICENSE.txt */
 !function(){"use strict";function e(e){return e&&e.__esModule&&Object.prototype.hasOwnProperty.call(e,"default")?e.default:e}var t,n,r=(n||(n=1,t={from:function(e,t){var n,r=1===(e.parent||e).nodeType?e.parent||e:document.querySelector(e.parent||e),o=[].filter.call("string"==typeof e.slides?r.querySelectorAll(e.slides):e.slides||r.children,function(e){return"SCRIPT"!==e.nodeName}),i={},a=function(e,t){return(t=t||{}).index=o.indexOf(e),t.slide=e,t},s=function(e,t){i[e]=(i[e]||[]).filter(function(e){return e!==t})},l=function(e,t){return(i[e]||[]).reduce(function(e,n){return e&&!1!==n(t)},!0)},c=function(e,t){o[e]&&(n&&l("deactivate",a(n,t)),n=o[e],l("activate",a(n,t)))},d=function(e,t){var r=o.indexOf(n)+e;l(e>0?"next":"prev",a(n,t))&&c(r,t)},u={off:s,on:function(e,t){return(i[e]||(i[e]=[])).push(t),s.bind(null,e,t)},fire:l,slide:function(e,t){if(!arguments.length)return o.indexOf(n);l("slide",a(o[e],t))&&c(e,t)},next:d.bind(null,1),prev:d.bind(null,-1),parent:r,slides:o,destroy:function(e){l("destroy",a(n,e)),i={}}};return(t||[]).forEach(function(e){e(u)}),n||c(0),u}}),t),o=e(r);const i=document.body,a=(...e)=>history.replaceState(...e),s="",l="presenter",c="next",d="overview",u=["",l,d,c],f="bespoke-marp-",m=`data-${f}`,g=(e,{protocol:t,host:n,pathname:r,hash:o}=location)=>{const i=e.toString();return`${t}//${n}${r}${i?"?":""}${i}${o}`},p=()=>i.dataset.bespokeView,v=e=>new URLSearchParams(location.search).get(e),h=(e,t={})=>{const n={location,setter:a,...t},r=new URLSearchParams(n.location.search);for(const t of Object.keys(e)){const n=e[t];"string"==typeof n?r.set(t,n):r.delete(t)}try{n.setter({...window.history.state??{}},"",g(r,n.location))}catch(e){console.error(e)}},w=(()=>{const e="bespoke-marp";try{return localStorage.setItem(e,e),localStorage.removeItem(e),!0}catch{return!1}})(),y=e=>{try{return localStorage.getItem(e)}catch{return null}},b=(e,t)=>{try{return localStorage.setItem(e,t),!0}catch{return!1}},k=e=>{try{return localStorage.removeItem(e),!0}catch{return!1}},x=(e,t)=>{const n="aria-hidden";t?e.setAttribute(n,"true"):e.removeAttribute(n)},E=e=>{e.parent.classList.add(`${f}parent`),e.slides.forEach(e=>e.classList.add(`${f}slide`)),e.on("activate",t=>{const n=`${f}active`,r=t.slide,o=r.classList,i=!o.contains(n);if(e.slides.forEach(e=>{e.classList.remove(n),x(e,!0)}),o.add(n),x(r,!1),i){const e=`${n}-ready`;o.add(e),document.body.clientHeight,o.remove(e)}})},$=e=>{let t=0,n=0;Object.defineProperty(e,"fragments",{enumerable:!0,value:e.slides.map(e=>[null,...e.querySelectorAll("[data-marpit-fragment]")])});const r=r=>void 0!==e.fragments[t][n+r],o=(r,o)=>{t=r,n=o,e.fragments.forEach((e,t)=>{e.forEach((e,n)=>{if(null==e)return;const i=t<r||t===r&&n<=o;e.setAttribute(`${m}fragment`,(i?"":"in")+"active");const a=`${m}current-fragment`;t===r&&n===o?e.setAttribute(a,"current"):e.removeAttribute(a)})}),e.fragmentIndex=o;const i={slide:e.slides[r],index:r,fragments:e.fragments[r],fragmentIndex:o};e.fire("fragment",i)};e.on("next",({fragment:i=!0})=>{if(i){if(r(1))return o(t,n+1),!1;const i=t+1;e.fragments[i]&&o(i,0)}else{const r=e.fragments[t].length;if(n+1<r)return o(t,r-1),!1;const i=e.fragments[t+1];i&&o(t+1,i.length-1)}}),e.on("prev",({fragment:i=!0})=>{if(r(-1)&&i)return o(t,n-1),!1;const a=t-1;e.fragments[a]&&o(a,e.fragments[a].length-1)}),e.on("slide",({index:t,fragment:n})=>{let r=0;if(void 0!==n){const o=e.fragments[t];if(o){const{length:e}=o;r=-1===n?e-1:Math.min(Math.max(n,0),e-1)}}o(t,r)}),o(0,0)},L=document,S=()=>!(!L.fullscreenEnabled&&!L.webkitFullscreenEnabled),P=()=>!(!L.fullscreenElement&&!L.webkitFullscreenElement),_=e=>{e.fullscreen=()=>{S()&&(async()=>{P()?(L.exitFullscreen||L.webkitExitFullscreen)?.call(L):((e=L.body)=>{(e.requestFullscreen||e.webkitRequestFullscreen)?.call(e)})()})()},document.addEventListener("keydown",t=>{"f"!==t.key&&"F11"!==t.key||t.altKey||t.ctrlKey||t.metaKey||!S()||(e.fullscreen(),t.preventDefault())})},O=`${f}inactive`,T=(e=2e3)=>({parent:t,fire:n})=>{const r=t.classList,o=e=>n(`marp-${e?"":"in"}active`);let i;const a=()=>{i&&clearTimeout(i),i=setTimeout(()=>{r.add(O),o()},e),r.contains(O)&&(r.remove(O),o(!0))};for(const e of["mousedown","mousemove","touchend"])document.addEventListener(e,a);setTimeout(a,0)},I=["AUDIO","BUTTON","INPUT","SELECT","TEXTAREA","VIDEO"],M=e=>{e.parent.addEventListener("keydown",e=>{if(!e.target)return;const t=e.target;(I.includes(t.nodeName)||"true"===t.contentEditable)&&e.stopPropagation()})},A=e=>{window.addEventListener("load",()=>{for(const t of e.slides){const e=t.querySelector("marp-auto-scaling, [data-auto-scaling], [data-marp-fitting]");t.setAttribute(`${m}load`,e?"":"hideable")}})},C=({interval:e=250}={})=>t=>{document.addEventListener("keydown",e=>{if(" "===e.key&&e.shiftKey)t.prev();else if("ArrowLeft"===e.key||"ArrowUp"===e.key||"PageUp"===e.key)t.prev({fragment:!e.shiftKey});else if(" "!==e.key||e.shiftKey)if("ArrowRight"===e.key||"ArrowDown"===e.key||"PageDown"===e.key)t.next({fragment:!e.shiftKey});else if("End"===e.key)t.slide(t.slides.length-1,{fragment:-1});else{if("Home"!==e.key)return;t.slide(0)}else t.next();e.preventDefault()});let n,r,o=0;t.parent.addEventListener("wheel",i=>{let a=!1;const s=(e,t)=>{e&&(a=a||((e,t)=>((e,t)=>{const n="X"===t?"Width":"Height";return e[`client${n}`]<e[`scroll${n}`]})(e,t)&&((e,t)=>{const{overflow:n}=e,r=e[`overflow${t}`];return"auto"===n||"scroll"===n||"auto"===r||"scroll"===r})(getComputedStyle(e),t))(e,t)),e?.parentElement&&s(e.parentElement,t)};if(0!==i.deltaX&&s(i.target,"X"),0!==i.deltaY&&s(i.target,"Y"),a)return;i.preventDefault();const l=Math.sqrt(i.deltaX**2+i.deltaY**2);if(void 0!==i.wheelDelta){if(void 0===i.webkitForce&&Math.abs(i.wheelDelta)<40)return;if(i.deltaMode===i.DOM_DELTA_PIXEL&&l<4)return}else if(i.deltaMode===i.DOM_DELTA_PIXEL&&l<12)return;r&&clearTimeout(r),r=setTimeout(()=>{n=0},e);const c=Date.now()-o<e,d=l<=n;if(n=l,c||d)return;let u;(i.deltaX>0||i.deltaY>0)&&(u="next"),(i.deltaX<0||i.deltaY<0)&&(u="prev"),u&&(t[u](),o=Date.now())})},D=(e=`.${f}osc`)=>{const t=document.querySelector(e);if(!t)return()=>{};const n=(e,n)=>{t.querySelectorAll(`[${m}osc=${JSON.stringify(e)}]`).forEach(n)};if(S()||n("fullscreen",e=>e.style.display="none"),!w){const e=(e,t)=>{e.disabled=!0,e.title=`${t} is disabled due to restricted localStorage.`};n("presenter",t=>e(t,"Presenter view")),n("overview",t=>e(t,"Overview view"))}return e=>{t.addEventListener("click",t=>{if(t.target instanceof HTMLElement){const{bespokeMarpOsc:n}=t.target.dataset;n&&t.target.blur();const r={fragment:!t.shiftKey};"next"===n?e.next(r):"prev"===n?e.prev(r):"fullscreen"===n?e?.fullscreen():"presenter"===n?e.openPresenterView():"overview"===n&&e.toggleOverviewView()}}),e.parent.appendChild(t),e.on("activate",({index:t})=>{n("page",n=>n.textContent=`Page ${t+1} of ${e.slides.length}`)}),e.on("fragment",({index:t,fragments:r,fragmentIndex:o})=>{n("prev",e=>e.disabled=0===t&&0===o),n("next",n=>n.disabled=t===e.slides.length-1&&o===r.length-1)}),e.on("marp-active",()=>x(t,!1)),e.on("marp-inactive",()=>x(t,!0)),S()&&(e=>{for(const t of["","webkit"])L.addEventListener(t+"fullscreenchange",e)})(()=>n("fullscreen",e=>e.classList.toggle("exit",S()&&P())))}},N=e=>{if(e.syncKey&&"string"==typeof e.syncKey)return!0;throw new Error("The current instance of Bespoke.js is incompatible with Marp bespoke sync plugin.")},B=(e={})=>{const t=e.key||window.history.state?.marpBespokeSyncKey||Math.random().toString(36).slice(2),n=`bespoke-marp-sync-${t}`;var r;r={marpBespokeSyncKey:t},h({},{setter:(e,...t)=>a({...e,...r},...t)});const o=()=>{const e=y(n);return e?JSON.parse(e):Object.create(null)},i=e=>{const t=o(),r={...t,...e(t)};return b(n,JSON.stringify(r)),r},s=()=>{window.removeEventListener("pageshow",s),i(e=>({reference:(e.reference||0)+1}))};return e=>{s(),Object.defineProperty(e,"syncKey",{value:t,enumerable:!0});let r=!0;setTimeout(()=>{e.on("fragment",e=>{r&&i(()=>({index:e.index,fragmentIndex:e.fragmentIndex}))})},0),window.addEventListener("storage",t=>{if(t.key===n&&t.oldValue&&t.newValue){const n=JSON.parse(t.oldValue),o=JSON.parse(t.newValue);if(n.index!==o.index||n.fragmentIndex!==o.fragmentIndex)try{r=!1,e.slide(o.index,{fragment:o.fragmentIndex,forSync:!0})}finally{r=!0}}});const a=()=>{const{reference:e}=o();void 0===e||e<=1?k(n):i(()=>({reference:e-1}))};window.addEventListener("pagehide",e=>{e.persisted&&window.addEventListener("pageshow",s),a()}),e.on("destroy",a)}},K=e=>{w&&document.addEventListener("keydown",t=>{("o"!==t.key||t.altKey||t.ctrlKey||t.metaKey)&&"Escape"!==t.key||(t.preventDefault(),e())})};let q=null;const V=({closeOnSelect:e=!0}={})=>t=>{N(t);const n=n=>{const r=(()=>{if(!q||!q.isConnected){q=document.createElement("div"),q.className=`${f}overview`,q.inert=!0;const n=document.createElement("iframe");n.src=(()=>{const n=new URLSearchParams(location.search);return n.set("view","overview"),n.set("sync",t.syncKey),e&&n.set("closeOnSelect","1"),g(n)})(),q.append(n),document.body.append(q)}return q})(),o=n??!r.dataset.open;setTimeout(()=>{if(r.dataset.open=o?"1":"",r.inert=!o,t.skipTransition=o,o){const e=r.querySelector("iframe");try{e?.contentWindow?.focus()}catch{e?.focus()}}else window.focus()},0)};Object.defineProperties(t,{toggleOverviewView:{enumerable:!0,value:n}}),window.addEventListener("message",e=>{e.origin===window.origin&&"closeOverview"===e.data&&n(!1)}),K(n)},j=e=>{const{title:t}=document;document.title="[Overview]"+(t?` - ${t}`:"");const n=!!v("closeOnSelect"),r=()=>{window.parent.postMessage("closeOverview","null"===window.origin?"*":window.origin)};if(e.slides.forEach((t,o)=>{t.tabIndex=0;const i=()=>{e.slide(o,{fragment:-1}),n&&r()};t.addEventListener("click",i),t.addEventListener("keydown",e=>{"Enter"!==e.key&&" "!==e.key||(e.preventDefault(),i())})}),window.addEventListener("keydown",t=>{const n=e.slide(),r=t=>{const r=t=>{const n=e.slides[t].getBoundingClientRect();return[Math.round((n.left+n.right)/2),Math.round((n.top+n.bottom)/2)]};let o=null,i=n;do{const e=r(i);if(o){if(Math.abs(e[0]-o[0])<2)return i}else o=e;i+=t}while(i>=0&&i<e.slides.length);return n};if("ArrowLeft"===t.key)e.slide(Math.max(n-1,0),{fragment:-1});else if("ArrowRight"===t.key)e.slide(Math.min(n+1,e.slides.length-1),{fragment:-1});else if("ArrowUp"===t.key)e.slide(r(-1),{fragment:-1});else if("ArrowDown"===t.key)e.slide(r(1),{fragment:-1});else if("End"===t.key)e.slide(e.slides.length-1,{fragment:-1});else{if("Home"!==t.key)return;e.slide(0,{fragment:-1})}t.preventDefault();const o=e.slide();e.slides[o]?.focus?.(),e.slides[o]?.scrollIntoView?.({behavior:"smooth",block:"nearest"})}),e.on("slide",({index:t})=>{e.slides[t]?.scrollIntoView?.({behavior:"smooth",block:"nearest"})}),window.parent!==window){K(r);const e=document.createElement("header");e.className=`${f}overview-header`;const t=document.createElement("button");t.className=`${f}overview-close`,t.type="button",t.title="Close overview",t.textContent=t.title,t.addEventListener("click",r),e.append(t),document.body.prepend(e)}},F=()=>{const e=p();return{[s]:V(),[l]:V({closeOnSelect:!1}),[d]:j}[e]},U=e=>{window.addEventListener("message",t=>{if(t.origin!==window.origin)return;const[n,r]=t.data.split(":");if("navigate"===n){const[t,n]=r.split(",");let o=Number.parseInt(t,10),i=Number.parseInt(n,10)+1;i>=e.fragments[o].length&&(o+=1,i=0),e.slide(o,{fragment:i})}})};var R,X,H,W,J,Y,z,G={exports:{}},Q=(R||(R=1,G.exports=(X=["area","base","br","col","command","embed","hr","img","input","keygen","link","meta","param","source","track","wbr"],H=function(e){return String(e).replace(/[&<>"']/g,function(e){return"&"+W[e]+";"})},W={"&":"amp","<":"lt",">":"gt",'"':"quot","'":"apos"},J="dangerouslySetInnerHTML",Y={className:"class",htmlFor:"for"},z={},function(e,t){var n=[],r="";t=t||{};for(var o=arguments.length;o-- >2;)n.push(arguments[o]);if("function"==typeof e)return t.children=n.reverse(),e(t);if(e){if(r+="<"+e,t)for(var i in t)!1!==t[i]&&null!=t[i]&&i!==J&&(r+=" "+(Y[i]?Y[i]:H(i))+'="'+H(t[i])+'"');r+=">"}if(-1===X.indexOf(e)){if(t[J])r+=t[J].__html;else for(;n.length;){var a=n.pop();if(a)if(a.pop)for(var s=a.length;s--;)n.push(a[s]);else r+=!0===z[a]?a:H(a)}r+=e?"</"+e+">":""}return z[r]=!0,r})),G.exports),Z=e(Q);const ee=({children:e})=>Z(null,null,...e),te=`${f}presenter-`,ne={container:`${te}container`,dragbar:`${te}dragbar-container`,next:`${te}next`,nextContainer:`${te}next-container`,noteContainer:`${te}note-container`,noteWrapper:`${te}note-wrapper`,noteButtons:`${te}note-buttons`,infoContainer:`${te}info-container`,infoPageArea:`${te}info-page-area`,infoPage:`${te}info-page`,infoPagePrev:`${te}info-page-prev`,infoPageNext:`${te}info-page-next`,noteButtonsBigger:`${te}note-bigger`,noteButtonsSmaller:`${te}note-smaller`,infoTime:`${te}info-time`,infoTimer:`${te}info-timer`},re=e=>{const{title:t}=document;document.title="[Presenter view]"+(t?` - ${t}`:"");const n={},r=e=>(n[e]=n[e]||document.querySelector(`.${e}`),n[e]);document.body.appendChild((e=>{const t=document.createElement("div");return t.className=ne.container,t.appendChild(e),t.insertAdjacentHTML("beforeend",Z(ee,null,Z("div",{class:ne.nextContainer},Z("iframe",{class:ne.next,src:"?view=next"})),Z("div",{class:ne.dragbar}),Z("div",{class:ne.noteContainer},Z("div",{class:ne.noteWrapper}),Z("div",{class:ne.noteButtons},Z("button",{class:ne.noteButtonsSmaller,tabindex:"-1",title:"Smaller notes font size"},"Smaller notes font size"),Z("button",{class:ne.noteButtonsBigger,tabindex:"-1",title:"Bigger notes font size"},"Bigger notes font size"))),Z("div",{class:ne.infoContainer},Z("div",{class:ne.infoPageArea},Z("button",{class:ne.infoPagePrev,tabindex:"-1",title:"Previous"},"Previous"),Z("button",{class:ne.infoPage}),Z("button",{class:ne.infoPageNext,tabindex:"-1",title:"Next"},"Next")),Z("time",{class:ne.infoTime,title:"Current time"}),Z("time",{class:ne.infoTimer,title:"Timer"})))),t})(e.parent)),(e=>{let t=!1;r(ne.dragbar).addEventListener("mousedown",()=>{t=!0,r(ne.dragbar).classList.add("active")}),window.addEventListener("mouseup",()=>{t=!1,r(ne.dragbar).classList.remove("active")}),window.addEventListener("mousemove",e=>{if(!t)return;const n=e.clientX/document.documentElement.clientWidth*100;r(ne.container).style.setProperty("--bespoke-marp-presenter-split-ratio",`${Math.max(0,Math.min(100,n))}%`)}),r(ne.nextContainer).addEventListener("click",()=>e.next());const n=r(ne.next),o=(i=n,(e,t)=>i.contentWindow?.postMessage(`navigate:${e},${t}`,"null"===window.origin?"*":window.origin));var i;n.addEventListener("load",()=>{r(ne.nextContainer).classList.add("active"),o(e.slide(),e.fragmentIndex),e.on("fragment",({index:e,fragmentIndex:t})=>o(e,t))});const a=document.querySelectorAll(".bespoke-marp-note");a.forEach(e=>{e.addEventListener("keydown",e=>e.stopPropagation()),r(ne.noteWrapper).appendChild(e)}),e.on("activate",()=>a.forEach(t=>t.classList.toggle("active",t.dataset.index==e.slide())));let s=0;const l=e=>{s=Math.max(-5,s+e),r(ne.noteContainer).style.setProperty("--bespoke-marp-note-font-scale",(1.2**s).toFixed(4))},c=()=>l(1),d=()=>l(-1),u=r(ne.noteButtonsBigger),f=r(ne.noteButtonsSmaller);u.addEventListener("click",()=>{u.blur(),c()}),f.addEventListener("click",()=>{f.blur(),d()}),document.addEventListener("keydown",e=>{"+"===e.key&&c(),"-"===e.key&&d()},!0);const m=r(ne.infoPage);e.on("activate",({index:t})=>{m.textContent=`${t+1} / ${e.slides.length}`}),m.addEventListener("click",()=>{m.blur(),e.toggleOverviewView()});const g=r(ne.infoPagePrev),p=r(ne.infoPageNext);g.addEventListener("click",t=>{g.blur(),e.prev({fragment:!t.shiftKey})}),p.addEventListener("click",t=>{p.blur(),e.next({fragment:!t.shiftKey})}),e.on("fragment",({index:t,fragments:n,fragmentIndex:r})=>{g.disabled=0===t&&0===r,p.disabled=t===e.slides.length-1&&r===n.length-1});let v=new Date;const h=()=>{const e=new Date,t=e=>`${Math.floor(e)}`.padStart(2,"0"),n=e.getTime()-v.getTime(),o=t(n/1e3%60),i=t(n/1e3/60%60),a=t(n/36e5%24);r(ne.infoTime).textContent=e.toLocaleTimeString(),r(ne.infoTimer).textContent=`${a}:${i}:${o}`};h(),setInterval(h,250),r(ne.infoTimer).addEventListener("click",()=>{v=new Date})})(e)},oe=e=>{N(e),Object.defineProperties(e,{openPresenterView:{enumerable:!0,value:ie},presenterUrl:{enumerable:!0,get:ae}}),w&&document.addEventListener("keydown",t=>{"p"!==t.key||t.altKey||t.ctrlKey||t.metaKey||(t.preventDefault(),e.openPresenterView())})};function ie(){const{max:e,floor:t}=Math,n=e(t(.85*window.innerWidth),640),r=e(t(.85*window.innerHeight),360);return window.open(this.presenterUrl,te+this.syncKey,`width=${n},height=${r},menubar=no,toolbar=no`)}function ae(){const e=new URLSearchParams(location.search);return e.set("view","presenter"),e.set("sync",this.syncKey),g(e)}const se=e=>{const t=p();return t===c&&e.appendChild(document.createElement("span")),{[s]:oe,[l]:re,[c]:U}[t]},le=e=>{e.on("activate",t=>{document.querySelectorAll(".bespoke-progress-parent > .bespoke-progress-bar").forEach(n=>{n.style.flexBasis=100*t.index/(e.slides.length-1)+"%"})})},ce=e=>{const t=Number.parseInt(e,10);return Number.isNaN(t)?null:t},de=(e={})=>{const t={history:!0,...e};return e=>{let n=!0;const r=e=>{const t=n;try{return n=!0,e()}finally{n=t}},o=(t={fragment:!0})=>{let n=t.fragment?ce(v("f")||""):null;((t,n)=>{const{min:r,max:o}=Math,{fragments:i,slides:a}=e,s=o(0,r(t,a.length-1)),l=o(0,r(n||0,i[s].length-1));s===e.slide()&&l===e.fragmentIndex||e.slide(s,{fragment:l})})((()=>{if(location.hash){const[t]=location.hash.slice(1).split(":~:");if(/^\d+$/.test(t))return(ce(t)??1)-1;const r=document.getElementById(t)||document.querySelector(`a[name="${CSS.escape(t)}"]`);if(r){const{length:t}=e.slides;for(let o=0;o<t;o+=1)if(e.slides[o].contains(r)){const t=e.fragments?.[o],i=r.closest("[data-marpit-fragment]");if(t&&i){const e=t.indexOf(i);e>=0&&(n=e)}return o}}}return 0})(),n)};e.on("fragment",({index:e,fragmentIndex:r})=>{n||h({f:0===r||r.toString()},{location:{...location,hash:`#${e+1}`},setter:(...e)=>t.history?history.pushState(...e):history.replaceState(...e)})}),setTimeout(()=>{o(),window.addEventListener("hashchange",()=>r(()=>{o({fragment:!1}),h({f:void 0})})),window.addEventListener("popstate",()=>{n||r(()=>o())}),n=!1},0)}},{PI:ue,abs:fe,sqrt:me,atan2:ge}=Math,pe={passive:!0},ve=({slope:e=-.7,swipeThreshold:t=30}={})=>n=>{let r;const o=n.parent,i=e=>{const t=o.getBoundingClientRect();return{x:e.pageX-(t.left+t.right)/2,y:e.pageY-(t.top+t.bottom)/2}};o.addEventListener("touchstart",({touches:e})=>{r=1===e.length?i(e[0]):void 0},pe),o.addEventListener("touchmove",e=>{if(r)if(1===e.touches.length){e.preventDefault();const t=i(e.touches[0]),n=t.x-r.x,o=t.y-r.y;r.delta=me(fe(n)**2+fe(o)**2),r.radian=ge(n,o)}else r=void 0}),o.addEventListener("touchend",o=>{if(r){if(r.delta&&r.delta>=t&&r.radian){const t=(r.radian-e+ue)%(2*ue)-ue;n[t<0?"next":"prev"](),o.stopPropagation()}r=void 0}},pe)},he=new Map;he.clear(),he.set("none",{backward:{both:void 0,incoming:void 0,outgoing:void 0},forward:{both:void 0,incoming:void 0,outgoing:void 0}});const we={both:"",outgoing:"outgoing-",incoming:"incoming-"},ye={forward:"",backward:"-backward"},be=e=>`--marp-bespoke-transition-animation-${e}`,ke=e=>`--marp-transition-${e}`,xe=be("name"),Ee=be("duration"),$e=e=>new Promise(t=>{const n={},r=document.createElement("div"),o=e=>{r.remove(),t(e)};r.addEventListener("animationstart",()=>o(n)),Object.assign(r.style,{animationName:e,animationDuration:"1s",animationFillMode:"both",animationPlayState:"paused",position:"absolute",pointerEvents:"none"}),document.body.appendChild(r);const i=getComputedStyle(r).getPropertyValue(ke("duration"));i&&Number.parseFloat(i)>=0&&(n.defaultDuration=i),((e,t)=>{requestAnimationFrame(()=>{e.style.animationPlayState="running",requestAnimationFrame(()=>t(void 0))})})(r,o)}),Le=async e=>he.has(e)?he.get(e):(e=>{const t={},n=[];for(const[r,o]of Object.entries(we))for(const[i,a]of Object.entries(ye)){const s=`marp-${o}transition${a}-${e}`;n.push($e(s).then(e=>{t[i]=t[i]||{},t[i][r]=e?{...e,name:s}:void 0}))}return Promise.all(n).then(()=>t)})(e).then(t=>(he.set(e,t),t)),Se=e=>Object.values(e).flatMap(Object.values).every(e=>!e),Pe=(e,{type:t,backward:n})=>{const r=e[n?"backward":"forward"],o=(()=>{const e=r[t],n=e=>({[xe]:e.name});if(e)return n(e);if(r.both){const e=n(r.both);return"incoming"===t&&(e[be("direction")]="reverse"),e}})();return!o&&n?Pe(e,{type:t,backward:!1}):o||{[xe]:"__bespoke_marp_transition_no_animation__"}},_e=e=>{if(e)try{const t=JSON.parse(e);if((e=>{if("object"!=typeof e)return!1;const t=e;return"string"==typeof t.name&&(void 0===t.duration||"string"==typeof t.duration)})(t))return t}catch{}},Oe="_tSId",Te="_tA",Ie="bespoke-marp-transition-warming-up",Me=window.matchMedia("(prefers-reduced-motion: reduce)"),Ae="__bespoke_marp_transition_reduced_outgoing__",Ce="__bespoke_marp_transition_reduced_incoming__",De={forward:{both:void 0,incoming:{name:Ce},outgoing:{name:Ae}},backward:{both:void 0,incoming:{name:Ce},outgoing:{name:Ae}}},Ne=e=>{if(!document.startViewTransition)return;const t=t=>(void 0!==t&&(e._tD=t),e._tD);let n;t(!1),((...e)=>{CSS.registerProperty({name:ke("duration"),syntax:"<time>",inherits:!0,initialValue:"-1s"});const t=[...new Set(e).values()];return Promise.all(t.map(e=>Le(e))).then()})(...Array.from(document.querySelectorAll("section[data-transition], section[data-transition-back]")).flatMap(e=>[e.dataset.transition,e.dataset.transitionBack].flatMap(e=>{const t=_e(e);return[t?.name,t?.builtinFallback?`__builtin__${t.name}`:void 0]}).filter(e=>!!e))).then(()=>{document.querySelectorAll("style").forEach(e=>{e.innerHTML=e.innerHTML.replace(/--marp-transition-duration:[^;}]*[;}]/g,e=>e.slice(0,-1)+"!important"+e.slice(-1))})});const r=(n,{back:r,cond:o})=>i=>{const a=t();if(a)return!!i[Te]||!("object"!=typeof a||(a.skipTransition(),!i.forSync));if(e.skipTransition)return!0;if(!o(i))return!0;const s=e.slides[e.slide()],l=()=>i.back??r,c="data-transition"+(l()?"-back":""),d=s.querySelector(`section[${c}]`);if(!d)return!0;const u=_e(d.getAttribute(c)??void 0);return!u||((async(e,{builtinFallback:t=!0}={})=>{let n=await Le(e);if(Se(n)){if(!t)return;return n=await Le(`__builtin__${e}`),Se(n)?void 0:n}return n})(u.name,{builtinFallback:u.builtinFallback}).then(e=>{if(!e){t(!0);try{n(i)}finally{t(!1)}return}let r=e;Me.matches&&(console.warn("Use a constant animation to transition because preferring reduced motion by viewer has detected."),r=De);const o=document.getElementById(Oe);o&&o.remove();const a=document.createElement("style");a.id=Oe,document.head.appendChild(a),((e,t)=>{const n=[`:root{${ke("direction")}:${t.backward?-1:1};}`,":root:has(.bespoke-marp-inactive){cursor:none;}"],r=t=>{const n=e[t].both?.defaultDuration||e[t].outgoing?.defaultDuration||e[t].incoming?.defaultDuration;return"forward"===t?n:n||r("forward")},o=t.duration||r(t.backward?"backward":"forward");void 0!==o&&n.push(`::view-transition-group(*){${Ee}:${o};}`);const i=e=>Object.entries(e).map(([e,t])=>`${e}:${t};`).join("");return n.push(`::view-transition-old(root){${i(Pe(e,{...t,type:"outgoing"}))}}`,`::view-transition-new(root){${i(Pe(e,{...t,type:"incoming"}))}}`),n})(r,{backward:l(),duration:u.duration}).forEach(e=>a.sheet?.insertRule(e));const s=document.documentElement.classList;s.add(Ie);let c=!1;const d=()=>{c||(n(i),c=!0,s.remove(Ie))},f=()=>{t(!1),a.remove(),s.remove(Ie)};try{t(!0);const e=document.startViewTransition(d);t(e),e.finished.finally(f)}catch(e){console.error(e),d(),f()}}),!1)};e.on("prev",r(t=>e.prev({...t,[Te]:!0}),{back:!0,cond:e=>e.index>0&&!((e.fragment??1)&&n.fragmentIndex>0)})),e.on("next",r(t=>e.next({...t,[Te]:!0}),{cond:t=>t.index+1<e.slides.length&&!(n.fragmentIndex+1<n.fragments.length)})),setTimeout(()=>{e.on("slide",r(t=>e.slide(t.index,{...t,[Te]:!0}),{cond:t=>{const n=e.slide();return t.index!==n&&(t.back=t.index<n,!0)}}))},0),e.on("fragment",e=>{n=e})};let Be;const Ke=()=>(void 0===Be&&(Be="wakeLock"in navigator&&navigator.wakeLock),Be),qe=async()=>{const e=Ke();if(e)try{return await e.request("screen")}catch(e){console.warn(e)}return null},Ve=async()=>{if(!Ke())return;let e;const t=()=>{e&&"visible"===document.visibilityState&&qe()};for(const e of["visibilitychange","fullscreenchange"])document.addEventListener(e,t);return e=await qe(),e};((e=document.getElementById(":$p"))=>{(()=>{const e=v("view");i.dataset.bespokeView=u.some(t=>t&&t===e)?e:""})();const t=(e=>{const t=v(e);return h({[e]:void 0}),t})("sync")||void 0;o.from(e,((...e)=>{const t=u.findIndex(e=>p()===e);return e.map(([e,n])=>e[t]&&n).filter(e=>e)})([[1,1,1,0],B({key:t})],[[1,1,0,1],se(e)],[[1,1,0,0],M],[[1,1,1,1],E],[[1,0,0,0],T()],[[1,1,1,1],A],[[1,1,1,1],de({history:!1})],[[1,1,0,0],C()],[[1,1,1,0],_],[[1,0,0,0],le],[[1,1,0,0],ve()],[[1,0,0,0],D()],[[1,1,1,0],F()],[[1,0,0,0],Ne],[[1,1,1,1],$],[[1,1,1,0],Ve]))})()}();</script></body></html>
