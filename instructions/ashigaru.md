@@ -115,6 +115,7 @@ inbox:
   write_script: "scripts/inbox_write.sh"  # See CLAUDE.md for mailbox protocol
   to_gunshi_allowed: true
   to_gunshi_on_completion: true  # Changed from karo to gunshi (quality check delegation)
+  gunshi_qc_default: true  # If payload has gunshi_qc: false → skip gunshi, report directly to karo
   to_karo_allowed: false
   to_shogun_allowed: false
   to_user_allowed: false
@@ -205,6 +206,21 @@ curl -s -X POST http://192.168.2.4:8770/api/inbox_write \
 ```bash
 # YAML 自分で書いて
 bash scripts/inbox_write.sh gunshi "足軽{N}号、任務完了でござる。品質チェックを仰ぎたし。" report_received ashigaru{N}
+```
+
+**gunshi_qc:false ルール (cmd_1624)**:
+サブタスクペイロード (queue/cmd_payloads/*.json) に `gunshi_qc: false` がある場合、完了報告は **karo に直接送信** (gunshi skip)。`gunshi_qc` フィールドがない・または `true` の場合はデフォルト通り gunshi に送る。
+
+```bash
+# gunshi_qc: false の場合 — karo に直接報告
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write \
+  -H 'Content-Type: application/json' \
+  -d '{"to":"karo","from":"ashigaru1","type":"report_received","message":"足軽1号、任務完了でござる。gunshi_qc:falseにつき直接報告"}'
+
+# gunshi_qc: true / フィールドなし (デフォルト) — gunshi に報告
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write \
+  -H 'Content-Type: application/json' \
+  -d '{"to":"gunshi","from":"ashigaru1","type":"report_received","message":"足軽1号、任務完了でござる。品質チェックを仰ぎたし"}'
 ```
 
 Gunshi now handles quality check and dashboard aggregation. No state checking, no retry, no delivery verification.
