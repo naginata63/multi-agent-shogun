@@ -873,3 +873,124 @@ commands:
   - git commit + push 完了 (Phase 別 commit 推奨・各 finding ID と commit ハッシュの対応表を報告書に記載)
   - queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md 報告書作成
   notify_karo: true
+- id: cmd_1614
+  status: in_progress
+  priority: high
+  purpose: discord_news_bot.py の embed.image.url バリデーション追加で、不正 URL 検出時に当該 image を
+    skip (or embed ごと skip) し、後続記事の Discord 配信を継続させる。現在 4/30 の 1 件目 embed で 400 Bad
+    Request (Invalid Form Body) → 5 日分 (4/30〜5/4) の pending が累積詰まり中。修正後に累積 pending
+    を flush 配信。
+  timestamp: '2026-05-04T08:51:18+09:00'
+  project: multi-agent-shogun
+  lord_original: '殿原文 (要約): AI NEWS 生成がここ数日投稿されていない → 確認 → Discord 配信が 4/30 から詰まり
+    (image.url 不正 → 400) → C (バリデーション cmd) 起票'
+  north_star: AI NEWS の Discord 配信信頼性を回復し、1 件の bad URL で全停止する単一障害点を撲滅。今後の運用で『記事 1
+    件の異常がチャンネル全体を止める』状態を防ぎ、Udemy ハーネス編で『観測性 + graceful degradation』の実例として活用。
+  command_text: "=== 背景 ===\n2026-05-04 朝、殿が『AI NEWS が数日投稿されてない』と指摘。logs/genai_daily.log\
+    \ 調査で原因判明:\n```\n2026-05-04 07:12:05 [ERROR] discord.client: Ignoring exception\
+    \ in on_ready\n  ...\n  File '/home/murakami/multi-agent-shogun/scripts/discord_news_bot.py',\
+    \ line 195, in send_daily_news\n    msg = await channel.send(embed=embed)\n  ...\n\
+    \  discord.errors.HTTPException: 400 Bad Request (error code: 50035): Invalid\
+    \ Form Body\n  In embeds.0.image.url: Not a well formed URL.\n```\n\n## 詳細\n-\
+    \ 生成 (genai_daily_report.sh) は毎日成功 ✅ (Cloudflare Pages デプロイ済)\n- Discord 配信は **4/30\
+    \ の pending 10 件配信開始 → 1 件目 embed で image.url が不正** → 400 → 全停止\n- 累積 5 日分 (4/30,\
+    \ 5/1, 5/2, 5/3, 5/4) が Discord に流れていない\n- 8:43:41 にも RESUMED session 試行が見られるが同じエラーで失敗中\n\
+    \n=== 修正内容 ===\n\n## Step 1: scripts/discord_news_bot.py に URL バリデーション追加\n\n###\
+    \ 推奨実装位置\n- send_daily_news 関数 (L195 付近) の embed 作成箇所\n- もしくは embed.set_image(url=image_url)\
+    \ 直前\n\n### バリデーション基準\n```python\nfrom urllib.parse import urlparse\n\ndef is_valid_image_url(url:\
+    \ str) -> bool:\n    if not url:\n        return False\n    try:\n        parsed\
+    \ = urlparse(url)\n        if parsed.scheme not in ('http', 'https'):\n      \
+    \      return False\n        if not parsed.netloc:\n            return False\n\
+    \        # 一般的な画像拡張子チェック (オプション)\n        # ただし Discord は拡張子なし URL も受ける場合があるので緩めに\n\
+    \        return True\n    except Exception:\n        return False\n```\n\n###\
+    \ 適用方法\n```python\nimage_url = item.get('image_url', '')\nif is_valid_image_url(image_url):\n\
+    \    embed.set_image(url=image_url)\nelse:\n    if image_url:\n        logger.warning(f'invalid\
+    \ image_url skipped: {image_url[:80]}')\n    # image なしで embed を継続\n```\n\n##\
+    \ Step 2: send 失敗時の graceful degradation\n\n### embed 投稿の try/except\n```python\n\
+    for topic in topics:\n    embed = build_embed(topic)\n    try:\n        msg =\
+    \ await channel.send(embed=embed)\n    except discord.HTTPException as e:\n  \
+    \      logger.error(f'embed send failed (skipped): {e} / topic={topic.get(\"title\"\
+    , \"?\")[:50]}')\n        continue  # 次の topic へ\n```\n\n## Step 3: 累積 pending\
+    \ の flush\n\n### 修正後の手動実行\n```bash\ncd /home/murakami/multi-agent-shogun\nbash\
+    \ scripts/genai_daily_report.sh  # or python3 scripts/discord_news_bot.py --flush\n\
+    ```\n→ 4/30, 5/1, 5/2, 5/3, 5/4 の 5 日分が順次配信されること確認\n\n## Step 4: 不正 URL の root\
+    \ cause 調査 (オプション)\n\n### reports/genai_daily/2026-04-30.md 内の image_url を grep\n\
+    ```bash\ngrep -E 'image_url:|^!\\[' reports/genai_daily/2026-04-30.md | head -10\n\
+    ```\n→ どの記事の image_url が malformed か特定 → 元 RSS フィードの不具合確認\n\n## Step 5: 動作検証\n\
+    1. test_invalid_image_url.py 作成 (5 ケース: 空・http なし・空 netloc・javascript: scheme・正常)\n\
+    2. 修正版 discord_news_bot.py で test 実行\n3. 修正後 --flush で 5 日分 pending が Discord\
+    \ に届くこと確認\n4. logs/genai_daily.log に '[ERROR] discord.client' が出ないこと\n\n=== ルール\
+    \ ===\n- 既存 scripts/discord_news_bot.py の改修 (新規 .py 禁止)\n- 担当: 家老配分\n- 報告書: queue/reports/2026-05-04_cmd_1614_discord_url_validation.md\
+    \ (修正内容 + 累積 pending 配信結果 + bad URL の root cause)\n\n=== 完了条件 ===\n- discord_news_bot.py\
+    \ に is_valid_image_url() 追加・bad URL skip 動作確認\n- send 失敗時 try/except で次の topic\
+    \ へ継続 (1 件失敗で全停止しない)\n- 累積 5 日分 pending (4/30〜5/4) が Discord #生成ai-news に配信完了\n\
+    - bad URL の root cause 特定 (reports/genai_daily/.md のどの記事か)\n- 軍師 QC PASS\n- git\
+    \ commit + push 完了\n- queue/reports/2026-05-04_cmd_1614_discord_url_validation.md\
+    \ 報告書作成\n- 殿に ntfy 通知 (Discord 復活完了)"
+  acceptance_criteria:
+  - discord_news_bot.py に is_valid_image_url() バリデーション関数追加
+  - send_daily_news で image_url が不正なら set_image をスキップして embed 継続
+  - channel.send try/except で 1 件失敗が後続記事を止めないこと (graceful degradation)
+  - '累積 5 日分 pending (4/30〜5/4) が Discord #生成ai-news に配信完了'
+  - bad URL の root cause 特定 (どの記事の image_url が malformed か報告書記載)
+  - logs/genai_daily.log に discord 400 エラーが出ないこと
+  - 軍師 QC PASS
+  - git commit + push 完了
+  - queue/reports/2026-05-04_cmd_1614_discord_url_validation.md 報告書作成
+  - 殿に ntfy 通知 (Discord 復活)
+  notify_karo: true
+- id: cmd_1615
+  status: pending
+  priority: high
+  purpose: 雪合戦動画 tono_edit.mkv (1920×1080 FFV1) を縦型 1080×1920 にクロップし、YouTube に非公開アップロードする。概要欄は過去のドズル切り抜き
+    channel 標準テンプレを準拠して記載。
+  timestamp: '2026-05-04T09:04:19+09:00'
+  project: dozle_kirinuki
+  lord_original: '殿原文: ''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260503_季節外れの雪合戦でガチ対決！【マイクラ】/tono_edit.mkv''
+    縦書きにクロップして非公開アップ 過去の概要欄も参考にして記載せよ'
+  north_star: 雪合戦動画を YouTube ショート (縦型 9:16) として殿レビュー可能な状態にし、本番公開判断を仰ぐ。漫画ショートとは別ルート
+    (実動画) の制作プロセスを完成させる。
+  command_text: "=== 入力 ===\n- 元動画: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260503_季節外れの雪合戦でガチ対決！【マイクラ】/tono_edit.mkv\n\
+    - 仕様: 1920×1080 / 60fps / FFV1 mkv / FLAC音声 / 1.87GB\n- 関連 panel JSON: panels_yukigassen_base_edited.json\
+    \ (15 panel・参考用)\n- 元動画タイトル: 季節外れの雪合戦でガチ対決！【マイクラ】 (channel: ドズル社切り抜き想定)\n\n===\
+    \ 実行手順 ===\n\n## Step 1: 縦型クロップ (1920×1080 → 1080×1920)\n```bash\ncd /home/murakami/multi-agent-shogun\n\
+    python3 projects/dozle_kirinuki/scripts/vertical_convert.py \\\n  --input 'projects/dozle_kirinuki/work/20260503_季節外れの雪合戦でガチ対決！【マイクラ】/tono_edit.mkv'\
+    \ \\\n  --output 'projects/dozle_kirinuki/work/20260503_季節外れの雪合戦でガチ対決！【マイクラ】/tono_edit_vertical.mp4'\n\
+    ```\n\n注意:\n- vertical_convert.py の引数仕様を Read で先に確認 (--input/--output 形式・cropping\
+    \ 中心位置等)\n- cropping は中央寄せ default の場合、おおはらMEN/oo_men 中心構図になっているか確認\n- NVENC エンコード必須\
+    \ (h264_nvenc・shared_context/procedures/ffmpeg_nvenc.md 準拠)\n- FFV1 → mp4 の変換ゆえファイルサイズ大幅減\
+    \ (1.87GB → 100-300MB 想定)\n\n## Step 2: 出力動画の検証\n- ffprobe で 1080×1920 / 60fps\
+    \ / h264 確認\n- 再生テストで視聴可能か (殿スマホ用)\n\n## Step 3: 概要欄テンプレ参照\n```bash\n# 過去の概要欄テンプレ確認\
+    \ (家老が場所特定)\nls shared_context/procedures/ | grep -E 'description|youtube|shorts'\n\
+    find projects/dozle_kirinuki -name 'shorts_description*' -o -name 'manga_short_description*'\
+    \ 2>/dev/null\n```\n\n推奨参照:\n- shared_context/procedures/manga_short_description_format.md\n\
+    - projects/dozle_kirinuki/context/shorts_command_template.md (もし存在)\n\n概要欄に含める要素:\n\
+    - 元動画タイトル + チャンネル名\n- 元動画 URL (https://youtu.be/X9BWyuqSy_k 等・要確認)\n- メンバー紹介 (出演者リンク)\n\
+    - ハッシュタグ (#ドズル社 #マイクラ #切り抜き #ショート 等)\n- 切り抜き channel の固定文 (過去動画から踏襲)\n\n## Step\
+    \ 4: YouTube 非公開アップロード\n```bash\npython3 projects/dozle_kirinuki/scripts/youtube_uploader.py\
+    \ \\\n  --file <tono_edit_vertical.mp4> \\\n  --title '雪合戦でおおはらMENが組み分け帽になってチーム決め\
+    \ (組み分けハッ卑怯! 編)' \\\n  --description-file <概要欄テンプレ.txt> \\\n  --privacy unlisted\
+    \ \\\n  --shorts\n```\n\n注意:\n- youtube_uploader.py の引数を先に Read 確認\n- privacy:\
+    \ 殿明示で『非公開』ゆえ unlisted (or private)・**public 禁止**\n- shorts フラグで縦型ショート判定 (60秒以内であれば自動)\n\
+    - タイトル案は家老/足軽が proposal・殿レビュー判断は別途\n\n## Step 5: 殿レビュー用通知\n- 完了後 ntfy で殿に YouTube\
+    \ URL 送信\n- 通知例: '\U0001F3AC 雪合戦縦型ショート非公開アップ完了 https://youtu.be/<id>'\n\n=== ルール\
+    \ ===\n- 既存スクリプト使用 (vertical_convert.py / youtube_uploader.py・新規 .py 禁止)\n- NVENC\
+    \ 必須 (libx264 禁止・shared_context/procedures/ffmpeg_nvenc.md)\n- ffmpeg 中間成果物は必ずファイル化\
+    \ (1分+処理は intermediate_artifact ルール)\n- privacy: unlisted (or private) 厳守・public\
+    \ 絶対禁止\n- 担当: 家老配分\n- 報告書: queue/reports/2026-05-04_cmd_1615_yukigassen_vertical_upload.md\
+    \ (動画情報 + URL + 概要欄テンプレ参照元)\n\n=== 完了条件 ===\n- tono_edit_vertical.mp4 (1080×1920\
+    \ / 60fps / h264_nvenc) 生成\n- ffprobe で寸法・コーデック確認\n- YouTube 非公開アップロード完了 (URL\
+    \ 取得)\n- 概要欄に過去テンプレ準拠で記載 (元動画 URL + メンバー + ハッシュタグ含む)\n- 殿レビュー用 ntfy 通知 (URL 送信)\n\
+    - 軍師 QC PASS (動画 4 点セット: ffprobe + sync_record + drawtext_params_diff + bitrate)\n\
+    - git commit + push (work/ は git-ignored ゆえ報告書のみ)\n- 報告書 queue/reports/2026-05-04_cmd_1615_yukigassen_vertical_upload.md\
+    \ 作成"
+  acceptance_criteria:
+  - tono_edit_vertical.mp4 (1080×1920 / 60fps / h264_nvenc) 生成 (NVENC 必須・libx264 禁止)
+  - ffprobe で寸法・コーデック・bitrate 確認 PASS
+  - YouTube 非公開 (unlisted or private) アップロード完了 (URL 取得)
+  - '概要欄: 元動画 URL + メンバー + ハッシュタグ含む (過去テンプレ準拠)'
+  - 殿レビュー用 ntfy 通知 (YouTube URL 送信)
+  - '軍師 QC PASS (動画 4 点セット: ffprobe + sync_record + drawtext_params_diff + bitrate)'
+  - git commit (報告書のみ・work/ は git-ignored)
+  - queue/reports/2026-05-04_cmd_1615_yukigassen_vertical_upload.md 報告書作成
+  notify_karo: true

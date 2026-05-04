@@ -145,7 +145,7 @@ tasks:
   timestamp: '2026-05-04T07:58:31.212434+09:00'
 - agent: ashigaru1
   task_id: subtask_1613d
-  status: assigned
+  status: done
   parent_cmd: cmd_1613
   bloom_level: L2
   description: 'cmd_1613 Phase-D: subtitle_speaker_qc.py / batch_speaker_match.py
@@ -210,3 +210,42 @@ tasks:
     ID/severity/file/修正概要/commit_hashを表形式で。
   params: {}
   timestamp: '2026-05-04T08:42:02.809416+09:00'
+- agent: ashigaru1
+  task_id: subtask_1614a
+  status: done
+  parent_cmd: cmd_1614
+  bloom_level: L2
+  description: 'cmd_1614: discord_news_bot.py embed.image.url バリデーション追加 + 5日分 pending
+    flush'
+  target_path: /home/murakami/multi-agent-shogun/scripts/discord_news_bot.py
+  steps: '0) advisor()呼出 1) Read scripts/discord_news_bot.py で build_topic_embed()
+    (L142-173) と send_daily_news() (L177-206) の全体を把握 2) is_valid_image_url(url: str)
+    -> bool 関数を追加: urllib.parse.urlparse で scheme=http/https・netloc 非空・無効文字なしを確認 (discord
+    400 の原因 malformed URL を弾く) 3) build_topic_embed() L167: 既存の `if ogp_image and
+    len(ogp_image) <= 2048:` を `if ogp_image and is_valid_image_url(ogp_image) and
+    len(ogp_image) <= 2048:` に変更 4) send_daily_news() L194-195: channel.send 呼び出しを
+    try/except discord.HTTPException に包み、1件失敗しても continue で後続記事を配信 (graceful degradation)
+    5) queue/discord_pending.json を調査: 各 entry の ogp_image URL を確認し、malformed URL
+    の記事を特定してログ出力 6) python3 -c ''from pathlib import Path; import sys; sys.path.insert(0,".");
+    exec(open("scripts/discord_news_bot.py").read().split("async def")[0]); print(is_valid_image_url("https://example.com/img.jpg"),
+    is_valid_image_url(""), is_valid_image_url("malformed"))'' で動作確認 7) git add scripts/discord_news_bot.py
+    && git commit -m ''fix(discord): embed.image.url バリデーション + graceful degradation
+    (cmd_1614)'' && git push 8) python3 scripts/discord_news_bot.py --flush で 5日分
+    pending 配信 (Discord #生成ai-news チャンネルへ) 9) 配信ログで 400 エラーなし・全記事配信確認 10) 報告書: queue/reports/2026-05-04_cmd_1614_discord_url_validation.md
+    (bad URL 記事一覧 + commit hash + 配信件数) 11) git add queue/reports/... && git commit
+    && git push 12) advisor()呼出 13) inbox karo 完了報告'
+  acceptance_criteria:
+  - is_valid_image_url() 関数が追加されている
+  - build_topic_embed() で ogp_image が is_valid_image_url() で検証されてから set_image に渡される
+  - channel.send が try/except discord.HTTPException で包まれ、1件失敗後も後続継続
+  - python3 --flush 実行後 discord_pending.json が空になる or 送信済みエントリが削除される
+  - bad URL の root cause が報告書に記載されている (どの記事の ogp_image が malformed か)
+  - discord 400 エラーなしで配信完了
+  - queue/reports/2026-05-04_cmd_1614_discord_url_validation.md 作成済み
+  - git commit + push 完了
+  notes: discord_pending.json は 2403行・5日分の記事が詰まっている。build_topic_embed() L167 に既に len
+    <= 2048 チェックがあるが、URL形式の妥当性チェックがない。is_valid_image_url は urlparse.scheme in ('http','https')
+    and bool(urlparse.netloc) で十分。send_daily_news の try/except は discord.HTTPException
+    のみキャッチし、予期外エラーは再 raise でよい。--flush モードは L55 の FLUSH_MODE フラグで制御されている。
+  params: {}
+  timestamp: '2026-05-04T08:54:35.148105+09:00'

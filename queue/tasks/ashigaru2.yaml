@@ -58,7 +58,7 @@ tasks:
   completed_at: '2026-05-04T08:16:44+09:00'
 - agent: ashigaru2
   task_id: subtask_1613a
-  status: assigned
+  status: done
   parent_cmd: cmd_1613
   bloom_level: L3
   description: 'cmd_1613 Phase-A: speaker_id.py / transcribe_with_speakers.py / run_speaker_match_only.py
@@ -93,3 +93,39 @@ tasks:
     の全インポートを除去して yaml 直読みに。whisperx lazy import は L107/L138 の実使用箇所の関数内に移動。'
   params: {}
   timestamp: '2026-05-04T08:41:48.388716+09:00'
+- agent: ashigaru2
+  task_id: subtask_1613e
+  status: assigned
+  parent_cmd: cmd_1613
+  bloom_level: L2
+  description: 'cmd_1613 Phase-E: regression test (vocal_stt_pipeline) + git push
+    + 完了報告書生成'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md
+  steps: '0) advisor()呼出 1) git log --oneline -15 で全4 subtask (1613a/b/c/d) の commit
+    が submodule に入っていることを確認 (ashigaru7の9a0ebeb/ashigaru5のd8ed8bc/ashigaru2自身のcommit等)
+    2) cd projects/dozle_kirinuki && python3 scripts/vocal_stt_pipeline.py --help
+    2>&1 | head -5 でimport成功確認 (ModuleNotFoundError が出ないこと) 3) find projects/dozle_kirinuki/work
+    -name ''tono_clip_base.mp4'' 2>/dev/null でテスト素材の確認 4) python3 -c ''import sys;
+    sys.path.insert(0,"projects/dozle_kirinuki/scripts"); import vocal_stt_pipeline;
+    import speaker_id; import stt_merge; print("ALL IMPORTS OK")'' でimport chain確認
+    5) 報告書 queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md を作成: Phase/finding ID/severity/file/修正概要/commit_hash
+    の対応表 (20件全て) 6) git add queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md 7)
+    submodule の変更を parent repo に反映: cd /home/murakami/multi-agent-shogun && git add
+    projects/dozle_kirinuki && git commit -m ''chore: submodule dozle_kirinuki 更新
+    (cmd_1613 STT audit 20件修正完了)'' && git push origin main 8) git add queue/reports/...
+    && git commit -m ''docs(report): cmd_1613完了報告書 — STT audit 20件修正完了'' && git push
+    9) advisor()呼出 10) inbox karo 完了報告'
+  acceptance_criteria:
+  - 全4 subtask (a/b/c/d) の submodule commit が git log に確認できる
+  - python3 import vocal_stt_pipeline / speaker_id / stt_merge が ModuleNotFoundError
+    なしで成功
+  - queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md が作成されている
+  - 報告書に全20件 (C001/C002/H001-H006/M001-M007/L001-L005) の修正完了が記載されている
+  - 報告書に commit hash と finding ID の対応がある
+  - git push origin main 完了 (submodule + 報告書)
+  notes: 'ashigaru1 が cmd_1614 (Discord) を優先中のため ashigaru2 に再割当。submodule の commit
+    は各 ashigaru が個別に push済 (9a0ebeb=C/d8ed8bc=B)。parent repo の submodule pointer 更新が必要。import
+    chain: vocal_stt_pipeline → members (同dir) / speaker_id → members (同dir修正済) の経路を確認。tono_clip_base.mp4
+    が見つからない場合は import 確認のみで OK。'
+  params: {}
+  timestamp: '2026-05-04T08:57:34.654397+09:00'

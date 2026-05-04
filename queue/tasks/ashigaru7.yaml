@@ -1,7 +1,7 @@
 tasks:
 - agent: ashigaru7
   task_id: subtask_1613c
-  status: assigned
+  status: done
   parent_cmd: cmd_1613
   bloom_level: L3
   description: 'cmd_1613 Phase-C: stt_merge.py / apply_speaker_mapping_srt.py 修正 (STT_H003/H005/H006/M003/L003)

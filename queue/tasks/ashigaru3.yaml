@@ -1,12 +1,24 @@
 tasks:
-- agent: ashigaru3
-  task_id: subtask_1573a
-  status: assigned
-  parent_cmd: cmd_1573
+- acceptance_criteria:
+  - curriculum_beginner_v3_marp.md 存在・序章に生成AIとはなにか含む・インストール章なし
+  - curriculum_beginner_v3.html / toc_beginner_v3.html ビルド済
+  - grep 'インストール' curriculum_beginner_v3_marp.md → 0件
+  - grep '生成AIとは' curriculum_beginner_v3_marp.md → 1件以上
+  - lectures/beginner_ch01_claude_code.md (旧 ch00_intro) が存在
+  - drafts/index.html にv3=NEW表示・v2=旧版表示・ch01リンク更新済
+  - git commit + push完了
+  agent: ashigaru3
   bloom_level: L3
-  priority: medium
   description: 'cmd_1573: 初級編カリキュラム v2→v3 再構成 (序章に生成AIとはなにか追加・インストール章削除)'
-  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/curriculum_beginner_v3_marp.md
+  notes:
+  - '殿原文: ''生成AIとはなにか もいれてほしい / インストールは不要'''
+  - 'インストール章削除: grep 0件が証跡。''講師がインストールする'' 等の言及も含めて全削除'
+  - 旧 ch00_intro.md = 「Claude Codeとは」→ ch01_claude_code.md にリネーム (git mv)
+  - v3 HTML は drafts/ 直下に出力
+  - advisor()必須(作業前・完了前)
+  parent_cmd: cmd_1573
+  priority: medium
+  status: assigned
   steps: '0) advisor()呼出 1) projects/udemy_course/drafts/curriculum_beginner_v2_marp.md
     全文精読・序章とインストール章の内容確認 2) curriculum_beginner_v3_marp.md を新規作成: v2を基に (a)序章を2部構成に再編成
     — 新パート「生成AIとはなにか」(生成AI定義・LLM仕組み・ChatGPT/Claude比較・なぜ今重要か)を序章冒頭に追加、旧序章「Claude Codeとは」は序章後半として残す
@@ -20,30 +32,27 @@ tasks:
     && git diff --cached (意図外ファイル確認) && git commit ''feat: cmd_1573 初級編v3 生成AI序章追加・インストール章削除''
     && git push origin main 8) advisor()呼出 9) inbox_write gunshi QC依頼(grep 0件確認・生成AIとは確認・ch01リネーム・HTML生成・index.html
     v3/旧版表示確認)'
-  acceptance_criteria:
-  - curriculum_beginner_v3_marp.md 存在・序章に生成AIとはなにか含む・インストール章なし
-  - curriculum_beginner_v3.html / toc_beginner_v3.html ビルド済
-  - grep 'インストール' curriculum_beginner_v3_marp.md → 0件
-  - grep '生成AIとは' curriculum_beginner_v3_marp.md → 1件以上
-  - lectures/beginner_ch01_claude_code.md (旧 ch00_intro) が存在
-  - drafts/index.html にv3=NEW表示・v2=旧版表示・ch01リンク更新済
-  - git commit + push完了
-  notes:
-  - '殿原文: ''生成AIとはなにか もいれてほしい / インストールは不要'''
-  - 'インストール章削除: grep 0件が証跡。''講師がインストールする'' 等の言及も含めて全削除'
-  - 旧 ch00_intro.md = 「Claude Codeとは」→ ch01_claude_code.md にリネーム (git mv)
-  - v3 HTML は drafts/ 直下に出力
-  - advisor()必須(作業前・完了前)
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/curriculum_beginner_v3_marp.md
+  task_id: subtask_1573a
   timestamp: '2026-05-02T08:23:45.607934+09:00'
-- agent: ashigaru3
-  task_id: subtask_1586_ch02
-  status: assigned
-  parent_cmd: cmd_1586
+- acceptance_criteria:
+  - intermediate_v4_ch02_structured_prompt.md / .html 作成済み
+  - speaker notes 全スライド
+  - '講師名: なぎなた のみ'
+  - ASCII罫線/XML/受講者操作系 0件
+  - スライド枚数 12-15枚
+  - git commit + push 完了
+  agent: ashigaru3
   bloom_level: L3
-  priority: medium
   description: 'cmd_1586 ch02: 中級編 v4 第2章 intermediate_v4_ch02_structured_prompt.md
     / .html 作成'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch02_structured_prompt.md
+  notes:
+  - '殿原文: ''中級も作成開始せよ — 殿2026-05-03 09:48'''
+  - '参照アウトライン: curriculum_intermediate_v4_marp.md 第2章'
+  - advisor()必須(作業前・完了前)
+  parent_cmd: cmd_1586
+  priority: medium
+  status: assigned
   steps: '0) advisor()呼出 1) projects/udemy_course/context/lecture_design_rules.md
     を全文精読 2) projects/udemy_course/drafts/curriculum_intermediate_v4_marp.md の第2章セクション
     (『第2章 構造化プロンプトと失敗パターン』) を精読 3) 初級編の形式参照: projects/udemy_course/drafts/lectures/beginner_ch01_prompt_v4.md
@@ -51,82 +60,30 @@ tasks:
     Hook=『プロンプトの病気を見分ける力』/全スライドspeaker notes 5) スライド構成(12-15枚目安): Emotional Hook→診断チェックリスト10項目→失敗プロンプト3本の解剖(症状・原因・修正・結果)→修正後比較→設計原則3点
     6) grep確認 7) marp HTML生成 8) git commit + push 9) advisor()呼出 10) inbox_write gunshi
     QC依頼'
-  acceptance_criteria:
-  - intermediate_v4_ch02_structured_prompt.md / .html 作成済み
-  - speaker notes 全スライド
-  - '講師名: なぎなた のみ'
-  - ASCII罫線/XML/受講者操作系 0件
-  - スライド枚数 12-15枚
-  - git commit + push 完了
-  notes:
-  - '殿原文: ''中級も作成開始せよ — 殿2026-05-03 09:48'''
-  - '参照アウトライン: curriculum_intermediate_v4_marp.md 第2章'
-  - advisor()必須(作業前・完了前)
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch02_structured_prompt.md
+  task_id: subtask_1586_ch02
   timestamp: '2026-05-03T09:52:12.939715+09:00'
-- agent: ashigaru3
-  task_id: subtask_1589_ch01
-  status: done
-  parent_cmd: cmd_1589
-  bloom_level: L3
-  priority: high
-  description: 'cmd_1589 ch01: 中級編v4 第1章を外部公開向けに修正 + サブエージェント命名スライド追加'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch01_prompt_function.md
-  steps: '0) advisor()呼出 1) intermediate_v4_ch01_prompt_function.md を精読 2) 戦国用語を外部公開向けに置換
-    3) サブエージェント命名と設定方法のスライドを1枚追加: 内容=「エージェントに名前をつける — CLAUDE.md と .claude/agents 設定」/
-    .claude/agents/ ディレクトリにエージェント定義ファイルを置く方法 / CLAUDE.md でエージェント名・役割を定義する方法 / エージェント名がプロンプト内で認識される仕組み
-    4) grep確認 5) marp HTML再生成 6) git add ... && git commit && git push 7) advisor()呼出
-    8) inbox_write gunshi QC依頼'
-  acceptance_criteria:
-  - intermediate_v4_ch01_prompt_function.md/.html で戦国用語 0件
-  - サブエージェント命名・CLAUDE.md/.claude/agents設定スライド追加済み
-  - speaker notes 維持・講師名なぎなたのみ
+- acceptance_criteria:
+  - skills/lecture-speaker-notes-grep-check/SKILL.md 作成済 (frontmatter + 本文)
+  - skills/lecture-speaker-notes-grep-check/check.sh 実装済・実行権限あり
+  - skills/lecture-speaker-notes-grep-check/README.md と examples/ 整備
+  - context/lecture_design_rules.md に Skill検証ルール(Section 13)追記
+  - 既存12章(初級v4 7章 + 中級v4 Phase1 5章)で check.sh 動作確認済
+  - FAIL検出時は「過去cmd漏れ」として報告書に明記(修正は別cmd)
   - git commit + push 完了
-  notes:
-  - '殿原文: ''multi-agent-shogun 用語がでてきている あしがるとか adviderよびだしっていCLIだけでいいそれが標準だし あと よびかたの設定と
-    どうゆう claude.md agent設定すると よんでくれるかも記載しておけ — 殿2026-05-03 10:35'''
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T10:31:23.137555+09:00'
-- agent: ashigaru3
-  task_id: subtask_1590_ch07
-  status: done
-  parent_cmd: cmd_1590
+  - queue/reports/2026-05-03_cmd_1592_lecture_qc_skill.md 報告書作成
+  agent: ashigaru3
   bloom_level: L3
-  priority: medium
-  description: 'cmd_1590 ch07: 中級編 v4 セッション再起動耐性 .md / .html 作成'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch07_restart_resilience.md
-  steps: '0) advisor()呼出 1) projects/udemy_course/context/lecture_design_rules.md
-    を精読 2) projects/udemy_course/drafts/curriculum_intermediate_v4_marp.md の第7章 セッション再起動耐性
-    (SessionStart / PreCompact / rehydrate)セクションを精読 3) 初級編形式参照: beginner_ch01_prompt_v4.md
-    を参照 4) intermediate_v4_ch07_restart_resilience.md を新規作成: Emotional Hook=『昨日の作業を今日再開したらAIが初めましてと言ってきた絶望感』/
-    全スライドspeaker notes / なぎなた表記のみ / 戦国用語0件 / 12-15枚 5) grep確認: 戦国用語・ASCII罫線・XML・受講者操作系
-    全0件 6) marp HTML生成: cd projects/udemy_course/drafts/lectures && npx @marp-team/marp-cli
-    intermediate_v4_ch07_restart_resilience.md -o intermediate_v4_ch07_restart_resilience.html
-    --allow-local-files 7) git add projects/udemy_course/drafts/lectures/intermediate_v4_ch07_restart_resilience.md
-    projects/udemy_course/drafts/lectures/intermediate_v4_ch07_restart_resilience.html
-    && git commit && git push 8) advisor()呼出 9) inbox_write gunshi QC依頼'
-  acceptance_criteria:
-  - intermediate_v4_ch07_restart_resilience.md / .html 作成済み
-  - speaker notes 全スライド
-  - '講師名: なぎなた のみ'
-  - 戦国用語・ASCII罫線・XML・受講者操作系 0件
-  - スライド枚数 12-15枚
-  - git commit + push 完了
-  notes:
-  - '殿原文: ''中級後半も作成を許可する — 殿2026-05-03 10:35'''
-  - '参照アウトライン: curriculum_intermediate_v4_marp.md 第7章 セッション再起動耐性 (SessionStart / PreCompact
-    / rehydrate)セクション'
-  - cmd_1589の作業が先に割り当てられている場合はそちらを先に完了してからこちらに取りかかれ
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T10:32:43.810401+09:00'
-- agent: ashigaru3
-  task_id: subtask_1592a
-  status: assigned
-  parent_cmd: cmd_1592
-  bloom_level: L3
-  priority: medium
   description: 'cmd_1592: Claude Code Skill lecture-speaker-notes-grep-check 新設 (SKILL.md
     + check.sh + README + examples + lecture_design_rules.md更新 + 12章動作確認)'
-  target_path: /home/murakami/multi-agent-shogun/skills/lecture-speaker-notes-grep-check/SKILL.md
+  notes:
+  - '殿原文: ''lecture_speaker_notes_grep_check許可 — 殿2026-05-03 11:00'''
+  - 'check.sh のgrep戦国用語パターン注意: 候[^補選手者] 等でfalse positive回避(cmd_1590 ch08教訓)'
+  - FAIL=修正指摘ではなく記録のみ。修正は別cmd。
+  - advisor()必須(作業前・完了前)
+  parent_cmd: cmd_1592
+  priority: medium
+  status: assigned
   steps: '0) advisor()呼出 1) 既存Skill構造参照: ls skills/ で既存Skillの構造を確認(SKILL.md frontmatter・check.sh形式等)
     2) projects/udemy_course/context/lecture_design_rules.md を精読(Section 12: 外部公開用語制限・grep精緻化注意事項確認)
     3) 既存講義ファイル確認: ls projects/udemy_course/drafts/lectures/*_v4*.md | wc -l で12章確認
@@ -144,29 +101,26 @@ tasks:
     cmd_1592 lecture-speaker-notes-grep-check Skill新設'' && git push 14) advisor()呼出
     15) inbox_write gunshi QC依頼(12章動作確認結果添付) 16) queue/reports/2026-05-03_cmd_1592_lecture_qc_skill.md
     作成'
-  acceptance_criteria:
-  - skills/lecture-speaker-notes-grep-check/SKILL.md 作成済 (frontmatter + 本文)
-  - skills/lecture-speaker-notes-grep-check/check.sh 実装済・実行権限あり
-  - skills/lecture-speaker-notes-grep-check/README.md と examples/ 整備
-  - context/lecture_design_rules.md に Skill検証ルール(Section 13)追記
-  - 既存12章(初級v4 7章 + 中級v4 Phase1 5章)で check.sh 動作確認済
-  - FAIL検出時は「過去cmd漏れ」として報告書に明記(修正は別cmd)
-  - git commit + push 完了
-  - queue/reports/2026-05-03_cmd_1592_lecture_qc_skill.md 報告書作成
-  notes:
-  - '殿原文: ''lecture_speaker_notes_grep_check許可 — 殿2026-05-03 11:00'''
-  - 'check.sh のgrep戦国用語パターン注意: 候[^補選手者] 等でfalse positive回避(cmd_1590 ch08教訓)'
-  - FAIL=修正指摘ではなく記録のみ。修正は別cmd。
-  - advisor()必須(作業前・完了前)
+  target_path: /home/murakami/multi-agent-shogun/skills/lecture-speaker-notes-grep-check/SKILL.md
+  task_id: subtask_1592a
   timestamp: '2026-05-03T11:02:20.369197+09:00'
-- agent: ashigaru3
-  task_id: subtask_1595_ch12
-  status: assigned
-  parent_cmd: cmd_1595
+- acceptance_criteria:
+  - intermediate_v4_ch12_silent_fail.md / .html 作成済
+  - 'speaker notes 全スライド・講師名: なぎなた のみ'
+  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
+  - スライド枚数 12-15枚
+  - git commit + push 完了
+  agent: ashigaru3
   bloom_level: L3
-  priority: medium
   description: 'cmd_1595 ch12: 中級編v4 第12章「silent fail 検出ハーネス」(H4)'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch12_silent_fail.md
+  notes:
+  - '殿原文: 中級編 Phase 3 起票 — 殿2026-05-03 12:40'
+  - '形式参照: intermediate_v4_ch05_context_economics.md'
+  - Bloom L6 Create (curriculum準拠)
+  - advisor()必須(作業前・完了前)
+  parent_cmd: cmd_1595
+  priority: medium
+  status: done
   steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md 第12章セクション精読 2) lecture_design_rules.md
     精読 3) intermediate_v4_ch05_context_economics.md を形式参照 4) intermediate_v4_ch12_silent_fail.md
     新規作成: Emotional Hook=「沈黙を破る監視員」/ silent failとは(エラーなし≠成功の3事例) / logからsilent fail候補抽出方法
@@ -175,25 +129,26 @@ tasks:
     cd projects/udemy_course/drafts/lectures && npx @marp-team/marp-cli intermediate_v4_ch12_silent_fail.md
     -o intermediate_v4_ch12_silent_fail.html --allow-local-files 7) git add ... &&
     git commit && git push 8) advisor()呼出 9) inbox_write gunshi QC依頼'
-  acceptance_criteria:
-  - intermediate_v4_ch12_silent_fail.md / .html 作成済
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch12_silent_fail.md
+  task_id: subtask_1595_ch12
+  timestamp: '2026-05-03T12:42:26.720161+09:00'
+- acceptance_criteria:
+  - intermediate_v4_ch16_flagship.md / .html 作成済
   - 'speaker notes 全スライド・講師名: なぎなた のみ'
   - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
   - スライド枚数 12-15枚
+  - 3層統合(L1+L2+L3)を体系的に解説
   - git commit + push 完了
-  notes:
-  - '殿原文: 中級編 Phase 3 起票 — 殿2026-05-03 12:40'
-  - '形式参照: intermediate_v4_ch05_context_economics.md'
-  - Bloom L6 Create (curriculum準拠)
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T12:42:26.720161+09:00'
-- task_id: subtask_1602_ch16
   agent: ashigaru3
-  parent_cmd: cmd_1602
-  status: assigned
-  priority: medium
   description: 'cmd_1602 ch16: 中級編v4 第16章「flagship: 三層アーキ実装パターン (L1+L2+L3 統合)」★本講座最重要章★'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch16_flagship.md
+  notes:
+  - '殿原文: 起票(中級編 v4 Phase 4 着手) — 殿2026-05-03 14:30'
+  - '形式参照: intermediate_v4_ch05_context_economics.md'
+  - Bloom L6 Create (本講座最重要章・45min想定)
+  - advisor()必須(作業前・完了前)
+  parent_cmd: cmd_1602
+  priority: medium
+  status: done
   steps: '0) advisor()呼出 1) curriculum_intermediate_v4_marp.md 第16章セクション精読 2) lecture_design_rules.md
     精読 3) intermediate_v4_ch05_context_economics.md を形式参照 4) intermediate_v4_ch16_flagship.md
     新規作成: ★本講座クライマックス★ Emotional Hook=「ここまで学んだすべてが1つのhookスクリプトに結実」/ 問題設定:タスク起票時の過去事例検索忘れ
@@ -203,44 +158,25 @@ tasks:
     && npx @marp-team/marp-cli intermediate_v4_ch16_flagship.md -o intermediate_v4_ch16_flagship.html
     --allow-local-files 7) git add ... && git commit && git push 8) advisor()呼出 9)
     inbox_write gunshi QC依頼'
-  acceptance_criteria:
-  - intermediate_v4_ch16_flagship.md / .html 作成済
-  - 'speaker notes 全スライド・講師名: なぎなた のみ'
-  - 戦国用語・ASCII罫線・XML・受講者操作系・本名 0件
-  - スライド枚数 12-15枚
-  - 3層統合(L1+L2+L3)を体系的に解説
-  - git commit + push 完了
-  notes:
-  - '殿原文: 起票(中級編 v4 Phase 4 着手) — 殿2026-05-03 14:30'
-  - '形式参照: intermediate_v4_ch05_context_economics.md'
-  - Bloom L6 Create (本講座最重要章・45min想定)
-  - advisor()必須(作業前・完了前)
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v4_ch16_flagship.md
+  task_id: subtask_1602_ch16
   timestamp: '2026-05-03T14:29:05.028593+09:00'
-- task_id: subtask_1605a
-  agent: ashigaru3
-  parent_cmd: cmd_1605
-  status: done
-  priority: high
-  description: 'cmd_1605: subtitle_speaker_qc.py に --audio-merge フラグ追加・STT話者ラベルで字幕なし発言を補完'
-  target_path: projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py
-  steps: '0) advisor()呼出 1) git -C projects/dozle_kirinuki pull origin main で最新取得
-    2) subtitle_speaker_qc.py 現行実装確認 (detect_speaker_pil_ocr v2 ロジック把握) 3) --audio-merge
-    フラグ追加: SRT or JSON 形式の音声話者識別ファイルを引数で受取 4) マージロジック実装: pil_ocr confidence >= 70%
-    → 字幕色採用/以下 → 音声話者採用 5) report.md に採用ソース [字幕]/[音声]/[不明] 列追加 6) tono_clip_base.mp4
-    + STT出力ファイルで動作検証・識別率80%以上確認 7) 旧 vs 新比較表を報告書に記載 8) git -C projects/dozle_kirinuki
-    add scripts/subtitle_speaker_qc.py && commit && push 9) advisor()呼出 10) inbox_write
-    gunshi QC依頼'
-  acceptance_criteria:
-  - --audio-merge フラグ実装・SRT/JSON読込対応
-  - 'マージロジック: confidence >= 70% で字幕色採用・以下は音声話者採用'
-  - report.md に [字幕]/[音声]/[不明] ソース記載
-  - tono_clip_base.mp4 + STT出力で動作検証・識別率80%以上
-  - 旧 vs 新比較表を報告書記載
-  - git commit + push 完了 (submodule)
-  - queue/reports/2026-05-03_cmd_1605_audio_merge.md 報告書作成
-  notes:
-  - '殿原文: する (音声 STT マージ機能の再起票・cmd_1599 reject 後の OCR 機能化を経て条件整った) — 殿2026-05-03 14:55'
-  - '前提: cmd_1600 で v2 ロジック本番化済み (nekooji偏重解消・字幕なし誤検出0%)'
-  - 'STT出力ファイル形式: SRT または JSON (どちらか対応・引数で指定)'
-  - advisor()必須(作業前・完了前)
-  timestamp: '2026-05-03T14:46:29.285961+09:00'
+- agent: ashigaru3
+  blocked_by:
+  - subtask_1607b
+  bloom_level: L1
+  description: cmd_1607 報告書作成 + git commit & push
+  parent_cmd: cmd_1607
+  status: blocked
+  steps:
+  - 1. queue/reports/2026-05-03_cmd_1607_userprompt_semantic_search_hook.md を作成
+  - '2. 報告書内容: cmd目的・実装概要・QC結果・ファイル一覧（userprompt_semantic_search.sh + settings.json変更）'
+  - 3. git add scripts/userprompt_semantic_search.sh .claude/settings.json queue/reports/2026-05-03_cmd_1607_userprompt_semantic_search_hook.md
+  - 4. git diff --cached で確認（意図外ファイル混入なし確認）
+  - '5. git commit -m ''feat(hook): cmd_1607 UserPromptSubmit semantic search hook
+    新設'''
+  - 6. git push origin main
+  - 7. 完了報告を POST /api/inbox_write で karo へ送信
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/2026-05-03_cmd_1607_userprompt_semantic_search_hook.md
+  task_id: subtask_1607c
+  timestamp: '2026-05-03T19:42:04.924256+09:00'
