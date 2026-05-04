@@ -489,7 +489,8 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </code></pre>
 <ul>
 <li>チェックスクリプトが <strong>exit 2</strong> を返すと <strong>実行がブロックされます</strong></li>
-<li>exit 0 ならそのまま実行 — この「0 = 安全、2 = ブロック」は Claude Code のルールです</li>
+<li><code>exit</code> は「スクリプトを終了する」コマンド — その後ろの数字は「結果の報告」です</li>
+<li>exit 0 = 「異常なし（そのまま実行）」・exit 2 = 「危険検知（ブロック）」— この <strong>0 と 2 の意味は Claude Code 固有のルール</strong> です</li>
 <li>内側の <code>&quot;hooks&quot;</code> は外側と名前が被りますが、中身は「実行するコマンドのリスト」です</li>
 </ul>
 </section>
@@ -562,13 +563,35 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </tbody>
 </table>
 <blockquote>
-<p><img class="emoji" draggable="false" alt="💡" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/1f4a1.svg" data-marp-twemoji=""/> これらを <strong>たった数行のスクリプトで検知</strong> できます:</p>
+<p><img class="emoji" draggable="false" alt="💡" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/1f4a1.svg" data-marp-twemoji=""/> これらを <strong>たった数行のスクリプトで検知</strong> できます。コードを読む前に、3つの前提知識を確認しましょう:</p>
 </blockquote>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-bash"><span class="hljs-comment"># pretool_check.sh の中身（最小例）— 1行ずつ解説:</span>
+<table>
+<thead>
+<tr>
+<th>書き方</th>
+<th>意味</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>$1</code></td>
+<td>スクリプトに渡された「1番目の引数」。ここでは <strong>AIが実行しようとしたコマンド</strong> が自動で入る</td>
+</tr>
+<tr>
+<td><code>|</code> (パイプ)</td>
+<td>左のコマンドの出力を、右のコマンドに渡す仕組み</td>
+</tr>
+<tr>
+<td><code>grep -q</code></td>
+<td>指定した文字列が含まれているかを調べるコマンド（<code>-q</code> は「結果を黙って判定する」オプション）</td>
+</tr>
+</tbody>
+</table>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-bash"><span class="hljs-comment"># pretool_check.sh の中身（最小例）— 上の表を見ながら読んでみましょう:</span>
 
-<span class="hljs-comment"># $1 = AIが実行しようとしたコマンド（Claude Codeが自動で渡す）</span>
-<span class="hljs-comment"># echo &quot;$1&quot; でそのコマンドを出力</span>
-<span class="hljs-comment"># | grep -q &#x27;rm -rf&#x27; で「rm -rf」という文字列が含まれているかを調べる</span>
+<span class="hljs-comment"># $1 にAIが実行しようとしたコマンドが入っている（Claude Codeが自動で渡す）</span>
+<span class="hljs-comment"># echo &quot;$1&quot; → そのコマンド文字列を出力</span>
+<span class="hljs-comment"># | grep -q &#x27;rm -rf&#x27; → 出力された文字列の中に「rm -rf」が含まれているか判定</span>
 <span class="hljs-keyword">if</span> <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;<span class="hljs-variable">$1</span>&quot;</span> | grep -q <span class="hljs-string">&#x27;rm -rf&#x27;</span>; <span class="hljs-keyword">then</span>
   <span class="hljs-built_in">exit</span> 2  <span class="hljs-comment"># ブロック（exit 2 = 「危険だから止まれ」という合図）</span>
 <span class="hljs-keyword">fi</span>
@@ -679,10 +702,11 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </code></pre>
 <blockquote>
 <p><img class="emoji" draggable="false" alt="💡" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/1f4a1.svg" data-marp-twemoji=""/> <code>$CLAUDE_TOOL_INPUT</code> には、AIが実行しようとしたコマンドの中身が自動的に入ります。この変数は Claude Code が設定するので、自分で定義する必要はありません。</p>
+<p><img class="emoji" draggable="false" alt="📝" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/1f4dd.svg" data-marp-twemoji=""/> <strong>先ほどの <code>$1</code> との違い</strong>: pretool_check.sh（スクリプトファイル）では <code>$1</code> でコマンドを受け取りますが、settings.json に直接コマンドを書く場合は <code>$CLAUDE_TOOL_INPUT</code> を使います。<strong>どちらにも同じ内容（AIが実行しようとしたコマンド）が入ります</strong> — 受け取り方が違うだけです。</p>
 </blockquote>
 <ol start="3">
-<li>Claude Codeを再起動</li>
-<li>何かコマンドを実行させてみる → <code>[CHECK]</code> が表示されれば <strong>Hookが動いている証拠</strong></li>
+<li>Claude Codeを再起動（ターミナルで <code>Ctrl+C</code> を押して終了し、再度 <code>claude</code> と入力して起動）</li>
+<li>Claude Codeに「現在のディレクトリのファイル一覧を表示して」と入力 → <code>[CHECK]</code> が表示されれば <strong>Hookが動いている証拠</strong></li>
 </ol>
 <blockquote>
 <p><img class="emoji" draggable="false" alt="💡" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/1f4a1.svg" data-marp-twemoji=""/> この設定は「ブロックしない」安全な練習用です。まず「Hookが正しく反応しているか」を確認するのが目的です。本番のブロック設定（exit 2）は次のステップで。</p>
