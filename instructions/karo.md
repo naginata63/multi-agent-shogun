@@ -251,6 +251,13 @@ Before assigning tasks, ask yourself these five questions:
 
 タスク起票は **`POST /api/task_create`** (curl) で。body の必須フィールド: `agent`, `task_id`, `status`, `parent_cmd`, `bloom_level`, `description`, `target_path`。dependent task は `blocked_by: [task_id, ...]` を含める。詳細仕様は `shared_context/procedures/dashboard_api_usage.md`。
 
+### gunshi_qc ペイロード指定 (cmd_1628)
+
+- **L4-L6 タスク**: デフォルト gunshi QC 経由。ペイロードに `gunshi_qc` フィールドは不要 (デフォルトで gunshi 送付)
+- **L1-L3 タスク**: デフォルト gunshi skip (karo 直接報告)。ペイロードに `gunshi_qc` フィールドは不要 (デフォルトで skip)
+- **Override**: `gunshi_qc: true` で bloom_level に関わらず gunshi 送付 / `gunshi_qc: false` で bloom_level に関わらず skip
+- **bloom_level 未設定**: L3 扱い (gunshi skip)
+
 ## Wake-up と並行化
 
 - **wake-up は inbox 駆動 (3 段階・cmd_1495)**:

@@ -115,7 +115,7 @@ inbox:
   write_script: "scripts/inbox_write.sh"  # See CLAUDE.md for mailbox protocol
   to_gunshi_allowed: true
   to_gunshi_on_completion: true  # Changed from karo to gunshi (quality check delegation)
-  gunshi_qc_default: true  # If payload has gunshi_qc: false → skip gunshi, report directly to karo
+  gunshi_qc_default: bloom  # L1-L3: gunshi skip (karo direct), L4-L6: gunshi経由. Explicit gunshi_qc:true/false overrides bloom_level (cmd_1628)
   to_karo_allowed: false
   to_shogun_allowed: false
   to_user_allowed: false
@@ -208,19 +208,27 @@ curl -s -X POST http://192.168.2.4:8770/api/inbox_write \
 bash scripts/inbox_write.sh gunshi "足軽{N}号、任務完了でござる。品質チェックを仰ぎたし。" report_received ashigaru{N}
 ```
 
-**gunshi_qc:false ルール (cmd_1624)**:
-サブタスクペイロード (queue/cmd_payloads/*.json) に `gunshi_qc: false` がある場合、完了報告は **karo に直接送信** (gunshi skip)。`gunshi_qc` フィールドがない・または `true` の場合はデフォルト通り gunshi に送る。
+**gunshi_qc ルーティング (cmd_1628 改訂)**:
+bloom_level による自動判定。ペイロードの `gunshi_qc` 明示指定が最優先 (override)。
+
+| bloom_level | デフォルト送信先 | 条件 |
+|-------------|-----------------|------|
+| L1-L3 (Sonnet 担当) | **karo 直接** (gunshi skip) | `gunshi_qc` フィールドなし |
+| L4-L6 (Opus 担当) | **gunshi 経由** | `gunshi_qc` フィールドなし |
+| 任意 | `gunshi_qc: true` → gunshi | 明示指定時 |
+| 任意 | `gunshi_qc: false` → karo 直接 | 明示指定時 |
+| 未設定 (bloom_level なし) | **karo 直接** (L3 扱い) | デフォルト L3 |
 
 ```bash
-# gunshi_qc: false の場合 — karo に直接報告
+# L1-L3 (bloom_level L2 等) の場合 — karo に直接報告
 curl -s -X POST http://192.168.2.4:8770/api/inbox_write \
   -H 'Content-Type: application/json' \
-  -d '{"to":"karo","from":"ashigaru1","type":"report_received","message":"足軽1号、任務完了でござる。gunshi_qc:falseにつき直接報告"}'
+  -d '{"to":"karo","from":"ashigaru2","type":"report_received","message":"足軽2号、任務完了でござる。L2タスクにつき直接報告"}'
 
-# gunshi_qc: true / フィールドなし (デフォルト) — gunshi に報告
+# L4-L6 の場合 — gunshi に報告
 curl -s -X POST http://192.168.2.4:8770/api/inbox_write \
   -H 'Content-Type: application/json' \
-  -d '{"to":"gunshi","from":"ashigaru1","type":"report_received","message":"足軽1号、任務完了でござる。品質チェックを仰ぎたし"}'
+  -d '{"to":"gunshi","from":"ashigaru2","type":"report_received","message":"足軽2号、任務完了でござる。品質チェックを仰ぎたし"}'
 ```
 
 Gunshi now handles quality check and dashboard aggregation. No state checking, no retry, no delivery verification.
