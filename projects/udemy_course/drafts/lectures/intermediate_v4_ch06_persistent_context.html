@@ -477,6 +477,10 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <p>本講座サンプル実装</p>
 </blockquote>
 <p>本講座では <strong>claude-mem</strong> (SQLite + Gemini Embedding) をRAGバックエンドとして使用:</p>
+<ul>
+<li><strong>SQLite</strong> = データベース（情報を整理して保存する仕組み）の一種</li>
+<li><strong>Gemini Embedding</strong> = テキストの「意味」を数字の並び（ベクトル）に変換する仕組み</li>
+</ul>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>検索クエリ → Gemini Embedding API → ベクトル化
 → SQLite内のベクトルと類似度比較 → 上位N件を返却
 </code></pre>
@@ -490,7 +494,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <tbody>
 <tr>
 <td>記憶の保存</td>
-<td><code>mem-search search → timeline → get_observations</code></td>
+<td><code>mem-search search → timeline → get_observations</code> ※実際の運用で使うコマンド例です</td>
 </tr>
 <tr>
 <td>記憶の検索</td>

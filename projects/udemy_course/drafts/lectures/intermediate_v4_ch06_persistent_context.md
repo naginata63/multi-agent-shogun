@@ -164,6 +164,9 @@ Claude Code memoryはSelect戦略の最もシンプルな実装です。MEMORY.m
 
 本講座では **claude-mem** (SQLite + Gemini Embedding) をRAGバックエンドとして使用:
 
+- **SQLite** = データベース（情報を整理して保存する仕組み）の一種
+- **Gemini Embedding** = テキストの「意味」を数字の並び（ベクトル）に変換する仕組み
+
 ```
 検索クエリ → Gemini Embedding API → ベクトル化
 → SQLite内のベクトルと類似度比較 → 上位N件を返却
@@ -171,7 +174,7 @@ Claude Code memoryはSelect戦略の最もシンプルな実装です。MEMORY.m
 
 | 操作 | コマンド |
 |------|---------|
-| 記憶の保存 | `mem-search search → timeline → get_observations` |
+| 記憶の保存 | `mem-search search → timeline → get_observations` ※実際の運用で使うコマンド例です |
 | 記憶の検索 | セマンティック検索で関連事例を自動取得 |
 | 記憶の構造化 | smart_outline / smart_search / smart_unfold |
 
