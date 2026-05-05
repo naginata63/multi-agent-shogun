@@ -1,0 +1,25 @@
+{
+  "agent": "gunshi",
+  "task_id": "subtask_1639_api_research",
+  "status": "assigned",
+  "priority": "high",
+  "parent_cmd": "cmd_1639",
+  "bloom_level": "L5",
+  "gunshi_qc": false,
+  "description": "cmd_1639: Anthropic Claude Code の最新 agent API/skill (Routines/CronCreate, PushNotification, RemoteTrigger, ScheduleWakeup, Background agents, Monitor 等) を調査し、本プロジェクトへの適用可能性 + 移行ロードマップを報告書化する",
+  "target_path": "/home/murakami/multi-agent-shogun/queue/reports/2026-05-05_cmd_1639_anthropic_agent_api_research.md",
+  "steps": "0) advisor()呼出 1) 調査対象10機能: (1)CronCreate (2)ScheduleWakeup (3)/loop (4)PushNotification (5)RemoteTrigger (6)Background agents (7)Monitor (8)MCP連携系 (9)Routines (10)その他新機能 2) 各機能について: 機能概要・現プロジェクトへの適用可能性・移行コスト・推奨度(S/A/B/C)・適用箇所 を調査 3) 本プロジェクトの現状確認: CLAUDE.md / instructions/*.md / queue/ の仕組みを踏まえて各機能がどこに刺さるかを評価 4) Phase1-3推奨ロードマップ作成 (優先度付き・工数見積もり) 5) リスク一覧作成 (導入リスク・互換性・コスト等) 6) 次アクション提案 (cmd_1640等の起票案) 7) 報告書作成: queue/reports/2026-05-05_cmd_1639_anthropic_agent_api_research.md 8) git add queue/reports/2026-05-05_cmd_1639_anthropic_agent_api_research.md && git commit -m 'docs(research): cmd_1639 Anthropic agent API 適用可能性調査報告書' 9) advisor()呼出 10) inbox karo 完了報告",
+  "acceptance_criteria": [
+    "queue/reports/2026-05-05_cmd_1639_anthropic_agent_api_research.md 報告書作成",
+    "Schedule/Routines系 (CronCreate/ScheduleWakeup/loop/schedule) の調査結果含む",
+    "Push通知/Trigger系 (PushNotification/RemoteTrigger) の調査結果含む",
+    "Background/Cloud系 (Background agents/Monitor) の調査結果含む",
+    "MCP連携系の調査結果含む",
+    "10項目それぞれに『機能概要・適用可能性・移行コスト・推奨度・適用箇所』が記載",
+    "Phase 1-3 推奨ロードマップが含まれる",
+    "リスク一覧が含まれる",
+    "次のアクション提案 (cmd_1640等の起票案) が含まれる",
+    "git commit済"
+  ],
+  "notes": "本プロジェクトの multi-agent-shogun システム (karo/ashigaru/gunshi/shogun 4エージェント体制・CLAUDE.md/queue/YAML/SQLite/inbox) の現状を踏まえて調査せよ。claude-code-guide エージェントを活用してドキュメント調査可。"
+}
