@@ -3,7 +3,14 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TARGET="${1:-$SCRIPT_DIR/queue/inbox/karo.yaml}"
+ARG="${1:-karo}"
+
+# agent_id shorthand: resolve "karo", "ashigaru1", "gunshi" etc. to full path
+case "$ARG" in
+  *.yaml) TARGET="$ARG" ;;            # full path passed
+  */*)    TARGET="$ARG" ;;            # relative/absolute path
+  *)      TARGET="$SCRIPT_DIR/queue/inbox/${ARG}.yaml" ;;  # agent_id shorthand
+esac
 
 if [ ! -f "$TARGET" ]; then
     echo "ERROR: $TARGET not found" >&2

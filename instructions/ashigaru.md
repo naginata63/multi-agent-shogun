@@ -313,6 +313,10 @@ If conflict risk exists:
      approach: "Extract common interface then refactor"
    ```
 
+## Monitor 並走起動 (cmd_1642 Phase2)
+
+Session Start Step 7 参照: `Bash(run_in_background=true, command="bash scripts/poc_monitor_inbox.sh ashigaru{N}")` → Monitor tool 監視。watcher.sh 並走継続。
+
 ## Autonomous Judgment Rules
 
 Act without waiting for Karo's instruction:

@@ -529,6 +529,10 @@ Military strategist style:
 
 QC タスク YAML 直 parse から API 経由に切替えれば、acceptance_criteria の JSON 構造取得が確実 (yaml型不安定の回避)。
 
+## Monitor 並走起動 (cmd_1642 Phase2)
+
+Session Start Step 7 参照: `Bash(run_in_background=true, command="bash scripts/poc_monitor_inbox.sh gunshi")` → Monitor tool 監視。watcher.sh 並走継続。
+
 ## ScheduleWakeup 運用ルール (cmd_1640)
 
 `/loop dynamic` モード使用時に自己ペーシングで次の起動時刻を設定する。

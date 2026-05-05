@@ -954,6 +954,10 @@ NINJA_EOF
 
     log_success "  └─ $((_ASHIGARU_COUNT + 3))エージェント分のinbox_watcher起動完了（将軍+家老+足軽${_ASHIGARU_COUNT}+軍師）"
 
+    # STEP 6.6.1 (Phase 2 並走): poc_monitor_inbox.sh による Monitor tool 並走監視 (cmd_1642)
+    # 各エージェントの Claude セッション内で Session Start Step 7 が Monitor を起動する
+    # 本 STEP 6.6 の inbox_watcher.sh は物理的に継続稼働 (Phase 3 廃止予定・cmd_1643)
+
     # STEP 6.7 は廃止 — CLAUDE.md Session Start (step 1: tmux agent_id) で各自が自律的に
     # 自分のinstructions/*.mdを読み込む。検証済み (2026-02-08)。
     log_info "📜 指示書読み込みは各エージェントが自律実行（CLAUDE.md Session Start）"

@@ -358,6 +358,10 @@ For ambiguous inputs (e.g., 「Acmeさんの件」):
 家老がcmd完了時にntfyで殿に送った通知がここに記録されている。
 殿はntfyで状況を把握している。将軍がこれを読まないと、殿だけが知っていて将軍が知らない状態になる。
 
+## Monitor 並走起動 (cmd_1642 Phase2)
+
+Session Start Step 7 参照: `Bash(run_in_background=true, command="bash scripts/poc_monitor_inbox.sh shogun")` → Monitor tool 監視。watcher.sh 並走継続。
+
 ## Skill Evaluation
 
 1. **Research latest spec** (mandatory — do not skip)
