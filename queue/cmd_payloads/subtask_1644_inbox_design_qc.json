@@ -1,0 +1,24 @@
+{
+  "agent": "gunshi",
+  "task_id": "subtask_1644_inbox_design_qc",
+  "status": "assigned",
+  "priority": "high",
+  "parent_cmd": "cmd_1644",
+  "bloom_level": "L5",
+  "gunshi_qc": false,
+  "description": "cmd_1644: inbox通知機構 A/B/C 3案の技術QCレビュー・5軸評価・推奨案・移行ロードマップ・殿判断材料作成",
+  "target_path": "/home/murakami/multi-agent-shogun/queue/reports/2026-05-06_cmd_1644_inbox_design_qc.md",
+  "steps": "0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) 評価対象3案の定義を確認: A案=SSE direct stream (server.py /api/inbox_stream + curl SSE Monitor・cmd_1643で取消された案) / B案=inotifywait+tail-F改善 (既存inbox_watcher.shのinotifywait部分を強化・atomic write対策) / C案=現状維持 (inbox_watcher.sh+Monitor並走・cmd_1642の現状) 3) 関連コード精読: scripts/inbox_watcher.sh (inotifywait部分・L1-100) / scripts/poc_monitor_inbox.sh / scripts/poc_sse_monitor.sh / queue/reports/2026-05-06_cmd_1642_monitor_phase2_qc.md / queue/reports/2026-05-06_cmd_1641_infra_mujun.md (H2: disable_normal_nudge反転・H3: venv yaml依存) 4) [5軸評価] 各案を以下5軸で評価(1-5点): (1)YAML脱却度: YAML仲介をどれだけ排除できるか (2)取りこぼし耐性: atomic write・inode変更・プロセス死亡時の堅牢性 (3)実装複雑度: 逆スコア(複雑=低点) (4)rollback可能性: 失敗時に旧状態に戻せるか (5)Anthropic純正度: Claude Code公式ツールの活用度 5) 比較matrix作成: 5軸×3案のtable形式 6) 推奨案決定: 根拠は技術的な評価に基づく・将軍A案推しを盲目的に追わない・中立に判断 7) 推奨案の実装ロードマップ: Phase 1-3 (期間・必要作業・リスク) 8) リスク一覧: 技術/運用/互換性 各3件以上 9) 殿への判断材料セクション: 採用案ごとの次アクション提案 10) 報告書作成: queue/reports/2026-05-06_cmd_1644_inbox_design_qc.md 11) git add -f queue/reports/2026-05-06_cmd_1644_inbox_design_qc.md && git commit -m 'report(cmd_1644): inbox通知機構 A/B/C 3案 技術QCレビュー' && git push origin main 12) advisor()呼出 13) inbox karo 完了報告(推奨案・スコアサマリ)",
+  "acceptance_criteria": [
+    "queue/reports/2026-05-06_cmd_1644_inbox_design_qc.md 作成済",
+    "A/B/C 3案の5軸評価 (1-5点) が全て含まれる",
+    "5軸×3案の比較matrix (table形式) あり",
+    "推奨案と技術的根拠が明記",
+    "推奨案の実装ロードマップ Phase 1-3 あり",
+    "リスク一覧 (技術/運用/互換性) あり",
+    "殿への判断材料セクション (採用案ごとの次アクション) あり",
+    "中立性厳守 (将軍A案を盲目的に推薦していない)",
+    "git commit + push済"
+  ],
+  "notes": "中立性最重要: 将軍がA案(SSE)を推したが殿未承認で取消された経緯あり。軍師は技術的根拠のみで判断せよ。参照すべき既存報告書: cmd_1641(H2 disable_normal_nudge反転・H3 venv yaml依存) / cmd_1642(tail-f atomic write限界・inotifywait移行推奨)。B案はH3の解決にもなるかを検討せよ。git add -f必須(reports/はgitignore対象)。"
+}
