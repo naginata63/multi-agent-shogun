@@ -315,61 +315,230 @@ tasks:
   notes: 'D5根本原因: ~/.bashrc の return が $?=1 → &&短絡。; 区切りで解消。UserPromptSubmit hookが実際に発火しスコア0.62を返したことを参考情報として記録。報告書はqueue/reports/gunshi_report_qc_1607b_r2.yaml'
   timestamp: '2026-05-04T08:19:01.832523+09:00'
 - agent: gunshi
-  task_id: subtask_1613f_qc
+  task_id: subtask_1642_qc
   status: done
-  parent_cmd: cmd_1613
-  bloom_level: L4
-  description: 'cmd_1613 QC: STT audit 20件全修正の検証 (PASS/FAIL判定 + regression確認)'
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/gunshi_report_qc_1613.yaml
+  qa_decision: PASS_PARTIAL
+  started_at: '2026-05-06T04:11:00+09:00'
+  completed_at: '2026-05-06T04:14:56+09:00'
   blocked_by:
-  - subtask_1613e
-  steps: '0) advisor()呼出 1) Read queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md
-    で修正内容を把握 2) Read queue/reports/gunshi_stt_contradiction_20260504.yaml で元の20件と対照
-    3) 各ファイルの実装を確認: speaker_id.py (C001/M004), transcribe_with_speakers.py (C002/M005/L002),
-    run_speaker_match_only.py (M006), vocal_stt_pipeline.py (H001/H002/H004/M001/M002/L001),
-    stt_merge.py (H003/H005/M003/L003), apply_speaker_mapping_srt.py (H006), subtitle_speaker_qc.py
-    (M007/L005), batch_speaker_match.py (L004) 4) acceptance_criteria 全件確認: cmd_1613
-    に記載の8条件を全て目視検証 5) python3 -m py_compile で全修正ファイルの文法確認 6) regression: git log で4
-    subtask commit 確認 + vocal_stt_pipeline import エラー無し確認 7) QC報告書: queue/reports/gunshi_report_qc_1613.yaml
-    (qa_decision: PASS|FAIL, 全20件の個別確認結果) 8) inbox karo QC結果報告'
-  acceptance_criteria:
-  - 全20件 finding が対応するコード修正で解消されている
-  - cmd_1613 acceptance_criteria 8条件が全て PASS
-  - vocal_stt_pipeline.py の import が成功する (ModuleNotFoundError無し)
-  - py_compile エラーなし (全修正ファイル)
-  - 報告書 queue/reports/2026-05-04_cmd_1613_stt_audit_fix.md が存在し全20件記載
-  notes: 'subtask_1613e完了後に開始。QCテンプレート: shared_context/qc_template.md 参照。実ファイルを目視確認必須
-    (grepカウントのみ禁止)。STT_C001が最重要 — _REPO_SCRIPTS_DIR が str(_SCRIPT_DIR) になっているか、plus
-    vocal_stt_pipeline.py/stt_merge.py先頭の sys.path.insert 追加を確認。'
-  params: {}
-  timestamp: '2026-05-04T08:42:03.736911+09:00'
-  completed_at: '2026-05-05T12:08:44+09:00'
-- agent: gunshi
-  task_id: subtask_1634_qc
-  status: done
-  qa_decision: PASS
-  completed_at: '2026-05-05T14:26:33+09:00'
+  - subtask_1642_doc
+  - subtask_1642_monitor_test
   priority: high
-  parent_cmd: cmd_1634
-  blocked_by:
-  - subtask_1634_ch03
-  - subtask_1634_ch07
-  - subtask_1634_ch11
-  - subtask_1634_ch13
+  parent_cmd: cmd_1642
   bloom_level: L5
-  gunshi_qc: true
-  description: 'cmd_1634: ch03/07/11/13 全4章の gunshi QC — 固有記法削除完全確認 + 汎用化で説明成立 + 4章間論旨一貫性'
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/2026-05-05_cmd_1634_intermediate_generic_refactor.md
-  steps: '0) advisor()呼出 1) ch03/07/11/13 各章の .md を Read して固有記法残存がないことを目視確認 (grep
-    -E ''queue/|multi-agent-shogun|ashigaru|karo|gunshi'' = 0件を実証) 2) 各章の udemy-checker
-    v3 報告書 (udemy_review_intermediate_ch0X_v3.md) を Read して 🟢 判定を確認 3) 4章間の論旨一貫性チェック:
-    汎用化後の表現が統一されているか (executor/manager/reviewer の用語統一等) 4) 汎用表現への書き直しで説明の意味が成立しているか
-    (固有システムを前提にしないと説明できない箇所が残っていないか) を評価 5) QC PASS: 全条件クリア時 → inbox karo PASS報告 (4章全grep=0
-    + 🟢確認済 + 表現統一確認) / QC FAIL: 問題章を特定 → inbox karo FAIL報告 (問題箇所・修正指示を明記)'
+  gunshi_qc: false
+  description: cmd_1642 Phase2 QC + 24h観察報告書 + Phase3判断資料作成
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/2026-05-06_cmd_1642_monitor_phase2_qc.md
+  steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) [AC2確認] Read CLAUDE.md
+    → Session Start Step 7 Monitor起動追加を確認 3) [AC3確認] Read instructions/shogun.md instructions/karo.md
+    instructions/ashigaru.md instructions/gunshi.md → 各ファイルにMonitor起動セクションが存在することを確認
+    4) [AC4確認] grep -n ''Phase 2'' /home/murakami/multi-agent-shogun/shutsujin_departure.sh;
+    grep -n ''6.6.1'' /home/murakami/multi-agent-shogun/shutsujin_departure.sh → Phase2コメント存在確認
+    5) [AC1確認] tail -50 logs/inbox_audit.log → MONITOR_PHASE2_TEST エントリ10件以上を確認・到達率算出
+    6) [AC7 24h観察] tail -200 logs/inbox_audit.log → 直近24h (2026-05-05T以降) のエントリ全件を確認
+    → Monitor経由・watcher経由合計の通知到達率を計算 (audit logに記録されていれば通知成功) 7) [AC5確認] ps aux |
+    grep inbox_watcher で既存watcherが稼働中であることを確認 8) [AC10 Phase3判断資料] 以下を評価: (a)到達率95%以上か
+    (b)Monitor検知と既存watcher両方が正常に機能しているか (c)inbox_watcher.sh廃止リスク (d)Phase3実施推奨時期 →
+    報告書末尾に記載 9) 報告書作成: queue/reports/2026-05-06_cmd_1642_monitor_phase2_qc.md → 各AC
+    PASS/FAIL・証跡・Phase3起票判断 10) git add -f queue/reports/2026-05-06_cmd_1642_monitor_phase2_qc.md
+    && git commit -m ''report(cmd_1642): Phase2 Monitor並走QC報告書'' && git push origin
+    main 11) advisor()呼出 12) inbox karo 完了報告(QC判定・到達率・Phase3推奨)'
   acceptance_criteria:
-  - ch03/07/11/13 全章 grep -E 違反 0件 実証済み
-  - 全4章 udemy-checker 🟢 確認済み
-  - 4章間の汎用表現統一確認済み
-  - inbox karo PASS or FAIL 報告送信済み
-  notes: QC FAIL の場合は家老がリドゥを判断する。git push は家老が実施。
-  timestamp: '2026-05-05T13:54:15.652120+09:00'
+  - queue/reports/2026-05-06_cmd_1642_monitor_phase2_qc.md 作成済
+  - AC1-AC10 全件 PASS/FAIL 判定済・証跡付き
+  - 24h観察期間のinbox_audit.log確認済・到達率算出済
+  - Phase3 (inbox_watcher.sh廃止) 起票判断資料あり
+  - git commit + push済
+  notes: 'blocked_by: subtask_1642_doc + subtask_1642_monitor_test。24h観察はlogs/inbox_audit.logの直近24hエントリを確認(2026-05-05T以降)。24hデータが不足している場合はその旨を記載してQCをPASS(部分)とし、Phase3判断は''データ蓄積中''とせよ。git
+    push は本subtaskで実施。'
+  timestamp: '2026-05-06T03:59:17.707650+09:00'
+- agent: gunshi
+  task_id: subtask_1643_qc
+  status: cancelled
+  blocked_by:
+  - subtask_1643_sse_impl
+  - subtask_1643_monitor_update
+  - subtask_1643_connect_test
+  priority: high
+  parent_cmd: cmd_1643
+  bloom_level: L5
+  gunshi_qc: false
+  description: 'cmd_1643: QC + 24h並走観察 + Phase4判断資料 + 報告書作成'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/2026-05-06_cmd_1643_sse_stream_qc.md
+  steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) [AC1確認] curl -v
+    ''http://192.168.2.4:8770/api/inbox_stream?agent=karo'' 2>&1 | head -20 → Content-Type:
+    text/event-stream が返ることを確認 3) [AC2確認] grep -n ''_sse_queues'' scripts/dashboard/server.py
+    | head -10; grep -n ''inbox_stream'' scripts/dashboard/server.py | head -10 →
+    SSE実装コードが存在することを確認 4) [AC3確認] tail -50 logs/inbox_audit.log → SSE_PHASE3_TEST
+    10件以上を確認・到達率算出 5) [AC4確認] Read CLAUDE.md → Session Start Step7 がpoc_sse_monitor.sh版であることを確認
+    / Read instructions/shogun.md instructions/karo.md instructions/ashigaru.md instructions/gunshi.md
+    → 各SSE版更新確認 6) [AC5 24h観察] tail -200 logs/inbox_audit.log → 直近24hエントリ全件確認・取りこぼし0件確認
+    (SSEからの通知 vs total inbox_write件数) 7) [AC6確認] ps aux | grep inbox_watcher → 並走稼働確認
+    8) [AC7確認] ps aux | grep poc_monitor_inbox → 0件(旧tail-F廃止確認) 9) [AC10 Phase4判断]
+    (a)SSE 24h到達率 (b)heartbeat安定性 (c)inbox_watcher.sh廃止リスク評価 → Phase4 (cmd_1644) 起票推奨可否判断
+    10) 報告書作成: queue/reports/2026-05-06_cmd_1643_sse_stream_qc.md 11) git add -f queue/reports/2026-05-06_cmd_1643_sse_stream_qc.md
+    && git commit -m ''report(cmd_1643): SSE stream Phase3 QC報告書'' && git push origin
+    main 12) advisor()呼出 13) inbox karo 完了報告(QC判定・到達率・Phase4推奨)'
+  acceptance_criteria:
+  - queue/reports/2026-05-06_cmd_1643_sse_stream_qc.md 作成済
+  - AC1-AC10 全件 PASS/FAIL 判定済・証跡付き
+  - SSE 24h取りこぼし 0件確認済
+  - Phase4 (inbox_watcher.sh廃止) 起票判断資料あり
+  - git commit + push済
+  notes: 'blocked_by: 3件全て完了後に実施。24hデータ不足時はその旨を記載してQCをPASS(部分)とし、Phase4判断は''観察継続''とせよ。SSE
+    endpoint 接続確認はcurl -v で Content-Type:text/event-stream を確認。git pushは本subtaskで実施。'
+  timestamp: '2026-05-06T04:33:43.041206+09:00'
+- agent: gunshi
+  task_id: subtask_1644_inbox_design_qc
+  status: done
+  started_at: '2026-05-06T04:42:00+09:00'
+  completed_at: '2026-05-06T04:47:27+09:00'
+  priority: high
+  parent_cmd: cmd_1644
+  bloom_level: L5
+  gunshi_qc: false
+  description: 'cmd_1644: inbox通知機構 A/B/C 3案の技術QCレビュー・5軸評価・推奨案・移行ロードマップ・殿判断材料作成'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/2026-05-06_cmd_1644_inbox_design_qc.md
+  steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) 評価対象3案の定義を確認:
+    A案=SSE direct stream (server.py /api/inbox_stream + curl SSE Monitor・cmd_1643で取消された案)
+    / B案=inotifywait+tail-F改善 (既存inbox_watcher.shのinotifywait部分を強化・atomic write対策)
+    / C案=現状維持 (inbox_watcher.sh+Monitor並走・cmd_1642の現状) 3) 関連コード精読: scripts/inbox_watcher.sh
+    (inotifywait部分・L1-100) / scripts/poc_monitor_inbox.sh / scripts/poc_sse_monitor.sh
+    / queue/reports/2026-05-06_cmd_1642_monitor_phase2_qc.md / queue/reports/2026-05-06_cmd_1641_infra_mujun.md
+    (H2: disable_normal_nudge反転・H3: venv yaml依存) 4) [5軸評価] 各案を以下5軸で評価(1-5点): (1)YAML脱却度:
+    YAML仲介をどれだけ排除できるか (2)取りこぼし耐性: atomic write・inode変更・プロセス死亡時の堅牢性 (3)実装複雑度: 逆スコア(複雑=低点)
+    (4)rollback可能性: 失敗時に旧状態に戻せるか (5)Anthropic純正度: Claude Code公式ツールの活用度 5) 比較matrix作成:
+    5軸×3案のtable形式 6) 推奨案決定: 根拠は技術的な評価に基づく・将軍A案推しを盲目的に追わない・中立に判断 7) 推奨案の実装ロードマップ: Phase
+    1-3 (期間・必要作業・リスク) 8) リスク一覧: 技術/運用/互換性 各3件以上 9) 殿への判断材料セクション: 採用案ごとの次アクション提案 10)
+    報告書作成: queue/reports/2026-05-06_cmd_1644_inbox_design_qc.md 11) git add -f queue/reports/2026-05-06_cmd_1644_inbox_design_qc.md
+    && git commit -m ''report(cmd_1644): inbox通知機構 A/B/C 3案 技術QCレビュー'' && git push
+    origin main 12) advisor()呼出 13) inbox karo 完了報告(推奨案・スコアサマリ)'
+  acceptance_criteria:
+  - queue/reports/2026-05-06_cmd_1644_inbox_design_qc.md 作成済
+  - A/B/C 3案の5軸評価 (1-5点) が全て含まれる
+  - 5軸×3案の比較matrix (table形式) あり
+  - 推奨案と技術的根拠が明記
+  - 推奨案の実装ロードマップ Phase 1-3 あり
+  - リスク一覧 (技術/運用/互換性) あり
+  - 殿への判断材料セクション (採用案ごとの次アクション) あり
+  - 中立性厳守 (将軍A案を盲目的に推薦していない)
+  - git commit + push済
+  notes: '中立性最重要: 将軍がA案(SSE)を推したが殿未承認で取消された経緯あり。軍師は技術的根拠のみで判断せよ。参照すべき既存報告書: cmd_1641(H2
+    disable_normal_nudge反転・H3 venv yaml依存) / cmd_1642(tail-f atomic write限界・inotifywait移行推奨)。B案はH3の解決にもなるかを検討せよ。git
+    add -f必須(reports/はgitignore対象)。'
+  timestamp: '2026-05-06T04:40:54.320795+09:00'
+- agent: gunshi
+  task_id: subtask_1645_v5_term_audit
+  status: done
+  started_at: '2026-05-06T04:55:00+09:00'
+  completed_at: '2026-05-06T04:59:47+09:00'
+  priority: high
+  parent_cmd: cmd_1645
+  bloom_level: L5
+  gunshi_qc: false
+  description: 'cmd_1645: Udemy v5設計書 (curriculum_intermediate_v5_marp.md) の全専門用語を精査し、AI業界未確立用語
+    (JIT/Lazy Load等) を確立用語に置換する'
+  target_path: projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md
+  steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) 対象ファイル確認: projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md
+    (860行・12章) 3) 全専門用語をgrep/Read で抽出・リスト化 (横文字・カタカナ・技術用語全て) 4) [WebSearch] 各用語のAI業界確立度を調査
+    (⭐1-5スコア付与: ⭐5=業界標準・⭐1=CS/web流用で未確立) 5) JIT→RAG/必要時取得/Selective Context Injection等に置換候補決定
+    / Lazy Load→同様 6) 他の⭐1-2判定用語も置換 or 平易化 (受講者ペルソナ: 社会人2-3年目・横文字過多禁止・業界用語併記原則) 7)
+    v5設計書全章で用語修正 (v5構造維持: 12章・困りごと11個・3層フレーム・セマンティック検索二重登場) 8) NGワードリスト (§8) に⭐1判定用語追加
+    9) Marp HTML再生成: cd projects/udemy_course/drafts && npx @marp-team/marp-cli curriculum_intermediate_v5_marp.md
+    -o curriculum_intermediate_v5.html 10) 報告書作成: queue/reports/2026-05-06_cmd_1645_v5_term_audit.md
+    (全用語確立度評価+修正前後比較) 11) git add -f projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md
+    projects/udemy_course/drafts/curriculum_intermediate_v5.html queue/reports/2026-05-06_cmd_1645_v5_term_audit.md
+    && git commit -m ''fix(udemy): v5設計書 専門用語 AI業界確立用語に置換 (JIT/Lazy Load等)'' && git
+    push origin main 12) advisor()呼出 13) inbox karo 完了報告'
+  acceptance_criteria:
+  - v5設計書の全専門用語を grep で抽出・リスト化済
+  - 各用語に AI 業界確立度 ⭐1-5 を付与 (WebSearch / WebFetch ベースの事実根拠付き)
+  - JIT / Lazy Load が AI 業界確立用語 (RAG / 必要時取得 / Selective Context Injection 等) に置換済
+  - 他の⭐1-2 判定用語も適切に置換 or 平易化
+  - v5 設計書 (curriculum_intermediate_v5_marp.md) の全章で用語修正済
+  - NG ワードリスト (§ 8) に JIT / Lazy Load および他の⭐1判定用語追加済
+  - Marp HTML 再生成済 (curriculum_intermediate_v5.html)
+  - queue/reports/2026-05-06_cmd_1645_v5_term_audit.md 報告書作成済
+  - v5 構造 (12 章・困りごと 11 個・3 層フレーム・セマンティック検索二重登場) が維持されている
+  - 受講者ペルソナ (社会人 2-3 年目) への配慮 (横文字過多にしない・併記原則) 維持
+  - git commit + push 済 (git add -f 使用)
+  notes: '対象ファイル: projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md
+    (860行)。殿指摘: JIT / Lazy Load はAI業界未確立のCS/web流用用語。他の流用用語も含めて精査せよ。受講者ペルソナは社会人2-3年目でIT用語はなんとかわかる程度。横文字過多禁止・業界用語併記原則。v5構造(12章・困りごと11個・3層フレーム)は維持必須。git
+    add -f 必須(projects/はgitignore対象)。報告書もgit add -f 必須(reports/はgitignore対象)。'
+  timestamp: '2026-05-06T04:53:42.977108+09:00'
+- agent: gunshi
+  task_id: subtask_1646_a_design_qc
+  status: done
+  started_at: '2026-05-06T05:00:00+09:00'
+  completed_at: '2026-05-06T05:05:02+09:00'
+  priority: high
+  parent_cmd: cmd_1646
+  bloom_level: L5
+  gunshi_qc: false
+  description: 'cmd_1646: A案(SSE direct stream)の設計を軍師が単独QCし、実装前に技術的問題点+改善提案+詳細実装ロードマップを報告書化する'
+  target_path: queue/reports/2026-05-06_cmd_1646_a_design_qc.md
+  steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) 前提確認: A案採用確定 (殿命
+    2026-05-06 11:00)・B/C比較は不要・cmd_1643取消版payloadを参照: queue/cmd_payloads/cmd_1643.json
+    3) 関連資料精読: scripts/dashboard/server.py (Flask構成・インポート・ルーティング・inbox_write handler付近)
+    / queue/reports/2026-05-06_cmd_1644_inbox_design_qc.md (§2.1 A案設計詳細) / queue/reports/2026-05-06_cmd_1642_monitor_phase2_qc.md
+    (Phase2 現状) 4) [8軸QC評価] 各軸で『抜け穴』1-3個+『改善提案』: (1)SSE実装: Flask vs FastAPI・Content-Type
+    text/event-stream・keepalive・ブラウザ制限・curl -N --no-buffer動作 (2)queue設計: in-memory
+    queue型・maxsize設定・producer/consumer分離・server再起動時のメッセージロスト (3)10agent同時接続負荷: スレッドモデル・GIL・接続タイムアウト・再接続ポリシー
+    (4)SSE信頼性: 切断時メッセージロスト・Last-Event-ID・at-least-once保証・inode問題完全回避の根拠 (5)server.py影響:
+    既存エンドポイントへの影響・streaming responseとFlaskの相性・gunicorn/uwsgi非対応問題 (6)rollback戦略: B案(inotifywait)への切り戻し手順・フィーチャーフラグ要否・既存inbox_watcher.sh並走期間
+    (7)段階移行: agent1→全10に段階展開・CLAUDE.md変更タイミング・shutsujin_departure.sh更新 (8)殿運用シナリオ:
+    server.py落ちた場合の通知断絶・再起動手順・監視方法 5) 実装前決定事項リスト: Flask streaming対応確認・queue maxsize・接続タイムアウト値・再接続間隔・ログ設計
+    6) Phase別実装ロードマップ: Phase1(server.py SSE endpoint追加+単体テスト)→Phase2(1agent接続テスト)→Phase3(全10agent切替+inbox_watcher.sh廃止)
+    / 各Phaseの期間・作業量・リスク・判断ゲート 7) リスク一覧 (技術/運用/互換性) 各3件以上 8) 報告書作成: queue/reports/2026-05-06_cmd_1646_a_design_qc.md
+    9) git add -f queue/reports/2026-05-06_cmd_1646_a_design_qc.md && git commit -m
+    ''report(cmd_1646): A案SSE設計 8軸QC・実装ロードマップ'' && git push origin main 10) advisor()呼出
+    11) inbox karo 完了報告 (QCサマリ・設計上の最重要決定事項・Phaseロードマップ要旨)'
+  acceptance_criteria:
+  - queue/reports/2026-05-06_cmd_1646_a_design_qc.md 報告書作成
+  - 8軸QC評価 (SSE実装・queue設計・10agent接続負荷・SSE信頼性・server.py影響・rollback・段階移行・殿運用シナリオ) すべて含まれる
+  - 各軸で『抜け穴』+『改善提案』が1-3個ずつ提示される
+  - 実装前に決定すべき設計判断 (Flask移行要否・queue maxsize等) のリスト化
+  - Phase別実装ロードマップ (cmd_1647+起票案) が含まれる
+  - リスク一覧 (技術/運用/互換性) が含まれる
+  - 他案 (B/C) との比較は含まれない (殿命)
+  - 軍師中立性 — 実装可能性+抜け穴の両面を技術的根拠で評価
+  - git commit済
+  notes: '殿命: A案採用確定。B/C比較不要。cmd_1643で一度取消されたが今回は殿が明示的に採用決定。前回取消の原因は将軍越権起票であり技術的問題ではない。参照:
+    queue/cmd_payloads/cmd_1643.json (A案設計詳細) / queue/reports/2026-05-06_cmd_1644_inbox_design_qc.md
+    §2.1。server.pyはFlask使用: flask-streaming対応状況を必ず確認すること。git add -f 必須(reports/はgitignore対象)。'
+  timestamp: '2026-05-06T04:59:10.595686+09:00'
+- agent: gunshi
+  task_id: subtask_1649_sse_observation
+  status: in_progress
+  started_at: '2026-05-06T05:42:00+09:00'
+  priority: high
+  parent_cmd: cmd_1649
+  bloom_level: L3
+  gunshi_qc: false
+  description: 'cmd_1649 Phase2: 軍師セッションでSSE Monitor起動・24h観察で通知到達率と取りこぼし0件を確認'
+  target_path: queue/reports/2026-05-06_cmd_1649_phase2_observation.md
+  steps: '0) advisor()呼出 1) 前提確認: curl -s http://192.168.2.4:8770/api/inbox_stream?agent=gunshi
+    -o /dev/null -w ''%{http_code}'' → 200なら ENABLE_SSE_INBOX=true で稼働中・404なら server.py
+    再起動待ち (家老に連絡してから待機) 2) ToolSearch(query=''select:Monitor'') でMonitorスキーマ取得 3)
+    SSE Monitor起動: Monitor(command=''curl -N --no-buffer http://192.168.2.4:8770/api/inbox_stream?agent=gunshi'',
+    description=''SSE inbox stream Phase2 observation'', persistent=true, timeout_ms=86400000)
+    4) 既存 inbox_watcher.sh は並走継続 (本cmdでは切らない) 5) テスト用inbox_writeを5-10回発行してSSE Monitor
+    + 既存watcher両方の反応を確認・結果記録 6) 24h観察 (2026-05-06 12:00〜2026-05-07 12:00) でSSE通知到達率・取りこぼし件数・接続断絶回数を記録
+    7) SSE接続断絶+自動再接続の挙動を記録 8) 報告書作成: queue/reports/2026-05-06_cmd_1649_phase2_observation.md
+    (観察期間・受信件数・取りこぼし件数・接続断絶回数・Phase3推奨判断) 9) git add -f queue/reports/2026-05-06_cmd_1649_phase2_observation.md
+    && git commit -m ''report(cmd_1649): SSE Phase2 24h観察結果'' && git push origin main
+    10) inbox karo 完了報告 (取りこぼし件数・Phase3推奨可否)'
+  acceptance_criteria:
+  - ENABLE_SSE_INBOX=true で server.py 起動済を確認してから開始
+  - 軍師セッション内で SSE Monitor (curl -N /api/inbox_stream?agent=gunshi) 起動済
+  - 既存 inbox_watcher.sh (gunshi用) は並走稼働継続・本cmdでは切らない
+  - 24時間観察完了
+  - queue/reports/2026-05-06_cmd_1649_phase2_observation.md 作成
+  - テスト用 inbox_write を 5-10 回発行・SSE Monitor + 既存 watcher 両方の反応確認
+  - SSE 接続断絶 + 自動再接続の挙動記録
+  - Phase 3 (cmd_1650) 起票判断資料 (取りこぼし 0件なら推奨・1件以上なら改善必要)
+  - git commit 済
+  notes: 【重要前提】server.py が ENABLE_SSE_INBOX=true で再起動済みであること。Step 1 で HTTP 404 が返る場合は
+    server.py がまだ旧バージョン稼働中。家老に inbox_write で連絡し server.py再起動依頼をしてから待機すること。SSH鍵問題でgit
+    pushが失敗する場合は報告書作成まで完了させてからkaroに報告せよ(push は家老が対処)。gunshi_qc=false (軍師自身の観察タスク)。
+  timestamp: '2026-05-06T05:39:02.520488+09:00'

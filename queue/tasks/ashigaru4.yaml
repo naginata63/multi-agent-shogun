@@ -31,90 +31,6 @@ tasks:
     1 multi/day6_charlotte_part_%02d.mp4 → ffprobe各partで尺/codec確認→結果をwork/cmd_1425/charlotte_parts.json保存→完了報告
   task_id: subtask_1425c
   timestamp: '2026-04-22T20:52:00'
-- acceptance_criteria:
-  - scripts/inbox_write.sh dual-path改修: YAML書込後SQLite INSERT / STORAGE_BACKEND=yaml時skip動作確認
-  - server.py POST /api/cmd_create dual-path改修: cmd_1491実装を継承・SQLite INSERT追加・互換性維持
-  - kill_switch(STORAGE_BACKEND=yaml)でSQLite書込完全スキップ動作確認済み
-  - queue/cmds.db 本番DB初期化完了 + 既存YAML全データ初期投入完了(件数確認)
-  - Litestream稼働確認(logs/litestream.log存在・ERROR 0)
-  - 日次dumpバックアップcron設定完了(queue/backup/cmds_YYYYMMDD.sql.gz)
-  - scripts/sqlite_yaml_audit.py 新規作成・4テーブル件数+ハッシュ比較・差分時exit1+ntfy
-  - 初回audit実行: 差分0件確認済み
-  - 毎日4:00 audit cronを設定済み
-  - p3 dual-path readsには進んでいない
-  - 軍師QC依頼済み
-  - git commit + push完了
-  agent: ashigaru4
-  assigned_to: ashigaru4
-  bloom_level: L4
-  completed_at: '2026-05-05T12:08:39+09:00'
-  description: 'cmd_1488: SQLite p2 dual-path writes実装。inbox_write.sh + server.py
-    POST /api/cmd_create にSQLite INSERT dual-path追加(YAML正・SQLite並走・kill_switch=STORAGE_BACKEND)。本番DB初期化(queue/cmds.db)+全YAML初期投入+Litestream設定+日次dumpバックアップcron+audit
-    script(sqlite_yaml_audit.py)新規作成+kill_switch動作確認+1週間soak開始。p3 dual-path readsには進まない。cmd_1491完遂(commit
-    863bb19)済みゆえserver.py干渉なし。'
-  notes:
-  - cmd_1491完遂(22:32 commit 863bb19)済み・server.py干渉なし
-  - YAML書込失敗時はSQLite書込もスキップ(YAMLが正・SQLiteは並走)
-  - rollback: STORAGE_BACKEND=yaml + queue/cmds.db削除でp1以前に即戻し可
-  - 1週間soak中差分1件でも出れば即STORAGE_BACKEND=yaml + 軍師調査cmd発令
-  parent_cmd: cmd_1488
-  procedure: /home/murakami/multi-agent-shogun/queue/reports/gunshi_design_sqlite_migration_1481.yaml
-  status: done
-  steps: /home/murakami/multi-agent-shogun/queue/shogun_to_karo.yaml(id:cmd_1488)全文読む
-    + /home/murakami/multi-agent-shogun/queue/reports/gunshi_design_sqlite_migration_1481.yaml
-    rank_2_dual_pathセクション読む→advisor()→[Step1]sqlite3 /home/murakami/multi-agent-shogun/queue/cmds.db
-    < /home/murakami/multi-agent-shogun/queue/schema_v1.sql → cd /home/murakami/multi-agent-shogun
-    && python3 /home/murakami/multi-agent-shogun/scripts/migrate_yaml_to_sqlite.py
-    --output-db /home/murakami/multi-agent-shogun/queue/cmds.db --no-dry-run --verbose
-    2>&1 | tee /home/murakami/multi-agent-shogun/logs/migration_initial.log(件数確認)→[Step2]/home/murakami/multi-agent-shogun/scripts/inbox_write.sh
-    dual-path改修(YAML書込後SQLite INSERT追加/STORAGE_BACKEND=yaml時はSQLite skip/flock必須)→[Step3]/home/murakami/multi-agent-shogun/scripts/dashboard/server.py
-    dual-path改修(cmd_1491実装を継承しSQLite INSERT追加・STORAGE_BACKEND制御)→[Step4]Litestream
-    config設定+nohup起動+/home/murakami/multi-agent-shogun/logs/litestream.log確認→[Step5]crontab設定(0
-    3 * * * 日次dump → /home/murakami/multi-agent-shogun/queue/backup/配下)→[Step6]/home/murakami/multi-agent-shogun/scripts/sqlite_yaml_audit.py
-    新規作成(4テーブル件数+内容ハッシュ比較・差分時exit1+ntfy)+cron設定(0 4 * * *)→[Step7]kill_switch動作確認(STORAGE_BACKEND=yaml
-    でinbox_write.sh実行→SQLite未更新確認)→[Step8]初回audit手動実行(差分0件確認)→soak開始→advisor()→完了報告YAML(/home/murakami/multi-agent-shogun/queue/reports/ashigaru4_report_subtask_1488a.yaml)→git
-    add /home/murakami/multi-agent-shogun/scripts/sqlite_yaml_audit.py /home/murakami/multi-agent-shogun/scripts/inbox_write.sh
-    /home/murakami/multi-agent-shogun/scripts/dashboard/server.py→commit→push→inbox_write
-    gunshi QC依頼→inbox_write karo 完了報告
-  target_path: /home/murakami/multi-agent-shogun/scripts/sqlite_yaml_audit.py
-  task_id: subtask_1488a
-  timestamp: '2026-04-25T22:39:00+09:00'
-- acceptance_criteria:
-  - merged_xZTtk4pJcAs.json の speaker が全て実名 (A/B/C/D/E/F が 0件)
-  - merged_xZTtk4pJcAs.srt の話者ラベルも実名のみ
-  - .bak_20260505_violation ファイル2件 (json+srt) が srt_and_candidates/ に存在
-  - vocals_full.wav が WORK_DIR に存在 (Demucs 再実行証拠)
-  - git commit 完了
-  agent: ashigaru4
-  bloom_level: L3
-  description: 'cmd_1631: xZTtk4pJcAs 完全再STT — Demucs再実行 + STT + 話者実名マッピング → merged
-    JSON/SRT を汚染版backup後に上書き'
-  notes: vocals_full.wav は存在しない（Demucs再実行必須）。既存 assemblyai_vocals.json/deepgram_vocals.json
-    は殿指示 '完全再STT' により再利用禁止・上書き可。Demucs は 10分チャンク必須（21分動画=約3チャンク=30-60分）。git push は家老が実施。
-  parent_cmd: cmd_1631
-  priority: medium
-  status: done
-  steps: '0) advisor()呼出 1) Read /home/murakami/multi-agent-shogun/.claude/commands/video-pipeline.md
-    でパイプライン全手順を把握 2) WORK_DIR=/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260320_凍ったおじいちゃんをちゃちゃっと溶かすぞ！
-    / SRT_CANDS=/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates
-    として各ファイル確認 (xZTtk4pJcAs.mp4 存在確認・vocals_full.wav 欠如確認) 3) 【バックアップ】cp $SRT_CANDS/merged_xZTtk4pJcAs.json
-    $SRT_CANDS/merged_xZTtk4pJcAs.json.bak_20260505_violation && cp $SRT_CANDS/merged_xZTtk4pJcAs.srt
-    $SRT_CANDS/merged_xZTtk4pJcAs.srt.bak_20260505_violation 4) 【Demucs 10分チャンク必須・クラッシュ歴あり】ffmpeg
-    で xZTtk4pJcAs.mp4 を 10分チャンクに分割 → 各チャンクに htdemucs --two-stems=vocals 実行 → ボーカルチャンクを
-    ffmpeg concat で vocals_full.wav に結合 5) 【STT】source ~/.bashrc && python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py
-    でSTT実行 (video-pipeline.md のオプションに従う・既存 assemblyai_vocals.json/deepgram_vocals.json
-    は使わず再実行) 6) 【話者マッチング】speaker_id_xZTtk4pJcAs.json (実名マッピング済) を使い /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/apply_speaker_mapping_srt.py
-    または run_speaker_match_only.py で merged JSON + SRT を生成 7) 【検証】python3 -c "import
-    json; d=json.load(open(''merged_xZTtk4pJcAs.json'')); spk=set(w[''speaker''] for
-    w in d.get(''words'',d.get(''segments'',[]))); bad=[s for s in spk if len(s)==1
-    and s in ''ABCDEF'']; print(''BAD:'',bad); assert not bad,''A-F 残存!'' " 8) cp
-    merged_xZTtk4pJcAs.json merged_xZTtk4pJcAs.srt $SRT_CANDS/ 9) git add projects/dozle_kirinuki/work/srt_and_candidates/
-    && git commit -m ''fix(dozle): xZTtk4pJcAs 完全再STT・話者ラベル実名化 (cmd_1631)'' 10) advisor()呼出
-    11) inbox karo 完了報告 (新merged JSONの話者一覧・A-F件数=0確認・backupパス記載)'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_xZTtk4pJcAs.json
-  task_id: subtask_1631_stt
-  timestamp: '2026-05-05T13:35:25.136935+09:00'
-  completed_at: '2026-05-05T14:53:35+09:00'
 - agent: ashigaru4
   task_id: subtask_1636_batch4
   status: blocked
@@ -141,3 +57,55 @@ tasks:
   notes: cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki してから実行。GEMINI
     API期限切れのためscene_search_v2 build禁止。git push は家老が実施。
   timestamp: '2026-05-05T15:22:55.957729+09:00'
+- agent: ashigaru4
+  task_id: subtask_1636_fullbatch4
+  status: done
+  priority: high
+  parent_cmd: cmd_1636
+  bloom_level: L3
+  gunshi_qc: false
+  description: 'cmd_1636 直接4並列: ash4 担当 14本 (QMpQZbUTfj4〜5Np9PPU8JQE) DL→Demucs→STT→speaker_mapping'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/
+  steps: '0) advisor()呼出 1) 事前メモリ確認: free -h && nvidia-smi --query-gpu=memory.used,memory.total
+    --format=csv,noheader 2) cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
+    && source ~/.bashrc && source venv/bin/activate 3) 以下14本を順次処理。各動画: VIDEO_ID=<id>
+    → mkdir -p work/cmd_1636_<id>/{input,output} → downloader.py + vocal_stt_pipeline.py
+    → merged_{id}.json → A-F検証 4) 処理対象14本: QMpQZbUTfj4 ouu0Mrb4Y5c AAnANq-bUpQ nxAAYd_FwC8
+    Fjt8U4vXSgI lDBmBtxcjEo 2Gv7n8dfohI 4mlCQ7dVKXM o6vunreR_yM jIndbI48GK8 qFpCsQhwxwQ
+    X9BWyuqSy_k QK3Huq55BCM 5Np9PPU8JQE 5) 5本ごとにメモリ確認。異常→即STOP→inbox karo 6) 全完了後:
+    成功/失敗一覧 + 最終メモリ状態 inbox karo報告 7) advisor()呼出'
+  acceptance_criteria:
+  - 14本全て merged_<id>.json が srt_and_candidates/ に存在
+  - 全merged JSON で A-F speakers = 0
+  - RAM available>5GB 維持・OOM未発生
+  notes: 4並列本番。GEMINI API期限切れのためscene_search_v2 build禁止。エラー時スキップ継続可。git push は家老が実施。
+  timestamp: '2026-05-05T15:29:03.086557+09:00'
+  completed_at: '2026-05-06T05:09:48+09:00'
+- agent: ashigaru4
+  task_id: subtask_1647_prewrite_ch10_ch11
+  status: done
+  priority: high
+  parent_cmd: cmd_1647
+  bloom_level: L3
+  gunshi_qc: false
+  description: 'cmd_1647 Phase1: ch10-ch11 の事前4項目 (対象問題・持ち帰り・ストーリー・実例) を作成し殿確認用ファイルに出力'
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch10_ch11.md
+  steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) 設計書精読: projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md
+    §7 章別詳細設計 (ch10-ch11) + §11 事前4項目プロトコル + §2 困りごと11件全件 + §3 3層世界観 3) 各章で以下4項目をMarkdown形式で作成:
+    [1]対象問題 [2]持ち帰り [3]ストーリー(現象→対策) [4]実例 4) ch10: 逆引き辞典 (症状→現象→対策→該当章 3段構造 + 3層インデックス・困りごと11件全件再掲)
+    / ch11: 自分専用Skillを作る (演習・3層統合の到達点・Skills縦糸の終着点) 5) 出力先: projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch10_ch11.md
+    6) git add -f projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch10_ch11.md
+    && git commit -m ''feat(udemy): v5 ch10-ch11 事前4項目作成 (Phase1)'' && git push origin
+    main 7) advisor()呼出 8) inbox karo 完了報告'
+  acceptance_criteria:
+  - ch10-ch11 各章の事前4項目 (対象問題・持ち帰り・ストーリー・実例) が全て記述済
+  - ch10の実例に困りごと11件全件を症状→現象→対策→該当章の3段構造で記述
+  - ch11がSkills縦糸 (ch01→ch07→ch11) の終着点として機能することが4項目に反映されている
+  - ch11の演習設計が受講者が実際にSkillを作れる具体性を持つ
+  - projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch10_ch11.md 作成済
+  - git commit + push済 (git add -f 使用)
+  notes: 'ch10は v5 CRITICAL変更点 (3段構造+3層インデックスに刷新)。§7のch10/ch11詳細設計を必ず参照。ch11は「自分専用のSkillを作る」に主題変更済
+    (v4とは別物)。NGワード: queue/tasks/shogun/karo/ashigaru/gunshi/multi-agent-shogunは使用禁止
+    (受講者に見せるコンテンツ)。git add -f 必須 (projects/ は gitignore対象)。'
+  timestamp: '2026-05-06T05:08:45.438624+09:00'
+  completed_at: '2026-05-06T05:16:48+09:00'

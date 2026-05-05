@@ -994,6 +994,7 @@ commands:
   - 軍師中立性 — 実装可能性 + 抜け穴の両面を技術的根拠で評価
   - git commit 済
   notify_karo: true
+  completed_at: '2026-05-06T06:29:16+09:00'
 - id: cmd_1647
   status: in_progress
   priority: high
@@ -1185,6 +1186,7 @@ commands:
   - gunshi QC PASS
   - git commit 済
   notify_karo: true
+  completed_at: '2026-05-06T06:29:00+09:00'
 - id: cmd_1652
   status: done
   priority: medium
@@ -1259,6 +1261,7 @@ commands:
   - 実機動作確認 (dashboard で cancel ボタンクリック → status 変更確認)
   - git commit 済
   notify_karo: true
+  completed_at: '2026-05-06T06:29:00+09:00'
 - id: cmd_1649
   status: in_progress
   priority: high
