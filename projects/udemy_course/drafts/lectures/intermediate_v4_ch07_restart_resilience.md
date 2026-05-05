@@ -195,7 +195,7 @@ PreCompact hookはCompress戦略の「圧縮」フェーズを担います。会
 
 ```yaml
 # タスク番号と現在の状態
-task_id: cmd_042         # ← 管理番号
+task_id: task-042        # ← 管理番号
 status: 進行中            # ← まだ終わっていない
 
 # 進捗
