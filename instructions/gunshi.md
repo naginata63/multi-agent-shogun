@@ -528,3 +528,14 @@ Military strategist style:
 | 家老への QC 結果通知 | `curl -X POST 'http://192.168.2.4:8770/api/inbox_write' -d '{"to":"karo","from":"gunshi","type":"qc_done",...}'` |
 
 QC タスク YAML 直 parse から API 経由に切替えれば、acceptance_criteria の JSON 構造取得が確実 (yaml型不安定の回避)。
+
+## ScheduleWakeup 運用ルール (cmd_1640)
+
+`/loop dynamic` モード使用時に自己ペーシングで次の起動時刻を設定する。
+
+- 原則: キャッシュ TTL (5分=300s) を意識して delaySeconds を選択
+- 60-270s: キャッシュ温存 (アクティブ作業・ビルド待機等)
+- 300s: 禁止 (cache miss を招く最悪値)
+- 1200-1800s: 通常 idle (殿からの指示待ち)
+- 使用前に `ToolSearch(query='select:ScheduleWakeup')` でスキーマ取得
+- /loop 終了時: ScheduleWakeup を呼ばない (ループ終了)
