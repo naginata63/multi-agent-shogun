@@ -1,0 +1,19 @@
+{
+  "agent": "ashigaru3",
+  "task_id": "subtask_1636_stepB3",
+  "status": "blocked",
+  "priority": "high",
+  "parent_cmd": "cmd_1636",
+  "blocked_by": ["subtask_1636_stepA1", "subtask_1636_stepA2"],
+  "bloom_level": "L3",
+  "gunshi_qc": false,
+  "description": "cmd_1636 Phase B 試運転 (ash3): GZ1O6k1Fe3A 1本処理 (3並列安全確認)",
+  "target_path": "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_GZ1O6k1Fe3A.json",
+  "steps": "0) advisor()呼出 1) 【3並列安全確認フェーズ】ash1+ash2と同時並列 (初参加) — 事前メモリ確認: free -h && nvidia-smi 2) VIDEO_ID=GZ1O6k1Fe3A && mkdir -p /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/cmd_1636_GZ1O6k1Fe3A/{input,output} 3) cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki && source ~/.bashrc && source venv/bin/activate && python3 scripts/downloader.py 'https://www.youtube.com/watch?v=GZ1O6k1Fe3A' --output-dir work/cmd_1636_GZ1O6k1Fe3A/input/ 4) python3 scripts/vocal_stt_pipeline.py work/cmd_1636_GZ1O6k1Fe3A/input/GZ1O6k1Fe3A.mp4 --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_GZ1O6k1Fe3A.json --work-dir work/cmd_1636_GZ1O6k1Fe3A/output/ --cache 5) 完了後: free -h && nvidia-smi で最終メモリ記録 6) A-F検証 & dmesg OOM確認 7) advisor()呼出 8) inbox karo 完了報告",
+  "acceptance_criteria": [
+    "merged_GZ1O6k1Fe3A.json 存在・A-F=0",
+    "RAM/VRAM ピーク値報告",
+    "OOM-killer 未発生"
+  ],
+  "notes": "Phase A完了確認後のみ実行。ash3は初回参加。GEMINI API期限切れのためscene_search_v2 build禁止。"
+}

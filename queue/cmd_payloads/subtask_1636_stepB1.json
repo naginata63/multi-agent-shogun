@@ -1,0 +1,19 @@
+{
+  "agent": "ashigaru1",
+  "task_id": "subtask_1636_stepB1",
+  "status": "blocked",
+  "priority": "high",
+  "parent_cmd": "cmd_1636",
+  "blocked_by": ["subtask_1636_stepA1", "subtask_1636_stepA2"],
+  "bloom_level": "L3",
+  "gunshi_qc": false,
+  "description": "cmd_1636 Phase B 試運転 (ash1): mvHqvnHOI7o 1本処理 (3並列安全確認)",
+  "target_path": "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_mvHqvnHOI7o.json",
+  "steps": "0) advisor()呼出 1) 【3並列安全確認フェーズ】ash2+ash3と同時並列 — 事前メモリ確認: free -h && nvidia-smi 2) VIDEO_ID=mvHqvnHOI7o && mkdir -p /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/cmd_1636_mvHqvnHOI7o/{input,output} 3) cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki && source ~/.bashrc && source venv/bin/activate && python3 scripts/downloader.py 'https://www.youtube.com/watch?v=mvHqvnHOI7o' --output-dir work/cmd_1636_mvHqvnHOI7o/input/ 4) python3 scripts/vocal_stt_pipeline.py work/cmd_1636_mvHqvnHOI7o/input/mvHqvnHOI7o.mp4 --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_mvHqvnHOI7o.json --work-dir work/cmd_1636_mvHqvnHOI7o/output/ --cache 5) 完了後: free -h && nvidia-smi で最終メモリ記録 6) A-F検証 & dmesg OOM確認 7) advisor()呼出 8) inbox karo 完了報告 (RAM/VRAM/処理時間/OOM有無)",
+  "acceptance_criteria": [
+    "merged_mvHqvnHOI7o.json 存在・A-F=0",
+    "RAM/VRAM ピーク値報告",
+    "OOM-killer 未発生"
+  ],
+  "notes": "Phase A (2並列) が正常完了した場合のみ実行。異常(RAM>40GB/OOM)時は即STOP→inbox karo。GEMINI APIは期限切れのためscene_search_v2 build禁止。"
+}

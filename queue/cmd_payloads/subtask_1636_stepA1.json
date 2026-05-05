@@ -1,0 +1,19 @@
+{
+  "agent": "ashigaru1",
+  "task_id": "subtask_1636_stepA1",
+  "status": "assigned",
+  "priority": "high",
+  "parent_cmd": "cmd_1636",
+  "bloom_level": "L3",
+  "gunshi_qc": false,
+  "description": "cmd_1636 Phase A 試運転1本目 (ash1): IKu8Dad0YyY を DL→Demucs→STT→speaker_mapping まで処理し、メモリ使用量を記録して家老に報告",
+  "target_path": "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_IKu8Dad0YyY.json",
+  "steps": "0) advisor()呼出 1) Read /home/murakami/multi-agent-shogun/.claude/commands/video-pipeline.md 2) 【事前メモリ記録】free -h && nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader → 値をメモ 3) VIDEO_ID=IKu8Dad0YyY / WORK_DIR=/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/cmd_1636_IKu8Dad0YyY 4) mkdir -p $WORK_DIR/input $WORK_DIR/output 5) 【DL】cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki && source ~/.bashrc && source venv/bin/activate && python3 scripts/downloader.py 'https://www.youtube.com/watch?v=IKu8Dad0YyY' --output-dir work/cmd_1636_IKu8Dad0YyY/input/ 6) 【Demucs中メモリ記録】vocal_stt_pipeline.py 実行前後に free -h && nvidia-smi を実行 7) 【STT+speaker_mapping】source ~/.bashrc && source venv/bin/activate && python3 scripts/vocal_stt_pipeline.py work/cmd_1636_IKu8Dad0YyY/input/IKu8Dad0YyY.mp4 --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_IKu8Dad0YyY.json --work-dir work/cmd_1636_IKu8Dad0YyY/output/ --cache 8) 【完了後メモリ記録】free -h && nvidia-smi → ピークRAM/VRAMを記録 9) 【A-F検証】python3 -c \"import json; d=json.load(open('work/srt_and_candidates/merged_IKu8Dad0YyY.json')); words=d.get('words',d.get('segments',[])); bad=[w for w in words if w.get('speaker','') in ['A','B','C','D','E','F']]; print(f'A-F: {len(bad)}'); assert not bad,'A-F残存'\" 10) advisor()呼出 11) inbox karo 完了報告 (RAM使用量・GPU VRAM使用量・A-F=0確認・処理時間)",
+  "acceptance_criteria": [
+    "merged_IKu8Dad0YyY.json が srt_and_candidates/ に存在",
+    "A-F speakers = 0件",
+    "RAM・GPU VRAM ピーク値を報告 (異常: RAM>40GB or VRAM>7.5GB)",
+    "dmesg に OOM-killer 出現なし"
+  ],
+  "notes": "【CRITICAL】処理中に RAM>40GB or swap使用>0 or dmesg OOM 検出時は即停止してinbox karoにエスカレ。これはPhase A試運転 (2並列安全確認)。ash2と同時実行中のため並列メモリ消費に注意。GEMINI API は期限切れのためscene_search_v2 build は実行禁止 (indexingは後工程で別タスク化)。git push は家老が実施。"
+}

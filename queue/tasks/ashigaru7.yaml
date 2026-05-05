@@ -1,1 +1,77 @@
-tasks: []
+tasks:
+- agent: ashigaru7
+  task_id: subtask_1630_finalize
+  status: done
+  priority: high
+  parent_cmd: cmd_1630
+  bloom_level: L2
+  blocked_by:
+  - subtask_1630_appendix_a
+  - subtask_1630_appendix_b
+  - subtask_1630_appendix_c
+  description: 'cmd_1630: 完了報告書2件作成 + inbox karo (git push は家老担当)'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/2026-05-04_cmd_1622_intermediate_v4_all_green.md
+  steps: '0) advisor()呼出 1) Read queue/reports/udemy_review_intermediate_appendix_a_v2.md
+    + appendix_b_v2.md + appendix_c_v2.md で全3章の最終判定確認 2) 【cmd_1622完了報告書】queue/reports/2026-05-04_cmd_1622_intermediate_v4_all_green.md
+    を作成: 全21章(ch00-15/17-18+appendix_a/b/c)のudemy-checker最終判定一覧表・各章の最終版レビュー報告書パス・🟢/🟡/🔴ステータス・改善サマリ
+    3) 【cmd_1630完了報告書】queue/reports/2026-05-05_cmd_1630_intermediate_appendix_completion.md
+    を作成: appendix_a/b/c補修内容サマリ・v2レビュー判定・git commit ID 4) advisor()呼出 5) inbox karo
+    完了報告 (報告書2件のパスを明記)'
+  acceptance_criteria:
+  - queue/reports/2026-05-04_cmd_1622_intermediate_v4_all_green.md 作成済み (全21章リザルト集約)
+  - queue/reports/2026-05-05_cmd_1630_intermediate_appendix_completion.md 作成済み
+  - inbox karo 完了報告送信済み
+  notes: git push は家老が実施。このタスクは報告書作成のみ。subtask_1630_appendix_a/b/c の完了後に着手。appendix_a/b/cのv2レビュー報告書が存在することを確認してから作成開始。
+  timestamp: '2026-05-05T11:57:51.322809+09:00'
+  completed_at: '2026-05-05T12:32:12+09:00'
+- agent: ashigaru7
+  task_id: subtask_1631_report
+  status: blocked
+  priority: medium
+  parent_cmd: cmd_1631
+  bloom_level: L2
+  blocked_by:
+  - subtask_1631_index
+  description: 'cmd_1631: subtitle_speaker_qc.py QC実行 + 完了報告書作成 + inbox karo'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/2026-05-05_cmd_1631_speaker_label_fix.md
+  steps: '0) advisor()呼出 1) QC実行: python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py
+    --audio-merge /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260320_凍ったおじいちゃんをちゃちゃっと溶かすぞ！/vocals_full.wav
+    --srt /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_xZTtk4pJcAs.srt
+    (オプションは実際のスクリプトを確認して調整) 2) 識別率が 95% 以上であることを確認 3) 完了報告書 queue/reports/2026-05-05_cmd_1631_speaker_label_fix.md
+    を作成: cmd_1631 purpose・修正前後の話者ラベル比較・バックアップファイルパス・subtitle_speaker_qc.py 識別率・scene_search_v2.py
+    info 話者一覧 (A-F=0確認) 4) inbox karo 完了報告 (報告書パス・QC識別率記載)'
+  acceptance_criteria:
+  - subtitle_speaker_qc.py 識別率 95% 以上
+  - queue/reports/2026-05-05_cmd_1631_speaker_label_fix.md 作成済み
+  - inbox karo 送信済み
+  notes: subtitle_speaker_qc.py の正確なオプションは実際のスクリプトを Read して確認すること。識別率が 95% 未満の場合は家老にエスカレ。git
+    push は家老が実施。
+  timestamp: '2026-05-05T13:35:27.263049+09:00'
+- agent: ashigaru7
+  task_id: subtask_1634_ch13
+  status: done
+  priority: high
+  parent_cmd: cmd_1634
+  blocked_by:
+  - subtask_1635_main
+  bloom_level: L3
+  description: 'cmd_1634: 中級編 v4 ch13 (phase_gate) の固有記法を全削除・汎用表現に書き直し + html同期 +
+    udemy-checker再レビュー🟢'
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/intermediate_v4_ch13_phase_gate.md
+  steps: '0) advisor()呼出 1) Read intermediate_v4_ch13_phase_gate.md 全文 2) grep -nE
+    ''queue/|multi-agent-shogun|ashigaru|karo|gunshi'' で全違反行を特定 3) 【汎用化ルール】: queue/tasks/*.yaml
+    → 「タスク管理ファイル」、ashigaru → 「executor」、karo → 「manager」、gunshi → 「reviewer」、multi-agent-shogun
+    → 「あなたのマルチエージェントシステム」。コード例はプロジェクト非依存に書き直す 4) 修正後 grep 0件確認 5) .html を .md 内容に合わせて同期更新
+    6) Agent(subagent_type=''udemy-checker'') で ch13 再レビュー → queue/reports/udemy_review_intermediate_ch13_v3.md
+    に保存 (改善版 udemy-checker を使用) 7) 🟢確認 8) git add projects/udemy_course/drafts/lectures/intermediate_v4_ch13_phase_gate.md
+    projects/udemy_course/drafts/lectures/intermediate_v4_ch13_phase_gate.html &&
+    git commit -m ''feat(udemy): ch13 固有記法削除・汎用化 (cmd_1634)'' 9) advisor()呼出 10) inbox
+    karo 完了報告'
+  acceptance_criteria:
+  - grep -E 'queue/|multi-agent-shogun|ashigaru|karo|gunshi' が 0件
+  - udemy-checker再レビュー 🟢 → udemy_review_intermediate_ch13_v3.md
+  - .html も同期更新済み
+  - git commit 完了
+  notes: grep 0件でも暗示的な固有記法を精読して除去。git push は家老が実施。
+  timestamp: '2026-05-05T13:54:15.618387+09:00'
+  completed_at: '2026-05-05T14:21:31+09:00'

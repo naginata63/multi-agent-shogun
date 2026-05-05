@@ -46,3 +46,180 @@ tasks:
     配下の新規ファイルはgit追跡済みなので -f 不要。
   timestamp: '2026-05-05T05:59:08.101089+09:00'
   completed_at: '2026-05-05T06:05:47+09:00'
+- agent: ashigaru3
+  task_id: subtask_1629_inbox_bloom_filter
+  status: done
+  parent_cmd: cmd_1629
+  bloom_level: L3
+  description: server.py /api/inbox_write に bloom_level フィルタ追加 — to=gunshi + report_received/report_completed
+    で tasks テーブルの bloom_level L1-L3 なら karo に自動 redirect
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+  steps: '0) advisor()呼出 1) Read scripts/dashboard/server.py L2843-L2900 (/api/inbox_write
+    ハンドラ全体確認) 2) 以下のフィルタロジックを inbox_write ハンドラの target/message 検証後・script_path 実行前
+    (L2869 の直前) に挿入: (a) target == ''gunshi'' かつ msg_type in (''report_received'',
+    ''report_completed'') の場合 (b) body.get(''task_id'') で task_id を取得 (c) task_id
+    があれば tasks テーブルで SELECT bloom_level FROM tasks WHERE task_id=? を実行 (d) bloom_level
+    が L1/L2/L3 なら target = ''karo'' に変更 (e) bloom_level が L4/L5/L6 or NULL or 取得不能なら
+    gunshi のまま維持 (f) DB 接続失敗・例外は silent (try/except) で無視しフィルタなし通過 3) DB_PATH または既存の
+    SQLite 接続方法を server.py 内で確認して同じ方式で使え 4) python3 -m py_compile scripts/dashboard/server.py
+    でシンタックスチェック 5) 動作確認: curl -X POST http://192.168.2.4:8770/api/inbox_write -H ''Content-Type:
+    application/json'' -d ''{"to":"gunshi","from":"test","type":"report_received","message":"test
+    L3 filter","task_id":"subtask_1629_inbox_bloom_filter"}'' → karo に届き gunshi に届かないことを確認
+    6) git add scripts/dashboard/server.py && git commit -m ''feat(server): inbox_write
+    bloom_level L1-L3 は gunshi→karo 自動redirect (cmd_1629)'' 7) git push 8) advisor()呼出
+    9) inbox karo 完了報告'
+  acceptance_criteria:
+  - server.py /api/inbox_write に bloom_level フィルタが実装されている
+  - to=gunshi + type=report_received/report_completed + bloom_level L1-L3 のメッセージが
+    karo に redirect される
+  - to=gunshi + bloom_level L4-L6 は gunshi に届く (従来通り)
+  - DB 接続失敗は silent に無視してフィルタなし通過
+  - python3 -m py_compile PASS
+  - git commit + push 完了
+  notes: DB_PATH の参照方法は server.py 内の既存 sqlite3 接続箇所と同じ方式を使え。L2869 の直前 (script_path
+    定義の前) に挿入するのが最もクリーン。フィルタは silent fail 必須 (server 全体を壊すな)。
+  gunshi_qc: false
+  timestamp: '2026-05-05T07:15:16.559251+09:00'
+  completed_at: '2026-05-05T07:20:26+09:00'
+- agent: ashigaru3
+  task_id: subtask_1630_appendix_c
+  status: done
+  priority: high
+  parent_cmd: cmd_1630
+  bloom_level: L3
+  description: 'cmd_1630: 中級編 v4 appendix_c 補修 + udemy-checker 再レビュー (🟡→🟢)'
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/intermediate_v4_appendix_c_troubleshoot.md
+  steps: '0) advisor()呼出 1) Read queue/reports/udemy_review_intermediate_appendix_c.md
+    で指摘(A.わからない/B.論理破綻/C.詰まる)を全把握 2) cp projects/udemy_course/drafts/lectures/intermediate_v4_appendix_c_troubleshoot.md
+    projects/udemy_course/drafts/lectures/intermediate_v4_appendix_c_troubleshoot.md.bak
+    && cp projects/udemy_course/drafts/lectures/intermediate_v4_appendix_c_troubleshoot.html
+    projects/udemy_course/drafts/lectures/intermediate_v4_appendix_c_troubleshoot.html.bak
+    3) Read intermediate_v4_appendix_c_troubleshoot.md 全文 4) 書き直しルール7点適用: (a)章冒頭に「この章で出てくる用語」ボックス追加(.claude/フォルダのパス説明・~=ホームディレクトリ・jq=JSONパーサ等を初学者向けに補足)
+    (b)1セクション内の新出カタカナ用語を2個以下に (c)PreToolUse/auto-compact等の自社固有概念初出時に1段落説明 (d)定義の後出し禁止
+    (e)コマンド等の補足説明 (f)B.論理破綻全指摘を解消: L60-71「どのファイルを開いて何を消し何を残すか」例を追加・L107-111 ステップ1→2の論理つなぎを明確化・L155
+    Q3選択肢A×の根拠を本文に明記 (g)構成維持 5) .html を .md 内容に合わせて同期更新 6) git add projects/udemy_course/drafts/lectures/intermediate_v4_appendix_c_troubleshoot.md
+    projects/udemy_course/drafts/lectures/intermediate_v4_appendix_c_troubleshoot.html
+    && git commit -m ''feat(udemy): intermediate appendix_c 補修 (cmd_1630)'' 7) Agent(subagent_type=''udemy-checker'')
+    で appendix_c 再レビュー → queue/reports/udemy_review_intermediate_appendix_c_v2.md
+    保存 8) 🟢確認 (🟡残れば再修正→再レビュー 最大2回まで・2回でも🟡なら家老にエスカレ) 9) advisor()呼出 10) inbox karo
+    完了報告 (appendix_c 判定結果・v2報告書パス記載)'
+  acceptance_criteria:
+  - appendix_c .md + .html 両方が書き直し済み (.bak バックアップ存在)
+  - appendix_c 再レビュー 🟢 → queue/reports/udemy_review_intermediate_appendix_c_v2.md
+  - .claude/フォルダのパス・jq・PreToolUse・auto-compact 等の用語が初出時に補足されている
+  - L60-71 トラブル1の具体例(どのファイルを開いて何を消すか)が追加されている
+  - git commit 完了 (git push は家老が実施)
+  notes: .md が真ソース・.html は派生。🟡が残れば家老にエスカレ。git push は家老担当のため足軽は push 禁止。
+  timestamp: '2026-05-05T11:57:48.228230+09:00'
+  completed_at: '2026-05-05T12:11:42+09:00'
+- agent: ashigaru3
+  task_id: subtask_1632_report
+  status: done
+  priority: medium
+  parent_cmd: cmd_1632
+  bloom_level: L2
+  blocked_by:
+  - subtask_1632_csv
+  - subtask_1632_audit
+  description: 'cmd_1632: 完了報告書作成 — CSV最新化結果 + audit結果 + 4/2以降未処理動画リスト + inbox karo'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/2026-05-05_cmd_1632_video_index_audit.md
+  steps: '0) advisor()呼出 1) python3 /home/murakami/multi-agent-shogun/scripts/audit_video_index_consistency.py
+    --index-dir /home/murakami/multi-agent-shogun/data/scene_index_v2 --csv /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/data/dozle_video_list.csv
+    を実行して最終audit結果を取得 2) dozle_video_list.csv を読んで 4/2以降 (published_at >= ''2026-04-02'')
+    の未処理動画 (index_missing) を抽出 3) queue/reports/2026-05-05_cmd_1632_video_index_audit.md
+    を作成: (a) CSV最新化結果 (追加行数・4/2以降新規動画数) (b) quality_status 別件数一覧 (ok/violation_alphabet/index_missing/csv_outdated)
+    (c) violation_alphabet 動画一覧 (xZTtk4pJcAs など) (d) 4/2以降の未処理動画リスト top 30 (video_id・title・published_at)
+    (e) 作成スクリプトパス + git commit ID 4) git add queue/reports/2026-05-05_cmd_1632_video_index_audit.md
+    && git commit -m ''docs(dozle): cmd_1632 完了報告書 — video index audit (cmd_1632)''
+    5) inbox karo 完了報告 (報告書パス・status別件数サマリ記載)'
+  acceptance_criteria:
+  - queue/reports/2026-05-05_cmd_1632_video_index_audit.md 作成済み
+  - 報告書に quality_status 別件数が記載されている
+  - 4/2以降の未処理動画リスト (top 30) が含まれている
+  - violation_alphabet 動画一覧 (少なくとも xZTtk4pJcAs) が記載されている
+  - git commit 完了
+  - inbox karo 送信済み
+  notes: git push は家老が実施。subtask_1632_csv と subtask_1632_audit 両方の完了後に着手。
+  timestamp: '2026-05-05T13:35:32.423480+09:00'
+  completed_at: '2026-05-05T13:59:11+09:00'
+- agent: ashigaru3
+  task_id: subtask_1634_ch11
+  status: done
+  priority: high
+  parent_cmd: cmd_1634
+  blocked_by:
+  - subtask_1635_main
+  bloom_level: L3
+  description: 'cmd_1634: 中級編 v4 ch11 (completion_gate) の固有記法を全削除・汎用表現に書き直し + html同期
+    + udemy-checker再レビュー🟢'
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/intermediate_v4_ch11_completion_gate.md
+  steps: '0) advisor()呼出 1) Read intermediate_v4_ch11_completion_gate.md 全文 2) grep
+    -nE ''queue/|multi-agent-shogun|ashigaru|karo|gunshi'' で全違反行を特定 (0件でも文脈を精読) 3)
+    【汎用化ルール】: queue/tasks/*.yaml → 「タスク管理ファイル」、ashigaru → 「executor」、karo → 「manager」、gunshi
+    → 「reviewer」、multi-agent-shogun → 「あなたのマルチエージェントシステム」。コード例はプロジェクト非依存に書き直す 4) 修正後
+    grep 0件確認 5) .html を .md 内容に合わせて同期更新 6) Agent(subagent_type=''udemy-checker'')
+    で ch11 再レビュー → queue/reports/udemy_review_intermediate_ch11_v3.md に保存 (改善版 udemy-checker
+    を使用) 7) 🟢確認 8) git add projects/udemy_course/drafts/lectures/intermediate_v4_ch11_completion_gate.md
+    projects/udemy_course/drafts/lectures/intermediate_v4_ch11_completion_gate.html
+    && git commit -m ''feat(udemy): ch11 固有記法削除・汎用化 (cmd_1634)'' 9) advisor()呼出 10)
+    inbox karo 完了報告'
+  acceptance_criteria:
+  - grep -E 'queue/|multi-agent-shogun|ashigaru|karo|gunshi' が 0件
+  - udemy-checker再レビュー 🟢 → udemy_review_intermediate_ch11_v3.md
+  - .html も同期更新済み
+  - git commit 完了
+  notes: grep 0件でも暗示的な固有記法を精読して除去。git push は家老が実施。
+  timestamp: '2026-05-05T13:54:15.578361+09:00'
+  completed_at: '2026-05-05T14:21:31+09:00'
+- agent: ashigaru3
+  task_id: subtask_1636_stepB3
+  status: blocked
+  priority: high
+  parent_cmd: cmd_1636
+  blocked_by:
+  - subtask_1636_stepA1
+  - subtask_1636_stepA2
+  bloom_level: L3
+  gunshi_qc: false
+  description: 'cmd_1636 Phase B 試運転 (ash3): GZ1O6k1Fe3A 1本処理 (3並列安全確認)'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_GZ1O6k1Fe3A.json
+  steps: '0) advisor()呼出 1) 【3並列安全確認フェーズ】ash1+ash2と同時並列 (初参加) — 事前メモリ確認: free -h &&
+    nvidia-smi 2) VIDEO_ID=GZ1O6k1Fe3A && mkdir -p /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/cmd_1636_GZ1O6k1Fe3A/{input,output}
+    3) cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki && source ~/.bashrc
+    && source venv/bin/activate && python3 scripts/downloader.py ''https://www.youtube.com/watch?v=GZ1O6k1Fe3A''
+    --output-dir work/cmd_1636_GZ1O6k1Fe3A/input/ 4) python3 scripts/vocal_stt_pipeline.py
+    work/cmd_1636_GZ1O6k1Fe3A/input/GZ1O6k1Fe3A.mp4 --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_GZ1O6k1Fe3A.json
+    --work-dir work/cmd_1636_GZ1O6k1Fe3A/output/ --cache 5) 完了後: free -h && nvidia-smi
+    で最終メモリ記録 6) A-F検証 & dmesg OOM確認 7) advisor()呼出 8) inbox karo 完了報告'
+  acceptance_criteria:
+  - merged_GZ1O6k1Fe3A.json 存在・A-F=0
+  - RAM/VRAM ピーク値報告
+  - OOM-killer 未発生
+  notes: Phase A完了確認後のみ実行。ash3は初回参加。GEMINI API期限切れのためscene_search_v2 build禁止。
+  timestamp: '2026-05-05T15:22:55.513209+09:00'
+- agent: ashigaru3
+  task_id: subtask_1636_batch3
+  status: blocked
+  priority: high
+  parent_cmd: cmd_1636
+  blocked_by:
+  - subtask_1636_stepB1
+  - subtask_1636_stepB2
+  - subtask_1636_stepB3
+  bloom_level: L3
+  gunshi_qc: false
+  description: 'cmd_1636 Phase C batch3 (ash3): 12本処理 (Tdgz_MMfBAU〜HnDcGHXKJFQ)'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/
+  steps: '0) advisor()呼出 1) 【4並列本番フェーズ】事前メモリ確認: free -h && nvidia-smi 2) 以下12本を順次処理。各動画:
+    VIDEO_ID=<id> → mkdir -p work/cmd_1636_<id>/{input,output} → downloader.py + vocal_stt_pipeline.py
+    → merged_{id}.json → A-F検証 3) 処理対象12本: Tdgz_MMfBAU X3cMBasYcSA 05zhA1M5SU0 XB-XKVQRCok
+    sml-aYEMIKM D4_8sRpAKQo WbYEt3Pv0BE 8r1cEKpTM5M NgkCZL-uhZI WylcM9Jly2s pIrocoqvwJg
+    HnDcGHXKJFQ 4) RAM>40GB or OOM→即STOP→inbox karo 5) 全完了後: 成功/失敗一覧 inbox karo報告
+    6) advisor()呼出'
+  acceptance_criteria:
+  - 12本全て merged_<id>.json が srt_and_candidates/ に存在
+  - 全merged JSON で A-F speakers = 0
+  - OOM-killer 未発生
+  notes: cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki してから実行。GEMINI
+    API期限切れのためscene_search_v2 build禁止。git push は家老が実施。
+  timestamp: '2026-05-05T15:22:55.852528+09:00'

@@ -316,7 +316,7 @@ tasks:
   timestamp: '2026-05-04T08:19:01.832523+09:00'
 - agent: gunshi
   task_id: subtask_1613f_qc
-  status: blocked
+  status: done
   parent_cmd: cmd_1613
   bloom_level: L4
   description: 'cmd_1613 QC: STT audit 20件全修正の検証 (PASS/FAIL判定 + regression確認)'
@@ -343,3 +343,33 @@ tasks:
     vocal_stt_pipeline.py/stt_merge.py先頭の sys.path.insert 追加を確認。'
   params: {}
   timestamp: '2026-05-04T08:42:03.736911+09:00'
+  completed_at: '2026-05-05T12:08:44+09:00'
+- agent: gunshi
+  task_id: subtask_1634_qc
+  status: done
+  qa_decision: PASS
+  completed_at: '2026-05-05T14:26:33+09:00'
+  priority: high
+  parent_cmd: cmd_1634
+  blocked_by:
+  - subtask_1634_ch03
+  - subtask_1634_ch07
+  - subtask_1634_ch11
+  - subtask_1634_ch13
+  bloom_level: L5
+  gunshi_qc: true
+  description: 'cmd_1634: ch03/07/11/13 全4章の gunshi QC — 固有記法削除完全確認 + 汎用化で説明成立 + 4章間論旨一貫性'
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/2026-05-05_cmd_1634_intermediate_generic_refactor.md
+  steps: '0) advisor()呼出 1) ch03/07/11/13 各章の .md を Read して固有記法残存がないことを目視確認 (grep
+    -E ''queue/|multi-agent-shogun|ashigaru|karo|gunshi'' = 0件を実証) 2) 各章の udemy-checker
+    v3 報告書 (udemy_review_intermediate_ch0X_v3.md) を Read して 🟢 判定を確認 3) 4章間の論旨一貫性チェック:
+    汎用化後の表現が統一されているか (executor/manager/reviewer の用語統一等) 4) 汎用表現への書き直しで説明の意味が成立しているか
+    (固有システムを前提にしないと説明できない箇所が残っていないか) を評価 5) QC PASS: 全条件クリア時 → inbox karo PASS報告 (4章全grep=0
+    + 🟢確認済 + 表現統一確認) / QC FAIL: 問題章を特定 → inbox karo FAIL報告 (問題箇所・修正指示を明記)'
+  acceptance_criteria:
+  - ch03/07/11/13 全章 grep -E 違反 0件 実証済み
+  - 全4章 udemy-checker 🟢 確認済み
+  - 4章間の汎用表現統一確認済み
+  - inbox karo PASS or FAIL 報告送信済み
+  notes: QC FAIL の場合は家老がリドゥを判断する。git push は家老が実施。
+  timestamp: '2026-05-05T13:54:15.652120+09:00'

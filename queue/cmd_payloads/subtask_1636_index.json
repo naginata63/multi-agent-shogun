@@ -1,0 +1,22 @@
+{
+  "agent": "ashigaru5",
+  "task_id": "subtask_1636_index",
+  "status": "blocked",
+  "priority": "high",
+  "parent_cmd": "cmd_1636",
+  "blocked_by": ["subtask_1636_batch1", "subtask_1636_batch2", "subtask_1636_batch3", "subtask_1636_batch4"],
+  "bloom_level": "L3",
+  "gunshi_qc": false,
+  "description": "cmd_1636: 56本全merged JSON を scene_search_v2 に投入 (build --update) + CSV更新 + audit + 完了報告書",
+  "target_path": "/home/murakami/multi-agent-shogun/queue/reports/2026-05-05_cmd_1636_57video_parallel_indexing.md",
+  "steps": "0) advisor()呼出 1) 【CRITICAL】GEMINI APIキーが更新済みであることを確認: source ~/.bashrc && python3 -c 'import google.genai as g, os; c=g.Client(api_key=os.environ[\"GEMINI_API_KEY\"]); r=c.models.embed_content(model=\"gemini-embedding-2-preview\", contents=[\"test\"]); print(len(r.embeddings),\"OK\")' → エラーなら即STOP+inbox karo 2) 処理開始時刻記録: date +%s 3) 【CRITICAL: git add data/ 禁止 (scene_index_v2 は .gitignore)】 4) source ~/.bashrc && python3 scripts/scene_search_v2.py build --update --mode words 2>&1 | tee /tmp/build_words.log 5) python3 scripts/scene_search_v2.py build --update --mode chunks 2>&1 | tee /tmp/build_chunks.log 6) python3 scripts/scene_search_v2.py info → n_videos確認 (67→約123) 7) python3 scripts/scene_search_v2.py query 'ドズル' --top 5 → 新動画も hitすることを確認 8) python3 scripts/audit_video_index_consistency.py --index-dir data/scene_index_v2 --csv projects/dozle_kirinuki/data/dozle_video_list.csv → 56本のquality_status確認 9) 【CSV更新】python3 -c 'import csv,json,pathlib; ...' で dozle_video_list.csv の56本の analyzed=True/quality_status=ok に更新 10) 処理終了時刻記録・所要時間計算 11) 完了報告書作成: queue/reports/2026-05-05_cmd_1636_57video_parallel_indexing.md (info出力全文・audit結果・処理時間) 12) git add projects/dozle_kirinuki/data/dozle_video_list.csv queue/reports/2026-05-05_cmd_1636_57video_parallel_indexing.md && git commit -m 'docs(dozle): cmd_1636 完了報告書 — 56本 video-pipeline + scene_search_v2 index追加' 13) advisor()呼出 14) inbox karo 完了報告 (処理時間・新n_videos・audit統計)",
+  "acceptance_criteria": [
+    "scene_search_v2.py info で n_videos が 67 → 123前後に増加",
+    "全merged JSON の A-F speakers = 0件 (grep全確認)",
+    "audit で56本 quality_status=ok",
+    "dozle_video_list.csv の56本 analyzed=True",
+    "完了報告書作成済み",
+    "git commit 完了"
+  ],
+  "notes": "CRITICAL: GEMINI APIキー更新確認が最初のステップ。未更新なら即STOP。data/scene_index_v2/ は .gitignore済のためgit add data/ 禁止。cmd_1631分 (xZTtk4pJcAs) は既にindex済みだが embeddings不完全 → このbuild --updateで追加される56本+xZTtk4pJcAsが一緒に補完されるはず (メタデータが既存なら skip)。もしxZTtk4pJcAs再投入が必要な場合はinbox karo報告。git push は家老が実施。"
+}

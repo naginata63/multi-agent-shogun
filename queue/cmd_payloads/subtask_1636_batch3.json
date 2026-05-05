@@ -1,0 +1,19 @@
+{
+  "agent": "ashigaru3",
+  "task_id": "subtask_1636_batch3",
+  "status": "blocked",
+  "priority": "high",
+  "parent_cmd": "cmd_1636",
+  "blocked_by": ["subtask_1636_stepB1", "subtask_1636_stepB2", "subtask_1636_stepB3"],
+  "bloom_level": "L3",
+  "gunshi_qc": false,
+  "description": "cmd_1636 Phase C batch3 (ash3): 12本処理 (Tdgz_MMfBAU〜HnDcGHXKJFQ)",
+  "target_path": "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/",
+  "steps": "0) advisor()呼出 1) 【4並列本番フェーズ】事前メモリ確認: free -h && nvidia-smi 2) 以下12本を順次処理。各動画: VIDEO_ID=<id> → mkdir -p work/cmd_1636_<id>/{input,output} → downloader.py + vocal_stt_pipeline.py → merged_{id}.json → A-F検証 3) 処理対象12本: Tdgz_MMfBAU X3cMBasYcSA 05zhA1M5SU0 XB-XKVQRCok sml-aYEMIKM D4_8sRpAKQo WbYEt3Pv0BE 8r1cEKpTM5M NgkCZL-uhZI WylcM9Jly2s pIrocoqvwJg HnDcGHXKJFQ 4) RAM>40GB or OOM→即STOP→inbox karo 5) 全完了後: 成功/失敗一覧 inbox karo報告 6) advisor()呼出",
+  "acceptance_criteria": [
+    "12本全て merged_<id>.json が srt_and_candidates/ に存在",
+    "全merged JSON で A-F speakers = 0",
+    "OOM-killer 未発生"
+  ],
+  "notes": "cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki してから実行。GEMINI API期限切れのためscene_search_v2 build禁止。git push は家老が実施。"
+}

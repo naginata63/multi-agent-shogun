@@ -1,11 +1,16 @@
 tasks:
-- agent: ashigaru2
-  task_id: subtask_1624_stop_hook
-  status: done
-  parent_cmd: cmd_1624
+- acceptance_criteria:
+  - scripts/stop_hook_inbox.sh に _auto_expire_stale_inbox ロジックが追加されている
+  - bash -n シンタックスチェック PASS
+  - 既存の正常動作を壊さない (unread=0 時の inotifywait ロジック等)
+  - git commit + push 完了
+  agent: ashigaru2
   bloom_level: L3
+  completed_at: '2026-05-05T05:55:26+09:00'
   description: '案B: stop_hook_inbox.sh に古い unread 自動既読化ロジックを追加'
-  target_path: /home/murakami/multi-agent-shogun/scripts/stop_hook_inbox.sh
+  notes: curl失敗はsilentに。stop_hook全体のexit codeに影響させるな。2時間の閾値は定数化してコメントで明記。
+  parent_cmd: cmd_1624
+  status: done
   steps: '0) advisor()呼出 1) Read scripts/stop_hook_inbox.sh 全文 (272行) 2) unread チェック処理の直前
     (UNREAD_COUNT= の計算前あたり) に以下のロジックを追加: _auto_expire_stale_inbox() 関数を実装 — API経由
     (POST http://192.168.2.4:8770/api/inbox_mark_read) で type が report_received または
@@ -14,22 +19,27 @@ tasks:
     true)でstop_hook全体を壊さない 3) bash -n scripts/stop_hook_inbox.sh でシンタックスチェック 4) git
     add scripts/stop_hook_inbox.sh && git commit -m ''feat(hook): stop_hook_inbox
     古いunread自動既読化ロジック追加 (cmd_1624)'' 5) git push 6) advisor()呼出 7) inbox karo 完了報告'
-  acceptance_criteria:
-  - scripts/stop_hook_inbox.sh に _auto_expire_stale_inbox ロジックが追加されている
-  - bash -n シンタックスチェック PASS
-  - 既存の正常動作を壊さない (unread=0 時の inotifywait ロジック等)
-  - git commit + push 完了
-  notes: curl失敗はsilentに。stop_hook全体のexit codeに影響させるな。2時間の閾値は定数化してコメントで明記。
+  target_path: /home/murakami/multi-agent-shogun/scripts/stop_hook_inbox.sh
+  task_id: subtask_1624_stop_hook
   timestamp: '2026-05-05T05:42:48.418983+09:00'
-  completed_at: '2026-05-05T05:55:26+09:00'
-- agent: ashigaru2
-  task_id: subtask_1626_main_py_fix
-  status: done
-  parent_cmd: cmd_1626
+- acceptance_criteria:
+  - 'H1: render_with_remotion() 付近にRemotionパス説明コメント追加済み'
+  - 'M1: --model/--min-duration/--no-integrate-llm の argparse add_argument 追加済み'
+  - 'M2: dead import (detect_scene_changes, snap_to_scene_change, get_vocals_path)
+    削除済み'
+  - 'M3-M8: 各指摘を解消 or 対応不要理由をコメント+報告書に明記'
+  - python3 -m py_compile PASS
+  - queue/reports/2026-05-05_cmd_1626_mujun_resolution.md 作成済み
+  - git commit + push 完了
+  agent: ashigaru2
   bloom_level: L3
+  completed_at: '2026-05-05T06:08:04+09:00'
   description: 'main.py: H1コメント追加 + M1-M8 矛盾解消 (argparse追加/dead import削除/dead codeコメント化)
     + 完了報告書作成'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/main.py
+  notes: 'RACE-001: main.py はこのタスクのみが修正する (ashigaru3 は別ファイル担当)。M5はコメントで可。L1-L12 は
+    touch 禁止 (scope外)。reports/ は gitignore なので git add -f 必須。'
+  parent_cmd: cmd_1626
+  status: done
   steps: '0) advisor()呼出 1) Read queue/reports/2026-05-05_cmd_1623_mujun_detection.md
     (H1+M1-M8 詳細確認) 2) Read projects/dozle_kirinuki/scripts/main.py 全文 3) 以下を順番に修正:
     (H1) render_with_remotion() 冒頭付近に「# NOTE: ShortsOverlay Remotion レンダリングは remotion-overlay/
@@ -46,16 +56,216 @@ tasks:
     6) git add projects/dozle_kirinuki/scripts/main.py && git add -f queue/reports/2026-05-05_cmd_1626_mujun_resolution.md
     && git commit -m ''fix(kirinuki): main.py H1コメント+M1-M8矛盾解消 (cmd_1626)'' 7) git
     push 8) advisor()呼出 9) inbox karo 完了報告'
-  acceptance_criteria:
-  - 'H1: render_with_remotion() 付近にRemotionパス説明コメント追加済み'
-  - 'M1: --model/--min-duration/--no-integrate-llm の argparse add_argument 追加済み'
-  - 'M2: dead import (detect_scene_changes, snap_to_scene_change, get_vocals_path)
-    削除済み'
-  - 'M3-M8: 各指摘を解消 or 対応不要理由をコメント+報告書に明記'
-  - python3 -m py_compile PASS
-  - queue/reports/2026-05-05_cmd_1626_mujun_resolution.md 作成済み
-  - git commit + push 完了
-  notes: 'RACE-001: main.py はこのタスクのみが修正する (ashigaru3 は別ファイル担当)。M5はコメントで可。L1-L12 は
-    touch 禁止 (scope外)。reports/ は gitignore なので git add -f 必須。'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/main.py
+  task_id: subtask_1626_main_py_fix
   timestamp: '2026-05-05T05:59:07.362136+09:00'
-  completed_at: '2026-05-05T06:08:04+09:00'
+- acceptance_criteria:
+  - instructions/ashigaru.md の gunshi_qc ルールが bloom_level 自動判定に更新されている
+  - L1-L3 タスクのデフォルトが gunshi skip であることが明記されている
+  - instructions/karo.md に L4-L6 のみ gunshi QC 経由である旨の注記が追加されている
+  - git commit + push 完了
+  agent: ashigaru2
+  bloom_level: L2
+  completed_at: '2026-05-05T07:13:54+09:00'
+  description: ashigaru.md の gunshi_qc デフォルト反転 (L1-L3 = skip, L4-L6 = gunshi) + karo.md
+    注記追加
+  gunshi_qc: false
+  notes: 'gunshi_qc: false の明示フラグも引き続き有効にせよ (override 用)。bloom_level が設定されていないタスクはデフォルト
+    L3 扱い (skip) とせよ。'
+  parent_cmd: cmd_1628
+  status: done
+  steps: '0) advisor()呼出 1) Read instructions/ashigaru.md 全文 (特に gunshi_qc ルールセクション)
+    2) gunshi_qc ルールを以下のように改訂: 現行「gunshi_qc:false がある場合は skip、ない or true は gunshi
+    送付」→ 新「bloom_level による自動判定: L1-L3 (Sonnet 担当タスク) はデフォルト karo 直接報告 (gunshi skip)。L4-L6
+    (Opus 担当タスク) はデフォルト gunshi 経由。ペイロードに gunshi_qc:true を明示した場合は bloom_level に関わらず
+    gunshi 送付。gunshi_qc:false を明示した場合は bloom_level に関わらず skip」 3) Read instructions/karo.md
+    全文 4) karo.md の Task 起票フォーマットセクションに注記追加: 「L4-L6 タスクはデフォルト gunshi QC 経由。L1-L3 タスクは
+    gunshi skip デフォルト (gunshi_qc:true を明示しない限り)。ペイロードへの gunshi_qc フィールドは L4-L6 のみ必要」
+    5) git add instructions/ashigaru.md instructions/karo.md && git commit -m ''feat(instructions):
+    gunshi_qc デフォルト反転 — L1-L3 skip, L4-L6 gunshi 経由 (cmd_1628)'' 6) git push 7) advisor()呼出
+    8) inbox karo 完了報告'
+  target_path: /home/murakami/multi-agent-shogun/instructions/ashigaru.md
+  task_id: subtask_1628_default_routing
+  timestamp: '2026-05-05T07:06:45.192544+09:00'
+- agent: ashigaru2
+  task_id: subtask_1630_appendix_b
+  status: done
+  priority: high
+  parent_cmd: cmd_1630
+  bloom_level: L3
+  completed_at: '2026-05-05T12:25:42+09:00'
+  description: 'cmd_1630: 中級編 v4 appendix_b 補修 + udemy-checker 再レビュー (🟡→🟢)'
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/intermediate_v4_appendix_b_business_funnel.md
+  steps: '0) advisor()呼出 1) Read queue/reports/udemy_review_intermediate_appendix_b.md
+    で指摘(A.わからない/B.論理破綻/C.詰まる)を全把握 2) cp projects/udemy_course/drafts/lectures/intermediate_v4_appendix_b_business_funnel.md
+    projects/udemy_course/drafts/lectures/intermediate_v4_appendix_b_business_funnel.md.bak
+    && cp projects/udemy_course/drafts/lectures/intermediate_v4_appendix_b_business_funnel.html
+    projects/udemy_course/drafts/lectures/intermediate_v4_appendix_b_business_funnel.html.bak
+    3) Read intermediate_v4_appendix_b_business_funnel.md 全文 4) 書き直しルール7点適用: (a)章冒頭に「この章で出てくる用語」ボックス追加(Marketing
+    Trip/バックエンド/オプトイン等を必ず日本語で補足定義) (b)1セクション内の新出カタカナ用語を2個以下に (c)自社固有概念初出時に1段落説明 (d)定義の後出し禁止
+    (e)数値・換算補足 (f)B.論理破綻全指摘を解消: L162前提「月50件」に出典or「※想定値」明示・L168計算式「初月分=4」と明記して300の根拠を合わせる
+    (g)構成維持 5) .html を .md 内容に合わせて同期更新 6) git add projects/udemy_course/drafts/lectures/intermediate_v4_appendix_b_business_funnel.md
+    projects/udemy_course/drafts/lectures/intermediate_v4_appendix_b_business_funnel.html
+    && git commit -m ''feat(udemy): intermediate appendix_b 補修 (cmd_1630)'' 7) Agent(subagent_type=''udemy-checker'')
+    で appendix_b 再レビュー → queue/reports/udemy_review_intermediate_appendix_b_v2.md
+    保存 8) 🟢確認 (🟡残れば再修正→再レビュー 最大2回まで・2回でも🟡なら家老にエスカレ) 9) advisor()呼出 10) inbox karo
+    完了報告 (appendix_b 判定結果・v2報告書パス記載)'
+  acceptance_criteria:
+  - appendix_b .md + .html 両方が書き直し済み (.bak バックアップ存在)
+  - appendix_b 再レビュー 🟢 → queue/reports/udemy_review_intermediate_appendix_b_v2.md
+  - Marketing Trip / バックエンド / オプトイン 等の横文字が初出時に日本語補足されている
+  - L162 月50件の前提に出典 or ※想定値明示・L168 計算式の根拠が明確
+  - git commit 完了 (git push は家老が実施)
+  notes: .md が真ソース・.html は派生。🟡が残れば家老にエスカレ。git push は家老担当のため足軽は push 禁止。
+  timestamp: '2026-05-05T11:57:46.824491+09:00'
+- agent: ashigaru2
+  task_id: subtask_1632_audit
+  status: done
+  priority: medium
+  parent_cmd: cmd_1632
+  bloom_level: L3
+  description: 'cmd_1632: scripts/audit_video_index_consistency.py を新規作成 — CSV vs
+    scene_index_v2 突合 + quality_status 分類 + xZTtk4pJcAs=violation_alphabet 検出確認'
+  target_path: /home/murakami/multi-agent-shogun/scripts/audit_video_index_consistency.py
+  steps: '0) advisor()呼出 1) Read /home/murakami/multi-agent-shogun/scripts/scene_search_v2.py
+    でINDEX_DIR(=data/scene_index_v2)・metadata.json フォーマット・video_id/speaker フィールド構造を確認
+    2) /home/murakami/multi-agent-shogun/scripts/audit_video_index_consistency.py
+    を新規作成: 機能 = (a) data/scene_index_v2/metadata.json を読み video_id ごとの話者一覧を集計 (b)
+    projects/dozle_kirinuki/data/dozle_video_list.csv を読み全 video_id を取得 (c) 各 video_id
+    の quality_status を判定: indexed かつ A-F 話者あり=violation_alphabet / indexed かつ A-F
+    なし=ok / CSV にあるが未indexed=index_missing / indexed だが CSV になし=csv_outdated (d) 結果を
+    stdout に表示 + CSV の quality_status 列を更新するオプション (--update-csv フラグ) (e) 判定結果サマリ(ステータス別件数)を表示
+    3) python3 /home/murakami/multi-agent-shogun/scripts/audit_video_index_consistency.py
+    --index-dir /home/murakami/multi-agent-shogun/data/scene_index_v2 --csv /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/data/dozle_video_list.csv
+    を実行して動作確認 4) 出力に xZTtk4pJcAs=violation_alphabet が含まれることを確認 (cmd_1631 完了前なので現時点は必ず
+    violation_alphabet) 5) git add scripts/audit_video_index_consistency.py && git
+    commit -m ''feat(dozle): audit_video_index_consistency.py 新規作成 — CSV vs scene_index_v2
+    突合 (cmd_1632)'' 6) advisor()呼出 7) inbox karo 完了報告 (スクリプトパス・テスト実行結果サマリ・xZTtk4pJcAs=violation_alphabet
+    確認)'
+  acceptance_criteria:
+  - scripts/audit_video_index_consistency.py が新規作成されている
+  - 実行で xZTtk4pJcAs が violation_alphabet として検出される
+  - ステータス別件数サマリが表示される (ok/violation_alphabet/index_missing/csv_outdated)
+  - --update-csv フラグで CSV の quality_status を更新できる
+  - git commit 完了
+  notes: audit スクリプトは data/scene_index_v2/metadata.json を直接読む (scene_search_v2.py
+    の API は使わず)。metadata.json の video_id フィールドの正確なキー名は読んで確認すること。git push は家老が実施。
+  timestamp: '2026-05-05T13:35:31.448863+09:00'
+  completed_at: '2026-05-05T13:50:29+09:00'
+- agent: ashigaru2
+  task_id: subtask_1635_main
+  status: done
+  priority: high
+  parent_cmd: cmd_1635
+  bloom_level: L3
+  description: 'cmd_1635: udemy-checker.md に観点E(商品汎用性チェック)追加 + ペルソナ動機補強 + テストRun確認'
+  target_path: /home/murakami/multi-agent-shogun/.claude/agents/udemy-checker.md
+  steps: '0) advisor()呼出 1) Read /home/murakami/multi-agent-shogun/.claude/agents/udemy-checker.md
+    で現状の構成を把握 (ペルソナ・観点A-D・出力フォーマット・行動ルール・モデル・tools) 2) 【ペルソナ動機補強】「読み手の動機」に「副業・転職・現場の業務改善に活かしたい」という文言を追加
+    3) 【観点E追加】既存の A/B/C/D の後に「E. 商品汎用性チェック: 特定システム/プロジェクト固有記法の混入検出。grep -E ''queue/|multi-agent-shogun|ashigaru|karo|gunshi''
+    を実行し、ヒットした行を全て報告。固有ロール名(ashigaru/karo等)があれば汎用表現(executor/manager等)への書き直しを指摘。」を追加
+    4) 【出力フォーマット追加】## E. 商品汎用性チェック セクションを出力フォーマットに追加 5) 【行動ルール追加】rule 8: E観点では必ずgrep実行
+    (件数ゼロでも「0件確認」と明記)、rule 9: E セクション skip 禁止 6) 既存のA-D観点・ペルソナ基本設定・モデル指定・tools制限が維持されていることを確認
+    7) 【テストRun】Agent(subagent_type=''udemy-checker'') で intermediate_v4_ch03_hierarchical_prompt.md
+    をレビュー → E セクションに queue/ 違反3件以上が正しく報告されることを確認 8) git add .claude/agents/udemy-checker.md
+    && git commit -m ''feat(checker): udemy-checker v2 — 観点E(商品汎用性チェック)追加 (cmd_1635)''
+    9) advisor()呼出 10) 完了報告書 queue/reports/2026-05-05_cmd_1635_udemy_checker_v2.md
+    作成 11) inbox karo 完了報告 (改善内容サマリ・テスト結果記載)'
+  acceptance_criteria:
+  - .claude/agents/udemy-checker.md に E. 商品汎用性チェック セクションが追加されている
+  - ペルソナの読み手動機に副業/転職/現場適用の文言が追加されている
+  - '出力フォーマットに ## E. 商品汎用性チェック セクションが追加されている'
+  - 行動ルール 8-9 (grep必須 + Eスキップ禁止) が追加されている
+  - テストRunでch03のE観点レビューでqueue/違反が正しく検出される
+  - 既存A-D観点・モデル指定・tools制限が維持されている
+  - git commit 完了
+  - queue/reports/2026-05-05_cmd_1635_udemy_checker_v2.md 作成済み
+  notes: udemy-checker.md はエージェント定義ファイル。モデル指定(sonnet)・tools制限・既存観点は変更禁止。テストRunはch03ファイルが現時点(cmd_1634修正前)で違反を含んでいることを確認するため有効。git
+    push は家老が実施。
+  timestamp: '2026-05-05T13:54:15.445648+09:00'
+  completed_at: '2026-05-05T14:03:36+09:00'
+- agent: ashigaru2
+  task_id: subtask_1636_stepA2
+  status: in_progress
+  priority: high
+  parent_cmd: cmd_1636
+  bloom_level: L3
+  gunshi_qc: false
+  description: 'cmd_1636 Phase A 試運転1本目 (ash2): T-vKXTT7b8M を DL→Demucs→STT→speaker_mapping
+    まで処理し、メモリ使用量を記録して家老に報告'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_T-vKXTT7b8M.json
+  steps: '0) advisor()呼出 1) Read /home/murakami/multi-agent-shogun/.claude/commands/video-pipeline.md
+    2) 【事前メモリ記録】free -h && nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader
+    → 値をメモ 3) VIDEO_ID=T-vKXTT7b8M / WORK_DIR=/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/cmd_1636_T-vKXTT7b8M
+    4) mkdir -p $WORK_DIR/input $WORK_DIR/output 5) 【DL】cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
+    && source ~/.bashrc && source venv/bin/activate && python3 scripts/downloader.py
+    ''https://www.youtube.com/watch?v=T-vKXTT7b8M'' --output-dir work/cmd_1636_T-vKXTT7b8M/input/
+    6) 【STT+speaker_mapping】source ~/.bashrc && source venv/bin/activate && python3
+    scripts/vocal_stt_pipeline.py work/cmd_1636_T-vKXTT7b8M/input/T-vKXTT7b8M.mp4
+    --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_T-vKXTT7b8M.json
+    --work-dir work/cmd_1636_T-vKXTT7b8M/output/ --cache 7) 【完了後メモリ記録】free -h && nvidia-smi
+    → ピークRAM/VRAMを記録 8) 【A-F検証】python3 -c "import json; d=json.load(open(''work/srt_and_candidates/merged_T-vKXTT7b8M.json''));
+    words=d.get(''words'',d.get(''segments'',[])); bad=[w for w in words if w.get(''speaker'','''')
+    in [''A'',''B'',''C'',''D'',''E'',''F'']]; print(f''A-F: {len(bad)}''); assert
+    not bad,''A-F残存''" 9) advisor()呼出 10) inbox karo 完了報告 (RAM使用量・GPU VRAM使用量・A-F=0確認・処理時間)'
+  acceptance_criteria:
+  - merged_T-vKXTT7b8M.json が srt_and_candidates/ に存在
+  - A-F speakers = 0件
+  - 'RAM・GPU VRAM ピーク値を報告 (異常: RAM>40GB or VRAM>7.5GB)'
+  - dmesg に OOM-killer 出現なし
+  notes: 【CRITICAL】処理中に RAM>40GB or swap使用>0 or dmesg OOM 検出時は即停止してinbox karoにエスカレ。これはPhase
+    A試運転 (2並列安全確認)。ash1と同時実行中のため並列メモリ消費に注意。GEMINI API は期限切れのためscene_search_v2 build
+    は実行禁止。git push は家老が実施。
+  timestamp: '2026-05-05T15:20:01.473079+09:00'
+- agent: ashigaru2
+  task_id: subtask_1636_stepB2
+  status: blocked
+  priority: high
+  parent_cmd: cmd_1636
+  blocked_by:
+  - subtask_1636_stepA1
+  - subtask_1636_stepA2
+  bloom_level: L3
+  gunshi_qc: false
+  description: 'cmd_1636 Phase B 試運転 (ash2): 2fDGaHU2VZs 1本処理 (3並列安全確認)'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_2fDGaHU2VZs.json
+  steps: '0) advisor()呼出 1) 【3並列安全確認フェーズ】ash1+ash3と同時並列 — 事前メモリ確認: free -h && nvidia-smi
+    2) VIDEO_ID=2fDGaHU2VZs && mkdir -p /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/cmd_1636_2fDGaHU2VZs/{input,output}
+    3) cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki && source ~/.bashrc
+    && source venv/bin/activate && python3 scripts/downloader.py ''https://www.youtube.com/watch?v=2fDGaHU2VZs''
+    --output-dir work/cmd_1636_2fDGaHU2VZs/input/ 4) python3 scripts/vocal_stt_pipeline.py
+    work/cmd_1636_2fDGaHU2VZs/input/2fDGaHU2VZs.mp4 --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_2fDGaHU2VZs.json
+    --work-dir work/cmd_1636_2fDGaHU2VZs/output/ --cache 5) 完了後: free -h && nvidia-smi
+    で最終メモリ記録 6) A-F検証 & dmesg OOM確認 7) advisor()呼出 8) inbox karo 完了報告'
+  acceptance_criteria:
+  - merged_2fDGaHU2VZs.json 存在・A-F=0
+  - RAM/VRAM ピーク値報告
+  - OOM-killer 未発生
+  notes: Phase A完了確認後のみ実行。GEMINI API期限切れのためscene_search_v2 build禁止。
+  timestamp: '2026-05-05T15:22:55.405361+09:00'
+- agent: ashigaru2
+  task_id: subtask_1636_batch2
+  status: blocked
+  priority: high
+  parent_cmd: cmd_1636
+  blocked_by:
+  - subtask_1636_stepB1
+  - subtask_1636_stepB2
+  - subtask_1636_stepB3
+  bloom_level: L3
+  gunshi_qc: false
+  description: 'cmd_1636 Phase C batch2 (ash2): 12本処理 (u1LFMXspjKc〜BcPWm_mCpp4)'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/
+  steps: '0) advisor()呼出 1) 【4並列本番フェーズ】事前メモリ確認: free -h && nvidia-smi 2) 以下12本を順次処理。各動画:
+    VIDEO_ID=<id> → mkdir -p work/cmd_1636_<id>/{input,output} → downloader.py + vocal_stt_pipeline.py
+    → merged_{id}.json → A-F検証 3) 処理対象12本: u1LFMXspjKc YZJAmX7faM0 Sm4XCtRQc7U orPrgEK9bC0
+    cr2GMwajLgs RC-OomWcIeM bCaAyiyjaKQ Wqbvk5zyOYg ssB-cPaPf2k l_DbsoeSTeI nZwB29p9HQk
+    BcPWm_mCpp4 4) RAM>40GB or OOM→即STOP→inbox karo 5) 全完了後: 成功/失敗一覧 inbox karo報告
+    6) advisor()呼出'
+  acceptance_criteria:
+  - 12本全て merged_<id>.json が srt_and_candidates/ に存在
+  - 全merged JSON で A-F speakers = 0
+  - OOM-killer 未発生
+  notes: cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki してから実行。GEMINI
+    API期限切れのためscene_search_v2 build禁止。git push は家老が実施。
+  timestamp: '2026-05-05T15:22:55.743205+09:00'

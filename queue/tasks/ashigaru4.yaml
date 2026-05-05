@@ -47,6 +47,7 @@ tasks:
   agent: ashigaru4
   assigned_to: ashigaru4
   bloom_level: L4
+  completed_at: '2026-05-05T12:08:39+09:00'
   description: 'cmd_1488: SQLite p2 dual-path writes実装。inbox_write.sh + server.py
     POST /api/cmd_create にSQLite INSERT dual-path追加(YAML正・SQLite並走・kill_switch=STORAGE_BACKEND)。本番DB初期化(queue/cmds.db)+全YAML初期投入+Litestream設定+日次dumpバックアップcron+audit
     script(sqlite_yaml_audit.py)新規作成+kill_switch動作確認+1週間soak開始。p3 dual-path readsには進まない。cmd_1491完遂(commit
@@ -58,7 +59,7 @@ tasks:
   - 1週間soak中差分1件でも出れば即STORAGE_BACKEND=yaml + 軍師調査cmd発令
   parent_cmd: cmd_1488
   procedure: /home/murakami/multi-agent-shogun/queue/reports/gunshi_design_sqlite_migration_1481.yaml
-  status: in_progress
+  status: done
   steps: /home/murakami/multi-agent-shogun/queue/shogun_to_karo.yaml(id:cmd_1488)全文読む
     + /home/murakami/multi-agent-shogun/queue/reports/gunshi_design_sqlite_migration_1481.yaml
     rank_2_dual_pathセクション読む→advisor()→[Step1]sqlite3 /home/murakami/multi-agent-shogun/queue/cmds.db
@@ -78,3 +79,65 @@ tasks:
   target_path: /home/murakami/multi-agent-shogun/scripts/sqlite_yaml_audit.py
   task_id: subtask_1488a
   timestamp: '2026-04-25T22:39:00+09:00'
+- acceptance_criteria:
+  - merged_xZTtk4pJcAs.json の speaker が全て実名 (A/B/C/D/E/F が 0件)
+  - merged_xZTtk4pJcAs.srt の話者ラベルも実名のみ
+  - .bak_20260505_violation ファイル2件 (json+srt) が srt_and_candidates/ に存在
+  - vocals_full.wav が WORK_DIR に存在 (Demucs 再実行証拠)
+  - git commit 完了
+  agent: ashigaru4
+  bloom_level: L3
+  description: 'cmd_1631: xZTtk4pJcAs 完全再STT — Demucs再実行 + STT + 話者実名マッピング → merged
+    JSON/SRT を汚染版backup後に上書き'
+  notes: vocals_full.wav は存在しない（Demucs再実行必須）。既存 assemblyai_vocals.json/deepgram_vocals.json
+    は殿指示 '完全再STT' により再利用禁止・上書き可。Demucs は 10分チャンク必須（21分動画=約3チャンク=30-60分）。git push は家老が実施。
+  parent_cmd: cmd_1631
+  priority: medium
+  status: done
+  steps: '0) advisor()呼出 1) Read /home/murakami/multi-agent-shogun/.claude/commands/video-pipeline.md
+    でパイプライン全手順を把握 2) WORK_DIR=/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260320_凍ったおじいちゃんをちゃちゃっと溶かすぞ！
+    / SRT_CANDS=/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates
+    として各ファイル確認 (xZTtk4pJcAs.mp4 存在確認・vocals_full.wav 欠如確認) 3) 【バックアップ】cp $SRT_CANDS/merged_xZTtk4pJcAs.json
+    $SRT_CANDS/merged_xZTtk4pJcAs.json.bak_20260505_violation && cp $SRT_CANDS/merged_xZTtk4pJcAs.srt
+    $SRT_CANDS/merged_xZTtk4pJcAs.srt.bak_20260505_violation 4) 【Demucs 10分チャンク必須・クラッシュ歴あり】ffmpeg
+    で xZTtk4pJcAs.mp4 を 10分チャンクに分割 → 各チャンクに htdemucs --two-stems=vocals 実行 → ボーカルチャンクを
+    ffmpeg concat で vocals_full.wav に結合 5) 【STT】source ~/.bashrc && python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py
+    でSTT実行 (video-pipeline.md のオプションに従う・既存 assemblyai_vocals.json/deepgram_vocals.json
+    は使わず再実行) 6) 【話者マッチング】speaker_id_xZTtk4pJcAs.json (実名マッピング済) を使い /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/apply_speaker_mapping_srt.py
+    または run_speaker_match_only.py で merged JSON + SRT を生成 7) 【検証】python3 -c "import
+    json; d=json.load(open(''merged_xZTtk4pJcAs.json'')); spk=set(w[''speaker''] for
+    w in d.get(''words'',d.get(''segments'',[]))); bad=[s for s in spk if len(s)==1
+    and s in ''ABCDEF'']; print(''BAD:'',bad); assert not bad,''A-F 残存!'' " 8) cp
+    merged_xZTtk4pJcAs.json merged_xZTtk4pJcAs.srt $SRT_CANDS/ 9) git add projects/dozle_kirinuki/work/srt_and_candidates/
+    && git commit -m ''fix(dozle): xZTtk4pJcAs 完全再STT・話者ラベル実名化 (cmd_1631)'' 10) advisor()呼出
+    11) inbox karo 完了報告 (新merged JSONの話者一覧・A-F件数=0確認・backupパス記載)'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_xZTtk4pJcAs.json
+  task_id: subtask_1631_stt
+  timestamp: '2026-05-05T13:35:25.136935+09:00'
+  completed_at: '2026-05-05T14:53:35+09:00'
+- agent: ashigaru4
+  task_id: subtask_1636_batch4
+  status: blocked
+  priority: high
+  parent_cmd: cmd_1636
+  blocked_by:
+  - subtask_1636_stepB1
+  - subtask_1636_stepB2
+  - subtask_1636_stepB3
+  bloom_level: L3
+  gunshi_qc: false
+  description: 'cmd_1636 Phase C batch4 (ash4): 15本処理 (QCFyL7tG-v4〜5Np9PPU8JQE)'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/
+  steps: '0) advisor()呼出 1) 【4並列本番フェーズ】事前メモリ確認: free -h && nvidia-smi 2) 以下15本を順次処理。各動画:
+    VIDEO_ID=<id> → mkdir -p work/cmd_1636_<id>/{input,output} → downloader.py + vocal_stt_pipeline.py
+    → merged_{id}.json → A-F検証 3) 処理対象15本: QCFyL7tG-v4 QMpQZbUTfj4 ouu0Mrb4Y5c AAnANq-bUpQ
+    nxAAYd_FwC8 Fjt8U4vXSgI lDBmBtxcjEo 2Gv7n8dfohI 4mlCQ7dVKXM o6vunreR_yM jIndbI48GK8
+    qFpCsQhwxwQ X9BWyuqSy_k QK3Huq55BCM 5Np9PPU8JQE 4) RAM>40GB or OOM→即STOP→inbox
+    karo 5) 全完了後: 成功/失敗一覧 inbox karo報告 6) advisor()呼出'
+  acceptance_criteria:
+  - 15本全て merged_<id>.json が srt_and_candidates/ に存在
+  - 全merged JSON で A-F speakers = 0
+  - OOM-killer 未発生
+  notes: cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki してから実行。GEMINI
+    API期限切れのためscene_search_v2 build禁止。git push は家老が実施。
+  timestamp: '2026-05-05T15:22:55.957729+09:00'
