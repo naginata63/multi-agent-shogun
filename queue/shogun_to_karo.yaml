@@ -991,3 +991,84 @@ commands:
   - 軍師中立性 — 実装可能性 + 抜け穴の両面を技術的根拠で評価
   - git commit 済
   notify_karo: true
+- id: cmd_1647
+  status: in_progress
+  priority: high
+  purpose: v5 設計書に基づき 12 章の本文 (.md + .html) を執筆・udemy-checker 🟢 + gunshi QC PASS まで完遂する。
+  timestamp: '2026-05-06T05:05:42+09:00'
+  project: udemy_course
+  lord_original: 中級編v5作成開始せよ (殿命 2026-05-06 11:15 — Phase 3 章別執筆を開始・cmd_1638 軍師設計書
+    + cmd_1645 用語精査済 curriculum を入力に 12 章を執筆フェーズへ移行)
+  north_star: Udemy 中級編 v5 を Phase 3 (章別執筆) で完成させる。cmd_1638 軍師設計書 (12 章 880 行) + cmd_1645
+    用語精査結果 (JIT/Lazy Load 置換済) を入力資料として、12 章 × .md + .html を執筆し、udemy-checker v2 (観点
+    E 追加版) で各章 🟢 達成 + gunshi QC PASS で公開可能品質に仕上げる。
+  command_text: "## 背景\n\nv5 設計フェーズ完了:\n- cmd_1637/1638: 軍師が curriculum_intermediate_v5_marp.md\
+    \ (880 行) を作成 (10 項目改訂版)\n- cmd_1645: 用語精査完了 (JIT/Lazy Load → 必要時取得/必要時読込・他 ⭐3\
+    \ 以上維持)\n- v5_design.md (272 行・本日 NG ワードリスト更新済) で全方針確定\n\nPhase 3 = 章別執筆フェーズ。12\
+    \ 章を 4 ash 並列で執筆 → udemy-checker v2 で \U0001F7E2 達成 → gunshi QC PASS。\n\n## 担当\
+    \ + bloom_level\n\n- 家老配分 (12 章 → 4 ash × 3 章/ash)\n- bloom_level: **L4** (初学者向け文章リライト・udemy-checker\
+    \ 反復)\n- gunshi_qc: **true** (全章整合性 + 困りごとマッピング + 3 層フレーム整合)\n\n## 入力資料 (執筆者が必読)\n\
+    \n1. **設計書 (主軸)**: `projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md`\
+    \ (880 行・cmd_1638 改訂版)\n   - 12 章詳細設計 (Emotional Hook + 学習目標 + 解説アウトライン 5-6 項目)\n\
+    \   - 困りごと → 章マッピング表\n   - L1/L2/L3 階層マッピング\n   - セマンティック検索 ch04↔ch07 二重登場\n \
+    \  - ch00 の 3 層世界観 + 11 困りごとフック\n   - ch10 逆引き辞典 (症状 → 現象 → 対策 3 段構造)\n   - Skills\
+    \ 縦糸 (ch01 → ch07 → ch11)\n2. **方針書**: `projects/udemy_course/v5_design.md` (272\
+    \ 行)\n   - ビジョン・受講者ペルソナ\n   - **NG ワードリスト** (経済/階層/工程検問/JIT/Lazy Load 等)\n   -\
+    \ 章タイトル原則\n   - 二段階執筆 (事前 4 項目 → 本文)\n   - v4 流用方針 (ゼロベース)\n3. **用語精査結果**: `queue/reports/2026-05-06_cmd_1645_v5_term_audit.md`\n\
+    \   - JIT → 必要時取得 (Selective Retrieval)\n   - Lazy Load → 必要時読込 (On-Demand Loading)\n\
+    \   - 他 ⭐3 以上は維持\n4. **udemy-checker v2**: `.claude/agents/udemy-checker.md`\n\
+    \   - 観点 A-E (E = 商品汎用性 = cmd_1635 で追加)\n5. **v4 参考**: `projects/udemy_course/drafts/lectures/intermediate_v4_chXX_*.md`\
+    \ (流用度は v5_design.md § 11 参照・コピペ禁止)\n\n## 章配分 (家老調整可・推奨案)\n\n| ash | 担当章 | 層 |\
+    \ 推定工数 |\n|-----|------|----|--------|\n| ash1 | ch00 (導入)・ch01 (L1)・ch02 (L1)\
+    \ | 導入+L1 | 1.5 日 |\n| ash2 | ch03 (L2)・ch04 (L2) | L2 | 1.5 日 |\n| ash3 | ch05\
+    \ (L3)・ch06 (L3) | L3 前半 | 1 日 |\n| ash4 | ch07 (L3)・ch08 (L3) | L3 後半 | 1.5 日\
+    \ |\n| ash5 | ch09 (応用)・ch10 (逆引き) | 応用+逆引き | 1 日 |\n| ash6 | ch11 (統合演習) | 演習\
+    \ | 1 日 |\n\n計 12 章・4-6 ash 並列・3-5 日見込み。\n\n## 二段階執筆プロトコル (殿命・v5_design.md § 10\
+    \ 準拠)\n\n### Step 1: 事前 4 項目 (殿確認必須)\n\n各章の執筆者は本文書く前に以下 4 項目を `queue/reports/cmd_1647_chXX_pre.md`\
+    \ に提示:\n\n```markdown\n# ch00 事前 4 項目\n\n## 1. 対象問題 (ch00 フック → 解決する困りごと番号)\n\
+    ## 2. 持ち帰り (受講者が章末で言える 1 文 / できる 1 動作)\n## 3. ストーリー (困った状態 → 学習 → 解決 の物語線)\n##\
+    \ 4. 実例 (受講者の現場 (営業/PM/データ分析) に置換可能な具体例)\n```\n\n殿が確認 → OK で Step 2 へ・修正指示なら再提示。\n\
+    \n### Step 2: 本文執筆\n\n殿の OK 後に `intermediate_v5_chXX_*.md` を Marp 形式で執筆:\n- スライド\
+    \ 8-12 枚\n- Emotional Hook (設計書の通り)\n- 各スライドに speaker notes (HTML コメント `<!-- ...\
+    \ -->` で記述)\n- NG ワードリスト全件 grep で 0 件確認\n- 用語精査結果に従い JIT/Lazy Load 等の置換用語使用\n\n\
+    ### Step 3: udemy-checker レビュー\n\n各章の .md を `Task tool with subagent_type=udemy-checker`\
+    \ でレビュー:\n- 観点 A-E (A=わからない / B=論理破綻 / C=詰まる / D=良かった / **E=商品汎用性**)\n- \U0001F7E2\
+    \ (理解できた) 達成まで補修反復 (上限 5 回)\n- 5 回超 → gunshi escalate\n\n### Step 4: HTML 生成\n\
+    \n`marp intermediate_v5_chXX_*.md -o intermediate_v5_chXX_*.html` で派生生成。.md と内容一致確認。\n\
+    \n### Step 5: 章単位 commit\n\n```bash\ngit add projects/udemy_course/drafts/lectures/intermediate_v5_chXX_*.{md,html}\n\
+    git commit -m 'feat(udemy): intermediate v5 chXX 執筆 (cmd_1647)'\n```\n\n### Step\
+    \ 6: 軍師 QC (全章執筆完了後)\n\n軍師が以下を確認:\n- 事前 4 項目との整合性\n- 困りごと 11 個全件マッピング (取りこぼし 0)\n\
+    - セマンティック検索 ch04↔ch07 橋渡しが機能\n- 3 層フレーム (L1/L2/L3) 章マッピング維持\n- NG ワードリスト全件 grep\
+    \ で 0 件\n- 持ち帰りが各章で明確\n- 全章 udemy-checker \U0001F7E2 達成済\n\nQC 報告書: `queue/reports/2026-05-06_cmd_1647_v5_phase3_qc.md`\n\
+    \n## 完了基準\n\n- 12 章すべての .md (Marp) + .html 作成済 (intermediate_v5_chXX_*.{md,html})\n\
+    - 各章で事前 4 項目を殿確認済 → OK 後に本文執筆\n- 全 12 章で udemy-checker \U0001F7E2 達成 (観点 A-E すべて満足)\n\
+    - NG ワードリスト全件 grep で 0 件 (経済/階層/JIT/Lazy Load/queue/tasks/shogun/karo/ashigaru/gunshi/multi-agent-shogun)\n\
+    - 用語精査結果に従い JIT → 必要時取得・Lazy Load → 必要時読込 が反映\n- セマンティック検索 ch04 → ch07 橋渡しスライド明示\n\
+    - 3 層フレーム (ch01-02 L1 / ch03-04 L2 / ch05-08 L3) 維持\n- 困りごと 11 個全件マッピング (ch10\
+    \ 逆引き辞典で再構成)\n- gunshi QC PASS\n- 章単位 git commit + push 済\n- queue/reports/2026-05-06_cmd_1647_v5_phase3_qc.md\
+    \ 完了報告書作成\n- 殿レビュー URL ntfy 送信 (http://192.168.2.4:8773/intermediate_v5/)\n\n\
+    ## 共通ルール\n\n- 出力先: `projects/udemy_course/drafts/lectures/intermediate_v5_*.md`\
+    \ + `.html`\n- 新規 .py 禁止 (本文執筆のみ)\n- v4 ファイル (intermediate_v4_*.md) には**触らない**\
+    \ (v5 完成後に archive 予定)\n- 中間成果物は `queue/reports/cmd_1647_chXX_*.md` 配下保存\n- git\
+    \ commit + push 済が完了条件\n- gunshi_qc=true ゆえ gunshi 経由で karo 報告\n- 殿の二段階執筆プロトコル厳守\
+    \ (事前 4 項目 → 殿 OK → 本文)\n\n## 注意事項\n\n- 受講者ペルソナ「社会人 2-3 年目・横文字きつい」を絶対に外すな\n- v4\
+    \ のコピペ禁止・参考程度・ゼロベース執筆\n- セマンティック検索の ch04 章末橋渡しと ch07 章冒頭回収は必須\n- ch00 で 11 困りごとフック・ch10\
+    \ で逆引き辞典のペア構造維持\n- Skills 縦糸 (ch01 → ch07 → ch11) で skill が育つ物語\n- 各章末に「強化した層」を\
+    \ 1 行明記 (cmd_1638 修正で確定)"
+  acceptance_criteria:
+  - 12 章すべての .md (Marp) + .html 作成済 (intermediate_v5_ch00-11_*.{md,html})
+  - 各章で事前 4 項目を殿確認済 → OK 後に本文執筆 (二段階執筆プロトコル準拠)
+  - 全 12 章で udemy-checker 🟢 達成 (観点 A-E すべて満足)
+  - NG ワードリスト (経済/階層/JIT/Lazy Load/queue/tasks/shogun/karo/ashigaru/gunshi/multi-agent-shogun)
+    全件 grep で 0 件
+  - JIT → 必要時取得 / Lazy Load → 必要時読込 の置換用語が反映
+  - セマンティック検索 ch04 章末橋渡し + ch07 章冒頭回収スライド明示
+  - 3 層フレーム (L1=ch01-02 / L2=ch03-04 / L3=ch05-08) 維持
+  - 困りごと 11 個全件マッピング維持 (ch10 逆引き辞典で再構成)
+  - Skills 縦糸 (ch01 → ch07 → ch11) で skill が育つ物語が機能
+  - 各章末に『強化した層』1 行明記 (cmd_1638 修正で確定)
+  - gunshi QC PASS
+  - 章単位 git commit + push 済
+  - queue/reports/2026-05-06_cmd_1647_v5_phase3_qc.md 完了報告書作成
+  - 殿レビュー URL ntfy 送信 (http://192.168.2.4:8773/intermediate_v5/)
+  notify_karo: true
