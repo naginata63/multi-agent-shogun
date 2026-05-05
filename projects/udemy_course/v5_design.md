@@ -176,6 +176,8 @@ ch11 [演習] 全部使ってミニ自動化
 | compaction / persistent | 圧縮・保存 |
 | L1 / L2 / L3 | 武器①②③ (本文では使う・章名には出さない) |
 | queue/tasks/ / shogun / karo / ashigaru / gunshi / multi-agent-shogun | 完全削除 (cmd_1634 で撲滅済) |
+| **JIT / Just-In-Time** (製造業/コンパイラ流用・LLM 未確立) | **必要時取得 (Selective Retrieval)**・関連: RAG |
+| **Lazy Load** (Web/JS 流用・LLM 文脈で曖昧) | **必要時読込 (On-Demand Loading)** |
 
 ## 9. 章タイトル原則
 

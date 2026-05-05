@@ -40,7 +40,7 @@ blockquote { font-size: 0.85em; font-style: italic; border-left: 4px solid #2563
 <li><strong>3 層の世界観</strong> (プロンプト層 / コンテキスト層 / ハーネス層) を ch00 で先行提示</li>
 <li><strong>各章末「強化した層」</strong> を 1 行で明記 (12 章全件)</li>
 <li><strong>ch03 の 3 制約</strong> (容量上限 / Lost in the Middle / Context Rot) を新設</li>
-<li><strong>ch04 を JIT 対策の実装章</strong> に再構成 (claude-mem + handoff + Lazy Load + PreCompact)</li>
+<li><strong>ch04 を 必要時取得の実装章</strong> に再構成 (claude-mem + handoff + 必要時読込 + PreCompact)</li>
 <li><strong>ch01 に Script / Slash Command / Skill 比較表</strong> + Skill 布石スライド</li>
 <li><strong>ch07 末尾に Skill が hook と連携する仕組み</strong> スライド追加</li>
 <li><strong>ch10 を「症状 → 現象 → 対策 → 該当章」3 段構造</strong> + 3 層インデックスに刷新</li>
@@ -211,7 +211,7 @@ blockquote { font-size: 0.85em; font-style: italic; border-left: 4px solid #2563
 ├────────────────────────────────────────┤
 │  コンテキスト層 (Context)               │
 │  「AI に何を覚えさせ、何を見せるか」      │
-│  ── memory・handoff・JIT・配置技術       │
+│  ── memory・handoff・必要時取得・配置技術 │
 ├────────────────────────────────────────┤
 │  ハーネス層 (Harness)                   │
 │  「AI を動かす仕組み・自動化の枠組み」    │
@@ -239,7 +239,7 @@ blockquote { font-size: 0.85em; font-style: italic; border-left: 4px solid #2563
 <td><strong>コンテキスト層</strong></td>
 <td>必要なときに必要な情報を AI に届ける</td>
 <td>ch03 / ch04</td>
-<td>TL;DR 配置 / claude-mem / handoff / JIT</td>
+<td>TL;DR 配置 / claude-mem / handoff / 必要時取得</td>
 </tr>
 <tr>
 <td><strong>ハーネス層</strong></td>
@@ -256,7 +256,7 @@ ch01 [プロンプト層]    プロンプトを資産にする — /command + Sk
 ch02 [プロンプト層]    よくある失敗 3 パターンの診断 (30 min)
 
 ch03 [コンテキスト層]  context window の 3 つの制約 (30 min)
-ch04 [コンテキスト層]  JIT 対策の実装 — claude-mem + handoff + Lazy Load (35 min)  ★ 検索 [手動]
+ch04 [コンテキスト層]  必要時取得の実装 — claude-mem + handoff + 必要時読込 (35 min)  ★ 検索 [手動]
 
 ch05 [ハーネス層]      役割別ファイルで AI を分業させる (30 min)
 ch06 [ハーネス層]      第三者 AI に見直してもらう — /advisor (25 min)
@@ -435,7 +435,7 @@ blockquote { font-size: 0.85em; font-style: italic; border-left: 4px solid #2563
 <td>ch04</td>
 <td>v4 第 6/7/9 章 + 新規</td>
 <td>部分流用</td>
-<td><strong>JIT 対策章として再構成</strong></td>
+<td><strong>必要時取得章として再構成</strong></td>
 </tr>
 <tr>
 <td>ch05</td>
@@ -793,7 +793,7 @@ blockquote { font-size: 0.85em; font-style: italic; border-left: 4px solid #2563
 <h4 id="emotional-hook-%E7%8F%BE%E8%B1%A1-%E2%86%92-%E5%AF%BE%E7%AD%96-3">Emotional Hook (現象 → 対策)</h4>
 <ul>
 <li><strong>現象</strong>: 「ちゃんと書いたのに AI が読み飛ばす」「会話が長くなると応答品質が落ちる」「2 万トークンの仕様書を渡しても核心を捉えてくれない」</li>
-<li><strong>対策</strong>: AI の context window には <strong>3 つの制約</strong> がある。それらを理解し、配置技術 (TL;DR / 末尾サマリ / Lazy Load) で対処する</li>
+<li><strong>対策</strong>: AI の context window には <strong>3 つの制約</strong> がある。それらを理解し、配置技術 (TL;DR / 末尾サマリ / 必要時読込) で対処する</li>
 </ul>
 <h4 id="%E5%AD%A6%E7%BF%92%E7%9B%AE%E6%A8%99-3">学習目標</h4>
 <ul>
@@ -815,7 +815,7 @@ blockquote { font-size: 0.85em; font-style: italic; border-left: 4px solid #2563
 <blockquote>
 <p><img class="emoji" draggable="false" alt="❌" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/274c.svg" data-marp-twemoji=""/> 誤: 「指示が長すぎると、指示の中央が読み飛ばされる」<br />
 <img class="emoji" draggable="false" alt="✅" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/2705.svg" data-marp-twemoji=""/> 正: 「<strong>参照情報</strong> (添付ドキュメント・過去のログ等) が長く、その<strong>中央に重要な事実</strong>があると AI が読み飛ばしやすい現象」</p>
-<p>→ 対策: 重要な参照情報は <strong>冒頭または末尾</strong> に置く・添付の長さ自体を JIT で削る (ch04 へ繋がる)</p>
+<p>→ 対策: 重要な参照情報は <strong>冒頭または末尾</strong> に置く・添付の長さ自体を<strong>必要時取得</strong>で削る (ch04 へ繋がる)</p>
 </blockquote>
 <h4 id="%E6%8C%81%E3%81%A1%E5%B8%B0%E3%82%8A-3">持ち帰り</h4>
 <ul>
@@ -844,26 +844,26 @@ code { background: #f0f0f0; padding: 2px 5px; border-radius: 3px; }
 pre { background: #2b2b2b; color: #f8f8f2; padding: 8px; font-size: 0.7em; }
 blockquote { font-size: 0.85em; font-style: italic; border-left: 4px solid #2563eb; padding-left: 0.5em; }
 ;" data-marpit-pagination-total="29" data-size="16:9">
-<h3 id="ch04-jit-%E5%AF%BE%E7%AD%96%E3%81%AE%E5%AE%9F%E8%A3%85--claude-mem--handoff--lazy-load-%E3%82%B3%E3%83%B3%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88%E5%B1%A4-%E2%98%85-%E6%A4%9C%E7%B4%A2-%E6%89%8B%E5%8B%95">ch04. JIT 対策の実装 — claude-mem + handoff + Lazy Load [コンテキスト層] ★ 検索 [手動]</h3>
+<h3 id="ch04-%E5%BF%85%E8%A6%81%E6%99%82%E5%8F%96%E5%BE%97%E3%81%AE%E5%AE%9F%E8%A3%85--claude-mem--handoff--%E5%BF%85%E8%A6%81%E6%99%82%E8%AA%AD%E8%BE%BC-%E3%82%B3%E3%83%B3%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88%E5%B1%A4-%E2%98%85-%E6%A4%9C%E7%B4%A2-%E6%89%8B%E5%8B%95">ch04. 必要時取得の実装 — claude-mem + handoff + 必要時読込 [コンテキスト層] ★ 検索 [手動]</h3>
 <p><strong>所要</strong>: 35 min / 担当する困りごと: <strong>⑦ 完了したことを次に伝え忘れる / ⑪ 補足 / ⑨ 補足</strong></p>
 <h4 id="emotional-hook-%E7%8F%BE%E8%B1%A1-%E2%86%92-%E5%AF%BE%E7%AD%96-4">Emotional Hook (現象 → 対策)</h4>
 <ul>
 <li><strong>現象</strong>: 「先週の自分が解決した問題を、今週の AI が知らない」「context window が満杯で重要な情報が押し出された」「全部の memory を毎回読み込ませると遅い」</li>
-<li><strong>対策</strong>: <strong>JIT</strong> (Just-In-Time = 必要なときに必要な情報だけを与える) で context を節約する。<strong>4 つの道具</strong> (<code>claude-mem</code> / <code>handoff</code> / Lazy Load / <code>PreCompact</code>) を組み合わせる</li>
+<li><strong>対策</strong>: <strong>必要時取得</strong> (Selective Retrieval = 必要なときに必要な情報だけを引き出す) で context を節約する。<strong>4 つの道具</strong> (<code>claude-mem</code> / <code>handoff</code> / 必要時読込 / <code>PreCompact</code>) を組み合わせる</li>
 </ul>
 <h4 id="%E5%AD%A6%E7%BF%92%E7%9B%AE%E6%A8%99-4">学習目標</h4>
 <ul>
-<li>JIT (Just-In-Time) の概念を説明できる</li>
+<li>必要時取得 (Selective Retrieval) の概念を説明できる</li>
 <li><code>claude-mem mem-search</code> / <code>smart_search</code> / <code>timeline</code> を使い分けられる</li>
 <li><code>/handoff</code> <code>/rehydrate</code> でセッションを引き継げる</li>
-<li><strong>Lazy Load</strong> (必要時のみ読込) と <strong><code>PreCompact</code> hook</strong> (圧縮直前保存) の役割を理解する</li>
+<li><strong>必要時読込</strong> (必要時のみ読込) と <strong><code>PreCompact</code> hook</strong> (圧縮直前保存) の役割を理解する</li>
 </ul>
 <h4 id="%E8%A7%A3%E8%AA%AC%E3%82%A2%E3%82%A6%E3%83%88%E3%83%A9%E3%82%A4%E3%83%B3-4">解説アウトライン</h4>
 <ol>
-<li><strong>JIT 概念スライド</strong> — 「全部覚えさせる」から「必要なときに呼び戻す」への転換 (ch03 の制約への直接対策)</li>
+<li><strong>必要時取得 概念スライド</strong> — 「全部覚えさせる」から「必要なときに呼び戻す」への転換 (ch03 の制約への直接対策・RAG 系の発想)</li>
 <li><strong>道具①: <code>claude-mem</code></strong> — <code>mem-search</code> / <code>smart_search</code> / <code>timeline</code> で過去を意味検索</li>
 <li><strong>道具②: <code>/handoff</code> <code>/rehydrate</code></strong> — セッション切替時の引き継ぎ</li>
-<li><strong>道具③: Lazy Load</strong> — メモリファイルを「タスク該当時のみ」読み込む設計 (常時注入禁止)</li>
+<li><strong>道具③: 必要時読込</strong> — メモリファイルを「タスク該当時のみ」読み込む設計 (常時注入禁止)</li>
 <li><strong>道具④: <code>PreCompact</code> hook</strong> — 圧縮 (Compaction) 直前に重要情報を YAML 等に保存</li>
 <li><strong>橋渡しスライド①</strong> (必須): 「毎回手で叩くのは現実的ではない → ch07 で hook 自動化 + Skill 連携へ繋がる」</li>
 </ol>
@@ -871,12 +871,12 @@ blockquote { font-size: 0.85em; font-style: italic; border-left: 4px solid #2563
 <ul>
 <li>claude-mem の 3 種コマンド (mem-search / smart_search / timeline) を使い分けられる</li>
 <li>セッションを跨いで過去の発見を呼び出せる</li>
-<li>4 つの JIT 道具を組み合わせて context を節約できる</li>
+<li>4 つの 必要時取得 道具を組み合わせて context を節約できる</li>
 <li>「毎回手で叩くのは現実的ではない」と感じる(=ch07 への動機づけ完成)</li>
 </ul>
 <h4 id="%E5%BC%B7%E5%8C%96%E3%81%97%E3%81%9F%E5%B1%A4-4">強化した層</h4>
 <blockquote>
-<p><strong>コンテキスト層</strong> を強化 — JIT で必要な情報だけを呼び戻せる。</p>
+<p><strong>コンテキスト層</strong> を強化 — 必要時取得で情報を呼び戻せる。</p>
 </blockquote>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="14" data-paginate="true" data-theme="default" data-style="section { font-size: 0.85em; }
@@ -1263,7 +1263,7 @@ blockquote { font-size: 0.85em; font-style: italic; border-left: 4px solid #2563
 <tr>
 <td>長文 doc の中央が読まれない</td>
 <td>Lost in the Middle</td>
-<td>TL;DR + 末尾サマリ + JIT</td>
+<td>TL;DR + 末尾サマリ + 必要時取得</td>
 <td>ch03 (+ ch04)</td>
 </tr>
 </tbody>
@@ -1435,7 +1435,7 @@ blockquote { font-size: 0.85em; font-style: italic; border-left: 4px solid #2563
 <td>⑦</td>
 <td>完了したことを次に伝え忘れる</td>
 <td><strong>ch04</strong></td>
-<td>claude-mem + handoff (JIT)</td>
+<td>claude-mem + handoff (必要時取得)</td>
 <td>コンテキスト層</td>
 </tr>
 <tr>
@@ -1463,7 +1463,7 @@ blockquote { font-size: 0.85em; font-style: italic; border-left: 4px solid #2563
 <td>⑪</td>
 <td>長文の中央の参照情報が読み飛ばされる</td>
 <td><strong>ch03</strong></td>
-<td>TL;DR + 末尾サマリ + JIT (ch04)</td>
+<td>TL;DR + 末尾サマリ + 必要時取得 (ch04)</td>
 <td>コンテキスト層</td>
 </tr>
 </tbody>
@@ -1496,11 +1496,11 @@ blockquote { font-size: 0.85em; font-style: italic; border-left: 4px solid #2563
 </blockquote>
 <h3 id="92-%E6%A9%8B%E6%B8%A1%E3%81%97%E3%82%B9%E3%83%A9%E3%82%A4%E3%83%89-%E2%91%A0-ch04-%E7%AB%A0%E6%9C%AB">9.2 橋渡しスライド ① (ch04 章末)</h3>
 <p><strong>スライドタイトル</strong>: 「次章への布石 — 毎回手で叩くのは現実的じゃない」</p>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>■ ここまでで覚えた JIT 道具
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code>■ ここまでで覚えた 必要時取得 道具
   - claude-mem mem-search &quot;○○について&quot;
   - claude-mem timeline
   - /handoff / /rehydrate
-  - Lazy Load (必要時のみ読み込む memory)
+  - 必要時読込 (必要時のみ読み込む memory)
   - PreCompact hook (圧縮直前保存)
 
 ■ でも、毎回手で叩くの現実的?
@@ -1558,6 +1558,12 @@ blockquote { font-size: 0.85em; font-style: italic; border-left: 4px solid #2563
 <li>専門用語の代わりに <strong>受講者の現場で使う表現</strong> を選ぶ</li>
 <li>プロンプト/コンテキスト/ハーネスの 3 層は本文中で使用可・<strong>章タイトルでは「の世界観」「の制約」「の実装」等の文脈で使う</strong></li>
 <li>プロジェクト内部記法 (キュー配下のパス・役職名・プロジェクト識別子) は <strong>完全削除</strong></li>
+<li><strong>AI 業界未確立の他分野流用用語禁止</strong> (cmd_1645 確定):
+<ul>
+<li><img class="emoji" draggable="false" alt="❌" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/274c.svg" data-marp-twemoji=""/> <code>JIT</code> / <code>Just-In-Time</code> (製造業/コンパイラ流用) → <img class="emoji" draggable="false" alt="✅" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/2705.svg" data-marp-twemoji=""/> <strong>必要時取得 (Selective Retrieval)</strong>・関連: RAG (Retrieval-Augmented Generation)</li>
+<li><img class="emoji" draggable="false" alt="❌" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/274c.svg" data-marp-twemoji=""/> <code>Lazy Load</code> (Web/JS 流用) → <img class="emoji" draggable="false" alt="✅" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/2705.svg" data-marp-twemoji=""/> <strong>必要時読込 (On-Demand Loading)</strong></li>
+</ul>
+</li>
 </ul>
 <blockquote>
 <p>本設計書および各章執筆物 (Phase 2 成果物) では上記原則に基づき NG ワード 0 件を保つ。</p>
@@ -1722,7 +1728,7 @@ blockquote { font-size: 0.85em; font-style: italic; border-left: 4px solid #2563
 <li><img class="emoji" draggable="false" alt="✅" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/2705.svg" data-marp-twemoji=""/> <strong>困りごと → 3 層欠如マッピング表</strong>: ch00 + ch10 で提示</li>
 <li><img class="emoji" draggable="false" alt="✅" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/2705.svg" data-marp-twemoji=""/> <strong>ch03 3 制約</strong>: 容量上限 / Lost in the Middle / Context Rot を新設</li>
 <li><img class="emoji" draggable="false" alt="✅" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/2705.svg" data-marp-twemoji=""/> <strong>Lost in the Middle</strong>: 「指示」ではなく「コンテキスト/参照情報の中央」と正確記述</li>
-<li><img class="emoji" draggable="false" alt="✅" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/2705.svg" data-marp-twemoji=""/> <strong>ch04 JIT 化</strong>: claude-mem + handoff + Lazy Load + PreCompact の 4 道具で再構成</li>
+<li><img class="emoji" draggable="false" alt="✅" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/2705.svg" data-marp-twemoji=""/> <strong>ch04 必要時取得化</strong>: claude-mem + handoff + 必要時読込 + PreCompact の 4 道具で再構成</li>
 <li><img class="emoji" draggable="false" alt="✅" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/2705.svg" data-marp-twemoji=""/> <strong>ch01 比較表</strong>: Script / Slash Command / Skill 比較表 + Skill 布石スライド</li>
 <li><img class="emoji" draggable="false" alt="✅" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/2705.svg" data-marp-twemoji=""/> <strong>ch07 末尾</strong>: Skill が hook と連携する仕組みスライド追加</li>
 <li><img class="emoji" draggable="false" alt="✅" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/2705.svg" data-marp-twemoji=""/> <strong>ch10 3 段構造</strong>: 症状 → 現象 → 対策 → 該当章 + 3 層インデックス</li>
