@@ -1,0 +1,27 @@
+{
+  "agent": "gunshi",
+  "task_id": "subtask_1637_v5_curriculum",
+  "status": "assigned",
+  "priority": "high",
+  "parent_cmd": "cmd_1637",
+  "bloom_level": "L5",
+  "gunshi_qc": false,
+  "description": "cmd_1637: 中級編 v5 全12章の詳細設計書 curriculum_intermediate_v5_marp.md を作成 (Emotional Hook・学習目標・解説アウトライン・困りごとマッピング)",
+  "target_path": "/home/murakami/multi-agent-shogun/projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md",
+  "steps": "0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) 仕様読込: Read projects/udemy_course/v5_design.md (章構成12章・困りごと11個・NGワード・L1/L2/L3マッピング・v4流用方針) 3) 粒度参照: Read projects/udemy_course/drafts/curriculum_intermediate_v4_marp.md の章構成・アウトライン粒度を把握 4) curriculum_intermediate_v5_marp.md 作成: Marp形式(v4と同じheader使用)・12章(ch00〜ch11)全章に → Emotional Hook(ストーリー: 困った状態→学習→解決の物語) → 学習目標(3〜5項目) → 解説アウトライン(5〜6項目) → 各章担当の困りごとマッピング → 各章所要時間 5) 検証(作成後): (a)12章全件 Emotional Hook/学習目標/解説アウトライン5-6項目あり (b)困りごと11個(①〜⑪)が全件いずれかの章にマッピング・取りこぼし0 (c)NGワード grep: 経済|階層|工程検問|サイレントフェイル|ハーネスエンジニアリング|queue/tasks|shogun|karo|ashigaru|gunshi|multi-agent-shogun → 0件 (d)ch04→ch07橋渡しスライドが明示されている (e)章別所要時間合計5〜6h (f)L1/L2/L3マッピング表あり (g)v4→v5章対応表あり 6) HTML変換: npx @marp-team/marp-cli --allow-local-files projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md --html -o projects/udemy_course/drafts/curriculum_intermediate_v5.html 7) URL確認: curl -s -o /dev/null -w '%{http_code}' http://192.168.2.4:8773/curriculum_intermediate_v5.html → 200を確認 8) git add -f projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md projects/udemy_course/drafts/curriculum_intermediate_v5.html && git diff --cached --stat && git commit -m 'feat(udemy): 中級編 v5 詳細設計書 curriculum_intermediate_v5_marp.md 新規作成 (cmd_1637)' 9) git push origin main 10) 完了報告書作成: queue/reports/2026-05-05_cmd_1637_v5_curriculum_design.md (12章サマリ・困りごとマッピング一覧・所要時間合計・NGワード検証結果) 11) advisor()呼出 12) inbox karo 完了報告",
+  "acceptance_criteria": [
+    "projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md が新規作成済 (Marp形式)",
+    "curriculum_intermediate_v5.html が生成済",
+    "殿レビューURL http://192.168.2.4:8773/curriculum_intermediate_v5.html が 200 応答",
+    "12章全件に Emotional Hook + 学習目標 + 解説アウトライン 5-6項目あり",
+    "困りごと11個全件(①〜⑪)が解決章にマッピング済・取りこぼし0",
+    "章タイトルにNGワード(経済/階層/工程検問/サイレントフェイル/ハーネスエンジニアリング/queue/tasks/shogun/karo/ashigaru/gunshi/multi-agent-shogun)が0件",
+    "ch04(L2手動)→ch07(L3自動)の橋渡しスライドが明示",
+    "章別所要時間合計が5-6時間",
+    "L1/L2/L3階層マッピング表が含まれる",
+    "v4→v5章対応表(流用/統合/廃棄)が含まれる",
+    "git commit + push済",
+    "queue/reports/2026-05-05_cmd_1637_v5_curriculum_design.md 完了報告書作成済"
+  ],
+  "notes": "v5設計仕様の全詳細はprojects/udemy_course/v5_design.mdに確定済。粒度参照はcurriculum_intermediate_v4_marp.md。v5はゼロベース執筆(v4文章コピペ禁止・概念/コード片のみ流用可)。章タイトルはL1/L2/L3を直接使わず(本文内のみ可)。所要時間はv4 13h→v5 5-6hに大幅圧縮。git add -f必須(projectsはgitignored)。本タスク完了後にPhase2(足軽による章別本文執筆 cmd_1638想定)へ続く。"
+}
