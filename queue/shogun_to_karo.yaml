@@ -792,3 +792,71 @@ commands:
   - queue/reports/2026-05-06_cmd_1643_sse_stream_qc.md 作成
   - git commit + push 済 (関連 commit 全件)
   notify_karo: true
+- id: cmd_1644
+  status: done
+  priority: high
+  purpose: A/B/C 3 案の inbox 通知機構設計を軍師が技術 QC し、推奨案 + リスク評価 + 移行コスト見積もりを報告書化する。
+  timestamp: '2026-05-06T04:39:54+09:00'
+  project: multi-agent-shogun
+  lord_original: 軍師にqc依頼 (殿命 2026-05-06 10:40 — cmd_1643 (A 案 SSE direct stream) は将軍越権で取消済・代わりに『A
+    案/B 案/C 案』を軍師に QC レビュー依頼することで殿が技術判断したい)
+  north_star: inbox 通知機構の進化方針 (YAML 脱却・tail/inotifywait 廃止) について、3 案 (A=SSE / B=inotifywait+tail
+    / C=現状維持) を軍師が技術 QC レビューし、殿の判断材料となる中立的な技術評価書を作成する。実装 cmd 起票は本 QC 後・殿判断ベースで別途起票。
+  command_text: "## 背景\n\ncmd_1640 (Phase 1 Monitor POC) → cmd_1642 (Phase 2 並走) で\
+    \ Monitor + audit log + tail -F の設計を試したが、軍師 QC で『tail -F は atomic write の inode\
+    \ 変更で限界・inotifywait 化必須』と指摘 (cmd_1642 報告書 L191-204)。\n\n殿の真意 (2026-05-06 10:30):\n\
+    - YAML 監視そのものから脱却したい\n- tail も使わない方が良い\n- ファイル仲介を完全廃止したい\n\n将軍は A 案 (SSE direct\
+    \ stream) で cmd_1643 を起票したが、**殿命未確認の越権起票**として取消。代わりに本 cmd_1644 で **3 案を軍師が中立 QC\
+    \ レビュー** して、殿が判断する流れに修正。\n\n## 担当 + bloom_level\n\n- **gunshi 単独** (技術 QC レビュー)\n\
+    - bloom_level: **L6** (技術設計評価・3 案比較・移行ロードマップ提案)\n- gunshi_qc: **false** (軍師自身の\
+    \ QC レポート)\n\n## レビュー対象 — 3 案\n\n### 案 A: SSE direct stream (将軍提案・取消済 cmd_1643)\n\
+    \n#### 設計概要\n```\n[流れ]\n殿 cmd 起票 → server.py /api/cmd_create\n   ↓ SQLite INSERT\
+    \ + in-memory queue.put()\n   ↓\nserver.py /api/inbox_stream?agent=<id>:\n   SSE\
+    \ generator が queue.get() → yield 'data: {json}\\n\\n'\n   ↓\nagent の Monitor:\
+    \ curl -N --no-buffer ... (常時接続)\n   stdout 1 行 = 1 通知\n   ↓\nClaude Code が native\
+    \ 通知受信\n```\n\n#### 設計の特徴\n- ファイル仲介ゼロ (YAML / audit log / inotifywait 不要)\n- in-memory\
+    \ queue で push 駆動\n- 全 10 agent が常時 SSE 接続\n- inode 問題完全回避\n\n#### 取消版 payload\n\
+    `queue/cmd_payloads/cmd_1643.json` に詳細あり\n\n### 案 B: inotifywait + tail-1 (軍師\
+    \ cmd_1642 報告書 L209-211 推奨)\n\n#### 設計概要\n```\n[流れ]\nMonitor(\n    command=\"\
+    inotifywait -m -e modify,close_write,moved_to logs/inbox_audit.log | while read;\
+    \ do tail -1 logs/inbox_audit.log | grep ' <agent_id> '; done\",\n    persistent=true\n\
+    )\n```\n\n#### 設計の特徴\n- Monitor + inotifywait のハイブリッド\n- audit log を中央集約・各 agent\
+    \ が grep filter\n- inode 変更も検知可能 (IN_MOVED_TO)\n- tail -1 でラグ時の取りこぼし可能性 (連続追記時)\n\
+    - ファイル仲介は残る (audit log 経由)\n\n### 案 C: 現状維持 (cmd_1642 並走運用継続)\n\n#### 設計概要\n```\n\
+    [現状]\n- 既存 inbox_watcher.sh × 10 (inotifywait + tmux send-keys) → 本番運用\n- Monitor\
+    \ (tail -F YAML) ← Phase 2 で実装・並走テスト\n- 両者同時稼働で通知重複\n```\n\n#### 設計の特徴\n- 既存運用を変更しない\n\
+    - 通知重複は許容\n- YAML 監視継続\n- 進化なし\n\n## レビュー観点 (5 軸)\n\n各案について以下 5 軸で評価:\n\n1. **YAML\
+    \ 脱却度** (殿の核心要望)\n   - 完全脱却 / 部分脱却 / 維持\n2. **取りこぼし耐性**\n   - inode 変更・atomic\
+    \ write・logrotate での挙動\n3. **実装複雑度**\n   - server.py 変更規模・運用変更影響範囲\n4. **rollback\
+    \ 可能性**\n   - 失敗時の戻し方・既存資産への影響\n5. **Anthropic 純正度**\n   - Monitor 活用度・将来の Anthropic\
+    \ API 進化との整合\n\n## 出力\n\n軍師が以下の構造で報告書作成: `queue/reports/2026-05-06_cmd_1644_inbox_design_qc.md`\n\
+    \n```markdown\n# cmd_1644 inbox 通知機構 3 案 QC レビュー報告書\n\n## 0. エグゼクティブサマリ\n- 推奨案:\
+    \ [A/B/C のいずれか]\n- 推奨度: ★1-5\n- 移行コスト: [低/中/高] + 工数\n- 主要リスク: 1-3 個\n\n## 1. 案\
+    \ A: SSE direct stream\n### 1.1 5 軸評価\n[各軸の評価と根拠]\n### 1.2 メリット\n### 1.3 デメリット\n\
+    ### 1.4 移行コスト\n\n## 2. 案 B: inotifywait + tail-1\n[同様の構造]\n\n## 3. 案 C: 現状維持\n\
+    [同様の構造]\n\n## 4. 3 案比較表\n| 軸 | A | B | C |\n[5 軸 × 3 案 の matrix]\n\n## 5. 推奨と根拠\n\
+    [軍師の最終判断]\n\n## 6. 推奨案の実装ロードマップ (Phase 別)\n[Phase 1-3 の実装手順案]\n\n## 7. リスクと対策\n\
+    [技術 / 運用 / 互換性]\n\n## 8. 殿への判断材料\n- A 採用なら → cmd_1645 (実装) を起票推奨\n- B 採用なら → cmd_1645\
+    \ (実装) を起票推奨\n- C 採用なら → 進化停止・現状維持\n```\n\n## 手順\n\n0. advisor() 呼出\n1. 入力資料 Read:\n\
+    \   - `queue/cmd_payloads/cmd_1643.json` (取消版・A 案詳細設計)\n   - `queue/reports/2026-05-06_cmd_1642_monitor_phase2_qc.md`\
+    \ (B 案推奨の根拠)\n   - `queue/reports/2026-05-05_cmd_1639_anthropic_agent_api_research.md`\
+    \ (Anthropic API 調査全体)\n   - `scripts/dashboard/server.py` (server.py の現状把握)\n\
+    \   - `scripts/inbox_watcher.sh` (既存 watcher の現状)\n2. 3 案を 5 軸で評価\n3. 比較 matrix\
+    \ 作成\n4. 推奨案決定 + 根拠\n5. 推奨案の実装ロードマップ案 (Phase 1-3)\n6. リスク + 対策\n7. 報告書 markdown\
+    \ で作成\n8. advisor() 呼出 (中立性 + 網羅性確認)\n9. inbox karo 完了報告\n\n## 必達制約\n\n- **QC\
+    \ レビューのみ・実装禁止** (実装 cmd は本 QC 後・殿判断ベースで別途起票)\n- 中立性厳守: 将軍提案 (A 案) を盲目的に推奨しない・技術的妥当性で判断\n\
+    - 既存 inbox_watcher.sh / Monitor (cmd_1642) は触らない\n- 軍師単独完遂・足軽起動禁止\n- 報告書は markdown\
+    \ 形式・章立て明確に\n\n## 共通ルール\n\n- 出力先: `queue/reports/2026-05-06_cmd_1644_inbox_design_qc.md`\n\
+    - 新規 .py 禁止 (本 cmd は QC のみ)\n- WebFetch / WebSearch 利用可 (Anthropic ドキュメント参照のため)\n\
+    - claude-code-guide subagent 活用推奨\n- git commit 必須 (push は家老責務)"
+  acceptance_criteria:
+  - queue/reports/2026-05-06_cmd_1644_inbox_design_qc.md 報告書作成
+  - 3 案 (A/B/C) すべての 5 軸評価 (YAML 脱却度・取りこぼし耐性・実装複雑度・rollback 可能性・Anthropic 純正度) が含まれる
+  - 3 案比較 matrix (5 軸 × 3 案) が含まれる
+  - 推奨案 (A/B/C のいずれか) と根拠が明記
+  - 推奨案の実装ロードマップ (Phase 1-3) が含まれる
+  - リスク一覧 (技術 / 運用 / 互換性) が含まれる
+  - 殿への判断材料セクション (採用案ごとの次アクション提案)
+  - 中立性厳守 (将軍 A 案を盲目的推奨していない・技術的根拠で判断)
+  - git commit 済
+  notify_karo: true
