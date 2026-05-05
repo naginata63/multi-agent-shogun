@@ -1072,3 +1072,113 @@ commands:
   - queue/reports/2026-05-06_cmd_1647_v5_phase3_qc.md 完了報告書作成
   - 殿レビュー URL ntfy 送信 (http://192.168.2.4:8773/intermediate_v5/)
   notify_karo: true
+- id: cmd_1648
+  status: in_progress
+  priority: high
+  purpose: server.py に SSE endpoint /api/inbox_stream + in-memory queue + SQLite 未読取得
+    + feature flag を実装し、単体テストで動作確認する。
+  timestamp: '2026-05-06T05:12:37+09:00'
+  project: multi-agent-shogun
+  lord_original: すすめよ (殿命 2026-05-06 11:30 — cmd_1646 軍師 A 案単独 QC で 5 件 CRITICAL 抜け穴
+    + Phase 別ロードマップ提示済・Phase 1 (server.py SSE 実装 + 5 落とし穴対策 + feature flag) を進めよ)
+  north_star: A 案 (SSE direct stream) の Phase 1 を実装。server.py に SSE endpoint 追加・5
+    つの critical 抜け穴 (stdlib 認識訂正済 / queue ロスト対策 / Last-Event-ID / feature flag / SPOF
+    対策) を実装段階で塞ぐ。Phase 2-3 (cmd_1649/1650) で段階展開・Phase 4 (cmd_1651) で旧 watcher 廃止という
+    3 週間ロードマップの第一歩。
+  command_text: "## 背景\n\ncmd_1644 (3 案 QC) → 殿が A 案採用確定 → cmd_1646 (A 案単独 8 軸 QC)\
+    \ で 5 件 CRITICAL 抜け穴洗い出し。本 cmd_1648 で Phase 1 を実装。\n\n軍師の Phase 別ロードマップ (`queue/reports/2026-05-06_cmd_1646_a_design_qc.md`\
+    \ §4):\n- **Phase 1 (本 cmd_1648・1-2 日)**: server.py SSE endpoint + 5 抜け穴対策 + 単体テスト\n\
+    - Phase 2 (cmd_1649・0.5 日 + 24h): gunshi 1 agent SSE 接続テスト\n- Phase 3 (cmd_1650・2-3\
+    \ 日 + 1 週間観察): 全 10 agent 段階展開\n- Phase 4 (cmd_1651・別 cmd): inbox_watcher.sh 廃止\
+    \ + shutsujin STEP 6.6 削除\n\n## 担当 + bloom_level\n\n- ash 1 名 (server.py 改修経験のある\
+    \ ash3 推奨・cmd_1635 で server.py 改修実績)\n- bloom_level: **L4** (server.py SSE 実装\
+    \ + threading + SQLite 連携)\n- gunshi_qc: **true** (本番経路根幹変更・Phase 2 着手前 QC 必須)\n\
+    \n## 入力資料 (実装者必読)\n\n1. **A 案 8 軸 QC 報告書**: `queue/reports/2026-05-06_cmd_1646_a_design_qc.md`\
+    \ (594 行)\n   - §0 エグゼクティブサマリ (5 件 CRITICAL 抜け穴)\n   - §1 stdlib HTTP server 訂正\
+    \ (Flask 不要)\n   - §2 8 軸 QC + 改善提案コード片\n   - §3 実装前決定事項 6 項目\n   - §4 Phase 別ロードマップ\n\
+    2. **A 案詳細設計**: `queue/cmd_payloads/cmd_1643.json` (取消版・設計内容は有効)\n3. **server.py\
+    \ 現状**: `scripts/dashboard/server.py` (3389 行)\n   - L7: `import http.server`\n\
+    \   - L1704: `class DashboardHandler(http.server.BaseHTTPRequestHandler):`\n \
+    \  - L3384: `server = http.server.ThreadingHTTPServer(...)`\n   - 既存 `/api/inbox_write`\
+    \ (cmd_1640 で audit log 追記実装済)\n\n## 実装内容 (5 件 CRITICAL 抜け穴を全部塞ぐ)\n\n### C1: stdlib\
+    \ HTTP server 認識\n- Flask 移行は不要 (軍師訂正)\n- `BaseHTTPRequestHandler` の `do_GET`\
+    \ 内で SSE 実装\n- `protocol_version = 'HTTP/1.1'` を明示 (keep-alive のため)\n\n### C2:\
+    \ SQLite を Single Source of Truth\n- in-memory queue は通知トリガーとしてのみ使用\n- SSE 接続初期化時に\
+    \ SQLite の未読 (`read=0`) を全件先 push\n- queue 自体は揮発でも、SSE 接続ごとに SQLite から復元可能\n\n\
+    ```python\n# SSE generator 内\ndef do_GET_inbox_stream(self, agent):\n    # 接続初期化:\
+    \ SQLite から未読を取得して push\n    unread = sqlite.execute(\n        \"SELECT id, type,\
+    \ from_agent, task_id, timestamp FROM inbox \"\n        \"WHERE agent=? AND read=0\
+    \ ORDER BY id ASC\", (agent,)\n    ).fetchall()\n    \n    for msg in unread:\n\
+    \        yield f\"id: {msg[0]}\\ndata: {json.dumps(dict(msg))}\\n\\n\"\n    \n\
+    \    # その後 in-memory queue から get-loop\n    q = _INBOX_QUEUES[agent]\n    while\
+    \ True:\n        try:\n            msg = q.get(timeout=30)\n            yield\
+    \ f\"id: {msg['id']}\\ndata: {json.dumps(msg)}\\n\\n\"\n        except queue.Empty:\n\
+    \            yield \": keepalive\\n\\n\"\n```\n\n### H3: Last-Event-ID 対応\n- SSE\
+    \ event に `id: <msg_id>` を必ず付与\n- `Last-Event-ID` ヘッダー受信時に該当 msg_id 以降を SQLite\
+    \ から取得\n\n```python\nlast_id = self.headers.get('Last-Event-ID', '0')\nresume\
+    \ = sqlite.execute(\n    \"SELECT id, ... FROM inbox WHERE agent=? AND id > ?\
+    \ ORDER BY id ASC\",\n    (agent, last_id)\n).fetchall()\n```\n\n### H4: feature\
+    \ flag\n- `ENABLE_SSE_INBOX=true/false` 環境変数で切替\n- default は **false** (実装直後は無効・テスト後に\
+    \ true)\n- false の時は /api/inbox_stream が 404 を返す\n\n```python\n# server.py 起動時\n\
+    ENABLE_SSE_INBOX = os.environ.get('ENABLE_SSE_INBOX', 'false').lower() == 'true'\n\
+    \n# /api/inbox_stream handler 内\nif not ENABLE_SSE_INBOX:\n    self.send_response(404)\n\
+    \    self.end_headers()\n    self.wfile.write(b'SSE inbox stream is disabled (set\
+    \ ENABLE_SSE_INBOX=true)')\n    return\n```\n\n### H5: SPOF (Single Point of Failure)\
+    \ 対策\n- 既存 inbox_watcher.sh は **本 cmd では並走稼働継続** (rollback 確保)\n- systemd 化は別\
+    \ cmd (cmd_1651 候補)\n- Monitor 側の自動再接続は Phase 2 (cmd_1649) で確認\n- 本 cmd では「並走で済ませる」割切り\n\
+    \n### 追加: in-memory queue 設計\n- `defaultdict(lambda: queue.Queue(maxsize=1000))`\
+    \ で agent ごとに 1 queue\n- maxsize=1000 で無制限肥大化を防ぐ\n- `put_nowait` + Full 例外時は warning\
+    \ ログ + drop (SQLite に残るので情報損失なし)\n\n```python\n_INBOX_QUEUES = defaultdict(lambda:\
+    \ queue.Queue(maxsize=1000))\n_INBOX_QUEUES_LOCK = threading.Lock()\n\n# /api/inbox_write\
+    \ 内 (既存 SQLite INSERT + audit log 追記の後に)\nif ENABLE_SSE_INBOX:\n    try:\n   \
+    \     with _INBOX_QUEUES_LOCK:\n            q = _INBOX_QUEUES[target_agent]\n\
+    \        q.put_nowait({\n            'id': msg_id,\n            'type': msg_type,\n\
+    \            'from_agent': from_agent,\n            'task_id': task_id,\n    \
+    \        'timestamp': now_jst_str,\n        })\n    except queue.Full:\n     \
+    \   print(f'[SSE] WARN: queue full for {target_agent} (drop notification, SQLite\
+    \ preserves)')\n```\n\n## 担当 ash の手順\n\n0. advisor() 呼出\n1. 入力資料 3 件 Read (軍師\
+    \ QC 報告書 §0-4 / cmd_1643.json / server.py 現状)\n2. server.py L7 / L1704 / L3384\
+    \ 確認 (stdlib HTTP server)\n3. server.py に以下を追加 (~150 行想定):\n   - グローバル: `_INBOX_QUEUES\
+    \ = defaultdict(lambda: queue.Queue(maxsize=1000))` + lock\n   - 環境変数 `ENABLE_SSE_INBOX`\
+    \ 読込\n   - `/api/inbox_stream` GET handler (do_GET 内で path 分岐追加)\n   - `/api/inbox_write`\
+    \ 内に queue.put_nowait 追加 (既存 SQLite INSERT + audit log の後)\n   - `protocol_version\
+    \ = 'HTTP/1.1'` を DashboardHandler に明示\n4. python3 -m py_compile scripts/dashboard/server.py\
+    \ で構文チェック\n5. 単体テスト:\n   a. ENABLE_SSE_INBOX=true で server.py 再起動\n   b. ターミナル\
+    \ A: `curl -N http://localhost:8770/api/inbox_stream?agent=ashigaru1`\n   c. ターミナル\
+    \ B: `curl -X POST http://localhost:8770/api/inbox_write --data @<test.json>`\
+    \ (target=ashigaru1)\n   d. ターミナル A の SSE 通知到達確認\n   e. ターミナル A の curl を中断 → 再接続時に\
+    \ Last-Event-ID 動作確認\n   f. ENABLE_SSE_INBOX=false で再起動 → /api/inbox_stream が\
+    \ 404 確認\n6. 単体テスト結果を `queue/reports/2026-05-06_cmd_1648_phase1_unit_test.md`\
+    \ 作成\n7. git commit: `feat(server): A 案 SSE inbox stream Phase 1 実装 + feature\
+    \ flag (cmd_1648)`\n8. advisor() 呼出 (実装の網羅性確認)\n9. inbox karo 完了報告\n\n## 完了基準\n\
+    \n- server.py に `/api/inbox_stream?agent=<id>` SSE endpoint 実装済 (5 件 CRITICAL\
+    \ 抜け穴対策込み)\n- ENABLE_SSE_INBOX=false の時 404 確認済\n- ENABLE_SSE_INBOX=true の時 SSE\
+    \ event 配信確認済\n- SQLite 未読の初期 push 動作確認済\n- Last-Event-ID 対応動作確認済\n- in-memory\
+    \ queue maxsize=1000 設定済 + Full 例外処理\n- protocol_version='HTTP/1.1' 明示済\n- python3\
+    \ -m py_compile PASS\n- 既存 inbox_watcher.sh / Monitor (cmd_1642) は触らない (rollback\
+    \ 確保)\n- queue/reports/2026-05-06_cmd_1648_phase1_unit_test.md 作成 (テスト結果記録)\n\
+    - gunshi QC PASS\n- git commit 済 (push は家老責務)\n\n## 共通ルール\n\n- 出力先: `scripts/dashboard/server.py`\
+    \ + `queue/reports/`\n- 新規 .py 禁止 (本 cmd は server.py 拡張のみ)\n- 中間成果物は queue/reports/\
+    \ 配下保存\n- git commit 済が完了条件\n- gunshi_qc=true ゆえ gunshi 経由で karo 報告\n\n## 注意事項\n\
+    \n- ENABLE_SSE_INBOX **default は false** で実装 (動作確認後・Phase 2 で true に切替)\n- 既存\
+    \ /api/inbox_write の挙動は変えない (queue.put_nowait は副作用追加のみ)\n- SSE generator 内の `wfile.flush()`\
+    \ 必須 (バッファリング無効化)\n- `Connection: keep-alive` ヘッダー明示\n- agent パラメータの validation\
+    \ (英数字 + アンダースコアのみ・SQL injection 対策)\n- 既存 inbox_watcher.sh は絶対に削除しない (Phase 4\
+    \ = cmd_1651 で対応)\n- shutsujin_departure.sh STEP 6.6 は本 cmd では触らない"
+  acceptance_criteria:
+  - server.py に /api/inbox_stream?agent=<id> SSE endpoint 実装済
+  - ENABLE_SSE_INBOX 環境変数による feature flag 実装済 (default=false)
+  - ENABLE_SSE_INBOX=false で 404 応答確認済
+  - ENABLE_SSE_INBOX=true で SSE event 配信確認済 (curl -N で stdout に流れる)
+  - SSE 接続初期化時に SQLite から未読 (read=0) を先 push する実装済
+  - Last-Event-ID ヘッダー対応実装済 (再接続時に該当 msg_id 以降を SQLite から取得)
+  - in-memory queue (defaultdict + threading.Queue・maxsize=1000) 実装済 + Full 例外処理
+  - /api/inbox_write 内に queue.put_nowait 追加実装済
+  - protocol_version='HTTP/1.1' 明示済
+  - python3 -m py_compile PASS
+  - agent パラメータ validation (SQL injection 対策) 実装済
+  - queue/reports/2026-05-06_cmd_1648_phase1_unit_test.md 作成 (テスト結果記録)
+  - 既存 inbox_watcher.sh / Monitor (cmd_1642) は触らない (rollback 確保)
+  - gunshi QC PASS
+  - git commit 済
+  notify_karo: true
