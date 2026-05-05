@@ -1074,7 +1074,7 @@ commands:
   - 殿レビュー URL ntfy 送信 (http://192.168.2.4:8773/intermediate_v5/)
   notify_karo: true
 - id: cmd_1648
-  status: in_progress
+  status: done
   priority: high
   purpose: server.py に SSE endpoint /api/inbox_stream + in-memory queue + SQLite 未読取得
     + feature flag を実装し、単体テストで動作確認する。
@@ -1184,7 +1184,7 @@ commands:
   - git commit 済
   notify_karo: true
 - id: cmd_1652
-  status: in_progress
+  status: done
   priority: medium
   purpose: dashboard に cancel ボタンを追加・/api/cmd_cancel エンドポイント実装・既存 done ボタンと同等の UX
     を実現する。

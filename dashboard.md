@@ -64,16 +64,18 @@
 
 ## 🚨 要対応
 
-### 🔄 cmd_1652完了 → server.py 再起動要 (殿/将軍 対応)
+### 🔄 server.py 再起動要 (殿/将軍 対応) — cmd_1648 + cmd_1652 両方有効化
 
-cmd_1652 (dashboard cancelボタン) の実装・py_compile PASS済 (commit be80269)。  
-**server.py の再起動が必要** (新endpoint `/api/cmd_cancel` を有効化するため)。
+cmd_1648 (SSE endpoint) + cmd_1652 (cancelボタン) 両方 gunshi QC PASS済・git push済。  
+**server.py 再起動で両機能が同時に有効化される**。
 
 ```bash
 pkill -f "python.*server.py" && sleep 1 && source ~/.bashrc && python3 /home/murakami/multi-agent-shogun/scripts/dashboard/server.py &
 ```
 
-再起動後 → http://192.168.2.4:8770/ の pending/in_progress cmd 詳細ページに **🗑️ キャンセルボタン** が表示される。
+再起動後の確認:
+- `ENABLE_SSE_INBOX=false` (default) → `/api/inbox_stream` は 404 (安全)
+- http://192.168.2.4:8770/ の pending/in_progress cmd 詳細ページに **🗑️ キャンセルボタン** 表示
 
 ### ❓ cmd_1647 v5 Phase1 進行中 → 事前4項目 殿確認待ち
 
