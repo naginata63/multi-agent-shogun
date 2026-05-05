@@ -1,0 +1,19 @@
+{
+  "agent": "ashigaru1",
+  "task_id": "subtask_1636_dl_only",
+  "status": "assigned",
+  "priority": "high",
+  "parent_cmd": "cmd_1636",
+  "bloom_level": "L2",
+  "gunshi_qc": false,
+  "description": "cmd_1636 方針転換: STT全面スキップ。残34本を1並列順次でmp4 DLのみ実行 (work/{YYYYMMDD}_{title}/input/ 命名規則)",
+  "target_path": "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/",
+  "steps": "0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki && source ~/.bashrc && source venv/bin/activate 2) 以下34本を1本ずつ順次処理 (STTスキップ・DLのみ): 各動画: VIDEO_ID=<id> → TMP_DIR=work/tmp_${VIDEO_ID} → mkdir -p ${TMP_DIR}/input → python3 scripts/downloader.py 'https://www.youtube.com/watch?v='${VIDEO_ID} --output-dir ${TMP_DIR}/input --cookies-from-browser chrome → INFO=${TMP_DIR}/input/${VIDEO_ID}.info.json → DATE=$(python3 -c \"import json; d=json.load(open('${INFO}')); print(d.get('upload_date','00000000'))\") → TITLE=$(python3 -c \"import json,re; d=json.load(open('${INFO}')); t=d.get('title','untitled'); print(re.sub(r'[/:\\\\?*\\\"<>|]','',t)[:60])\") → FINAL=work/${DATE}_${TITLE} → mkdir -p ${FINAL}/input → mv ${TMP_DIR}/input/* ${FINAL}/input/ && rm -rf ${TMP_DIR} → sleep 5 3) 処理対象34本: o6vunreR_yM QCFyL7tG-v4 HnDcGHXKJFQ pIrocoqvwJg NgkCZL-uhZI WylcM9Jly2s 8r1cEKpTM5M D4_8sRpAKQo WbYEt3Pv0BE XB-XKVQRCok sml-aYEMIKM 05zhA1M5SU0 Tdgz_MMfBAU X3cMBasYcSA nZwB29p9HQk l_DbsoeSTeI Btlnzltdwyo ZJuP6zxDnTM hEs3NoxR9Uw 6vUrq0cDEWo GbuntM4cPUI TrMiLTJXW00 yen8lh8H_nc gt10557GfBA u1LFMXspjKc YZJAmX7faM0 Sm4XCtRQc7U orPrgEK9bC0 cr2GMwajLgs RC-OomWcIeM bCaAyiyjaKQ Wqbvk5zyOYg ssB-cPaPf2k -- -F9M99oe7fY 4) 5本ごとに bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh 'cmd_1636 DL進捗: N/34本完了' 5) DL失敗時: backoff 30s後に再試行1回。それでも失敗はスキップして記録 6) HTTP 429/Sorry HTML 検出時: 30秒 backoff後に再試行。2回連続失敗で即停止しinbox karo報告 7) 全完了後: ls work/ | grep '^20' | wc -l で取得本数確認 8) advisor()呼出 9) 完了報告: 成功/失敗リスト + inbox karo",
+  "acceptance_criteria": [
+    "34本分の work/{YYYYMMDD}_{title}/input/<video_id>.mp4 が存在 (失敗分は理由記載でスキップ可)",
+    "HTTP 429/Sorry HTML 連続発生なし (IP BAN 再発動なし)",
+    "STT・merged JSON 作成は実施しない (後日別 cmd)",
+    "完了後に inbox karo 報告"
+  ],
+  "notes": "殿命: STT全面スキップ・字幕失敗OK・動画DLのみ1並列順次実行。動画間sleep 5秒以上。失敗時backoff 30秒。命名規則: work/{YYYYMMDD}_{title}/input/<video_id>.mp4 ({YYYYMMDD}はinfo.json upload_date・タイトルはファイル名safe化)。-F9M99oe7fYはハイフン始まりのためURLで渡すこと。git pushは家老が実施。"
+}
