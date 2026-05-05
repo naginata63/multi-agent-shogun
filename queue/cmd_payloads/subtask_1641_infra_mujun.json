@@ -1,0 +1,21 @@
+{
+  "agent": "gunshi",
+  "task_id": "subtask_1641_infra_mujun",
+  "status": "assigned",
+  "priority": "high",
+  "parent_cmd": "cmd_1641",
+  "bloom_level": "L5",
+  "gunshi_qc": false,
+  "description": "夜間矛盾検出: インフラ系スクリプト群 (inbox_write/watcher/ntfy/cron/agent管理/context_monitor) の矛盾・dead code・危険パターン検出",
+  "target_path": "/home/murakami/multi-agent-shogun/queue/reports/2026-05-06_cmd_1641_infra_mujun.md",
+  "steps": "0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) 対象ファイル群を Read/Grep で精読: scripts/inbox_watcher.sh / scripts/inbox_write.sh / scripts/ntfy.sh / scripts/watcher_supervisor.sh / scripts/context_watcher.sh / scripts/silent_fail_watcher.sh / scripts/cron_health_check.sh / scripts/dashboard/server.py (inbox_write・task_create・bloom_levelフィルタ周辺) / scripts/stop_hook_inbox.sh / scripts/sessionstart_hook.sh 3) 検出観点: A.関数間矛盾(引数不整合・戻り値型ミスマッチ) B.依存関係不整合(import未定義・循環依存・bashソース欠落) C.dead code/到達不能(未使用変数・未呼出関数・dead flag) D.危険パターン(rm -rf・shell=True・ハードコードパス・秘密鍵・タイムアウト未設定) E.ファイル間結合矛盾(watcher→inbox→serverの連携齟齬) F.cmd_1640で追加した notify.sh・poc_monitor_inbox.sh・inbox_audit.log との整合性 4) 報告書作成: queue/reports/2026-05-06_cmd_1641_infra_mujun.md (cmd_1623形式: H/M/L各件数ヘッダ・各issueに証跡行番号・種別・問題・影響・推奨アクション記録のみ) 5) git add -f queue/reports/2026-05-06_cmd_1641_infra_mujun.md && git commit -m 'report(cmd_1641): インフラ系夜間矛盾検出レポート' && git push origin main 6) advisor()呼出 7) inbox karo 完了報告(H/M/L件数・要対応項目サマリ)",
+  "acceptance_criteria": [
+    "queue/reports/2026-05-06_cmd_1641_infra_mujun.md 作成済",
+    "対象スクリプト10件以上を精読・観点A-F全て検討",
+    "H/M/L分類で各件証跡(ファイル名+行番号)付き",
+    "コード修正・テスト実行なし(読んで報告のみ)",
+    "git commit + push済",
+    "朝(09:00 JST)までにdashboard掲載可能な状態"
+  ],
+  "notes": "将軍自動発令: 夜間矛盾検出インフラ編。cmd_1623/1623形式踏襲。修正禁止・テスト禁止・読んで報告のみ。cmd_1640追加分(notify.sh・poc_monitor_inbox.sh・inbox_audit.log)との整合性チェックも含めること。git add -f必須(reports/はgitignore対象)。"
+}
