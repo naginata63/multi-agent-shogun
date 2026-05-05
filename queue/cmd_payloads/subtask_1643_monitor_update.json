@@ -1,0 +1,19 @@
+{
+  "agent": "ashigaru2",
+  "task_id": "subtask_1643_monitor_update",
+  "status": "assigned",
+  "priority": "high",
+  "parent_cmd": "cmd_1643",
+  "bloom_level": "L2",
+  "gunshi_qc": false,
+  "description": "cmd_1643: CLAUDE.md/instructions Session Start Step7 をSSE版に更新 + scripts/poc_sse_monitor.sh 新規作成",
+  "target_path": "/home/murakami/multi-agent-shogun/scripts/poc_sse_monitor.sh",
+  "steps": "0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) [poc_sse_monitor.sh 新規作成] scripts/poc_sse_monitor.sh を作成: #!/usr/bin/env bash / # poc_sse_monitor.sh — SSE Monitor POC: server.py /api/inbox_stream をcurl SSEで監視 / set -euo pipefail / SCRIPT_DIR=$(cd $(dirname $0)/.. && pwd) / ARG=${1:-karo} / case $ARG in *.yaml) AGENT=$(basename $ARG .yaml);; *) AGENT=$ARG;; esac / echo \"[sse_monitor] Connecting SSE: $AGENT\" / exec curl --no-buffer -N -s \"http://192.168.2.4:8770/api/inbox_stream?agent=${AGENT}\" / chmod +x scripts/poc_sse_monitor.sh 3) [CLAUDE.md 更新] Read CLAUDE.md → Session Start Step 7 の「bash scripts/poc_monitor_inbox.sh」を「bash scripts/poc_sse_monitor.sh」に変更・tail -F方式からSSE方式に切替の旨を追記 4) [instructions/ashigaru.md] Read instructions/ashigaru.md → Monitor起動セクション (cmd_1642追加分) を SSE版に更新: poc_monitor_inbox.sh → poc_sse_monitor.sh に変更 5) [instructions/karo.md] 同様更新 6) [instructions/shogun.md] 同様更新 7) [instructions/gunshi.md] 同様更新 8) git add CLAUDE.md instructions/shogun.md instructions/karo.md instructions/ashigaru.md instructions/gunshi.md scripts/poc_sse_monitor.sh && git diff --cached --stat && git commit -m 'docs(cmd_1643): Session Start Step7 SSE版更新 + poc_sse_monitor.sh新規作成' && git push origin main 9) advisor()呼出 10) inbox karo 完了報告",
+  "acceptance_criteria": [
+    "scripts/poc_sse_monitor.sh 新規作成済・chmod +x済",
+    "CLAUDE.md Session Start Step7 がSSE版(poc_sse_monitor.sh)に更新済",
+    "instructions 4ファイル (shogun/karo/ashigaru/gunshi) がSSE版に更新済",
+    "git commit + push済"
+  ],
+  "notes": "RACE-001: 本タスクはCLAUDE.md/instructions書込み担当。ash1(subtask_1643_sse_impl)はserver.py担当で競合なし。SSE接続先: http://192.168.2.4:8770/api/inbox_stream?agent={agent_id}。subtask_1643_sse_implの完了を待たずに並行実施可(URLは設計済み)。"
+}

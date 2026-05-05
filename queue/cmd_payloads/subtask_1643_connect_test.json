@@ -1,0 +1,21 @@
+{
+  "agent": "ashigaru3",
+  "task_id": "subtask_1643_connect_test",
+  "status": "blocked",
+  "blocked_by": ["subtask_1643_sse_impl", "subtask_1643_monitor_update"],
+  "priority": "high",
+  "parent_cmd": "cmd_1643",
+  "bloom_level": "L3",
+  "gunshi_qc": false,
+  "description": "cmd_1643: 全10 agent SSE Monitor接続確認テスト + 旧tail-F Monitor廃止確認",
+  "target_path": "/home/murakami/multi-agent-shogun/logs/inbox_audit.log",
+  "steps": "0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) ToolSearchで'select:Monitor'を実行してスキーマ取得 3) [SSE Monitor起動] Bash(run_in_background=true, command='bash scripts/poc_sse_monitor.sh ashigaru3') で起動 → Monitor toolで出力監視 4) [10 agent接続テスト] shogun/karo/ashigaru1-7/gunshi 各1件 POST /api/inbox_write (message='SSE_PHASE3_TEST cmd_1643') → 各テスト後に SSE Monitor の data: 行を記録 5) [到達確認] logs/inbox_audit.log でSSE_PHASE3_TEST 10件以上を確認 6) [旧Monitor廃止確認] ps aux でpoc_monitor_inbox.sh プロセスが 0件であることを確認 (cmd_1642の旧tail -F方式が未起動であることを確認) 7) [既存watcher確認] ps aux | grep inbox_watcher で watcher 10件が稼働中であることを確認 8) karo inbox に完了報告 (SSE到達率・watcher並走確認・旧Monitor廃止確認)",
+  "acceptance_criteria": [
+    "SSE Monitor接続でashigaru3のinboxを監視・テストメッセージをdata:行で受信確認",
+    "全10 agent分 SSE_PHASE3_TEST メッセージ送信・audit log 10件以上確認",
+    "旧poc_monitor_inbox.sh プロセス稼働なし (廃止確認)",
+    "既存inbox_watcher.sh 10件並走確認",
+    "karo inbox報告済"
+  ],
+  "notes": "blocked_by: subtask_1643_sse_impl + subtask_1643_monitor_update。SSE endpoint は http://192.168.2.4:8770/api/inbox_stream?agent=<id>。Monitor toolはdeferred→ToolSearch必須。payload fileはCHK10対策でqueue/cmd_payloads/に置くこと。"
+}

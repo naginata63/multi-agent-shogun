@@ -1,0 +1,21 @@
+{
+  "agent": "gunshi",
+  "task_id": "subtask_1643_qc",
+  "status": "blocked",
+  "blocked_by": ["subtask_1643_sse_impl", "subtask_1643_monitor_update", "subtask_1643_connect_test"],
+  "priority": "high",
+  "parent_cmd": "cmd_1643",
+  "bloom_level": "L5",
+  "gunshi_qc": false,
+  "description": "cmd_1643: QC + 24h並走観察 + Phase4判断資料 + 報告書作成",
+  "target_path": "/home/murakami/multi-agent-shogun/queue/reports/2026-05-06_cmd_1643_sse_stream_qc.md",
+  "steps": "0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) [AC1確認] curl -v 'http://192.168.2.4:8770/api/inbox_stream?agent=karo' 2>&1 | head -20 → Content-Type: text/event-stream が返ることを確認 3) [AC2確認] grep -n '_sse_queues' scripts/dashboard/server.py | head -10; grep -n 'inbox_stream' scripts/dashboard/server.py | head -10 → SSE実装コードが存在することを確認 4) [AC3確認] tail -50 logs/inbox_audit.log → SSE_PHASE3_TEST 10件以上を確認・到達率算出 5) [AC4確認] Read CLAUDE.md → Session Start Step7 がpoc_sse_monitor.sh版であることを確認 / Read instructions/shogun.md instructions/karo.md instructions/ashigaru.md instructions/gunshi.md → 各SSE版更新確認 6) [AC5 24h観察] tail -200 logs/inbox_audit.log → 直近24hエントリ全件確認・取りこぼし0件確認 (SSEからの通知 vs total inbox_write件数) 7) [AC6確認] ps aux | grep inbox_watcher → 並走稼働確認 8) [AC7確認] ps aux | grep poc_monitor_inbox → 0件(旧tail-F廃止確認) 9) [AC10 Phase4判断] (a)SSE 24h到達率 (b)heartbeat安定性 (c)inbox_watcher.sh廃止リスク評価 → Phase4 (cmd_1644) 起票推奨可否判断 10) 報告書作成: queue/reports/2026-05-06_cmd_1643_sse_stream_qc.md 11) git add -f queue/reports/2026-05-06_cmd_1643_sse_stream_qc.md && git commit -m 'report(cmd_1643): SSE stream Phase3 QC報告書' && git push origin main 12) advisor()呼出 13) inbox karo 完了報告(QC判定・到達率・Phase4推奨)",
+  "acceptance_criteria": [
+    "queue/reports/2026-05-06_cmd_1643_sse_stream_qc.md 作成済",
+    "AC1-AC10 全件 PASS/FAIL 判定済・証跡付き",
+    "SSE 24h取りこぼし 0件確認済",
+    "Phase4 (inbox_watcher.sh廃止) 起票判断資料あり",
+    "git commit + push済"
+  ],
+  "notes": "blocked_by: 3件全て完了後に実施。24hデータ不足時はその旨を記載してQCをPASS(部分)とし、Phase4判断は'観察継続'とせよ。SSE endpoint 接続確認はcurl -v で Content-Type:text/event-stream を確認。git pushは本subtaskで実施。"
+}

@@ -1,0 +1,20 @@
+{
+  "agent": "ashigaru1",
+  "task_id": "subtask_1643_sse_impl",
+  "status": "assigned",
+  "priority": "high",
+  "parent_cmd": "cmd_1643",
+  "bloom_level": "L4",
+  "gunshi_qc": false,
+  "description": "cmd_1643: server.py に SSE endpoint /api/inbox_stream 実装 + /api/inbox_write に in-memory queue push追加",
+  "target_path": "/home/murakami/multi-agent-shogun/scripts/dashboard/server.py",
+  "steps": "0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) Read scripts/dashboard/server.py → import部・do_GET・do_POST・inbox_write handler(行2843付近)の構造を把握 3) [実装A: in-memory queue] server.py のimport部(行16付近)に `import queue as _queue` 追加。グローバル変数として `_sse_queues: dict = {}` と `_sse_lock = threading.Lock()` を追加 (既存 _jobs_lock の近く) 4) [実装B: /api/inbox_stream GET endpoint] do_GET の elif チェーン末尾に追加: `elif self.path.startswith('/api/inbox_stream'):` → urllib.parse.urlparse で agent パラメータ取得 → agent が空なら 400 → Content-Type: text/event-stream / Cache-Control: no-cache / Connection: keep-alive ヘッダ送信 → q = _queue.Queue() → _sse_lock で _sse_queues.setdefault(agent, []).append(q) → try/finally ループ: try: msg = q.get(timeout=30) → wfile.write(f'data: {json.dumps(msg)}\\n\\n'.encode()) → wfile.flush() / except _queue.Empty: wfile.write(b': heartbeat\\n\\n') → wfile.flush() / finally: _sse_lock で _sse_queues[agent].remove(q) 5) [実装C: inbox_write への push] do_POST の /api/inbox_write handler の成功レスポンス直前に追加: `with _sse_lock:` → `for q in _sse_queues.get(target, []):` → `try: q.put_nowait({'type': msg_type, 'from': from_agent, 'task_id': body.get('task_id',''), 'msg_id': actual_msg_id, 'timestamp': now_jst.strftime('%Y-%m-%dT%H:%M:%S')})` → `except: pass` 6) [動作確認] bash scripts/dashboard/server.py &>/dev/null & sleep 1 → curl -s --no-buffer -N 'http://192.168.2.4:8770/api/inbox_stream?agent=karo' & sleep 1 → POST /api/inbox_write でkaro宛テストメッセージ → SSEストリームにdata行が出力されることを確認 → pkill -f 'curl.*inbox_stream' 7) git add scripts/dashboard/server.py && git diff --cached --stat && git commit -m 'feat(cmd_1643): server.py SSE /api/inbox_stream endpoint + in-memory queue push' && git push origin main 8) advisor()呼出 9) inbox karo 完了報告",
+  "acceptance_criteria": [
+    "server.py に /api/inbox_stream?agent=<id> GET endpoint 追加済",
+    "/api/inbox_write 成功時に _sse_queues[target] へ put_nowait 実装済",
+    "curl --no-buffer でSSEストリーム接続→inbox_write後にdata:行が届くことを動作確認",
+    "heartbeat (30s timeout) も出力されること確認",
+    "git commit + push済"
+  ],
+  "notes": "server.pyは scripts/dashboard/server.py。threading は import済。SSE: Content-Type=text/event-stream, Cache-Control=no-cache, Connection=keep-alive の3ヘッダ必須。wfile.write後にflush()必須(バッファリング対策)。既存YAML/SQLite書込みは削除せず・SSE pushを追加するだけ。"
+}
