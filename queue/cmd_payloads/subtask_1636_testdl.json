@@ -1,0 +1,19 @@
+{
+  "agent": "ashigaru1",
+  "task_id": "subtask_1636_testdl",
+  "status": "assigned",
+  "priority": "high",
+  "parent_cmd": "cmd_1636",
+  "bloom_level": "L3",
+  "gunshi_qc": false,
+  "description": "cmd_1636 新版downloader.py --cookies-from-browser chrome 動作確認テスト: 1本(gap7LGY3n88) DL + vocal_stt_pipeline。成功確認後に家老に報告",
+  "target_path": "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_gap7LGY3n88.json",
+  "steps": "0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki && source ~/.bashrc && source venv/bin/activate 2) VIDEO_ID=gap7LGY3n88 && mkdir -p work/cmd_1636_${VIDEO_ID}/{input,output} 3) DLテスト: [ -f work/cmd_1636_${VIDEO_ID}/input/${VIDEO_ID}.mp4 ] && echo 'SKIP DL' || python3 scripts/downloader.py 'https://www.youtube.com/watch?v='${VIDEO_ID} work/cmd_1636_${VIDEO_ID}/input/ ${VIDEO_ID} --cookies-from-browser chrome 4) DL成功確認: ls -lh work/cmd_1636_${VIDEO_ID}/input/${VIDEO_ID}.mp4 5) STT実行: python3 scripts/vocal_stt_pipeline.py work/cmd_1636_${VIDEO_ID}/input/${VIDEO_ID}.mp4 --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_${VIDEO_ID}.json --work-dir work/cmd_1636_${VIDEO_ID}/output/ --cache 6) 検証: python3 -c \"import json; d=json.load(open('/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_gap7LGY3n88.json')); sf=d.get('speaker_frames',[]); bad=[x for x in sf if x.get('speaker','') in list('ABCDEF')]; print(f'A-F speakers: {len(bad)} / total: {len(sf)}')\" 7) GZ1O6k1Fe3A STTのみ再試行: python3 scripts/vocal_stt_pipeline.py work/cmd_1636_GZ1O6k1Fe3A/input/GZ1O6k1Fe3A.mp4 --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_GZ1O6k1Fe3A.json --work-dir work/cmd_1636_GZ1O6k1Fe3A/output/ --cache 8) 検証: merged_GZ1O6k1Fe3A.json でA-F=0確認 9) 結果報告: DL成功/失敗・A-F件数・エラーがあれば全文 10) advisor()呼出 11) inbox karo 結果報告 (成功なら残38本展開の許可を求めよ・失敗なら詳細エラー報告)",
+  "acceptance_criteria": [
+    "merged_gap7LGY3n88.json が srt_and_candidates/ に存在",
+    "merged_gap7LGY3n88.json でA-F speakers = 0",
+    "merged_GZ1O6k1Fe3A.json が存在 (STTのみ再試行)",
+    "merged_GZ1O6k1Fe3A.json でA-F speakers = 0"
+  ],
+  "notes": "将軍がdownloader.pyに--cookies-from-browserを実装済(commit 94ae3b3)。Chrome拡張・cookies.txt配置不要。テスト成功なら家老が残38本を展開する。GZ1O6k1Fe3AはDL済み(649MB)+demucs完了のためSTTのみ再試行。git pushは家老が実施。"
+}
