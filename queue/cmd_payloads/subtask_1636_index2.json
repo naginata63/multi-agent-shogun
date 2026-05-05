@@ -1,0 +1,20 @@
+{
+  "agent": "ashigaru5",
+  "task_id": "subtask_1636_index2",
+  "status": "blocked",
+  "priority": "high",
+  "parent_cmd": "cmd_1636",
+  "blocked_by": ["subtask_1636_fullbatch1", "subtask_1636_fullbatch2", "subtask_1636_fullbatch3", "subtask_1636_fullbatch4"],
+  "bloom_level": "L3",
+  "gunshi_qc": false,
+  "description": "cmd_1636: 56本全merged JSON を scene_search_v2 に投入 (build --update) + CSV更新 + audit + 完了報告書",
+  "target_path": "/home/murakami/multi-agent-shogun/queue/reports/2026-05-05_cmd_1636_57video_parallel_indexing.md",
+  "steps": "0) advisor()呼出 1) 処理開始時刻記録: date 2) cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki && source ~/.bashrc && source venv/bin/activate 3) python3 scripts/scene_search_v2.py build --update --mode words 2>&1 | tee /tmp/build_words_1636.log 4) python3 scripts/scene_search_v2.py build --update --mode chunks 2>&1 | tee /tmp/build_chunks_1636.log 5) python3 scripts/scene_search_v2.py info → n_videos確認 (基準: 68→目標約124) 6) python3 scripts/scene_search_v2.py query 'ドズル' --top 5 → 新動画もhitすることを確認 7) python3 scripts/audit_video_index_consistency.py --index-dir data/scene_index_v2 --csv projects/dozle_kirinuki/data/dozle_video_list.csv → 56本 quality_status確認 8) 処理終了時刻・所要時間記録 9) 完了報告書作成: queue/reports/2026-05-05_cmd_1636_57video_parallel_indexing.md (info全文・audit統計・処理時間) 10) git add projects/dozle_kirinuki/data/dozle_video_list.csv queue/reports/2026-05-05_cmd_1636_57video_parallel_indexing.md && git commit -m 'docs(dozle): cmd_1636 完了報告書 — 56本 video-pipeline + scene_search_v2 index追加' 11) advisor()呼出 12) inbox karo 完了報告",
+  "acceptance_criteria": [
+    "scene_search_v2.py info で n_videos が 68 → 124前後に増加",
+    "audit で56本 quality_status=ok (またはスキップ分を明記)",
+    "完了報告書作成済み",
+    "git commit 完了"
+  ],
+  "notes": "scene_search_v2はVertex AI ADC認証使用(GEMINI_API_KEYは未使用・将軍2026-05-05 15:28直接実行で確認済)。APIキー確認ステップ不要。n_videos基準は68(将軍がT-vKXTT7b8M追加後確認済)→目標124。data/scene_index_v2/はgitignore済のためgit add data/禁止。56本全merged JSONはsrt_and_candidates/にある前提(fullbatch1-4完了後)。CSV quality_status更新はauditスクリプトが自動更新するか確認・手動更新が必要な場合は実施。git pushは家老が実施。"
+}
