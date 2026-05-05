@@ -1,0 +1,18 @@
+{
+  "agent": "ashigaru3",
+  "task_id": "subtask_1636_retry3",
+  "status": "assigned",
+  "priority": "high",
+  "parent_cmd": "cmd_1636",
+  "bloom_level": "L3",
+  "gunshi_qc": false,
+  "description": "cmd_1636 bot検出リトライ: ash3担当14本 (BcPWm_mCpp4〜QCFyL7tG-v4) --cookies-from-browser chrome でDL再試行",
+  "target_path": "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/",
+  "steps": "0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki && source ~/.bashrc && source venv/bin/activate 2) ブラウザ確認: which google-chrome chromium-browser firefox 2>/dev/null | head -1 3) 以下14本を順次処理。各動画: VIDEO_ID=<id> → mkdir -p work/cmd_1636_<id>/{input,output} → DLステップ: [ -f work/cmd_1636_<id>/input/<id>.mp4 ] && echo 'SKIP DL' || yt-dlp --cookies-from-browser chrome -f 'bestvideo[height<=360][ext=mp4][vcodec*=avc1]+bestaudio[ext=m4a]/best[height<=360]' --merge-output-format mp4 --write-info-json --write-comments -o work/cmd_1636_<id>/input/<id>.mp4 'https://www.youtube.com/watch?v=<id>' → python3 scripts/vocal_stt_pipeline.py work/cmd_1636_<id>/input/<id>.mp4 --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_<id>.json --work-dir work/cmd_1636_<id>/output/ --cache → A-F検証 4) 処理対象14本: BcPWm_mCpp4 Tdgz_MMfBAU X3cMBasYcSA 05zhA1M5SU0 XB-XKVQRCok sml-aYEMIKM D4_8sRpAKQo WbYEt3Pv0BE 8r1cEKpTM5M NgkCZL-uhZI WylcM9Jly2s pIrocoqvwJg HnDcGHXKJFQ QCFyL7tG-v4 5) chrome失敗時はfirefoxで再試行 6) 5本ごとにfree -h && nvidia-smi でメモリ確認 7) 全完了後: 成功/失敗一覧 + inbox karo報告 8) advisor()呼出",
+  "acceptance_criteria": [
+    "14本全て merged_<id>.json が srt_and_candidates/ に存在 (失敗はスキップ可・失敗理由明記)",
+    "成功した全merged JSON で A-F speakers = 0",
+    "RAM available>5GB 維持・OOM未発生"
+  ],
+  "notes": "bot検出リトライ。yt-dlp --cookies-from-browser chrome 使用。chrome失敗時はfirefoxで試みよ。エラー時はスキップして継続可。git pushは家老が実施。"
+}
