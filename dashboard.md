@@ -64,22 +64,25 @@
 
 ## 🚨 要対応
 
-### ❓ cmd_1644完了 → inbox通知機構 採用案 (殿判断待ち)
+### ❓ cmd_1646完了 → A案SSE実装 cmd_1647a 起票 (殿判断待ち)
 
-軍師による A/B/C 3案 技術QCレビュー完了 (2026-05-06 04:44)。
-報告書: `queue/reports/2026-05-06_cmd_1644_inbox_design_qc.md`
+軍師による A案SSE設計 8軸QC完了 (2026-05-06 05:04)。殿が A案採用確定済。  
+報告書: `queue/reports/2026-05-06_cmd_1646_a_design_qc.md`
 
-**5軸評価結果 (各1-5点・合計25点満点)**:
-| 案 | YAML脱却 | 取りこぼし耐性 | 実装複雑度 | rollback | Anthropic純正 | 合計 |
-|----|---------|------------|---------|---------|-------------|-----|
-| A案 SSE | 5 | 3 | 2 | 3 | 5 | 17 |
-| **B案 inotifywait** | 3 | **5** | 4 | 3 | 3 | **18** ← 軍師推奨 |
-| C案 現状維持 | 1 | 3 | 5 | 5 | 3 | 17 |
+**CRITICAL 抜け穴 5件 (実装前に要対処)**:
+1. server.py = stdlib `ThreadingHTTPServer` (Flask非使用) — 設計コードはそのまま使用可
+2. server.py 再起動で in-memory queue 全消失 → **SQLite Source of Truth + 接続初期化時に未読 push 必須**
+3. Last-Event-ID 未実装 → msg_id を Event-ID として実装
+4. feature flag なし deploy → **環境変数 `ENABLE_SSE_INBOX` 必須**
+5. server.py 落ちで SSE 通知完全断絶 → systemd + 健全性 cron 必須
 
-**軍師推奨: B案** (inotifywait改善・atomic write問題直接解決・実装0.5-1日・1ファイル改修)  
-但し A案(Anthropic純正一本化)・C案(工数最小/rollback容易)も17点で僅差。**殿の北極星選好で最終判断を仰ぎたし。**
+**Phaseロードマップ (最短3週間)**:
+- Phase 1 (1-2日): server.py SSE endpoint 実装 → cmd_1647a
+- Phase 2 (24h): gunshi 1agent 接続テスト
+- Phase 3 (1週間観察): 全10agent 切替
+- Phase 4 (別cmd): inbox_watcher.sh 廃止
 
-採用案決定後、次フェーズ cmd を即起票可能。
+**次アクション**: cmd_1647a (Phase1 実装) を起票するか、殿のご判断を仰ぎたし。
 
 ## 🚨 要対応
 

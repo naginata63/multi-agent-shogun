@@ -926,7 +926,7 @@ commands:
   - git commit + push 済 (.gitignored ゆえ git add -f 使用)
   notify_karo: true
 - id: cmd_1646
-  status: in_progress
+  status: done
   priority: high
   purpose: A 案 (SSE direct stream) の設計を軍師が単独 QC し、実装前に技術的問題点 + 改善提案 + 詳細実装ロードマップを報告書化する。
   timestamp: '2026-05-06T04:58:02+09:00'
