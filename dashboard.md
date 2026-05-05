@@ -64,29 +64,21 @@
 
 ## 🚨 要対応
 
-### 🚨 殿: 以下 2 点の対処をお願いします (全エージェント作業ブロック中)
+### 🔄 server.py 再起動要 (殿/将軍) → cmd_1649 SSE観察 + cmd_1652 cancelボタン有効化
 
-**① SSH鍵なし → git push 全エージェントで失敗中**
-
-```bash
-# SSH秘密鍵のパスを確認して登録
-ssh-add <秘密鍵のパス>   # 例: ~/.ssh/id_rsa or ~/.ssh/github_key
-git push origin main      # push保留中のcommitを一括push
-```
-
-**② server.py 再起動 (ENABLE_SSE_INBOX=true 付き) → cmd_1649 SSE観察ブロック解除**
+git push 問題は将軍が復旧済 (HTTPS切替)。残作業: **server.py 再起動のみ**。
 
 ```bash
-pkill -f "python.*server.py"
-sleep 1
-source ~/.bashrc
+pkill -f "python.*server.py" && sleep 1
 ENABLE_SSE_INBOX=true python3 /home/murakami/multi-agent-shogun/scripts/dashboard/server.py &
 ```
 
-再起動後 → 軍師に inbox「server.py 再起動完了」を通知してください (家老からは通知不可)。  
-または `curl -X POST http://192.168.2.4:8770/api/inbox_write -H 'Content-Type: application/json' -d '{"to":"gunshi","from":"shogun","type":"wake_up","message":"server.py ENABLE_SSE_INBOX=true 再起動完了。cmd_1649 再開せよ"}'`
-
-push保留コミット数: **4件** (c02055a / 9f6757d / 3cffad8 + gunshi local a95111f)
+再起動後 → gunshi に通知:
+```bash
+curl -X POST http://192.168.2.4:8770/api/inbox_write \
+  -H 'Content-Type: application/json' \
+  -d '{"to":"gunshi","from":"shogun","type":"wake_up","message":"server.py ENABLE_SSE_INBOX=true 再起動完了。cmd_1649 再開せよ"}'
+```
 
 ```bash
 pkill -f "python.*server.py" && sleep 1 && source ~/.bashrc && python3 /home/murakami/multi-agent-shogun/scripts/dashboard/server.py &

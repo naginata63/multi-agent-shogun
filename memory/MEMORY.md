@@ -294,6 +294,7 @@ mcp__memory__create_relations([{
 
 ## ナレッジ管理ルール（2026-04-25）
 - [memory vs ナレッジ区分ルール](feedback_memory_vs_knowledge_rule.md) — memoryは殿好み/激怒のみ・技術はprocedures/・実証後にナレッジ化
+- [git push 認証方法](feedback_git_push_auth.md) — HTTPS+gh auth credential が正規経路・SSH鍵不使用・git@URLになっていたら即HTTPS切替 [2026-05-06将軍復旧]
 - ナレッジ化TODO一覧: `shared_context/knowledge_todo.md`
 
 ## TODO
