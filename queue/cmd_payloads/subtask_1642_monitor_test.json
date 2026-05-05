@@ -1,0 +1,21 @@
+{
+  "agent": "ashigaru2",
+  "task_id": "subtask_1642_monitor_test",
+  "status": "assigned",
+  "priority": "high",
+  "parent_cmd": "cmd_1642",
+  "bloom_level": "L3",
+  "gunshi_qc": false,
+  "description": "cmd_1642 Phase2 Monitor起動テスト: 全10 agent分inbox送信→audit log確認→到達率計測→karo inbox報告",
+  "target_path": "/home/murakami/multi-agent-shogun/logs/inbox_audit.log",
+  "steps": "0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) ToolSearchで'select:Monitor'を実行してスキーマ取得 3) [Monitor起動] Bash(run_in_background=true, command='bash scripts/poc_monitor_inbox.sh queue/inbox/ashigaru2.yaml') でバックグラウンド起動 → Monitor toolでstdout監視開始 4) [10 agent分テスト送信] 以下10エージェント全員にwake_upテストメッセージを送信 (POST /api/inbox_write 経由・payload file使用): shogun/karo/ashigaru1-7/gunshi 各1件 message='MONITOR_PHASE2_TEST cmd_1642' → 送信後3秒待機 5) [audit log確認] tail logs/inbox_audit.log → 10行以上の MONITOR_PHASE2_TEST エントリが存在することを確認 → 存在件数カウント → 到達率 = 確認件数/10 × 100% 計算 6) [Monitor検知確認] 自分(ashigaru2)あてのテストメッセージがMonitorに検知されたことをスクリーンショット相当の記録として残す (Monitor toolの出力をquote) 7) [既存watcher確認] ps aux | grep inbox_watcher → 起動中であることを確認 (並走確認) 8) git add -f logs/inbox_audit.log 2>/dev/null || echo 'audit log not tracked' → 到達率・確認結果をwork/cmd_1642_monitor_test_result.txtに記録 9) advisor()呼出 10) inbox karo 完了報告(到達率・10件送信確認・Monitor検知確認・watcher並走確認)",
+  "acceptance_criteria": [
+    "Monitor toolでashigaru2のinboxを監視・テストメッセージを検知確認",
+    "10 agent全員(shogun/karo/ash1-7/gunshi)にテストメッセージ送信済",
+    "logs/inbox_audit.log に10件以上のMONITOR_PHASE2_TEST エントリ確認",
+    "到達率計算済 (目標95%以上)",
+    "既存inbox_watcher.sh 並走稼働確認",
+    "karo inbox報告済"
+  ],
+  "notes": "Monitor toolはdeferred tool→ToolSearch必須。payload fileはqueue/cmd_payloads/inbox_test_*.jsonを個別作成して--data @で送れ(CHK10対策)。logs/inbox_audit.logはcmd_1640で実装済のserver.pyログ。到達率が95%未満の場合はその理由をkaro inboxに詳細報告。"
+}

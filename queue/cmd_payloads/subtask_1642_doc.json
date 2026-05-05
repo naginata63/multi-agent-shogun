@@ -1,0 +1,20 @@
+{
+  "agent": "ashigaru1",
+  "task_id": "subtask_1642_doc",
+  "status": "assigned",
+  "priority": "high",
+  "parent_cmd": "cmd_1642",
+  "bloom_level": "L3",
+  "gunshi_qc": false,
+  "description": "cmd_1642 Phase2 ドキュメント整備: CLAUDE.md Session Start Step7 + instructions 4ファイル + shutsujin STEP 6.6 + poc_monitor_inbox.sh改善",
+  "target_path": "/home/murakami/multi-agent-shogun/CLAUDE.md",
+  "steps": "0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) [CLAUDE.md] Read CLAUDE.md → Session Start セクション (Step 1-6) を確認 → Step 6の後に Step 7追加: '7. **Monitor起動 (Phase 2 並走運用)**: `Bash(run_in_background=true, command=\"bash scripts/poc_monitor_inbox.sh queue/inbox/{agent_id}.yaml\")` → Monitor tool で stdout 監視。既存 inbox_watcher.sh と並走・本Monitorが受信できれば処理継続。' (5行以内・簡潔に) 3) [instructions/ashigaru.md] Read instructions/ashigaru.md → /clear Recovery セクションの後に追加: '## Monitor 並走起動 (cmd_1642 Phase2) / Session Start Step 7 参照: Bash(run_in_background=true, scripts/poc_monitor_inbox.sh {inbox_path}) → Monitor tool 監視。watcher.sh 並走継続。' 4) [instructions/karo.md] Read instructions/karo.md → 同様のMonitor起動セクション追加 5) [instructions/shogun.md] Read instructions/shogun.md → 同様追加 6) [instructions/gunshi.md] Read instructions/gunshi.md → 同様追加 (ScheduleWakeup運用ルールの後など) 7) [shutsujin_departure.sh STEP 6.6] Read /home/murakami/multi-agent-shogun/shutsujin_departure.sh 行909-955を確認 → STEP 6.6ブロックの末尾(log_success行の後)に以下コメントブロック追加: '# STEP 6.6.1 (Phase 2 並走): poc_monitor_inbox.sh による Monitor tool 並走監視 (cmd_1642) / # 各エージェントの Claude セッション内で Session Start Step 7 が Monitor を起動する / # 本 STEP 6.6 の inbox_watcher.sh は物理的に継続稼働 (Phase 3 廃止予定・cmd_1643)' 8) [poc_monitor_inbox.sh改善] Read scripts/poc_monitor_inbox.sh → agent_id引数サポート強化: 第1引数がagent_id (karo等) なら queue/inbox/{agent_id}.yaml を自動解決するよう分岐追加。現状は完全パス渡しのみ。改善後: bash scripts/poc_monitor_inbox.sh karo でも動く 9) git add CLAUDE.md instructions/shogun.md instructions/karo.md instructions/ashigaru.md instructions/gunshi.md shutsujin_departure.sh scripts/poc_monitor_inbox.sh && git diff --cached --stat && git commit -m 'docs(cmd_1642): Phase2 Monitor並走 CLAUDE.md+instructions+shutsujin更新' && git push origin main 10) advisor()呼出 11) inbox karo 完了報告",
+  "acceptance_criteria": [
+    "CLAUDE.md Session Start にStep 7 Monitor起動追加済",
+    "instructions/shogun.md・karo.md・ashigaru.md・gunshi.md にMonitor起動セクション追加済 (4ファイル)",
+    "shutsujin_departure.sh STEP 6.6末尾にPhase2並行運用コメント追加済",
+    "scripts/poc_monitor_inbox.sh がagent_id引数対応 (例: bash scripts/poc_monitor_inbox.sh karo)",
+    "git commit + push済"
+  ],
+  "notes": "RACE-001: instructions/gunshi.md は gunshi も参照するが書込みは本タスクのみ(gunshiは読取専用)。shutsujin_departure.sh はルートにある(/home/murakami/multi-agent-shogun/shutsujin_departure.sh)。git add時はパス確認せよ。修正は最小限・現行watcher削除禁止。"
+}

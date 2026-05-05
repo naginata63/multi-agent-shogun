@@ -1,0 +1,21 @@
+{
+  "agent": "gunshi",
+  "task_id": "subtask_1642_qc",
+  "status": "blocked",
+  "blocked_by": ["subtask_1642_doc", "subtask_1642_monitor_test"],
+  "priority": "high",
+  "parent_cmd": "cmd_1642",
+  "bloom_level": "L5",
+  "gunshi_qc": false,
+  "description": "cmd_1642 Phase2 QC + 24h観察報告書 + Phase3判断資料作成",
+  "target_path": "/home/murakami/multi-agent-shogun/queue/reports/2026-05-06_cmd_1642_monitor_phase2_qc.md",
+  "steps": "0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) [AC2確認] Read CLAUDE.md → Session Start Step 7 Monitor起動追加を確認 3) [AC3確認] Read instructions/shogun.md instructions/karo.md instructions/ashigaru.md instructions/gunshi.md → 各ファイルにMonitor起動セクションが存在することを確認 4) [AC4確認] grep -n 'Phase 2' /home/murakami/multi-agent-shogun/shutsujin_departure.sh; grep -n '6.6.1' /home/murakami/multi-agent-shogun/shutsujin_departure.sh → Phase2コメント存在確認 5) [AC1確認] tail -50 logs/inbox_audit.log → MONITOR_PHASE2_TEST エントリ10件以上を確認・到達率算出 6) [AC7 24h観察] tail -200 logs/inbox_audit.log → 直近24h (2026-05-05T以降) のエントリ全件を確認 → Monitor経由・watcher経由合計の通知到達率を計算 (audit logに記録されていれば通知成功) 7) [AC5確認] ps aux | grep inbox_watcher で既存watcherが稼働中であることを確認 8) [AC10 Phase3判断資料] 以下を評価: (a)到達率95%以上か (b)Monitor検知と既存watcher両方が正常に機能しているか (c)inbox_watcher.sh廃止リスク (d)Phase3実施推奨時期 → 報告書末尾に記載 9) 報告書作成: queue/reports/2026-05-06_cmd_1642_monitor_phase2_qc.md → 各AC PASS/FAIL・証跡・Phase3起票判断 10) git add -f queue/reports/2026-05-06_cmd_1642_monitor_phase2_qc.md && git commit -m 'report(cmd_1642): Phase2 Monitor並走QC報告書' && git push origin main 11) advisor()呼出 12) inbox karo 完了報告(QC判定・到達率・Phase3推奨)",
+  "acceptance_criteria": [
+    "queue/reports/2026-05-06_cmd_1642_monitor_phase2_qc.md 作成済",
+    "AC1-AC10 全件 PASS/FAIL 判定済・証跡付き",
+    "24h観察期間のinbox_audit.log確認済・到達率算出済",
+    "Phase3 (inbox_watcher.sh廃止) 起票判断資料あり",
+    "git commit + push済"
+  ],
+  "notes": "blocked_by: subtask_1642_doc + subtask_1642_monitor_test。24h観察はlogs/inbox_audit.logの直近24hエントリを確認(2026-05-05T以降)。24hデータが不足している場合はその旨を記載してQCをPASS(部分)とし、Phase3判断は'データ蓄積中'とせよ。git push は本subtaskで実施。"
+}
