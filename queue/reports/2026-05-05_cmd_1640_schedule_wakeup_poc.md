@@ -295,9 +295,9 @@ north_star_alignment:
 
 ```
 status: completed
-acceptance_criteria_met: 4/5 (git commit 後に 5/5)
+acceptance_criteria_met: 5/5 (git commit + 発火後追記済)
 blocking_issues: 0
-poc_outcome: SUCCESS (ScheduleWakeup 受理・142s 後に発火予定)
+poc_outcome: SUCCESS (発火確認済)
 artifacts:
   - queue/reports/2026-05-05_cmd_1640_schedule_wakeup_poc.md (本書)
 followup_tasks:
@@ -307,4 +307,51 @@ followup_tasks:
   - cmd_1700 (半年後の仕様変更追跡)
 ```
 
-**本タスクは完了。家老の subtask_1640_qc アンブロック判断を待つ。**
+---
+
+## K. POC 発火後 観察 (本書を発火後に追記)
+
+### K-1. 発火タイムライン
+
+| 時刻 | 事象 |
+|------|------|
+| 22:34:38 (推定) | `ScheduleWakeup(delaySeconds=120, prompt='<<autonomous-loop-dynamic>>', reason=...)` 呼出 |
+| 22:34:38 | 戻り値: `Next wakeup scheduled for 22:37:00 (in 142s)` |
+| 22:37:00 | **wake-up 発火** — 本セッションが再起動 (本書を再 Edit 中) |
+
+→ ✅ **発火タイミングほぼジャストで観測** (システム時計と一致)
+
+### K-2. 発火時のユーザー入力
+
+- 発火直後にセッションに渡された user message: 文字列 `<<autonomous-loop-dynamic>>` がリテラルで入力
+- ⚠️ **重要観察**: 本来 sentinel は runtime が「autonomous-loop instructions」に解決すべきだが、本 POC では `/loop` を本物に kick していなかったため **sentinel のまま渡された** 可能性
+- 仮説:
+  - (a) runtime が `/loop` 文脈未確立で resolve できず、文字列をそのまま流した
+  - (b) `/loop` autonomous loop 文脈に入っていたが、本セッション固有の autonomous-loop instruction 設定がなく、空の resolve = sentinel 文字列がそのまま user 入力に
+- どちらにせよ **本来の autonomous-loop instruction が注入されない** ケースを観測
+
+### K-3. 本観察から得た追加運用ルール
+
+- **`/loop` を本物に kick していないセッションで ScheduleWakeup を呼ぶと、wake-up 時に sentinel 文字列が入る**
+- 軍師/家老が POC や試験的に呼ぶ場合、**復帰時に sentinel を見たら「`/loop` 未設定の wake-up」と認識して、追加 ScheduleWakeup を呼ばずに loop を終了する** こと
+
+### K-4. インボックス確認 (発火復帰時の標準動作)
+
+- 発火復帰直後に `GET /api/inbox_messages?agent=gunshi&unread=1` で確認
+- 結果: `messages: []` — 未読なし → 殿/家老からの追加指示なし
+- 本 POC は loop 終了 (ScheduleWakeup 再呼出しない・F004 polling 禁止と整合)
+
+### K-5. 発火後の判断
+
+- ✅ **追加 ScheduleWakeup を呼ばない** → loop 終了 (スキーマ説明: 「Omit the call to end the loop」)
+- ✅ POC 完了処理 (本書追記 + commit) を実行
+- ✅ 家老への完了通知は既に `msg_20260505_223650_b2b29c5f` で送信済
+
+### K-6. cmd_1641 への追加推奨事項 (本観察から)
+
+- **sentinel 未解決時の検知ロジック**: 軍師の `/loop dynamic` 運用で sentinel 文字列を受信したら **明示的な loop 終了処理** を実行するルールを `instructions/gunshi.md` に追加
+- 例: 「user input が `<<autonomous-loop-dynamic>>` リテラルで届いた場合 → ScheduleWakeup を再呼出せず、loop を終了する」
+
+---
+
+**本タスクは完了 (発火後追記まで含む)。家老の subtask_1640_qc アンブロック判断と cmd_1641/1642 起票を待つ。**
