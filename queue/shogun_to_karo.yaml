@@ -1334,3 +1334,101 @@ commands:
   - Phase 3 (cmd_1650) 起票判断資料 (取りこぼし 0 件なら推奨・1 件以上なら改善必要)
   - git commit 済 (systemd unit 修正があれば)
   notify_karo: true
+- id: cmd_1653
+  status: done
+  priority: high
+  purpose: v5 設計書 (curriculum_intermediate_v5_marp.md) + 4 ash の prewrite md (ch00-03/04-06/07-09/10-11)
+    + v5_design.md を軍師が殿の 7 件指摘で再改訂する。
+  timestamp: '2026-05-06T06:57:06+09:00'
+  project: udemy_course
+  lord_original: 差し戻しコマンド発令 (殿命 2026-05-06 06:40 — 殿レビューで v5 設計書 + cmd_1647 Phase
+    1 (4 ash 事前 4 項目) に 7 件の修正指摘 — ① 困りごと並び替え ② ch03 単発プロンプト最適化からの脱却 ③ Lost in the
+    Middle 対策の仕組み化視点 ④ 通常命令ではなく長文 context で発生する明記 ⑤ 実例を長文ユースケースに ⑥ handoff の用途訂正 ⑦
+    こまめなドキュメント化の正しい定義)
+  north_star: Udemy 中級編 v5 を『中級編らしい仕組み化講座』に再昇華。単発プロンプト最適化 (初級編領域) ではなく、長文 context
+    を扱う仕組み化技術 (RAG / chunk / subagent / memory / hooks) を物語の主軸に据える。殿の 7 件の修正指摘を全反映し、cmd_1647
+    Phase 2 (本文執筆) 着手前に設計を最終形に仕上げる。
+  command_text: "## 背景\n\n殿が cmd_1647 Phase 1 (4 ash の事前 4 項目) をレビューした結果、v5 全体に 7\
+    \ 件の重大修正指摘:\n\n1. **困りごと 11 個の並び順が思いつき順** — 解決章順 (ch01→ch08) に並び替え必要\n2. **ch03\
+    \ が単発プロンプト最適化** (TL;DR/末尾サマリ) になっており**初級編領域**・中級編らしさ欠如\n3. **Lost in the Middle\
+    \ 対策が単発プロンプト技術** — 仕組み化視点 (物理分割/subagent/手動ドキュメント化) に再設計\n4. **「通常命令では起きない・長文\
+    \ context で発生」** が明記されていない — 受講者がいつ遭遇するか不明確\n5. **実例が短文寄り** — 長文ユースケース (ソースコード/仕様書/議事録/多文献)\
+    \ に再構成\n6. **handoff の用途を将軍が誤用** — handoff は session 切替用 (Context Rot 対策)・**LitM\
+    \ 対策ではない**\n7. **「こまめなドキュメント化」の正しい定義** — memory file / 手動 .md 整理であり handoff ではない\n\
+    \n## 担当 + bloom_level\n\n- **gunshi 単独** (用語精査 + 設計再改訂)\n- bloom_level: **L6**\
+    \ (体系再設計・章間整合性・物語性向上)\n- gunshi_qc: **false** (軍師自身)\n- 工数: 1 日想定\n\n## 入力資料\n\
+    \n1. **改訂対象**:\n   - `projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md`\
+    \ (880 行・cmd_1638 改訂版)\n   - `projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch00_ch03.md`\n\
+    \   - `projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch04_ch06.md`\n\
+    \   - `projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch07_ch09.md`\n\
+    \   - `projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch10_ch11.md`\n\
+    \   - `projects/udemy_course/v5_design.md` (272 行・本日 NG ワード更新済)\n2. **参考**:\n\
+    \   - cmd_1645 用語精査報告書: `queue/reports/2026-05-06_cmd_1645_v5_term_audit.md`\n\
+    \   - cmd_1638 改訂報告書\n   - Liu et al. 2023 Lost in the Middle 論文 (arxiv 2307.03172)\n\
+    \   - Claude Code skill 定義 `.claude/skills/handoff/SKILL.md` (用途確認)\n\n## 殿の 7\
+    \ 件修正指摘 (詳細)\n\n### ① 困りごと 11 個並び替え (章順に再番号)\n\n| 新# | 困りごと | 解決章 |\n|----|---------|------|\n\
+    | ① | 同じ作業を毎回手動 | ch01 |\n| ② | 既存資産を確認せず新規作成 | ch01 |\n| ③ | AI が推測で動く | ch02\
+    \ |\n| ④ | Lost in the Middle (長文中央読み飛ばし) | ch03 |\n| ⑤ | 完了伝達抜け | ch04 |\n| ⑥\
+    \ | 言ったのにやってくれない | ch05 |\n| ⑦ | AI 出力盲信 | ch06 |\n| ⑧ | 大事な context を見ない | ch07\
+    \ |\n| ⑨ | API 変更後壊れる | ch07 |\n| ⑩ | 止めろが伝わらない | ch08 |\n| ⑪ | silent fail |\
+    \ ch08 |\n\n→ ch00 のフックリスト + 各章の Hook + ch10 逆引き辞典 + 4 ash prewrite md すべてを新番号に統一。\n\
+    \n### ② ch03 を「現象解説 + 仕組み化方向性」に再設計\n\n旧 (単発プロンプト最適化):\n- Step 1: 容量上限\n- Step\
+    \ 2: Lost in the Middle 定義\n- Step 3: Context Rot\n- Step 4: ❌ TL;DR 配置\n- Step\
+    \ 5: ❌ 末尾サマリ\n- Step 6: 章末演習\n\n新 (現象解説 + 仕組み方向性):\n- Step 1: context window 容量上限の現実\n\
+    - Step 2: **Lost in the Middle 現象** (Liu et al. 2023・通常命令では起きない・長文 5k token+ で発生と明記)\n\
+    - Step 3: **Context Rot 現象**\n- Step 4: 「**配置工夫の限界**」と宣言 (TL;DR/末尾サマリは補助レベル)\n\
+    - Step 5: 仕組み化対策の **3 方向性** 提示:\n  - **物理的な分割 (chunk)** → ch04 で実装\n  - **サブエージェント化\
+    \ (Task tool)** → ch05 で実装\n  - **手動ドキュメント化 (memory file / .md 整理)** → ch04 +\
+    \ ch07 で実装\n- Step 6: 章末で「次章 ch04 で実装本体」と橋渡し\n\n### ③ Lost in the Middle 対策の仕組み化視点\n\
+    \n中級編対策ピラミッド (再構成):\n\n```\n[初級レベル — ch03 で軽く触れる]\n  TL;DR 配置 / 末尾サマリ — 単発プロンプト技術\n\
+    \n[中級レベル — ch03/04/05/07 で本格対策]\n  ① 物理的な分割 (chunk)        → ch04 (chunk + RAG\
+    \ + claude-mem)\n  ② サブエージェント化            → ch05 (subagent + 役割別分業)\n  ③ 手動ドキュメント化\
+    \            → ch04 (memory file / .md 整理)\n  ④ PreToolUse hook で auto grep →\
+    \ ch07 (自動化)\n```\n\n### ④ 「通常命令では起きない・長文で発生」を明記\n\nch03 冒頭の前置き必須:\n> 「Lost in\
+    \ the Middle は **通常の指示では起きません**。**ソースコード・仕様書・議事録・多文献等の長文 (5,000 token 以上)** を\
+    \ AI に渡す時に発生する現象です。」\n\n### ⑤ 実例を長文ユースケースに再構成\n\n旧実例 (短文寄り or 不適):\n- 営業: 提案書\
+    \ (短文)\n- データ分析: 長対話 (Context Rot 寄り・LitM ではない)\n\n新実例 (長文ユースケース):\n- **エンジニア**:\
+    \ 1500 行のコードレビュー\n- **PM**: 50 ページの仕様書からテストケース生成\n- **マーケ**: 1 ヶ月分の Slack 履歴から競合動向抽出\n\
+    - **研究者/コンサル**: 10 論文を並べて要点抽出\n- **法務**: 長い契約書から特定条項を引出\n\n営業/PM/データ分析の 3 業種 framework\
+    \ は維持しつつ、**長文遭遇シーン**にフォーカスし直す。\n\n### ⑥ handoff の用途訂正\n\n旧 (誤用): 「長文遭遇 → /handoff\
+    \ で構造化保存」\n新 (正): \n- handoff = **session 切替時の状態保存** (Context Rot 対策・現セッションの状態を凝縮)\n\
+    - LitM 対策ではない\n- ch04 で扱う場合は **Context Rot 対策**として位置づけ\n\n軍師は `.claude/skills/handoff/SKILL.md`\
+    \ を Read して正確な定義を確認・反映せよ。\n\n### ⑦ 「こまめなドキュメント化」の正しい定義\n\n旧 (誤): handoff で構造化保存\n\
+    新 (正):\n- **手動 .md ファイル整理**: 長文を section ごとに別 .md に分けて保存\n- **memory file 追加**:\
+    \ 永続的なルール/教訓を memory/*.md に\n- **claude-mem への observation 追加**: 過去対話の永続保存\n\n\
+    ch04 / ch07 で具体的な実装方法を扱う。\n\n## 軍師の作業手順\n\n0. advisor() 呼出\n1. 入力資料 5 件 + cmd_1645\
+    \ 用語精査結果 Read\n2. **`.claude/skills/handoff/SKILL.md` を Read** (handoff の正確な用途確認)\n\
+    3. v5_design.md 修正:\n   - 困りごと 11 個並び替え (章順)\n   - NG ワードリスト更新 (必要なら)\n4. curriculum_intermediate_v5_marp.md\
+    \ 修正:\n   - 困りごと 11 個再番号\n   - ch00 フックリスト・ch10 逆引き辞典で新番号\n   - **ch03 を「現象解説\
+    \ + 仕組み方向性」に再設計** (TL;DR は補助レベル)\n   - ch03 冒頭に「通常命令では起きない・長文で発生」前置き\n   - ch03\
+    \ → ch04/05/07 への橋渡し強化\n5. 4 ash の prewrite md 修正:\n   - 困りごと再番号\n   - ch03 (ash1)\
+    \ を仕組み視点に再設計\n   - ch03 実例を長文ユースケース (コード/仕様書/議事録/多文献) に\n   - handoff の言及があれば訂正\
+    \ (LitM 対策ではない)\n6. ch04 prewrite (ash2 担当) 強化:\n   - chunk + RAG + claude-mem\
+    \ を主役に\n   - 「手動ドキュメント化」の正しい実装明記\n7. ch05 prewrite (ash2 担当) 強化:\n   - subagent\
+    \ (Task tool) を LitM 対策として明記\n8. ch07 prewrite (ash3 担当) 強化:\n   - PreToolUse\
+    \ hook auto grep を LitM 対策として明記\n9. Marp HTML 再生成 (curriculum_intermediate_v5.html\
+    \ + v5_phase1_review.html)\n10. 用語精査差分報告書 `queue/reports/2026-05-06_cmd_1653_v5_revision.md`\
+    \ 作成:\n   - 7 件指摘の対応マトリクス\n   - 修正前後の比較\n   - 残存リスク\n11. advisor() 呼出 (網羅性確認)\n\
+    12. inbox karo 完了報告\n\n## 必達制約\n\n- v5 構造 (12 章・困りごと 11 個・3 層フレーム) は維持\n- 章数変更禁止\n\
+    - 受講者ペルソナ (社会人 2-3 年目・横文字きつい) 配慮維持\n- handoff の本来用途を skill 定義から再確認\n- TL;DR /\
+    \ 末尾サマリは削除せず・「補助レベル」と明示\n- 軍師単独完遂・足軽起動禁止\n\n## 共通ルール\n\n- 出力先: 上記 5 ファイル + queue/reports/2026-05-06_cmd_1653_v5_revision.md\n\
+    - 新規 .py 禁止 (用語精査 + 文章修正のみ)\n- WebFetch / WebSearch 利用可\n- claude-code-guide subagent\
+    \ 活用推奨\n- git commit + push 済が完了条件 (.gitignored ゆえ git add -f 使用)"
+  acceptance_criteria:
+  - 困りごと 11 個が章順 (ch01→ch08) に並び替え済 (新番号で再構成)
+  - v5_design.md / curriculum_intermediate_v5_marp.md / 4 ash prewrite md すべてで新番号に統一
+  - ch03 が「現象解説 + 仕組み化方向性」に再設計済 (TL;DR/末尾サマリは補助レベル)
+  - ch03 冒頭に「通常命令では起きない・長文 (5,000 token+) で発生」前置き明記
+  - ch03 実例が長文ユースケース (コードレビュー/仕様書/議事録/多文献) に再構成
+  - ch03 → ch04/ch05/ch07 への橋渡し (物理分割/subagent/手動ドキュメント化) が明確
+  - ch04 で chunk + RAG + claude-mem + 手動ドキュメント化 (memory file / .md 整理) が主役として強化
+  - ch05 で subagent (Task tool) が LitM 対策として明記
+  - ch07 で PreToolUse hook auto grep が LitM 対策として明記
+  - handoff の用途が「session 切替用 (Context Rot 対策)」として正しく記述・LitM 対策の誤用は削除
+  - handoff skill 定義 (.claude/skills/handoff/SKILL.md) との整合確認
+  - queue/reports/2026-05-06_cmd_1653_v5_revision.md 報告書作成 (7 件指摘対応マトリクス)
+  - Marp HTML 再生成済 (curriculum_intermediate_v5.html + v5_phase1_review.html 両方)
+  - v5 構造 (12 章・困りごと 11 個・3 層フレーム・セマンティック検索二重登場) 維持
+  - git commit + push 済 (.gitignored ゆえ git add -f 使用)
+  notify_karo: true
+  completed_at: '2026-05-06T07:11:12+09:00'

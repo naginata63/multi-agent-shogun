@@ -402,3 +402,59 @@ tasks:
     ENABLE_SSE_INBOX=falseがdefault(本番環境への即時影響を防ぐ)。既存inbox_watcher.sh/CLAUDE.md/instructions*.mdは本cmdでは絶対触るな。gunshi
     QC後にkaroに報告すること。git add -f不要(server.pyはgit管理済・reports/はgit add -f必須)。'
   timestamp: '2026-05-06T05:14:10.789768+09:00'
+- agent: ashigaru1
+  task_id: subtask_1647_write_ch00_ch01
+  status: assigned
+  parent_cmd: cmd_1647
+  bloom_level: L3
+  description: 'cmd_1647 Phase2: ch00(導入・全体地図) + ch01(SlashCommand/Skill布石) 本文執筆・udemy-checker
+    🟢'
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/
+  steps: 1) curriculum_intermediate_v5_marp.md + v5_design.md + 自分の prewrite md 精読
+    2) advisor()呼出 3) 担当章をMarp形式で執筆 4) udemy-checker /udemy-checker <ファイルパス> で 🟢 確認
+    5) NGワードgrep 6) git add -f → commit 7) 全章完了後 inbox karo report_received
+  acceptance_criteria:
+  - 担当章すべての .md (Marp) + .html 作成済
+  - udemy-checker 🟢 達成 (観点A-E満足)
+  - NGワードリスト全件grep 0件
+  - 各章末に「強化した層：●層(L1/L2/L3)」1行明記
+  - JIT→必要時取得 / Lazy Load→必要時読込 置換済
+  - git add -f → commit + push 済
+  - inbox_write karo report_received 送信済
+  notes: '担当章: ch00(導入), ch01(SlashCommand/Skill)
+
+    prewrite: intermediate_v5_prewrite_ch00_ch03.md (ch00/ch01分担)
+
+    【入力ファイル】
+
+    - projects/udemy_course/drafts/lectures/curriculum_intermediate_v5_marp.md (v5設計書・主体)
+
+    - projects/udemy_course/v5_design.md
+
+    - 自分の担当章の prewrite md (下記target_path参照)
+
+
+    【執筆ルール】
+
+    - Marp形式 (.md) で執筆 → Marp CLI で .html 生成
+
+    - NGワード: 経済/階層/JIT/Lazy Load/queue/tasks/shogun/karo/ashigaru/gunshi/multi-agent-shogun
+    → 0件
+
+    - JIT→必要時取得 / Lazy Load→必要時読込 に置換
+
+    - 各章末に「強化した層：●層（L1/L2/L3）」1行明記
+
+    - udemy-checker 🟢 まで回し直し (最大3回)
+
+    - git add -f (gitignored) → commit (1章ずつ)
+
+    - 完了後 inbox karo report_received
+
+
+    【3層フレーム】L1=ch01-02 / L2=ch03-04 / L3=ch05-08
+
+    【困りごとマッピング】curriculum_intermediate_v5_marp.md §2 参照
+
+    【Skills縦糸】ch01(布石)→ch07(発展)→ch11(完成)'
+  timestamp: '2026-05-06T07:12:19.771206+09:00'

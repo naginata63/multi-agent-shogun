@@ -208,3 +208,61 @@ tasks:
     doneボタンの下・同じdiv内に追加。server.py再起動時: pkill -f ''python.*server.py'' → sleep 1 →
     python3 scripts/dashboard/server.py & (バックグラウンド起動)。git push禁止(家老が実施)→ 完了報告でpush依頼せよ。'
   timestamp: '2026-05-06T05:18:43.235325+09:00'
+- agent: ashigaru2
+  task_id: subtask_1647_write_ch02_ch03
+  status: assigned
+  parent_cmd: cmd_1647
+  bloom_level: L3
+  description: 'cmd_1647 Phase2: ch02(失敗3パターン診断) + ch03(LitM根本対策) 本文執筆・udemy-checker
+    🟢'
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/
+  steps: 1) curriculum_intermediate_v5_marp.md + v5_design.md + 自分の prewrite md 精読
+    2) advisor()呼出 3) 担当章をMarp形式で執筆 4) udemy-checker /udemy-checker <ファイルパス> で 🟢 確認
+    5) NGワードgrep 6) git add -f → commit 7) 全章完了後 inbox karo report_received
+  acceptance_criteria:
+  - 担当章すべての .md (Marp) + .html 作成済
+  - udemy-checker 🟢 達成 (観点A-E満足)
+  - NGワードリスト全件grep 0件
+  - 各章末に「強化した層：●層(L1/L2/L3)」1行明記
+  - JIT→必要時取得 / Lazy Load→必要時読込 置換済
+  - git add -f → commit + push 済
+  - inbox_write karo report_received 送信済
+  notes: '担当章: ch02(失敗3パターン診断), ch03(LitM根本対策・仕組み化)
+
+    prewrite: intermediate_v5_prewrite_ch00_ch03.md (ch02/ch03分担)
+
+    【ch03重要】「通常命令では起きない・長文(5000token+)で発生」冒頭明記必須
+
+    【入力ファイル】
+
+    - projects/udemy_course/drafts/lectures/curriculum_intermediate_v5_marp.md (v5設計書・主体)
+
+    - projects/udemy_course/v5_design.md
+
+    - 自分の担当章の prewrite md (下記target_path参照)
+
+
+    【執筆ルール】
+
+    - Marp形式 (.md) で執筆 → Marp CLI で .html 生成
+
+    - NGワード: 経済/階層/JIT/Lazy Load/queue/tasks/shogun/karo/ashigaru/gunshi/multi-agent-shogun
+    → 0件
+
+    - JIT→必要時取得 / Lazy Load→必要時読込 に置換
+
+    - 各章末に「強化した層：●層（L1/L2/L3）」1行明記
+
+    - udemy-checker 🟢 まで回し直し (最大3回)
+
+    - git add -f (gitignored) → commit (1章ずつ)
+
+    - 完了後 inbox karo report_received
+
+
+    【3層フレーム】L1=ch01-02 / L2=ch03-04 / L3=ch05-08
+
+    【困りごとマッピング】curriculum_intermediate_v5_marp.md §2 参照
+
+    【Skills縦糸】ch01(布石)→ch07(発展)→ch11(完成)'
+  timestamp: '2026-05-06T07:12:19.815266+09:00'

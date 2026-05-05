@@ -180,3 +180,63 @@ tasks:
     (v4にない)。git add -f 必須 (projects/ は gitignore対象)。
   timestamp: '2026-05-06T05:08:45.444383+09:00'
   completed_at: '2026-05-06T05:16:48+09:00'
+- agent: ashigaru3
+  task_id: subtask_1647_write_ch04_ch05
+  status: assigned
+  parent_cmd: cmd_1647
+  bloom_level: L3
+  description: 'cmd_1647 Phase2: ch04(chunk+RAG+claude-mem+手動doc化) + ch05(subagent・Task
+    tool) 本文執筆・udemy-checker 🟢'
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/
+  steps: 1) curriculum_intermediate_v5_marp.md + v5_design.md + 自分の prewrite md 精読
+    2) advisor()呼出 3) 担当章をMarp形式で執筆 4) udemy-checker /udemy-checker <ファイルパス> で 🟢 確認
+    5) NGワードgrep 6) git add -f → commit 7) 全章完了後 inbox karo report_received
+  acceptance_criteria:
+  - 担当章すべての .md (Marp) + .html 作成済
+  - udemy-checker 🟢 達成 (観点A-E満足)
+  - NGワードリスト全件grep 0件
+  - 各章末に「強化した層：●層(L1/L2/L3)」1行明記
+  - JIT→必要時取得 / Lazy Load→必要時読込 置換済
+  - git add -f → commit + push 済
+  - inbox_write karo report_received 送信済
+  notes: '担当章: ch04(chunk+RAG+claude-mem+手動ドキュメント化), ch05(subagent/Task tool)
+
+    prewrite: intermediate_v5_prewrite_ch04_ch06.md (ch04/ch05分担)
+
+    【ch04重要】4道具(chunk+RAG+claude-mem+手動memory file)が主役
+
+    【ch05重要】subagentがLitM対策として明記必須
+
+    【入力ファイル】
+
+    - projects/udemy_course/drafts/lectures/curriculum_intermediate_v5_marp.md (v5設計書・主体)
+
+    - projects/udemy_course/v5_design.md
+
+    - 自分の担当章の prewrite md (下記target_path参照)
+
+
+    【執筆ルール】
+
+    - Marp形式 (.md) で執筆 → Marp CLI で .html 生成
+
+    - NGワード: 経済/階層/JIT/Lazy Load/queue/tasks/shogun/karo/ashigaru/gunshi/multi-agent-shogun
+    → 0件
+
+    - JIT→必要時取得 / Lazy Load→必要時読込 に置換
+
+    - 各章末に「強化した層：●層（L1/L2/L3）」1行明記
+
+    - udemy-checker 🟢 まで回し直し (最大3回)
+
+    - git add -f (gitignored) → commit (1章ずつ)
+
+    - 完了後 inbox karo report_received
+
+
+    【3層フレーム】L1=ch01-02 / L2=ch03-04 / L3=ch05-08
+
+    【困りごとマッピング】curriculum_intermediate_v5_marp.md §2 参照
+
+    【Skills縦糸】ch01(布石)→ch07(発展)→ch11(完成)'
+  timestamp: '2026-05-06T07:12:19.839079+09:00'

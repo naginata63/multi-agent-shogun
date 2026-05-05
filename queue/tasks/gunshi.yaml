@@ -542,3 +542,37 @@ tasks:
     server.py がまだ旧バージョン稼働中。家老に inbox_write で連絡し server.py再起動依頼をしてから待機すること。SSH鍵問題でgit
     pushが失敗する場合は報告書作成まで完了させてからkaroに報告せよ(push は家老が対処)。gunshi_qc=false (軍師自身の観察タスク)。
   timestamp: '2026-05-06T05:39:02.520488+09:00'
+- agent: gunshi
+  task_id: subtask_1653_v5_revision
+  status: done
+  started_at: '2026-05-06T07:00:00+09:00'
+  parent_cmd: cmd_1653
+  bloom_level: L5
+  description: 'cmd_1653: v5設計書を殿の7件指摘で再改訂 (困りごと章順並び替え・ch03全面再設計・handoff用途訂正・HTML再生成)'
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/curriculum_intermediate_v5_marp.md
+  steps: 1) advisor()呼出 2) v5_design.md + curriculum_intermediate_v5_marp.md + 4ash
+    prewrite md全文精読 3) handoff SKILL.md確認(.claude/skills/handoff/SKILL.md) 4) 7件指摘①〜⑦を全acceptance_criteria照合しながら順次修正
+    5) Marp HTML再生成(curriculum_intermediate_v5.html + v5_phase1_review.html) 6) git
+    add -f(gitignored)→commit→push 7) 報告書queue/reports/2026-05-06_cmd_1653_v5_revision.md作成
+    8) advisor()呼出 9) inbox karo report_received
+  acceptance_criteria:
+  - 困りごと11個が章順(ch01→ch08)に並び替え済
+  - v5_design.md / curriculum_intermediate_v5_marp.md / 4 ash prewrite md すべてで新番号統一
+  - ch03が「現象解説+仕組み化方向性」に再設計済(TL;DR/末尾サマリは補助レベル)
+  - ch03冒頭に「通常命令では起きない・長文(5,000token+)で発生」前置き明記
+  - ch03実例が長文ユースケース(コードレビュー/仕様書/議事録/多文献)に再構成
+  - ch03→ch04/ch05/ch07への橋渡し(物理分割/subagent/手動ドキュメント化)が明確
+  - ch04でchunk+RAG+claude-mem+手動ドキュメント化が主役として強化
+  - ch05でsubagent(Task tool)がLitM対策として明記
+  - ch07でPreToolUse hook auto grepがLitM対策として明記
+  - handoffの用途が「session切替用(Context Rot対策)」として正しく記述・LitM対策の誤用は削除
+  - handoff skill定義(.claude/skills/handoff/SKILL.md)との整合確認
+  - queue/reports/2026-05-06_cmd_1653_v5_revision.md報告書作成(7件指摘対応マトリクス)
+  - Marp HTML再生成済(curriculum_intermediate_v5.html + v5_phase1_review.html両方)
+  - v5構造(12章・困りごと11個・3層フレーム)維持
+  - git commit + push済
+  notes: '【並走注意】cmd_1649 SSE 24h観察(task bx2d1apue・persistent Monitor)が並走中。SSE観察は継続させつつ本タスクを実行せよ。lord_original(殿命原文):
+    差し戻しコマンド発令(殿命2026-05-06 06:40) ① 困りごと並び替え ② ch03単発プロンプト最適化からの脱却 ③ LitM対策の仕組み化視点
+    ④ 通常命令ではなく長文contextで発生する明記 ⑤ 実例を長文ユースケースに ⑥ handoffの用途訂正 ⑦ こまめなドキュメント化の正しい定義'
+  timestamp: '2026-05-06T06:58:26.771894+09:00'
+  completed_at: '2026-05-06T07:11:12+09:00'
