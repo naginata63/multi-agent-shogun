@@ -108,20 +108,12 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <td>階層構造を持ったデータ形式。<code>.yaml</code> 拡張子のファイル。インデントで構造を表す</td>
 </tr>
 <tr>
-<td><strong>queue</strong></td>
-<td>「順番待ち」の意。この講座では、タスクを順番に管理するフォルダ名として使います</td>
-</tr>
-<tr>
 <td><strong>instructions</strong></td>
 <td>「指示書」の意。役割ごとのルールを書いたファイル群</td>
 </tr>
 <tr>
-<td><strong>tmux</strong></td>
-<td>ターミナル画面を分割・管理するツール。複数のAIエージェントを同時に動かす時に使います</td>
-</tr>
-<tr>
-<td><strong>agent_id</strong></td>
-<td>各AIエージェントに割り当てられた「名札」。tmuxで管理されます</td>
+<td><strong>コンテキスト</strong></td>
+<td>AIが一度に覚えられる情報の量。人間の「作業記憶」に相当</td>
 </tr>
 </tbody>
 </table>
@@ -343,7 +335,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <td><strong>Layer 2</strong></td>
 <td><code>instructions/*.md</code></td>
 <td>セッション開始時</td>
-<td>役割別の詳細ルール</td>
+<td>役割別の詳細ルール（自分の役割のファイルのみ）</td>
 </tr>
 <tr>
 <td><strong>Layer 3</strong></td>
@@ -411,7 +403,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </ul>
 <blockquote>
 <p>CLAUDE.mdは「何を守るか」を宣言する場所。具体的な手順は下位層へ。<br />
-「30行」の理由: AIは30行程度までなら確実に全行を読む。それ以上になると、後ろの行を読み飛ばす確率が上がるから。</p>
+「30行」の理由: AIが一度に読める情報量（コンテキスト）には上限がある。30行程度までなら確実に全行を読む。それ以上になると、後ろの行を読み飛ばす確率が上がる（※詳細は初級編「コンテキストウィンドウ」の節を参照）。</p>
 </blockquote>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="8" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
@@ -462,13 +454,13 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <tbody>
 <tr>
 <td><code>orchestrator.md</code></td>
-<td>オーケストレータ</td>
-<td>コマンド発行ルール・ダッシュボード方針</td>
+<td>オーケストレータ（全体指揮）</td>
+<td>コマンド発行ルール・進捗管理の方針</td>
 </tr>
 <tr>
 <td><code>manager.md</code></td>
 <td>タスクマネージャ</td>
-<td>タスク配分・QC判定基準</td>
+<td>タスク配分・品質判定基準</td>
 </tr>
 <tr>
 <td><code>executor.md</code></td>
@@ -485,7 +477,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <p><strong>メリット</strong>:</p>
 <ul>
 <li>役割ごとに <strong>独立して更新</strong> できる</li>
-<li>不要なルールが <strong>AIのコンテキスト（一度に覚えられる情報の量）を圧迫しない</strong></li>
+<li>不要なルールが <strong>AIのコンテキストを圧迫しない</strong></li>
 <li>新しい役割の追加が <strong>1ファイルで済む</strong></li>
 </ul>
 </section>
@@ -530,7 +522,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <span class="hljs-attr">status:</span> <span class="hljs-string">assigned</span>
 <span class="hljs-attr">description:</span> <span class="hljs-string">&quot;ログインAPIのバグ修正&quot;</span>
 <span class="hljs-attr">target_path:</span> <span class="hljs-string">src/auth/login.py</span>
-<span class="hljs-attr">steps:</span> <span class="hljs-string">|
+<span class="hljs-attr">steps:</span> <span class="hljs-string">|    ← 「|」は「ここから複数行の文章が続く」というYAMLの記号
   1) バグの原因を特定
   2) 修正を実装
   3) テストを追加
@@ -753,7 +745,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 ;" data-marpit-pagination-total="17" data-size="16:9">
 <h1 id="%E3%82%A8%E3%83%BC%E3%82%B8%E3%82%A7%E3%83%B3%E3%83%88%E3%81%AB%E5%90%8D%E5%89%8D%E3%82%92%E3%81%A4%E3%81%91%E3%82%8B--claudemd-%E3%81%A8-instructions-%E8%A8%AD%E5%AE%9A">エージェントに名前をつける — CLAUDE.md と instructions 設定</h1>
 <blockquote>
-<p><img class="emoji" draggable="false" alt="📌" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/1f4cc.svg" data-marp-twemoji=""/> <strong>発展内容</strong> — まずは基本の3層設計（CLAUDE.md / instructions / task YAML）をマスターしてから読み返してください。</p>
+<p><img class="emoji" draggable="false" alt="📌" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/svg/1f4cc.svg" data-marp-twemoji=""/> <strong>発展内容</strong> — まずは基本の3層設計（CLAUDE.md / instructions / task YAML）をマスターしてから読み返してください。以降では <code>tmux</code>（ターミナル画面を分割・管理するツール）を使います。</p>
 </blockquote>
 <p><strong>Claude Code CLI でのエージェント設定方法</strong>:</p>
 <ol>
@@ -776,7 +768,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <li>
 <p><strong>命名は自由 — CLI標準機能のみ使用</strong>:</p>
 <ul>
-<li><code>advisor()</code> は Claude Code 標準の品質チェック機能（出力を第三者視点でレビューしてくれる）</li>
+<li><code>advisor()</code> はこの講座で定義する品質チェックの仕組み（第4章で詳説）</li>
 <li>役割名は <code>.md</code> ファイル名で決まる</li>
 <li>外部プラグイン不要</li>
 </ul>
