@@ -10,24 +10,24 @@ INTERVAL=5
 MAX_LOG_BYTES=$((100 * 1024 * 1024))  # 100MB
 
 log_header() {
-    echo -e "# timestamp\tgpu_util%\tgpu_vram_used_mb\tgpu_vram_total_mb\tcpu%\tmem_used_mb\tmem_total_mb\tgpu_procs"
+    echo -e "# timestamp\tgpu_util%\tgpu_vram_used_mb\tgpu_vram_total_mb\tcpu%\tmem_used_mb\tmem_total_mb\tcpu_temp_c\tgpu_temp_c\tnvme_temp_c\tgpu_procs"
 }
 
 collect_once() {
     local ts
     ts=$(date '+%Y-%m-%dT%H:%M:%S')
 
-    # GPU stats via nvidia-smi
-    local gpu_util gpu_vram_used gpu_vram_total gpu_procs
+    # GPU stats + temperature via nvidia-smi
+    local gpu_util gpu_vram_used gpu_vram_total gpu_temp gpu_procs
     if command -v nvidia-smi &>/dev/null; then
-        read -r gpu_util gpu_vram_used gpu_vram_total < <(
-            nvidia-smi --query-gpu=utilization.gpu,memory.used,memory.total \
+        read -r gpu_util gpu_vram_used gpu_vram_total gpu_temp < <(
+            nvidia-smi --query-gpu=utilization.gpu,memory.used,memory.total,temperature.gpu \
                 --format=csv,noheader,nounits 2>/dev/null | head -1 | tr -d ' ' | tr ',' ' '
         )
         gpu_procs=$(nvidia-smi --query-compute-apps=pid,used_memory --format=csv,noheader,nounits 2>/dev/null | tr '\n' '|' | sed 's/|$//')
         gpu_procs="${gpu_procs:-none}"
     else
-        gpu_util=N/A; gpu_vram_used=N/A; gpu_vram_total=N/A; gpu_procs=no_nvidia
+        gpu_util=N/A; gpu_vram_used=N/A; gpu_vram_total=N/A; gpu_temp=N/A; gpu_procs=no_nvidia
     fi
 
     # CPU usage (1-second sample)
@@ -38,9 +38,21 @@ collect_once() {
     local mem_used mem_total
     read -r mem_total mem_used < <(free -m | awk '/^Mem:/{print $2, $3}')
 
-    printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
+    # CPU + NVMe temperature via lm-sensors (k10temp Tctl + nvme Composite)
+    local cpu_temp nvme_temp
+    if command -v sensors &>/dev/null; then
+        cpu_temp=$(sensors 2>/dev/null | awk '/^Tctl:/ {gsub(/[+°C]/,"",$2); print $2; exit}')
+        nvme_temp=$(sensors 2>/dev/null | awk '/^Composite:/ {gsub(/[+°C]/,"",$2); print $2; exit}')
+        cpu_temp="${cpu_temp:-N/A}"
+        nvme_temp="${nvme_temp:-N/A}"
+    else
+        cpu_temp=N/A; nvme_temp=N/A
+    fi
+
+    printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
         "$ts" "$gpu_util" "$gpu_vram_used" "$gpu_vram_total" \
-        "$cpu_pct" "$mem_used" "$mem_total" "$gpu_procs"
+        "$cpu_pct" "$mem_used" "$mem_total" \
+        "$cpu_temp" "$gpu_temp" "$nvme_temp" "$gpu_procs"
 }
 
 rotate_log() {
@@ -104,7 +116,10 @@ cmd_status() {
         printf "gpu_vram:     %s / %s MB\n", $3, $4
         printf "cpu:          %s%%\n", $5
         printf "memory:       %s / %s MB\n", $6, $7
-        printf "gpu_procs:    %s\n", $8
+        printf "cpu_temp:     %s°C\n", $8
+        printf "gpu_temp:     %s°C\n", $9
+        printf "nvme_temp:    %s°C\n", $10
+        printf "gpu_procs:    %s\n", $11
     }'
 }
 
