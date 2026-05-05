@@ -860,3 +860,134 @@ commands:
   - 中立性厳守 (将軍 A 案を盲目的推奨していない・技術的根拠で判断)
   - git commit 済
   notify_karo: true
+- id: cmd_1645
+  status: done
+  priority: high
+  purpose: v5 設計書の全専門用語を軍師が精査し、AI 業界未確立用語 (JIT/Lazy Load 含む) を確立用語に置換する修正版を作成する。
+  timestamp: '2026-05-06T04:52:36+09:00'
+  project: udemy_course
+  lord_original: 軍師に依頼、ほか専門用語も精査 (殿命 2026-05-06 10:50 — v5 設計書で『JIT / Lazy Load』が
+    AI 業界未確立用語と判明・他の流用専門用語も含めて軍師が精査・修正する)
+  north_star: Udemy 中級編 v5 設計書 (curriculum_intermediate_v5_marp.md) の全専門用語を AI 業界の確立用語と照合し、CS/web/general
+    の流用用語を業界標準に置換または『業界用語併記』形式に修正する。受講者ペルソナ (社会人 2-3 年目) への伝達精度と商品としての権威性を両立させる。
+  command_text: "## 背景\n\n殿の指摘 (2026-05-06 10:45):\n> 『jit と lazy load という用語まだ ai\
+    \ 界隈で使わないと思う。しらべたか？類するai用語は？』\n\n軍師 cmd_1638 で v5 設計書に『JIT (Just-in-Time)』『Lazy\
+    \ Load』を使ったが、これは CS / Web 一般用語の流用で AI 業界未確立。受講者ペルソナ (社会人 2-3 年目・横文字きつい) への伝達精度と商品としての権威性に響くため、**全専門用語を精査・置換**せよ。\n\
+    \n## 担当 + bloom_level\n\n- **gunshi 単独** (用語精査 + 修正)\n- bloom_level: **L6** (用語確立度評価\
+    \ + 受講者ペルソナ + 修正版作成)\n- gunshi_qc: **false** (軍師自身)\n\n## 入力資料\n\n1. v5 設計書: `projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md`\
+    \ (改訂対象)\n2. v5 方針書: `projects/udemy_course/v5_design.md`\n3. 将軍の事前調査メモ (本 cmd\
+    \ 起票時の整理):\n\n### 将軍が事前に調べた『JIT / Lazy Load』の代替候補\n\n| 旧用語 (流用) | 推奨置換候補 (AI 業界確立度)\
+    \ |\n|------------|--------------------------|\n| **JIT (Just-in-Time)** ⭐ | **RAG\
+    \ (Retrieval-Augmented Generation)** ⭐⭐⭐⭐⭐ |\n|             | **必要時取得 (On-Demand\
+    \ Retrieval)** ⭐⭐ |\n|             | **動的コンテキスト注入** (平易日本語) |\n| **Lazy Load**\
+    \ ⭐ | **Selective Context Injection** ⭐⭐⭐ |\n|             | **遅延読込 (用語注記: AI\
+    \ 業界では Sparse Retrieval / Top-K Retrieval と関連)** |\n|             | 削除 (概念説明のみで用語使わない)\
+    \ |\n\n## 軍師の精査範囲 — 全専門用語\n\n### 1. 既出問題用語 (殿指摘)\n- **JIT (Just-in-Time)**\n-\
+    \ **Lazy Load**\n\n### 2. 軍師が照合確認すべき疑わしい用語 (将軍の事前リスト)\n- **ハーネス / ハーネスエンジニアリング**\
+    \ ← 本講座独自? AI 業界での確立度?\n- **L1 / L2 / L3** ← 本講座独自表記 (商標ではない・内輪表記として OK か)\n-\
+    \ **Context Rot** ← 用法揺れあり (cmd_1638 改訂時に確認済)\n- **silent fail** ← AI 業界で確立? CS\
+    \ 一般用語?\n- **phase gate** ← 業界用語?\n- **SessionStart hook / PreCompact hook** ←\
+    \ Claude Code 公式用語 (確立)\n- **/command / /advisor / /handoff** ← Claude Code 公式用語\
+    \ (確立)\n- **Skill** ← Claude Code 公式用語 (確立)\n- **MCP (Model Context Protocol)**\
+    \ ← Anthropic 公式 (確立)\n- **Bloom Taxonomy / Bloom レベル** ← 教育学標準 (確立)\n- **subagent\
+    \ (Agent tool)** ← Anthropic 公式 (確立)\n- **claude-mem / mem-search** ← 本講座 plugin\
+    \ 由来 (固有名詞)\n- **acceptance_criteria** ← agile 用語 (確立)\n- **TL;DR** ← Web 一般用語\
+    \ (確立)\n- **Primacy bias / Recency bias** ← 心理学 (確立)\n\n### 3. 軍師の精査基準\n\n各用語について以下を判定:\n\
+    \n| 判定 | 対応 |\n|-----|------|\n| ⭐⭐⭐⭐⭐ AI 業界完全確立 | そのまま使用 (例: RAG, MCP, Skill)\
+    \ |\n| ⭐⭐⭐⭐ 業界で広く使われる | そのまま使用 + 平易な日本語注記 |\n| ⭐⭐⭐ 業界で部分的に使われる | 平易日本語を主・業界用語を併記\
+    \ |\n| ⭐⭐ 業界で稀に使われる | 平易日本語のみ・業界用語注記レベル |\n| ⭐ AI 業界未確立 (CS/Web 流用) | **削除 or\
+    \ 業界確立用語に置換** ← JIT/Lazy Load はここ |\n\n## 軍師の作業手順\n\n0. advisor() 呼出\n1. v5 設計書を\
+    \ Read (curriculum_intermediate_v5_marp.md 全文)\n2. 全専門用語を grep で抽出 + リスト化\n3.\
+    \ WebSearch / WebFetch で AI 業界での確立度を調査:\n   - Anthropic 公式ドキュメント\n   - LangChain\
+    \ / LlamaIndex / OpenAI Cookbook\n   - 学術論文 (arxiv の AI 関連)\n   - 主要 AI ブログ (HuggingFace,\
+    \ AnyScale, Pinecone 等)\n4. 各用語に確立度 ⭐1-5 を付与\n5. ⭐1-2 の用語を確立用語に置換 or 平易日本語化\n\
+    6. 修正版 v5 設計書を作成 (curriculum_intermediate_v5_marp.md を更新)\n7. NG ワードリスト (§ 8)\
+    \ に追加: JIT / Lazy Load および他の精査結果で⭐1判定された用語\n8. Marp HTML 再生成 (curriculum_intermediate_v5.html)\n\
+    9. 用語精査報告書 `queue/reports/2026-05-06_cmd_1645_v5_term_audit.md`:\n   - 精査全用語一覧表\
+    \ (用語 | 確立度 | 出現箇所 | 対応)\n   - 修正前後の比較\n   - 残った業界用語の併記方針\n10. advisor() 呼出 (中立性\
+    \ + 網羅性確認)\n11. inbox karo 完了報告\n\n## 必達制約\n\n- v5 設計書の構造 (12 章・困りごと 11 個・3 層フレーム・セマンティック検索二重登場\
+    \ 等) は維持\n- 用語の置換のみ・章構成の変更禁止\n- 受講者ペルソナ (社会人 2-3 年目・横文字きつい) への配慮厳守\n- 軍師単独完遂・足軽起動禁止\n\
+    - WebSearch で確立度を事実ベースで判定 (推測判定禁止)\n\n## 共通ルール\n\n- 出力先: `projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md`\
+    \ (上書き) + `.html` + `queue/reports/2026-05-06_cmd_1645_v5_term_audit.md`\n- 新規\
+    \ .py 禁止 (用語精査のみ)\n- WebFetch / WebSearch 利用必須 (確立度の事実根拠)\n- claude-code-guide\
+    \ subagent 活用推奨 (Anthropic 公式用語確認)\n- git commit + push 済が完了条件 (.gitignored ゆえ\
+    \ git add -f 使用)"
+  acceptance_criteria:
+  - v5 設計書の全専門用語を grep で抽出・リスト化済
+  - 各用語に AI 業界確立度 ⭐1-5 を付与 (WebSearch / WebFetch ベースの事実根拠付き)
+  - JIT / Lazy Load が AI 業界確立用語 (RAG / 必要時取得 / Selective Context Injection 等) に置換済
+  - 他の⭐1-2 判定用語も適切に置換 or 平易化
+  - v5 設計書 (curriculum_intermediate_v5_marp.md) の全章で用語修正済
+  - NG ワードリスト (§ 8) に JIT / Lazy Load および他の⭐1判定用語追加済
+  - Marp HTML 再生成済 (curriculum_intermediate_v5.html)
+  - queue/reports/2026-05-06_cmd_1645_v5_term_audit.md 報告書作成 (全用語の確立度評価 + 修正前後比較)
+  - v5 構造 (12 章・困りごと 11 個・3 層フレーム・セマンティック検索二重登場) が維持されている
+  - 受講者ペルソナ (社会人 2-3 年目) への配慮 (横文字過多にしない・併記原則) 維持
+  - git commit + push 済 (.gitignored ゆえ git add -f 使用)
+  notify_karo: true
+- id: cmd_1646
+  status: in_progress
+  priority: high
+  purpose: A 案 (SSE direct stream) の設計を軍師が単独 QC し、実装前に技術的問題点 + 改善提案 + 詳細実装ロードマップを報告書化する。
+  timestamp: '2026-05-06T04:58:02+09:00'
+  project: multi-agent-shogun
+  lord_original: A案だ、今度こそ設計のqcを頼む。比較せよとはいってないはなから (殿命 2026-05-06 11:00 — 殿のYAML脱却ビジョン優先で
+    A 案 (SSE direct stream) 採用確定・軍師に A 案単独の設計 QC を依頼・比較依頼は将軍越権だった反省)
+  north_star: A 案 (SSE direct stream) を採用確定の前提で、軍師が実装前の設計妥当性を QC する。SSE 実装・in-memory
+    queue・全 10 agent 同時接続・rollback 戦略について技術的な抜け穴を洗い出し、実装 cmd 起票前に設計を完成度高く仕上げる。
+  command_text: "## 背景\n\n殿命: A 案 (SSE direct stream) で YAML 脱却を貫く方針確定 (2026-05-06\
+    \ 11:00)。\n\n将軍が cmd_1644 で 3 案比較を依頼したのは越権 (殿は最初から A 案 QC だけ望んでいた)。今回は **A 案単体の設計\
+    \ QC** に絞り、実装前に設計を完成度高く仕上げる。\n\n軍師は cmd_1644 で『A 案の YAML 脱却度 = 5/5・Anthropic 純正度\
+    \ = 5/5』と評価済。本 cmd では A 案を**実装前提**として、技術的な抜け穴を洗い出す。\n\n## 担当 + bloom_level\n\n\
+    - **gunshi 単独** (設計 QC)\n- bloom_level: **L6** (実装前設計レビュー・抜け穴検出)\n- gunshi_qc:\
+    \ **false** (軍師自身の QC)\n\n## 入力資料\n\n1. A 案詳細設計 (取消版): `queue/cmd_payloads/cmd_1643.json`\
+    \ (将軍が起票したが取消・設計内容は有効)\n2. cmd_1644 軍師 QC 報告書: `queue/reports/2026-05-06_cmd_1644_inbox_design_qc.md`\
+    \ (A 案の 5 軸評価)\n3. cmd_1639 Anthropic API 調査: `queue/reports/2026-05-05_cmd_1639_anthropic_agent_api_research.md`\n\
+    4. server.py 現状: `scripts/dashboard/server.py` (3389 行・SSE 関連実装は 0 件)\n5. cmd_1642\
+    \ Phase 2 QC: `queue/reports/2026-05-06_cmd_1642_monitor_phase2_qc.md`\n\n## A\
+    \ 案 設計 (本 cmd の QC 対象・cmd_1643.json 参照)\n\n### Step 1-7 の流れ\n```\n殿/将軍が curl POST\
+    \ /api/cmd_create\n   ↓\nserver.py:\n   ① SQLite INSERT (cmds + inbox)\n   ② in-memory\
+    \ queue.put() (Python threading.Queue)\n   ↓\nserver.py /api/inbox_stream?agent=<id>:\n\
+    \   SSE generator が queue.get() → yield 'data: {json}\\n\\n'\n   ↓\nagent の Monitor:\
+    \ curl -N --no-buffer ... (常時接続)\n   stdout 1 行 = 1 通知\n   ↓\nClaude Code が native\
+    \ 通知受信 → /api/inbox_messages で詳細取得\n```\n\n### 主要要素\n- server.py に `/api/inbox_stream`\
+    \ 新設 (~100 行)\n- in-memory queue (defaultdict + threading.Queue)\n- 全 10 agent\
+    \ が常時 curl -N SSE 接続\n- 既存 inbox_watcher.sh は並走 (rollback 確保)\n\n## QC 観点 (8 軸)\n\
+    \n軍師が以下の 8 軸で **A 案の抜け穴 + 改善提案** を出せ:\n\n### 1. SSE 実装の技術的妥当性\n- BaseHTTPRequestHandler\
+    \ で SSE が正しく実装可能か (Flask への移行必要か)\n- text/event-stream + 'data: ...\\n\\n' フォーマット\n\
+    - Connection: keep-alive の挙動\n- generator の thread-safe 性\n\n### 2. in-memory\
+    \ queue の設計\n- defaultdict + threading.Queue の thread-safe 性\n- maxsize 設定 (推奨値・未設定時のメモリ肥大化)\n\
+    - queue が満杯時の挙動 (block / 例外 / drop)\n- queue の永続化要否 (server.py 再起動で消失する点の許容度)\n\
+    \n### 3. 全 10 agent 同時 SSE 接続の負荷\n- BaseHTTPRequestHandler は thread-per-request\
+    \ か process-per-request か\n- 10 connection 同時保持の実 CPU/メモリ負荷\n- queue.get(timeout=30)\
+    \ の thread が 10 個動く・コンテキストスイッチコスト\n- keep-alive ping 30秒間隔の妥当性\n\n### 4. SSE 接続の信頼性\n\
+    - ネットワーク切断時の挙動\n- agent 側の curl -N 自動再接続\n- 再接続時に取りこぼし回避 (queue は server.py 内で保持されるが\
+    \ SSE 切断中の event は失われる?)\n- agent /clear → Monitor 再起動時のキューずれ\n\n### 5. server.py\
+    \ 拡張の影響範囲\n- 既存 endpoint への影響\n- HTTP server core の同時 connection 上限\n- グローバル state\
+    \ (defaultdict) 追加の影響\n- 既存 hook / webhook との競合\n\n### 6. rollback 戦略\n- /api/inbox_stream\
+    \ を停止する手順\n- 既存 inbox_watcher.sh への完全フォールバック\n- 部分 rollback (一部 agent だけ Monitor\
+    \ 継続) の可能性\n\n### 7. 段階移行ロードマップ\n- 1 agent (ash1) で先行 POC\n- 2-5 agent 拡大\n- 全\
+    \ 10 agent 移行\n- 既存 watcher の段階廃止 (Phase 4 cmd 候補)\n- 各 phase の完了基準 + 工数\n\n###\
+    \ 8. 殿運用シナリオ別の検証\n- 殿が cmd 連発 (1 秒に 5 件) した場合の queue 挙動\n- 殿が長時間 idle (PC スリープ)\
+    \ → 再接続時の挙動\n- agent /clear → Monitor 再起動の race condition\n- server.py 再起動時の queue\
+    \ 消失への対処\n\n## 軍師の作業手順\n\n0. advisor() 呼出\n1. 入力資料 5 件 Read\n2. 8 軸で A 案を QC (各軸で『抜け穴』『改善提案』を\
+    \ 1-3 個出す)\n3. 最終的な実装ロードマップを Phase 別に提示 (cmd_1647+ で起票する内容)\n4. 報告書作成: `queue/reports/2026-05-06_cmd_1646_a_design_qc.md`:\n\
+    \   - 8 軸別 QC 評価\n   - 抜け穴 + 改善提案 (matrix)\n   - 実装前に決定すべき設計判断 (server.py 改修方針\
+    \ / Flask 移行要否 / queue maxsize 等)\n   - Phase 別実装ロードマップ\n   - リスク + 対策\n5. advisor()\
+    \ 呼出 (実装前 QC の網羅性確認)\n6. inbox karo 完了報告\n\n## 必達制約\n\n- A 案単独の QC のみ・他案との比較禁止\
+    \ (殿命)\n- **実装禁止** (実装は本 QC 後・別 cmd で起票)\n- 既存 inbox_watcher.sh / Monitor (cmd_1642)\
+    \ は触らない\n- 軍師単独完遂・足軽起動禁止\n- 報告書は markdown 形式・章立て明確に\n\n## 共通ルール\n\n- 出力先: `queue/reports/2026-05-06_cmd_1646_a_design_qc.md`\n\
+    - 新規 .py 禁止 (本 cmd は QC のみ)\n- WebFetch / WebSearch 利用可 (SSE/Python HTTP server\
+    \ のベストプラクティス調査)\n- claude-code-guide subagent 活用推奨\n- git commit 必須 (push は家老責務)"
+  acceptance_criteria:
+  - queue/reports/2026-05-06_cmd_1646_a_design_qc.md 報告書作成
+  - 8 軸 QC 評価 (SSE 実装・queue 設計・10 agent 接続負荷・SSE 信頼性・server.py 影響・rollback・段階移行・殿運用シナリオ)
+    すべて含まれる
+  - 各軸で『抜け穴』+『改善提案』が 1-3 個ずつ提示される
+  - 実装前に決定すべき設計判断 (Flask 移行要否・queue maxsize 等) のリスト化
+  - Phase 別実装ロードマップ (cmd_1647+ 起票案) が含まれる
+  - リスク一覧 (技術 / 運用 / 互換性) が含まれる
+  - 他案 (B/C) との比較は含まれない (殿命)
+  - 軍師中立性 — 実装可能性 + 抜け穴の両面を技術的根拠で評価
+  - git commit 済
+  notify_karo: true
