@@ -77,18 +77,19 @@ pkill -f "python.*server.py" && sleep 1 && source ~/.bashrc && python3 /home/mur
 - `ENABLE_SSE_INBOX=false` (default) → `/api/inbox_stream` は 404 (安全)
 - http://192.168.2.4:8770/ の pending/in_progress cmd 詳細ページに **🗑️ キャンセルボタン** 表示
 
-### ❓ cmd_1647 v5 Phase1 進行中 → 事前4項目 殿確認待ち
+### ❓ cmd_1647 Phase1完了 → 事前4項目 **殿ご確認お願い** → Phase2起票判断
 
-cmd_1647 v5 Phase3 (章別執筆) を受領・Phase1 (事前4項目作成) を4足軽並列で起票済 (2026-05-06 05:08)。
+4足軽が12章分の事前4項目を作成完了 (2026-05-06 05:36)。
 
-| 足軽 | 担当 | subtask | 状態 |
-|-----|------|---------|-----|
-| ash1 | ch00-ch03 | subtask_1647_prewrite_ch00_ch03 | 進行中 |
-| ash2 | ch04-ch06 | subtask_1647_prewrite_ch04_ch06 | 進行中 |
-| ash3 | ch07-ch09 | subtask_1647_prewrite_ch07_ch09 | 進行中 |
-| ash4 | ch10-ch11 | subtask_1647_prewrite_ch10_ch11 | 進行中 |
+| ファイル | 担当章 | 行数 |
+|---------|------|-----|
+| `projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch00_ch03.md` | ch00-ch03 | 251行 |
+| `projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch04_ch06.md` | ch04-ch06 | 197行 |
+| `projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch07_ch09.md` | ch07-ch09 | — |
+| `projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch10_ch11.md` | ch10-ch11 | 206行 |
 
-4足軽完了後、**事前4項目 (12章 × 対象問題/持ち帰り/ストーリー/実例) を殿にご確認いただきたい**。OK後にPhase2 (本文執筆) を起票する。
+**各章の4項目 (対象問題・持ち帰り・ストーリー・実例) を殿にご確認いただきたし。**  
+OK → Phase2 (本文執筆) を家老が起票。修正あり → 対象章の足軽に差し戻し。
 
 ### ❓ cmd_1646完了 → A案SSE実装 cmd_1647a 起票 (殿判断待ち)
 

@@ -861,6 +861,7 @@ commands:
   - 中立性厳守 (将軍 A 案を盲目的推奨していない・技術的根拠で判断)
   - git commit 済
   notify_karo: true
+  completed_at: '2026-05-06T05:32:24+09:00'
 - id: cmd_1645
   status: done
   priority: high
@@ -926,6 +927,7 @@ commands:
   - 受講者ペルソナ (社会人 2-3 年目) への配慮 (横文字過多にしない・併記原則) 維持
   - git commit + push 済 (.gitignored ゆえ git add -f 使用)
   notify_karo: true
+  completed_at: '2026-05-06T05:32:41+09:00'
 - id: cmd_1646
   status: done
   priority: high
@@ -1256,4 +1258,76 @@ commands:
   - python3 -m py_compile PASS
   - 実機動作確認 (dashboard で cancel ボタンクリック → status 変更確認)
   - git commit 済
+  notify_karo: true
+- id: cmd_1649
+  status: pending
+  priority: high
+  purpose: 軍師セッションで SSE Monitor を起動し、24h 観察で SSE 通知到達率と取りこぼし 0 件を確認する。
+  timestamp: '2026-05-06T05:36:44+09:00'
+  project: multi-agent-shogun
+  lord_original: 進め 軍師のwatch erはきる？ (殿命 2026-05-06 11:50 — cmd_1648 完了 (Phase 1 SSE
+    実装済) を受け Phase 2 = 軍師 1 名 SSE 接続テストを進めよ・軍師の既存 watcher を切るかは判断要)
+  north_star: A 案 Phase 2 として軍師 (gunshi) 1 名のセッションで SSE Monitor を起動し、24 時間観察で取りこぼし
+    0 件を検証する。Phase 3 (全 10 agent 展開) への判断材料を得る。既存 inbox_watcher.sh は **並走継続** (rollback
+    確保) で safety net を維持する。
+  command_text: "## 背景\n\ncmd_1648 (Phase 1) で server.py に SSE endpoint 実装完了:\n- /api/inbox_stream?agent=<id>\
+    \ 動作確認済 (14/14 AC PASS・gunshi QC PASS)\n- 5 件 CRITICAL 抜け穴すべて対策済\n- ENABLE_SSE_INBOX=true/false\
+    \ の feature flag 実装済\n\nPhase 2 で **軍師 1 名のみ** SSE Monitor を試運転し、24h 観察で取りこぼし\
+    \ 0 件を確認する。\n\n## 殿のご質問への回答 — 軍師の既存 watcher は切らない\n\n殿: 「軍師の watcher は切る？」\n\n\
+    **Phase 2 では切らない**。理由:\n- 1 名だけ既存 watcher 切断 = その 1 名が SSE 単一障害点に\n- SSE 失敗時の\
+    \ rollback 困難\n- まず**並走 24h テスト**で安定確認 → Phase 4 (cmd_1651) で全 agent 一括廃止が安全\n\
+    \nPhase 2 設計:\n- 軍師の **既存 inbox_watcher.sh (gunshi 用)** は **継続稼働** (rollback 確保)\n\
+    - 軍師セッション内で SSE Monitor を**追加起動** (並走)\n- 通知が両方届く (重複は許容・取りこぼし防止優先)\n- 24h 観察で\
+    \ SSE 単体の到達率を計測\n\n## 担当 + bloom_level\n\n- **gunshi 単独** (Phase 2 テストの主体)\n-\
+    \ bloom_level: **L4** (SSE Monitor 起動 + 24h 観察 + 結果集計)\n- gunshi_qc: **false**\
+    \ (軍師自身のテスト)\n\n## 入力資料\n\n1. cmd_1648 軍師 QC 報告書: `queue/reports/2026-05-06_cmd_1648_phase1_qc.md`\n\
+    2. cmd_1648 単体テスト報告書: `queue/reports/2026-05-06_cmd_1648_phase1_unit_test.md`\n\
+    3. cmd_1646 A 案 8 軸 QC 報告書 §4 Phase 2 設計: `queue/reports/2026-05-06_cmd_1646_a_design_qc.md`\n\
+    4. server.py 現状 (SSE 実装済・cmd_1648 で be80269 反映)\n\n## 手順 (gunshi が自分で実行)\n\n###\
+    \ Step 1: 環境変数有効化 + server.py 再起動\n\n軍師が server.py の ENABLE_SSE_INBOX=true で再起動:\n\
+    \n```bash\n# systemd unit に環境変数追加 (永続化) or 一時的に環境変数で再起動\n# 永続化案: ~/.config/systemd/user/mcp-dashboard.service\
+    \ の [Service] セクションに\n#   Environment=ENABLE_SSE_INBOX=true\n# を追加 → systemctl\
+    \ --user daemon-reload && restart\n\n# 一時的検証 (sufficient for Phase 2 テスト):\nENABLE_SSE_INBOX=true\
+    \ python3 scripts/dashboard/server.py &\n# (既存 systemd 起動は systemctl stop した後に手動起動)\n\
+    ```\n\n注意: 軍師は systemd ユニット編集の権限あり・かつ rollback 容易ゆえ systemd 永続化を推奨。\n\n### Step\
+    \ 2: 軍師セッション内で SSE Monitor 起動\n\n軍師が自分の Claude Code セッション内で:\n\n```python\nMonitor(\n\
+    \    command=\"curl -N --no-buffer http://localhost:8770/api/inbox_stream?agent=gunshi\"\
+    ,\n    description=\"SSE inbox stream for gunshi (Phase 2 test)\",\n    persistent=true,\n\
+    \    timeout_ms=3600000\n)\n```\n\n### Step 3: 既存 inbox_watcher.sh は触らない (並走確認)\n\
+    \n```bash\n# 軍師の既存 watcher プロセス確認 (停止しない)\nps aux | grep -E \"inbox_watcher.sh.*gunshi\"\
+    \ | grep -v grep\n# → 1 プロセス稼働中であること\n```\n\n### Step 4: 24h 観察開始\n\n観察項目を `queue/reports/2026-05-06_cmd_1649_phase2_observation.md`\
+    \ に記録:\n\n- SSE 接続維持時間 (24h 連続接続できるか)\n- keep-alive ping (30 秒) の挙動\n- 軍師宛 inbox\
+    \ メッセージ受信件数 (SSE 通知 + 既存 watcher 通知の両方カウント)\n- **取りこぼし** = SSE 通知到達失敗で既存 watcher\
+    \ だけ通知が来た回数\n- **重複** = SSE + 既存 watcher 両方通知が来た回数\n- SSE 接続断絶回数 + 自動再接続成否 (Monitor\
+    \ の挙動)\n\n### Step 5: テスト用 inbox_write を 5-10 回 (24h 中)\n\n軍師が定期的にテスト用 inbox_write\
+    \ を発行 (殿実運用と並行):\n\n```bash\n# 1 時間に 1 回程度・テスト task_id で実行\ncurl -X POST http://localhost:8770/api/inbox_write\
+    \ \\\n     -H 'Content-Type: application/json' \\\n     --data '{\"to\":\"gunshi\"\
+    ,\"from\":\"gunshi\",\"type\":\"wake_up\",\"message\":\"PHASE2_TEST_<N>\",\"task_id\"\
+    :\"phase2_test_<timestamp>\"}'\n```\n\n→ SSE Monitor + 既存 watcher 両方が反応することを確認\n\
+    \n### Step 6: 24h 後の集計 + 報告書作成\n\n```\nqueue/reports/2026-05-06_cmd_1649_phase2_observation.md:\n\
+    \  - 観察期間: 2026-05-06 12:00 〜 2026-05-07 12:00 (24h)\n  - 受信件数 (SSE / 既存 watcher\
+    \ / 両方)\n  - 取りこぼし件数 (SSE 失敗のみ)\n  - SSE 接続断絶回数 + 自動再接続成否\n  - keep-alive ping\
+    \ 動作状況\n  - 結論: Phase 3 起票判断 (取りこぼし 0 件で Phase 3 進行可)\n```\n\n### Step 7: Phase\
+    \ 3 起票判断\n\n- ✅ 取りこぼし 0 件 + SSE 接続安定 → Phase 3 (cmd_1650) 起票推奨\n- ⚠️ 取りこぼし 1 件以上\
+    \ → 原因調査 + 改善後再テスト\n- ❌ SSE 完全動作不能 → A 案見直し or B 案再評価\n\n## 完了基準\n\n- ENABLE_SSE_INBOX=true\
+    \ で server.py 起動済 (永続化推奨)\n- 軍師セッション内で SSE Monitor 起動済 (Step 2)\n- 既存 inbox_watcher.sh\
+    \ (gunshi 用) は並走稼働継続 (本 cmd では切らない)\n- 24h 観察完了\n- queue/reports/2026-05-06_cmd_1649_phase2_observation.md\
+    \ 作成 (受信件数・取りこぼし・接続断絶記録)\n- Phase 3 (cmd_1650) 起票判断資料が含まれる\n- git commit 済 (Monitor\
+    \ 起動 instruction や systemd 修正があれば・それ以外は観察のみ)\n\n## 共通ルール\n\n- 出力先: `queue/reports/2026-05-06_cmd_1649_phase2_observation.md`\n\
+    - 新規 .py 禁止 (本 cmd は観察 + 設定のみ)\n- 既存 inbox_watcher.sh は本 cmd では絶対に切らない (rollback\
+    \ 確保)\n- 軍師単独完遂・足軽起動禁止\n\n## 注意事項\n\n- ENABLE_SSE_INBOX=true 永続化は systemd unit\
+    \ 編集が確実 (本 cmd 対象内)\n- server.py 再起動時に既存接続 (cmd_1648 で確立した SSE 接続) が一旦切断されるが、Monitor\
+    \ が自動再接続するか確認 (Phase 2 観察項目)\n- 24h 観察中に他の cmd 進行 (cmd_1647 章別執筆等) があるが、それらは軍師宛通知ではない可能性あり\
+    \ → 軍師宛のみ集計\n- Phase 3 着手前に必ず本 cmd の Phase 2 結果を確認・取りこぼし 0 件のみ進行可\n- 取りこぼし発生時は\
+    \ Phase 3 起票せず原因調査 cmd を別途起票"
+  acceptance_criteria:
+  - ENABLE_SSE_INBOX=true で server.py 起動済 (環境変数永続化を systemd unit に反映済 or 一時的設定で起動確認)
+  - 軍師セッション内で SSE Monitor (curl -N /api/inbox_stream?agent=gunshi) 起動済
+  - 既存 inbox_watcher.sh (gunshi 用) は並走稼働継続・本 cmd では切らない
+  - 24 時間観察完了 (2026-05-06 12:00 〜 2026-05-07 12:00 想定)
+  - queue/reports/2026-05-06_cmd_1649_phase2_observation.md 作成 (観察期間・受信件数・取りこぼし件数・接続断絶回数記録)
+  - テスト用 inbox_write を 5-10 回発行・SSE Monitor + 既存 watcher 両方の反応確認
+  - SSE 接続断絶 + 自動再接続の挙動記録
+  - Phase 3 (cmd_1650) 起票判断資料 (取りこぼし 0 件なら推奨・1 件以上なら改善必要)
+  - git commit 済 (systemd unit 修正があれば)
   notify_karo: true
