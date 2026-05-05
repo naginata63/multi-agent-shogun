@@ -1,0 +1,22 @@
+{
+  "agent": "ashigaru1",
+  "task_id": "subtask_1640_impl",
+  "status": "assigned",
+  "priority": "high",
+  "parent_cmd": "cmd_1640",
+  "bloom_level": "L3",
+  "gunshi_qc": false,
+  "description": "cmd_1640 Phase1 実装3項目: Monitor POC + server.py inbox_audit.log + scripts/notify.sh wrapper",
+  "target_path": "/home/murakami/multi-agent-shogun/scripts/notify.sh",
+  "steps": "0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) [AC1 Monitor POC] scripts/poc_monitor_inbox.sh を新規作成: #!/usr/bin/env bash → tail -f queue/inbox/karo.yaml ---> 標準出力へ垂れ流すスクリプト。次にBash(run_in_background=trueで bash scripts/poc_monitor_inbox.sh)で起動 → Monitor toolで出力を監視 → POST /api/inbox_write でtestメッセージ送信(to:karo, type:wake_up, message:MONITOR_POC_TEST) → Monitor toolがメッセージを検知したことを確認 → 結果を queue/reports/2026-05-05_cmd_1640_monitor_poc.md に記録(既存watcher比較: inotifywait+tmux_send_keys vs Monitor tool 利点/欠点) 3) [AC2 server.py inbox_audit.log] Read scripts/dashboard/server.py → /api/inbox_write handler (行2843付近) 内 result.returncode==0 確認後・200応答送信前に以下ロギングを追加: AUDIT_LOG = os.path.join(BASE_DIR, 'logs', 'inbox_audit.log'); os.makedirs(os.path.dirname(AUDIT_LOG), exist_ok=True); task_id_str = body.get('task_id', '-'); now_jst_str = now_jst.strftime('%Y-%m-%dT%H:%M:%S'); line = f'{now_jst_str} {target} {task_id_str}\\n'; open(AUDIT_LOG, 'a').write(line) 4) 動作確認: POST /api/inbox_write でテスト → tail logs/inbox_audit.log → 1行以上出力されることを確認 5) [AC3 scripts/notify.sh wrapper] scripts/notify.sh を新規作成: #!/usr/bin/env bash / # notify.sh — PushNotification並走wrapper (ntfy.sh呼出 + 将来のPushNotification tool呼出点) / SCRIPT_DIR=$(cd $(dirname $0)/.. && pwd) / bash $SCRIPT_DIR/scripts/ntfy.sh \"$@\" / echo \"[notify] sent: $1\" >> $SCRIPT_DIR/logs/notify_sent.log / 作成後chmod +x scripts/notify.sh 6) ntfy.sh並走5箇所確認: scripts/ntfy.sh を呼び出している5箇所(karo.md・stop_hook_inbox.sh・cron_health_check.sh・litestream_keepalive.sh・dashboard_lifecycle.sh等)を確認 → notify.sh 経由でも同じ出力になることをdry-run確認 (実際の送信は不要・引数渡し確認のみ) 7) git add -f scripts/notify.sh scripts/poc_monitor_inbox.sh scripts/dashboard/server.py queue/reports/2026-05-05_cmd_1640_monitor_poc.md && git diff --cached --stat && git commit -m 'feat(cmd_1640): Monitor POC + inbox_audit.log + notify.sh wrapper' 8) advisor()呼出 9) inbox karo 完了報告",
+  "acceptance_criteria": [
+    "scripts/poc_monitor_inbox.sh 新規作成済",
+    "Monitor toolでinbox通知を検知できたこと確認済 (POC報告書 2026-05-05_cmd_1640_monitor_poc.md)",
+    "scripts/dashboard/server.py /api/inbox_write handler に inbox_audit.log 追記実装済",
+    "logs/inbox_audit.log にテスト行が追記されること確認済",
+    "scripts/notify.sh 新規作成済・chmod +x済",
+    "ntfy.sh並走5箇所 引数渡し確認済",
+    "git commit済"
+  ],
+  "notes": "Monitor POC: run_in_background=true でbashスクリプトを起動→Monitorで監視。inbox_audit.log格納先: logs/inbox_audit.log (BASE_DIR/logs/)。notify.shはntfy.shの薄いwrapper (将来PushNotification tool移行の足がかり)。既存inbox_watcher.shは並走継続・触るな。git add -f必須(projectsはgitignored。scripts/はgitignored外)。"
+}

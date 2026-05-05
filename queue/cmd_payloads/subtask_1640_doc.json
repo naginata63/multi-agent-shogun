@@ -1,0 +1,18 @@
+{
+  "agent": "ashigaru2",
+  "task_id": "subtask_1640_doc",
+  "status": "assigned",
+  "priority": "high",
+  "parent_cmd": "cmd_1640",
+  "bloom_level": "L2",
+  "gunshi_qc": false,
+  "description": "cmd_1640 Phase1 ドキュメント2項目: CLAUDE.md ToolSearch新セクション + instructions/gunshi.md ScheduleWakeup運用ルール",
+  "target_path": "/home/murakami/multi-agent-shogun/CLAUDE.md",
+  "steps": "0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) [AC4 CLAUDE.md ToolSearch] Read CLAUDE.md → 末尾付近(# Dashboard API 利用ルールの後)に以下セクションを追加: ## ToolSearch lazy-load ルール (全エージェント・cmd_1640) / 以下のツールはデフォルトで deferred (スキーマ未ロード)。呼出前に ToolSearch で schema を取得せよ。 / - 対象: Monitor / ScheduleWakeup / PushNotification / RemoteTrigger / CronCreate / CronDelete / CronList / AskUserQuestion / EnterPlanMode / ExitPlanMode / EnterWorktree / ExitWorktree / TaskCreate ~ TaskStop / WebFetch / WebSearch / mcp__* 系 / - 手順: ToolSearch(query='select:<ToolName>')→schema取得→呼出 / - 禁止: schema 未取得での deferred tool 直接呼出 (InputValidationError になる) / - 原則: 1 tool = 1 ToolSearch (同時複数は select:A,B,C で1回) 3) [AC6 instructions/gunshi.md ScheduleWakeup] Read instructions/gunshi.md → ScheduleWakeup に関する記述を検索 → 末尾付近に以下セクションを追加: ## ScheduleWakeup 運用ルール (cmd_1640) / /loop dynamic モード使用時に自己ペーシングで次の起動時刻を設定する。 / - 原則: キャッシュ TTL (5 分=300s) を意識して delaySeconds を選択 / - 60-270s: キャッシュ温存 (アクティブ作業・ビルド待機等) / - 300s: 禁止 (cache miss を招く最悪値) / - 1200-1800s: 通常 idle (殿からの指示待ち) / - 使用前に ToolSearch(query='select:ScheduleWakeup') でスキーマ取得 / - /loop 終了時: ScheduleWakeup を呼ばない (ループ終了) 4) git add CLAUDE.md instructions/gunshi.md && git diff --cached --stat && git commit -m 'docs(cmd_1640): ToolSearch lazy-load ルール + ScheduleWakeup 運用ルール追記' 5) advisor()呼出 6) inbox karo 完了報告",
+  "acceptance_criteria": [
+    "CLAUDE.md に ToolSearch lazy-load ルール新セクション追加済 (5-10行・deferred化原則+手順)",
+    "instructions/gunshi.md に ScheduleWakeup 運用ルール追記済 (delaySeconds指針含む)",
+    "git commit済"
+  ],
+  "notes": "RACE-001注意: instructions/gunshi.md は gunshi(subtask_1640_schedule_poc)も参照するが書込みは本タスクのみ。gunshi側は読取専用。CLAUDE.md編集箇所: ## Dashboard API 利用ルール セクションの後に追記が自然。5-10行で簡潔に。git add -f不要(CLAUDE.md・instructions/は通常gitignore外)。"
+}

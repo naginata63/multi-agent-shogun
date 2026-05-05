@@ -1,0 +1,20 @@
+{
+  "agent": "gunshi",
+  "task_id": "subtask_1640_schedule_poc",
+  "status": "assigned",
+  "priority": "high",
+  "parent_cmd": "cmd_1640",
+  "bloom_level": "L5",
+  "gunshi_qc": false,
+  "description": "cmd_1640 Phase1 ScheduleWakeup POC: /loop dynamic試用 + 運用ルール調査 + POC報告書作成",
+  "target_path": "/home/murakami/multi-agent-shogun/queue/reports/2026-05-05_cmd_1640_schedule_wakeup_poc.md",
+  "steps": "0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) ToolSearch(query='select:ScheduleWakeup')でスキーマ取得 3) /loop dynamicモードの仕様確認: delaySeconds(60-3600)・reason必須・prompt(同じ/loopプロンプト or <<autonomous-loop-dynamic>>)・キャッシュTTL5分との関係 4) POC実施: 本タスク内でScheduleWakeupを1回使用(delaySeconds=120, reason='cmd_1640 ScheduleWakeup POC確認', prompt='<<autonomous-loop-dynamic>>')→起動後に自己レポートを作成 (実際にScheduleWakeupを呼び出すこと・呼び出し結果をスクリーンショット相当の記録として報告書に含める) 5) 報告書作成: queue/reports/2026-05-05_cmd_1640_schedule_wakeup_poc.md (Markdown形式) → 含める内容: [A]ScheduleWakeup tool スキーマ全文 [B]delaySeconds選択指針(cache TTL 5分・60-270s/300s禁止/1200-1800s idle) [C]POC実施記録(呼び出し成功/失敗・実際の動作) [D]本プロジェクトへの適用シナリオ(gunshi長時間調査自己ペーシング・karo idle待機等) [E]既存cron/watcher との比較・置換可否 [F]注意点・制限事項 [G]cmd_1641以降への推奨事項 6) git add -f queue/reports/2026-05-05_cmd_1640_schedule_wakeup_poc.md && git commit -m 'docs(cmd_1640): ScheduleWakeup POC報告書' 7) advisor()呼出 8) inbox karo 完了報告",
+  "acceptance_criteria": [
+    "queue/reports/2026-05-05_cmd_1640_schedule_wakeup_poc.md 新規作成済",
+    "ScheduleWakeup tool を実際に1回呼び出した記録が含まれる",
+    "delaySeconds選択指針(A~G項目)が全て記載済",
+    "本プロジェクトへの適用シナリオ明記済",
+    "git commit済"
+  ],
+  "notes": "POCは実際にScheduleWakeupを呼び出すこと(机上調査のみ不可)。ToolSearch必須(deferred tool)。/loop dynamicモードで実行される場合はScheduleWakeupで自己ペーシングしてよい。git add -f必須(reports/はgitignore対象か確認してから実施)。gunshi QCは別subtask(subtask_1640_qc)で実施。"
+}

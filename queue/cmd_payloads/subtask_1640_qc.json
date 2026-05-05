@@ -1,0 +1,20 @@
+{
+  "agent": "gunshi",
+  "task_id": "subtask_1640_qc",
+  "status": "blocked",
+  "blocked_by": ["subtask_1640_impl", "subtask_1640_doc", "subtask_1640_schedule_poc"],
+  "priority": "high",
+  "parent_cmd": "cmd_1640",
+  "bloom_level": "L5",
+  "gunshi_qc": false,
+  "description": "cmd_1640 Phase1 QC + 完了報告書: 全4項目の成果物検証 + queue/reports/2026-05-05_cmd_1640_phase1_completion.md作成",
+  "target_path": "/home/murakami/multi-agent-shogun/queue/reports/2026-05-05_cmd_1640_phase1_completion.md",
+  "steps": "0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) [QC AC1 Monitor POC] Read queue/reports/2026-05-05_cmd_1640_monitor_poc.md → Monitor tool使用記録があること確認 → scripts/poc_monitor_inbox.sh 存在確認 3) [QC AC2 server.py audit log] Read scripts/dashboard/server.py → /api/inbox_write handler内にinbox_audit.log書込みコードが存在することを確認(行番号記録) → ls logs/inbox_audit.log 存在確認 4) [QC AC3 notify.sh] ls scripts/notify.sh → chmod確認(ls -l) → cat scripts/notify.sh → ntfy.sh呼出コードが含まれること確認 5) [QC AC4 CLAUDE.md] Read CLAUDE.md → ToolSearch lazy-load ルールセクション存在確認 → 5行以上・deferred tool一覧・手順が含まれること確認 6) [QC AC5 ScheduleWakeup POC] Read queue/reports/2026-05-05_cmd_1640_schedule_wakeup_poc.md → ScheduleWakeup呼出記録・delaySeconds指針・適用シナリオ全項目確認 7) [QC AC6 gunshi.md] Read instructions/gunshi.md → ScheduleWakeup運用ルールセクション存在確認 → delaySeconds指針・300s禁止記述確認 8) [QC AC10] bash scripts/inbox_watcher.sh --help 2>/dev/null || head -5 scripts/inbox_watcher.sh → 既存watcher健在確認 9) [QC AC11] grep -n 'STEP 6.6' scripts/shutsujin_departure.sh 2>/dev/null | head; echo '---' scripts/shutsujin_departure.sh 2>/dev/null | head → 変更なしを確認 10) 完了報告書作成: queue/reports/2026-05-05_cmd_1640_phase1_completion.md → 各AC検証結果・PASS/FAIL・証跡・cmd_1641以降への推奨事項 11) git add -f queue/reports/2026-05-05_cmd_1640_phase1_completion.md && git diff --cached --stat && git commit -m 'docs(cmd_1640): Phase1完了報告書 + QC PASS' 12) git push origin main 13) advisor()呼出 14) inbox karo 完了報告(QC PASS判定・git push済)",
+  "acceptance_criteria": [
+    "cmd_1640 AC1-AC11 全件 PASS/FAIL 判定済",
+    "queue/reports/2026-05-05_cmd_1640_phase1_completion.md 作成済",
+    "全AC PASSであること",
+    "git commit + push済"
+  ],
+  "notes": "blocked_by: subtask_1640_impl + subtask_1640_doc + subtask_1640_schedule_poc が全て完了してから実施。QC失敗項目があればkaro inboxに具体的なNG理由を報告。git push は本subtaskで実施(家老経由ルール適用・家老がQC報告受領後に実施)。実ファイルを3箇所目視・grepカウントのみでPASS/FAIL禁止。"
+}
