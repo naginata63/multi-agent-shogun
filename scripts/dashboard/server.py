@@ -2895,10 +2895,19 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
 
                 actual_msg_id = result.stdout.strip()
                 now_jst = datetime.now(timezone(timedelta(hours=9)))
+
+                # inbox_audit.log (cmd_1640)
+                AUDIT_LOG = os.path.join(BASE_DIR, 'logs', 'inbox_audit.log')
+                os.makedirs(os.path.dirname(AUDIT_LOG), exist_ok=True)
+                task_id_str = body.get('task_id', '-')
+                now_jst_str = now_jst.strftime('%Y-%m-%dT%H:%M:%S')
+                with open(AUDIT_LOG, 'a') as f:
+                    f.write(f'{now_jst_str} {target} {task_id_str}\n')
+
                 resp = json.dumps({
                     'success': True,
                     'msg_id': actual_msg_id,
-                    'timestamp': now_jst.strftime('%Y-%m-%dT%H:%M:%S')
+                    'timestamp': now_jst_str
                 }, ensure_ascii=False).encode('utf-8')
 
                 self.send_response(200)
