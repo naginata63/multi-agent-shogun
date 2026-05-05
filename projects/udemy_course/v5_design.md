@@ -30,23 +30,23 @@ ChatGPT 講座 (プロンプトの書き方) との決定的差別化:
 ### 到達目標
 **「自分の業務を Claude で半自動化できる」**
 
-## 3. 困りごとリスト (殿実体験ベース・11 項目)
+## 3. 困りごとリスト (殿実体験ベース・11 項目・章順 ch01→ch08)
 
-ch00 のフックとして提示し、ch10 で逆引き辞典として再構成する物語の縦軸:
+ch00 のフックとして提示し、ch10 で逆引き辞典として再構成する物語の縦軸 (cmd_1653 で章順並び替え):
 
 | # | 困りごと | 解決章 |
 |---|---------|--------|
-| ① | AI が**推測 (esper) で動く・確認せず突進** | ch02 + ch06 |
-| ② | **AI 出力を盲信して失敗** | ch06 (/advisor) |
-| ③ | **既存資産を確認せず新規作成する** | ch01 (/command) |
-| ④ | **失敗を fallback で隠す** (silent fail) | ch08 |
-| ⑤ | **「止めろ」が伝わらない** | ch08 (phase gate) |
-| ⑥ | **「言ったのにやってくれない」** | ch05 (3 層) |
-| ⑦ | **完了 (done) 伝達が抜ける** | ch04 (memory) |
+| ① | **既存資産を確認せず新規作成する** | ch01 (/command) |
+| ② | **同じ作業を繰り返している** | ch01 (/command) |
+| ③ | AI が**推測 (esper) で動く・確認せず突進** | ch02 + ch06 |
+| ④ | **長文 context の中間情報が読み飛ばされる** (Lost in the Middle) | ch03 + ch04/05/07 (根本対策) |
+| ⑤ | **完了 (done) 伝達が抜ける** | ch04 (claude-mem + 手動ドキュメント化) |
+| ⑥ | **「言ったのにやってくれない」** | ch05 (3 層 + subagent) |
+| ⑦ | **AI 出力を盲信して失敗** | ch06 (/advisor) |
 | ⑧ | **API 変更後にテストせず壊れる** | ch07 (PostToolUse hook) |
-| ⑨ | **大事な context を確認しない** | ch07 (PreToolUse hook) |
-| ⑩ | **同じ作業を繰り返している** | ch01 (/command) |
-| ⑪ | **長文 context の中間情報が読み飛ばされる** (Lost in the Middle) | ch03 + ch04 |
+| ⑨ | **大事な context を確認しない** | ch07 (PreToolUse hook auto grep) |
+| ⑩ | **失敗を fallback で隠す** (silent fail) | ch08 |
+| ⑪ | **「止めろ」が伝わらない** | ch08 (phase gate) |
 
 memory 出典: `feedback_no_esper`, `feedback_dont_trust_gunshi_blindly`, `feedback_use_existing_scripts_shogun`, `feedback_fallback_is_abnormal`, `feedback_phase_gate_check`, `feedback_listen_to_lord_first`, `feedback_shogun_done_propagation`, `feedback_test_after_api_change`, `feedback_check_procedures_dir` 他
 
