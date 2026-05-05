@@ -1260,7 +1260,7 @@ commands:
   - git commit 済
   notify_karo: true
 - id: cmd_1649
-  status: pending
+  status: in_progress
   priority: high
   purpose: 軍師セッションで SSE Monitor を起動し、24h 観察で SSE 通知到達率と取りこぼし 0 件を確認する。
   timestamp: '2026-05-06T05:36:44+09:00'

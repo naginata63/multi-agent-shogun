@@ -64,6 +64,12 @@
 
 ## 🚨 要対応
 
+### 🔑 SSH鍵なし → git push不可 (殿/将軍 対処要)
+
+SSH秘密鍵が~/.ssh/に存在しない。git pushが全エージェントで失敗中。  
+`ssh-add <秘密鍵パス>` で鍵をエージェントに登録するか、鍵を復元してください。  
+※ローカルcommitは積まれているので鍵復元後に `git push origin main` で一括push可。
+
 ### 🔄 server.py 再起動要 (殿/将軍 対応) — cmd_1648 + cmd_1652 両方有効化
 
 cmd_1648 (SSE endpoint) + cmd_1652 (cancelボタン) 両方 gunshi QC PASS済・git push済。  
