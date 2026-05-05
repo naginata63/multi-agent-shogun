@@ -817,17 +817,11 @@ with open(f,'w') as fh: yaml.safe_dump(d, fh, default_flow_style=False, allow_un
     echo ""
 
     # ═══════════════════════════════════════════════════════════════════════════
-    # STEP 6.2: 家老paneにのみ /advisor opus を送信
-    # Policy: /advisor は Sonnet モデル（家老）限定。将軍・軍師（opus）・足軽（glm）は不要
+    # STEP 6.2: 家老 advisor 起動 — 廃止 (2026-05-05 殿命「家老が advisor を使わないように消してくれ」)
+    # 旧仕様: 家老 pane に /advisor opus を送信し、Sonnet 家老が Opus advisor に相談する仕組み
+    # 廃止理由: 殿命 (詳細はコミットメッセージ + memory)
+    # 復活したい場合は git log で本箇所を git revert すれば元に戻せる
     # ═══════════════════════════════════════════════════════════════════════════
-    log_war "🔮 家老paneに /advisor opus を送信中..."
-    echo "  CLI起動完了を待機中（10秒）..."
-    sleep 10
-    # 家老（PANE_BASE + 0）
-    tmux send-keys -t "multiagent:agents.${PANE_BASE}" "/advisor opus" Enter
-    sleep 0.3
-    log_success "✅ 家老に /advisor opus 送信完了"
-    echo ""
 
     # ═══════════════════════════════════════════════════════════════════════════
     # STEP 6.5: 各エージェントに指示書を読み込ませる
