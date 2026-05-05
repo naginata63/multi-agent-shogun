@@ -11,6 +11,8 @@ import re
 import sqlite3
 
 from inbox_types import CANONICAL_TYPES
+from collections import defaultdict
+import queue as _queue_module
 import subprocess
 import threading
 import uuid
@@ -36,6 +38,18 @@ _EXCLUDED_AGENTS_R5 = {"pending", "archive"}
 # ─── Async Job Tracking ─────────────────────────────────────────────────────
 _jobs = {}
 _jobs_lock = threading.Lock()
+
+# ─── SSE Inbox Stream (cmd_1648) ──────────────────────────────────────────
+ENABLE_SSE_INBOX = os.environ.get('ENABLE_SSE_INBOX', 'false').lower() == 'true'
+_INBOX_QUEUES = defaultdict(lambda: _queue_module.Queue(maxsize=1000))
+_INBOX_QUEUES_LOCK = threading.Lock()
+
+
+def _push_to_inbox_queue(target_agent, message_dict):
+    try:
+        _INBOX_QUEUES[target_agent].put_nowait(message_dict)
+    except _queue_module.Full:
+        print(f"[inbox_queue] WARN: queue full for {target_agent}, dropped (still in SQLite)", file=os.sys.stderr)
 
 # ─── DB helpers ────────────────────────────────────────────────────────────────
 
@@ -1366,6 +1380,30 @@ def render_cmd_detail(cmd):
             'btn.disabled=false;btn.textContent="✅ done に変更 (再試行)";}'
             '}'
             '</script>'
+            '<div style="margin-top:8px;background:#3a1a1a;border:1px solid #c0392b">'
+            '<button id="cancel-btn" onclick="cancelCmd()" '
+            'style="background:#c0392b;color:#fff;border:none;padding:14px 20px;border-radius:6px;font-size:16px;cursor:pointer;width:100%;font-weight:600">'
+            '🗑️ キャンセル</button>'
+            '<div id="cancel-msg" style="margin-top:8px;font-size:12px;text-align:center"></div>'
+            '</div>'
+            '<script>'
+            'async function cancelCmd(){'
+            f'if(!confirm("{cmd_id_esc} をキャンセルしますか?"))return;'
+            'const btn=document.getElementById("cancel-btn");'
+            'const msg=document.getElementById("cancel-msg");'
+            'btn.disabled=true;btn.textContent="更新中...";'
+            'try{'
+            'const r=await fetch("/api/cmd_cancel",{method:"POST",headers:{"Content-Type":"application/json"},'
+            f'body:JSON.stringify({{id:"{cmd_id_esc}",actor:"lord"}})}});'
+            'const j=await r.json();'
+            'if(r.ok){msg.textContent="🗑️ キャンセルしました (reload)";msg.style.color="#c0392b";'
+            'setTimeout(function(){location.reload();},800);}'
+            'else{msg.textContent="エラー: "+(j.error||r.status);msg.style.color="#f55";'
+            'btn.disabled=false;btn.textContent="🗑️ キャンセル (再試行)";}'
+            '}catch(e){msg.textContent="エラー: "+e.message;msg.style.color="#f55";'
+            'btn.disabled=false;btn.textContent="🗑️ キャンセル (再試行)";}'
+            '}'
+            '</script>'
         )
 
     notes_html = ''
@@ -1702,6 +1740,8 @@ def _run_generate_panels(job_id, payload):
 # ─── HTTP Handler ───────────────────────────────────────────────────────────────
 
 class DashboardHandler(http.server.BaseHTTPRequestHandler):
+    protocol_version = 'HTTP/1.1'
+
     @staticmethod
     def _extract_scene_summary(gemini_text: str) -> str:
         """Gemini生テキストから【シーン一覧】セクションだけ抽出。トークン節約。"""
@@ -2428,6 +2468,76 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-Length', str(len(body)))
                 self.end_headers()
                 self.wfile.write(body)
+        elif self.path.startswith('/api/inbox_stream'):
+            # GET /api/inbox_stream?agent=<id> — SSE endpoint (cmd_1648)
+            if not ENABLE_SSE_INBOX:
+                self.send_response(404)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'SSE inbox disabled'}).encode('utf-8'))
+                return
+            try:
+                from urllib.parse import urlparse, parse_qs
+                qs = parse_qs(urlparse(self.path).query)
+                agent = qs.get('agent', [None])[0]
+                if not agent or not re.match(r'^[a-zA-Z0-9_]+$', agent):
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'valid agent parameter required'}).encode('utf-8'))
+                    return
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/event-stream')
+                self.send_header('Cache-Control', 'no-cache')
+                self.send_header('Connection', 'keep-alive')
+                self.end_headers()
+
+                # Phase 1: push unread from SQLite
+                last_event_id = self.headers.get('Last-Event-ID', '')
+                try:
+                    conn = sqlite3.connect(DB_PATH, timeout=5)
+                    conn.row_factory = sqlite3.Row
+                    if last_event_id:
+                        rows = conn.execute(
+                            'SELECT id, from_agent, type, content, timestamp FROM inbox_messages '
+                            'WHERE agent=? AND read=0 AND id > ? ORDER BY timestamp',
+                            (agent, last_event_id)
+                        ).fetchall()
+                    else:
+                        rows = conn.execute(
+                            'SELECT id, from_agent, type, content, timestamp FROM inbox_messages '
+                            'WHERE agent=? AND read=0 ORDER BY timestamp',
+                            (agent,)
+                        ).fetchall()
+                    conn.close()
+                    for row in rows:
+                        evt = json.dumps({
+                            'msg_id': row['id'], 'type': row['type'],
+                            'from': row['from_agent'], 'content': row['content'],
+                            'timestamp': row['timestamp']
+                        }, ensure_ascii=False)
+                        self.wfile.write(f'id: {row["id"]}\ndata: {evt}\n\n'.encode('utf-8'))
+                        self.wfile.flush()
+                except Exception as e:
+                    print(f"[inbox_stream] SQLite init push error: {e}", file=os.sys.stderr)
+
+                # Phase 2: in-memory queue loop
+                q = _INBOX_QUEUES[agent]
+                while True:
+                    try:
+                        msg = q.get(timeout=30)
+                        evt = json.dumps(msg, ensure_ascii=False)
+                        msg_id = msg.get('msg_id', '')
+                        self.wfile.write(f'id: {msg_id}\ndata: {evt}\n\n'.encode('utf-8'))
+                        self.wfile.flush()
+                    except _queue_module.Empty:
+                        self.wfile.write(b': keepalive\n\n')
+                        self.wfile.flush()
+                    except Exception:
+                        break
+            except Exception as e:
+                print(f"[inbox_stream] error: {e}", file=os.sys.stderr)
         else:
             self.send_response(404)
             self.end_headers()
@@ -2840,6 +2950,62 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             except Exception as e:
                 self.send_response(500); self.send_header('Content-Type', 'application/json'); self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path == '/api/cmd_cancel':
+            # cmd_1652: cancel (pending/in_progressのみ許可)
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length).decode('utf-8'))
+                cmd_id = (body.get('id') or '').strip()
+                actor = body.get('actor', 'lord')
+                if not cmd_id:
+                    self.send_response(400); self.send_header('Content-Type', 'application/json'); self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'id required'}).encode('utf-8'))
+                    return
+                # 現在の status を確認
+                import sqlite3 as _sqlite3
+                _db_path = os.path.join(BASE_DIR, 'queue', 'cmds.db')
+                _conn = _sqlite3.connect(_db_path, timeout=5)
+                try:
+                    cur = _conn.execute('SELECT status FROM commands WHERE id=?', (cmd_id,))
+                    row = cur.fetchone()
+                    if not row:
+                        self.send_response(404); self.send_header('Content-Type', 'application/json'); self.end_headers()
+                        self.wfile.write(json.dumps({'error': f'cmd not found: {cmd_id}'}).encode('utf-8'))
+                        return
+                    current_status = row[0]
+                    if current_status not in ('pending', 'in_progress'):
+                        self.send_response(400); self.send_header('Content-Type', 'application/json'); self.end_headers()
+                        self.wfile.write(json.dumps({'error': f'Cannot cancel cmd in status: {current_status} (only pending/in_progress)'}).encode('utf-8'))
+                        return
+                    _conn.execute('UPDATE commands SET status=? WHERE id=?', ('cancelled', cmd_id))
+                    _conn.commit()
+                finally:
+                    _conn.close()
+                # YAML update (best effort)
+                import fcntl as _fcntl3
+                _lock = SHOGUN_TO_KARO + '.lock'
+                try:
+                    with open(_lock, 'w') as _lf:
+                        _fcntl3.flock(_lf, _fcntl3.LOCK_EX)
+                        try:
+                            with open(SHOGUN_TO_KARO, 'r', encoding='utf-8') as _yf:
+                                _ydata = yaml.safe_load(_yf)
+                            for _c in (_ydata.get('commands') or []):
+                                if _c.get('id') == cmd_id:
+                                    _c['status'] = 'cancelled'
+                                    break
+                            with open(SHOGUN_TO_KARO, 'w', encoding='utf-8') as _yf:
+                                yaml.dump(_ydata, _yf, allow_unicode=True, default_flow_style=False, sort_keys=False)
+                        finally:
+                            _fcntl3.flock(_lf, _fcntl3.LOCK_UN)
+                except Exception as _ye:
+                    print(f"[cmd_cancel] WARN YAML update: {_ye}")
+                resp = json.dumps({'ok': True, 'cmd_id': cmd_id, 'status': 'cancelled', 'actor': actor}, ensure_ascii=False).encode('utf-8')
+                self.send_response(200); self.send_header('Content-Type', 'application/json; charset=utf-8'); self.send_header('Content-Length', str(len(resp))); self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500); self.send_header('Content-Type', 'application/json'); self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         elif self.path == '/api/inbox_write':
             try:
                 length = int(self.headers.get('Content-Length', 0))
@@ -2903,6 +3069,14 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 now_jst_str = now_jst.strftime('%Y-%m-%dT%H:%M:%S')
                 with open(AUDIT_LOG, 'a') as f:
                     f.write(f'{now_jst_str} {target} {task_id_str}\n')
+
+                # SSE push (cmd_1648)
+                if ENABLE_SSE_INBOX:
+                    _push_to_inbox_queue(target, {
+                        'msg_id': actual_msg_id, 'type': msg_type,
+                        'from': from_agent, 'task_id': body.get('task_id', ''),
+                        'timestamp': now_jst_str
+                    })
 
                 resp = json.dumps({
                     'success': True,
