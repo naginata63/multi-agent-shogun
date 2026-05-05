@@ -576,3 +576,33 @@ tasks:
     ④ 通常命令ではなく長文contextで発生する明記 ⑤ 実例を長文ユースケースに ⑥ handoffの用途訂正 ⑦ こまめなドキュメント化の正しい定義'
   timestamp: '2026-05-06T06:58:26.771894+09:00'
   completed_at: '2026-05-06T07:11:12+09:00'
+- agent: gunshi
+  task_id: subtask_1647_qc_final
+  status: done
+  parent_cmd: cmd_1647
+  bloom_level: L5
+  gunshi_qc: true
+  description: 'cmd_1647 Phase2 最終QC: 12章全体品質検査・udemy-checker確認・NGワード・3層フレーム・困りごとマッピング・Skills縦糸'
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/
+  steps: 1) advisor()呼出 2) 12章全ファイル一覧確認(ls *.md) 3) 各章のNGワードgrep(0件確認) 4) 困りごと11個マッピング確認(curriculum_intermediate_v5_marp.md
+    §8) 5) 3層フレーム(L1=ch01-02/L2=ch03-04/L3=ch05-08)維持確認 6) Skills縦糸(ch01→ch07→ch11)確認
+    7) 各章末「強化した層」1行明記確認 8) ch11 udemy-checker未実施分を確認(ch11のみ) 9) Marp HTML全章HTTP 200確認
+    10) advisor()呼出 11) 報告書queue/reports/2026-05-06_cmd_1647_v5_phase2_qc.md作成 12)
+    inbox karo qc_result
+  acceptance_criteria:
+  - 12章全ファイル(.md+.html)の存在確認済 (intermediate_v5_ch00〜ch11)
+  - NGワードリスト全件grep 0件 (経済/階層/JIT/Lazy Load/queue/tasks/shogun/karo/ashigaru/gunshi)
+  - 困りごと11個全件マッピング確認済
+  - 3層フレーム(L1=ch01-02/L2=ch03-04/L3=ch05-08)維持確認
+  - Skills縦糸(ch01→ch07→ch11)の物語が機能していること確認
+  - 各章末に「強化した層：●層」1行明記確認済
+  - ch03に「通常命令では起きない・長文(5000token+)で発生」冒頭明記確認
+  - ch04にchunk+RAG+claude-mem+手動doc化が主役として記述確認
+  - handoffの用途がContext Rot対策として正しく記述確認
+  - ch11 udemy-checker品質確認(未実施分補完)
+  - 報告書queue/reports/2026-05-06_cmd_1647_v5_phase2_qc.md作成済
+  - PASS/FAILを明確にinbox karo qc_result報告済
+  notes: 【並走】cmd_1649 SSE 24h観察(Monitor bx2d1apue)継続中。並走させつつ本QCを実施せよ。【ash2 push未済】ash2のch02-03コミットがpush未済の可能性あり。QC前にgit
+    logで未pushコミット確認→家老に報告せよ。
+  timestamp: '2026-05-06T07:59:31.610878+09:00'
+  completed_at: '2026-05-06T08:03:55+09:00'

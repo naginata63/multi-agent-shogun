@@ -182,7 +182,7 @@ tasks:
   completed_at: '2026-05-06T05:16:48+09:00'
 - agent: ashigaru3
   task_id: subtask_1647_write_ch04_ch05
-  status: assigned
+  status: done
   parent_cmd: cmd_1647
   bloom_level: L3
   description: 'cmd_1647 Phase2: ch04(chunk+RAG+claude-mem+手動doc化) + ch05(subagent・Task
@@ -240,3 +240,4 @@ tasks:
 
     【Skills縦糸】ch01(布石)→ch07(発展)→ch11(完成)'
   timestamp: '2026-05-06T07:12:19.839079+09:00'
+  completed_at: '2026-05-06T07:59:06+09:00'

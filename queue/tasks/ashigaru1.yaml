@@ -404,7 +404,7 @@ tasks:
   timestamp: '2026-05-06T05:14:10.789768+09:00'
 - agent: ashigaru1
   task_id: subtask_1647_write_ch00_ch01
-  status: assigned
+  status: done
   parent_cmd: cmd_1647
   bloom_level: L3
   description: 'cmd_1647 Phase2: ch00(導入・全体地図) + ch01(SlashCommand/Skill布石) 本文執筆・udemy-checker
@@ -458,3 +458,4 @@ tasks:
 
     【Skills縦糸】ch01(布石)→ch07(発展)→ch11(完成)'
   timestamp: '2026-05-06T07:12:19.771206+09:00'
+  completed_at: '2026-05-06T07:27:13+09:00'

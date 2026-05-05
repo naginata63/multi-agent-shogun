@@ -111,7 +111,7 @@ tasks:
   completed_at: '2026-05-06T05:16:48+09:00'
 - agent: ashigaru4
   task_id: subtask_1647_write_ch06_ch07
-  status: assigned
+  status: done
   parent_cmd: cmd_1647
   bloom_level: L3
   description: 'cmd_1647 Phase2: ch06(advisor/QC) + ch07(PreToolUse hook・セマンティック検索)
@@ -168,3 +168,4 @@ tasks:
 
     【Skills縦糸】ch01(布石)→ch07(発展)→ch11(完成)'
   timestamp: '2026-05-06T07:12:19.859032+09:00'
+  completed_at: '2026-05-06T07:24:42+09:00'

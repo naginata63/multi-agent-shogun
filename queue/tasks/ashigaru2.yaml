@@ -210,7 +210,7 @@ tasks:
   timestamp: '2026-05-06T05:18:43.235325+09:00'
 - agent: ashigaru2
   task_id: subtask_1647_write_ch02_ch03
-  status: assigned
+  status: done
   parent_cmd: cmd_1647
   bloom_level: L3
   description: 'cmd_1647 Phase2: ch02(失敗3パターン診断) + ch03(LitM根本対策) 本文執筆・udemy-checker
@@ -266,3 +266,4 @@ tasks:
 
     【Skills縦糸】ch01(布石)→ch07(発展)→ch11(完成)'
   timestamp: '2026-05-06T07:12:19.815266+09:00'
+  completed_at: '2026-05-06T07:48:00+09:00'

@@ -996,7 +996,7 @@ commands:
   notify_karo: true
   completed_at: '2026-05-06T06:29:16+09:00'
 - id: cmd_1647
-  status: in_progress
+  status: done
   priority: high
   purpose: v5 設計書に基づき 12 章の本文 (.md + .html) を執筆・udemy-checker 🟢 + gunshi QC PASS まで完遂する。
   timestamp: '2026-05-06T05:05:42+09:00'
@@ -1076,6 +1076,7 @@ commands:
   - queue/reports/2026-05-06_cmd_1647_v5_phase3_qc.md 完了報告書作成
   - 殿レビュー URL ntfy 送信 (http://192.168.2.4:8773/intermediate_v5/)
   notify_karo: true
+  completed_at: '2026-05-06T08:03:55+09:00'
 - id: cmd_1648
   status: done
   priority: high
