@@ -697,6 +697,7 @@ commands:
   - git commit + push 済 (関連 3-4 commit)
   - Phase 3 (cmd_1643 — inbox_watcher.sh 物理廃止) 起票判断資料 (QC 報告書末尾) 作成
   notify_karo: true
+  completed_at: '2026-05-06T05:14:39+09:00'
 - id: cmd_1643
   status: cancelled
   priority: high
@@ -1180,5 +1181,79 @@ commands:
   - queue/reports/2026-05-06_cmd_1648_phase1_unit_test.md 作成 (テスト結果記録)
   - 既存 inbox_watcher.sh / Monitor (cmd_1642) は触らない (rollback 確保)
   - gunshi QC PASS
+  - git commit 済
+  notify_karo: true
+- id: cmd_1652
+  status: in_progress
+  priority: medium
+  purpose: dashboard に cancel ボタンを追加・/api/cmd_cancel エンドポイント実装・既存 done ボタンと同等の UX
+    を実現する。
+  timestamp: '2026-05-06T05:17:30+09:00'
+  project: multi-agent-shogun
+  lord_original: ダッシュボードにdone ボタン用意してもらったがcanceled もほしい (殿命 2026-05-06 11:35 — MCP
+    dashboard に cancel ボタン追加・done ボタンは既存)
+  north_star: MCP dashboard (http://192.168.2.4:8770/) で殿が cmd の状態を変更する UI を充実させ、cancel
+    操作を done と同じ手軽さで実行可能にする。pending/in_progress の cmd を殿判断で即時 cancelled に変更できるようにし、運用負荷を下げる。
+  command_text: "## 背景\n\n殿命: ダッシュボード (MCP dashboard・http://192.168.2.4:8770/) に既に\
+    \ done ボタンはあるが、cancel ボタンがない。pending/in_progress の cmd を殿判断で即 cancelled に変更したいケースが頻繁にある\
+    \ (本日も cmd_1643 取消があった)。\n\nCLAUDE.md の `cmd_status_transitions` には既に `pending\
+    \ → cancelled (withdrawn by shogun)` が定義済。UI 側に cancel 操作の入口を追加するだけで実現可能。\n\n\
+    ## 担当 + bloom_level\n\n- ash (HTML/JS + Python 両方できる ash・推奨 ash2 か ash6・ash3 は\
+    \ cmd_1648 で稼働中の可能性)\n- bloom_level: **L3** (UI 追加 + API endpoint 1 個実装)\n- gunshi_qc:\
+    \ **false** (UI 追加のみ・QC 不要レベル)\n- 工数: 0.5 日\n\n## 実装内容\n\n### 1. /api/cmd_cancel\
+    \ エンドポイント実装 (server.py)\n\n```python\n# /api/cmd_cancel?id=cmd_XXX または POST {\"\
+    id\": \"cmd_XXX\"}\nelif self.path.startswith('/api/cmd_cancel'):\n    # query\
+    \ string or POST body から cmd_id 取得\n    cmd_id = parse_qs(urlparse(self.path).query).get('id',\
+    \ [''])[0]\n    if not cmd_id:\n        # POST body 経路\n        body_len = int(self.headers.get('Content-Length',\
+    \ 0))\n        body = json.loads(self.rfile.read(body_len)) if body_len else {}\n\
+    \        cmd_id = body.get('id', '')\n    \n    if not cmd_id:\n        self.send_response(400)\n\
+    \        self._json_response({'error': 'id required'})\n        return\n    \n\
+    \    # SQLite 更新\n    conn = sqlite3.connect(DB_PATH)\n    cur = conn.cursor()\n\
+    \    cur.execute(\n        \"UPDATE cmds SET status='cancelled', updated_at=?\
+    \ WHERE id=? AND status IN ('pending', 'in_progress')\",\n        (datetime.now(jst).isoformat(),\
+    \ cmd_id)\n    )\n    affected = cur.rowcount\n    conn.commit()\n    conn.close()\n\
+    \    \n    if affected == 0:\n        self._json_response({'ok': False, 'reason':\
+    \ 'cmd not found or already done/cancelled'})\n    else:\n        # YAML 側も更新\
+    \ (dual-path 整合)\n        # shogun_to_karo.yaml の該当 cmd の status を cancelled に\n\
+    \        # ※既存の done 処理を参考に実装\n        self._json_response({'ok': True, 'cmd_id':\
+    \ cmd_id, 'new_status': 'cancelled'})\n```\n\n### 2. dashboard HTML に cancel ボタン追加\n\
+    \n既存の done ボタンと同じ位置・同じレイアウトで:\n\n```html\n<!-- cmd 一覧の各行に cancel ボタン追加 -->\n<button\
+    \ onclick=\"cancelCmd('cmd_1234')\" class=\"btn-cancel\">キャンセル</button>\n```\n\
+    \n```javascript\nasync function cancelCmd(cmdId) {\n    if (!confirm(`${cmdId}\
+    \ を cancelled に変更しますか？\\n進行中の作業は手動で停止する必要があります。`)) return;\n    \n    const r\
+    \ = await fetch(`/api/cmd_cancel?id=${cmdId}`, {method: 'POST'});\n    const data\
+    \ = await r.json();\n    if (data.ok) {\n        alert(`${cmdId} を cancelled に変更しました`);\n\
+    \        location.reload();\n    } else {\n        alert(`失敗: ${data.reason ||\
+    \ data.error}`);\n    }\n}\n```\n\n### 3. ボタンスタイル\n\n```css\n.btn-cancel {\n \
+    \   background-color: #f87171;  /* 既存 done と区別する色・赤系 */\n    color: white;\n \
+    \   padding: 0.25rem 0.75rem;\n    border-radius: 4px;\n    cursor: pointer;\n\
+    \    border: none;\n    margin-left: 0.5rem;\n}\n.btn-cancel:hover {\n    background-color:\
+    \ #ef4444;\n}\n```\n\n## 担当 ash の手順\n\n0. advisor() 呼出\n1. server.py の既存 /api/cmd_done\
+    \ エンドポイント (or 同等) を Read して実装パターン確認\n2. /api/cmd_cancel を同パターンで実装\n3. dashboard\
+    \ HTML (server.py 内 or 別 .html) で done ボタンの位置を確認\n4. cancel ボタン追加 (HTML + JS +\
+    \ CSS)\n5. 動作確認:\n   - dashboard 開く\n   - 適当な pending cmd の cancel ボタンクリック\n \
+    \  - confirm ダイアログ確認\n   - cancel 実行 → status が cancelled に変わることを確認\n   - リロードで反映確認\n\
+    6. python3 -m py_compile PASS\n7. git add scripts/dashboard/server.py (dashboard\
+    \ HTML が server.py 内ならこれだけ)\n8. git commit -m 'feat(dashboard): cancel ボタン追加 +\
+    \ /api/cmd_cancel endpoint (cmd_1652)'\n9. advisor() 呼出\n10. inbox karo 完了報告\n\
+    \n## 完了基準\n\n- /api/cmd_cancel?id=cmd_XXX エンドポイント実装済 (POST or GET)\n- pending/in_progress\
+    \ の cmd のみ cancelled に変更可 (done/already cancelled は弾く)\n- dashboard HTML に cancel\
+    \ ボタン追加済\n- confirm ダイアログ実装済 (誤操作防止)\n- ボタンスタイル (赤系・done と区別) 実装済\n- 既存 done ボタンの動作に影響なし\n\
+    - python3 -m py_compile PASS\n- 動作確認: dashboard で実際に cancel ボタンクリック → status 変更確認\n\
+    - git commit 済 (push は家老責務)\n\n## 共通ルール\n\n- 出力先: `scripts/dashboard/server.py`\
+    \ (HTML/JS/CSS が同 file 内ならこれのみ)\n- 新規 .py 禁止 (server.py 拡張のみ)\n- 中間成果物は queue/reports/\
+    \ 配下保存\n- git commit 済が完了条件\n\n## 注意事項\n\n- cancel は **取り消し不能** (cancelled → 他状態への戻しは別\
+    \ cmd 起票必要) ゆえ confirm 必須\n- 既存 done ボタンの実装パターンに合わせること (UX 統一)\n- SQLite + YAML\
+    \ dual-path の整合性確保 (cmd_1488/1494 教訓)\n- pending/in_progress 以外の status からの cancel\
+    \ は明示的に拒否 (already done を上書きしない)"
+  acceptance_criteria:
+  - /api/cmd_cancel エンドポイント実装済 (cmd_id を query or body で受取)
+  - pending/in_progress の cmd のみ cancelled に変更可・done/already cancelled は弾く
+  - dashboard HTML に cancel ボタン追加済 (既存 done と同位置・赤系スタイルで区別)
+  - 確認ダイアログ実装済 (confirm())
+  - 既存 done ボタンの動作に影響なし
+  - SQLite + YAML dual-path で status 整合更新済
+  - python3 -m py_compile PASS
+  - 実機動作確認 (dashboard で cancel ボタンクリック → status 変更確認)
   - git commit 済
   notify_karo: true
