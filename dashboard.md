@@ -64,16 +64,29 @@
 
 ## 🚨 要対応
 
-### 🔑 SSH鍵なし → git push不可 (殿/将軍 対処要)
+### 🚨 殿: 以下 2 点の対処をお願いします (全エージェント作業ブロック中)
 
-SSH秘密鍵が~/.ssh/に存在しない。git pushが全エージェントで失敗中。  
-`ssh-add <秘密鍵パス>` で鍵をエージェントに登録するか、鍵を復元してください。  
-※ローカルcommitは積まれているので鍵復元後に `git push origin main` で一括push可。
+**① SSH鍵なし → git push 全エージェントで失敗中**
 
-### 🔄 server.py 再起動要 (殿/将軍 対応) — cmd_1648 + cmd_1652 両方有効化
+```bash
+# SSH秘密鍵のパスを確認して登録
+ssh-add <秘密鍵のパス>   # 例: ~/.ssh/id_rsa or ~/.ssh/github_key
+git push origin main      # push保留中のcommitを一括push
+```
 
-cmd_1648 (SSE endpoint) + cmd_1652 (cancelボタン) 両方 gunshi QC PASS済・git push済。  
-**server.py 再起動で両機能が同時に有効化される**。
+**② server.py 再起動 (ENABLE_SSE_INBOX=true 付き) → cmd_1649 SSE観察ブロック解除**
+
+```bash
+pkill -f "python.*server.py"
+sleep 1
+source ~/.bashrc
+ENABLE_SSE_INBOX=true python3 /home/murakami/multi-agent-shogun/scripts/dashboard/server.py &
+```
+
+再起動後 → 軍師に inbox「server.py 再起動完了」を通知してください (家老からは通知不可)。  
+または `curl -X POST http://192.168.2.4:8770/api/inbox_write -H 'Content-Type: application/json' -d '{"to":"gunshi","from":"shogun","type":"wake_up","message":"server.py ENABLE_SSE_INBOX=true 再起動完了。cmd_1649 再開せよ"}'`
+
+push保留コミット数: **4件** (c02055a / 9f6757d / 3cffad8 + gunshi local a95111f)
 
 ```bash
 pkill -f "python.*server.py" && sleep 1 && source ~/.bashrc && python3 /home/murakami/multi-agent-shogun/scripts/dashboard/server.py &
