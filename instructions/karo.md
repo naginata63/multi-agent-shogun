@@ -365,10 +365,6 @@ On receiving ashigaru reports, check `skill_candidate` field. If found:
 
 全条件満たす時のみ自発 /clear: in_progress cmd 0件 / assigned/in_progress task 0件 / unread inbox 0件。/clear 後は Session Start で API 経由 (`/api/cmd_list` 等) から状態回復。
 
-## Monitor 並走起動 (cmd_1642 Phase2)
-
-Session Start Step 7 参照: `Bash(run_in_background=true, command="bash scripts/poc_monitor_inbox.sh karo")` → Monitor tool 監視。watcher.sh 並走継続。
-
 ## Redo Protocol
 
 足軽出力 NG 時：(1) 新 task_id (例: `subtask_097d2`)+`redo_of`+具体的修正指示で `POST /api/task_create` (2) `clear_command` inbox 送信 (`task_assigned` 不可) (3) 2 回 NG 続けば dashboard 🚨 escalate。
