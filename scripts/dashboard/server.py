@@ -55,6 +55,7 @@ def _push_to_inbox_queue(target_agent, message_dict):
 
 def get_db():
     conn = sqlite3.connect(DB_PATH, timeout=5)
+    conn.execute("PRAGMA busy_timeout = 10000")
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -114,7 +115,8 @@ def query_db(conn, sql, params=()):
     try:
         cur = conn.execute(sql, params)
         return [dict(row) for row in cur.fetchall()]
-    except sqlite3.OperationalError:
+    except sqlite3.OperationalError as e:
+        print(f"[WARN] query_db error: {e}", file=os.sys.stderr)
         return []
 
 
@@ -3060,8 +3062,81 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                         finally:
                             _fcntl3.flock(_lf, _fcntl3.LOCK_UN)
                 except Exception as _ye:
-                    print(f"[cmd_cancel] WARN YAML update: {_ye}")
-                resp = json.dumps({'ok': True, 'cmd_id': cmd_id, 'status': 'cancelled', 'actor': actor}, ensure_ascii=False).encode('utf-8')
+                    print(f"[cmd_cancel] WARN YAML cmd update: {_ye}")
+                # cmd_1661: YAML update (best effort) — subtask (各agent別)
+                import fcntl as _fcntl_sub
+                for agent in notified_agents:
+                    yaml_path = os.path.join(TASKS_DIR, f'{agent}.yaml')
+                    if not os.path.exists(yaml_path):
+                        continue
+                    try:
+                        lock_path = yaml_path + '.lock'
+                        with open(lock_path, 'w') as _lf:
+                            _fcntl_sub.flock(_lf, _fcntl_sub.LOCK_EX)
+                            try:
+                                with open(yaml_path, 'r', encoding='utf-8') as f:
+                                    ydata = yaml.safe_load(f) or {}
+                                for t in (ydata.get('tasks') or []):
+                                    if t.get('task_id') in cancelled_subtasks:
+                                        t['status'] = 'cancelled'
+                                        t['cancelled_reason'] = cancelled_reason
+                                        t['cancelled_at'] = now_jst
+                                with open(yaml_path, 'w', encoding='utf-8') as f:
+                                    yaml.dump(ydata, f, allow_unicode=True, sort_keys=False, default_flow_style=False)
+                            finally:
+                                _fcntl_sub.flock(_lf, _fcntl_sub.LOCK_UN)
+                    except Exception as _ye:
+                        print(f"[cmd_cancel] WARN YAML subtask update for {agent}: {_ye}")
+                # cmd_1661: 各ash/gunshi inboxに task_cancelled 送信 (best effort)
+                for agent in notified_agents:
+                    try:
+                        _msg_id = str(uuid.uuid4())[:8]
+                        _ts = datetime.now(timezone(timedelta(hours=9))).strftime('%Y-%m-%dT%H:%M:%S')
+                        _message = f'{cmd_id} cancelled by {actor}. Related subtasks auto-cancelled.'
+                        _conn2 = get_db()
+                        try:
+                            _conn2.execute(
+                                '''INSERT INTO inbox_messages
+                                   (id, agent, from_agent, type, content, read, timestamp)
+                                   VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                                (_msg_id, agent, 'shogun', 'task_cancelled', _message, 0, _ts)
+                            )
+                            _conn2.commit()
+                            _push_to_inbox_queue(agent, {
+                                'id': _msg_id, 'type': 'task_cancelled', 'message': _message,
+                                'from_agent': 'shogun', 'timestamp': _ts
+                            })
+                        finally:
+                            _conn2.close()
+                    except Exception as _ie:
+                        print(f"[cmd_cancel] WARN inbox notify {agent}: {_ie}")
+                # gunshi にも送信
+                try:
+                    _msg_id = str(uuid.uuid4())[:8]
+                    _ts = datetime.now(timezone(timedelta(hours=9))).strftime('%Y-%m-%dT%H:%M:%S')
+                    _message = f'{cmd_id} cancelled by {actor}. {len(cancelled_subtasks)} subtasks auto-cancelled.'
+                    _conn2 = get_db()
+                    try:
+                        _conn2.execute(
+                            '''INSERT INTO inbox_messages
+                               (id, agent, from_agent, type, content, read, timestamp)
+                               VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                            (_msg_id, 'gunshi', 'shogun', 'task_cancelled', _message, 0, _ts)
+                        )
+                        _conn2.commit()
+                        _push_to_inbox_queue('gunshi', {
+                            'id': _msg_id, 'type': 'task_cancelled', 'message': _message,
+                            'from_agent': 'shogun', 'timestamp': _ts
+                        })
+                    finally:
+                        _conn2.close()
+                except Exception as _ie:
+                    print(f"[cmd_cancel] WARN inbox notify gunshi: {_ie}")
+                resp = json.dumps({
+                    'ok': True, 'cmd_id': cmd_id, 'status': 'cancelled', 'actor': actor,
+                    'cancelled_subtasks': cancelled_subtasks,
+                    'notified_agents': list(notified_agents)
+                }, ensure_ascii=False).encode('utf-8')
                 self.send_response(200); self.send_header('Content-Type', 'application/json; charset=utf-8'); self.send_header('Content-Length', str(len(resp))); self.end_headers()
                 self.wfile.write(resp)
             except Exception as e:
@@ -3264,7 +3339,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     return
                 now_jst = datetime.now(timezone(timedelta(hours=9))).strftime('%Y-%m-%dT%H:%M:%S+09:00')
                 # SQLite UPDATE
-                _conn = sqlite3.connect(DB_PATH, timeout=5)
+                _conn = get_db()
                 try:
                     # Find agent first (needed for YAML path)
                     row = _conn.execute('SELECT agent FROM tasks WHERE task_id=?', (task_id,)).fetchone()
@@ -3474,7 +3549,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
 
                 # SQLite dual-path
                 try:
-                    _conn = sqlite3.connect(DB_PATH, timeout=5)
+                    _conn = get_db()
                     _conn.execute('''INSERT OR REPLACE INTO reports
                         (report_id, worker_id, task_id, parent_cmd, type, status,
                          qa_decision, timestamp, report_path, summary)
