@@ -1,12 +1,15 @@
 ## 🎯 進行中
 
-
-
-
 ### cmd_1649 — SSE 24h観察 [in_progress] (2026-05-06)
 - **担当**: 軍師 (subtask_1649_sse_observation)
-- **状態**: 24h観察継続中 (完了予定: 2026-05-07 06:28)・実運用 100% 受信率・取りこぼし 0
+- **状態**: 24h観察継続中 (完了予定: 2026-05-08 06:28)・実運用 100% 受信率・取りこぼし 0
+- /handoff 副作用で SSE Monitor task 生存確認中 (軍師に確認依頼済)
 - 最終判定書受領後 → cmd_1650 Phase 3 着手
+
+### 🛑 全足軽停止整理 [in_progress] (2026-05-07 07:14 殿命)
+- weekly limit 節約のため将軍以外停止 (軍師は cmd_1649 継続)
+- ash1/4/6/7: clear済 ✅ / ash5: /clearキュー積み (自然停止待ち) / ash2: /clearキュー積み / ash3: 停止命令inbox送信済
+- 家老も停止整理完了後 /handoff → /clear 予定
 
 ## ⏸ 保留中 (再開待ち)
 
@@ -51,11 +54,16 @@ server.py 全30+エンドポイントの error/success response に expected/exa
 - SQLite + YAML dual-path 整合維持 / feedback_cmd_cancel_propagation.md 作成
 - commit 541328b (ash5)
 
+### cmd_1666 完了 — server.py dead remnant 清掃 (2026-05-07)
+- 軍師QC CONDITIONAL_PASS で発覚した逆作用コード (L2829: PRAGMA busy_timeout=5000) 削除
+- L2826 dead import + L2827 dead variable + L2954-2955 + L3009-3010 合計7行全削除 (ash3)
+- commit 31b6070 / py_compile OK / API 正常応答確認
+
 ### cmd_1664 完了 — server.py 応答遅延 調査・修復 (2026-05-07)
 - 根本原因: PRAGMA busy_timeout 23箇所未設定 → writer直列化タイムアウト
-- 修復: get_db() busy_timeout=10000 追加 + query_db() エラー可視化 (ash3)
+- 修復: get_db() busy_timeout=10000 追加 + query_db() エラー可視化 (ash3, commit 2ce5d13)
 - 将軍 commit 185827b: TRIGGER補修 + inbox_mark_read typo改善
-- commit 2ce5d13 push済み / Phase 3 (cmd_1650) 着手条件充足
+- cmd_1666 dead remnant 清掃 (commit 31b6070) で完全解消 / Phase 3 (cmd_1650) 着手条件充足
 
 ### cmd_1663 完了 — 夜間矛盾検出 STTパイプライン (2026-05-07)
 - 前回20件: 16件 RESOLVED・1件 PARTIAL・3件 ACTUALLY_RESOLVED
