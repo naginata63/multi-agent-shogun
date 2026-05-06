@@ -2823,10 +2823,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 storage_backend = os.environ.get('STORAGE_BACKEND', 'dual')
                 if storage_backend != 'yaml':
                     try:
-                        import sqlite3 as _sqlite3
-                        _db_path = os.path.join(BASE_DIR, 'queue', 'cmds.db')
                         _conn = get_db()
-                        _conn.execute('PRAGMA busy_timeout = 5000')
                         _crit_json = json.dumps(body.get('acceptance_criteria', []), ensure_ascii=False) if body.get('acceptance_criteria') else None
                         _notes_json = json.dumps(body.get('notes', []), ensure_ascii=False) if body.get('notes') else None
                         _dep_json = json.dumps(body.get('depends_on', []), ensure_ascii=False) if body.get('depends_on') else None
@@ -2951,8 +2948,6 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 now_iso = datetime.now(timezone(timedelta(hours=9))).strftime('%Y-%m-%dT%H:%M:%S+09:00')
                 completed_at = now_iso if new_status == 'done' else None
                 # SQLite UPDATE
-                import sqlite3 as _sqlite3
-                _db_path = os.path.join(BASE_DIR, 'queue', 'cmds.db')
                 _conn = get_db()
                 try:
                     if completed_at:
@@ -3006,8 +3001,6 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps({'error': 'id required'}).encode('utf-8'))
                     return
                 # 現在の status を確認
-                import sqlite3 as _sqlite3
-                _db_path = os.path.join(BASE_DIR, 'queue', 'cmds.db')
                 _conn = get_db()
                 try:
                     cur = _conn.execute('SELECT status FROM commands WHERE id=?', (cmd_id,))
