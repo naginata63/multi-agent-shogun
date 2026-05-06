@@ -391,7 +391,107 @@ PostToolUse → いつも同じテスト実行
 
 ---
 
-## ここまでの振り返り
+<!--
+スピーカーノート:
+ここから実践ケーススタディ。ch06で学んだadvisorは任意発動＝AIがskipすることもある。これをPostToolUse hookで「確実に効かせる」実装例としてdone_gate.shを紹介します。本プロジェクトで実際に使っているコードなので、リアリティがあります。「公式機能だけでどこまでできるか」と「独自ロジックでどこまで拡張できるか」の二層構造を明確に説明してください。
+-->
+
+## ケーススタディ — 任意発動を hook で間接強制する
+
+> ch06 で学んだ advisor は AI が **skip できる**
+> → 「skip されたら困る」場面では hook で **間接的に強制** できる
+
+```
+ch06 advisor (任意発動)          ch07 PostToolUse hook (強制発動)
+         │                                   │
+         └── skip あり ──→ どうする？ ──→  hook で完了ゲートを立てる
+```
+
+---
+
+<!--
+スピーカーノート:
+二層構造の明示スライド。上がClaude Code公式機能、下が本プロジェクト独自の検査ロジック。この分離が重要な理由: 受講者はまず公式機能を理解し、その上で独自ロジックで拡張できることを知る必要がある。done_gate.shはあくまで応用例であり、本プロジェクト固有のものです。
+-->
+
+## 二層構造 — 公式 hook + 独自ゲート
+
+```
+┌─────────────────────────────────────────────┐
+│  PostToolUse hook (Claude Code 公式機能)     │
+│  → ファイル編集後に自動発動する仕組み自体     │
+│    は Claude Code の公式機能                 │
+├─────────────────────────────────────────────┤
+│  done_gate.sh (本プロジェクト独自の検査)     │
+│  → hook から呼ばれる検査ロジックの中身は      │
+│    プロジェクトごとに自作する                 │
+└─────────────────────────────────────────────┘
+```
+
+- **上の層** (公式): hook の発火タイミング・設定方法 — Claude Code が提供
+- **下の層** (独自): 何を検査するか — プロジェクトごとに設計
+
+---
+
+<!--
+スピーカーノート:
+done_gate.shの仕組みを流れ図で説明。PostToolUse hookが発火→posttool_verify_runner.sh→done_gate.sh→advisor未呼出ならBLOCK。この連鎖を理解してもらう。L139の実コードも見せるので、その前に全体像を把握させます。
+-->
+
+## done_gate.sh の仕組み
+
+```
+AI が task YAML を編集 (status: done にしようとした)
+              │
+              ▼
+PostToolUse hook が発火
+              │
+              ▼
+posttool_verify_runner.sh が起動
+              │
+              ▼
+done_gate.sh が advisor 呼出回数を確認
+              │
+    ┌─────────┼─────────┐
+    ▼                   ▼
+advisor 2回以上       advisor 0〜1回
+   呼出済               呼出なし
+    │                   │
+    ▼                   ▼
+  exit 0              exit 2 (BLOCK)
+  (done 許可)         「advisor を呼んでから
+                      status: done にせよ」
+```
+
+---
+
+<!--
+スピーカーノート:
+実際のコード引用スライド。done_gate.sh L139の実コードを見せる。意味は「advisor呼出回数が2回未満ならBLOCKする」。2回という数字は「実装前＋完了前」の2回を想定。コードが短くて意図が明確であることを強調してください。受講者に「自分でも書けそう」と思わせるのがゴールです。
+-->
+
+## 実コード引用 — done_gate.sh
+
+```bash
+# done_gate.sh 抜粋 (L138-142)
+if [ "$ADVISOR_COUNT" -lt 2 ]; then
+  echo "BLOCK: ${TASK_ID} advisor 呼出 ${ADVISOR_COUNT} 回" \
+       "(必須 2 回: 実装前 + 完了前)" >&2
+  echo "対応: advisor() を呼んでから status:done にせよ" >&2
+  exit 2
+fi
+```
+
+**このコードがやっていること:**
+1. advisor の呼出ログを数える
+2. 2 回未満なら **BLOCK** (done 不許可)
+3. 理由を stderr に書いて AI に伝える
+
+> advisor (任意発動) を **hook で間接強制** する = ハーネスエンジニアリングの典型パターン
+
+---
+
+## この章の振り返り
 
 - フック = AI の動作の **前後に処理を自動挿入** する仕組み
 - 4 種類で全タイミングを網羅 (SessionStart / PreToolUse / PostToolUse / UserPromptSubmit)
@@ -399,6 +499,7 @@ PostToolUse → いつも同じテスト実行
 - **PostToolUse** → テスト忘れを **実行後に検証**
 - **UserPromptSubmit** → ch04 の検索を **自動発動** (長文読み飛ばしの自動対策)
 - Skill と連携すれば、AI が **自律的に必要な道具を呼ぶ** ようになる
+- **ケーススタディ**: advisor を hook で間接強制する done_gate.sh (公式 hook + 独自検査の二層構造)
 
 ---
 
@@ -407,10 +508,16 @@ PostToolUse → いつも同じテスト実行
 **言える 1 文:**
 > フックで AI の動作の前後に処理を差し込めば、テスト忘れも資料確認忘れも防げる
 
+**ケーススタディ (done_gate.sh):**
+> advisor (任意発動) を PostToolUse hook で間接強制する実装例
+> — 公式 hook + 独自検査ロジックの二層構造
+
 **次章への橋渡し:**
 > ch08 では「黙って失敗する」AI を能動的に検知する仕組みと、
 > 止めるべき操作を宣言的に阻止する仕組みを学びます。
 > 本章の PreToolUse フックがその **実行時の強制力** を担います。
+
+**参考**: [Claude Code Hooks 公式ドキュメント](https://docs.anthropic.com/en/docs/claude-code/hooks)
 
 **強化した層：ハーネス層（L3）** — フックで自動化し、Skill 連携の入口に立った
 
@@ -424,6 +531,7 @@ PostToolUse → いつも同じテスト実行
 <div class="meta">
 ✅ 4 種類のフックで全タイミングを網羅できる<br>
 ✅ UserPromptSubmit で ch04 の検索を自動発動できる<br>
-✅ Skill と連携すれば AI が自律的に道具を選べる<br><br>
+✅ Skill と連携すれば AI が自律的に道具を選べる<br>
+✅ done_gate.sh で advisor を間接強制する実装例を知った<br><br>
 <b>続けて第8章をお楽しみください</b>
 </div>
