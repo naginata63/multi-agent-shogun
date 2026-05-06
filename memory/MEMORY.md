@@ -170,6 +170,7 @@ mcp__memory__create_relations([{
 - [YouTube非公開はunlisted必須](feedback_youtube_unlisted_not_private.md) — privateだと字幕取得不可 [2026-04-04]
 - [shogun_to_karo statusルール](feedback_shogun_to_karo_status_update.md) — cmd完了時にshogun_to_karo.yamlのstatusもdoneに更新（dashboard.mdとセット必須）
 - [cmd done化前 subtask 全件 verify](feedback_cmd_done_subtask_verify.md) — cmd done更新前に /api/task_list?cmd=XXX で全subtask done/cancelled 確認必須。done済みcmdへの軍師報告は殿へ通知不要 [2026-04-29]
+- **[cmd cancel 時は subtask も即キャンセル伝播必須](feedback_cmd_cancel_subtask_propagation.md)** — cmd cancel API は subtask を自動 cancel しない。関連 subtask 全件 cancelled + ash 停止 inbox をセットで実施 [2026-05-06殿激怒]
 
 ### [2026-03-16] ffmpegはNVENC（GPU）でエンコードせよ
 - [詳細: memory/feedback_ffmpeg_nvenc.md](memory/feedback_ffmpeg_nvenc.md)
@@ -295,6 +296,9 @@ mcp__memory__create_relations([{
 ## ナレッジ管理ルール（2026-04-25）
 - [memory vs ナレッジ区分ルール](feedback_memory_vs_knowledge_rule.md) — memoryは殿好み/激怒のみ・技術はprocedures/・実証後にナレッジ化
 - [git push 認証方法](feedback_git_push_auth.md) — HTTPS+gh auth credential が正規経路・SSH鍵不使用・git@URLになっていたら即HTTPS切替 [2026-05-06将軍復旧]
+- [Udemy講座ハンズオン非採用](feedback_udemy_no_handson.md) — ハンズオン演習は採用しない・スライド説明スタイル維持 (殿確定 2026-05-06)
+- [調査タスク: 実コードからDB_PATH/config確認が先](feedback_investigation_read_config_first.md) — 設定値を仮定せず実コード読んでから調査。steps[0]に明示必須 (cmd_1664 ash2誤診教訓 2026-05-07)
+- [cmd cancel時のsubtask自動伝播はAPI側で実装済み](feedback_cmd_cancel_propagation.md) — cmd cancel時に parent_cmd=cmd_id の全subtask も自動cancelled+agent inbox通知。将軍/家老の手動更新不要 (cmd_1661 ash5実装 2026-05-07)
 - ナレッジ化TODO一覧: `shared_context/knowledge_todo.md`
 
 ## TODO

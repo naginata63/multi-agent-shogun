@@ -18,18 +18,21 @@ tasks:
   target_path: /home/murakami/multi-agent-shogun/queue/reports/2026-05-03_cmd_1607_userprompt_semantic_search_hook.md
   task_id: subtask_1607c
   timestamp: '2026-05-03T19:42:04.924256+09:00'
-- agent: ashigaru3
-  task_id: subtask_1636_stepB3
-  status: blocked
-  priority: high
-  parent_cmd: cmd_1636
+- acceptance_criteria:
+  - merged_GZ1O6k1Fe3A.json 存在・A-F=0
+  - RAM/VRAM ピーク値報告
+  - OOM-killer 未発生
+  agent: ashigaru3
   blocked_by:
   - subtask_1636_stepA1
   - subtask_1636_stepA2
   bloom_level: L3
-  gunshi_qc: false
   description: 'cmd_1636 Phase B 試運転 (ash3): GZ1O6k1Fe3A 1本処理 (3並列安全確認)'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_GZ1O6k1Fe3A.json
+  gunshi_qc: false
+  notes: Phase A完了確認後のみ実行。ash3は初回参加。GEMINI API期限切れのためscene_search_v2 build禁止。
+  parent_cmd: cmd_1636
+  priority: high
+  status: blocked
   steps: '0) advisor()呼出 1) 【3並列安全確認フェーズ】ash1+ash2と同時並列 (初参加) — 事前メモリ確認: free -h &&
     nvidia-smi 2) VIDEO_ID=GZ1O6k1Fe3A && mkdir -p /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/cmd_1636_GZ1O6k1Fe3A/{input,output}
     3) cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki && source ~/.bashrc
@@ -38,47 +41,47 @@ tasks:
     work/cmd_1636_GZ1O6k1Fe3A/input/GZ1O6k1Fe3A.mp4 --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_GZ1O6k1Fe3A.json
     --work-dir work/cmd_1636_GZ1O6k1Fe3A/output/ --cache 5) 完了後: free -h && nvidia-smi
     で最終メモリ記録 6) A-F検証 & dmesg OOM確認 7) advisor()呼出 8) inbox karo 完了報告'
-  acceptance_criteria:
-  - merged_GZ1O6k1Fe3A.json 存在・A-F=0
-  - RAM/VRAM ピーク値報告
-  - OOM-killer 未発生
-  notes: Phase A完了確認後のみ実行。ash3は初回参加。GEMINI API期限切れのためscene_search_v2 build禁止。
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_GZ1O6k1Fe3A.json
+  task_id: subtask_1636_stepB3
   timestamp: '2026-05-05T15:22:55.513209+09:00'
-- agent: ashigaru3
-  task_id: subtask_1636_batch3
-  status: blocked
-  priority: high
-  parent_cmd: cmd_1636
+- acceptance_criteria:
+  - 12本全て merged_<id>.json が srt_and_candidates/ に存在
+  - 全merged JSON で A-F speakers = 0
+  - OOM-killer 未発生
+  agent: ashigaru3
   blocked_by:
   - subtask_1636_stepB1
   - subtask_1636_stepB2
   - subtask_1636_stepB3
   bloom_level: L3
-  gunshi_qc: false
   description: 'cmd_1636 Phase C batch3 (ash3): 12本処理 (Tdgz_MMfBAU〜HnDcGHXKJFQ)'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/
+  gunshi_qc: false
+  notes: cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki してから実行。GEMINI
+    API期限切れのためscene_search_v2 build禁止。git push は家老が実施。
+  parent_cmd: cmd_1636
+  priority: high
+  status: blocked
   steps: '0) advisor()呼出 1) 【4並列本番フェーズ】事前メモリ確認: free -h && nvidia-smi 2) 以下12本を順次処理。各動画:
     VIDEO_ID=<id> → mkdir -p work/cmd_1636_<id>/{input,output} → downloader.py + vocal_stt_pipeline.py
     → merged_{id}.json → A-F検証 3) 処理対象12本: Tdgz_MMfBAU X3cMBasYcSA 05zhA1M5SU0 XB-XKVQRCok
     sml-aYEMIKM D4_8sRpAKQo WbYEt3Pv0BE 8r1cEKpTM5M NgkCZL-uhZI WylcM9Jly2s pIrocoqvwJg
     HnDcGHXKJFQ 4) RAM>40GB or OOM→即STOP→inbox karo 5) 全完了後: 成功/失敗一覧 inbox karo報告
     6) advisor()呼出'
-  acceptance_criteria:
-  - 12本全て merged_<id>.json が srt_and_candidates/ に存在
-  - 全merged JSON で A-F speakers = 0
-  - OOM-killer 未発生
-  notes: cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki してから実行。GEMINI
-    API期限切れのためscene_search_v2 build禁止。git push は家老が実施。
-  timestamp: '2026-05-05T15:22:55.852528+09:00'
-- agent: ashigaru3
-  task_id: subtask_1636_fullbatch3
-  status: in_progress
-  priority: high
-  parent_cmd: cmd_1636
-  bloom_level: L3
-  gunshi_qc: false
-  description: 'cmd_1636 直接4並列: ash3 担当 14本 (BcPWm_mCpp4〜QCFyL7tG-v4) DL→Demucs→STT→speaker_mapping'
   target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/
+  task_id: subtask_1636_batch3
+  timestamp: '2026-05-05T15:22:55.852528+09:00'
+- acceptance_criteria:
+  - 14本全て merged_<id>.json が srt_and_candidates/ に存在
+  - 全merged JSON で A-F speakers = 0
+  - RAM available>5GB 維持・OOM未発生
+  agent: ashigaru3
+  bloom_level: L3
+  description: 'cmd_1636 直接4並列: ash3 担当 14本 (BcPWm_mCpp4〜QCFyL7tG-v4) DL→Demucs→STT→speaker_mapping'
+  gunshi_qc: false
+  notes: 4並列本番。GEMINI API期限切れのためscene_search_v2 build禁止。エラー時スキップ継続可。git push は家老が実施。
+  parent_cmd: cmd_1636
+  priority: high
+  status: in_progress
   steps: '0) advisor()呼出 1) 事前メモリ確認: free -h && nvidia-smi --query-gpu=memory.used,memory.total
     --format=csv,noheader 2) cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
     && source ~/.bashrc && source venv/bin/activate 3) 以下14本を順次処理。各動画: VIDEO_ID=<id>
@@ -87,176 +90,40 @@ tasks:
     XB-XKVQRCok sml-aYEMIKM D4_8sRpAKQo WbYEt3Pv0BE 8r1cEKpTM5M NgkCZL-uhZI WylcM9Jly2s
     pIrocoqvwJg HnDcGHXKJFQ QCFyL7tG-v4 5) 5本ごとにメモリ確認。異常→即STOP→inbox karo 6) 全完了後:
     成功/失敗一覧 + 最終メモリ状態 inbox karo報告 7) advisor()呼出'
-  acceptance_criteria:
-  - 14本全て merged_<id>.json が srt_and_candidates/ に存在
-  - 全merged JSON で A-F speakers = 0
-  - RAM available>5GB 維持・OOM未発生
-  notes: 4並列本番。GEMINI API期限切れのためscene_search_v2 build禁止。エラー時スキップ継続可。git push は家老が実施。
-  timestamp: '2026-05-05T15:29:03.054235+09:00'
-- agent: ashigaru3
-  task_id: subtask_1636_retry3
-  status: done
-  priority: high
-  parent_cmd: cmd_1636
-  bloom_level: L3
-  gunshi_qc: false
-  description: 'cmd_1636 bot検出リトライ: ash3担当14本 (BcPWm_mCpp4〜QCFyL7tG-v4) --cookies-from-browser
-    chrome でDL再試行'
   target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/
-  steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
-    && source ~/.bashrc && source venv/bin/activate 2) ブラウザ確認: which google-chrome
-    chromium-browser firefox 2>/dev/null | head -1 3) 以下14本を順次処理。各動画: VIDEO_ID=<id>
-    → mkdir -p work/cmd_1636_<id>/{input,output} → DLステップ: [ -f work/cmd_1636_<id>/input/<id>.mp4
-    ] && echo ''SKIP DL'' || yt-dlp --cookies-from-browser chrome -f ''bestvideo[height<=360][ext=mp4][vcodec*=avc1]+bestaudio[ext=m4a]/best[height<=360]''
-    --merge-output-format mp4 --write-info-json --write-comments -o work/cmd_1636_<id>/input/<id>.mp4
-    ''https://www.youtube.com/watch?v=<id>'' → python3 scripts/vocal_stt_pipeline.py
-    work/cmd_1636_<id>/input/<id>.mp4 --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_<id>.json
-    --work-dir work/cmd_1636_<id>/output/ --cache → A-F検証 4) 処理対象14本: BcPWm_mCpp4
-    Tdgz_MMfBAU X3cMBasYcSA 05zhA1M5SU0 XB-XKVQRCok sml-aYEMIKM D4_8sRpAKQo WbYEt3Pv0BE
-    8r1cEKpTM5M NgkCZL-uhZI WylcM9Jly2s pIrocoqvwJg HnDcGHXKJFQ QCFyL7tG-v4 5) chrome失敗時はfirefoxで再試行
-    6) 5本ごとにfree -h && nvidia-smi でメモリ確認 7) 全完了後: 成功/失敗一覧 + inbox karo報告 8) advisor()呼出'
-  acceptance_criteria:
-  - 14本全て merged_<id>.json が srt_and_candidates/ に存在 (失敗はスキップ可・失敗理由明記)
-  - 成功した全merged JSON で A-F speakers = 0
-  - RAM available>5GB 維持・OOM未発生
-  notes: bot検出リトライ。yt-dlp --cookies-from-browser chrome 使用。chrome失敗時はfirefoxで試みよ。エラー時はスキップして継続可。git
-    pushは家老が実施。
-  timestamp: '2026-05-05T16:45:23.821632+09:00'
-- agent: ashigaru3
-  task_id: subtask_1643_connect_test
-  status: cancelled
-  blocked_by:
-  - subtask_1643_sse_impl
-  - subtask_1643_monitor_update
-  priority: high
-  parent_cmd: cmd_1643
+  task_id: subtask_1636_fullbatch3
+  timestamp: '2026-05-05T15:29:03.054235+09:00'
+- task_id: subtask_1664_fix_server
+  agent: ashigaru3
+  parent_cmd: cmd_1664
+  title: server.py busy_timeout 全経路統一 + query_db エラー処理改善
+  description: scripts/dashboard/server.py の sqlite3.connect() 経路 23箇所で PRAGMA busy_timeout
+    が未設定 (L57 get_db() の1箇所のみ設定済)。全接続を get_db() 経由に統一し busy_timeout=10000ms を確実に適用する。また
+    query_db() の OperationalError silent ignore を可視化に置換する。コード修正の前に必ず server.py L26
+    で DB_PATH を確認してから作業せよ (実DBは queue/cmds.db)。
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
   bloom_level: L3
-  gunshi_qc: false
-  description: 'cmd_1643: 全10 agent SSE Monitor接続確認テスト + 旧tail-F Monitor廃止確認'
-  target_path: /home/murakami/multi-agent-shogun/logs/inbox_audit.log
-  steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) ToolSearchで''select:Monitor''を実行してスキーマ取得
-    3) [SSE Monitor起動] Bash(run_in_background=true, command=''bash scripts/poc_sse_monitor.sh
-    ashigaru3'') で起動 → Monitor toolで出力監視 4) [10 agent接続テスト] shogun/karo/ashigaru1-7/gunshi
-    各1件 POST /api/inbox_write (message=''SSE_PHASE3_TEST cmd_1643'') → 各テスト後に SSE
-    Monitor の data: 行を記録 5) [到達確認] logs/inbox_audit.log でSSE_PHASE3_TEST 10件以上を確認
-    6) [旧Monitor廃止確認] ps aux でpoc_monitor_inbox.sh プロセスが 0件であることを確認 (cmd_1642の旧tail
-    -F方式が未起動であることを確認) 7) [既存watcher確認] ps aux | grep inbox_watcher で watcher 10件が稼働中であることを確認
-    8) karo inbox に完了報告 (SSE到達率・watcher並走確認・旧Monitor廃止確認)'
-  acceptance_criteria:
-  - SSE Monitor接続でashigaru3のinboxを監視・テストメッセージをdata:行で受信確認
-  - 全10 agent分 SSE_PHASE3_TEST メッセージ送信・audit log 10件以上確認
-  - 旧poc_monitor_inbox.sh プロセス稼働なし (廃止確認)
-  - 既存inbox_watcher.sh 10件並走確認
-  - karo inbox報告済
-  notes: 'blocked_by: subtask_1643_sse_impl + subtask_1643_monitor_update。SSE endpoint
-    は http://192.168.2.4:8770/api/inbox_stream?agent=<id>。Monitor toolはdeferred→ToolSearch必須。payload
-    fileはCHK10対策でqueue/cmd_payloads/に置くこと。'
-  timestamp: '2026-05-06T04:33:18.568076+09:00'
-- agent: ashigaru3
-  task_id: subtask_1647_prewrite_ch07_ch09
   status: done
   priority: high
-  parent_cmd: cmd_1647
-  bloom_level: L3
-  gunshi_qc: false
-  description: 'cmd_1647 Phase1: ch07-ch09 の事前4項目 (対象問題・持ち帰り・ストーリー・実例) を作成し殿確認用ファイルに出力'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch07_ch09.md
-  steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) 設計書精読: projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md
-    §7 章別詳細設計 (ch07-ch09) + §11 事前4項目プロトコル + §6.4 ch07章冒頭前章回収スライド + §2 困りごと11件 3)
-    各章で以下4項目をMarkdown形式で作成: [1]対象問題 [2]持ち帰り [3]ストーリー(現象→対策) [4]実例 4) ch07: 4種hook+Skill連携
-    ★ch07章冒頭前章回収スライド②必須 (セマンティック検索 自動化登場) + Skillが育つ縦糸 / ch08: 失敗を見逃さない仕組み(完了Gate+黙って失敗)
-    / ch09: 3層統合 業務応用 (営業/PM/データ分析) 5) 出力先: projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch07_ch09.md
-    6) git add -f projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch07_ch09.md
-    && git commit -m ''feat(udemy): v5 ch07-ch09 事前4項目作成 (Phase1)'' && git push origin
-    main 7) advisor()呼出 8) inbox karo 完了報告'
-  acceptance_criteria:
-  - ch07-ch09 各章の事前4項目 (対象問題・持ち帰り・ストーリー・実例) が全て記述済
-  - ch07の前章回収スライド②の内容が事前4項目に反映されている (ch04手動→ch07自動の回収)
-  - ch07末尾のSkill連携スライドが事前4項目に組み込まれている
-  - ch09の3業種 (営業/PM/データ分析) への応用具体例が実例項目に含まれる
-  - projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch07_ch09.md 作成済
-  - git commit + push済 (git add -f 使用)
-  notes: ch07は §6.4 前章回収スライド (L206-) を必ず参照。Skills縦糸 (ch01→ch07→ch11) の中継地点としてch07が機能することを4項目に反映せよ。ch09は完全新規章
-    (v4にない)。git add -f 必須 (projects/ は gitignore対象)。
-  timestamp: '2026-05-06T05:08:45.444383+09:00'
-  completed_at: '2026-05-06T05:16:48+09:00'
-- agent: ashigaru3
-  task_id: subtask_1647_write_ch04_ch05
-  status: done
-  parent_cmd: cmd_1647
-  bloom_level: L3
-  description: 'cmd_1647 Phase2: ch04(chunk+RAG+claude-mem+手動doc化) + ch05(subagent・Task
-    tool) 本文執筆・udemy-checker 🟢'
-  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/
-  steps: 1) curriculum_intermediate_v5_marp.md + v5_design.md + 自分の prewrite md 精読
-    2) advisor()呼出 3) 担当章をMarp形式で執筆 4) udemy-checker /udemy-checker <ファイルパス> で 🟢 確認
-    5) NGワードgrep 6) git add -f → commit 7) 全章完了後 inbox karo report_received
-  acceptance_criteria:
-  - 担当章すべての .md (Marp) + .html 作成済
-  - udemy-checker 🟢 達成 (観点A-E満足)
-  - NGワードリスト全件grep 0件
-  - 各章末に「強化した層：●層(L1/L2/L3)」1行明記
-  - JIT→必要時取得 / Lazy Load→必要時読込 置換済
-  - git add -f → commit + push 済
-  - inbox_write karo report_received 送信済
-  notes: '担当章: ch04(chunk+RAG+claude-mem+手動ドキュメント化), ch05(subagent/Task tool)
-
-    prewrite: intermediate_v5_prewrite_ch04_ch06.md (ch04/ch05分担)
-
-    【ch04重要】4道具(chunk+RAG+claude-mem+手動memory file)が主役
-
-    【ch05重要】subagentがLitM対策として明記必須
-
-    【入力ファイル】
-
-    - projects/udemy_course/drafts/lectures/curriculum_intermediate_v5_marp.md (v5設計書・主体)
-
-    - projects/udemy_course/v5_design.md
-
-    - 自分の担当章の prewrite md (下記target_path参照)
-
-
-    【執筆ルール】
-
-    - Marp形式 (.md) で執筆 → Marp CLI で .html 生成
-
-    - NGワード: 経済/階層/JIT/Lazy Load/queue/tasks/shogun/karo/ashigaru/gunshi/multi-agent-shogun
-    → 0件
-
-    - JIT→必要時取得 / Lazy Load→必要時読込 に置換
-
-    - 各章末に「強化した層：●層（L1/L2/L3）」1行明記
-
-    - udemy-checker 🟢 まで回し直し (最大3回)
-
-    - git add -f (gitignored) → commit (1章ずつ)
-
-    - 完了後 inbox karo report_received
-
-
-    【3層フレーム】L1=ch01-02 / L2=ch03-04 / L3=ch05-08
-
-    【困りごとマッピング】curriculum_intermediate_v5_marp.md §2 参照
-
-    【Skills縦糸】ch01(布石)→ch07(発展)→ch11(完成)'
-  timestamp: '2026-05-06T07:12:19.839079+09:00'
-  completed_at: '2026-05-06T07:59:06+09:00'
-- agent: ashigaru3
-  task_id: subtask_1655_phaseB_ch04_05
-  status: blocked
-  parent_cmd: cmd_1655
-  bloom_level: L3
-  blocked_by:
-  - subtask_1655_phaseA_extract
-  description: 'cmd_1655 Phase B: ch04/ch05 に v4スタイル統一適用'
-  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/intermediate_v5_ch04_context.md
   steps:
-  - 1. shared_context/marp_v4_style_template.md を読む (Phase A で作成済)
-  - 2. projects/udemy_course/drafts/lectures/intermediate_v5_ch04_context.md と intermediate_v5_ch05_context_advanced.md
-    を読む
-  - '3. v4スタイルを適用: frontmatterに style追加・カバースライド(章番号/タイトル/FREEバッジ/講師名なぎなた)を先頭に挿入・.meta
-    div追加・speakerノートHTMLコメント追加・用語先出しテーブルが無ければ追加。既存本文は壊さない'
-  - '4. Marp CLI で .html 再生成: npx @marp-team/marp-cli <file>.md -o <file>.html'
-  - 5. git add -f projects/udemy_course/ && git commit
-  - 6. karo へ inbox report_received
-  timestamp: '2026-05-06T11:37:01.149564+09:00'
+  - 0. server.py L26 で DB_PATH を確認 (実DBは queue/cmds.db・data/dashboard.db は旧パスで存在しない)
+  - 1. Read scripts/dashboard/server.py L50-120 で get_db() の現実装確認
+  - 2. get_db() に PRAGMA busy_timeout = 10000 を追加 (既に L2825 で 1箇所設定あるがget_db()には未設定)
+  - 3. grep -n 'sqlite3.connect' scripts/dashboard/server.py で全接続箇所を列挙
+  - 4. get_db() を使わずに直接 sqlite3.connect() している箇所を get_db() 経由に統一 (ただし migration 等の起動時1回限りの処理は慎重に)
+  - '5. query_db() L106-107 の except sqlite3.OperationalError: return [] を except
+    sqlite3.OperationalError as e: print(f''[WARN] query_db error: {e}'', file=sys.stderr);
+    return [] に変更'
+  - '6. 変更後に server.py の syntax check: python3 -m py_compile scripts/dashboard/server.py'
+  - 7. advisor() を呼び出して変更内容を確認せよ
+  - 8. git diff scripts/dashboard/server.py を確認し意図外変更がないことを確認
+  - 9. git add scripts/dashboard/server.py && git commit
+  - 10. karo へ report_received inbox_write で通知 (変更行数・テスト結果明記)
+  acceptance_criteria:
+  - server.py L26 DB_PATH = queue/cmds.db を確認してから作業した証跡
+  - get_db() に PRAGMA busy_timeout = 10000 追加済み
+  - 直接 sqlite3.connect() 経路のうち get_db() 統一可能なものを統一 (移行不可の起動時処理は理由を明記)
+  - query_db() の OperationalError が stderr にログ出力されるよう変更
+  - python3 -m py_compile でシンタックスエラーなし
+  - git commit 済み (cmd_1664 明記)
+  timestamp: '2026-05-07T06:34:49.111963+09:00'
