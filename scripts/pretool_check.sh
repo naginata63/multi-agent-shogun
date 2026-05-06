@@ -47,6 +47,7 @@ fi
 if [[ "$_CK2_AGENT_ID" == ashigaru* ]]; then
   _CK2_FILE_PATH=""
   _CK2_SKIP=false
+  _CK2_IS_APPEND=false
   if [[ "$TOOL_NAME" == "Write" ]] || [[ "$TOOL_NAME" == "Edit" ]]; then
     _CK2_FILE_PATH=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('file_path',''))" 2>/dev/null || true)
   elif [[ "$TOOL_NAME" == "Bash" ]]; then
@@ -54,6 +55,9 @@ if [[ "$_CK2_AGENT_ID" == ashigaru* ]]; then
     _CK2_FILE_PATH=$(echo "$COMMAND" | python3 -c "
 import sys, re
 cmd = sys.stdin.read()
+# >> (append) 検出
+if re.search(r'>>', cmd):
+    print('__APPEND__')
 # リダイレクト先を抽出: > /path, >> /path
 matches = re.findall(r'(?:>>|>)\s*([^\s;|&]+)', cmd)
 # tee /path パターン
@@ -64,6 +68,11 @@ for m in matches:
         print(m)
         break
 " 2>/dev/null || true)
+    # append (>>) 判定
+    if echo "$_CK2_FILE_PATH" | grep -q '__APPEND__'; then
+      _CK2_IS_APPEND=true
+      _CK2_FILE_PATH=$(echo "$_CK2_FILE_PATH" | grep -v '__APPEND__')
+    fi
     # Bashでshogun_to_karo.yaml書き込みの場合はチェック2の対象外（チェック4で処理）
     if [[ "$COMMAND" == *"shogun_to_karo.yaml"* ]]; then
       _CK2_SKIP=true
@@ -92,15 +101,19 @@ except Exception:
       if [ -n "$_CK2_TARGET_PATH" ] && echo "$_CK2_FILE_PATH" | grep -qF "$_CK2_TARGET_PATH"; then
         :  # target_pathと一致 → 許可（次のチェックへ）
       else
-        # work/cmd_* パターン検出
-        if echo "$_CK2_FILE_PATH" | grep -qE '/work/cmd_[0-9]+/' && \
-           ! echo "$_CK2_FILE_PATH" | grep -qE '/projects/[^/]+/work/'; then
-          echo "BLOCKED: リポジトリルート直下の work/cmd_*/ には書き込み禁止。" >&2
-          echo "正しい格納場所: projects/{project}/work/{動画タイトル or cmd_xxx}/ 配下、" >&2
-          echo "もしくはタスクYAML target_path で指定された場所。" >&2
-          echo "現在のパス: $_CK2_FILE_PATH" >&2
-          echo "例: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260417_TITLE/output.json" >&2
-          exit 2
+        # work/ ルート直下パターン検出 (realpath 解決)
+        _CK2_RESOLVED=$(realpath -m "$_CK2_FILE_PATH" 2>/dev/null || echo "$_CK2_FILE_PATH")
+        if [ -n "$_CK2_RESOLVED" ] && echo "$_CK2_RESOLVED" | grep -qE "^${REPO_DIR}/work/" && \
+           ! echo "$_CK2_RESOLVED" | grep -qE '/projects/[^/]+/work/'; then
+          if [[ "$_CK2_IS_APPEND" == "true" ]]; then
+            :  # 既存ファイルへの追記 (echo >> 等) は許可
+          else
+            echo "BLOCKED: ルート直下 work/ 配下への書込禁止 (殿確定 2026-05-06)。" >&2
+            echo "プロジェクト固有素材は projects/<project_id>/work/ 配下へ。" >&2
+            echo "動画素材例: projects/dozle_kirinuki/work/YYYYMMDD_<タイトル>/input/" >&2
+            echo "パス: $_CK2_RESOLVED" >&2
+            exit 2
+          fi
         fi
 
         # /tmp/ パターン検出
@@ -111,19 +124,80 @@ except Exception:
       fi
     else
       # タスクYAMLなし（通常ありえないが念のため）
-      if echo "$_CK2_FILE_PATH" | grep -qE '/work/cmd_[0-9]+/' && \
-         ! echo "$_CK2_FILE_PATH" | grep -qE '/projects/[^/]+/work/'; then
-        echo "BLOCKED: リポジトリルート直下の work/cmd_*/ には書き込み禁止。" >&2
-        echo "正しい格納場所: projects/{project}/work/{動画タイトル or cmd_xxx}/ 配下、" >&2
-        echo "もしくはタスクYAML target_path で指定された場所。" >&2
-        echo "現在のパス: $_CK2_FILE_PATH" >&2
-        echo "例: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260417_TITLE/output.json" >&2
-        exit 2
+      _CK2_RESOLVED=$(realpath -m "$_CK2_FILE_PATH" 2>/dev/null || echo "$_CK2_FILE_PATH")
+      if [ -n "$_CK2_RESOLVED" ] && echo "$_CK2_RESOLVED" | grep -qE "^${REPO_DIR}/work/" && \
+         ! echo "$_CK2_RESOLVED" | grep -qE '/projects/[^/]+/work/'; then
+        if [[ "$_CK2_IS_APPEND" == "true" ]]; then
+          :  # 既存ファイルへの追記は許可
+        else
+          echo "BLOCKED: ルート直下 work/ 配下への書込禁止 (殿確定 2026-05-06)。" >&2
+          echo "プロジェクト固有素材は projects/<project_id>/work/ 配下へ。" >&2
+          echo "動画素材例: projects/dozle_kirinuki/work/YYYYMMDD_<タイトル>/input/" >&2
+          echo "パス: $_CK2_RESOLVED" >&2
+          exit 2
+        fi
       fi
       if [[ "$_CK2_FILE_PATH" == /tmp/* ]]; then
         echo "BLOCKED: /tmp/への出力禁止（再起動で消える）。パス: $_CK2_FILE_PATH" >&2
         exit 2
       fi
+    fi
+  fi
+
+  # ── チェック2 拡張: Bash COMMAND パターンで work/ 直下書込 BLOCK ──
+  # mkdir/mv/cp/touch/yt-dlp/--output-dir でルート直下 work/ を対象にした場合 BLOCK
+  # 例外: projects/<project>/work/ を含むパス、リポジトリ外パス
+  if [[ "$TOOL_NAME" == "Bash" ]] && [[ "$_CK2_SKIP" == "false" ]]; then
+    # COMMAND から projects/ パスを除外した形で work/ 指向を検出
+    _CK2_CMD_WORK=false
+    # mkdir work/ or mkdir /full/path/work/
+    if echo "$COMMAND" | grep -qE 'mkdir.*\bwork/' || echo "$COMMAND" | grep -qE "mkdir.*${REPO_DIR}/work/"; then
+      if ! echo "$COMMAND" | grep -qE 'projects/[^/]+/work/'; then
+        _CK2_CMD_WORK=true
+      fi
+    fi
+    # mv target work/ (not projects/)
+    if [[ "$_CK2_CMD_WORK" == "false" ]] && (echo "$COMMAND" | grep -qE 'mv.*\bwork/[^p]' || echo "$COMMAND" | grep -qE "mv.*${REPO_DIR}/work/"); then
+      if ! echo "$COMMAND" | grep -qE 'projects/[^/]+/work/'; then
+        _CK2_CMD_WORK=true
+      fi
+    fi
+    # cp target work/ (not projects/)
+    if [[ "$_CK2_CMD_WORK" == "false" ]] && echo "$COMMAND" | grep -qE 'cp.*\bwork/[^p]'; then
+      if ! echo "$COMMAND" | grep -qE 'projects/[^/]+/work/'; then
+        _CK2_CMD_WORK=true
+      fi
+    fi
+    # touch work/
+    if [[ "$_CK2_CMD_WORK" == "false" ]] && echo "$COMMAND" | grep -qE 'touch.*\bwork/'; then
+      if ! echo "$COMMAND" | grep -qE 'projects/[^/]+/work/'; then
+        _CK2_CMD_WORK=true
+      fi
+    fi
+    # yt-dlp -P work/ or --output work/
+    if [[ "$_CK2_CMD_WORK" == "false" ]] && (echo "$COMMAND" | grep -qE 'yt-dlp.*\bwork/' || echo "$COMMAND" | grep -qE 'yt-dlp.*-P.*\bwork/'); then
+      if ! echo "$COMMAND" | grep -qE 'projects/[^/]+/work/'; then
+        _CK2_CMD_WORK=true
+      fi
+    fi
+    # --output-dir work/ (downloader.py 等)
+    if [[ "$_CK2_CMD_WORK" == "false" ]] && echo "$COMMAND" | grep -qE '\-\-output-dir.*\bwork/'; then
+      if ! echo "$COMMAND" | grep -qE 'projects/[^/]+/work/'; then
+        _CK2_CMD_WORK=true
+      fi
+    fi
+    # リダイレクト > work/ (not >> append)
+    if [[ "$_CK2_CMD_WORK" == "false" ]] && echo "$COMMAND" | grep -qE '>\s*.*\bwork/' && ! echo "$COMMAND" | grep -qE '>>\s*.*\bwork/'; then
+      if ! echo "$COMMAND" | grep -qE 'projects/[^/]+/work/'; then
+        _CK2_CMD_WORK=true
+      fi
+    fi
+
+    if [[ "$_CK2_CMD_WORK" == "true" ]]; then
+      echo "BLOCKED: ルート直下 work/ 配下への書込禁止 (殿確定 2026-05-06)。" >&2
+      echo "プロジェクト固有素材は projects/<project_id>/work/ 配下へ。" >&2
+      echo "動画素材例: projects/dozle_kirinuki/work/YYYYMMDD_<タイトル>/input/" >&2
+      exit 2
     fi
   fi
 fi
@@ -751,6 +825,52 @@ if [[ "$TOOL_NAME" == "Bash" ]]; then
       echo "理由: 正しいキー名は 'from_agent'。'from' で参照すると常に '?' が返り、送信元判別不能。" >&2
       echo "修正: msg.get('from', '?') → msg.get('from_agent', '?')" >&2
       exit 2
+    fi
+  fi
+fi
+
+# ── チェック14: cmd_create payload は command に lord_original を丸写し必須 (2026-05-06 cmd_1656 教訓) ──
+# 真因: server.py L2834 の乖離検出は「command に lord_original 文字列が含まれていない」時に ntfy 警告を出す。
+# つまり cmd 起票時の **command フィールドへの記載漏れ** が直接原因 (将軍の言い換えは間接要因・無関係)。
+# PreToolUse で起票自体を止めることで再発防止 + MEMORY.md L6「殿の原文を加工せず伝達」物理強制。
+if [[ "$TOOL_NAME" == "Bash" ]]; then
+  if echo "$COMMAND" | grep -qE 'api/cmd_create'; then
+    if echo "$COMMAND" | grep -qE -- '--data[[:space:]]+@'; then
+      _CHK14_PAYLOAD_FILE=$(echo "$COMMAND" | grep -oE -- "--data[[:space:]]+@[^[:space:]]+" | sed -E 's/.*@//')
+      if [ -f "$_CHK14_PAYLOAD_FILE" ]; then
+        _CHK14_RESULT=$(python3 -c "
+import json, sys
+try:
+    d = json.load(open('$_CHK14_PAYLOAD_FILE'))
+    lord = (d.get('lord_original') or '').strip()
+    cmd = (d.get('command') or '').strip()
+    if not lord:
+        print('NO_LORD')
+    elif not cmd:
+        print('NO_CMD')
+    elif lord not in cmd:
+        print('DEVIATION')
+    else:
+        print('OK')
+except Exception as e:
+    print(f'PARSE_ERR:{e}')
+" 2>&1)
+        case "$_CHK14_RESULT" in
+          DEVIATION)
+            echo "BLOCKED: cmd_create payload で command に lord_original 文字列を丸写し必須 (CHK14・cmd_1656 教訓)" >&2
+            echo "理由: 殿原文 (lord_original) を command 本文に丸写ししないと server.py L2834 乖離検出が ntfy 警告 + MEMORY.md L6「殿の原文を加工せず伝達」違反" >&2
+            echo "実例: 2026-05-06 cmd_1655/1656 で家老が command に lord_original を貼らず警告発火・殿叱責" >&2
+            echo "対処: payload の command フィールドを編集し lord_original の文字列をそのまま本文中に丸写しせよ (要約・言い換え禁止)" >&2
+            exit 2
+            ;;
+          NO_LORD)
+            echo "BLOCKED: cmd_create payload に lord_original (殿原文) フィールド必須 (CHK14)" >&2
+            echo "理由: 殿原文を記録しない cmd 起票は MEMORY.md L6「殿の原文を加工せず伝達」違反" >&2
+            echo "対処: payload に \"lord_original\": \"<殿の生発言そのまま>\" を追加せよ" >&2
+            exit 2
+            ;;
+        esac
+      fi
     fi
   fi
 fi

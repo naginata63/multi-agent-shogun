@@ -411,6 +411,11 @@ Session Start Step 7 参照: `Bash(run_in_background=true, command="bash scripts
 - Pane title reset → always after task completion (step 12)
 - After inbox_write → verify message written to inbox file
 
+### Dozle Kirinuki Workdir (cmd_1658/cmd_1659 教訓)
+
+dozle_kirinuki の動画保存先は `projects/dozle_kirinuki/work/YYYYMMDD_<タイトル>/`（リポジトリ直下 `work/` は誤り）。
+cmd起票時の `--output-dir` 引数は絶対パスで指定し、相対 `work/` の使用を禁止する。
+
 ### Anomaly Detection
 
 - Ashigaru report overdue → check pane status
