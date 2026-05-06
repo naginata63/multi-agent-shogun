@@ -59,6 +59,57 @@ def get_db():
     return conn
 
 
+def _migrate_inbox_types():
+    """cmd_1661: Add task_cancelled to inbox_messages CHECK constraint."""
+    conn = sqlite3.connect(DB_PATH, timeout=5)
+    try:
+        row = conn.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='inbox_messages'").fetchone()
+        if row and 'task_cancelled' not in row[0]:
+            conn.executescript("""
+                CREATE TABLE IF NOT EXISTS inbox_messages_new (
+                    id TEXT PRIMARY KEY,
+                    agent TEXT NOT NULL REFERENCES agents(id),
+                    from_agent TEXT NOT NULL REFERENCES agents(id),
+                    type TEXT NOT NULL CHECK (type IN (
+                        'task_assigned', 'clear_command', 'cmd_new', 'cmd_revised',
+                        'cmd_correction', 'cmd_spec_confirmed', 'task_cancelled',
+                        'report_received', 'report_completed', 'report_blocked', 'report_error',
+                        'qc_request', 'qc_result', 'qc_done', 'wake_up'
+                    )),
+                    content TEXT NOT NULL,
+                    read INTEGER NOT NULL DEFAULT 0 CHECK (read IN (0,1)),
+                    timestamp TEXT NOT NULL,
+                    read_at TEXT,
+                    actor TEXT
+                );
+                INSERT INTO inbox_messages_new SELECT * FROM inbox_messages;
+                DROP TABLE inbox_messages;
+                ALTER TABLE inbox_messages_new RENAME TO inbox_messages;
+            """)
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_inbox_agent_unread ON inbox_messages(agent, read)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_inbox_timestamp ON inbox_messages(timestamp DESC)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_inbox_from ON inbox_messages(from_agent)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_inbox_type ON inbox_messages(type)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_inbox_agent_type_read ON inbox_messages(agent, type, read)")
+            # cmd_1664 派生 (将軍 fix): DROP TABLE で消える TRIGGER tr_inbox_read を再作成
+            # 既存定義 (audit_log 用) を完全再現。再作成漏れ → MARK_READ 監査ログ喪失の事故回避
+            conn.execute("""
+                CREATE TRIGGER IF NOT EXISTS tr_inbox_read
+                AFTER UPDATE ON inbox_messages FOR EACH ROW
+                WHEN OLD.read = 0 AND NEW.read = 1
+                BEGIN
+                    INSERT INTO audit_log(actor, action, table_name, record_id, before_json, after_json)
+                    VALUES (NEW.actor, 'MARK_READ', 'inbox_messages', NEW.id, NULL, NULL);
+                END
+            """)
+            conn.commit()
+            print("[migration] Added task_cancelled to inbox_messages CHECK constraint + recreated tr_inbox_read TRIGGER")
+    except Exception as e:
+        print(f"[migration] WARN inbox_messages: {e}")
+    finally:
+        conn.close()
+
+
 def query_db(conn, sql, params=()):
     try:
         cur = conn.execute(sql, params)
@@ -3463,11 +3514,23 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps({'error': 'agent required'}).encode('utf-8'))
                     return
                 if not ids and not all_unread:
+                    # cmd_1664 教訓: typo 多発キーを親切に案内
+                    typo_hint = ''
+                    for bad_key in ('message_ids', 'msg_ids', 'messageIds', 'id'):
+                        if bad_key in body:
+                            typo_hint = (f" (received key '{bad_key}' is invalid — "
+                                         f"use 'ids' (list of msg_id))")
+                            break
                     self.send_response(400)
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()
                     self.wfile.write(json.dumps(
-                        {'error': 'ids or all_unread required'}).encode('utf-8'))
+                        {'error': f'ids or all_unread required{typo_hint}',
+                         'expected_body': {
+                             'agent': '<agent_id>',
+                             'ids': ['msg_xxx', 'msg_yyy'],
+                             'all_unread': '(or true to mark all)',
+                             'actor': '(optional)'}}).encode('utf-8'))
                     return
 
                 now_iso = datetime.now(timezone.utc).isoformat()
@@ -3555,6 +3618,7 @@ if __name__ == '__main__':
     print(f"Tasks: {TASKS_DIR}")
     print(f"shogun_to_karo: {SHOGUN_TO_KARO}")
     print("Agent status detection: DB-driven (inbox_messages table).")
+    _migrate_inbox_types()
     server = http.server.ThreadingHTTPServer(('0.0.0.0', PORT), DashboardHandler)
     try:
         server.serve_forever()
