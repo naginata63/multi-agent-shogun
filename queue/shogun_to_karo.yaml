@@ -529,7 +529,7 @@ commands:
   - server.py の python3 -m py_compile PASS
   - git commit + push 完了
 - id: cmd_1636
-  status: in_progress
+  status: cancelled
   priority: high
   purpose: 4/2 以降未処理 57 本を 4 ashigaru 並列で video-pipeline 処理し、scene_search_v2 index
     に追加して 124 動画体制を達成する。
@@ -1433,3 +1433,45 @@ commands:
   - git commit + push 済 (.gitignored ゆえ git add -f 使用)
   notify_karo: true
   completed_at: '2026-05-06T07:11:12+09:00'
+- id: cmd_1655
+  status: in_progress
+  priority: high
+  purpose: Udemy中級v5 全12章スライドフォーマットをv4スタイルに統一する (カバースライド・.meta div・padding・flex layout・speakerノート・用語テーブル)
+  timestamp: '2026-05-06T11:35:06+09:00'
+  project: udemy_course
+  lord_original: Udemy中級さ かきかた スライドふぉーまっと V4と違うんだが V5見にくい
+  command: '【Phase A】ash1: intermediate_v4_ch01_prompt_function.md から v4 Marp スタイルブロック全体
+    (frontmatter style + <!-- _class: cover --> + .meta div + section padding 50px
+    70px + flex layout + speakerノートHTMLコメント) を抽出して shared_context/marp_v4_style_template.md
+    に保存。【Phase B・Phase A完了後】ash1-7 が v5 全12章に v4スタイルを適用 (既存本文は壊さずスタイル要素のみ追加/差替え・各章カバースライドに章番号・タイトル・FREEバッジ・講師「なぎなた」)・Marp
+    CLI で .html 再生成・git add -f + commit。【Phase C】gunshi QC: 全12章で v4同等スタイル適用確認。【完了後】ntfy
+    で殿に URL 再通知 (http://192.168.2.4:8773/curriculum_intermediate_v5.html)。共通ルール: git
+    push 禁止 (家老が実施)・RACE-001 (同一ファイル競合禁止)。'
+  acceptance_criteria:
+  - '全12章 (ch00〜ch11) に <!-- _class: cover --> カバースライドが存在する'
+  - 全12章に .meta div (章番号・FREEバッジ・講師名「なぎなた」) が存在する
+  - '全12章の frontmatter style に section padding: 50px 70px が含まれる'
+  - '全12章の frontmatter style に display: flex layout が含まれる'
+  - 全12章に speakerノート HTML コメントが存在する
+  - 全12章の .html が Marp CLI で再生成済み
+  - 軍師 QC PASS
+- id: cmd_1656
+  status: pending
+  priority: medium
+  purpose: ドズル社動画 STT/index 状態管理スクリプト化 + work_video_map.md 4-5月分追記
+  timestamp: '2026-05-06T11:39:26+09:00'
+  project: dozle_kirinuki
+  lord_original: STT済かどうか / scene_search_v2の対象動画を即把握できる状態にしたい
+  command: '【Task 1: スクリプト化】projects/dozle_kirinuki/context/stt_index_status.md を生成するロジックを
+    scripts/gen_stt_index_status.py として正規スクリプト化。入力: work/ 配下 dir + data/scene_index_v2/chunks_metadata.json
+    + shorts_upload_map.md + work_video_map.md。出力: stt_index_status.md。既存スクリプト類との整合性確認
+    (乱造禁止)。cron 設定 (毎日1回) or scene_search_v2 build hook 連携の選択も判断せよ。【Task 2: video_id
+    補完】4-5月の本編動画 (約60 dir) を work_video_map.md に追記。元動画ID は input/*.info.json or merged_*.json
+    から抽出可能。公開済みショート紐付け情報は shorts_upload_map.md 4-5月分も補完。【完了条件】stt_index_status.md
+    で video_id 不明 = 0 (or ほぼ 0) / work_video_map.md が5/6時点全 work/ dir カバー / git commit。git
+    push は家老が実施。'
+  acceptance_criteria:
+  - scripts/gen_stt_index_status.py が存在し python3 で実行可能
+  - 実行後 projects/dozle_kirinuki/context/stt_index_status.md が更新される
+  - work_video_map.md に 4-5月分 (約60 dir) の動画IDが追記済み
+  - stt_index_status.md の video_id 不明件数が大幅減少 (可能な限り 0 に近づける)

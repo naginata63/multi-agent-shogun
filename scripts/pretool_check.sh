@@ -705,4 +705,54 @@ if [ "$TOOL_NAME" = "Write" ] || [ "$TOOL_NAME" = "Edit" ]; then
   fi
 fi
 
+# ── チェック12: dashboard API curl の HTTP コード検証強制 (2026-05-06 cmd_1654 教訓) ──
+# /api/ エンドポイントを叩く curl は -w "%{http_code}" 必須・レスポンスを tail/head で truncate 禁止。
+# 違反例 (2026-05-06): /api/inbox_write を payload キー名 typo で叩いて HTTP 400 を tail -10 で潰し
+#                     「なぜか動かない」と曖昧化・殿叱責。
+if [[ "$TOOL_NAME" == "Bash" ]]; then
+  # /api/ を叩く curl のみ対象 (一般 web 取得は対象外)
+  if echo "$COMMAND" | grep -qE 'curl[^|;&]*(/api/|:8770/|:8773/api/)'; then
+    # 12-A: -w "%{http_code}" がないと BLOCK
+    if ! echo "$COMMAND" | grep -qE -- "-w[[:space:]]+[\"'][^\"']*%\{http_code\}"; then
+      echo "BLOCKED: /api/ curl に -w \"HTTP %{http_code}\\n\" を必ず付けよ (CHK12・cmd_1654 教訓)" >&2
+      echo "理由: HTTP code 確認なしだと 4xx/5xx を見逃す。実例: 2026-05-06 inbox_write API で HTTP 400 を tail で潰し原因不明化・殿叱責" >&2
+      echo "例: curl -s -w \"\\nHTTP %{http_code}\\n\" -X POST ... http://127.0.0.1:8770/api/inbox_write" >&2
+      exit 2
+    fi
+    # 12-B: response を tail/head で truncate していたら BLOCK
+    if echo "$COMMAND" | grep -qE '\|[[:space:]]*(tail|head)([[:space:]]+-n[[:space:]]*[0-9]+|[[:space:]]+-[0-9]+|[[:space:]]+[0-9]+)?[[:space:]]*$|\|[[:space:]]*(tail|head)[[:space:]]+'; then
+      echo "BLOCKED: /api/ curl レスポンスを tail/head で truncate するな (CHK12・cmd_1654 教訓)" >&2
+      echo "理由: error body こそ真因の鍵・full body 取得必須" >&2
+      echo "対処: tail/head パイプを除去 or python3 -m json.tool で整形" >&2
+      exit 2
+    fi
+  fi
+fi
+
+# ── チェック13: /api/inbox_messages の取得 python キー名 typo BLOCK (2026-05-06 家老ハマり教訓) ──
+# 家老が cmd_revised 通知 5 通を「from=? / body=空」と誤判定し全部既読化のみで放置・実作業ゼロの事故発生。
+# 真因: API レスポンスのキー名は content / from_agent だが、家老が body / from で参照していた。
+# 正規キー名 (server.py /api/inbox_messages レスポンス):
+#   - id / agent / from_agent / type / content / read / timestamp / read_at / actor
+if [[ "$TOOL_NAME" == "Bash" ]]; then
+  if echo "$COMMAND" | grep -qE '/api/inbox_messages'; then
+    # 13-A: get('body') or ['body'] (content の typo) — bash エスケープ \" にも対応
+    # 検出する形: m.get('body' / m.get("body" / m.get(\"body\" / m['body'] / m["body"] / m[\"body\"]
+    if echo "$COMMAND" | grep -qE "(\.get\(\\\\?['\"]body\\\\?['\"]|\[\\\\?['\"]body\\\\?['\"]\])"; then
+      echo "BLOCKED: inbox_messages レスポンスから 'body' キーを読むな (CHK13・cmd_1654 家老ハマり教訓)" >&2
+      echo "理由: 正しいキー名は 'content'。'body' で参照すると常に空が返り、メッセージ本文を読み損ねる。" >&2
+      echo "実例: 2026-05-06 家老が 5+ 通の cmd_revised を全て「内容空」と誤判定・既読化のみで放置・殿激怒" >&2
+      echo "修正: msg.get('body', '') → msg.get('content', '')" >&2
+      exit 2
+    fi
+    # 13-B: get('from') or ['from'] (from_agent の typo) — bash エスケープ \" にも対応
+    if echo "$COMMAND" | grep -qE "(\.get\(\\\\?['\"]from\\\\?['\"]|\[\\\\?['\"]from\\\\?['\"]\])"; then
+      echo "BLOCKED: inbox_messages レスポンスから 'from' キーを読むな (CHK13・cmd_1654 家老ハマり教訓)" >&2
+      echo "理由: 正しいキー名は 'from_agent'。'from' で参照すると常に '?' が返り、送信元判別不能。" >&2
+      echo "修正: msg.get('from', '?') → msg.get('from_agent', '?')" >&2
+      exit 2
+    fi
+  fi
+fi
+
 exit 0

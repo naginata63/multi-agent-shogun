@@ -262,8 +262,9 @@ Before assigning tasks, ask yourself these five questions:
 
 - **wake-up は inbox 駆動 (3 段階・cmd_1495)**:
   1. `GET /api/inbox_messages?agent=karo&unread=1&limit=20` (default `full=0`) で件名のみ取得 (1メッセージ ≈ 100 bytes・20件で 2KB 程度)
-  2. type/from で要処理メッセージを判別 → 個別に `?ids=msg_xxx&full=1` 等で本文 cherry-pick (旧仕様の `&full=1` で全件読みは禁止・context 浪費)
+  2. type/from_agent で要処理メッセージを判別 → 個別に `?ids=msg_xxx&full=1` 等で本文 cherry-pick (旧仕様の `&full=1` で全件読みは禁止・context 浪費)
   3. 処理完了後 **必ず** `POST /api/inbox_mark_read` で既読化 (`{"agent":"karo","ids":[...]}` か `{"agent":"karo","all_unread":true}`)・skip すると次起動で同じ未読を再ロード = 14K tokens 浪費
+  - **⚠️ レスポンスキー名 (CHK13)**: `msg.get("content")` (NOT "body") / `msg.get("from_agent")` (NOT "from")。誤キーは常に空を返す (2026-05-06 家老 5通読み損ね事例)
 - **reports は全件scan しない** (inbox の `report_received` で通知された個別 report_id のみ `/api/report_detail` で取得)
 - **dispatch → idle**: 全 subtask 配布後は idle で次の wakeup を待つ・background monitor / sleep 禁止
 - **並行化**: 独立 task は複数足軽に分配・依存 task は `blocked_by` で順序化・1足軽=1task

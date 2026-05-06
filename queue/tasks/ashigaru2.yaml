@@ -57,12 +57,13 @@ tasks:
   - RAM available>5GB 維持・OOM未発生
   agent: ashigaru2
   bloom_level: L3
+  cancelled_reason: 殿命 cancelled (2026-05-05 20:30) - STT諦め方針
   description: 'cmd_1636 直接4並列: ash2 担当 14本 (FtPg-vcyH7I〜nZwB29p9HQk) DL→Demucs→STT→speaker_mapping'
   gunshi_qc: false
   notes: 4並列本番。GEMINI API期限切れのためscene_search_v2 build禁止。エラー時スキップ継続可。git push は家老が実施。
   parent_cmd: cmd_1636
   priority: high
-  status: in_progress
+  status: cancelled
   steps: '0) advisor()呼出 1) 事前メモリ確認: free -h && nvidia-smi --query-gpu=memory.used,memory.total
     --format=csv,noheader 2) cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
     && source ~/.bashrc && source venv/bin/activate 3) 以下14本を順次処理。各動画: VIDEO_ID=<id>
@@ -83,6 +84,7 @@ tasks:
   - karo inbox報告済
   agent: ashigaru2
   bloom_level: L3
+  completed_at: '2026-05-06T04:07:40+09:00'
   description: 'cmd_1642 Phase2 Monitor起動テスト: 全10 agent分inbox送信→audit log確認→到達率計測→karo
     inbox報告'
   gunshi_qc: false
@@ -106,17 +108,21 @@ tasks:
   target_path: /home/murakami/multi-agent-shogun/logs/inbox_audit.log
   task_id: subtask_1642_monitor_test
   timestamp: '2026-05-06T03:59:01.597145+09:00'
-  completed_at: '2026-05-06T04:07:40+09:00'
-- agent: ashigaru2
-  task_id: subtask_1643_monitor_update
-  status: cancelled
-  priority: high
-  parent_cmd: cmd_1643
+- acceptance_criteria:
+  - scripts/poc_sse_monitor.sh 新規作成済・chmod +x済
+  - CLAUDE.md Session Start Step7 がSSE版(poc_sse_monitor.sh)に更新済
+  - instructions 4ファイル (shogun/karo/ashigaru/gunshi) がSSE版に更新済
+  - git commit + push済
+  agent: ashigaru2
   bloom_level: L2
-  gunshi_qc: false
   description: 'cmd_1643: CLAUDE.md/instructions Session Start Step7 をSSE版に更新 + scripts/poc_sse_monitor.sh
     新規作成'
-  target_path: /home/murakami/multi-agent-shogun/scripts/poc_sse_monitor.sh
+  gunshi_qc: false
+  notes: 'RACE-001: 本タスクはCLAUDE.md/instructions書込み担当。ash1(subtask_1643_sse_impl)はserver.py担当で競合なし。SSE接続先:
+    http://192.168.2.4:8770/api/inbox_stream?agent={agent_id}。subtask_1643_sse_implの完了を待たずに並行実施可(URLは設計済み)。'
+  parent_cmd: cmd_1643
+  priority: high
+  status: cancelled
   steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) [poc_sse_monitor.sh
     新規作成] scripts/poc_sse_monitor.sh を作成: #!/usr/bin/env bash / # poc_sse_monitor.sh
     — SSE Monitor POC: server.py /api/inbox_stream をcurl SSEで監視 / set -euo pipefail
@@ -132,24 +138,26 @@ tasks:
     instructions/gunshi.md scripts/poc_sse_monitor.sh && git diff --cached --stat
     && git commit -m ''docs(cmd_1643): Session Start Step7 SSE版更新 + poc_sse_monitor.sh新規作成''
     && git push origin main 9) advisor()呼出 10) inbox karo 完了報告'
-  acceptance_criteria:
-  - scripts/poc_sse_monitor.sh 新規作成済・chmod +x済
-  - CLAUDE.md Session Start Step7 がSSE版(poc_sse_monitor.sh)に更新済
-  - instructions 4ファイル (shogun/karo/ashigaru/gunshi) がSSE版に更新済
-  - git commit + push済
-  notes: 'RACE-001: 本タスクはCLAUDE.md/instructions書込み担当。ash1(subtask_1643_sse_impl)はserver.py担当で競合なし。SSE接続先:
-    http://192.168.2.4:8770/api/inbox_stream?agent={agent_id}。subtask_1643_sse_implの完了を待たずに並行実施可(URLは設計済み)。'
+  target_path: /home/murakami/multi-agent-shogun/scripts/poc_sse_monitor.sh
+  task_id: subtask_1643_monitor_update
   timestamp: '2026-05-06T04:33:18.552431+09:00'
-- agent: ashigaru2
-  task_id: subtask_1647_prewrite_ch04_ch06
-  status: done
-  completed_at: '2026-05-06T05:20:27+09:00'
-  priority: high
-  parent_cmd: cmd_1647
+- acceptance_criteria:
+  - ch04-ch06 各章の事前4項目 (対象問題・持ち帰り・ストーリー・実例) が全て記述済
+  - ch04の橋渡しスライド①の内容が事前4項目に反映されている (セマンティック検索 手動→自動への伏線)
+  - 各項目が設計書 §7 章別詳細設計と整合している
+  - 困りごと11件 + 3層欠如マッピングとの紐付けが明記
+  - projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch04_ch06.md 作成済
+  - git commit + push済 (git add -f 使用)
+  agent: ashigaru2
   bloom_level: L3
-  gunshi_qc: false
+  completed_at: '2026-05-06T05:20:27+09:00'
   description: 'cmd_1647 Phase1: ch04-ch06 の事前4項目 (対象問題・持ち帰り・ストーリー・実例) を作成し殿確認用ファイルに出力'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch04_ch06.md
+  gunshi_qc: false
+  notes: ch04は必要時取得の実装章として再構成済 (v5 CRITICAL変更点)。§6.3 ch04章末橋渡しスライド (L200-) を必ず参照してセマンティック検索の伏線を4項目に組み込むこと。git
+    add -f 必須 (projects/ は gitignore対象)。
+  parent_cmd: cmd_1647
+  priority: high
+  status: done
   steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) 設計書精読: projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md
     §7 章別詳細設計 (ch04-ch06) + §11 事前4項目プロトコル + §6 セマンティック検索二重登場 (ch04橋渡しスライド) + §2 困りごと11件
     3) 各章で以下4項目をMarkdown形式で作成: [1]対象問題 [2]持ち帰り [3]ストーリー(現象→対策) [4]実例 4) ch04: 必要時取得の実装
@@ -158,27 +166,33 @@ tasks:
     6) git add -f projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch04_ch06.md
     && git commit -m ''feat(udemy): v5 ch04-ch06 事前4項目作成 (Phase1)'' && git push origin
     main 7) advisor()呼出 8) inbox karo 完了報告'
-  acceptance_criteria:
-  - ch04-ch06 各章の事前4項目 (対象問題・持ち帰り・ストーリー・実例) が全て記述済
-  - ch04の橋渡しスライド①の内容が事前4項目に反映されている (セマンティック検索 手動→自動への伏線)
-  - 各項目が設計書 §7 章別詳細設計と整合している
-  - 困りごと11件 + 3層欠如マッピングとの紐付けが明記
-  - projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch04_ch06.md 作成済
-  - git commit + push済 (git add -f 使用)
-  notes: ch04は必要時取得の実装章として再構成済 (v5 CRITICAL変更点)。§6.3 ch04章末橋渡しスライド (L200-) を必ず参照してセマンティック検索の伏線を4項目に組み込むこと。git
-    add -f 必須 (projects/ は gitignore対象)。
+  target_path: projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch04_ch06.md
+  task_id: subtask_1647_prewrite_ch04_ch06
   timestamp: '2026-05-06T05:08:45.449817+09:00'
-- agent: ashigaru2
-  task_id: subtask_1652_cancel_impl
-  status: done
-  completed_at: '2026-05-06T05:23:36+09:00'
-  priority: high
-  parent_cmd: cmd_1652
+- acceptance_criteria:
+  - /api/cmd_cancel エンドポイント実装済 (cmd_id を body で受取)
+  - pending/in_progress の cmd のみ cancelled に変更可・done/already cancelled は 400 で弾く
+  - dashboard HTML に cancel ボタン追加済 (既存 done と同位置・赤系スタイルで区別)
+  - 確認ダイアログ実装済 (confirm())
+  - 既存 done ボタンの動作に影響なし
+  - SQLite + YAML dual-path で status 整合更新済
+  - python3 -m py_compile PASS
+  - 実機動作確認 (dashboard で cancel ボタンクリック → status 変更確認)
+  - git commit 済
+  agent: ashigaru2
   bloom_level: L3
-  gunshi_qc: false
+  completed_at: '2026-05-06T05:23:36+09:00'
   description: 'cmd_1652: server.py に /api/cmd_cancel endpoint追加 + dashboard HTMLにcancelボタン追加
     (doneボタンと同等UX・赤系スタイル)'
-  target_path: scripts/dashboard/server.py
+  gunshi_qc: false
+  notes: 'doneボタン実装参照: server.py L1342-1369 (HTML) + L2784-2843 (/api/cmd_status_change
+    endpoint)。/api/cmd_cancel はcmd_status_changeとほぼ同じ実装でstatus=''cancelled''固定 + guard条件
+    (pending/in_progressのみ許可) を追加するだけ。cancelボタンの色: background:#c0392b;color:#fff。ボタン位置:
+    doneボタンの下・同じdiv内に追加。server.py再起動時: pkill -f ''python.*server.py'' → sleep 1 →
+    python3 scripts/dashboard/server.py & (バックグラウンド起動)。git push禁止(家老が実施)→ 完了報告でpush依頼せよ。'
+  parent_cmd: cmd_1652
+  priority: high
+  status: done
   steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) server.py精読: L1340-1370
     (doneボタンHTML) + L2784-2843 (/api/cmd_status_change endpoint) 3) [実装A] /api/cmd_cancel
     endpoint追加: L2843付近に cmd_status_change と類似の実装を追加。pending/in_progress のみ cancelled
@@ -192,34 +206,10 @@ tasks:
     → クリック→confirm → status cancelled確認 8) git add scripts/dashboard/server.py &&
     git commit -m ''feat(dashboard): cancel ボタン + /api/cmd_cancel endpoint 追加 (cmd_1652)''
     && git push origin main 9) advisor()呼出 10) inbox karo 完了報告'
-  acceptance_criteria:
-  - /api/cmd_cancel エンドポイント実装済 (cmd_id を body で受取)
-  - pending/in_progress の cmd のみ cancelled に変更可・done/already cancelled は 400 で弾く
-  - dashboard HTML に cancel ボタン追加済 (既存 done と同位置・赤系スタイルで区別)
-  - 確認ダイアログ実装済 (confirm())
-  - 既存 done ボタンの動作に影響なし
-  - SQLite + YAML dual-path で status 整合更新済
-  - python3 -m py_compile PASS
-  - 実機動作確認 (dashboard で cancel ボタンクリック → status 変更確認)
-  - git commit 済
-  notes: 'doneボタン実装参照: server.py L1342-1369 (HTML) + L2784-2843 (/api/cmd_status_change
-    endpoint)。/api/cmd_cancel はcmd_status_changeとほぼ同じ実装でstatus=''cancelled''固定 + guard条件
-    (pending/in_progressのみ許可) を追加するだけ。cancelボタンの色: background:#c0392b;color:#fff。ボタン位置:
-    doneボタンの下・同じdiv内に追加。server.py再起動時: pkill -f ''python.*server.py'' → sleep 1 →
-    python3 scripts/dashboard/server.py & (バックグラウンド起動)。git push禁止(家老が実施)→ 完了報告でpush依頼せよ。'
+  target_path: scripts/dashboard/server.py
+  task_id: subtask_1652_cancel_impl
   timestamp: '2026-05-06T05:18:43.235325+09:00'
-- agent: ashigaru2
-  task_id: subtask_1647_write_ch02_ch03
-  status: done
-  parent_cmd: cmd_1647
-  bloom_level: L3
-  description: 'cmd_1647 Phase2: ch02(失敗3パターン診断) + ch03(LitM根本対策) 本文執筆・udemy-checker
-    🟢'
-  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/
-  steps: 1) curriculum_intermediate_v5_marp.md + v5_design.md + 自分の prewrite md 精読
-    2) advisor()呼出 3) 担当章をMarp形式で執筆 4) udemy-checker /udemy-checker <ファイルパス> で 🟢 確認
-    5) NGワードgrep 6) git add -f → commit 7) 全章完了後 inbox karo report_received
-  acceptance_criteria:
+- acceptance_criteria:
   - 担当章すべての .md (Marp) + .html 作成済
   - udemy-checker 🟢 達成 (観点A-E満足)
   - NGワードリスト全件grep 0件
@@ -227,6 +217,11 @@ tasks:
   - JIT→必要時取得 / Lazy Load→必要時読込 置換済
   - git add -f → commit + push 済
   - inbox_write karo report_received 送信済
+  agent: ashigaru2
+  bloom_level: L3
+  completed_at: '2026-05-06T07:48:00+09:00'
+  description: 'cmd_1647 Phase2: ch02(失敗3パターン診断) + ch03(LitM根本対策) 本文執筆・udemy-checker
+    🟢'
   notes: '担当章: ch02(失敗3パターン診断), ch03(LitM根本対策・仕組み化)
 
     prewrite: intermediate_v5_prewrite_ch00_ch03.md (ch02/ch03分担)
@@ -265,5 +260,30 @@ tasks:
     【困りごとマッピング】curriculum_intermediate_v5_marp.md §2 参照
 
     【Skills縦糸】ch01(布石)→ch07(発展)→ch11(完成)'
+  parent_cmd: cmd_1647
+  status: done
+  steps: 1) curriculum_intermediate_v5_marp.md + v5_design.md + 自分の prewrite md 精読
+    2) advisor()呼出 3) 担当章をMarp形式で執筆 4) udemy-checker /udemy-checker <ファイルパス> で 🟢 確認
+    5) NGワードgrep 6) git add -f → commit 7) 全章完了後 inbox karo report_received
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/
+  task_id: subtask_1647_write_ch02_ch03
   timestamp: '2026-05-06T07:12:19.815266+09:00'
-  completed_at: '2026-05-06T07:48:00+09:00'
+- agent: ashigaru2
+  task_id: subtask_1655_phaseB_ch02_03
+  status: blocked
+  parent_cmd: cmd_1655
+  bloom_level: L3
+  blocked_by:
+  - subtask_1655_phaseA_extract
+  description: 'cmd_1655 Phase B: ch02/ch03 に v4スタイル統一適用'
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/intermediate_v5_ch02_failure_patterns.md
+  steps:
+  - 1. shared_context/marp_v4_style_template.md を読む (Phase A で作成済)
+  - 2. projects/udemy_course/drafts/lectures/intermediate_v5_ch02_failure_patterns.md
+    と intermediate_v5_ch03_litm_solution.md を読む
+  - '3. v4スタイルを適用: frontmatterに style追加・カバースライド(章番号/タイトル/FREEバッジ/講師名なぎなた)を先頭に挿入・.meta
+    div追加・speakerノートHTMLコメント追加・用語先出しテーブルが無ければ追加。既存本文は壊さない'
+  - '4. Marp CLI で .html 再生成: npx @marp-team/marp-cli <file>.md -o <file>.html'
+  - 5. git add -f projects/udemy_course/ && git commit
+  - 6. karo へ inbox report_received
+  timestamp: '2026-05-06T11:37:01.128667+09:00'

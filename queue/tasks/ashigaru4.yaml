@@ -169,3 +169,22 @@ tasks:
     【Skills縦糸】ch01(布石)→ch07(発展)→ch11(完成)'
   timestamp: '2026-05-06T07:12:19.859032+09:00'
   completed_at: '2026-05-06T07:24:42+09:00'
+- agent: ashigaru4
+  task_id: subtask_1655_phaseB_ch06_07
+  status: blocked
+  parent_cmd: cmd_1655
+  bloom_level: L3
+  blocked_by:
+  - subtask_1655_phaseA_extract
+  description: 'cmd_1655 Phase B: ch06/ch07 に v4スタイル統一適用'
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/intermediate_v5_ch06_advisor_qc.md
+  steps:
+  - 1. shared_context/marp_v4_style_template.md を読む (Phase A で作成済)
+  - 2. projects/udemy_course/drafts/lectures/intermediate_v5_ch06_advisor_qc.md と
+    intermediate_v5_ch07_hook_search.md を読む
+  - '3. v4スタイルを適用: frontmatterに style追加・カバースライド(章番号/タイトル/FREEバッジ/講師名なぎなた)を先頭に挿入・.meta
+    div追加・speakerノートHTMLコメント追加・用語先出しテーブルが無ければ追加。既存本文は壊さない'
+  - '4. Marp CLI で .html 再生成: npx @marp-team/marp-cli <file>.md -o <file>.html'
+  - 5. git add -f projects/udemy_course/ && git commit
+  - 6. karo へ inbox report_received
+  timestamp: '2026-05-06T11:37:01.168357+09:00'

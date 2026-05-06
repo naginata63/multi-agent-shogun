@@ -606,3 +606,27 @@ tasks:
     logで未pushコミット確認→家老に報告せよ。
   timestamp: '2026-05-06T07:59:31.610878+09:00'
   completed_at: '2026-05-06T08:03:55+09:00'
+- agent: gunshi
+  task_id: subtask_1655_phaseC_qc
+  status: blocked
+  parent_cmd: cmd_1655
+  bloom_level: L5
+  blocked_by:
+  - subtask_1655_phaseA_extract
+  - subtask_1655_phaseB_ch02_03
+  - subtask_1655_phaseB_ch04_05
+  - subtask_1655_phaseB_ch06_07
+  - subtask_1655_phaseB_ch08_09
+  - subtask_1655_phaseB_ch10
+  - subtask_1655_phaseB_ch11
+  description: 'cmd_1655 Phase C: v5全12章 v4スタイル統一 QC'
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/
+  steps:
+  - 1. v5全12章 (ch00〜ch11) の .md/.html 両方を確認
+  - '2. 各章にカバースライド <!-- _class: cover --> が存在するか確認'
+  - 3. 各章に .meta div (章番号・FREEバッジ・講師名なぎなた) が存在するか確認
+  - 4. 各章の frontmatter style に section padding 50px 70px が含まれるか確認
+  - 5. 各章の frontmatter style に flex layout が含まれるか確認
+  - 6. 各章に speakerノート HTML コメントが存在するか確認
+  - '7. PASS: karo へ qc_done inbox・FAIL: karo へ qc_result inbox で問題詳細報告'
+  timestamp: '2026-05-06T11:37:01.211687+09:00'

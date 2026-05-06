@@ -459,3 +459,45 @@ tasks:
     【Skills縦糸】ch01(布石)→ch07(発展)→ch11(完成)'
   timestamp: '2026-05-06T07:12:19.771206+09:00'
   completed_at: '2026-05-06T07:27:13+09:00'
+- agent: ashigaru1
+  task_id: subtask_url_fix_index
+  status: done
+  completed_at: '2026-05-06T10:33:23+09:00'
+  parent_cmd: cmd_1647
+  bloom_level: L1
+  description: '緊急: drafts/index.html に v5 リンクを追加 (殿レビュー URL 修正)'
+  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/index.html
+  steps: '1) Read index.html 2) <h1>タイトルを「最新 v5」に変更 3) summaryを v5完了に更新 4) 中級編セクションの先頭に
+    v5 ブロックを追加(NEW バッジ付き): カリキュラム→curriculum_intermediate_v5.html, ch00〜ch11 全12章→lectures/intermediate_v5_chXX_*.html
+    5) 既存 v4 を「旧版」扱いに降格 6) git add -f → commit → push 7) inbox karo report_received'
+  acceptance_criteria:
+  - index.html タイトルが v5 最新版を示している
+  - curriculum_intermediate_v5.html へのリンクあり
+  - lectures/intermediate_v5_ch00_intro.html 〜 ch11_skill.html 全12章へのリンクあり
+  - git add -f → commit → push 済
+  - http://192.168.2.4:8773/ でアクセス可能なこと確認
+  notes: '【緊急】殿が http://192.168.2.4:8773/intermediate_v5/ を開いて 404 になった。index.html
+    が v4 止まりで v5 リンクがない。v5 章別HTML は全て lectures/ 配下にある: intermediate_v5_ch00_intro.html
+    〜 ch11_skill.html。git add -f (gitignored) で強制 add 必須。'
+  timestamp: '2026-05-06T10:21:06.025042+09:00'
+- agent: ashigaru1
+  task_id: subtask_1655_phaseA_extract
+  status: assigned
+  parent_cmd: cmd_1655
+  bloom_level: L3
+  description: 'cmd_1655 Phase A: v4スタイル正典抽出 + ch00/ch01 適用'
+  target_path: /home/murakami/multi-agent-shogun/shared_context/marp_v4_style_template.md
+  steps:
+  - 1. projects/udemy_course/drafts/lectures/intermediate_v4_ch01_prompt_function.md
+    を読む
+  - '2. frontmatter style全体・<!-- _class: cover --> カバースライドブロック・.meta div・section padding
+    50px 70px・flex layout・speakerノートHTMLコメント形式を抽出'
+  - 3. shared_context/marp_v4_style_template.md に正典保存 (frontmatter style + カバースライド例
+    + .meta div例 + speakerノート例)
+  - 4. intermediate_v5_ch00_intro.md と intermediate_v5_ch01_3layer.md を読み、v4スタイルを適用
+    (既存本文は壊さず・スタイル要素のみ追加/差替え・カバースライドに章番号/タイトル/FREEバッジ/講師名なぎなた)
+  - '5. Marp CLI で .html 再生成: npx @marp-team/marp-cli <file>.md -o <file>.html'
+  - 6. git add -f projects/udemy_course/ shared_context/marp_v4_style_template.md
+    && git commit
+  - 7. karo へ inbox report_received
+  timestamp: '2026-05-06T11:36:32.480348+09:00'
