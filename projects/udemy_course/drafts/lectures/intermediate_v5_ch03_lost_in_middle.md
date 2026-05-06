@@ -4,14 +4,36 @@ theme: default
 paginate: true
 size: 16:9
 style: |
-  section { font-size: 0.85em; }
-  h1 { font-size: 1.4em; color: #c8102e; border-bottom: 3px solid #c8102e; padding-bottom: 0.2em; }
-  h2 { font-size: 1.15em; color: #2563eb; }
-  h3 { font-size: 1.0em; color: #4b5563; }
-  table { font-size: 0.75em; }
-  code { background: #f0f0f0; padding: 2px 5px; border-radius: 3px; }
-  pre { background: #2b2b2b; color: #f8f8f2; padding: 8px; font-size: 0.7em; }
-  blockquote { font-size: 0.85em; font-style: italic; border-left: 4px solid #2563eb; padding-left: 0.5em; }
+  section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+  section h1:first-child, section h2:first-child { margin-top: 0; }
+  section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
+  section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
+  section.cover h2 { font-size: 1.0em; color: #fde68a; }
+  section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
+  h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
+  h2 { color: #2563eb; font-size: 1.1em; }
+  h3 { color: #4b5563; font-size: 1.0em; }
+  blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
+  code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
+  pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
+  table { font-size: 0.78em; border-collapse: collapse; }
+  th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
+  td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
+  .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
+  .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
+---
+
+<!-- _class: cover -->
+
+# 長文 context は読まれない
+## — Lost in the Middle と根本対策
+
+<div class="meta">
+中級編 — 第3章 (約 25 min)<span class="free">FREE</span><br><br>
+「AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全解説」<br><br>
+講師: なぎなた
+</div>
+
 ---
 
 # ch03. 長文 context は読まれない — Lost in the Middle と根本対策
@@ -291,4 +313,19 @@ ch03 [本章]  ← 制約の理解 + 根本対策の方向性
 - **根本対策 = 長文を作らない仕組み化**
 - 具体的な道具は ch04 / ch05 / ch07 で学ぶ
 
-> **強化した層: コンテキスト層 (L2)** — LitM 現象の正確な定義と、根本対策の方向性 (ch04/05/07) を把握する
+> 強化した層：コンテキスト層 (L2) — LitM 現象の正確な定義と、根本対策の方向性 (ch04/05/07) を把握する。
+
+---
+
+<!-- _class: cover -->
+
+# 第3章 完了
+## 次は 第4章「分割 + 検索 — 長文を作らない主役 4 道具」
+
+<div class="meta">
+✅ 3 つの制約（容量上限/LitM/Context Rot）を区別して説明できる<br>
+✅ 配置技術は緩和策であり根本対策ではないことを理解した<br>
+✅ 根本対策＝長文を作らない仕組み化の 3 つの方向性を把握した<br>
+✅ ch04/05/07 のどれで対策するかを判別できる<br><br>
+<b>続けて第4章をお楽しみください</b>
+</div>

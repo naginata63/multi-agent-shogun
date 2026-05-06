@@ -4,14 +4,36 @@ theme: default
 paginate: true
 size: 16:9
 style: |
-  section { font-size: 0.85em; }
-  h1 { font-size: 1.4em; color: #c8102e; border-bottom: 3px solid #c8102e; padding-bottom: 0.2em; }
-  h2 { font-size: 1.15em; color: #2563eb; }
-  h3 { font-size: 1.0em; color: #4b5563; }
-  table { font-size: 0.75em; }
-  code { background: #f0f0f0; padding: 2px 5px; border-radius: 3px; }
-  pre { background: #2b2b2b; color: #f8f8f2; padding: 8px; font-size: 0.7em; }
-  blockquote { font-size: 0.85em; font-style: italic; border-left: 4px solid #2563eb; padding-left: 0.5em; }
+  section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+  section h1:first-child, section h2:first-child { margin-top: 0; }
+  section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
+  section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
+  section.cover h2 { font-size: 1.0em; color: #fde68a; }
+  section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
+  h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
+  h2 { color: #2563eb; font-size: 1.1em; }
+  h3 { color: #4b5563; font-size: 1.0em; }
+  blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
+  code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
+  pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
+  table { font-size: 0.78em; border-collapse: collapse; }
+  th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
+  td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
+  .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
+  .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
+---
+
+<!-- _class: cover -->
+
+# よくある失敗 3 パターンの診断
+## — プロンプト層の品質診断
+
+<div class="meta">
+中級編 — 第2章 (約 25 min)<span class="free">FREE</span><br><br>
+「AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全解説」<br><br>
+講師: なぎなた
+</div>
+
 ---
 
 # ch02. よくある失敗 3 パターンの診断
@@ -278,4 +300,19 @@ AI が推測で動かないようにする **3 つの問いかけパターン**:
 - **確認問いかけ 3 種** を組み込めば再発防止
 - 1 プロンプト 1 タスク が基本
 
-> **強化した層: プロンプト層 (L1)** — プロンプトの診断と修正ができるようになる
+> 強化した層：プロンプト層 (L1) — プロンプトの診断と修正ができるようになる。
+
+---
+
+<!-- _class: cover -->
+
+# 第2章 完了
+## 次は 第3章「長文 context は読まれない」
+
+<div class="meta">
+✅ 失敗 3 パターン（推測突進/確認不足/範囲過大）を診断できる<br>
+✅ 10 項目チェックリストで原因を特定できる<br>
+✅ 確認問いかけテンプレ 3 種をプロンプトに組み込める<br>
+✅ 1 プロンプト 1 タスクを徹底できる<br><br>
+<b>続けて第3章をお楽しみください</b>
+</div>

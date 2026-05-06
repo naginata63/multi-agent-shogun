@@ -4,19 +4,44 @@ theme: default
 paginate: true
 size: 16:9
 style: |
-  section { font-size: 0.85em; }
-  h1 { font-size: 1.4em; color: #c8102e; border-bottom: 3px solid #c8102e; padding-bottom: 0.2em; }
-  h2 { font-size: 1.15em; color: #2563eb; }
-  h3 { font-size: 1.0em; color: #4b5563; }
-  table { font-size: 0.75em; }
-  code { background: #f0f0f0; padding: 2px 5px; border-radius: 3px; }
-  pre { background: #2b2b2b; color: #f8f8f2; padding: 8px; font-size: 0.7em; }
-  blockquote { font-size: 0.85em; font-style: italic; border-left: 4px solid #2563eb; padding-left: 0.5em; }
+  section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+  section h1:first-child, section h2:first-child { margin-top: 0; }
+  section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
+  section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
+  section.cover h2 { font-size: 1.0em; color: #fde68a; }
+  section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
+  h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
+  h2 { color: #2563eb; font-size: 1.1em; }
+  h3 { color: #4b5563; font-size: 1.0em; }
+  blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
+  code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
+  pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
+  table { font-size: 0.78em; border-collapse: collapse; }
+  th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
+  td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
+  .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
+  .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
+---
+
+<!--
+スピーカーノート:
+第7章の冒頭。ハーネス層の自動化について解説する。ch04で学んだ検索技術を、フックで自動発動させる仕組みを学ぶ。手動→自動→自律の進化の中継地点。
+-->
+
+<!-- _class: cover -->
+
+# 自動で動かす — 4 つのフック + Skill 連携
+## — ハーネス層の自動化編
+
+<div class="meta">
+中級編 — 第7章 (約 20 min)<span class="free">FREE</span><br><br>
+「AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全解説」<br><br>
+講師: なぎなた
+</div>
+
 ---
 
 # ch07. 自動で動かす — 4 つのフック + Skill 連携
-
-## ハーネス層の自動化編 ★ 検索 [自動]
 
 ---
 
@@ -353,3 +378,17 @@ PostToolUse → いつも同じテスト実行
 > 本章の PreToolUse フックがその **実行時の強制力** を担います。
 
 **強化した層：ハーネス層（L3）** — フックで自動化し、Skill 連携の入口に立った
+
+---
+
+<!-- _class: cover -->
+
+# 第7章 完了
+## 次は 第8章「黙る AI を能動的に検知する」
+
+<div class="meta">
+✅ 4 種類のフックで全タイミングを網羅できる<br>
+✅ UserPromptSubmit で ch04 の検索を自動発動できる<br>
+✅ Skill と連携すれば AI が自律的に道具を選べる<br><br>
+<b>続けて第8章をお楽しみください</b>
+</div>
