@@ -4,19 +4,39 @@ theme: default
 paginate: true
 size: 16:9
 style: |
-  section { font-size: 0.85em; }
-  h1 { font-size: 1.4em; color: #c8102e; border-bottom: 3px solid #c8102e; padding-bottom: 0.2em; }
-  h2 { font-size: 1.15em; color: #2563eb; }
-  h3 { font-size: 1.0em; color: #4b5563; }
-  table { font-size: 0.75em; }
-  code { background: #f0f0f0; padding: 2px 5px; border-radius: 3px; }
-  pre { background: #2b2b2b; color: #f8f8f2; padding: 8px; font-size: 0.7em; }
-  blockquote { font-size: 0.85em; font-style: italic; border-left: 4px solid #2563eb; padding-left: 0.5em; }
+  section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+  section h1:first-child, section h2:first-child { margin-top: 0; }
+  section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
+  section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
+  section.cover h2 { font-size: 1.0em; color: #fde68a; }
+  section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
+  h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
+  h2 { color: #2563eb; font-size: 1.1em; }
+  h3 { color: #4b5563; font-size: 1.0em; }
+  blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
+  code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
+  pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
+  table { font-size: 0.78em; border-collapse: collapse; }
+  th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
+  td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
+  .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
+  .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
+---
+
+<!-- _class: cover -->
+
+# 講座のゴール — 3 層の世界観と「困りごと」の正体
+## — 導入：本講座で何が変わるか
+
+<div class="meta">
+中級編 — 第0章 (約 20 min)<span class="free">FREE</span><br><br>
+「AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全解説」<br><br>
+講師: なぎなた
+</div>
+
 ---
 
 # ch00. 講座のゴール — 3 層の世界観と「困りごと」の正体
-
-## 導入 — 本講座で何が変わるか
 
 ---
 
@@ -28,6 +48,8 @@ style: |
 - 「完了しました」と言われたが、**後で見たら嘘**だった
 - 先週直したバグの調査を、**また最初から**やり直している
 - 長い資料を渡したのに、**真ん中の重要な数字**を見落としていた
+
+<!-- Speaker note: 受講者に「ありますよね？」と問いかけます。ここで共感を作るのがこの章の最大の目的です。4つの例のうち、どれか一つでも当てはまる人は手を挙げてもらうと参加度が上がります。 -->
 
 ---
 
@@ -56,6 +78,8 @@ style: |
 
 > 全 11 件、心当たりありませんか？
 
+<!-- Speaker note: 後半5件は「AIを信用しすぎる」「確認しない」「失敗を隠す」など、より深刻な問題です。⑦〜⑪は第6章以降のハーネス層で扱います。まずは①〜⑥の身近な困りごとから見ていきましょう。 -->
+
 ---
 
 ## ここで宣言します
@@ -66,6 +90,8 @@ style: |
 **仕組みの欠落** が原因です。
 
 本講座で、この 3 層を順に強化していきます。
+
+<!-- Speaker note: ここが本講座の核心メッセージです。「AIが悪い」でも「自分がダメ」でもない。仕組みが足りていないだけ、という捉え方に変えることで、受講者は「自分にもできる」という感覚を持てます。ゆっくり・丁寧に伝えてください。 -->
 
 ---
 
@@ -87,6 +113,8 @@ style: |
 └─────────────────────────────────────────┘
 ```
 
+<!-- Speaker note: 3層の図を板書するイメージで説明します。プロンプト層は「1回の指示の質」＝目に見えやすい。コンテキスト層は「AIに何を見せるか」＝設計が必要。ハーネス層は「AIを動かす仕組み」＝最も設計難度が高いが効果も最大。上から順に強化していきます。 -->
+
 ---
 
 ## 3 層のイメージ
@@ -97,6 +125,8 @@ style: |
   - 例：長文を全部渡すのではなく、必要な部分だけ取り出す
 - **ハーネス層** = 「AI を動かす仕組み」
   - 例：ルールを書いておけば、AI が自動で守る
+
+<!-- Speaker note: 各層を日常的な例えで説明します。プロンプト層＝「お願いの仕方メモ」。コンテキスト層＝「必要な資料だけ机に置く」。ハーネス層＝「手順書を壁に貼っておく」。具体例でイメージを掴ませてください。 -->
 
 ---
 
@@ -116,6 +146,8 @@ style: |
 | ⑩ | 失敗を隠す | ハーネス層 | ch08 |
 | ⑪ | 「止めろ」が伝わらない | ハーネス層 | ch08 |
 
+<!-- Speaker note: 11件の困りごとを3層にマッピングする表です。ここでは「全ての困りごとは3層のどれかが欠けているから起きる」という対応関係を理解してもらいます。①②③はプロンプト、④⑤はコンテキスト、⑥以降はハーネスという傾向を強調してください。 -->
+
 ---
 
 ## 集計すると
@@ -127,6 +159,8 @@ style: |
 
 > ハーネス層の欠如が一番多い。
 > つまり「AI に指示する仕組み」が一番のボトルネック。
+
+<!-- Speaker note: 集計結果のポイントは「ハーネス層が5件で最多」です。多くの人はプロンプトの書き方ばかり気にしますが、実は「AIを動かす仕組み」の欠如が最も多い困りごとの原因。この発見に少し驚く受講者もいるはずです。 -->
 
 ---
 
@@ -151,6 +185,8 @@ ch10 [逆引き]         困った時の逆引き辞典
 ch11 [演習]           自分専用の Skill を作る
 ```
 
+<!-- Speaker note: 全12章のロードマップです。各章がどの層を強化するかを示しています。プロンプト層(ch01-02)→コンテキスト層(ch03-04)→ハーネス層(ch05-08)の順で進むことを強調。ch09-11は応用編で、3層を統合します。 -->
+
 ---
 
 ## 講座が終わると、あなたのリポジトリにこれが残る
@@ -165,6 +201,8 @@ ch11 [演習]           自分専用の Skill を作る
 > これらが **あなたのプロジェクトフォルダ** に残ります。
 > 講座が終わっても、そのまま業務で使い続けられます。
 
+<!-- Speaker note: 講座の実用性を強調します。「座学で終わらない」ことが受講者のモチベーションに直結します。各道具は実際にファイルとして残るので、明日から業務で使えることを伝えてください。 -->
+
 ---
 
 ## この講座の学び方
@@ -174,6 +212,8 @@ ch11 [演習]           自分専用の Skill を作る
 3. **章末で確認** — 各章の「持ち帰り」で理解度をセルフチェック
 
 > 「見るだけ」ではなく「やる」講座です。
+
+<!-- Speaker note: 学び方の3つのポイント。「動画を止める」「自分で試す」「章末で確認」は本講座の基本スタンスです。特に「自分の業務に置き換えて試す」ことを強調。サンプルをコピペするだけでなく、自分の現場に当てはめることで理解度が跳ね上がります。 -->
 
 ---
 
@@ -197,3 +237,17 @@ ch11 [演習]           自分専用の Skill を作る
 ---
 
 > 強化した層：3 層の地図を頭に描いた。以降の章で各層を順に強化していく。
+
+---
+
+<!-- _class: cover -->
+
+# 第0章 完了
+## 次は 第1章「プロンプトを資産にする」
+
+<div class="meta">
+✅ 11 の困りごとが「3 層の欠落」として説明できる<br>
+✅ プロンプト/コンテキスト/ハーネスの 3 層を説明できる<br>
+✅ 12 章の全体地図を頭に描いた<br><br>
+<b>続けて第1章をお楽しみください</b>
+</div>
