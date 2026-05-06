@@ -92,6 +92,9 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <li>自分の業務に置換可能な<strong>組み合わせの型</strong>を1つ考案できる</li>
 <li>**「どの層から始めるか」**の優先順位判断ができる</li>
 </ol>
+<blockquote>
+<p><strong>本章の略語</strong>: RAG = Retrieval-Augmented Generation (検索拡張生成)</p>
+</blockquote>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="3" data-paginate="true" data-theme="default" data-style="section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
 section h1:first-child, section h2:first-child { margin-top: 0; }
@@ -133,7 +136,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <p>ch01〜ch08で3層の道具を学んだ。しかし、自分の現場に戻ったら<strong>何から始めればいいか分からない</strong> — このギャップを埋めるのが本章です</p>
 </blockquote>
 <ul>
-<li>道具は9種類以上 (command / 診断 / chunk / RAG / memory / 役割別ファイル / advisor / hook / 禁止操作...)</li>
+<li>道具は9種類以上 (command / 診断 / chunk / RAG (Retrieval-Augmented Generation) / memory / 役割別ファイル / advisor / hook / 禁止操作...)</li>
 <li>でも「全部一度に導入」は現実的ではない</li>
 <li><strong>自分の困りごとに合う層から始める</strong>のが正解</li>
 </ul>
@@ -256,7 +259,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 </code></pre>
 <p><strong>コンテキスト層</strong> — memory検索で過去を呼び戻す</p>
 <ul>
-<li>前回の顧客要望・クレーム履歴を意味検索（ch04で学んだ<code>claude-mem</code>等で「この顧客について検索」と入力するイメージ）</li>
+<li>前回の顧客要望・クレーム履歴を意味検索（ch04で紹介した外部MCPサーバー<code>claude-mem</code>等で「この顧客について検索」と入力するイメージ。※利用にはMCP設定が別途必要）</li>
 <li>「この顧客は前回〇〇に不満だった」を自動参照</li>
 </ul>
 <p><strong>ハーネス層</strong> — advisorで念押し</p>
@@ -307,7 +310,7 @@ td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
 <ul>
 <li>ch02の診断10項目を適用: タスクの前提・出力形式・完了条件を明記</li>
 </ul>
-<p><strong>コンテキスト層</strong> — <code>/handoff</code> (ch04で紹介したセッション引き継ぎ機能) でセッション跨ぎの引き継ぎ</p>
+<p><strong>コンテキスト層</strong> — <code>/handoff</code> (セッション引き継ぎ機能。詳細は附録参照) でセッション跨ぎの引き継ぎ</p>
 <ul>
 <li>前回の進捗・決定事項を次セッションに引き継ぎ</li>
 <li>「先週どこまで進んだか」をゼロから説明しなおす必要がなくなる</li>
