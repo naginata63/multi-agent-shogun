@@ -78,10 +78,10 @@ tasks:
   bloom_level: L3
   description: 'cmd_1636 直接4並列: ash3 担当 14本 (BcPWm_mCpp4〜QCFyL7tG-v4) DL→Demucs→STT→speaker_mapping'
   gunshi_qc: false
-  notes: 4並列本番。GEMINI API期限切れのためscene_search_v2 build禁止。エラー時スキップ継続可。git push は家老が実施。
+  notes: 4並列本番。GEMINI API期限切れのためscene_search_v2 build禁止。エラー時スキップ継続可。git push は家老が実施。[BLOCKED] YouTube IP ban: 並列DL禁止ルール違反で発動。6/14完了(成功:Tdgz/X3cM/05zh/XB-X/sml-a/D4_8)、残8本DL失敗。IP ban解除待機中。並列1-2+5秒で再開可能。
   parent_cmd: cmd_1636
   priority: high
-  status: in_progress
+  status: blocked
   steps: '0) advisor()呼出 1) 事前メモリ確認: free -h && nvidia-smi --query-gpu=memory.used,memory.total
     --format=csv,noheader 2) cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
     && source ~/.bashrc && source venv/bin/activate 3) 以下14本を順次処理。各動画: VIDEO_ID=<id>
@@ -127,3 +127,41 @@ tasks:
   - python3 -m py_compile でシンタックスエラーなし
   - git commit 済み (cmd_1664 明記)
   timestamp: '2026-05-07T06:34:49.111963+09:00'
+- task_id: subtask_1666_remnant_cleanup
+  agent: ashigaru3
+  parent_cmd: cmd_1666
+  title: server.py L2826-2829 dead remnant 削除 (busy_timeout 5000→10000 逆作用解消)
+  description: cmd_1664 ash3修正のQCで軍師が発見した dead remnant 3件 (QC1664_FIX_R001〜R003) を物理削除する。最重要は
+    L2829 `_conn.execute('PRAGMA busy_timeout = 5000')` — これは get_db() で設定済の 10000ms
+    を 5000ms に逆作用でダウングレードする。L2826/L2827 は旧接続方式の dead import/dead variable。
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+  bloom_level: L3
+  status: done
+  priority: high
+  steps:
+  - 0. server.py L25-30 で DB_PATH を確認 (server.py 実コード確認から始めよ)
+  - 1. Read queue/reports/gunshi_report_qc_1664_fix_server.yaml で削除対象 3 件を確認
+  - '2. server.py の実際の行番号を grep で確認: grep -n ''import sqlite3 as _sqlite3\|_db_path
+    = os.path\|PRAGMA busy_timeout = 5000'' scripts/dashboard/server.py'
+  - 3. 行番号を目視確認してから Edit tool で削除 (行番号ズレあり注意)
+  - '   - `import sqlite3 as _sqlite3` → 削除'
+  - '   - `_db_path = os.path.join(BASE_DIR, ''queue'', ''cmds.db'')` → 削除'
+  - '   - `_conn.execute(''PRAGMA busy_timeout = 5000'')` → 削除'
+  - '4. 類似 remnant を L2952/L3007 周辺で grep確認: grep -n ''PRAGMA busy_timeout = 5000\|_sqlite3\|_db_path''
+    scripts/dashboard/server.py'
+  - 5. 発見した remnant もすべて削除 (get_db() で 10000ms 設定済のため手動 PRAGMA は全廃)
+  - 6. python3 -m py_compile scripts/dashboard/server.py でシンタックスチェック
+  - 7. curl -s -w '\nHTTP %{http_code}\n' http://192.168.2.4:8770/api/cmd_list?limit=3
+    で動作確認
+  - 8. git add scripts/dashboard/server.py && git commit (cmd_1666 明記)
+  - 9. curl POST /api/inbox_write で家老 (karo) に report_received 通知
+  acceptance_criteria:
+  - L2826 `import sqlite3 as _sqlite3` 削除済 (grep で消えていることを確認)
+  - L2827 `_db_path = os.path.join(...)` 削除済
+  - L2829 `PRAGMA busy_timeout = 5000` 削除済 (逆作用を除去し get_db の 10000ms が生きる)
+  - L2952/L3007 周辺の類似 remnant も確認・削除
+  - python3 -m py_compile PASS
+  - curl GET /api/cmd_list 正常返却
+  - git commit 済み
+  - 家老 inbox 通知済
+  timestamp: '2026-05-07T07:08:37.172035+09:00'
