@@ -61,7 +61,7 @@ def get_db():
 
 def _migrate_inbox_types():
     """cmd_1661: Add task_cancelled to inbox_messages CHECK constraint."""
-    conn = sqlite3.connect(DB_PATH, timeout=5)
+    conn = get_db()
     try:
         row = conn.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='inbox_messages'").fetchone()
         if row and 'task_cancelled' not in row[0]:
@@ -165,8 +165,7 @@ def parse_shogun_to_karo():
         mtime = os.path.getmtime(DB_PATH)
         if mtime == _stk_cache["mtime"] and _stk_cache["data"]:
             return _stk_cache["data"]
-        conn = sqlite3.connect(DB_PATH, timeout=5)
-        conn.row_factory = sqlite3.Row
+        conn = get_db()
         try:
             cmds = []
             for r in conn.execute("SELECT * FROM commands"):
@@ -1882,8 +1881,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     self.end_headers()
                     self.wfile.write(b'<h1>400 Bad Request</h1><p>cmd ID required</p>')
                     return
-                conn = sqlite3.connect(DB_PATH, timeout=5)
-                conn.row_factory = sqlite3.Row
+                conn = get_db()
                 try:
                     r = conn.execute("SELECT * FROM commands WHERE id = ?", (cmd_id,)).fetchone()
                 finally:
@@ -1927,8 +1925,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 limit = int(qs.get('limit', ['20'])[0])  # default 200→20 (家老 context 削減)
                 slim = qs.get('slim', ['0'])[0] == '1'
 
-                conn = sqlite3.connect(DB_PATH, timeout=5)
-                conn.row_factory = sqlite3.Row
+                conn = get_db()
                 try:
                     counts = {}
                     for r in conn.execute(
@@ -2015,8 +2012,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps({'error': 'id required'}).encode('utf-8'))
                     return
 
-                conn = sqlite3.connect(DB_PATH, timeout=5)
-                conn.row_factory = sqlite3.Row
+                conn = get_db()
                 try:
                     r = conn.execute(
                         "SELECT * FROM commands WHERE id = ?", (cmd_id,)
@@ -2068,8 +2064,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 cmd_filter = qs.get('cmd', [None])[0]
                 limit = int(qs.get('limit', ['50'])[0])
 
-                conn = sqlite3.connect(DB_PATH, timeout=5)
-                conn.row_factory = sqlite3.Row
+                conn = get_db()
                 try:
                     sql = "SELECT * FROM tasks"
                     params = []
@@ -2125,8 +2120,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 limit = int(qs.get('limit', ['20'])[0])
                 full = qs.get('full', ['0'])[0] == '1'
 
-                conn = sqlite3.connect(DB_PATH, timeout=5)
-                conn.row_factory = sqlite3.Row
+                conn = get_db()
                 try:
                     cols = "*" if full else "id, agent, from_agent, type, read, timestamp"
                     sql = f"SELECT {cols} FROM inbox_messages"
@@ -2194,8 +2188,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     self.end_headers()
                     self.wfile.write(json.dumps({'error': 'id required'}).encode('utf-8'))
                     return
-                conn = sqlite3.connect(DB_PATH, timeout=5)
-                conn.row_factory = sqlite3.Row
+                conn = get_db()
                 try:
                     r = conn.execute(
                         "SELECT * FROM reports WHERE report_id = ?", (rid,)
@@ -2242,8 +2235,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 task_id = qs.get('task', [None])[0]
                 limit = int(qs.get('limit', ['20'])[0])
 
-                conn = sqlite3.connect(DB_PATH, timeout=5)
-                conn.row_factory = sqlite3.Row
+                conn = get_db()
                 try:
                     sql = "SELECT * FROM reports"
                     params = []
@@ -2547,8 +2539,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 # Phase 1: push unread from SQLite
                 last_event_id = self.headers.get('Last-Event-ID', '')
                 try:
-                    conn = sqlite3.connect(DB_PATH, timeout=5)
-                    conn.row_factory = sqlite3.Row
+                    conn = get_db()
                     if last_event_id:
                         rows = conn.execute(
                             'SELECT id, from_agent, type, content, timestamp FROM inbox_messages '
@@ -2832,7 +2823,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     try:
                         import sqlite3 as _sqlite3
                         _db_path = os.path.join(BASE_DIR, 'queue', 'cmds.db')
-                        _conn = _sqlite3.connect(_db_path, timeout=5)
+                        _conn = get_db()
                         _conn.execute('PRAGMA busy_timeout = 5000')
                         _crit_json = json.dumps(body.get('acceptance_criteria', []), ensure_ascii=False) if body.get('acceptance_criteria') else None
                         _notes_json = json.dumps(body.get('notes', []), ensure_ascii=False) if body.get('notes') else None
@@ -2960,7 +2951,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 # SQLite UPDATE
                 import sqlite3 as _sqlite3
                 _db_path = os.path.join(BASE_DIR, 'queue', 'cmds.db')
-                _conn = _sqlite3.connect(_db_path, timeout=5)
+                _conn = get_db()
                 try:
                     if completed_at:
                         cur = _conn.execute('UPDATE commands SET status=?, completed_at=? WHERE id=?', (new_status, completed_at, cmd_id))
@@ -3015,7 +3006,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 # 現在の status を確認
                 import sqlite3 as _sqlite3
                 _db_path = os.path.join(BASE_DIR, 'queue', 'cmds.db')
-                _conn = _sqlite3.connect(_db_path, timeout=5)
+                _conn = get_db()
                 try:
                     cur = _conn.execute('SELECT status FROM commands WHERE id=?', (cmd_id,))
                     row = cur.fetchone()
@@ -3029,6 +3020,25 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                         self.wfile.write(json.dumps({'error': f'Cannot cancel cmd in status: {current_status} (only pending/in_progress)'}).encode('utf-8'))
                         return
                     _conn.execute('UPDATE commands SET status=? WHERE id=?', ('cancelled', cmd_id))
+                    # cmd_1661: 関連 subtask を全てcancel (done/cancelled 以外)
+                    now_jst = datetime.now(timezone(timedelta(hours=9))).strftime('%Y-%m-%dT%H:%M:%S+09:00')
+                    cancelled_reason = f'parent cmd cancelled by {actor} at {now_jst}'
+                    cancelled_subtasks = []
+                    notified_agents = set()
+                    subtasks_cur = _conn.execute(
+                        'SELECT task_id, agent FROM tasks WHERE parent_cmd=? AND status NOT IN ("done", "cancelled")',
+                        (cmd_id,)
+                    )
+                    subtasks = subtasks_cur.fetchall()
+                    for st in subtasks:
+                        task_id, agent = st[0], st[1]
+                        _conn.execute(
+                            'UPDATE tasks SET status=?, cancelled_reason=?, cancelled_at=? WHERE task_id=?',
+                            ('cancelled', cancelled_reason, now_jst, task_id)
+                        )
+                        cancelled_subtasks.append(task_id)
+                        if agent:
+                            notified_agents.add(agent)
                     _conn.commit()
                 finally:
                     _conn.close()
@@ -3088,7 +3098,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     _tid = body.get('task_id', '')
                     if _tid:
                         try:
-                            _conn = sqlite3.connect(DB_PATH, timeout=5)
+                            _conn = get_db()
                             _cur = _conn.execute('SELECT bloom_level FROM tasks WHERE task_id=?', (_tid,))
                             _row = _cur.fetchone()
                             _conn.close()
@@ -3193,7 +3203,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
 
                 # SQLite dual-path
                 try:
-                    _conn = sqlite3.connect(DB_PATH, timeout=5)
+                    _conn = get_db()
                     _conn.execute('''INSERT OR REPLACE INTO tasks
                         (task_id, agent, parent_cmd, status, priority, title,
                          project, description, target_path, procedure, steps,
@@ -3535,7 +3545,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
 
                 now_iso = datetime.now(timezone.utc).isoformat()
                 updated = 0
-                conn = sqlite3.connect(DB_PATH, timeout=5)
+                conn = get_db()
                 try:
                     if ids:
                         placeholders = ','.join('?' * len(ids))
