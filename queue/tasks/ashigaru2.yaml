@@ -51,239 +51,62 @@ tasks:
   target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/
   task_id: subtask_1636_batch2
   timestamp: '2026-05-05T15:22:55.743205+09:00'
-- acceptance_criteria:
-  - 14本全て merged_<id>.json が srt_and_candidates/ に存在
-  - 全merged JSON で A-F speakers = 0
-  - RAM available>5GB 維持・OOM未発生
-  agent: ashigaru2
-  bloom_level: L3
-  cancelled_reason: 殿命 cancelled (2026-05-05 20:30) - STT諦め方針
-  description: 'cmd_1636 直接4並列: ash2 担当 14本 (FtPg-vcyH7I〜nZwB29p9HQk) DL→Demucs→STT→speaker_mapping'
-  gunshi_qc: false
-  notes: 4並列本番。GEMINI API期限切れのためscene_search_v2 build禁止。エラー時スキップ継続可。git push は家老が実施。
-  parent_cmd: cmd_1636
-  priority: high
-  status: cancelled
-  steps: '0) advisor()呼出 1) 事前メモリ確認: free -h && nvidia-smi --query-gpu=memory.used,memory.total
-    --format=csv,noheader 2) cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
-    && source ~/.bashrc && source venv/bin/activate 3) 以下14本を順次処理。各動画: VIDEO_ID=<id>
-    → mkdir -p work/cmd_1636_<id>/{input,output} → downloader.py + vocal_stt_pipeline.py
-    → merged_{id}.json → A-F検証 4) 処理対象14本: FtPg-vcyH7I _0HIJZdn94A gt10557GfBA u1LFMXspjKc
-    YZJAmX7faM0 Sm4XCtRQc7U orPrgEK9bC0 cr2GMwajLgs RC-OomWcIeM bCaAyiyjaKQ Wqbvk5zyOYg
-    ssB-cPaPf2k l_DbsoeSTeI nZwB29p9HQk 5) 5本ごとにメモリ確認。異常→即STOP→inbox karo 6) 全完了後:
-    成功/失敗一覧 + 最終メモリ状態 inbox karo報告 7) advisor()呼出'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/
-  task_id: subtask_1636_fullbatch2
-  timestamp: '2026-05-05T15:29:03.024538+09:00'
-- acceptance_criteria:
-  - Monitor toolでashigaru2のinboxを監視・テストメッセージを検知確認
-  - 10 agent全員(shogun/karo/ash1-7/gunshi)にテストメッセージ送信済
-  - logs/inbox_audit.log に10件以上のMONITOR_PHASE2_TEST エントリ確認
-  - 到達率計算済 (目標95%以上)
-  - 既存inbox_watcher.sh 並走稼働確認
-  - karo inbox報告済
-  agent: ashigaru2
-  bloom_level: L3
-  completed_at: '2026-05-06T04:07:40+09:00'
-  description: 'cmd_1642 Phase2 Monitor起動テスト: 全10 agent分inbox送信→audit log確認→到達率計測→karo
-    inbox報告'
-  gunshi_qc: false
-  notes: Monitor toolはdeferred tool→ToolSearch必須。payload fileはqueue/cmd_payloads/inbox_test_*.jsonを個別作成して--data
-    @で送れ(CHK10対策)。logs/inbox_audit.logはcmd_1640で実装済のserver.pyログ。到達率が95%未満の場合はその理由をkaro
-    inboxに詳細報告。
-  parent_cmd: cmd_1642
-  priority: high
-  status: done
-  steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) ToolSearchで''select:Monitor''を実行してスキーマ取得
-    3) [Monitor起動] Bash(run_in_background=true, command=''bash scripts/poc_monitor_inbox.sh
-    queue/inbox/ashigaru2.yaml'') でバックグラウンド起動 → Monitor toolでstdout監視開始 4) [10 agent分テスト送信]
-    以下10エージェント全員にwake_upテストメッセージを送信 (POST /api/inbox_write 経由・payload file使用): shogun/karo/ashigaru1-7/gunshi
-    各1件 message=''MONITOR_PHASE2_TEST cmd_1642'' → 送信後3秒待機 5) [audit log確認] tail logs/inbox_audit.log
-    → 10行以上の MONITOR_PHASE2_TEST エントリが存在することを確認 → 存在件数カウント → 到達率 = 確認件数/10 × 100%
-    計算 6) [Monitor検知確認] 自分(ashigaru2)あてのテストメッセージがMonitorに検知されたことをスクリーンショット相当の記録として残す
-    (Monitor toolの出力をquote) 7) [既存watcher確認] ps aux | grep inbox_watcher → 起動中であることを確認
-    (並走確認) 8) git add -f logs/inbox_audit.log 2>/dev/null || echo ''audit log not
-    tracked'' → 到達率・確認結果をwork/cmd_1642_monitor_test_result.txtに記録 9) advisor()呼出 10)
-    inbox karo 完了報告(到達率・10件送信確認・Monitor検知確認・watcher並走確認)'
-  target_path: /home/murakami/multi-agent-shogun/logs/inbox_audit.log
-  task_id: subtask_1642_monitor_test
-  timestamp: '2026-05-06T03:59:01.597145+09:00'
-- acceptance_criteria:
-  - scripts/poc_sse_monitor.sh 新規作成済・chmod +x済
-  - CLAUDE.md Session Start Step7 がSSE版(poc_sse_monitor.sh)に更新済
-  - instructions 4ファイル (shogun/karo/ashigaru/gunshi) がSSE版に更新済
-  - git commit + push済
-  agent: ashigaru2
-  bloom_level: L2
-  description: 'cmd_1643: CLAUDE.md/instructions Session Start Step7 をSSE版に更新 + scripts/poc_sse_monitor.sh
-    新規作成'
-  gunshi_qc: false
-  notes: 'RACE-001: 本タスクはCLAUDE.md/instructions書込み担当。ash1(subtask_1643_sse_impl)はserver.py担当で競合なし。SSE接続先:
-    http://192.168.2.4:8770/api/inbox_stream?agent={agent_id}。subtask_1643_sse_implの完了を待たずに並行実施可(URLは設計済み)。'
-  parent_cmd: cmd_1643
-  priority: high
-  status: cancelled
-  steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) [poc_sse_monitor.sh
-    新規作成] scripts/poc_sse_monitor.sh を作成: #!/usr/bin/env bash / # poc_sse_monitor.sh
-    — SSE Monitor POC: server.py /api/inbox_stream をcurl SSEで監視 / set -euo pipefail
-    / SCRIPT_DIR=$(cd $(dirname $0)/.. && pwd) / ARG=${1:-karo} / case $ARG in *.yaml)
-    AGENT=$(basename $ARG .yaml);; *) AGENT=$ARG;; esac / echo "[sse_monitor] Connecting
-    SSE: $AGENT" / exec curl --no-buffer -N -s "http://192.168.2.4:8770/api/inbox_stream?agent=${AGENT}"
-    / chmod +x scripts/poc_sse_monitor.sh 3) [CLAUDE.md 更新] Read CLAUDE.md → Session
-    Start Step 7 の「bash scripts/poc_monitor_inbox.sh」を「bash scripts/poc_sse_monitor.sh」に変更・tail
-    -F方式からSSE方式に切替の旨を追記 4) [instructions/ashigaru.md] Read instructions/ashigaru.md
-    → Monitor起動セクション (cmd_1642追加分) を SSE版に更新: poc_monitor_inbox.sh → poc_sse_monitor.sh
-    に変更 5) [instructions/karo.md] 同様更新 6) [instructions/shogun.md] 同様更新 7) [instructions/gunshi.md]
-    同様更新 8) git add CLAUDE.md instructions/shogun.md instructions/karo.md instructions/ashigaru.md
-    instructions/gunshi.md scripts/poc_sse_monitor.sh && git diff --cached --stat
-    && git commit -m ''docs(cmd_1643): Session Start Step7 SSE版更新 + poc_sse_monitor.sh新規作成''
-    && git push origin main 9) advisor()呼出 10) inbox karo 完了報告'
-  target_path: /home/murakami/multi-agent-shogun/scripts/poc_sse_monitor.sh
-  task_id: subtask_1643_monitor_update
-  timestamp: '2026-05-06T04:33:18.552431+09:00'
-- acceptance_criteria:
-  - ch04-ch06 各章の事前4項目 (対象問題・持ち帰り・ストーリー・実例) が全て記述済
-  - ch04の橋渡しスライド①の内容が事前4項目に反映されている (セマンティック検索 手動→自動への伏線)
-  - 各項目が設計書 §7 章別詳細設計と整合している
-  - 困りごと11件 + 3層欠如マッピングとの紐付けが明記
-  - projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch04_ch06.md 作成済
-  - git commit + push済 (git add -f 使用)
-  agent: ashigaru2
-  bloom_level: L3
-  completed_at: '2026-05-06T05:20:27+09:00'
-  description: 'cmd_1647 Phase1: ch04-ch06 の事前4項目 (対象問題・持ち帰り・ストーリー・実例) を作成し殿確認用ファイルに出力'
-  gunshi_qc: false
-  notes: ch04は必要時取得の実装章として再構成済 (v5 CRITICAL変更点)。§6.3 ch04章末橋渡しスライド (L200-) を必ず参照してセマンティック検索の伏線を4項目に組み込むこと。git
-    add -f 必須 (projects/ は gitignore対象)。
-  parent_cmd: cmd_1647
-  priority: high
-  status: done
-  steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) 設計書精読: projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md
-    §7 章別詳細設計 (ch04-ch06) + §11 事前4項目プロトコル + §6 セマンティック検索二重登場 (ch04橋渡しスライド) + §2 困りごと11件
-    3) 各章で以下4項目をMarkdown形式で作成: [1]対象問題 [2]持ち帰り [3]ストーリー(現象→対策) [4]実例 4) ch04: 必要時取得の実装
-    (claude-mem+handoff+必要時読込+PreCompact) ★セマンティック検索 手動登場・章末橋渡しスライド①必須 / ch05: 役割別ファイルで分業
-    / ch06: 第三者AI /advisor 5) 出力先: projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch04_ch06.md
-    6) git add -f projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch04_ch06.md
-    && git commit -m ''feat(udemy): v5 ch04-ch06 事前4項目作成 (Phase1)'' && git push origin
-    main 7) advisor()呼出 8) inbox karo 完了報告'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch04_ch06.md
-  task_id: subtask_1647_prewrite_ch04_ch06
-  timestamp: '2026-05-06T05:08:45.449817+09:00'
-- acceptance_criteria:
-  - /api/cmd_cancel エンドポイント実装済 (cmd_id を body で受取)
-  - pending/in_progress の cmd のみ cancelled に変更可・done/already cancelled は 400 で弾く
-  - dashboard HTML に cancel ボタン追加済 (既存 done と同位置・赤系スタイルで区別)
-  - 確認ダイアログ実装済 (confirm())
-  - 既存 done ボタンの動作に影響なし
-  - SQLite + YAML dual-path で status 整合更新済
-  - python3 -m py_compile PASS
-  - 実機動作確認 (dashboard で cancel ボタンクリック → status 変更確認)
-  - git commit 済
-  agent: ashigaru2
-  bloom_level: L3
-  completed_at: '2026-05-06T05:23:36+09:00'
-  description: 'cmd_1652: server.py に /api/cmd_cancel endpoint追加 + dashboard HTMLにcancelボタン追加
-    (doneボタンと同等UX・赤系スタイル)'
-  gunshi_qc: false
-  notes: 'doneボタン実装参照: server.py L1342-1369 (HTML) + L2784-2843 (/api/cmd_status_change
-    endpoint)。/api/cmd_cancel はcmd_status_changeとほぼ同じ実装でstatus=''cancelled''固定 + guard条件
-    (pending/in_progressのみ許可) を追加するだけ。cancelボタンの色: background:#c0392b;color:#fff。ボタン位置:
-    doneボタンの下・同じdiv内に追加。server.py再起動時: pkill -f ''python.*server.py'' → sleep 1 →
-    python3 scripts/dashboard/server.py & (バックグラウンド起動)。git push禁止(家老が実施)→ 完了報告でpush依頼せよ。'
-  parent_cmd: cmd_1652
-  priority: high
-  status: done
-  steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) server.py精読: L1340-1370
-    (doneボタンHTML) + L2784-2843 (/api/cmd_status_change endpoint) 3) [実装A] /api/cmd_cancel
-    endpoint追加: L2843付近に cmd_status_change と類似の実装を追加。pending/in_progress のみ cancelled
-    に変更可 (done/already cancelled は 400 で弾く)。SQLite UPDATE + YAML dual-path更新 (cmd_status_change
-    の実装をほぼコピー・status=''cancelled'' 固定・guard条件追加) 4) [実装B] dashboard HTML cancelボタン追加:
-    L1342-1369 の status_change_html に cancelボタンを追加。doneボタンの下に配置・background:#c0392b
-    (赤)・confirm()確認ダイアログ(''cmd_XXX をキャンセルしますか?'')・/api/cmd_cancel を POST呼出・reload後にキャンセル済みを確認
-    5) python3 -m py_compile scripts/dashboard/server.py PASS確認 6) server.py再起動: pkill
-    -f ''python.*server.py''; sleep 1; source ~/.bashrc && python3 scripts/dashboard/server.py
-    & 7) 実機テスト: http://192.168.2.4:8770/ でpending/in_progressのcmdにcancelボタンが表示されることを確認
-    → クリック→confirm → status cancelled確認 8) git add scripts/dashboard/server.py &&
-    git commit -m ''feat(dashboard): cancel ボタン + /api/cmd_cancel endpoint 追加 (cmd_1652)''
-    && git push origin main 9) advisor()呼出 10) inbox karo 完了報告'
-  target_path: scripts/dashboard/server.py
-  task_id: subtask_1652_cancel_impl
-  timestamp: '2026-05-06T05:18:43.235325+09:00'
-- acceptance_criteria:
-  - 担当章すべての .md (Marp) + .html 作成済
-  - udemy-checker 🟢 達成 (観点A-E満足)
-  - NGワードリスト全件grep 0件
-  - 各章末に「強化した層：●層(L1/L2/L3)」1行明記
-  - JIT→必要時取得 / Lazy Load→必要時読込 置換済
-  - git add -f → commit + push 済
-  - inbox_write karo report_received 送信済
-  agent: ashigaru2
-  bloom_level: L3
-  completed_at: '2026-05-06T07:48:00+09:00'
-  description: 'cmd_1647 Phase2: ch02(失敗3パターン診断) + ch03(LitM根本対策) 本文執筆・udemy-checker
-    🟢'
-  notes: '担当章: ch02(失敗3パターン診断), ch03(LitM根本対策・仕組み化)
-
-    prewrite: intermediate_v5_prewrite_ch00_ch03.md (ch02/ch03分担)
-
-    【ch03重要】「通常命令では起きない・長文(5000token+)で発生」冒頭明記必須
-
-    【入力ファイル】
-
-    - projects/udemy_course/drafts/lectures/curriculum_intermediate_v5_marp.md (v5設計書・主体)
-
-    - projects/udemy_course/v5_design.md
-
-    - 自分の担当章の prewrite md (下記target_path参照)
-
-
-    【執筆ルール】
-
-    - Marp形式 (.md) で執筆 → Marp CLI で .html 生成
-
-    - NGワード: 経済/階層/JIT/Lazy Load/queue/tasks/shogun/karo/ashigaru/gunshi/multi-agent-shogun
-    → 0件
-
-    - JIT→必要時取得 / Lazy Load→必要時読込 に置換
-
-    - 各章末に「強化した層：●層（L1/L2/L3）」1行明記
-
-    - udemy-checker 🟢 まで回し直し (最大3回)
-
-    - git add -f (gitignored) → commit (1章ずつ)
-
-    - 完了後 inbox karo report_received
-
-
-    【3層フレーム】L1=ch01-02 / L2=ch03-04 / L3=ch05-08
-
-    【困りごとマッピング】curriculum_intermediate_v5_marp.md §2 参照
-
-    【Skills縦糸】ch01(布石)→ch07(発展)→ch11(完成)'
-  parent_cmd: cmd_1647
-  status: done
-  steps: 1) curriculum_intermediate_v5_marp.md + v5_design.md + 自分の prewrite md 精読
-    2) advisor()呼出 3) 担当章をMarp形式で執筆 4) udemy-checker /udemy-checker <ファイルパス> で 🟢 確認
-    5) NGワードgrep 6) git add -f → commit 7) 全章完了後 inbox karo report_received
-  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/
-  task_id: subtask_1647_write_ch02_ch03
-  timestamp: '2026-05-06T07:12:19.815266+09:00'
 - agent: ashigaru2
-  task_id: subtask_1655_phaseB_ch02_03
+  task_id: subtask_1656_c_run_verify
   status: blocked
-  parent_cmd: cmd_1655
+  parent_cmd: cmd_1656
   bloom_level: L3
   blocked_by:
-  - subtask_1655_phaseA_extract
-  description: 'cmd_1655 Phase B: ch02/ch03 に v4スタイル統一適用'
-  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/intermediate_v5_ch02_failure_patterns.md
+  - subtask_1656_a_script
+  - subtask_1656_b_video_map
+  description: 'cmd_1656: gen_stt_index_status.py を実行してstt_index_status.mdを更新・不明件数確認'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/context/stt_index_status.md
   steps:
-  - 1. shared_context/marp_v4_style_template.md を読む (Phase A で作成済)
-  - 2. projects/udemy_course/drafts/lectures/intermediate_v5_ch02_failure_patterns.md
-    と intermediate_v5_ch03_litm_solution.md を読む
-  - '3. v4スタイルを適用: frontmatterに style追加・カバースライド(章番号/タイトル/FREEバッジ/講師名なぎなた)を先頭に挿入・.meta
-    div追加・speakerノートHTMLコメント追加・用語先出しテーブルが無ければ追加。既存本文は壊さない'
-  - '4. Marp CLI で .html 再生成: npx @marp-team/marp-cli <file>.md -o <file>.html'
-  - 5. git add -f projects/udemy_course/ && git commit
-  - 6. karo へ inbox report_received
-  timestamp: '2026-05-06T11:37:01.128667+09:00'
+  - python3 projects/dozle_kirinuki/scripts/gen_stt_index_status.py を実行
+  - projects/dozle_kirinuki/context/stt_index_status.md を Read して更新内容確認
+  - video_id 不明件数が大幅減少(0に近い)しているか確認 (サマリ表を目視)
+  - 不明件数が多い場合は残り不明フォルダをリストアップして報告
+  - git add projects/dozle_kirinuki/context/ && git commit
+  timestamp: '2026-05-06T16:25:51.112110+09:00'
+- task_id: subtask_1664_investigate
+  agent: ashigaru2
+  parent_cmd: cmd_1664
+  title: server.py 応答遅延 調査・報告書作成
+  description: 2026-05-07 05:50-06:00 に発生した server.py 応答遅延の根本原因を調査し、修復案をまとめた報告書を作成する。コード修正は調査結果に基づき判断
+    — 報告書作成が主目的。
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/2026-05-07_cmd_1664_serverpy_latency.md
+  bloom_level: L3
+  status: done
+  timestamp_completed: '2026-05-07T06:26:41'
+  priority: high
+  steps:
+  - '1. server.py プロセス状態確認: ps aux | grep server.py → PID取得 → cat /proc/<PID>/status
+    → lsof -p <PID> | wc -l (fd数) → 必要ならtop -b -n1 -p <PID>'
+  - '2. advisor_proxy.log 分析: grep ''Client closed connection mid-response'' ~/.claude/advisor_proxy.log
+    (または scripts/dashboard/ 配下) | tail -20 → 発火時刻パターン確認 (5分毎か)'
+  - '3. HTTPServer threading model 確認: grep -n ''ThreadingHTTPServer\|BaseHTTPServer\|HTTPServer\|socketserver''
+    scripts/dashboard/server.py → single-thread か multi-thread か確認'
+  - '4. SQLite WAL モード確認: python3 -c "import sqlite3; c=sqlite3.connect(''data/dashboard.db'');
+    print(c.execute(''PRAGMA journal_mode'').fetchone())" (または同等コマンド)'
+  - '5. SSE ストリーミング実装確認: grep -n ''EventStream\|text/event-stream\|SSE\|inbox_stream''
+    scripts/dashboard/server.py | head -30 → blocking I/O でメインスレッドを占有しているか確認'
+  - '6. 並列 curl 負荷テスト: for i in $(seq 1 10); do curl -s --max-time 5 http://192.168.2.4:8770/api/cmd_detail?id=cmd_1664
+    -o /dev/null -w ''%{time_total}s\n'' & done; wait → p50/p95/タイムアウト件数を記録'
+  - '7. 調査結果を queue/reports/2026-05-07_cmd_1664_serverpy_latency.md に記録: (a)問題再現状況
+    (b)スレッドモデル (c)SQLite WAL状態 (d)SSE blocking状況 (e)負荷テスト結果'
+  - '8. 修復案を優先度付きで記載: (高)ThreadingHTTPServer化 / (高)SQLite WAL + busy_timeout / (中)SSE別worker分離
+    / (低)curl --max-time デフォルト化'
+  - 9. Phase 3 (cmd_1650) 着手前に必須な修復項目を明記
+  - 10. advisor() を呼び出してレポート内容を検証せよ
+  - 11. karo へ report_received inbox_write で通知
+  acceptance_criteria:
+  - server.py プロセス状態 (CPU/memory/fd数) の実測値記録
+  - advisor_proxy.log 'Client closed connection mid-response' WARN の時刻パターン特定
+  - HTTPServer スレッドモデル確認 (single/multi-thread の別)
+  - SQLite journal_mode 確認 (WAL/DELETE 等)
+  - 並列10 curl 応答時間計測 (p50/p95/タイムアウト件数)
+  - 修復案を優先度付きで5項目以上
+  - Phase 3 着手前必須修復項目の明示
+  - queue/reports/2026-05-07_cmd_1664_serverpy_latency.md 作成完了
+  - karo inbox へ report_received 通知済み
+  timestamp: '2026-05-07T06:23:08.755951+09:00'
