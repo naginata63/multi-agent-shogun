@@ -4,20 +4,39 @@ theme: default
 paginate: true
 size: 16:9
 style: |
-  section { font-size: 0.85em; }
-  h1 { font-size: 1.4em; color: #c8102e; border-bottom: 3px solid #c8102e; padding-bottom: 0.2em; }
-  h2 { font-size: 1.15em; color: #2563eb; }
-  h3 { font-size: 1.0em; color: #4b5563; }
-  table { font-size: 0.75em; }
-  code { background: #f0f0f0; padding: 2px 5px; border-radius: 3px; }
-  pre { background: #2b2b2b; color: #f8f8f2; padding: 8px; font-size: 0.7em; }
-  blockquote { font-size: 0.85em; font-style: italic; border-left: 4px solid #2563eb; padding-left: 0.5em; }
+  section { font-size: 1.7em; padding: 50px 70px; background: #fafafa; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; align-content: flex-start !important; align-items: stretch !important; }
+  section h1:first-child, section h2:first-child { margin-top: 0; }
+  section.cover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: #fff; text-align: center; justify-content: center !important; align-items: center !important; }
+  section.cover h1 { font-size: 1.6em; color: #fff; border: none; }
+  section.cover h2 { font-size: 1.0em; color: #fde68a; }
+  section.cover .meta { font-size: 0.7em; opacity: 0.85; margin-top: 1.5em; }
+  h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.2em; font-size: 1.4em; }
+  h2 { color: #2563eb; font-size: 1.1em; }
+  h3 { color: #4b5563; font-size: 1.0em; }
+  blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; font-style: italic; color: #78350f; }
+  code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
+  pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; font-size: 0.7em; border-radius: 6px; }
+  table { font-size: 0.78em; border-collapse: collapse; }
+  th { background: #1e3a8a; color: #fff; padding: 0.4em 0.8em; }
+  td { padding: 0.4em 0.8em; border: 1px solid #ddd; }
+  .big { font-size: 1.6em; font-weight: bold; color: #1e3a8a; }
+  .free { background: #facc15; color: #78350f; padding: 2px 8px; border-radius: 4px; font-size: 0.65em; font-weight: bold; }
 ---
 
-# ch11. 自分専用の Skill を作る
+<!-- _class: cover -->
+
+# 自分専用の Skill を作る
 ## — 3 層統合の到達点
 
-**第 11 章 / 演習 / 30 分**
+<div class="meta">
+中級編 — 第11章 (約 30 min)<span class="free">FREE</span><br><br>
+「AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全解説」<br><br>
+講師: なぎなた
+</div>
+
+---
+
+# ch11. 自分専用の Skill を作る — 3 層統合の到達点
 
 > これまでの 3 層をすべて組み合わせて、
 > **AI が自律判断で呼び出す「自分専用の常駐道具」** を完成させます。
@@ -231,3 +250,18 @@ ch11     ★ Skill 完成  → 自分専用の常駐道具
 - 講座の到達点は **「自分専用の常駐 AI 道具」を 1 つ完成させる** こと
 
 > **強化した層: ハーネス層 (L3) — Skill で自分専用の常駐道具を作り上げる。3 層統合の到達点。**
+
+---
+
+<!-- _class: cover -->
+
+# 第11章 完了
+## — 中級編 完結
+
+<div class="meta">
+✅ Skill の構造と作成手順を理解した<br>
+✅ 3 層統合の仕組みを説明できる<br>
+✅ 自分の業務 Skill を 1 つ作成した<br>
+✅ hook + Skill の連携構想を立てた<br><br>
+<b>中級編 全章完結、お疲れさまでした</b>
+</div>
