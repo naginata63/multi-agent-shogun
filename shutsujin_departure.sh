@@ -824,6 +824,33 @@ with open(f,'w') as fh: yaml.safe_dump(d, fh, default_flow_style=False, allow_un
     # ═══════════════════════════════════════════════════════════════════════════
 
     # ═══════════════════════════════════════════════════════════════════════════
+    # STEP 6.3: Haiku 足軽 advisor 起動 (2026-05-07 殿命)
+    # 殿命「haiku 起動時は /advisor opus 動くように shutsujin スクリプト変えて」
+    # → claude --model haiku で起動した足軽 (/advisor のデフォルトモデルが haiku に
+    #    なってしまう) に対し、起動完了後 /advisor opus を送信して advisor を Opus
+    #    に切替させる。Haiku の浅い思考で advisor 助言が無意味化するのを防ぐ。
+    # 対象条件: cli_type=claude かつ model に "haiku" を含む足軽のみ
+    #          (KESSEN_MODE = 全員 opus → 不要・GLM = advisor_proxy で別経路)
+    # ═══════════════════════════════════════════════════════════════════════════
+    if [ "$KESSEN_MODE" != true ] && [ "$CLI_ADAPTER_LOADED" = true ]; then
+        # claude 起動完了待ち (前 STEP で各 pane に send-keys 済)
+        sleep 3
+        _haiku_advisor_count=0
+        for i in $(seq 1 "$_ASHIGARU_COUNT"); do
+            p=$((PANE_BASE + i))
+            _ashi_cli_type=$(get_cli_type "ashigaru${i}" 2>/dev/null || echo "claude")
+            _ashi_model=$(get_agent_model "ashigaru${i}" 2>/dev/null || echo "")
+            if [[ "$_ashi_cli_type" == "claude" && "$_ashi_model" == *haiku* ]]; then
+                tmux send-keys -t "multiagent:agents.${p}" "/advisor opus" Enter
+                _haiku_advisor_count=$((_haiku_advisor_count + 1))
+            fi
+        done
+        if [ "$_haiku_advisor_count" -gt 0 ]; then
+            log_info "  └─ Haiku 足軽 ${_haiku_advisor_count} 体に /advisor opus 送信完了"
+        fi
+    fi
+
+    # ═══════════════════════════════════════════════════════════════════════════
     # STEP 6.5: 各エージェントに指示書を読み込ませる
     # ═══════════════════════════════════════════════════════════════════════════
     log_war "📜 各エージェントに指示書を読み込ませ中..."
