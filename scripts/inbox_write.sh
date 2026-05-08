@@ -141,7 +141,6 @@ _update_task_done() {
 
     if [ -z "$cmd_id" ]; then
         _log_silent_fail "no cmd_id found in report message for task update; skipping"
-        return 0
     fi
 
     return 0  # Never fail — message delivery must succeed

@@ -288,9 +288,6 @@ while true; do
             continue
         fi
 
-        # Update SINCE_TS to preserve latest message timestamp across reconnections
-        SINCE_TS=$(date +%s)
-
         # Auto-reply removed — shogun replies directly after processing.
 
         # shogunへのinbox: 殿のスマホからのメッセージのみ起こす
