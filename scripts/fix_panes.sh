@@ -63,10 +63,12 @@ for i in $(seq 0 $((TOTAL - 1))); do
       CLI_TYPE=$(get_cli_type "$AGENT_ID")
     else
       # フォールバック（cli_adapter.sh不在時のみ）
-      if [ "$i" -eq 0 ] || [ "$i" -eq $((TOTAL - 1)) ]; then
+      if [ "$i" -eq 0 ]; then
+        LAUNCH_CMD="claude --model 'sonnet' --dangerously-skip-permissions"
+      elif [ "$i" -eq $((TOTAL - 1)) ]; then
         LAUNCH_CMD="claude --model 'opus[1m]' --dangerously-skip-permissions"
       else
-        LAUNCH_CMD="claude --model 'sonnet' --dangerously-skip-permissions"
+        LAUNCH_CMD="claude --model 'haiku' --dangerously-skip-permissions"
       fi
       CLI_TYPE="claude"
     fi

@@ -1,6 +1,6 @@
 """Canonical inbox message types (cmd_1514).
 
-14 canonical types as constants. Nothing else passes the CHECK constraint.
+15 canonical types as constants. Nothing else passes the CHECK constraint.
 """
 
 # ─── Task lifecycle ───────────────────────────────────────────────────────────
@@ -10,6 +10,7 @@ CMD_NEW = "cmd_new"
 CMD_REVISED = "cmd_revised"
 CMD_CORRECTION = "cmd_correction"
 CMD_SPEC_CONFIRMED = "cmd_spec_confirmed"
+TASK_CANCELLED = "task_cancelled"
 
 # ─── Reports ──────────────────────────────────────────────────────────────────
 REPORT_RECEIVED = "report_received"
@@ -33,6 +34,7 @@ CANONICAL_TYPES = frozenset({
     CMD_REVISED,
     CMD_CORRECTION,
     CMD_SPEC_CONFIRMED,
+    TASK_CANCELLED,
     REPORT_RECEIVED,
     REPORT_COMPLETED,
     REPORT_BLOCKED,

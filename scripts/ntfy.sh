@@ -24,7 +24,6 @@ done < <(ntfy_get_auth_args "$SCRIPT_DIR/config/ntfy_auth.env")
 
 # ローカルIPをTailscale IPに自動置換（殿のスマホからアクセスできるように）
 MSG="${1//192.168.2.4/100.66.15.93}"
-MSG="${MSG//192.168.2.4/100.66.15.93}"
 
 # shellcheck disable=SC2086
 curl -s "${AUTH_ARGS[@]}" -H "Tags: outbound" -d "$MSG" "https://ntfy.sh/$TOPIC" > /dev/null
@@ -35,8 +34,8 @@ curl -s "${AUTH_ARGS[@]}" -H "Tags: outbound" -d "$MSG" "https://ntfy.sh/$TOPIC"
 # pending/in_progress両方を対象（自動in_progressが効いていないケースに対応）
 _update_cmd_done() {
     local msg="$1"
-    # Match "cmd_XXXX完了" pattern (any emoji prefix)
-    echo "$msg" | grep -qP 'cmd_\d+完了' || return 0
+    # Match "✅ cmd_XXXX完了" pattern (completion emoji required)
+    echo "$msg" | grep -qP '✅.*cmd_\d+完了' || return 0
 
     local cmd_id
     cmd_id=$(echo "$msg" | grep -oP 'cmd_\d+' | head -1)

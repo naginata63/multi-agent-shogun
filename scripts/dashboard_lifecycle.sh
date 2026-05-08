@@ -10,7 +10,7 @@
 # 設計メモ:
 #   - plan v3 §3 Δ2 では /api/tasks と記載だが実機は /api/dashboard のみ (/api/tasks は 404)
 #     → hotfix_notes に記録 (cmd_1443_p02 報告参照)
-#   - dashboard.md は cmd_1556 で廃止済み。dashboard.md関連の (1) Logic は全てskip動作
+#   - dashboard.md は lifecycle スクリプトで管理中 (active)。自動更新・アーカイブ機能が実装済み
 #   - 削除前に dashboard_archive/$(date +%Y-%m).md へ append (監査証跡)
 #   - flock で dashboard.md への同時書込みを防止
 #

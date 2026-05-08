@@ -166,7 +166,12 @@ fi
 # ─── Analyze last_assistant_message (v2.1.47+) ───
 # Shogun skips karo notification (shogun doesn't report to karo)
 # but still falls through to inbox check below.
-LAST_MSG=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('last_assistant_message', ''))" 2>/dev/null || echo "")
+# Skip LAST_MSG analysis if STOP_HOOK_ACTIVE=True (double trigger guard)
+if [ "$STOP_HOOK_ACTIVE" = "True" ]; then
+    LAST_MSG=""
+else
+    LAST_MSG=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('last_assistant_message', ''))" 2>/dev/null || echo "")
+fi
 
 if [ -n "$LAST_MSG" ]; then
     NOTIFY_TYPE=""
