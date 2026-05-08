@@ -65,7 +65,16 @@ SessionStart hook: current agent is '${AGENT_ID}' (source=${SOURCE}).
 Before any inbox/task handling, first run:
 tmux display-message -t "\$TMUX_PANE" -p '#{@agent_id}'
 If mismatch, stop and recover. Then execute CLAUDE.md Session Start / Recovery in order.
-Env: ${GEMINI_STATUS}. When running scripts that need GEMINI_API_KEY, prepend: source ~/.bashrc &&${NTFY_CONTEXT}
+Env: ${GEMINI_STATUS}. When running scripts that need GEMINI_API_KEY, prepend: source ~/.bashrc &&
+
+## Step 0: SSE Monitor auto-start (cmd_1669 D案・watcher補完)
+Session Start の Step 1 (self-identify) 直後・Step 2 以降より先に必ず実行せよ:
+  1. ToolSearch(query="select:Monitor") で Monitor tool schema を取得
+  2. Monitor(command='curl -N -s "http://192.168.2.4:8770/api/inbox_stream?agent=${AGENT_ID}"') を起動
+  3. 起動直後 1秒以内に発生したメッセージは race condition で取りこぼし可能性あり (cmd_1649 実証60%) →
+     直後に GET /api/inbox_messages?agent=${AGENT_ID}&unread=1 で catch-up 取得
+  4. SSE接続失敗 (connection refused 等) は fail-soft: 既存 inbox_watcher.sh 経路で配信継続するゆえ
+     エラーで halt せず Step 1 に進め${NTFY_CONTEXT}
 EOF
 )
 

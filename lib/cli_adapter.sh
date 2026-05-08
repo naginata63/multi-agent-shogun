@@ -123,6 +123,7 @@ except Exception as e:
 # build_cli_command(agent_id)
 # エージェントを起動するための完全なコマンド文字列を返す
 # settings.yaml の thinking: false → MAX_THINKING_TOKENS=0 を先頭に付与
+# settings.yaml の effort: low|medium|high|xhigh|max → claude --effort <level> を付与
 build_cli_command() {
     local agent_id="$1"
     local cli_type
@@ -131,6 +132,8 @@ build_cli_command() {
     model=$(get_agent_model "$agent_id")
     local thinking
     thinking=$(_cli_adapter_read_yaml "cli.agents.${agent_id}.thinking" "")
+    local effort
+    effort=$(_cli_adapter_read_yaml "cli.agents.${agent_id}.effort" "")
 
     # thinking prefix: Claude CLI でのみ有効
     # thinking: true or 未設定 → そのまま（デフォルトでThinking ON）
@@ -146,6 +149,11 @@ build_cli_command() {
             if [[ -n "$model" ]]; then
                 cmd="$cmd --model $model"
             fi
+            case "$effort" in
+                low|medium|high|xhigh|max) cmd="$cmd --effort $effort" ;;
+                "") : ;;
+                *) echo "[cli_adapter] WARN: invalid effort '$effort' for $agent_id (expected: low|medium|high|xhigh|max)" >&2 ;;
+            esac
             cmd="$cmd --dangerously-skip-permissions"
             echo "${prefix}${cmd}"
             ;;
