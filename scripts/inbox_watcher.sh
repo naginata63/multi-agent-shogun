@@ -431,7 +431,7 @@ get_unread_info() {
 
             normal_count=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM inbox_messages WHERE agent='$AGENT_ID' AND read=0 AND type NOT IN ('clear_command','model_switch','cli_restart')" 2>/dev/null || echo "0")
 
-            has_task_assigned=$(sqlite3 "$DB_PATH" "SELECT CASE WHEN EXISTS(SELECT 1 FROM inbox_messages WHERE agent='$AGENT_ID' AND read=0 AND type='task_assigned') THEN 1 ELSE 0 END" 2>/dev/null || echo "0")
+            has_task_assigned=$(sqlite3 "$DB_PATH" "SELECT CASE WHEN EXISTS(SELECT 1 FROM inbox_messages WHERE agent='$AGENT_ID' AND read=0 AND type NOT IN ('clear_command','model_switch','cli_restart') AND type='task_assigned') THEN 1 ELSE 0 END" 2>/dev/null || echo "0")
 
             specials_json=$(sqlite3 "$DB_PATH" "SELECT COALESCE('['||GROUP_CONCAT(json_object('type',type,'content',content))||']','[]') FROM inbox_messages WHERE agent='$AGENT_ID' AND read=0 AND type IN ('clear_command','model_switch','cli_restart')" 2>/dev/null || echo "[]")
 
@@ -1156,16 +1156,6 @@ for s in data.get('specials', []):
             FIRST_UNREAD_SEEN=$now
         fi
 
-        if [ "${ASW_DISABLE_ESCALATION:-0}" = "1" ]; then
-            echo "[$(date)] $normal_count unread for $AGENT_ID (escalation disabled)" >&2
-            if disable_normal_nudge; then
-                echo "[$(date)] [SKIP] disable_normal_nudge=1, no normal nudge for $AGENT_ID" >&2
-            else
-                send_wakeup "$normal_count"
-            fi
-            return 0
-        fi
-
         local age=$((now - FIRST_UNREAD_SEEN))
 
         if [ "$age" -lt "$ESCALATE_PHASE1" ]; then
@@ -1292,9 +1282,7 @@ while true; do
     sleep 0.3
 
     if [ "$rc" -eq 2 ]; then
-        if [ "${ASW_PROCESS_TIMEOUT:-1}" = "1" ]; then
-            process_unread "timeout"
-        fi
+        process_unread "timeout"
     else
         process_unread "event"
     fi
