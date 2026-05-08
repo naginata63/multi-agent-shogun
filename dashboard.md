@@ -1,5 +1,12 @@
 ## 🎯 進行中
 
+### cmd_1671 — harness全49件矛盾解消 [in_progress] (2026-05-09 07:10)
+- **担当**: 足軽1-7 (8 subtask 並列実行中)
+- **進捗**: a1(inbox_watcher C3/C4) a2(scripts C2/H1-H5/M1/M3) a3a(main.py C001/H002/V_M010) a4(server.py C1) a5(vertical_convert C002) a6(make_expression) a7(inbox_write/ntfy_listener) 全割当完了
+- **blocked**: a3b (main.py wave2) = a3a+a5 完了後に着手
+- **分類**: (a)修復29件 (b)別cmd 3件 (c)defer 12件 (d)殿許諾 5件
+- **報告書**: queue/reports/2026-05-09_cmd_1671_all_findings_remediation.md
+
 ### cmd_1649 — SSE 24h観察 [in_progress] (2026-05-06)
 - **担当**: 軍師 (subtask_1649_sse_observation)
 - **状態**: 24h観察継続中 (完了予定: 2026-05-08 06:28)・実運用 100% 受信率・取りこぼし 0
@@ -25,6 +32,26 @@
 - 再開サイン待ち
 
 ## 🚨 要対応 (殿の判断が必要な事項)
+### 🚨 cmd_1670 inbox_write WAL修復済 — server.py要再起動 (2026-05-09)
+WAL有効化 + subprocess timeout延長 + スキーマ初期化コード追加 実装済 (commit c56fe38)。
+**変更は server.py プロセス再起動後に有効**。
+- 次回定期再起動 (dashboard_lifecycle.sh・1時間毎) で自動反映予定
+- 緊急の場合: 将軍が手動再起動
+
+⚠️ **新知見**: 今朝 (04:30頃) server.py が約2時間ハングしていた実証あり。
+  バックグラウンドcurlが `real 124m28s` 後に HTTP 400 を受信 → ハング期間中に全エージェントのAPI呼び出しが止まっていた可能性。
+  再発抑止のため、server.py再起動後に WAL+スキーマ初期化が有効になることが重要。
+
+### 🚨 cmd_1669 watcher代替機構: 殿判断待ち (2026-05-09)
+軍師設計書完了。推奨案 **D** (SSE Monitor + 軽量中央 1 daemon)。
+**殿への質問 Q1-Q6**:
+- Q1: CONTEXT-RESET ハード(/clear) vs ソフト(Claude内処理) 既定 → 推奨: 既定ソフト・フラグで上書き可
+- Q2: dispatcher SPOF 許容度 → 推奨: systemd Restart=always のみで開始
+- Q3: nudge 完全廃止 OK か → 推奨: 廃止 (SSE 100%実証済)
+- Q4: watcher 段階廃止 P3経由 vs 即時廃止 → 推奨: P3経由必須 (1週間 safety net)
+- Q5: SSE multiplex 改修 → 推奨: MVP は 9並列curl・後日改善
+- Q6: cmd_1668 C1 CHECK制約修正を P0 に組み込む → 推奨: YES・今週中に別cmd
+詳細: `queue/reports/2026-05-09_cmd_1669_watcher_replacement_design.md`
 
 ### 🚨 STT_N001: --gemini help文と実装の乖離 — 殿判断待ち
 `vocal_stt_pipeline.py` L903 で `--gemini` の help が「[DEPRECATED — 無視されます]」だが、
@@ -41,10 +68,62 @@ cmd_1655 全 5 Phase 完了・軍師 QC 11/11 PASS (2026-05-06)。
 - cmd_1660: 殿最終レビュー (http://192.168.2.4:8773/ で全12章確認)
 殿の GO サインで家老が起票する。
 
+### 🚨 cmd_1671: remotion-project/ 設計変更 — 殿判断待ち (2026-05-09)
+軍師矛盾検出で remotion-project/ (殿の personal workspace・.gitignore 除外) に 5件の判断事項:
+- **V_H007** `bg_full.mp4` 不在 → DozFull コンポジション render 不能。(a) public/に配置 or (b) DozFull削除か
+- **V_H007b** remotion-project/ 起動手順・コンポジション使用法が未文書化 → context/ に 1ページ追記するか否か (推奨:追記)
+- **H003/V_M008/V_M009** Root.tsx ハードコード (FULL_SEC/OrarishTelop duration/text) → defaultProps+CLI引数化するか否か
+殿の yes/no でよい。詳細: queue/reports/2026-05-09_cmd_1671_all_findings_remediation.md §(d)
+
 ### 🚨 Dashboard API 自己文書化 cmd — 殿確認待ち
 server.py 全30+エンドポイントの error/success response に expected/example/doc を同梱する改修。
 家老が purpose/acceptance_criteria 案を起票予定 → 殿OK後発令。
 (根拠: 2026-05-06 inbox body/from typo で5通読み損ね・殿激怒)
+
+## ⚔️ 戦果 (夜間矛盾検出)
+
+### cmd_1668 完了 — 夜間矛盾検出: インフラ系 (2026-05-09 03:45)
+- **報告書**: `queue/reports/2026-05-09_cmd_1668_infra_mujun_detection.md`
+- **対象**: inbox_write/watcher, ntfy, cron, agent管理系, context_monitor, sessionstart/precompact hook, settings.yaml
+- **read-only 遵守**: テスト作成・コード修正ゼロ ✅
+
+| Severity | 件数 |
+|----------|------|
+| CRITICAL | 4 |
+| HIGH | 5 |
+| MEDIUM | 6 |
+| LOW | 4 |
+| **TOTAL** | **19** |
+
+**主要 findings:**
+- 🚨 **C1**: SQLite `inbox_messages.type` CHECK 制約と送信側 type 値の乖離 — error_report/nightly_audit/ntfy_received が SQLite で drop される dual-path 静かな破綻
+- 🚨 **C2**: precompact_hook.sh の dashboard.md パス誤り (`queue/dashboard.md` → 存在しない) — compaction snapshot に dashboard 抜粋が載らない
+- **C3**: inbox_watcher.sh の SQLite-only mark-read による YAML 残置 — stop_hook_inbox.sh 誤検知源
+- **C4**: get_unread_info の SQLite/YAML 経路で normal_count 算出ロジック非対称
+- follow-up cmd 13件推奨 (報告書末尾参照)
+
+### cmd_1667 完了 — 夜間矛盾検出: 動画制作スクリプト群 (2026-05-08 02:32)
+- **報告書**: `queue/reports/2026-05-08_cmd_1667_video_mujun_detection.md` (commit b22f17b)
+- **監査対象**: 8ファイル 2596行 (main.py/make_expression_shorts.py/vertical_convert.py/remotion-project/src/ 全5ファイル)
+- **read-only 遵守**: テスト作成・コード修正ゼロ ✅
+
+| Severity | 前回 (04-28) | RESOLVED | PERSISTING | NEW | 合計 |
+|---|---|---|---|---|---|
+| CRITICAL | 2 | 0 | 2 | 0 | **2** |
+| HIGH | 6 | 1 (partial) | 5 | 2 | **7** |
+| MEDIUM | 6 | 0 | 6 | 4 | **10** |
+| LOW | 8 | 0 | 8 | 3 | **11** |
+| **TOTAL** | 22 | 1 partial | 21 | 9 | **30** |
+
+**主要 findings:**
+- 🚨 **C001 (3回目)**: WhisperX 残存 (main.py --diarize) — 殿激怒 (04-18) から20日経過も未撤去。是正怠慢
+- 🚨 **C002 (2回目)**: vertical_convert.py argparse 4引数欠落 — コラボ動画 CLI 検証不能継続
+- 🆕 **V_H007**: remotion-project/public/bg_full.mp4 不在 → DozFull コンポジション render 不能 (silent fail)
+- 🆕 **V_H007b**: remotion-project/ 運用ドキュメント不在 — 起動手順・use case が context/ 未記載
+- **H005 PARTIAL**: vertical_convert sys.path 追加 (cmd_1626) ✅ / main.py 側 importlib は健在
+
+**対処優先度 (軍師推奨):**
+1. C001 WhisperX撤去 → 2. C002 argparse追加 → 3. V_H007 bg_full.mp4配置/修正 → 4. V_H007b 運用ドキュメント1ページ追記 → 5. V_M010 main_speaker default統一 → 6. H001/H006
 
 ## ✅ 最近の完了
 
@@ -99,3 +178,13 @@ server.py 全30+エンドポイントの error/success response に expected/exa
 
 - cmd_1641 infra矛盾 H5/M9: ntfy.sh二重置換・inbox_watcher drift等 — 別cmd対応予定
 - cmd_1623 矛盾検出 H1 (main.py:remotion-overlay/project不一致) — 別cmd対応予定
+
+## 🔄 進行中 (harness-cleanup)
+
+### cmd_1669 委任済 — ashigaru watcher 代替機構設計 (2026-05-09 03:59)
+- **担当**: 軍師 (gunshi_watcher_design_1669)
+- **報告書予定**: `queue/reports/2026-05-09_cmd_1669_watcher_replacement_design.md`
+- **目的**: inbox_watcher.sh (inotifywait×9体) を廃止し代替機構を3案設計・推奨案確定・殿提示
+- **設計対象**: watcher 4機能 (clear_command/model_switch/CONTEXT-RESET/hang recovery) 全て
+- **評価対象**: 過去暴走4種 (silent_fail誤検知/clear二重発火/nudge連投/Enter迷子) 再発リスク
+- **lord_original**: 「え？作ればいいじゃん代替手段　軍師に設計させよ」
