@@ -71,10 +71,8 @@ if [ "${__INBOX_WATCHER_TESTING__:-}" != "1" ]; then
 
     # Fix: CLI starts at welcome screen = idle. Create idle flag so watcher
     # doesn't false-busy deadlock waiting for a stop_hook that never fires.
-    if [[ "$_EFFECTIVE_CLI" == "claude" ]]; then
-        touch "${IDLE_FLAG_DIR}/agent_idle_${AGENT_ID}"
-        echo "[$(date)] Created initial idle flag for $AGENT_ID (CLI starts idle)" >&2
-    fi
+    touch "${IDLE_FLAG_DIR}/agent_idle_${AGENT_ID}"
+    echo "[$(date)] Created initial idle flag for $AGENT_ID (CLI starts idle)" >&2
 
     # Source shared agent status library (busy/idle detection)
     _agent_status_lib="${SCRIPT_DIR}/lib/agent_status.sh"
@@ -163,11 +161,6 @@ ASW_DISABLE_NORMAL_NUDGE=${ASW_DISABLE_NORMAL_NUDGE:-$([ "${ASW_PHASE}" -ge 2 ] 
 ASW_FINAL_ESCALATION_ONLY=${ASW_FINAL_ESCALATION_ONLY:-$([ "${ASW_PHASE}" -ge 3 ] && echo 1 || echo 0)}
 FINAL_ESCALATION_ONLY=${FINAL_ESCALATION_ONLY:-$ASW_FINAL_ESCALATION_ONLY}
 ASW_NO_IDLE_FULL_READ=${ASW_NO_IDLE_FULL_READ:-1}
-# Optional safety toggles:
-# - ASW_DISABLE_ESCALATION=1: disable phase2/phase3 escalation actions
-# - ASW_PROCESS_TIMEOUT=0: do not process unread on timeout ticks (event-only)
-ASW_DISABLE_ESCALATION=${ASW_DISABLE_ESCALATION:-0}
-ASW_PROCESS_TIMEOUT=${ASW_PROCESS_TIMEOUT:-1}
 
 # ─── Metrics hooks (FR-006 / NFR-003) ───
 # unread_latency_sec / read_count / estimated_tokens are intentionally explicit
@@ -444,6 +437,34 @@ get_unread_info() {
 
             # Mark specials as read in SQLite
             sqlite3 "$DB_PATH" "UPDATE inbox_messages SET read=1, read_at=datetime('now') WHERE agent='$AGENT_ID' AND read=0 AND type IN ('clear_command','model_switch','cli_restart')" 2>/dev/null || true
+
+            # C3: Also update YAML to keep dual-path consistent
+            INBOX_PATH="$INBOX" "$VENV_PYTHON" - << 'PY_YAML_SYNC'
+import os
+import yaml
+
+inbox = os.environ.get("INBOX_PATH", "")
+try:
+    with open(inbox, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+
+    messages = data.get("messages", []) or []
+    special_types = ("clear_command", "model_switch", "cli_restart")
+    updated = False
+
+    for m in messages:
+        if not m.get("read", False) and m.get("type") in special_types:
+            m["read"] = True
+            updated = True
+
+    if updated:
+        tmp_path = f"{inbox}.tmp.{os.getpid()}"
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            yaml.safe_dump(data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+        os.replace(tmp_path, inbox)
+except Exception:
+    pass
+PY_YAML_SYNC
 
             echo "{\"count\": ${normal_count:-0}, \"has_task_assigned\": ${has_task_assigned:-0}, \"specials\": ${specials_json:-[]}}"
         ) 200>"$LOCKFILE" 2>/dev/null
