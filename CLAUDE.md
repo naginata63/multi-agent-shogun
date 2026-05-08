@@ -78,7 +78,6 @@ language:
 4.5. **Read `shared_context/agent_common.md`** — Lazy Load: タスク該当時のみ Read (Session Start での常時注入禁止)。共通ルール(セマンティック検索/Self-Watch/Tone等)が必要なタスクの着手前のみ Read。
 5. Rebuild state from API (`/api/cmd_list?status=pending&slim=1`, `/api/task_list?limit=10`)・**reports は起動時 scan しない** (inbox 駆動・report_received 通知時に個別 `/api/report_detail` 取得)
 6. Review forbidden actions, then start work
-7. **Monitor起動 (Phase 2 並走運用)**: `Bash(run_in_background=true, command="bash scripts/poc_monitor_inbox.sh {agent_id}")` → Monitor tool で stdout 監視。既存 inbox_watcher.sh と並走・本Monitorが受信できれば処理継続。
 
 **CRITICAL**: Steps 1-3を完了するまでinbox処理するな。`inboxN` nudgeが先に届いても無視し、自己識別→memory→instructions読み込みを必ず先に終わらせよ。Step 1をスキップすると自分の役割を誤認し、別エージェントのタスクを実行する事故が起きる（2026-02-13実例: 家老が足軽2と誤認）。
 
@@ -141,7 +140,8 @@ After compaction, the system instructs "Continue the conversation from where it 
 | Ashigaru | タスク実行・コード実装 | Gunshi (inbox_write) | git push禁止、他足軽のYAML編集禁止、人間直接連絡禁止 |
 | Gunshi | 戦略分析・QC検査 | Karo (inbox_write) | Shogunへ直接報告禁止、足軽管理禁止、人間直接連絡禁止 |
 
-**全員共通禁止**: polling loop (F004), コンテキスト読み飛ばし (F005), tmux send-keys直接呼出（inbox_write.sh経由のみ）
+**全員共通禁止**: polling loop (F004), コンテキスト読み飛ばし (F005)
+**エージェント間メッセージは `POST /api/inbox_write` 経由必須** (tmux send-keys でメッセージ偽装するな)。但し harness 制御 (/clear・/exit・/model 等) は将軍/家老の判断で直接 send-keys 可。
 
 # Communication Protocol (API化)
 
