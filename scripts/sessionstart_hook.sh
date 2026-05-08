@@ -70,10 +70,16 @@ Env: ${GEMINI_STATUS}. When running scripts that need GEMINI_API_KEY, prepend: s
 ## Step 0: SSE Monitor auto-start (cmd_1669 D案・watcher補完)
 Session Start の Step 1 (self-identify) 直後・Step 2 以降より先に必ず実行せよ:
   1. ToolSearch(query="select:Monitor") で Monitor tool schema を取得
-  2. Monitor(command='curl -N -s "http://192.168.2.4:8770/api/inbox_stream?agent=${AGENT_ID}"') を起動
+  2. Monitor(command='curl -N -s "http://192.168.2.4:8770/api/inbox_stream?agent=${AGENT_ID}" | grep --line-buffered "^data:"') を起動
+     ★ grep フィルタ必須: server 側 SSE keepalive (':keepalive' コメント行) を除外せねば
+       30秒毎に Monitor event 発火 → 毎回 turn 消費でコスト爆発する (cmd_1669γ実証で2026-05-09 軍師に発生)
   3. 起動直後 1秒以内に発生したメッセージは race condition で取りこぼし可能性あり (cmd_1649 実証60%) →
      直後に GET /api/inbox_messages?agent=${AGENT_ID}&unread=1 で catch-up 取得
-  4. SSE接続失敗 (connection refused 等) は fail-soft: 既存 inbox_watcher.sh 経路で配信継続するゆえ
+  4. Monitor event の content は 'data: {"msg_id":...,"type":"...","content":"..."}' の JSON line。
+     parseable な inbox message でない event は無視 (応答せず idle 継続)。
+  5. Monitor stream 終了 (EOF) を受信した場合: **自動再起動するな**。Stream 終了は server restart 等の
+     正規イベント — 殿か家老の指示を待ち idle 継続。再起動が要なら明示指示で行え。
+  6. SSE接続失敗 (connection refused 等) は fail-soft: 既存 inbox_watcher.sh 経路で配信継続するゆえ
      エラーで halt せず Step 1 に進め${NTFY_CONTEXT}
 EOF
 )
