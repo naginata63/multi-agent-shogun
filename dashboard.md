@@ -1,11 +1,5 @@
 ## 🎯 進行中
 
-### cmd_1671 — harness全49件矛盾解消 [in_progress] (2026-05-09 07:10)
-- **担当**: 足軽1-7 (8 subtask 並列実行中)
-- **進捗**: a1(inbox_watcher C3/C4) a2(scripts C2/H1-H5/M1/M3) a3a(main.py C001/H002/V_M010) a4(server.py C1) a5(vertical_convert C002) a6(make_expression) a7(inbox_write/ntfy_listener) 全割当完了
-- **blocked**: a3b (main.py wave2) = a3a+a5 完了後に着手
-- **分類**: (a)修復29件 (b)別cmd 3件 (c)defer 12件 (d)殿許諾 5件
-- **報告書**: queue/reports/2026-05-09_cmd_1671_all_findings_remediation.md
 
 ### cmd_1649 — SSE 24h観察 [in_progress] (2026-05-06)
 - **担当**: 軍師 (subtask_1649_sse_observation)
@@ -126,6 +120,13 @@ server.py 全30+エンドポイントの error/success response に expected/exa
 1. C001 WhisperX撤去 → 2. C002 argparse追加 → 3. V_H007 bg_full.mp4配置/修正 → 4. V_H007b 運用ドキュメント1ページ追記 → 5. V_M010 main_speaker default統一 → 6. H001/H006
 
 ## ✅ 最近の完了
+
+### cmd_1671 完了 — harness全49件矛盾解消 (2026-05-09 07:35)
+- (a)修復29件 commit済 + origin/main push済 (multi-agent-shogun + dozle_kirinuki)
+- (b)別cmd 3件: H005 importlib/M2 ntfy archive/M4 monitor cron登録 → 後日起票
+- (c)defer 12件: 意図的設計・低優先
+- (d)殿許諾待ち 5件: remotion-project/ H003/V_H007/V_H007b/V_M008/V_M009 → 🚨要対応記載済
+- 報告書: queue/reports/2026-05-09_cmd_1671_all_findings_remediation.md
 
 ### cmd_1661 完了 — /api/cmd_cancel subtask 自動伝播実装 (2026-05-07)
 - cmd cancel 時に parent_cmd マッチ全 subtask を自動 cancelled + agent inbox 通知
