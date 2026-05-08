@@ -135,7 +135,7 @@ fi
 
 # ─── Dashboard summary (shogun/karo) ───
 DASHBOARD_SUMMARY=""
-DASHBOARD_FILE="$SCRIPT_DIR/dashboard.md"
+DASHBOARD_FILE="$SCRIPT_DIR/../dashboard.md"
 if [ -f "$DASHBOARD_FILE" ] && { [ "$AGENT_ID" = "shogun" ] || [ "$AGENT_ID" = "karo" ]; }; then
     DASHBOARD_SUMMARY=$(head -30 "$DASHBOARD_FILE" 2>/dev/null || true)
 fi
