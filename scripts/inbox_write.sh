@@ -250,9 +250,10 @@ except Exception as e:
 
         # cmd_new時にRAG自動実行（バックグラウンド、失敗してもinbox配信に影響しない）
         # cmd_new時にRAG自動実行 (バックグラウンド完全 detach)
-        # setsid + </dev/null で server.py subprocess.run の pipe (capture_output=True) から完全切離。
+        # canonical pattern: ( cmd & ) で subshell が即終了し、cmd_rag_hook が orphan 化される。
+        # </dev/null + >> log 2>&1 で全 fd を pipe (server.py subprocess.run の capture_output) から切離。
         # これ無しでは cmd_rag_hook.sh が pipe fd を継承し続け、subprocess.run が timeout=10 まで wait → cmd_create 10秒応答事故 (2026-05-09 殿確認)
-        [ "$TYPE" = "cmd_new" ] && setsid bash "$(dirname "$0")/automation/cmd_rag_hook.sh" </dev/null >> "$SCRIPT_DIR/logs/cmd_rag.log" 2>&1 &
+        [ "$TYPE" = "cmd_new" ] && ( bash "$(dirname "$0")/automation/cmd_rag_hook.sh" </dev/null >> "$SCRIPT_DIR/logs/cmd_rag.log" 2>&1 & )
         if [ $STATUS -eq 0 ]; then
             _update_cmd_status
             _update_task_done
