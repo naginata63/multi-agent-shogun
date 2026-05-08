@@ -239,10 +239,12 @@ PY
 AUTH_LABEL="none"; [ -n "${NTFY_TOKEN:-}" ] && AUTH_LABEL="token"; [ -n "${NTFY_USER:-}" ] && AUTH_LABEL="basic"
 echo "[$(date)] ntfy listener started — topic: $TOPIC (auth: $AUTH_LABEL)" >&2
 
+# Initialize SINCE_TS once before reconnection loop
+SINCE_TS=$(date +%s)
+
 while true; do
     # Stream new messages (long-lived connection, blocks until message arrives)
     # since=<unix_ts>: 接続開始時刻以降のメッセージのみ受信（再接続時の過去メッセージ重複を防止）
-    SINCE_TS=$(date +%s)
     curl -s --no-buffer "${AUTH_ARGS[@]}" "https://ntfy.sh/$TOPIC/json?since=${SINCE_TS}" 2>/dev/null | while IFS= read -r line; do
         # Skip keepalive pings and non-message events
         EVENT=$(echo "$line" | parse_json event)

@@ -155,9 +155,6 @@ _update_task_done() {
             ' "$task_file")
         fi
 
-        # Fallback: last "status: assigned" in file
-        [ -z "$target_line" ] && target_line=$(grep -n "status: assigned" "$task_file" | tail -1 | cut -d: -f1)
-
         [ -z "$target_line" ] && { _log_silent_fail "no matching task found in $task_file for cmd=$cmd_id"; exit 0; }
 
         sed -i "${target_line}s/status: assigned/status: done/" "$task_file"
