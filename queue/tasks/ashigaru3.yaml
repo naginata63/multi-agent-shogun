@@ -78,7 +78,7 @@ tasks:
   bloom_level: L3
   description: 'cmd_1636 直接4並列: ash3 担当 14本 (BcPWm_mCpp4〜QCFyL7tG-v4) DL→Demucs→STT→speaker_mapping'
   gunshi_qc: false
-  notes: 4並列本番。GEMINI API期限切れのためscene_search_v2 build禁止。エラー時スキップ継続可。git push は家老が実施。[BLOCKED] YouTube IP ban: 並列DL禁止ルール違反で発動。6/14完了(成功:Tdgz/X3cM/05zh/XB-X/sml-a/D4_8)、残8本DL失敗。IP ban解除待機中。並列1-2+5秒で再開可能。
+  notes: '4並列本番。GEMINI API期限切れのためscene_search_v2 build禁止。エラー時スキップ継続可。git push は家老が実施。[BLOCKED] YouTube IP ban: 並列DL禁止ルール違反で発動。6/14完了(成功:Tdgz/X3cM/05zh/XB-X/sml-a/D4_8)、残8本DL失敗。IP ban解除待機中。並列1-2+5秒で再開可能。'
   parent_cmd: cmd_1636
   priority: high
   status: blocked
