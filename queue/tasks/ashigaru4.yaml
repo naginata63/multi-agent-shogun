@@ -31,160 +31,70 @@ tasks:
     1 multi/day6_charlotte_part_%02d.mp4 → ffprobe各partで尺/codec確認→結果をwork/cmd_1425/charlotte_parts.json保存→完了報告
   task_id: subtask_1425c
   timestamp: '2026-04-22T20:52:00'
-- agent: ashigaru4
-  task_id: subtask_1636_batch4
-  status: blocked
-  priority: high
-  parent_cmd: cmd_1636
+- acceptance_criteria:
+  - 15本全て merged_<id>.json が srt_and_candidates/ に存在
+  - 全merged JSON で A-F speakers = 0
+  - OOM-killer 未発生
+  agent: ashigaru4
   blocked_by:
   - subtask_1636_stepB1
   - subtask_1636_stepB2
   - subtask_1636_stepB3
   bloom_level: L3
-  gunshi_qc: false
   description: 'cmd_1636 Phase C batch4 (ash4): 15本処理 (QCFyL7tG-v4〜5Np9PPU8JQE)'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/
+  gunshi_qc: false
+  notes: cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki してから実行。GEMINI
+    API期限切れのためscene_search_v2 build禁止。git push は家老が実施。
+  parent_cmd: cmd_1636
+  priority: high
+  status: blocked
   steps: '0) advisor()呼出 1) 【4並列本番フェーズ】事前メモリ確認: free -h && nvidia-smi 2) 以下15本を順次処理。各動画:
     VIDEO_ID=<id> → mkdir -p work/cmd_1636_<id>/{input,output} → downloader.py + vocal_stt_pipeline.py
     → merged_{id}.json → A-F検証 3) 処理対象15本: QCFyL7tG-v4 QMpQZbUTfj4 ouu0Mrb4Y5c AAnANq-bUpQ
     nxAAYd_FwC8 Fjt8U4vXSgI lDBmBtxcjEo 2Gv7n8dfohI 4mlCQ7dVKXM o6vunreR_yM jIndbI48GK8
     qFpCsQhwxwQ X9BWyuqSy_k QK3Huq55BCM 5Np9PPU8JQE 4) RAM>40GB or OOM→即STOP→inbox
     karo 5) 全完了後: 成功/失敗一覧 inbox karo報告 6) advisor()呼出'
-  acceptance_criteria:
-  - 15本全て merged_<id>.json が srt_and_candidates/ に存在
-  - 全merged JSON で A-F speakers = 0
-  - OOM-killer 未発生
-  notes: cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki してから実行。GEMINI
-    API期限切れのためscene_search_v2 build禁止。git push は家老が実施。
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/
+  task_id: subtask_1636_batch4
   timestamp: '2026-05-05T15:22:55.957729+09:00'
 - agent: ashigaru4
-  task_id: subtask_1636_fullbatch4
+  task_id: subtask_1670_inbox_write_fix
   status: done
-  priority: high
-  parent_cmd: cmd_1636
+  parent_cmd: cmd_1670
   bloom_level: L3
+  description: "【cmd_1670】POST /api/inbox_write タイムアウト原因特定 + 修復実装\n\n## 背景・既知情報\n\
+    - cmd_1664 調査報告 (queue/reports/2026-05-07_cmd_1664_serverpy_latency.md) で以下が判明:\n\
+    \  1. SQLite journal_mode=DELETE (WAL未採用) → 並行ライタ下でlock contention\n  2. スキーマ初期化コードが欠落\
+    \ → 空DB時に全エンドポイント失敗\n  3. get_db() の timeout=5 + busy_timeout=10000 が subprocess.run\
+    \ timeout=10 と競合しうる\n- server.py L3178-3182: inbox_write ハンドラが subprocess.run(['bash',\
+    \ inbox_write.sh, ...], timeout=10) で呼ぶ\n- inbox_write.sh の flock -w 5 でロック取得\
+    \ → 5秒でタイムアウト可能\n- 家老テスト実績: 正しいペイロード(to/from/type/message)で 73ms 応答 ← 現在は正常\n\
+    - タイムアウト再現条件: 高負荷時の SQLite lock contention or inbox_write.sh の flock 競合の疑い\n\n\
+    ## 作業手順\n\n### Step 1: inbox_write ハンドラの詳細調査\n1. Read scripts/dashboard/server.py\
+    \ L3138-3250 でinbox_writeハンドラを精読\n2. Read scripts/inbox_write.sh でflock/SQLite書込フローを確認\n\
+    3. タイムアウト発生条件を特定 (flock競合 / SQLite lock / subprocess timeout 等)\n4. 現在の inbox_write.sh\
+    \ でSQLiteに書く部分の確認\n5. db_path が /home/murakami/multi-agent-shogun/queue/cmds.db\
+    \ vs database.db のどちらか確認\n\n### Step 2: 修復実装\nL3 なのでコード修正OK。以下3案から最適を実施（推奨案を選べ）:\n\
+    \n**案A: WAL モード有効化 (最優先)**\n- scripts/dashboard/server.py の get_db() に `conn.execute('PRAGMA\
+    \ journal_mode=WAL')` 追加\n- 並行ライタ時の lock contention を大幅削減\n\n**案B: subprocess\
+    \ タイムアウト延長**\n- L3181: `timeout=10` → `timeout=30` に延長\n- 根本解決ではないが即効性あり\n\n**案C:\
+    \ inbox_write.sh の flock タイムアウト調整**\n- flock -w 5 → flock -w 15 で lock 取得待ちを延長\n\
+    - inbox_write.sh のSQLite INSERT が database.db を叩く場合、別経路でlock競合する可能性を確認\n\n推奨:\
+    \ 案A (WAL) + 案B (timeout延長) を併用実施\n\n### Step 3: 検証\n1. python3 -m py_compile\
+    \ scripts/dashboard/server.py でPASS確認\n2. time curl (正しいペイロード) で 1秒以内確認 (実測値記録)\n\
+    3. 10並列 curl で応答時間確認\n\n### Step 4: 報告書作成\n4. queue/reports/2026-05-09_cmd_1670_inbox_write_hang.md\
+    \ 作成\n   - 根本原因（特定した条件）\n   - 修復案3種 (A/B/C) + 推奨案と実施内容\n   - 検証実測値\n   - server.py\
+    \ 変更箇所\n5. git add scripts/dashboard/server.py scripts/inbox_write.sh (変更ありの場合)\
+    \ queue/reports/2026-05-09_cmd_1670_inbox_write_hang.md\n6. git diff --cached\
+    \ で意図外ファイルなし確認\n7. git commit -m 'fix(infra): inbox_write タイムアウト修復 + WAL有効化 (cmd_1670)'\n\
+    8. karo に report_received で完了報告"
+  target_path: queue/reports/2026-05-09_cmd_1670_inbox_write_hang.md
+  acceptance_criteria:
+  - queue/reports/2026-05-09_cmd_1670_inbox_write_hang.md 存在・根本原因 + 修復案3+推奨案明記
+  - POST /api/inbox_write 最小ペイロードが 1秒以内 200 応答 (実測値記載)
+  - server.py 変更ありなら py_compile PASS
+  - SQLite + YAML dual-path 整合維持確認
+  - 報告書 git commit 済
+  - dashboard.md 更新は家老が実施 (不要)
   gunshi_qc: false
-  description: 'cmd_1636 直接4並列: ash4 担当 14本 (QMpQZbUTfj4〜5Np9PPU8JQE) DL→Demucs→STT→speaker_mapping'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/
-  steps: '0) advisor()呼出 1) 事前メモリ確認: free -h && nvidia-smi --query-gpu=memory.used,memory.total
-    --format=csv,noheader 2) cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
-    && source ~/.bashrc && source venv/bin/activate 3) 以下14本を順次処理。各動画: VIDEO_ID=<id>
-    → mkdir -p work/cmd_1636_<id>/{input,output} → downloader.py + vocal_stt_pipeline.py
-    → merged_{id}.json → A-F検証 4) 処理対象14本: QMpQZbUTfj4 ouu0Mrb4Y5c AAnANq-bUpQ nxAAYd_FwC8
-    Fjt8U4vXSgI lDBmBtxcjEo 2Gv7n8dfohI 4mlCQ7dVKXM o6vunreR_yM jIndbI48GK8 qFpCsQhwxwQ
-    X9BWyuqSy_k QK3Huq55BCM 5Np9PPU8JQE 5) 5本ごとにメモリ確認。異常→即STOP→inbox karo 6) 全完了後:
-    成功/失敗一覧 + 最終メモリ状態 inbox karo報告 7) advisor()呼出'
-  acceptance_criteria:
-  - 14本全て merged_<id>.json が srt_and_candidates/ に存在
-  - 全merged JSON で A-F speakers = 0
-  - RAM available>5GB 維持・OOM未発生
-  notes: 4並列本番。GEMINI API期限切れのためscene_search_v2 build禁止。エラー時スキップ継続可。git push は家老が実施。
-  timestamp: '2026-05-05T15:29:03.086557+09:00'
-  completed_at: '2026-05-06T05:09:48+09:00'
-- agent: ashigaru4
-  task_id: subtask_1647_prewrite_ch10_ch11
-  status: done
-  priority: high
-  parent_cmd: cmd_1647
-  bloom_level: L3
-  gunshi_qc: false
-  description: 'cmd_1647 Phase1: ch10-ch11 の事前4項目 (対象問題・持ち帰り・ストーリー・実例) を作成し殿確認用ファイルに出力'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch10_ch11.md
-  steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) 設計書精読: projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md
-    §7 章別詳細設計 (ch10-ch11) + §11 事前4項目プロトコル + §2 困りごと11件全件 + §3 3層世界観 3) 各章で以下4項目をMarkdown形式で作成:
-    [1]対象問題 [2]持ち帰り [3]ストーリー(現象→対策) [4]実例 4) ch10: 逆引き辞典 (症状→現象→対策→該当章 3段構造 + 3層インデックス・困りごと11件全件再掲)
-    / ch11: 自分専用Skillを作る (演習・3層統合の到達点・Skills縦糸の終着点) 5) 出力先: projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch10_ch11.md
-    6) git add -f projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch10_ch11.md
-    && git commit -m ''feat(udemy): v5 ch10-ch11 事前4項目作成 (Phase1)'' && git push origin
-    main 7) advisor()呼出 8) inbox karo 完了報告'
-  acceptance_criteria:
-  - ch10-ch11 各章の事前4項目 (対象問題・持ち帰り・ストーリー・実例) が全て記述済
-  - ch10の実例に困りごと11件全件を症状→現象→対策→該当章の3段構造で記述
-  - ch11がSkills縦糸 (ch01→ch07→ch11) の終着点として機能することが4項目に反映されている
-  - ch11の演習設計が受講者が実際にSkillを作れる具体性を持つ
-  - projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch10_ch11.md 作成済
-  - git commit + push済 (git add -f 使用)
-  notes: 'ch10は v5 CRITICAL変更点 (3段構造+3層インデックスに刷新)。§7のch10/ch11詳細設計を必ず参照。ch11は「自分専用のSkillを作る」に主題変更済
-    (v4とは別物)。NGワード: queue/tasks/shogun/karo/ashigaru/gunshi/multi-agent-shogunは使用禁止
-    (受講者に見せるコンテンツ)。git add -f 必須 (projects/ は gitignore対象)。'
-  timestamp: '2026-05-06T05:08:45.438624+09:00'
-  completed_at: '2026-05-06T05:16:48+09:00'
-- agent: ashigaru4
-  task_id: subtask_1647_write_ch06_ch07
-  status: done
-  parent_cmd: cmd_1647
-  bloom_level: L3
-  description: 'cmd_1647 Phase2: ch06(advisor/QC) + ch07(PreToolUse hook・セマンティック検索)
-    本文執筆・udemy-checker 🟢'
-  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/
-  steps: 1) curriculum_intermediate_v5_marp.md + v5_design.md + 自分の prewrite md 精読
-    2) advisor()呼出 3) 担当章をMarp形式で執筆 4) udemy-checker /udemy-checker <ファイルパス> で 🟢 確認
-    5) NGワードgrep 6) git add -f → commit 7) 全章完了後 inbox karo report_received
-  acceptance_criteria:
-  - 担当章すべての .md (Marp) + .html 作成済
-  - udemy-checker 🟢 達成 (観点A-E満足)
-  - NGワードリスト全件grep 0件
-  - 各章末に「強化した層：●層(L1/L2/L3)」1行明記
-  - JIT→必要時取得 / Lazy Load→必要時読込 置換済
-  - git add -f → commit + push 済
-  - inbox_write karo report_received 送信済
-  notes: '担当章: ch06(advisor/QC強化), ch07(PreToolUse hook/セマンティック検索)
-
-    prewrite: intermediate_v5_prewrite_ch04_ch06.md (ch06分担) + intermediate_v5_prewrite_ch07_ch09.md
-    (ch07分担)
-
-    【ch07重要】PreToolUse hook auto grepがLitM対策として明記・セマンティック検索ch07章冒頭回収スライド必須
-
-    【入力ファイル】
-
-    - projects/udemy_course/drafts/lectures/curriculum_intermediate_v5_marp.md (v5設計書・主体)
-
-    - projects/udemy_course/v5_design.md
-
-    - 自分の担当章の prewrite md (下記target_path参照)
-
-
-    【執筆ルール】
-
-    - Marp形式 (.md) で執筆 → Marp CLI で .html 生成
-
-    - NGワード: 経済/階層/JIT/Lazy Load/queue/tasks/shogun/karo/ashigaru/gunshi/multi-agent-shogun
-    → 0件
-
-    - JIT→必要時取得 / Lazy Load→必要時読込 に置換
-
-    - 各章末に「強化した層：●層（L1/L2/L3）」1行明記
-
-    - udemy-checker 🟢 まで回し直し (最大3回)
-
-    - git add -f (gitignored) → commit (1章ずつ)
-
-    - 完了後 inbox karo report_received
-
-
-    【3層フレーム】L1=ch01-02 / L2=ch03-04 / L3=ch05-08
-
-    【困りごとマッピング】curriculum_intermediate_v5_marp.md §2 参照
-
-    【Skills縦糸】ch01(布石)→ch07(発展)→ch11(完成)'
-  timestamp: '2026-05-06T07:12:19.859032+09:00'
-  completed_at: '2026-05-06T07:24:42+09:00'
-- agent: ashigaru4
-  task_id: subtask_1655_phaseB_ch06_07
-  status: blocked
-  parent_cmd: cmd_1655
-  bloom_level: L3
-  blocked_by:
-  - subtask_1655_phaseA_extract
-  description: 'cmd_1655 Phase B: ch06/ch07 に v4スタイル統一適用'
-  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/intermediate_v5_ch06_advisor_qc.md
-  steps:
-  - 1. shared_context/marp_v4_style_template.md を読む (Phase A で作成済)
-  - 2. projects/udemy_course/drafts/lectures/intermediate_v5_ch06_advisor_qc.md と
-    intermediate_v5_ch07_hook_search.md を読む
-  - '3. v4スタイルを適用: frontmatterに style追加・カバースライド(章番号/タイトル/FREEバッジ/講師名なぎなた)を先頭に挿入・.meta
-    div追加・speakerノートHTMLコメント追加・用語先出しテーブルが無ければ追加。既存本文は壊さない'
-  - '4. Marp CLI で .html 再生成: npx @marp-team/marp-cli <file>.md -o <file>.html'
-  - 5. git add -f projects/udemy_course/ && git commit
-  - 6. karo へ inbox report_received
-  timestamp: '2026-05-06T11:37:01.168357+09:00'
+  timestamp: '2026-05-09T04:42:36.661763+09:00'
