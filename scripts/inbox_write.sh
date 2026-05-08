@@ -139,26 +139,10 @@ _update_task_done() {
     local cmd_id
     cmd_id=$(echo "$CONTENT" | grep -oP 'cmd_\d+' | head -1)
 
-    local lock_file="${task_file}.lock"
-    (
-        flock -w 5 200 || { _log_silent_fail "flock failed for _update_task_done: $task_file"; exit 0; }
-
-        local target_line=""
-
-        if [ -n "$cmd_id" ]; then
-            # Find last task with matching parent_cmd and status: assigned
-            target_line=$(mawk -v cmd="$cmd_id" '
-                /^- task_id:/ { found_parent = 0 }
-                /parent_cmd:/ && $0 ~ cmd { found_parent = 1 }
-                /status: assigned/ && found_parent { target = NR }
-                END { if (target > 0) print target }
-            ' "$task_file")
-        fi
-
-        [ -z "$target_line" ] && { _log_silent_fail "no matching task found in $task_file for cmd=$cmd_id"; exit 0; }
-
-        sed -i "${target_line}s/status: assigned/status: done/" "$task_file"
-    ) 200>"$lock_file" 2>/dev/null
+    if [ -z "$cmd_id" ]; then
+        _log_silent_fail "no cmd_id found in report message for task update; skipping"
+        return 0
+    fi
 
     return 0  # Never fail — message delivery must succeed
 }
