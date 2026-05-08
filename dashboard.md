@@ -121,6 +121,11 @@ server.py 全30+エンドポイントの error/success response に expected/exa
 
 ## ✅ 最近の完了
 
+### cmd_1672 完了 — cmd_helper.py RAG D2 fix + 消費者実装 (2026-05-09 07:38)
+- D2 fix: --source フィルタ外し → Python 後フィルタ方式に変更
+- 消費者: Z案 (cmd_create_helper.sh 新設) 採用・新 cmd 起票時に類似 cmd 自動提示
+- commit f2c10b4 / push 済 / 報告書: queue/reports/2026-05-09_cmd_1672_rag_pipeline_fix.md
+
 ### cmd_1671 完了 — harness全49件矛盾解消 (2026-05-09 07:35)
 - (a)修復29件 commit済 + origin/main push済 (multi-agent-shogun + dozle_kirinuki)
 - (b)別cmd 3件: H005 importlib/M2 ntfy archive/M4 monitor cron登録 → 後日起票
