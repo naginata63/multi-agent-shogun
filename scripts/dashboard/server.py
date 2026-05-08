@@ -53,10 +53,23 @@ def _push_to_inbox_queue(target_agent, message_dict):
 
 # ─── DB helpers ────────────────────────────────────────────────────────────────
 
+_db_pragmas_initialized = False
+
+def _init_db_pragmas():
+    """Initialize WAL and busy_timeout once (cmd_1664 optimization)."""
+    global _db_pragmas_initialized
+    if not _db_pragmas_initialized:
+        try:
+            conn = sqlite3.connect(DB_PATH, timeout=10)
+            conn.execute("PRAGMA journal_mode = WAL")
+            conn.execute("PRAGMA busy_timeout = 10000")
+            conn.close()
+            _db_pragmas_initialized = True
+        except Exception as e:
+            print(f"[init_db_pragmas] error: {e}", file=os.sys.stderr)
+
 def get_db():
-    conn = sqlite3.connect(DB_PATH, timeout=5)
-    conn.execute("PRAGMA journal_mode = WAL")
-    conn.execute("PRAGMA busy_timeout = 10000")
+    conn = sqlite3.connect(DB_PATH, timeout=10)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -3834,6 +3847,7 @@ if __name__ == '__main__':
     print(f"shogun_to_karo: {SHOGUN_TO_KARO}")
     print("Agent status detection: DB-driven (inbox_messages table).")
     init_schema()
+    _init_db_pragmas()
     _migrate_inbox_types()
     server = http.server.ThreadingHTTPServer(('0.0.0.0', PORT), DashboardHandler)
     try:
