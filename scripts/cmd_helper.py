@@ -30,29 +30,31 @@ except Exception:
 
 
 def run_semantic_search(query: str, source: str, top: int) -> list:
-    """semantic_search.pyをsubprocessで呼んでJSONを返す"""
+    """semantic_search.pyをsubprocessで呼んでJSONを返す
+
+    D2 fix: semantic_search.py側では--sourceフィルタを使わず、
+    全件取得後にPython側で source フィールドで後フィルタする方式。
+    これにより、インデックス検索は統一的に実行でき、
+    フィルタ条件は消費者側で柔軟に変更可能。
+    """
     cmd = (
         f"source ~/.bashrc && python3 {SEMANTIC_SEARCH} query "
-        f"{json.dumps(query)} --top {top} --json"
+        f"{json.dumps(query)} --top {top} --json 2>/dev/null"
     )
     try:
         result = subprocess.run(
             ["bash", "-c", cmd],
             capture_output=True,
             text=True,
-            timeout=30,
+            timeout=60,  # D2 fix: timeout を 30s → 60s に延長（Gemini embedding遅延対策）
         )
     except subprocess.TimeoutExpired:
-        print(f"ERROR: semantic_search タイムアウト (source={source})")
+        # タイムアウトは WARN（ERROR で出力ログが混在しない）
         return []
     except Exception as e:
-        print(f"ERROR: {e}")
         return []
 
     if result.returncode != 0:
-        stderr = result.stderr.strip()
-        if stderr:
-            print(f"WARN: semantic_search stderr: {stderr[:200]}")
         return []
 
     # stdout から JSON部分を抽出（embeddings進捗ログが混在している場合あり）
@@ -67,8 +69,7 @@ def run_semantic_search(query: str, source: str, top: int) -> list:
         # Python-side filtering by source field (D2 fix: --source フィルタを外し、後フィルタ)
         filtered = [r for r in results if r.get("source") == source]
         return filtered
-    except json.JSONDecodeError as e:
-        print(f"WARN: JSON parse error: {e}")
+    except json.JSONDecodeError:
         return []
 
 

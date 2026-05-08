@@ -52,8 +52,8 @@ _update_cmd_done() {
 
         if mawk -v cmd="$cmd_id" '
             /- id: / { in_block = ($0 ~ "- id: " cmd) }
-            in_block && /^  status: (pending|in_progress|suspended|assigned|blocked)$/ {
-                sub(/status: (pending|in_progress|suspended|assigned|blocked)/, "status: done")
+            in_block && /^  status: (pending|in_progress|suspended)$/ {
+                sub(/status: (pending|in_progress|suspended)/, "status: done")
                 in_block = 0
                 updated = 1
             }

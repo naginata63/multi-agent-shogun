@@ -3015,6 +3015,31 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 except Exception as he:
                     print(f"[cmd_history] WARN: {he}")
 
+                # === (vi) RAG suggestion (cmd_1672・新cmd起票時に類似cmd提示) ===
+                # Option W: server.py /api/cmd_create ハンドラに cmd_helper.py rag 統合
+                # 推奨理由: API呼び出し側は shell script 不要。同期的に suggestions を response に含可能。
+                #         shell 経由より response JSON に JSON embed の方が パーサー側で扱いやすい。
+                rag_suggestions = {}
+                try:
+                    purpose = body.get('purpose', '')
+                    if purpose:
+                        cmd_helper_path = os.path.join(BASE_DIR, 'scripts', 'cmd_helper.py')
+                        result = subprocess.run(
+                            ['python3', cmd_helper_path, 'rag', purpose, '--json'],
+                            capture_output=True, text=True, timeout=60, cwd=BASE_DIR
+                        )
+                        if result.returncode == 0:
+                            try:
+                                rag_suggestions = json.loads(result.stdout.strip())
+                                # rag_suggestions.json に保存（DEBUG用・consumer reference）
+                                sug_path = os.path.join(BASE_DIR, 'queue', 'rag_suggestions.json')
+                                with open(sug_path, 'w', encoding='utf-8') as suf:
+                                    json.dump(rag_suggestions, suf, ensure_ascii=False, indent=2)
+                            except json.JSONDecodeError:
+                                pass
+                except Exception as rag_e:
+                    print(f"[rag_suggestions] WARN: {rag_e}")
+
                 # inbox自動通知 (notify_karo=true デフォルト・kill_switch:false でskip)
                 # cmd_1494 dual-path 修正 (2026-04-29 殿命): inbox_write.sh 呼出に統一
                 # 旧実装は YAML 直書きのみで SQLite に反映されず /api/inbox_messages や
@@ -3033,7 +3058,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     except Exception as ie:
                         print(f"[inbox_notify] WARN: {ie}")
 
-                resp = json.dumps({'ok': True, 'cmd_id': cmd_id, 'entry_line': entry_line, 'fields': list(entry.keys()), 'notified': notify_karo}, ensure_ascii=False).encode('utf-8')
+                resp = json.dumps({'ok': True, 'cmd_id': cmd_id, 'entry_line': entry_line, 'fields': list(entry.keys()), 'notified': notify_karo, 'rag_suggestions': rag_suggestions}, ensure_ascii=False).encode('utf-8')
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self.send_header('Content-Length', str(len(resp)))
