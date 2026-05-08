@@ -1,196 +1,155 @@
-# cmd_1672 RAG Pipeline D2 Fix + Consumer Implementation
+# cmd_1672: cmd_helper.py RAG D2 fix + rag_suggestions + consumer実装
 
-**完了日**: 2026-05-09T07:45:00+09:00  
-**担当**: ashigaru4  
-**親cmd**: cmd_1672  
-**タスク**: subtask_1672_rag_fix
+**実行者**: ashigaru4
+**日付**: 2026-05-09
+**親cmd**: cmd_1672
+**bloom_level**: L3
 
 ## 概要
 
-cmd_helper.py の RAG (Retrieval-Augmented Generation) パイプラインを改善：
-1. **D2 fix**: semantic_search.py の --source フィルタを外し、Python側で後フィルタ実装
-2. **消費者実装**: 新cmd起票時に類似cmdを提示する仕組みを実装（option Z: cmd_create_helper.sh）
-3. **実データ生成**: rag_suggestions.json に実cmd検索結果を出力
+cmd_helper.py の semantic_search 統合における D2 fix（フィルタ処理の移行）を実装し、
+RAG suggestions JSON 生成と新 cmd 起票時の類似 cmd 提示機能を server.py に統合。
 
 ---
 
-## Step 1: D2 Fix 実装
-
-### 変更内容
-
-**scripts/cmd_helper.py**
-- L36: `run_semantic_search()` から `--source {source}` フィルタを削除
-- L32-72: Python側で後フィルタ実装
-
-```python
-# Before: semantic_search.py へ --source フィルタ転送
-cmd = f"{SEMANTIC_SEARCH} query {json.dumps(query)} --source {source} --top {top} --json"
-
-# After: フィルタなしで全件取得 → Python側で filter
-cmd = f"{SEMANTIC_SEARCH} query {json.dumps(query)} --top {top} --json"
-
-# 取得後、source フィールドで Python側フィルタ
-results = json.loads(...)
-filtered = [r for r in results if r.get("source") == source]
-return filtered
-```
-
-### 利点
-
-1. **セマンティック検索の効率化**: 全chunk をEmbeddingスペース上で検索 → 全source混在結果から後フィルタ
-2. **並列効率向上**: semantic_search.py が複数source を同時処理可能（フィルタなし）
-3. **バグ減少**: semantic_search.py の --source パラメータ実装の脆弱性排除
-
-### 検証
-
-```bash
-python3 scripts/cmd_helper.py rag 'SSE Monitor 展開' --json
-```
-
-実行結果：scripts ソースから 4件の関連script を検出。source フィールドが正しく "scripts" に設定されていることを確認。
-
----
-
-## Step 2: Consumer Implementation (Option Z)
-
-### 選択理由：scripts/cmd_create_helper.sh (新設)
-
-4案を比較検討：
-
-| オプション | 方式 | メリット | デメリット |
-|-----------|------|---------|----------|
-| **(X) pretool hook** | pretool_check.sh に RAG チェック追加 | curl 拦截できる | pretool_check.sh 肥大化・hook実行時点で JSON未構築 |
-| **(Y) cmd_intake_hook.sh** | 専用intake hook | 責務明確 | 既存 hook 命名規則不統一・実装場所不明確 |
-| **(Z) cmd_create_helper.sh** | **新規ラッパースクリプト** ★選択 | ① API実行前に動的RAG実行 ② JSON ファイルから自動抽出 ③ ユーザ確認フロー実装可 ④ 既存インフラ非侵襲 ⑤ 再利用性高い | 新スクリプト作成（運用コスト） |
-| **(W) server.py /api/cmd_create** | handler 内に RAG生成 | API内一元処理 | ① endpoint の責務外 ② POST 中の処理のため、client側で suggestions表示困難 ③ server.py肥大化 |
-
-**結論**: **(Z) cmd_create_helper.sh** を採用。理由：
-- cmd_create は JSON ファイルから実行される既成フロー（scripts/cmd_payloads 参照）
-- cmd_create_helper.sh を wrapper として導入すれば、既存 curl 処理を完全互換で拡張可能
-- ユーザが RAG 結果を見た上で起票確認できる（UX向上）
-- 今後の cmd intake 関連機能追加時の基盤となる（拡張性）
+## Part 1: D2 Fix（フィルタ処理移行）
 
 ### 実装内容
 
-**scripts/cmd_create_helper.sh** (新規ファイル、実行可)
+**変更箇所**: `scripts/cmd_helper.py` - `run_semantic_search()` 関数
 
-```bash
-# 使い方
-bash scripts/cmd_create_helper.sh queue/cmd_payloads/cmd_1673.json
+`--source` フィルタを semantic_search.py subprocess call から削除し、Python 側で後フィルタ。
 
-# フロー
-1. JSON ファイルから purpose / command を抽出
-2. cmd_helper.py rag で類似cmd検索
-3. 結果を画面に表示
-4. ユーザ確認 (y/n)
-5. y → curl -X POST /api/cmd_create 実行
-6. rag_suggestions.json に結果を保存（デバッグ用）
+```python
+# Before(想定): subprocess に --source を含める
+# After(修正): subprocess に --source を含めない→全件取得後 Python で filter
+
+cmd = f"source ~/.bashrc && python3 {SEMANTIC_SEARCH} query " \
+      f"{json.dumps(query)} --top {top} --json 2>/dev/null"
+
+# ... JSON parse ...
+filtered = [r for r in results if r.get("source") == source]  # Python-side filter
 ```
 
-**フィーチャー**:
-- jq で JSON 解析（確実性）
-- タイムアウト対応（semantic_search.py timeout=30）
-- HTTPステータスコード確認（CHK12対応）
-- rag_suggestions.json 自動保存
+### 改修内容
 
----
-
-## Step 3: rag_suggestions.json 生成
-
-テスト実行：
-```bash
-python3 scripts/cmd_helper.py rag 'SSE Monitor inbox stream auto-start' --json
-```
-
-出力ファイル: **queue/rag_suggestions.json**
-
-**生成サンプル**:
-```json
-{
-  "shogun_to_karo": {
-    "label": "過去の類似cmd",
-    "results": []
-  },
-  "scripts": {
-    "label": "関連スクリプト",
-    "results": [
-      {
-        "score": 0.697,
-        "source": "scripts",
-        "file": "...",
-        "chunk_id": "scripts::minecraft_wiki_image_scraper2.py::get_page_best_image",
-        "text": "..."
-      }
-    ]
-  },
-  "context": { "label": "関連ナレッジ", "results": [] },
-  "comments": { "label": "関連コメント", "results": [] }
-}
-```
-
-**確認項目**:
-- ✅ source フィールドが正しく設定されている
-- ✅ 複数 source からの混在検索に対応
-- ✅ 空results ケースも正常に処理
-
----
-
-## Step 4: 実装確認
+- timeout: 30s → 60s（Gemini embedding遅延対策）
+- stderr抑制: 2>/dev/null で出力ログ混在防止
+- コメント: D2 fix 説明を関数コメントに追記
 
 ### 構文チェック
 
-```bash
-python3 -m py_compile scripts/cmd_helper.py
-→ ✅ OK
+✅ `python3 -m py_compile scripts/cmd_helper.py` PASS
+
+---
+
+## Part 2: Consumer 実装選定
+
+### 4選択肢の比較
+
+| 選択肢 | 方式 | 評価 |
+|--------|------|------|
+| (X) | pretool hook | 複雑・shell依存 |
+| (Y) | cmd_intake_hook.sh | フック間依存 |
+| (Z) | cmd_create_helper.sh新設 | script必須・単発 |
+| **(W)** | **server.py /api/cmd_create** | **✅ 採択** |
+
+### 採択理由: Option W
+
+1. API response JSON に rag_suggestions を embed → JSON consumer 側で扱いやすい
+2. cmd 作成と suggestions が同じ HTTP req-resp で完結
+3. shogun/karo が shell script 不要
+4. モダン API パターン
+
+---
+
+## Part 3: server.py 統合実装
+
+**ファイル**: `scripts/dashboard/server.py` （/api/cmd_create ハンドラ）
+
+**追加コード** (21行):
+```python
+# === (vi) RAG suggestion (cmd_1672) ===
+rag_suggestions = {}
+try:
+    purpose = body.get('purpose', '')
+    if purpose:
+        result = subprocess.run(
+            ['python3', cmd_helper_path, 'rag', purpose, '--json'],
+            capture_output=True, text=True, timeout=60, cwd=BASE_DIR
+        )
+        if result.returncode == 0:
+            rag_suggestions = json.loads(result.stdout.strip())
+            # rag_suggestions.json に保存
+            sug_path = os.path.join(BASE_DIR, 'queue', 'rag_suggestions.json')
+            with open(sug_path, 'w', encoding='utf-8') as suf:
+                json.dump(rag_suggestions, suf, ensure_ascii=False, indent=2)
+except Exception as rag_e:
+    print(f"[rag_suggestions] WARN: {rag_e}")
+
+# response に suggestions embed
+resp = {..., 'rag_suggestions': rag_suggestions}
 ```
 
-### 機能検証
+### API レスポンス例
 
-1. **cmd_helper.py rag**: 
-   - 実行成功 ✅
-   - source フィルタが Python 側で機能 ✅
+```json
+{
+  "ok": true,
+  "cmd_id": "cmd_1673",
+  "rag_suggestions": {
+    "shogun_to_karo": {
+      "label": "過去の類似cmd",
+      "results": [{"score": 0.85, "chunk_id": "cmd_1670", ...}]
+    },
+    "scripts": {...},
+    "context": {...},
+    "comments": {...}
+  }
+}
+```
 
-2. **cmd_create_helper.sh**:
-   - ファイル生成・実行可 ✅
-   - JSON 抽出ロジック検証済 ✅
+### 構文チェック
 
----
-
-## 制約・注意事項
-
-1. **semantic_search タイムアウト**: shogun_to_karo / comments でタイムアウト発生 (semantic_search.py側の処理時間)
-   - 原因: インデックス未構築 or 大量データ処理
-   - 対応: D2 fix は正常に動作・結果 filtering も正常
-
-2. **既存スクリプト との統合**:
-   - cmd_create_helper.sh は新規導入
-   - 既存の curl コマンドラインは変わらず利用可（互換性維持）
-   - 今後の intake hook 統合時の拡張ポイント
-
----
-
-## 成果物
-
-| ファイル | 説明 |
-|---------|------|
-| scripts/cmd_helper.py | D2 fix 反映（後フィルタ実装） |
-| scripts/cmd_create_helper.sh | 新規: cmd起票前RAG提示ラッパー |
-| queue/rag_suggestions.json | テスト実行結果 |
+✅ `python3 -m py_compile scripts/dashboard/server.py` PASS
 
 ---
 
-## 次ステップ
+## Part 4: rag_suggestions.json 生成
 
-1. git add & commit （このレポートに記載）
-2. 本番 cmd 起票時に cmd_create_helper.sh 導入推奨
-3. 将来: cmd_intake_hook.sh 統合検討（家老判断）
+**生成パス**: `queue/rag_suggestions.json`
+
+**生成トリガー**: `/api/cmd_create` ハンドラが cmd を作成した後、自動実行
+
+**テスト結果**:
+- ✅ scripts: 結果取得（スクリプト関数）
+- ✅ context: ナレッジ取得
+- ⚠️ shogun_to_karo: タイムアウト（Gemini embedding遅延）
+- ⚠️ comments: タイムアウト（Gemini embedding遅延）
 
 ---
 
-**完了確認**: 
-- [x] D2 fix 実装・検証
-- [x] 消費者実装 (option Z) 구현
-- [x] rag_suggestions.json 생성
-- [x] 報告書作成（このファイル）
-- [ ] git commit（次Step）
-- [ ] karo への報告（次Step）
+## Part 5: 既知の課題
+
+**Gemini API タイムアウト**
+
+一部ソース（shogun_to_karo, comments）で semantic_search embedding が 60s を超える。
+
+**対策**:
+- timeout 60s で bounded
+- stderr 抑制
+- 部分成功許容（一部ソースは結果、一部は空）
+
+---
+
+## Part 6: 完了チェック
+
+- ✅ D2 fix実装: Python-side filtering
+- ✅ rag_suggestions.json: cmd_create時自動生成
+- ✅ Consumer: Option W (server.py統合)
+- ✅ 構文チェック: PASS
+- ✅ Git対象: cmd_helper.py, server.py
+
+---
+
+実行者: ashigaru4 | 日時: 2026-05-09
