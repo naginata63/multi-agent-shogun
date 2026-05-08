@@ -435,10 +435,11 @@ get_unread_info() {
 
             specials_json=$(sqlite3 "$DB_PATH" "SELECT COALESCE('['||GROUP_CONCAT(json_object('type',type,'content',content))||']','[]') FROM inbox_messages WHERE agent='$AGENT_ID' AND read=0 AND type IN ('clear_command','model_switch','cli_restart')" 2>/dev/null || echo "[]")
 
-            # Mark specials as read in SQLite
+            # C3 & C4 修正: Mark specials as read in SQLite AND YAML (dual-path 整合化)
+            # Note: normal_count is calculated BEFORE marking as read in both paths below
             sqlite3 "$DB_PATH" "UPDATE inbox_messages SET read=1, read_at=datetime('now') WHERE agent='$AGENT_ID' AND read=0 AND type IN ('clear_command','model_switch','cli_restart')" 2>/dev/null || true
 
-            # C3: Also update YAML to keep dual-path consistent
+            # Also update YAML to keep dual-path consistent (C3修正)
             INBOX_PATH="$INBOX" "$VENV_PYTHON" - << 'PY_YAML_SYNC'
 import os
 import yaml
