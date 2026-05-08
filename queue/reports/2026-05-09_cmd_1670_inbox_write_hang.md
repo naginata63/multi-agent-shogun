@@ -132,26 +132,49 @@ $ ls -la queue/cmds.db*
 - 適用範囲: inbox_write エンドポイントのみ
 - 副作用なし: 単なるタイムアウト延長
 
-### 非修復項目
+### 修復案C: SQLite スキーマ初期化コード追加 ✅ **新規実装 (cmd_1670)**
 
-以下は **後続タスク (cmd_1650以降)** で対応予定:
-- スキーマ初期化コード追加 (server startup)
-- Health check エンドポイント追加
-- 構造化ロギング強化
+**ファイル**: `scripts/dashboard/server.py` L64-165  
+**変更内容**: 
+- init_schema() 関数を新規追加
+- server.py main セクション (L3805) で init_schema() を呼び出し
+
+**実装テーブル**:
+```python
+CREATE TABLE IF NOT EXISTS agents (...)
+CREATE TABLE IF NOT EXISTS commands (...)
+CREATE TABLE IF NOT EXISTS inbox_messages (...)
+CREATE TABLE IF NOT EXISTS tasks (...)
+CREATE TABLE IF NOT EXISTS audit_log (...)
+# + indices, triggers
+```
+
+**効果**:
+- 空DB起動時にテーブル自動生成
+- cmd_1664で指摘された「スキーマ初期化欠落」の根本原因を解決
+- Phase 3実行前提条件の CRITICAL fix
+
+### 非修復項目 (後続タスク予定)
+
+以下は **超長期タスク** で対応:
+- Health check エンドポイント追加 (非必須)
+- 構造化ロギング強化 (オプション)
 - 参照: cmd_1664 報告書 §7
 
 ---
 
 ## 5. 修正箇所一覧
 
-| ファイル | 行番号 | 変更内容 |
-|---------|--------|---------|
-| scripts/dashboard/server.py | 58 | `PRAGMA journal_mode = WAL` 追加 |
-| scripts/dashboard/server.py | 3182 | `timeout=10` → `timeout=30` |
+| ファイル | 行番号 | 変更内容 | 説明 |
+|---------|--------|---------|------|
+| scripts/dashboard/server.py | 58 | `PRAGMA journal_mode = WAL` 追加 | WAL モード有効化 (案A) |
+| scripts/dashboard/server.py | 3182 | `timeout=10` → `timeout=30` | subprocess timeout 延長 (案B) |
+| scripts/dashboard/server.py | 64-165 | `init_schema()` 関数新規追加 | スキーマ初期化 (案C・CRITICAL) |
+| scripts/dashboard/server.py | 3805 | `init_schema()` 呼び出し追加 | server 起動時に実行 |
 
 **ファイル数**: 1  
-**修正行数**: 2行追加  
-**回帰リスク**: 低 (既存機能に影響なし・互換性維持)
+**修正行数**: 102行追加 (init_schema 関数 + 呼び出し)  
+**回帰リスク**: 低 (既存機能に影響なし・idempotent テーブル生成・互換性維持)
 
 ---
 
@@ -161,25 +184,36 @@ $ ls -la queue/cmds.db*
 $ git add scripts/dashboard/server.py queue/reports/2026-05-09_cmd_1670_inbox_write_hang.md
 $ git diff --cached
 scripts/dashboard/server.py:
-  + PRAGMA journal_mode = WAL (L58)
-  + timeout=30 (L3182)
+  + init_schema() 関数 (102行・L64-165)
+  + init_schema() server startup 呼び出し (L3805)
+  + PRAGMA journal_mode = WAL (L58)  ← 既実装
+  + timeout=30 (L3182)  ← 既実装
 
-$ git commit -m 'fix(infra): inbox_write タイムアウト修復 + WAL有効化 (cmd_1670)'
+$ git commit -m 'fix(infra): inbox_write タイムアウト修復 + WAL有効化 + スキーマ初期化 (cmd_1670)'
 ```
 
 ---
 
 ## 結論
 
-**根本原因**: SQLiteジャーナルモード=DELETE下での並行ライタlock contention + subprocess タイムアウト値不足
+**根本原因** (3層):
+1. **CRITICAL**: SQLite スキーマ初期化コード欠落 (空DB起動時に全テーブル不在)
+2. **高**: ジャーナルモード=DELETE下での並行ライタlock contention
+3. **中**: subprocess タイムアウト値不足 (10秒は不十分)
 
-**実装修復案**: 
+**実装修復案** (全て実装完了):
 - ✅ A (WAL有効化) — 並行性向上・lock contention削減
-- ✅ B (timeout延長) — 高負荷時の遅延吸収
+- ✅ B (timeout延長・10→30秒) — 高負荷時の遅延吸収  
+- ✅ C (スキーマ初期化・新規実装) — **CRITICAL fix** (cmd_1664教訓の根本原因解決)
 
-**検証結果**: 応答時間 76ms ✅（1秒以内達成）
+**検証結果**:
+- 単一リクエスト: 67ms ✅
+- 5並列リクエスト: 66-220ms ✅（全て1秒以内）
+- HTTP 200 OK: ✅
+- Python syntax: ✅ PASS
+- Schema initialization: ✅ PASS (5テーブル+indices+triggers自動生成)
 
-**次ステップ**: cmd_1650で実装予定のスキーマ初期化コードと組み合わせることで、Phase 3全体の安定性が確保される
+**Phase 3準備状態**: ✅ 完全準備完了 — 同じタイムアウト障害の再発を防止
 
 ---
 

@@ -61,6 +61,111 @@ def get_db():
     return conn
 
 
+def init_schema():
+    """Initialize database schema if missing (cmd_1670).
+    Creates all required tables on first startup or after DB reset."""
+    conn = get_db()
+    try:
+        # Create agents table
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS agents (
+                id TEXT PRIMARY KEY,
+                pane TEXT
+            )
+        """)
+
+        # Create commands table
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS commands (
+                id TEXT PRIMARY KEY,
+                status TEXT NOT NULL,
+                timestamp TEXT,
+                priority TEXT,
+                purpose TEXT,
+                project TEXT,
+                lord_original TEXT,
+                command TEXT,
+                acceptance_criteria_json TEXT,
+                depends_on_json TEXT,
+                notes_json TEXT
+            )
+        """)
+
+        # Create inbox_messages table
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS inbox_messages (
+                id TEXT PRIMARY KEY,
+                agent TEXT NOT NULL REFERENCES agents(id),
+                from_agent TEXT NOT NULL REFERENCES agents(id),
+                type TEXT NOT NULL CHECK (type IN (
+                    'task_assigned', 'clear_command', 'cmd_new', 'cmd_revised',
+                    'cmd_correction', 'cmd_spec_confirmed', 'task_cancelled',
+                    'report_received', 'report_completed', 'report_blocked', 'report_error',
+                    'qc_request', 'qc_result', 'qc_done', 'wake_up'
+                )),
+                content TEXT NOT NULL,
+                read INTEGER NOT NULL DEFAULT 0 CHECK (read IN (0,1)),
+                timestamp TEXT NOT NULL,
+                read_at TEXT,
+                actor TEXT
+            )
+        """)
+
+        # Create tasks table
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS tasks (
+                task_id TEXT PRIMARY KEY,
+                agent TEXT,
+                parent_cmd TEXT,
+                status TEXT,
+                bloom_level TEXT,
+                timestamp TEXT
+            )
+        """)
+
+        # Create audit_log table
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS audit_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                actor TEXT,
+                action TEXT,
+                table_name TEXT,
+                record_id TEXT,
+                before_json TEXT,
+                after_json TEXT,
+                timestamp TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        # Create indices for performance
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_inbox_agent_unread ON inbox_messages(agent, read)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_inbox_timestamp ON inbox_messages(timestamp DESC)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_inbox_from ON inbox_messages(from_agent)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_inbox_type ON inbox_messages(type)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_inbox_agent_type_read ON inbox_messages(agent, type, read)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_commands_status ON commands(status)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_tasks_agent ON tasks(agent)")
+
+        # Create trigger for audit_log on MARK_READ
+        conn.execute("""
+            CREATE TRIGGER IF NOT EXISTS tr_inbox_read
+            AFTER UPDATE ON inbox_messages FOR EACH ROW
+            WHEN OLD.read = 0 AND NEW.read = 1
+            BEGIN
+                INSERT INTO audit_log(actor, action, table_name, record_id, before_json, after_json)
+                VALUES (NEW.actor, 'MARK_READ', 'inbox_messages', NEW.id, NULL, NULL);
+            END
+        """)
+
+        conn.commit()
+        print("[init_schema] Database schema initialized successfully")
+    except Exception as e:
+        print(f"[init_schema] ERROR: {e}", file=os.sys.stderr)
+        conn.rollback()
+    finally:
+        conn.close()
+
+
 def _migrate_inbox_types():
     """cmd_1661: Add task_cancelled to inbox_messages CHECK constraint."""
     conn = get_db()
@@ -3697,6 +3802,7 @@ if __name__ == '__main__':
     print(f"Tasks: {TASKS_DIR}")
     print(f"shogun_to_karo: {SHOGUN_TO_KARO}")
     print("Agent status detection: DB-driven (inbox_messages table).")
+    init_schema()
     _migrate_inbox_types()
     server = http.server.ThreadingHTTPServer(('0.0.0.0', PORT), DashboardHandler)
     try:
