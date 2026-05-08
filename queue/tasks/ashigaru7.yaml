@@ -1,100 +1,20 @@
 tasks:
 - agent: ashigaru7
-  task_id: subtask_1631_report
+  task_id: subtask_1671_a7
   status: done
-  priority: medium
-  parent_cmd: cmd_1631
-  bloom_level: L2
-  blocked_by:
-  - subtask_1631_index
-  description: 'cmd_1631: subtitle_speaker_qc.py QC実行 + 完了報告書作成 + inbox karo'
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/2026-05-05_cmd_1631_speaker_label_fix.md
-  steps: '0) advisor()呼出 1) QC実行: python3 /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/subtitle_speaker_qc.py
-    --audio-merge /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/20260320_凍ったおじいちゃんをちゃちゃっと溶かすぞ！/vocals_full.wav
-    --srt /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_xZTtk4pJcAs.srt
-    (オプションは実際のスクリプトを確認して調整) 2) 識別率が 95% 以上であることを確認 3) 完了報告書 queue/reports/2026-05-05_cmd_1631_speaker_label_fix.md
-    を作成: cmd_1631 purpose・修正前後の話者ラベル比較・バックアップファイルパス・subtitle_speaker_qc.py 識別率・scene_search_v2.py
-    info 話者一覧 (A-F=0確認) 4) inbox karo 完了報告 (報告書パス・QC識別率記載)'
-  acceptance_criteria:
-  - subtitle_speaker_qc.py 識別率 95% 以上
-  - queue/reports/2026-05-05_cmd_1631_speaker_label_fix.md 作成済み
-  - inbox karo 送信済み
-  notes: subtitle_speaker_qc.py の正確なオプションは実際のスクリプトを Read して確認すること。識別率が 95% 未満の場合は家老にエスカレ。git
-    push は家老が実施。
-  timestamp: '2026-05-05T13:35:27.263049+09:00'
-- agent: ashigaru7
-  task_id: subtask_1647_write_ch11
-  status: done
-  parent_cmd: cmd_1647
+  parent_cmd: cmd_1671
   bloom_level: L3
-  description: 'cmd_1647 Phase2: ch11(自分専用Skill作成・3層統合) 本文執筆・udemy-checker 🟢'
-  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/
-  steps: 1) curriculum_intermediate_v5_marp.md + v5_design.md + 自分の prewrite md 精読
-    2) advisor()呼出 3) 担当章をMarp形式で執筆 4) udemy-checker /udemy-checker <ファイルパス> で 🟢 確認
-    5) NGワードgrep 6) git add -f → commit 7) 全章完了後 inbox karo report_received
-  acceptance_criteria:
-  - 担当章すべての .md (Marp) + .html 作成済
-  - udemy-checker 🟢 達成 (観点A-E満足)
-  - NGワードリスト全件grep 0件
-  - 各章末に「強化した層：●層(L1/L2/L3)」1行明記
-  - JIT→必要時取得 / Lazy Load→必要時読込 置換済
-  - git add -f → commit + push 済
-  - inbox_write karo report_received 送信済
-  notes: '担当章: ch11(自分専用Skill作成・3層統合)
-
-    prewrite: intermediate_v5_prewrite_ch10_ch11.md (ch11分担)
-
-    【ch11重要】Skills縦糸(ch01→ch07→ch11)の完成章・週次日報半自動化Skill演習
-
-    【入力ファイル】
-
-    - projects/udemy_course/drafts/lectures/curriculum_intermediate_v5_marp.md (v5設計書・主体)
-
-    - projects/udemy_course/v5_design.md
-
-    - 自分の担当章の prewrite md (下記target_path参照)
-
-
-    【執筆ルール】
-
-    - Marp形式 (.md) で執筆 → Marp CLI で .html 生成
-
-    - NGワード: 経済/階層/JIT/Lazy Load/queue/tasks/shogun/karo/ashigaru/gunshi/multi-agent-shogun
-    → 0件
-
-    - JIT→必要時取得 / Lazy Load→必要時読込 に置換
-
-    - 各章末に「強化した層：●層（L1/L2/L3）」1行明記
-
-    - udemy-checker 🟢 まで回し直し (最大3回)
-
-    - git add -f (gitignored) → commit (1章ずつ)
-
-    - 完了後 inbox karo report_received
-
-
-    【3層フレーム】L1=ch01-02 / L2=ch03-04 / L3=ch05-08
-
-    【困りごとマッピング】curriculum_intermediate_v5_marp.md §2 参照
-
-    【Skills縦糸】ch01(布石)→ch07(発展)→ch11(完成)'
-  timestamp: '2026-05-06T07:12:19.902967+09:00'
-  completed_at: '2026-05-06T07:23:30+09:00'
-- agent: ashigaru7
-  task_id: subtask_1655_phaseB_ch11
-  status: blocked
-  parent_cmd: cmd_1655
-  bloom_level: L3
-  blocked_by:
-  - subtask_1655_phaseA_extract
-  description: 'cmd_1655 Phase B: ch11 に v4スタイル統一適用'
-  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/intermediate_v5_ch11_skill.md
+  description: 'cmd_1668 MEDIUM/LOW 2件修正: inbox_write.sh fallback grep削除 + ntfy_listener.sh
+    since リセット修正'
+  target_path: /home/murakami/multi-agent-shogun/scripts/inbox_write.sh
   steps:
-  - 1. shared_context/marp_v4_style_template.md を読む (Phase A で作成済)
-  - 2. projects/udemy_course/drafts/lectures/intermediate_v5_ch11_skill.md を読む
-  - '3. v4スタイルを適用: frontmatterに style追加・カバースライド(章番号/タイトル/FREEバッジ/講師名なぎなた)を先頭に挿入・.meta
-    div追加・speakerノートHTMLコメント追加・用語先出しテーブルが無ければ追加。既存本文は壊さない'
-  - '4. Marp CLI で .html 再生成: npx @marp-team/marp-cli <file>.md -o <file>.html'
-  - 5. git add -f projects/udemy_course/ && git commit
-  - 6. karo へ inbox report_received
-  timestamp: '2026-05-06T11:37:01.205466+09:00'
+  - Read scripts/inbox_write.sh L132-167 (_update_task_done) を確認
+  - 'M5修正: L148-159 の fallback grep (最後のstatus:assignedを取得) を削除。cmd_id が取得できない場合は何もせず
+    warning ログを出力するだけにする'
+  - Read scripts/ntfy_listener.sh L242-310 を確認
+  - 'L3修正: SINCE_TS を while ループ外で初期化し、再接続時は前回接続の since を保持 (切断中のメッセージを取りこぼさない)'
+  - bash -n で両スクリプトの構文チェック
+  - 'git add scripts/inbox_write.sh scripts/ntfy_listener.sh && git commit -m ''fix(infra):
+    inbox_write fallback削除+ntfy_listener since保持 (cmd_1671 M5/L3)'''
+  - POST /api/inbox_write で report_completed を karo に送信 (subtask_1671_a7完了)
+  timestamp: '2026-05-09T07:10:20.833422+09:00'
