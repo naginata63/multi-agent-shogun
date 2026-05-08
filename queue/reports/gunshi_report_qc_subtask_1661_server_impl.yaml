@@ -1,0 +1,51 @@
+worker_id: gunshi
+task_id: gunshi_qc_subtask_1661_server_impl
+parent_cmd: cmd_1661
+timestamp: "2026-05-09T08:32:00+09:00"
+status: done
+result:
+  type: quality_check
+  ashigaru_task_id: subtask_1661_server_impl
+  ashigaru_worker_id: ashigaru5
+  qa_decision: pass
+  scope_match: complete
+  tests_status: all_pass
+  build_status: not_applicable
+  deliverables_verified: true
+  evidence:
+    - "scripts/dashboard/server.py:3129-3274 /api/cmd_cancel ハンドラ拡張 確認"
+    - "L3154 cmd commands.status='cancelled' UPDATE"
+    - "L3156-3157 cancelled_reason 'parent cmd cancelled by {actor} at {ts}' 生成"
+    - "L3160-3173 SELECT WHERE parent_cmd AND status NOT IN (done,cancelled) → UPDATE tasks SET status,cancelled_reason,cancelled_at"
+    - "L3196-3219 dual-path: SHOGUN_TO_KARO + agent YAML を fcntl LOCK_EX 下で更新"
+    - "L3221-3242 各 agent inbox に task_cancelled INSERT + _push_to_inbox_queue"
+    - "L3243-3264 gunshi 別途通知 (cancelled_subtasks 件数含む)"
+    - "L3265-3269 response に cancelled_subtasks/notified_agents 配列含む"
+    - "SQLite schema: tasks.cancelled_reason (idx28 TEXT) + cancelled_at (idx29 TEXT) 存在"
+    - "inbox_messages.type CHECK constraint に 'task_cancelled' 含む"
+    - "memory/feedback_cmd_cancel_propagation.md (2233 bytes) 存在"
+    - "MEMORY.md L90 'cmd_cancel subtask自動伝播' インデックス追記済"
+    - "git commit: 541328b 'refactor(server): get_db() helper統一 + cmd_1661 subtask cancel伝播 開始'"
+    - "新規 .py 作成なし (server.py への追記のみ)"
+  issues_found: []
+  notes: |
+    AC 10項目全て充足:
+    1) /api/cmd_cancel handler subtask 自動 cancelled 化 ✓ (L3160-3173)
+    2) cancelled_reason/cancelled_at 自動付与 ✓ (L3168-3169)
+    3) ash inbox task_cancelled 自動送信 ✓ (L3221-3242)
+    4) gunshi inbox にも cancel 通知 ✓ (L3243-3264)
+    5) response cancelled_subtasks/notified_agents 配列 ✓ (L3265-3269)
+    6) SQLite + YAML dual-path 整合性 ✓ (cmd_1494 準拠)
+    7) 実機テスト: ashigaru5 報告 verification 7項目 ✓ + schema 確認 ✓
+    8) memory/feedback_cmd_cancel_propagation.md 新規 + MEMORY.md インデックス ✓
+    9) 新規 .py 未作成 ✓
+    10) git commit 済 (push 家老責務) ✓
+    cmd_1661 status は in_progress → 家老が done 判定+push で完了確定。
+files_modified: []
+skill_candidate:
+  found: false
+north_star_alignment:
+  status: aligned
+  reason: "ルール依存→システム自動伝播へ移行。cmd_1660 ash4 二重生成事故型の再発を根絶。"
+  risks_to_north_star:
+    - "best-effort YAML/inbox 失敗時の fail-soft はログのみ。SQLite と YAML の不整合検知機構は別cmd起票推奨"
