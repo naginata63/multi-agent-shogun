@@ -68,45 +68,31 @@ tasks:
   - 不明件数が多い場合は残り不明フォルダをリストアップして報告
   - git add projects/dozle_kirinuki/context/ && git commit
   timestamp: '2026-05-06T16:25:51.112110+09:00'
-- task_id: subtask_1664_investigate
-  agent: ashigaru2
-  parent_cmd: cmd_1664
-  title: server.py 応答遅延 調査・報告書作成
-  description: 2026-05-07 05:50-06:00 に発生した server.py 応答遅延の根本原因を調査し、修復案をまとめた報告書を作成する。コード修正は調査結果に基づき判断
-    — 報告書作成が主目的。
-  target_path: /home/murakami/multi-agent-shogun/queue/reports/2026-05-07_cmd_1664_serverpy_latency.md
-  bloom_level: L3
+- agent: ashigaru2
+  task_id: subtask_1671_a2
   status: done
-  timestamp_completed: '2026-05-07T06:26:41'
-  priority: high
+  parent_cmd: cmd_1671
+  bloom_level: L3
+  description: 'cmd_1668 CRITICAL/HIGH/MEDIUM 7件修正: precompact_hook.sh パス修正 + cron_health_check
+    C12/C13/C15追加 + ntfy.sh重複行削除/status transition厳格化 + stop_hook二重発火ガード + fix_panes.shモデル修正
+    + dashboard_lifecycle.sh コメント整合'
+  target_path: /home/murakami/multi-agent-shogun/scripts
   steps:
-  - '1. server.py プロセス状態確認: ps aux | grep server.py → PID取得 → cat /proc/<PID>/status
-    → lsof -p <PID> | wc -l (fd数) → 必要ならtop -b -n1 -p <PID>'
-  - '2. advisor_proxy.log 分析: grep ''Client closed connection mid-response'' ~/.claude/advisor_proxy.log
-    (または scripts/dashboard/ 配下) | tail -20 → 発火時刻パターン確認 (5分毎か)'
-  - '3. HTTPServer threading model 確認: grep -n ''ThreadingHTTPServer\|BaseHTTPServer\|HTTPServer\|socketserver''
-    scripts/dashboard/server.py → single-thread か multi-thread か確認'
-  - '4. SQLite WAL モード確認: python3 -c "import sqlite3; c=sqlite3.connect(''data/dashboard.db'');
-    print(c.execute(''PRAGMA journal_mode'').fetchone())" (または同等コマンド)'
-  - '5. SSE ストリーミング実装確認: grep -n ''EventStream\|text/event-stream\|SSE\|inbox_stream''
-    scripts/dashboard/server.py | head -30 → blocking I/O でメインスレッドを占有しているか確認'
-  - '6. 並列 curl 負荷テスト: for i in $(seq 1 10); do curl -s --max-time 5 http://192.168.2.4:8770/api/cmd_detail?id=cmd_1664
-    -o /dev/null -w ''%{time_total}s\n'' & done; wait → p50/p95/タイムアウト件数を記録'
-  - '7. 調査結果を queue/reports/2026-05-07_cmd_1664_serverpy_latency.md に記録: (a)問題再現状況
-    (b)スレッドモデル (c)SQLite WAL状態 (d)SSE blocking状況 (e)負荷テスト結果'
-  - '8. 修復案を優先度付きで記載: (高)ThreadingHTTPServer化 / (高)SQLite WAL + busy_timeout / (中)SSE別worker分離
-    / (低)curl --max-time デフォルト化'
-  - 9. Phase 3 (cmd_1650) 着手前に必須な修復項目を明記
-  - 10. advisor() を呼び出してレポート内容を検証せよ
-  - 11. karo へ report_received inbox_write で通知
-  acceptance_criteria:
-  - server.py プロセス状態 (CPU/memory/fd数) の実測値記録
-  - advisor_proxy.log 'Client closed connection mid-response' WARN の時刻パターン特定
-  - HTTPServer スレッドモデル確認 (single/multi-thread の別)
-  - SQLite journal_mode 確認 (WAL/DELETE 等)
-  - 並列10 curl 応答時間計測 (p50/p95/タイムアウト件数)
-  - 修復案を優先度付きで5項目以上
-  - Phase 3 着手前必須修復項目の明示
-  - queue/reports/2026-05-07_cmd_1664_serverpy_latency.md 作成完了
-  - karo inbox へ report_received 通知済み
-  timestamp: '2026-05-07T06:23:08.755951+09:00'
+  - 'C2: scripts/precompact_hook.sh L138 の DASHBOARD_FILE を ''$SCRIPT_DIR/../dashboard.md''
+    (project root) に修正。ls で存在確認'
+  - 'H1: scripts/cron_health_check.sh の TARGETS 配列に C12 (hotfix_trend.log) / C13 (monthly_feedback_review.log)
+    / C15 (chroma_mcp_health.log) を追加'
+  - 'H2: scripts/ntfy.sh L26-27 の重複 IP 置換行の2行目を削除 (1行目で十分)'
+  - 'H3: scripts/stop_hook_inbox.sh L162-198 の fall-through で LAST_MSG 解析に入る前に STOP_HOOK_ACTIVE=True
+    の場合 LAST_MSG 解析をスキップするガードを追加'
+  - 'H5: scripts/fix_panes.sh L65-72 のフォールバック分岐をsettings.yaml準拠に修正: karo(i=0)→sonnet,
+    gunshi(i=TOTAL-1)→opus[1m], ashigaru→haiku'
+  - 'M1: scripts/ntfy.sh の _update_cmd_done が ''cmd_NNN完了'' 文字列にのみトリガーする問題 → awk条件を
+    inbox type=report_completed 経由に限定するか、または blocked/assigned ステータスは除外する修正を追加'
+  - 'M3: scripts/dashboard_lifecycle.sh L13 の「廃止済み」コメントを「dashboard.md は lifecycle
+    スクリプトで管理中 (active)」に修正'
+  - 各スクリプトの bash -n 構文チェック
+  - 'git add scripts/ && git commit -m ''fix(infra): precompact path/cron C12-C15/ntfy
+    fixes/stop_hook guard/fix_panes model (cmd_1671 C2/H1/H2/H3/H5/M1/M3)'''
+  - POST /api/inbox_write で report_completed を karo に送信 (subtask_1671_a2完了)
+  timestamp: '2026-05-09T07:10:20.752234+09:00'
