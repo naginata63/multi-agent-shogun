@@ -55,6 +55,7 @@ def _push_to_inbox_queue(target_agent, message_dict):
 
 def get_db():
     conn = sqlite3.connect(DB_PATH, timeout=5)
+    conn.execute("PRAGMA journal_mode = WAL")
     conn.execute("PRAGMA busy_timeout = 10000")
     conn.row_factory = sqlite3.Row
     return conn
@@ -3178,7 +3179,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 script_path = os.path.join(BASE_DIR, 'scripts', 'inbox_write.sh')
                 result = subprocess.run(
                     ['bash', script_path, target, message, msg_type, from_agent],
-                    capture_output=True, text=True, timeout=10
+                    capture_output=True, text=True, timeout=30
                 )
 
                 if result.returncode != 0:
