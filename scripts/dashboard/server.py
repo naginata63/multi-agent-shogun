@@ -101,7 +101,8 @@ def init_schema():
                     'task_assigned', 'clear_command', 'cmd_new', 'cmd_revised',
                     'cmd_correction', 'cmd_spec_confirmed', 'task_cancelled',
                     'report_received', 'report_completed', 'report_blocked', 'report_error',
-                    'qc_request', 'qc_result', 'qc_done', 'wake_up'
+                    'qc_request', 'qc_result', 'qc_done', 'wake_up',
+                    'error_report', 'nightly_audit', 'ntfy_received', 'model_switch', 'cli_restart'
                 )),
                 content TEXT NOT NULL,
                 read INTEGER NOT NULL DEFAULT 0 CHECK (read IN (0,1)),
@@ -167,11 +168,15 @@ def init_schema():
 
 
 def _migrate_inbox_types():
-    """cmd_1661: Add task_cancelled to inbox_messages CHECK constraint."""
+    """cmd_1661/1671: Add new message types to inbox_messages CHECK constraint."""
     conn = get_db()
     try:
         row = conn.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='inbox_messages'").fetchone()
-        if row and 'task_cancelled' not in row[0]:
+        # Check if new types are missing
+        new_types = ['error_report', 'nightly_audit', 'ntfy_received', 'model_switch', 'cli_restart']
+        needs_migration = row and not all(t in row[0] for t in new_types)
+
+        if needs_migration:
             conn.executescript("""
                 CREATE TABLE IF NOT EXISTS inbox_messages_new (
                     id TEXT PRIMARY KEY,
@@ -181,7 +186,8 @@ def _migrate_inbox_types():
                         'task_assigned', 'clear_command', 'cmd_new', 'cmd_revised',
                         'cmd_correction', 'cmd_spec_confirmed', 'task_cancelled',
                         'report_received', 'report_completed', 'report_blocked', 'report_error',
-                        'qc_request', 'qc_result', 'qc_done', 'wake_up'
+                        'qc_request', 'qc_result', 'qc_done', 'wake_up',
+                        'error_report', 'nightly_audit', 'ntfy_received', 'model_switch', 'cli_restart'
                     )),
                     content TEXT NOT NULL,
                     read INTEGER NOT NULL DEFAULT 0 CHECK (read IN (0,1)),
@@ -210,7 +216,7 @@ def _migrate_inbox_types():
                 END
             """)
             conn.commit()
-            print("[migration] Added task_cancelled to inbox_messages CHECK constraint + recreated tr_inbox_read TRIGGER")
+            print("[migration] Added 5 new types to inbox_messages CHECK constraint (error_report, nightly_audit, ntfy_received, model_switch, cli_restart) + recreated tr_inbox_read TRIGGER")
     except Exception as e:
         print(f"[migration] WARN inbox_messages: {e}")
     finally:
