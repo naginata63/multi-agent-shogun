@@ -33,7 +33,7 @@ def run_semantic_search(query: str, source: str, top: int) -> list:
     """semantic_search.pyをsubprocessで呼んでJSONを返す"""
     cmd = (
         f"source ~/.bashrc && python3 {SEMANTIC_SEARCH} query "
-        f"{json.dumps(query)} --source {source} --top {top} --json"
+        f"{json.dumps(query)} --top {top} --json"
     )
     try:
         result = subprocess.run(
@@ -63,7 +63,10 @@ def run_semantic_search(query: str, source: str, top: int) -> list:
     if start == -1 or end == -1 or end <= start:
         return []
     try:
-        return json.loads(stdout[start:end + 1])
+        results = json.loads(stdout[start:end + 1])
+        # Python-side filtering by source field (D2 fix: --source フィルタを外し、後フィルタ)
+        filtered = [r for r in results if r.get("source") == source]
+        return filtered
     except json.JSONDecodeError as e:
         print(f"WARN: JSON parse error: {e}")
         return []

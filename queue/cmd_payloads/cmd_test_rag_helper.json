@@ -1,0 +1,12 @@
+{
+  "id": "cmd_test_rag_1673",
+  "priority": "medium",
+  "lord_original": "test: RAG integration",
+  "purpose": "Test cmd_create_helper.sh RAG suggestions display",
+  "command_text": "This is a test cmd to verify cmd_create_helper.sh works correctly",
+  "acceptance_criteria": [
+    "cmd_helper.py rag is called successfully",
+    "Similar cmds are displayed",
+    "User can confirm before creation"
+  ]
+}

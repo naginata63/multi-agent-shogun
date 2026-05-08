@@ -1,0 +1,49 @@
+ERROR: semantic_search タイムアウト (source=shogun_to_karo)
+ERROR: semantic_search タイムアウト (source=comments)
+{
+  "shogun_to_karo": {
+    "label": "過去の類似cmd",
+    "results": []
+  },
+  "scripts": {
+    "label": "関連スクリプト",
+    "results": [
+      {
+        "score": 0.6974056959152222,
+        "source": "scripts",
+        "file": "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/minecraft_wiki_image_scraper2.py",
+        "chunk_id": "scripts::minecraft_wiki_image_scraper2.py::get_page_best_image",
+        "text": "#!/usr/bin/env python3\n\"\"\"\ndef get_page_best_image(title: str, en_hint: str) -> str | None:\n    \"\"\"ページの画像リストから最適なものを選ぶ（バイオーム・構造物等用）\"\"\"\n    params = {\n        \"action\": \"query\",\n        \"titles\": title,\n        \"prop\": \"images\",\n        \"imlimit\": 50,\n        \"format\": \"json\",\n        \"utf8\": 1,\n    }\n    resp = SESSION.get(WIKI_API, params=params, timeout=15)\n    resp.raise_for_status()\n    data = resp.json()\n    pages = data.get(\"query\", {}).get(\"pages\", {})\n    for pid, pdata in pages.items():"
+      },
+      {
+        "score": 0.6697555780410767,
+        "source": "scripts",
+        "file": "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/expression_matcher.py",
+        "chunk_id": "scripts::expression_matcher.py::embed_image",
+        "text": "#!/usr/bin/env python3\n\"\"\"\ndef embed_image(client, image_path: str) -> list:\n    \"\"\"バストアップ画像をGemini Files API経由でEmbedding\"\"\"\n    import mimetypes\n    from google.genai import types as genai_types\n\n    mime_type, _ = mimetypes.guess_type(image_path)\n    if not mime_type:\n        mime_type = \"image/png\"\n\n    # Files API でアップロード\n    with open(image_path, \"rb\") as f:\n        uploaded = client.files.upload(\n            file=f,\n            config={\"mime_type\": mime_type}\n        )\n\n    # Embedding\n   "
+      },
+      {
+        "score": 0.6663345694541931,
+        "source": "scripts",
+        "file": "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/pipeline_utils.py",
+        "chunk_id": "scripts::pipeline_utils.py::_get_h264_encoder",
+        "text": "#!/usr/bin/env python3\n\"\"\"pipeline_utils.py — main.pyから切り出した共通ユーティリティ関数\"\"\"\n\ndef _get_h264_encoder() -> str:\n    \"\"\"h264_nvencを返す（RTX 4060 Ti専用機）。\"\"\"\n    return \"h264_nvenc\""
+      },
+      {
+        "score": 0.6311534643173218,
+        "source": "scripts",
+        "file": "/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/expression_matcher.py",
+        "chunk_id": "scripts::expression_matcher.py::build_expression_image_embeddings",
+        "text": "#!/usr/bin/env python3\n\"\"\"\ndef build_expression_image_embeddings(client, bust_dir: str,\n                                       cache_path: str = None,\n                                       rebuild: bool = False) -> dict:\n    \"\"\"\n    バストアップ画像のEmbeddingを構築・JSONキャッシュ。\n    キー: ファイル名ステム (例: \"bon_smile_r2\")\n    値: Embedding ベクトル\n\n    初回 or rebuild=True 時のみ API 呼び出し。\n    以後はキャッシュから読み込む。\n    \"\"\"\n    if cache_path is None:\n        cache_path = os.path.abspath(BUST_EMBED_CACHE_PATH)\n\n    # キャッシュ読み込み\n    "
+      }
+    ]
+  },
+  "context": {
+    "label": "関連ナレッジ",
+    "results": []
+  },
+  "comments": {
+    "label": "関連コメント",
+    "results": []
+  }
+}
