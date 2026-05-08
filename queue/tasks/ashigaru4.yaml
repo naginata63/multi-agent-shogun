@@ -98,3 +98,52 @@ tasks:
   - dashboard.md 更新は家老が実施 (不要)
   gunshi_qc: false
   timestamp: '2026-05-09T04:42:36.661763+09:00'
+- agent: ashigaru4
+  task_id: subtask_1671_a4
+  status: done
+  parent_cmd: cmd_1671
+  bloom_level: L3
+  description: 'cmd_1668 CRITICAL C1修正: server.py init_schema() の inbox_messages.type
+    CHECK制約に error_report/nightly_audit/ntfy_received/model_switch/cli_restart を追加し
+    dual-path 整合を回復する'
+  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+  steps:
+  - Read scripts/dashboard/server.py の init_schema() 関数 (L64-165付近) を確認
+  - 'C1修正: inbox_messages テーブルの type CHECK 制約に ''error_report'',''nightly_audit'',''ntfy_received'',''model_switch'',''cli_restart''
+    を追加'
+  - 'ALTER TABLE既存DBへの適用が必要か確認: SQLite は CHECK制約のALTER TABLE非対応のため、init_schema()での
+    CREATE TABLE IF NOT EXISTS 変更のみでは既存DBに反映されない → ALTER TABLEでのDROP+RECREATE or migration
+    SQLが必要か判断。既存DBがある場合は migration も実装'
+  - python3 -m py_compile scripts/dashboard/server.py で構文チェック
+  - 'git add scripts/dashboard/server.py && git commit -m ''fix(infra): inbox_messages.type
+    CHECK制約拡張 (cmd_1671 C1)'''
+  - 'NOTE: server.py変更はdashboard_lifecycle.shの次回再起動時に反映。再起動は家老が調整'
+  - POST /api/inbox_write で report_completed を karo に送信 (subtask_1671_a4完了・server
+    restart要否も報告)
+  timestamp: '2026-05-09T07:10:20.787796+09:00'
+- agent: ashigaru4
+  task_id: subtask_1672_rag_fix
+  status: done
+  parent_cmd: cmd_1672
+  bloom_level: L3
+  description: cmd_helper.py rag の D2 fix (filter無し→Python後フィルタ) + rag_suggestions.json
+    実データ生成 + 新 cmd 起票時に類似 cmd 提示する消費者実装
+  target_path: /home/murakami/multi-agent-shogun/scripts/cmd_helper.py
+  steps:
+  - Read scripts/cmd_helper.py 全体 + scripts/semantic_search.py の --source / --filter
+    オプション仕様を確認
+  - 'D2 fix: run_semantic_search() で --source フィルタを外し全件取得 → Python 側で source フィールドを後フィルタする方式に変更'
+  - '実機検証: python3 scripts/cmd_helper.py rag ''SSE Monitor 展開'' --json を実行し rag_suggestions.json
+    に実 cmd_id を含む結果が入ることを確認 (空 results は NG)'
+  - 'Step 3 消費者実装: 新 cmd 起票時 (POST /api/cmd_create 前) に cmd_helper.py rag を呼び出し類似
+    cmd を表示する仕組みを実装。選択肢: (X) pretool hook でインターセプト (Y) cmd_intake_hook.sh に組み込み (Z)
+    scripts/cmd_create_helper.sh 新設 (W) server.py /api/cmd_create ハンドラに組み込み → 推奨案をコメントで明記し実装'
+  - python3 -m py_compile scripts/cmd_helper.py で構文チェック
+  - 新規テスト cmd を POST /api/cmd_create で起票し、類似 cmd 提示が機能することを確認
+  - 'git add scripts/cmd_helper.py (+ 変更した他ファイル) && git commit -m ''feat(cmd): cmd_helper.py
+    RAG D2 fix + rag_suggestions生成 + 消費者実装 (cmd_1672)'''
+  - 'queue/reports/2026-05-09_cmd_1672_rag_pipeline_fix.md を作成: D2 fix内容 / Step 3
+    選定案 (X/Y/Z/W) の選択理由 / 実機検証結果'
+  - git add queue/reports/ && git commit && git push origin main
+  - POST /api/inbox_write で report_completed を karo に送信
+  timestamp: '2026-05-09T07:31:38.520586+09:00'
