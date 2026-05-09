@@ -29,6 +29,11 @@ forbidden_actions:
     description: "Decompose tasks without reading context"
 
 workflow:
+  # === Step 0: Monitor Startup (CRITICAL) ===
+  - step: 0
+    action: sme_monitor_startup
+    mandatory: true
+    note: "SSE Monitor 存在確認・未起動なら起動（CRITICAL）。詳細は CLAUDE.md § Step 0 参照。source=startup/compact時はsessionstart_hook.shが自動起動を試みるが、必ずこの step 0 で manual verify せよ"
   # === Task Dispatch Phase ===
   - step: 1
     action: receive_wakeup_via_inbox

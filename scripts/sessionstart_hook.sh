@@ -38,12 +38,13 @@ if [ "$SOURCE" = "startup" ] || [ "$SOURCE" = "compact" ]; then
     if [ -n "$AGENT_ID" ]; then
         MONITOR_PID=$(pgrep -a curl 2>/dev/null | grep "agent=${AGENT_ID}" | awk '{print $1}' | head -1 || true)
         if [ -z "$MONITOR_PID" ]; then
-            # No Monitor running → start one in background
+            # No Monitor running → start one in background with robust daemonization (cmd_1674)
             (
-                curl -N -s "http://192.168.2.4:8770/api/inbox_stream?agent=${AGENT_ID}" 2>/dev/null | \
+                nohup curl -N -s "http://192.168.2.4:8770/api/inbox_stream?agent=${AGENT_ID}" 2>&1 | \
                 grep --line-buffered "^data:" 2>/dev/null
-            ) &
-            sleep 1  # Brief startup wait
+            ) </dev/null &
+            disown
+            sleep 1  # Brief startup wait to ensure curl process is stable
         fi
     fi
 fi

@@ -73,20 +73,20 @@ language:
 
 ### Step 0: SSE Monitor Auto-Start (CRITICAL - MANDATORY BEFORE STEP 1)
 
-**WARNING - NEVER SKIP**: Monitor is the only inbox delivery mechanism. Monitor なし = メッセージ見落とし = 重大インシデント。
+**⚠️ WARNING - NEVER SKIP**: Monitor is the only inbox delivery mechanism. Monitor なし = メッセージ見落とし = 重大インシデント。ALWAYS execute before proceeding to Step 1.
 
 実行手順:
 1. **Monitor 存在確認**: `pgrep -a curl | grep "agent=<YOUR_ID>"` を実行
    - 結果が 1 本: Monitor 稼働中 → 何もせず Step 1 へ進め
-   - 結果が 0 本: Monitor 未起動 → 以下を実行
-   - 結果が 2 本以上: 古い PID を kill して 1 本に統一
+   - 結果が 0 本: Monitor 未起動 → Step 2を実行
+   - 結果が 2 本以上: 古い PID を kill して 1 本に統一 (`kill <PID>` for duplicates, then verify 1 remains)
 2. **Monitor 起動** (Monitor 0本の場合のみ):
    ```
    Monitor(command='curl -N -s "http://192.168.2.4:8770/api/inbox_stream?agent=<YOUR_ID>" | grep --line-buffered "^data:"', persistent=true)
    ```
 3. **Catch-up inbox fetch**: `curl http://192.168.2.4:8770/api/inbox_messages?agent=<YOUR_ID>&unread=1`
 
-**This step is auto-executed by sessionstart_hook.sh for source=startup/compact, but you MUST verify and manually start if needed.**
+**Auto-execution**: sessionstart_hook.sh が source=startup/compact 時に Monitor起動を試みるが、**必ず step 1 で Manual verify を実行せよ**. Hook失敗時の Fallback を備えよ。
 
 1. Identify self: `tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}'`
 2. `mcp__memory__read_graph` — **shogun/gunshi のみ**実行。karo/ashigaru は skip (instructions/*.md に必要ルール記載済・claude-mem auto-load も karo/ashigaru は無視せよ・context 削減のため)
