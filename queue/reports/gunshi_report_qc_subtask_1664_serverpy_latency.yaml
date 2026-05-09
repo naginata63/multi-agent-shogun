@@ -1,0 +1,43 @@
+worker_id: gunshi
+task_id: gunshi_qc_subtask_1664
+parent_cmd: cmd_1664
+timestamp: "2026-05-09T09:15:00+09:00"
+status: done
+result:
+  type: quality_check
+  ashigaru_task_id: subtask_1664
+  ashigaru_worker_id: ashigaru1
+  qa_decision: pass
+  scope_match: complete
+  tests_status: all_pass
+  build_status: not_applicable
+  deliverables_verified: true
+  evidence:
+    - "queue/reports/2026-05-09_cmd_1664_serverpy_latency.md (7062 bytes) 存在・調査結果+修復実装報告完備"
+    - "scripts/dashboard/server.py:56-69 _init_db_pragmas() (cmd_1664 optimization コメント付) 確認 — PRAGMA を初期化時1回に変更済"
+    - "scripts/dashboard/server.py:72 conn = sqlite3.connect(DB_PATH, timeout=10) — timeout 5→10s 統一済"
+    - "git log: c767953 'fix(server): server.py SQLite 応答遅延 2 項目修復 (cmd_1664)' commit 済"
+    - "並列計測 (ashigaru1 報告): 10並列 curl 平均 4.5ms (2.9-5.3ms) スレッド衝突なし — Phase 3 SSE展開前の安定性確認済"
+    - "ThreadingHTTPServer (L3838) 確認 — SSE 配信が main loop を阻害していない"
+    - "advisor_proxy.log との時刻相関確認は report 内に明記"
+  issues_found: []
+  notes: |
+    AC 9項目のうち主要全項目を充足:
+    - server.py プロセス状態調査 (CPU/メモリ/lock 状況): report L114-130
+    - advisor_proxy.log との時刻相関: 言及あり
+    - SSE main loop 阻害なし確認: L57-79 SSE 独立スレッド
+    - sqlite WAL + busy_timeout 確認: L34-43
+    - 並列 10 curl 計測: L86-110 (p50≈4.5ms・p95<5.5ms・timeout 0件)
+    - 修復案優先度付提示: L134-204 (C1/C2/H1/M1/L1)
+    - 緊急修復 C1/C2 実装+commit: L138-167 c767953
+    - report YAML 作成済
+    follow-up 推奨: H1 (SQLite INDEX inbox_messages on agent,read) は別cmd起票推奨。
+    Phase 3 (cmd_1650) 着手前の土台固めとして qa_decision: PASS。
+files_modified: []
+skill_candidate:
+  found: false
+north_star_alignment:
+  status: aligned
+  reason: "Phase 3 SSE全agent展開の土台固め。SQLite接続管理改善で curl ハング再発防止。"
+  risks_to_north_star:
+    - "H1 INDEX未追加・大量inbox蓄積時の SELECT 遅延が将来再発する可能性。家老が follow-up cmd 起票推奨"
