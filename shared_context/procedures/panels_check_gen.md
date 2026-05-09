@@ -86,7 +86,5 @@ python3 projects/dozle_kirinuki/scripts/panels_check_gen.py \
 
 ## 報告
 ```bash
-bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
-  "足軽3号、subtask_1310a完了。panels_check_gen.py+server.py拡張完了。確認URL: {URL}" \
-  report_completed ashigaru3
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write -H 'Content-Type: application/json' -d '{"to":"karo","from":"ashigaru3","type":"report_received","message":"足軽3号、subtask_1310a完了。panels_check_gen.py+server.py拡張完了。確認URL: {URL}"}'
 ```

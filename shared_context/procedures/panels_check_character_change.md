@@ -36,7 +36,5 @@
 
 ## 報告
 ```bash
-bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
-  "足軽2号、subtask_1349a完了。話者変更機能実装報告。" \
-  report_completed ashigaru2
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write -H 'Content-Type: application/json' -d '{"to":"karo","from":"ashigaru2","type":"report_received","message":"足軽2号、subtask_1349a完了。話者変更機能実装報告。"}'
 ```

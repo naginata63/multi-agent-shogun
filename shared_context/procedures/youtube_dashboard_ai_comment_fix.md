@@ -29,5 +29,5 @@ curl http://localhost:8080/data.json | python3 -c "import sys,json; d=json.load(
 ```bash
 git add projects/dozle_kirinuki/analytics/dashboard/
 git commit -m "fix(cmd_1365): localhost:8080 AIコメント表示復旧"
-bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1365a完了。原因と修正内容を報告。" report_completed ashigaru2
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write -H 'Content-Type: application/json' -d '{"to":"karo","from":"ashigaru2","type":"report_received","message":"足軽2号、subtask_1365a完了。原因と修正内容を報告。"}'
 ```

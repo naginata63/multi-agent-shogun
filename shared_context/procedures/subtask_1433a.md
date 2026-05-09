@@ -145,6 +145,6 @@ generate_panel_candidates.py に `merge_partial_panels()` ヘルパー追加:
 
 ## Step 10: 完了報告
 ```bash
-bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo '足軽1号、subtask_1433a完了。Gemini再解析ボタン実装済み。' report_completed ashigaru1
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write -H 'Content-Type: application/json' -d '{"to":"karo","from":"ashigaru1","type":"report_received","message":"足軽1号、subtask_1433a完了。Gemini再解析ボタン実装済み。"}'
 bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh '✅ cmd_1433完了: Gemini部分再解析 + 殿レビュー尊重プロンプト追加'
 ```

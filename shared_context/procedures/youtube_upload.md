@@ -36,9 +36,7 @@ python3 projects/dozle_kirinuki/scripts/youtube_uploader.py upload \
 アップロード完了後に表示されるURLを報告に含める。
 
 ```bash
-bash scripts/inbox_write.sh karo \
-  "足軽N号、subtask_XXX完了。YouTube非公開アップ完了。URL: ${YOUTUBE_URL}" \
-  report_completed ashigaruN
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write -H 'Content-Type: application/json' -d '{"to":"karo","from":"ashigaru{N}","type":"report_received","message":"足軽N号、subtask_XXX完了。YouTube非公開アップ完了。URL: ${YOUTUBE_URL}"}'
 ```
 
 ## 注意事項

@@ -32,7 +32,10 @@
 9. `advisor()` — 完了前確認
 10. `git add /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/ /home/murakami/multi-agent-shogun/skills/`
 11. `git commit -m "fix(cmd_1429a): 夜間監査動画制作HIGH×4修正 (--disable-speaker-id/pipeline.sh削除/ECAPA_THRESHOLD env化/generate_outro nvenc直接)"`
-12. 完了報告: `bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽1号、subtask_1429a完了。Item6/7/8/9修正・commit済み。" report_completed ashigaru1`
+12. 完了報告:
+```bash
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write -H 'Content-Type: application/json' -d '{"to":"karo","from":"ashigaru1","type":"report_received","message":"足軽1号、subtask_1429a完了。Item6/7/8/9修正・commit済み。"}'
+```
 
 ## 注意事項
 

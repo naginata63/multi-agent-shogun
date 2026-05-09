@@ -45,7 +45,5 @@ mp4はcommit対象外。
 
 ## Step6: 完了報告
 ```bash
-bash scripts/inbox_write.sh karo \
-  "足軽1号、subtask_1418a完了。SRT生成済・{エントリ数}件・{最終タイムスタンプ}。commit済み。" \
-  report_completed ashigaru1
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write -H 'Content-Type: application/json' -d '{"to":"karo","from":"ashigaru1","type":"report_received","message":"足軽1号、subtask_1418a完了。SRT生成済・{エントリ数}件・{最終タイムスタンプ}。commit済み。"}'
 ```
