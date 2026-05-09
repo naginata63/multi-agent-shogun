@@ -32,9 +32,11 @@ fi
 SOURCE=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('source', 'unknown'))" 2>/dev/null || echo "unknown")
 
 # Step 0: Auto-start SSE Monitor for source=startup/compact (cmd_1674)
+# pgrep pattern: pgrep -a curl | grep "agent=ID" 形式で self-reference を回避 (殿命 2026-05-09・f6fd7e4)
+# 旧 pattern (pgrep -f "curl.*inbox_stream.*agent=ID") は bash の eval 文字列を hit して偽陽性
 if [ "$SOURCE" = "startup" ] || [ "$SOURCE" = "compact" ]; then
     if [ -n "$AGENT_ID" ]; then
-        MONITOR_PID=$(pgrep -f "curl.*inbox_stream.*agent=${AGENT_ID}" 2>/dev/null | head -1 || true)
+        MONITOR_PID=$(pgrep -a curl 2>/dev/null | grep "agent=${AGENT_ID}" | awk '{print $1}' | head -1 || true)
         if [ -z "$MONITOR_PID" ]; then
             # No Monitor running → start one in background
             (
