@@ -2136,10 +2136,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(body)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path.startswith('/api/cmd_detail'):
             # GET /api/cmd_detail?id=cmd_1487 → 1件分の full データ
             try:
@@ -2147,10 +2144,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 qs = parse_qs(urlparse(self.path).query)
                 cmd_id = (qs.get('id', [''])[0] or '').strip()
                 if not cmd_id:
-                    self.send_response(400)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps({'error': 'id required'}).encode('utf-8'))
+                    error_response(self, 400, {'error': 'id required'})
                     return
 
                 conn = get_db()
@@ -2162,12 +2156,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     conn.close()
 
                 if r is None:
-                    self.send_response(404)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps(
-                        {'error': f'cmd not found: {cmd_id}'}, ensure_ascii=False
-                    ).encode('utf-8'))
+                    error_response(self, 404, {'error': f'cmd not found: {cmd_id}'})
                     return
 
                 d = {k: v for k, v in dict(r).items() if v is not None}
@@ -2191,10 +2180,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(body)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path.startswith('/api/task_list'):
             # GET /api/task_list?agent=ashigaru3&status=assigned&limit=50
             try:
@@ -2245,10 +2231,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(body)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path.startswith('/api/inbox_messages'):
             # GET /api/inbox_messages?agent=karo&unread=1&limit=20&full=0
             # full=0 (default cmd_1495): summary cols only — 件名/from/type のみ・content 含まず
@@ -2287,18 +2270,12 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(body)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path == '/api/dashboard_md':
             # GET /api/dashboard_md — dashboard.md の markdown 全文取得 (家老が Read 直叩き廃止)
             try:
                 if not os.path.exists(DASHBOARD_MD):
-                    self.send_response(404)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps({'error': 'dashboard.md not found'}).encode())
+                    error_response(self, 404, {'error': 'dashboard.md not found'})
                     return
                 with open(DASHBOARD_MD, 'r', encoding='utf-8') as f:
                     md = f.read()
@@ -2313,10 +2290,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(resp)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path == '/api/cmd_next_id':
             try:
                 conn = get_db()
@@ -2342,10 +2316,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(body)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path.startswith('/api/report_detail'):
             # GET /api/report_detail?id=<report_id> — DB行 + YAML 全文を返す
             try:
@@ -2353,10 +2324,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 qs = parse_qs(urlparse(self.path).query)
                 rid = (qs.get('id', [''])[0] or '').strip()
                 if not rid:
-                    self.send_response(400)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps({'error': 'id required'}).encode('utf-8'))
+                    error_response(self, 400, {'error': 'id required'})
                     return
                 conn = get_db()
                 try:
@@ -2366,12 +2334,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 finally:
                     conn.close()
                 if r is None:
-                    self.send_response(404)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps(
-                        {'error': f'report not found: {rid}'}, ensure_ascii=False
-                    ).encode('utf-8'))
+                    error_response(self, 404, {'error': f'report not found: {rid}'})
                     return
                 d = {k: v for k, v in dict(r).items() if v is not None}
                 rp = d.get('report_path')
@@ -2391,10 +2354,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(body)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path.startswith('/api/report_list'):
             # GET /api/report_list?cmd=cmd_XXX&worker=ashigaru3&limit=20
             try:
@@ -2432,10 +2392,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(body)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path.startswith('/work/'):
             # 静的ファイル配信: /work/ → projects/dozle_kirinuki/work/
             import mimetypes
@@ -2551,10 +2508,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(body)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path.startswith('/api/load_panels_json'):
             from urllib.parse import unquote, urlparse, parse_qs
             parsed = urlparse(self.path)
@@ -2588,10 +2542,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(body)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path.split('?')[0] == '/api/agent_health':
             import subprocess as _sp
             try:
@@ -2684,20 +2635,14 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
         elif self.path.startswith('/api/inbox_stream'):
             # GET /api/inbox_stream?agent=<id> — SSE endpoint (cmd_1648)
             if not ENABLE_SSE_INBOX:
-                self.send_response(404)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': 'SSE inbox disabled'}).encode('utf-8'))
+                error_response(self, 404, {'error': 'SSE inbox disabled'})
                 return
             try:
                 from urllib.parse import urlparse, parse_qs
                 qs = parse_qs(urlparse(self.path).query)
                 agent = qs.get('agent', [None])[0]
                 if not agent or not re.match(r'^[a-zA-Z0-9_]+$', agent):
-                    self.send_response(400)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps({'error': 'valid agent parameter required'}).encode('utf-8'))
+                    error_response(self, 400, {'error': 'valid agent parameter required'})
                     return
 
                 self.send_response(200)
@@ -2787,10 +2732,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(resp)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path == '/api/suggest_director_notes':
             try:
                 length = int(self.headers.get('Content-Length', 0))
@@ -2810,10 +2752,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(resp)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path == '/api/generate_panels_llm':
             try:
                 length = int(self.headers.get('Content-Length', 0))
@@ -2833,10 +2772,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(resp)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path == '/api/regenerate_partial_with_gemini':
             try:
                 length = int(self.headers.get('Content-Length', 0))
@@ -2916,10 +2852,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(resp)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path == '/api/cmd_create':
             try:
                 length = int(self.headers.get('Content-Length', 0))
@@ -2949,10 +2882,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 required = ['id', 'purpose', 'lord_original']
                 missing = [f for f in required if not body.get(f)]
                 if missing:
-                    self.send_response(400)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps({'error': f'Missing required fields: {missing}'}).encode('utf-8'))
+                    error_response(self, 400, {'error': f'Missing required fields: {missing}'})
                     return
 
                 cmd_id = body['id']
@@ -2972,10 +2902,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
 
                         # Duplicate check
                         if any(c.get('id') == cmd_id for c in commands):
-                            self.send_response(409)
-                            self.send_header('Content-Type', 'application/json')
-                            self.end_headers()
-                            self.wfile.write(json.dumps({'error': f'Duplicate cmd id: {cmd_id}'}).encode('utf-8'))
+                            error_response(self, 409, {'error': f'Duplicate cmd id: {cmd_id}'})
                             return
 
                         # Build entry: defaults first
@@ -3141,10 +3068,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(resp)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path == '/api/cmd_status_change':
             # 殿/将軍 用: cmd 詳細ページから 1タップで status 変更
             try:
@@ -3171,8 +3095,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 actor = body.get('actor', 'lord')
                 valid = {'pending', 'assigned', 'in_progress', 'done', 'done_ng', 'cancelled', 'blocked', 'superseded'}
                 if not cmd_id or new_status not in valid:
-                    self.send_response(400); self.send_header('Content-Type', 'application/json'); self.end_headers()
-                    self.wfile.write(json.dumps({'error': f'id required and status must be one of {sorted(valid)}'}).encode('utf-8'))
+                    error_response(self, 400, {'error': f'id required and status must be one of {sorted(valid)}'})
                     return
                 now_iso = datetime.now(timezone(timedelta(hours=9))).strftime('%Y-%m-%dT%H:%M:%S+09:00')
                 completed_at = now_iso if new_status == 'done' else None
@@ -3188,8 +3111,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 finally:
                     _conn.close()
                 if rowcount == 0:
-                    self.send_response(404); self.send_header('Content-Type', 'application/json'); self.end_headers()
-                    self.wfile.write(json.dumps({'error': f'cmd not found: {cmd_id}'}).encode('utf-8'))
+                    error_response(self, 404, {'error': f'cmd not found: {cmd_id}'})
                     return
                 # YAML update (best effort)
                 import fcntl as _fcntl2
@@ -3216,8 +3138,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.send_response(200); self.send_header('Content-Type', 'application/json; charset=utf-8'); self.send_header('Content-Length', str(len(resp))); self.end_headers()
                 self.wfile.write(resp)
             except Exception as e:
-                self.send_response(500); self.send_header('Content-Type', 'application/json'); self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path == '/api/cmd_cancel':
             # cmd_1652: cancel (pending/in_progressのみ許可)
             try:
@@ -3242,8 +3163,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 cmd_id = (body.get('id') or '').strip()
                 actor = body.get('actor', 'lord')
                 if not cmd_id:
-                    self.send_response(400); self.send_header('Content-Type', 'application/json'); self.end_headers()
-                    self.wfile.write(json.dumps({'error': 'id required'}).encode('utf-8'))
+                    error_response(self, 400, {'error': 'id required'})
                     return
                 # 現在の status を確認
                 _conn = get_db()
@@ -3251,13 +3171,11 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     cur = _conn.execute('SELECT status FROM commands WHERE id=?', (cmd_id,))
                     row = cur.fetchone()
                     if not row:
-                        self.send_response(404); self.send_header('Content-Type', 'application/json'); self.end_headers()
-                        self.wfile.write(json.dumps({'error': f'cmd not found: {cmd_id}'}).encode('utf-8'))
+                        error_response(self, 404, {'error': f'cmd not found: {cmd_id}'})
                         return
                     current_status = row[0]
                     if current_status not in ('pending', 'in_progress'):
-                        self.send_response(400); self.send_header('Content-Type', 'application/json'); self.end_headers()
-                        self.wfile.write(json.dumps({'error': f'Cannot cancel cmd in status: {current_status} (only pending/in_progress)'}).encode('utf-8'))
+                        error_response(self, 400, {'error': f'Cannot cancel cmd in status: {current_status} (only pending/in_progress)'})
                         return
                     _conn.execute('UPDATE commands SET status=? WHERE id=?', ('cancelled', cmd_id))
                     # cmd_1661: 関連 subtask を全てcancel (done/cancelled 以外)
@@ -3378,8 +3296,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.send_response(200); self.send_header('Content-Type', 'application/json; charset=utf-8'); self.send_header('Content-Length', str(len(resp))); self.end_headers()
                 self.wfile.write(resp)
             except Exception as e:
-                self.send_response(500); self.send_header('Content-Type', 'application/json'); self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path == '/api/inbox_write':
             try:
                 length = int(self.headers.get('Content-Length', 0))
@@ -3414,19 +3331,13 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 from_agent = body.get('from', 'unknown')
 
                 if msg_type not in CANONICAL_TYPES:
-                    self.send_response(400)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps({
+                    error_response(self, 400, {
                         'error': f'Invalid type: {msg_type!r}. Must be one of {sorted(CANONICAL_TYPES)}'
-                    }, ensure_ascii=False).encode('utf-8'))
+                    }, ensure_ascii=False)
                     return
 
                 if not target or not message:
-                    self.send_response(400)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps({'error': 'to and message are required'}).encode('utf-8'))
+                    error_response(self, 400, {'error': 'to and message are required'})
                     return
 
                 # bloom_level filter: L1-L3 reports to gunshi redirect to karo (cmd_1629)
@@ -3450,10 +3361,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 )
 
                 if result.returncode != 0:
-                    self.send_response(500)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps({'error': result.stderr.strip()[:500]}).encode('utf-8'))
+                    error_response(self, 500, {'error': result.stderr.strip()[:500]})
                     return
 
                 actual_msg_id = result.stdout.strip()
@@ -3487,10 +3395,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(resp)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path == '/api/task_create':
             # POST /api/task_create — 家老が tasks YAML 追記 + SQLite tasks INSERT (dual-path)
             try:
@@ -3520,12 +3425,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 required = ['agent', 'task_id', 'status']
                 missing = [f for f in required if not body.get(f)]
                 if missing:
-                    self.send_response(400)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps(
-                        {'error': f'Missing required: {missing}'}, ensure_ascii=False
-                    ).encode('utf-8'))
+                    error_response(self, 400, {'error': f'Missing required: {missing}'})
                     return
 
                 agent = body['agent']
@@ -3546,12 +3446,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                         ydata = {}
                     tlist = ydata.setdefault('tasks', [])
                     if any(t.get('task_id') == task_id for t in tlist):
-                        self.send_response(409)
-                        self.send_header('Content-Type', 'application/json')
-                        self.end_headers()
-                        self.wfile.write(json.dumps(
-                            {'error': f'task_id exists: {task_id}'}
-                        ).encode('utf-8'))
+                        error_response(self, 409, {'error': f'task_id exists: {task_id}'})
                         return
                     tlist.append(task_entry)
                     with open(yaml_path, 'w', encoding='utf-8') as f:
@@ -3596,10 +3491,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(resp)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path == '/api/task_update':
             # POST /api/task_update — task status更新 (SQLite + YAML dual-path)
             # body: {task_id (req), status (req), reason (opt), updated_by (opt)}
@@ -3628,12 +3520,10 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 updated_by = body.get('updated_by', 'unknown')
                 valid = {'assigned', 'in_progress', 'done', 'cancelled', 'blocked'}
                 if not task_id:
-                    self.send_response(400); self.send_header('Content-Type', 'application/json'); self.end_headers()
-                    self.wfile.write(json.dumps({'error': 'task_id is required'}).encode('utf-8'))
+                    error_response(self, 400, {'error': 'task_id is required'})
                     return
                 if new_status not in valid:
-                    self.send_response(400); self.send_header('Content-Type', 'application/json'); self.end_headers()
-                    self.wfile.write(json.dumps({'error': f'status must be one of {sorted(valid)}'}).encode('utf-8'))
+                    error_response(self, 400, {'error': f'status must be one of {sorted(valid)}'})
                     return
                 now_jst = datetime.now(timezone(timedelta(hours=9))).strftime('%Y-%m-%dT%H:%M:%S+09:00')
                 # SQLite UPDATE
@@ -3642,8 +3532,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     # Find agent first (needed for YAML path)
                     row = _conn.execute('SELECT agent FROM tasks WHERE task_id=?', (task_id,)).fetchone()
                     if not row:
-                        self.send_response(404); self.send_header('Content-Type', 'application/json'); self.end_headers()
-                        self.wfile.write(json.dumps({'error': f'task not found: {task_id}'}).encode('utf-8'))
+                        error_response(self, 404, {'error': f'task not found: {task_id}'})
                         return
                     agent = row[0]
                     completed_at = now_jst if new_status == 'done' else None
@@ -3694,8 +3583,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.send_response(200); self.send_header('Content-Type', 'application/json; charset=utf-8'); self.send_header('Content-Length', str(len(resp))); self.end_headers()
                 self.wfile.write(resp)
             except Exception as e:
-                self.send_response(500); self.send_header('Content-Type', 'application/json'); self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path == '/api/dashboard_update':
             # POST /api/dashboard_update — dashboard.md 書き換え (家老の Edit 直叩き廃止)
             # body: {"content": "<markdown 全文>"} で全文上書き
@@ -3723,10 +3611,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 if section is not None and 'section_content' in body:
                     # 部分置換: 既存 dashboard.md の section から次の同レベル見出しまでを置換
                     if not os.path.exists(DASHBOARD_MD):
-                        self.send_response(404)
-                        self.send_header('Content-Type', 'application/json')
-                        self.end_headers()
-                        self.wfile.write(json.dumps({'error': 'dashboard.md not found'}).encode())
+                        error_response(self, 404, {'error': 'dashboard.md not found'})
                         return
                     with open(DASHBOARD_MD, 'r', encoding='utf-8') as f:
                         text = f.read()
@@ -3734,12 +3619,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     # 同じヘッダーレベル (例: ## ) で次のヘッダーまでを匹配
                     level_match = re.match(r'^(#+)\s', section)
                     if not level_match:
-                        self.send_response(400)
-                        self.send_header('Content-Type', 'application/json')
-                        self.end_headers()
-                        self.wfile.write(json.dumps(
-                            {'error': 'section must start with markdown header (e.g., "## 🚨要対応")'},
-                            ensure_ascii=False).encode('utf-8'))
+                        error_response(self, 400, {'error': 'section must start with markdown header (e.g., "## 🚨要対応")'})
                         return
                     level = level_match.group(1)
                     pattern = re.compile(
@@ -3755,12 +3635,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 else:
                     content = body.get('content')
                     if content is None:
-                        self.send_response(400)
-                        self.send_header('Content-Type', 'application/json')
-                        self.end_headers()
-                        self.wfile.write(json.dumps(
-                            {'error': 'content or (section + section_content) required'},
-                            ensure_ascii=False).encode('utf-8'))
+                        error_response(self, 400, {'error': 'content or (section + section_content) required'})
                         return
                     new_text = content if content.endswith('\n') else content + '\n'
 
@@ -3785,10 +3660,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(resp)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path == '/api/report_create':
             # POST /api/report_create — 足軽/軍師が reports YAML 作成 + SQLite INSERT
             try:
@@ -3816,12 +3688,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 required = ['report_id', 'worker_id', 'status']
                 missing = [f for f in required if not body.get(f)]
                 if missing:
-                    self.send_response(400)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps(
-                        {'error': f'Missing required: {missing}'}, ensure_ascii=False
-                    ).encode('utf-8'))
+                    error_response(self, 400, {'error': f'Missing required: {missing}'})
                     return
 
                 report_id = body['report_id']
@@ -3829,30 +3696,15 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 _valid_type = {'qc','completion','analysis','strategy','audit'}
                 _valid_qa = {'pass','fail','conditional_pass','blocked'}
                 if body['status'] not in _valid_status:
-                    self.send_response(400)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps(
-                        {'error': f'Invalid status: {body["status"]}. Must be one of {sorted(_valid_status)}'}
-                    ).encode('utf-8'))
+                    error_response(self, 400, {'error': f'Invalid status: {body["status"]}. Must be one of {sorted(_valid_status)}'})
                     return
                 _rtype = body.get('type')
                 if _rtype and _rtype not in _valid_type:
-                    self.send_response(400)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps(
-                        {'error': f'Invalid type: {_rtype}. Must be one of {sorted(_valid_type)}'}
-                    ).encode('utf-8'))
+                    error_response(self, 400, {'error': f'Invalid type: {_rtype}. Must be one of {sorted(_valid_type)}'})
                     return
                 _qa = body.get('qa_decision')
                 if _qa and _qa not in _valid_qa:
-                    self.send_response(400)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps(
-                        {'error': f'Invalid qa_decision: {_qa}. Must be one of {sorted(_valid_qa)}'}
-                    ).encode('utf-8'))
+                    error_response(self, 400, {'error': f'Invalid qa_decision: {_qa}. Must be one of {sorted(_valid_qa)}'})
                     return
                 reports_dir = os.path.join(BASE_DIR, 'queue', 'reports')
                 os.makedirs(reports_dir, exist_ok=True)
@@ -3865,12 +3717,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                     yaml_path = os.path.join(reports_dir, f'{report_id}.yaml')
                     yaml_abs = os.path.realpath(yaml_path)
                 if os.path.exists(yaml_abs):
-                    self.send_response(409)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps(
-                        {'error': f'report exists: {os.path.relpath(yaml_abs, BASE_DIR)}'}
-                    ).encode('utf-8'))
+                    error_response(self, 409, {'error': f'report exists: {os.path.relpath(yaml_abs, BASE_DIR)}'})
                     return
                 now_jst = datetime.now(timezone(timedelta(hours=9))).isoformat()
                 report_entry = {k: v for k, v in body.items() if v is not None}
@@ -3909,10 +3756,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(resp)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         elif self.path == '/api/inbox_mark_read':
             # POST /api/inbox_mark_read — cmd_1495 既読化 API
             # body: {"agent":"karo","ids":["msg_xxx",...]} か {"agent":"karo","all_unread":true}
@@ -3950,10 +3794,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 actor = body.get('actor') or agent or 'unknown'
 
                 if not agent:
-                    self.send_response(400)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps({'error': 'agent required'}).encode('utf-8'))
+                    error_response(self, 400, {'error': 'agent required'})
                     return
                 if not ids and not all_unread:
                     # cmd_1664 教訓: typo 多発キーを親切に案内
@@ -3963,16 +3804,12 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                             typo_hint = (f" (received key '{bad_key}' is invalid — "
                                          f"use 'ids' (list of msg_id))")
                             break
-                    self.send_response(400)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps(
-                        {'error': f'ids or all_unread required{typo_hint}',
+                    error_response(self, 400, {'error': f'ids or all_unread required{typo_hint}',
                          'expected_body': {
                              'agent': '<agent_id>',
                              'ids': ['msg_xxx', 'msg_yyy'],
                              'all_unread': '(or true to mark all)',
-                             'actor': '(optional)'}}).encode('utf-8'))
+                             'actor': '(optional)'}})
                     return
 
                 now_iso = datetime.now(timezone.utc).isoformat()
@@ -4042,10 +3879,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(resp)
             except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                error_response(self, 500, {'error': str(e)})
         else:
             self.send_response(404)
             self.end_headers()
