@@ -150,7 +150,7 @@ tasks:
 - agent: ashigaru4
   task_id: subtask_1656_stt_status_script
   parent_cmd: cmd_1656
-  status: assigned
+  status: cancelled
   bloom_level: L3
   description: "【cmd_1656】ドズル社動画 STT/index 状態管理スクリプト化 + work_video_map.md 4-5月分追記。\n\
     \n殿原文: 「STT済かどうか / scene_search_v2の対象動画を即把握できる状態にしたい」\n\n## Task 1: スクリプト化\n-\
