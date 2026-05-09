@@ -69,7 +69,7 @@ Env: ${GEMINI_STATUS}. When running scripts that need GEMINI_API_KEY, prepend: s
 
 ## Step 0: SSE Monitor auto-start (cmd_1669 D案・watcher補完)
 Session Start の Step 1 (self-identify) 直後・Step 2 以降より先に必ず実行せよ:
-  0-A. **PRECHECK**: Bash で \`pgrep -f "curl.*inbox_stream.agent=${AGENT_ID}"\` を実行。
+  0-A. **PRECHECK**: Bash で \`pgrep -a curl | grep "agent=${AGENT_ID}"\` を実行。
        既に1本以上 hit するなら **既に Monitor 稼働中・新規起動するな**・Step 0 skip して Step 1 へ進め。
        hit 0 件なら 0-B 以降を続行。これで重複起動を構造的に防止する。
   0-B. ToolSearch(query="select:Monitor") で Monitor tool schema を取得
