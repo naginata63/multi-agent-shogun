@@ -2882,6 +2882,24 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 length = int(self.headers.get('Content-Length', 0))
                 body = json.loads(self.rfile.read(length).decode('utf-8'))
 
+                # ALLOWED_KEYS check + KNOWN_TYPOS hint (cmd_1676a)
+                ALLOWED_KEYS_CMD_CREATE = {
+                    'id', 'purpose', 'lord_original', 'status', 'priority', 'timestamp',
+                    'command_text', 'north_star', 'project', 'parent_cmd', 'depends_on',
+                    'notes', 'redo_of', 'acceptance_criteria', 'assigned_to', 'command',
+                    'implementation_flow'
+                }
+                unknown = set(body.keys()) - ALLOWED_KEYS_CMD_CREATE
+                if unknown:
+                    hints = {}
+                    for u in unknown:
+                        hints[u] = f"unknown field {u!r}; allowed: {sorted(ALLOWED_KEYS_CMD_CREATE)}"
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'unknown fields', 'hints': hints}, ensure_ascii=False).encode('utf-8'))
+                    return
+
                 # --- Required field validation (lord_original 必須化 cmd_1474) ---
                 required = ['id', 'purpose', 'lord_original']
                 missing = [f for f in required if not body.get(f)]
@@ -3087,6 +3105,20 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             try:
                 length = int(self.headers.get('Content-Length', 0))
                 body = json.loads(self.rfile.read(length).decode('utf-8'))
+
+                # ALLOWED_KEYS check + KNOWN_TYPOS hint (cmd_1676a)
+                ALLOWED_KEYS_CMD_STATUS_CHANGE = {'id', 'status', 'actor'}
+                unknown = set(body.keys()) - ALLOWED_KEYS_CMD_STATUS_CHANGE
+                if unknown:
+                    hints = {}
+                    for u in unknown:
+                        hints[u] = f"unknown field {u!r}; allowed: {sorted(ALLOWED_KEYS_CMD_STATUS_CHANGE)}"
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'unknown fields', 'hints': hints}, ensure_ascii=False).encode('utf-8'))
+                    return
+
                 cmd_id = (body.get('id') or '').strip()
                 new_status = (body.get('status') or '').strip()
                 actor = body.get('actor', 'lord')
@@ -3144,6 +3176,20 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             try:
                 length = int(self.headers.get('Content-Length', 0))
                 body = json.loads(self.rfile.read(length).decode('utf-8'))
+
+                # ALLOWED_KEYS check + KNOWN_TYPOS hint (cmd_1676a)
+                ALLOWED_KEYS_CMD_CANCEL = {'id', 'actor'}
+                unknown = set(body.keys()) - ALLOWED_KEYS_CMD_CANCEL
+                if unknown:
+                    hints = {}
+                    for u in unknown:
+                        hints[u] = f"unknown field {u!r}; allowed: {sorted(ALLOWED_KEYS_CMD_CANCEL)}"
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'unknown fields', 'hints': hints}, ensure_ascii=False).encode('utf-8'))
+                    return
+
                 cmd_id = (body.get('id') or '').strip()
                 actor = body.get('actor', 'lord')
                 if not cmd_id:
@@ -3290,6 +3336,27 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 length = int(self.headers.get('Content-Length', 0))
                 body = json.loads(self.rfile.read(length).decode('utf-8'))
 
+                # ALLOWED_KEYS check + KNOWN_TYPOS hint (cmd_1676a)
+                ALLOWED_KEYS_INBOX_WRITE = {'to', 'from', 'type', 'message', 'task_id'}
+                KNOWN_TYPOS_INBOX_WRITE = {
+                    'agent': 'to',
+                    'from_agent': 'from',
+                    'content': 'message',
+                }
+                unknown = set(body.keys()) - ALLOWED_KEYS_INBOX_WRITE
+                if unknown:
+                    hints = {}
+                    for u in unknown:
+                        if u in KNOWN_TYPOS_INBOX_WRITE:
+                            hints[u] = f"unknown field {u!r}; did you mean {KNOWN_TYPOS_INBOX_WRITE[u]!r}? (response field の誤用)"
+                        else:
+                            hints[u] = f"unknown field {u!r}; allowed: {sorted(ALLOWED_KEYS_INBOX_WRITE)}"
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'unknown fields', 'hints': hints}, ensure_ascii=False).encode('utf-8'))
+                    return
+
                 target = body.get('to', '').strip()
                 message = body.get('message', '').strip()
                 msg_type = body.get('type', 'wake_up')
@@ -3378,6 +3445,25 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             try:
                 length = int(self.headers.get('Content-Length', 0))
                 body = json.loads(self.rfile.read(length).decode('utf-8'))
+
+                # ALLOWED_KEYS check + KNOWN_TYPOS hint (cmd_1676a)
+                ALLOWED_KEYS_TASK_CREATE = {
+                    'agent', 'task_id', 'status', 'parent_cmd', 'priority', 'title',
+                    'project', 'description', 'target_path', 'procedure', 'steps',
+                    'acceptance_criteria', 'notes', 'params', 'assigned_to', 'assignee',
+                    'report_to', 'safety', 'redo_of', 'timestamp', 'bloom_level', 'gunshi_qc'
+                }
+                unknown = set(body.keys()) - ALLOWED_KEYS_TASK_CREATE
+                if unknown:
+                    hints = {}
+                    for u in unknown:
+                        hints[u] = f"unknown field {u!r}; allowed: {sorted(ALLOWED_KEYS_TASK_CREATE)}"
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'unknown fields', 'hints': hints}, ensure_ascii=False).encode('utf-8'))
+                    return
+
                 required = ['agent', 'task_id', 'status']
                 missing = [f for f in required if not body.get(f)]
                 if missing:
@@ -3467,6 +3553,20 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             try:
                 length = int(self.headers.get('Content-Length', 0))
                 body = json.loads(self.rfile.read(length).decode('utf-8'))
+
+                # ALLOWED_KEYS check + KNOWN_TYPOS hint (cmd_1676a)
+                ALLOWED_KEYS_TASK_UPDATE = {'task_id', 'status', 'reason', 'updated_by'}
+                unknown = set(body.keys()) - ALLOWED_KEYS_TASK_UPDATE
+                if unknown:
+                    hints = {}
+                    for u in unknown:
+                        hints[u] = f"unknown field {u!r}; allowed: {sorted(ALLOWED_KEYS_TASK_UPDATE)}"
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'unknown fields', 'hints': hints}, ensure_ascii=False).encode('utf-8'))
+                    return
+
                 task_id = (body.get('task_id') or '').strip()
                 new_status = (body.get('status') or '').strip()
                 reason = body.get('reason')
@@ -3548,6 +3648,20 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             try:
                 length = int(self.headers.get('Content-Length', 0))
                 body = json.loads(self.rfile.read(length).decode('utf-8'))
+
+                # ALLOWED_KEYS check + KNOWN_TYPOS hint (cmd_1676a)
+                ALLOWED_KEYS_DASHBOARD_UPDATE = {'content', 'section', 'section_content', 'mode'}
+                unknown = set(body.keys()) - ALLOWED_KEYS_DASHBOARD_UPDATE
+                if unknown:
+                    hints = {}
+                    for u in unknown:
+                        hints[u] = f"unknown field {u!r}; allowed: {sorted(ALLOWED_KEYS_DASHBOARD_UPDATE)}"
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'unknown fields', 'hints': hints}, ensure_ascii=False).encode('utf-8'))
+                    return
+
                 section = body.get('section')
                 if section is not None and 'section_content' in body:
                     # 部分置換: 既存 dashboard.md の section から次の同レベル見出しまでを置換
@@ -3623,6 +3737,23 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             try:
                 length = int(self.headers.get('Content-Length', 0))
                 body = json.loads(self.rfile.read(length).decode('utf-8'))
+
+                # ALLOWED_KEYS check + KNOWN_TYPOS hint (cmd_1676a)
+                ALLOWED_KEYS_REPORT_CREATE = {
+                    'report_id', 'worker_id', 'task_id', 'parent_cmd', 'type', 'status',
+                    'qa_decision', 'timestamp', 'report_path', 'summary'
+                }
+                unknown = set(body.keys()) - ALLOWED_KEYS_REPORT_CREATE
+                if unknown:
+                    hints = {}
+                    for u in unknown:
+                        hints[u] = f"unknown field {u!r}; allowed: {sorted(ALLOWED_KEYS_REPORT_CREATE)}"
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'unknown fields', 'hints': hints}, ensure_ascii=False).encode('utf-8'))
+                    return
+
                 required = ['report_id', 'worker_id', 'status']
                 missing = [f for f in required if not body.get(f)]
                 if missing:
@@ -3730,6 +3861,28 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             try:
                 length = int(self.headers.get('Content-Length', 0))
                 body = json.loads(self.rfile.read(length).decode('utf-8') or '{}')
+
+                # ALLOWED_KEYS check + KNOWN_TYPOS hint (cmd_1676a)
+                ALLOWED_KEYS_MARK_READ = {'agent', 'ids', 'all_unread', 'actor'}
+                KNOWN_TYPOS_MARK_READ = {
+                    'message_ids': 'ids',
+                    'msg_ids': 'ids',
+                    'id': 'ids',
+                }
+                unknown = set(body.keys()) - ALLOWED_KEYS_MARK_READ
+                if unknown:
+                    hints = {}
+                    for u in unknown:
+                        if u in KNOWN_TYPOS_MARK_READ:
+                            hints[u] = f"unknown field {u!r}; did you mean {KNOWN_TYPOS_MARK_READ[u]!r}?"
+                        else:
+                            hints[u] = f"unknown field {u!r}; allowed: {sorted(ALLOWED_KEYS_MARK_READ)}"
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'unknown fields', 'hints': hints}, ensure_ascii=False).encode('utf-8'))
+                    return
+
                 agent = (body.get('agent') or '').strip()
                 ids = body.get('ids') or []
                 all_unread = bool(body.get('all_unread', False))
