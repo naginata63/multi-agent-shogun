@@ -1,0 +1,257 @@
+report_id: gunshi_youtube_contradiction_20260510
+date: "2026-05-10"
+category: YouTube/外部連携
+parent_cmd: cmd_1678
+worker_id: gunshi
+timestamp: "2026-05-10T02:30:00+09:00"
+scope:
+  files_audited:
+    - projects/dozle_kirinuki/scripts/youtube_uploader.py (478 行)
+    - projects/dozle_kirinuki/scripts/downloader.py (266 行)
+    - projects/dozle_kirinuki/scripts/fetch_dozle_videos.py (232 行)
+    - projects/dozle_kirinuki/scripts/auto_fetch.py (716 行)
+    - projects/dozle_kirinuki/scripts/add_chapters.py (151 行)
+    - projects/dozle_kirinuki/scripts/fetch_replay_heatmaps.py (155 行)
+    - scripts/youtube_lang_batch_update.py (403 行)
+    - scripts/youtube_analytics_snapshot.py (1043 行)
+    - scripts/note_visual_qc.py (168 行)
+    - projects/note_mcp_server/gen_opus47_naginata.py (129 行)
+  total_lines: 3741
+
+summary:
+  critical: 1
+  high: 4
+  medium: 5
+  low: 5
+  total: 15
+
+findings:
+  - id: YT_C001
+    severity: CRITICAL
+    file: projects/dozle_kirinuki/scripts/auto_fetch.py
+    line: 50
+    detail: |
+      CHANNEL_ID が 3 ファイル間で **single source 違反**:
+      - auto_fetch.py:50: `CHANNEL_ID = "UCJ4He_MYjsjT-5EGJxY-xCg"` (ハードコード・切抜?)
+      - fetch_dozle_videos.py:25: `CHANNEL_ID = "UCj4PjeVMnNTHIR5EeoNKPAw"` (本家ドズル社・本来 fetch 対象)
+      - youtube_uploader.py:49 / youtube_lang_batch_update.py:43 / youtube_analytics_snapshot.py:39: yaml `youtube_channel.yaml.brand.channel_id` から読込 (single source 準拠)
+      → fetch_dozle_videos.py が本家を見るのは設計通り (本家動画リスト取得が目的)。**auto_fetch.py が独自 ID をハードコードで持つのは矛盾** (RSS で違うチャンネルを見ている可能性)。yaml 側 brand.channel_id と auto_fetch.py のハードコードが食い違うと運用混乱
+    recommendation: auto_fetch.py L50-51 を `from utils import load_channel_yaml; CHANNEL_ID = ..._yaml["brand"]["channel_id"]` 等で yaml 経由に統一
+    impact: HIGH (auto_fetch が誤チャンネルを監視するリスク・本日 cron 実行で見落とし発生可能性)
+
+  - id: YT_H001
+    severity: HIGH
+    file: projects/dozle_kirinuki/scripts/add_chapters.py
+    line: 89-100
+    detail: |
+      チャプター定義 `chapters` が **特定動画専用に完全ハードコード**:
+      ```python
+      chapters = [
+          (0,    "オープニング"),
+          (3,    "聞こえちゃいけないものが聞こえた"),
+          (22,   "雪のないスキー場へようこそ"),
+          ...
+          (467,  "わしの夢には敵が多すぎる"),
+      ]
+      ```
+      → 1 動画専用で別動画では機能しない。docstring (L7) で `<chapters_file>` 引数を求めるが parser に未定義 (実装乖離) = dead code 化の遺物
+    recommendation: (a) `--chapters-file` argparse 引数追加で外部 JSON/YAML から読込 (b) generate_chapters.py 出力を直接受ける接続実装 (c) 既に generate_chapters.py が代替するなら本ファイル削除
+    impact: MEDIUM-HIGH (現状実行すると別動画でも上記チャプターが追加される事故)
+
+  - id: YT_H002
+    severity: HIGH
+    file: projects/dozle_kirinuki/scripts/auto_fetch.py
+    line: 464
+    detail: |
+      `merged_whisperx.srt` ファイル名が依然残存:
+      `merged_srt = str(video_work_dir / "merged_whisperx.srt")` (L457)
+      → cmd_1671/cmd_1663-B で WhisperX 撤去方針確定済・stt_merge.py 側は cmd_1663-B (1bad5c3) で `merged_srt_fallback.srt` に修正済だが、auto_fetch.py は未修正
+      → cmd_1671 撤去方針と矛盾・dead code 経路 (Step 4-5 自体が transcribe_chunk_whisperx 経由で必ず False 返却) のため運用影響は薄いが、規約違反
+    recommendation: auto_fetch.py L457 を `merged_srt_fallback.srt` に変更 or auto_fetch.py 全体を legacy/ 移動 (cmd_1663-A で transcribe_with_speakers 同様)
+    impact: LOW (実行不能パス) but HIGH (規約整合性)
+
+  - id: YT_H003
+    severity: HIGH
+    file: projects/note_mcp_server/gen_opus47_naginata.py
+    line: 65
+    detail: |
+      GCS upload コマンドが note_visual_qc.py と非対称:
+      - gen_opus47_naginata.py:65: `subprocess.run(["gsutil", "cp", ...])` (legacy)
+      - note_visual_qc.py:76: `subprocess.run(["gcloud", "storage", "cp", ...])` (新)
+      → Google Cloud SDK 公式は gsutil → gcloud storage 移行推奨。同一プロジェクト内で混在は将来 gsutil 廃止時に gen_opus47 が動かなくなる
+    recommendation: 両方を `gcloud storage cp` に統一 + GCS_BUCKET 等を共通 helper 関数化
+    impact: MEDIUM (gsutil 完全廃止予定時点で gen_opus47 が壊れる)
+
+  - id: YT_H004
+    severity: HIGH
+    file: projects/dozle_kirinuki/scripts/auto_fetch.py
+    line: 588-599
+    detail: |
+      `write_report` が `auto_fetch_report.yaml` (L46) に flock なしで書込:
+      ```python
+      existing = []
+      if REPORT_PATH.exists():
+          ... yaml.safe_load
+      ...
+      existing.append(new_run)
+      existing = existing[-30:]
+      with open(REPORT_PATH, "w", ...) as f:
+          yaml.dump({"runs": existing}, f, ...)
+      ```
+      → 並列実行 (cron 2 本目 --chat-retry と通常モード同時) で読込→書込の競合 = runs[] 一部消失リスク
+    recommendation: fcntl.flock(LOCK_EX) 追加 (`scripts/inbox_write.sh` L33-50 と同パターン)
+    impact: MEDIUM (cron で並列実行発火条件が稀だが日次レポート消失リスク)
+
+  - id: YT_M001
+    severity: MEDIUM
+    file: projects/dozle_kirinuki/scripts/youtube_uploader.py
+    line: 107-108
+    detail: |
+      `default_tags` と description hashtags がメンバー名ハードコード:
+      ```python
+      default_tags = ["ドズル社", "ドズル", "ぼんじゅうる", "おんりー", "おらふくん", "おおはらMEN", ...]
+      ```
+      L343 description でも同じハッシュタグハードコード。**他のスクリプトは load_members_from_yaml() を使用** (cmd_1582 H001 と同型問題)・新メンバー追加時の同期もれ
+    recommendation: members.load_members_from_yaml() + member_profiles.yaml の `display_name` 統合で動的生成
+    impact: MEDIUM (新メンバー (例: ネコおじ) の追加で tag/hashtag 漏れが発生中の可能性)
+
+  - id: YT_M002
+    severity: MEDIUM
+    file: projects/dozle_kirinuki/scripts/youtube_uploader.py
+    line: 411-413
+    detail: |
+      `--privacy public` choice あり (L411-412) だが publish_at 指定時 L112-113 で強制 private 上書き:
+      ```python
+      if publish_at:
+          if privacy != "private":
+              print(f"... privacy を強制的に 'private' にします ...")
+              privacy = "private"
+      ```
+      → CLI 引数 choices と実挙動の矛盾。--privacy public で argparse 通過 → 黙って private 化 = UX 混乱
+    recommendation: argparse parser_check で publish_at + privacy=public/unlisted 組合せを early reject (parser.error)
+    impact: LOW (warning 出力あり)・但し UX 不整合
+
+  - id: YT_M003
+    severity: MEDIUM
+    file: projects/dozle_kirinuki/scripts/downloader.py
+    line: 227-230
+    detail: |
+      `download_subtitles` の例外捕捉が広範 (`except Exception as e`) で bot 判定 / rate limit エラーを silent skip:
+      ```python
+      except Exception as e:
+          print(f"[downloader] 警告: 字幕取得失敗（予期しないエラー） — {e}")
+          transcript = []
+      ```
+      → memory/MEMORY.md `feedback/feedback_youtube_subtitle_ip_ban.md` (cmd_1636 教訓: timedtext API 並列叩き厳禁) と矛盾・bot 判定発火を silent 通過させて空の transcript を保存 → 後段処理で『字幕なし動画』と誤認
+    recommendation: 例外を 3 分類 (NoTranscriptFound / TranscriptsDisabled / その他 - bot 判定可能性 = 警告 + 再試行/中断) で分岐・空 transcript 書出を抑止
+    impact: MEDIUM (bot 判定時に静かに失敗して STT パイプライン下流が誤った前提で動く)
+
+  - id: YT_M004
+    severity: MEDIUM
+    file: projects/dozle_kirinuki/scripts/fetch_replay_heatmaps.py
+    line: 46
+    detail: |
+      Node binary path が完全ハードコード:
+      ```python
+      node_bin = "/home/murakami/.nvm/versions/node/v20.20.0/bin"
+      ```
+      → ホームディレクトリ + Node 特定バージョンに完全依存・nvm でアップデートすると即座に動かなくなる
+    recommendation: `os.environ.get("NVM_NODE_BIN") or shutil.which("node")` 等で動的解決
+    impact: LOW (現状動作中) but HIGH (Node update で破綻)
+
+  - id: YT_M005
+    severity: MEDIUM
+    file: projects/dozle_kirinuki/scripts/fetch_replay_heatmaps.py
+    line: 15
+    detail: |
+      `month_prefix: str = "2026-02"` ハードコード default → 2026-02 専用 (3月以降は --month 指定必須・未指定で 2月分のみ処理):
+      ```python
+      def get_video_ids(csv_path: str, month_prefix: str = "2026-02") -> list[dict]:
+      ```
+      L85 argparse default も `"2026-02"`。書き出し dir も `month` 単位ではなく flat (各 video.json は上書きリスク無いが summary.json は上書き)
+    recommendation: default を `datetime.now().strftime("%Y-%m")` (現在月) に変更 + 出力 dir を `replay_heatmaps/{month}/` 構造化
+    impact: MEDIUM (運用者が --month 指定を忘れると 2月分のみ処理される失敗パス)
+
+  - id: YT_L001
+    severity: LOW
+    file: projects/dozle_kirinuki/scripts/auto_fetch.py
+    line: 20
+    detail: |
+      モジュールロード時の WARN print:
+      ```python
+      print("[auto_fetch] WARNING: このスクリプトは廃止済み。STTはvocal_stt_pipeline.pyとstt_merge.pyを使用せよ。", flush=True)
+      ```
+      → auto_fetch.py を import する別スクリプトすべての stdout を汚染
+    recommendation: print → import warnings; warnings.warn(..., DeprecationWarning) に変更 (warning suppress 可能化)
+    impact: LOW (cosmetic)
+
+  - id: YT_L002
+    severity: LOW
+    file: projects/dozle_kirinuki/scripts/add_chapters.py
+    line: 7
+    detail: |
+      docstring で `<chapters_file>` 引数を要求するが parser 定義 (L80) になし:
+      ```
+      使い方:
+          python3 scripts/add_chapters.py <video_id> <chapters_file>
+      ```
+      → 実装乖離 (YT_H001 の症状の一面)
+    recommendation: YT_H001 で対処
+    impact: LOW (docstring のみの混乱)
+
+  - id: YT_L003
+    severity: LOW
+    file: projects/dozle_kirinuki/scripts/fetch_dozle_videos.py
+    line: 142
+    detail: |
+      `collect_analyzed_video_ids` で hardcoded suffix list:
+      ```python
+      for suffix in ["_v2", "_wav", "_v3", "_v4", "_v5"]:
+          if candidate.endswith(suffix):
+              candidate = candidate[:-len(suffix)]
+              break
+      ```
+      → 将来 `_v6` 等で誤動作 (suffix 落とせず video_id 取得失敗)・正規表現 `_v\d+|_wav$` で代替推奨
+    recommendation: regex `re.sub(r'_(v\d+|wav)$', '', candidate)` に置換
+    impact: LOW (現状 v5 まで・v6 出現時に発覚)
+
+  - id: YT_L004
+    severity: LOW
+    file: scripts/note_visual_qc.py
+    line: 106
+    detail: |
+      PASS 判定が文字列マッチ:
+      ```python
+      passed = any("PASS" in line.upper() and "FAIL" not in line.upper() for line in last_lines) or text.upper().startswith("PASS")
+      ```
+      → "PASSWORD" / "PASSAGE" 等を含むテキストで false positive PASS 判定の可能性
+    recommendation: `re.search(r'^\s*PASS\s*$', line)` 等の word boundary 厳格マッチに変更
+    impact: LOW (Gemini 出力が PASS で始まる確率低・false positive 発生実例なし)
+
+  - id: YT_L005
+    severity: LOW
+    file: projects/note_mcp_server/gen_opus47_naginata.py
+    line: 21
+    detail: |
+      `MODEL_ID = "gemini-3.1-flash-image-preview"` ハードコード:
+      → 将来 Gemini model 更新 (例: gemini-3.5-flash) で動かなくなる・他スクリプト (note_visual_qc.py) は env override 対応 (L30) で整合性なし
+    recommendation: `MODEL_ID = os.environ.get("GEMINI_IMAGE_MODEL", "gemini-3.1-flash-image-preview")` で env override 対応
+    impact: LOW (model id 退役は半年〜1年スパン)
+
+cross_file_observations:
+  - "auto_fetch.py の WhisperX 関連 dead code (transcribe_chunk_whisperx + Step 4-5 経路) は cmd_1663-A で構造的に死亡済 (NotImplementedError化)・但しコメント/変数名/ファイル名 (`merged_whisperx.srt`) に残骸が散在 → cmd_1663-C 等の clean-up cmd 推奨"
+  - "OAuth 認証フロー (CLIENT_SECRET / TOKEN) は 5 ファイル (youtube_uploader/fetch_dozle_videos/auto_fetch/add_chapters/youtube_analytics_snapshot/youtube_lang_batch_update) で **コピペ実装**・get_authenticated_service() 共通モジュール化推奨 (DRY)"
+  - "yaml `youtube_channel.yaml.brand.channel_id` 経由の single source は 3 ファイル (youtube_uploader/youtube_lang_batch_update/youtube_analytics_snapshot) で確立済・auto_fetch.py のみハードコード残存"
+
+follow_up_recommendations:
+  - "cmd_1678-A (CRITICAL): auto_fetch.py CHANNEL_ID を yaml single source 化 (YT_C001)"
+  - "cmd_1678-B (HIGH): add_chapters.py のハードコードチャプター削除 + chapters_file 引数実装 or 完全削除判断 (YT_H001)"
+  - "cmd_1678-C (HIGH): auto_fetch.py の WhisperX 残骸 clean-up (YT_H002・cmd_1663-C 案と統合可)"
+  - "cmd_1678-D (MEDIUM): OAuth 認証 helper 共通化 (5 ファイルコピペ排除)"
+  - "cmd_1678-E (MEDIUM): youtube_uploader.py default_tags / hashtags の load_members_from_yaml 経由化 (YT_M001)"
+
+constraint_compliance:
+  read_only: true
+  tests_created: 0
+  code_modifications: 0
+  files_modified: []
