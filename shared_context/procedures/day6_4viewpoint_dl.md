@@ -290,4 +290,8 @@ skill_candidate:
 hotfix_notes: null
 ```
 
-完了後: `bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽1号、subtask_1463a完了(Day6 4視点8本生成+source.json+description.md)。QC依頼。' report_completed ashigaru1`
+完了後:
+```bash
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write -H 'Content-Type: application/json' -d '{"to":"gunshi","from":"ashigaru1","type":"report_received","message":"足軽1号、subtask_1463a完了(Day6 4視点8本生成+source.json+description.md)。QC依頼。"}'
+```
+（障害時フォールバック: `bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh gunshi '足軽1号、subtask_1463a完了(Day6 4視点8本生成+source.json+description.md)。QC依頼。' report_completed ashigaru1`）

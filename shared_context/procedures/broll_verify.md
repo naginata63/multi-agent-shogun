@@ -41,5 +41,6 @@ ffprobe -v quiet -show_entries format=duration -of csv=p=0 {video_path}
 
 ```bash
 bash /home/murakami/multi-agent-shogun/scripts/ntfy.sh "✅ cmd_1334完了: Bロール確認済み duration={X}s"
-bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽1号、subtask_1334a2完了。Bロール{あり/なし}・duration={X}s。" report_completed ashigaru1
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write -H 'Content-Type: application/json' -d '{"to":"karo","from":"ashigaru1","type":"report_received","message":"足軽1号、subtask_1334a2完了。Bロール{あり/なし}・duration={X}s。"}'
+# Fallback: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽1号、subtask_1334a2完了。Bロール{あり/なし}・duration={X}s。" report_completed ashigaru1
 ```

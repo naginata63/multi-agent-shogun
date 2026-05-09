@@ -48,5 +48,6 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] クリーンアップ完了" | tee -a "$LOG
 ```bash
 git add scripts/backup_queue.sh backups/queue/README.md .gitignore
 git commit -m "feat(cmd_1369): queue/定期バックアップスクリプト作成（7日保持・tar.gz）"
-bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1369a完了。バックアップサイズとtar.gz中身を報告。" report_completed ashigaru2
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write -H 'Content-Type: application/json' -d '{"to":"karo","from":"ashigaru2","type":"report_received","message":"足軽2号、subtask_1369a完了。バックアップサイズとtar.gz中身を報告。"}'
+# Fallback: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1369a完了。バックアップサイズとtar.gz中身を報告。" report_completed ashigaru2
 ```

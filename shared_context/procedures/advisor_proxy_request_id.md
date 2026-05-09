@@ -23,5 +23,6 @@
 ```bash
 git add scripts/advisor_proxy.py
 git commit -m "feat(cmd_1362): handle_requestにrequest_idログ追加"
-bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1362a完了。commit番号と動作確認結果を報告。" report_completed ashigaru2
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write -H 'Content-Type: application/json' -d '{"to":"karo","from":"ashigaru2","type":"report_received","message":"足軽2号、subtask_1362a完了。commit番号と動作確認結果を報告。"}'
+# Fallback: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽2号、subtask_1362a完了。commit番号と動作確認結果を報告。" report_completed ashigaru2
 ```
