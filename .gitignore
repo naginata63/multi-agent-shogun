@@ -297,6 +297,8 @@
 !skills/skill-candidate-tracker/collect.sh
 !skills/manga-short/
 !skills/manga-short/SKILL.md
+!skills/cdp-gpt-manga/
+!skills/cdp-gpt-manga/SKILL.md
 !skills/lecture-speaker-notes-grep-check/
 !skills/lecture-speaker-notes-grep-check/SKILL.md
 !skills/lecture-speaker-notes-grep-check/check.sh
