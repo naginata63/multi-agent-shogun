@@ -100,6 +100,34 @@ source ~/.bashrc && python3 scripts/semantic_search.py query "テスト" --json
 
 ---
 
+## 8. SSE Monitor 30秒 Warm-up ルール (cmd_1650)
+
+**SSE Monitor は起動直後 30 秒間、接続確立と server 側の event flush に時間がかかる warm-up 期間を持つ。この間の メッセージ取りこぼしを補完すること:**
+
+**Warm-up期間の対応**:
+
+1. **Session Start 時**（sessionstart_hook.sh が Monitor を自動起動）
+   - Monitor 起動直後 1 秒以内に届いたメッセージは race condition で取りこぼし可能性あり (cmd_1649 実証 60%)
+   - **即座に** `GET /api/inbox_messages?agent={self}&unread=1&limit=20` で catch-up 取得
+   - API から取得したメッセージを処理してから、通常の Monitor event 待ちに入る
+
+2. **Monitor stream 終了時** (EOF 受信、server restart 等)
+   - 自動再起動：`pgrep -a curl | grep "agent={self}"` で既存 Monitor 確認 → 無ければ1本起動
+   - 起動後、同じく catch-up GET で warm-up 期間の取りこぼしを補完
+
+3. **検証方法**:
+   ```bash
+   # Monitor 稼働確認
+   pgrep -a curl | grep "agent=$(tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}')"
+   # → 0 件なら Monitor 未起動、1 件以上なら稼働中
+   ```
+
+**理由**: curl -N 接続確立 + server 側の SSE event flush に最大 30 秒かかることが実証済み (cmd_1669 実証)。
+初期メッセージが届かない = Monitor が稼働していないのではなく、単に warm-up 期間中。
+catch-up GET で確実にメッセージを受信できる。
+
+---
+
 ## 8. Dashboard API 利用 (cmd_1494) 概要
 
 cmd/inbox/task 系の操作は **HTTP API 経由を第一選択**。
