@@ -91,9 +91,12 @@ grep -c "\[Speaker" "${WORK_DIR}/merged_${VIDEO_ID}.srt"
 ```bash
 WORD_COUNT=$(wc -w < "${WORK_DIR}/merged_${VIDEO_ID}.srt")
 SPEAKER_COUNT=$(grep -oP '\[\w+\]' "${WORK_DIR}/merged_${VIDEO_ID}.srt" | sort -u | wc -l)
-bash scripts/inbox_write.sh karo \
-  "足軽N号、subtask_XXX完了。${VIDEO_ID} STT完了。${WORD_COUNT}words・話者${SPEAKER_COUNT}名実名変換OK" \
-  report_completed ashigaruN
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write \
+  -H 'Content-Type: application/json' \
+  -d '{"to":"karo","from":"ashigaru{N}","type":"report_received","message":"足軽N号、subtask_XXX完了。${VIDEO_ID} STT完了。${WORD_COUNT}words・話者${SPEAKER_COUNT}名実名変換OK"}'
+# Fallback: bash scripts/inbox_write.sh karo \
+#   "足軽N号、subtask_XXX完了。${VIDEO_ID} STT完了。${WORD_COUNT}words・話者${SPEAKER_COUNT}名実名変換OK" \
+#   report_completed ashigaruN
 ```
 
 ## 注意事項
