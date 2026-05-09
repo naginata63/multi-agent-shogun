@@ -409,6 +409,7 @@ Don't save: temporary task details (use YAML), file contents (just read them), i
 
 | 用途 | 推奨コマンド |
 |------|--------------|
+| cmd 次番号取得 | `curl 'http://192.168.2.4:8770/api/cmd_next_id'` → `{"next_id":"cmd_XXXX","current_max":"cmd_XXXX"}` |
 | cmd 起票 (家老inbox自動通知込み) | `curl -X POST 'http://192.168.2.4:8770/api/cmd_create' -d '{"id":"cmd_XXX","priority":"high","purpose":"...","lord_original":"...","notify_karo":true}'` |
 | 戦況確認 (HTML) | ブラウザで http://192.168.2.4:8770/ |
 | 戦況確認 (JSON集計) | `curl 'http://192.168.2.4:8770/api/dashboard'` |
