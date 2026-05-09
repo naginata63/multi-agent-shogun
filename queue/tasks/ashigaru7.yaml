@@ -18,3 +18,34 @@ tasks:
     inbox_write fallback削除+ntfy_listener since保持 (cmd_1671 M5/L3)'''
   - POST /api/inbox_write で report_completed を karo に送信 (subtask_1671_a7完了)
   timestamp: '2026-05-09T07:10:20.833422+09:00'
+- agent: ashigaru7
+  task_id: subtask_1675_c_procedures
+  parent_cmd: cmd_1675
+  status: done
+  bloom_level: L3
+  description: "【cmd_1675-C】shared_context/procedures/*.md 内の bash inbox_write.sh\
+    \ primary 例示を curl API 経路に置換する。\n\n## 修正対象 (cmd_1673 H007, H005)\n\n### H007:\
+    \ procedures/*.md の inbox_write.sh primary 例示\n1) `grep -rl 'inbox_write.sh' shared_context/procedures/`\
+    \ でhit一覧確認\n2) 各ファイルの家老通知/完了報告箇所で bash 直叩きが primary の箇所を:\n   変更前: `bash scripts/inbox_write.sh\
+    \ karo \"...\" report_received ashigaru{N}`\n   変更後 (primary):\n   ```bash\n \
+    \  curl -s -X POST http://192.168.2.4:8770/api/inbox_write \\\n     -H 'Content-Type:\
+    \ application/json' \\\n     -d '{\"to\":\"karo\",\"from\":\"ashigaru{N}\",\"\
+    type\":\"report_received\",\"message\":\"...\"}'\n   ```\n   bash inbox_write.sh\
+    \ を fallback として残す (コメント: 「障害時のみ」)\n\n### H005: shared_context/procedures/document_design.md\n\
+    L9付近: `queue/shogun_to_karo.yaml でparent_cmdの全commandを必ず読め` を:\n`curl -s http://192.168.2.4:8770/api/cmd_detail?id=<parent_cmd>\
+    \ で lord_original/purpose/acceptance_criteria を取得・原文読み` に変更\n\n## ⚠️ Git Safety\
+    \ プロトコル必須 (5+ファイル一括修正)\n① SAVE: git add shared_context/procedures/ && git commit\
+    \ -m 'save: before procedures API update'\n② TEST: 1ファイルだけ修正→git diff で確認\n③ RUN:\
+    \ 残りファイル修正\n④ CHECK: git diff --name-status (D が出たら即STOP・報告)\n⑤ OK→commit / NG→git\
+    \ restore shared_context/procedures/ &karo報告\n\n## 完了手順\n1) advisor() を呼び出せ\n\
+    2) git safetyプロトコルに従い修正\n3) git commit -m 'fix(procedures): inbox_write API primary化\
+    \ H007/H005 (cmd_1675-C)'\n4) POST /api/inbox_write で karo に report_received 通知\
+    \ (修正ファイル数・行数サマリ)"
+  target_path: /home/murakami/multi-agent-shogun/shared_context/procedures/
+  acceptance_criteria:
+  - shared_context/procedures/ 内の bash inbox_write.sh primary 例示がcurl API primaryに置換済
+    (or fallback表記化)
+  - document_design.md の shogun_to_karo.yaml 直読み → curl /api/cmd_detail に修正済
+  - git safetyプロトコル遵守 (D=STOP確認済)
+  - git commit 済
+  timestamp: '2026-05-09T09:09:02.467925+09:00'
