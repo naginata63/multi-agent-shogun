@@ -64,7 +64,9 @@ workflow:
     note: "bloom_routing != 'off' 時・bloom_level に基づき lib/cli_adapter.sh で適切な足軽選定。ビジーペインは触らない・アイドルなら CLI 切替OK。詳細: shared_context/procedures/bloom_routing.md (必要時参照)"
   - step: 7
     action: inbox_write
-    target: "POST /api/inbox_write (to:ashigaruN, type:task_assigned)"
+    target: "POST /api/inbox_write"
+    fields: "to (recipient), from (karo), type (task_assigned/report_received/etc), message (body)"
+    note: "REQUIRED fields: to, from, type, message. PROHIBITED: from_agent, content (2026-05-09 karo 35sec timeout 原因)"
   - step: 8
     action: check_pending
     target: "GET /api/cmd_list?status=pending → 残あれば step 2 へ・なければ idle"
