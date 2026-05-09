@@ -51,5 +51,6 @@ curl http://192.168.2.4:8770/api/dashboard | python3 -c "import sys,json; d=json
 ```bash
 git add scripts/dashboard/server.py
 git commit -m "feat(cmd_1366): MCPダッシュボードにAdvisor Proxyパネル追加"
-bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽4号、subtask_1366a完了。advisor_proxyキー確認結果を報告。" report_completed ashigaru4
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write -H 'Content-Type: application/json' -d '{"to":"karo","from":"ashigaru4","type":"report_received","message":"足軽4号、subtask_1366a完了。advisor_proxyキー確認結果を報告。"}'
+# Fallback: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽4号、subtask_1366a完了。advisor_proxyキー確認結果を報告。" report_completed ashigaru4
 ```

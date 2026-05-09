@@ -30,5 +30,6 @@ curl http://192.168.2.4:8770/api/dashboard | python3 -m json.tool | grep -A20 "d
 ```bash
 git add scripts/dashboard/server.py
 git commit -m "feat(cmd_1364): DingTalk QC複数ログ集約対応（qc_log*.jsonl全ファイル合算）"
-bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽1号、subtask_1364a完了。total合算値とsources内訳を報告。" report_completed ashigaru1
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write -H 'Content-Type: application/json' -d '{"to":"karo","from":"ashigaru1","type":"report_received","message":"足軽1号、subtask_1364a完了。total合算値とsources内訳を報告。"}'
+# Fallback: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽1号、subtask_1364a完了。total合算値とsources内訳を報告。" report_completed ashigaru1
 ```

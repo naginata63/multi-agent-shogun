@@ -100,5 +100,6 @@ git commit -m "feat(cmd_1363): advisor_proxyにリトライ・サーキットブ
 実装完了前にadvisor()を呼んで成果物レビュー（step 4.8）。
 
 ```bash
-bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽3号、subtask_1363a完了。commit番号と動作確認結果を報告。" report_completed ashigaru3
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write -H 'Content-Type: application/json' -d '{"to":"karo","from":"ashigaru3","type":"report_received","message":"足軽3号、subtask_1363a完了。commit番号と動作確認結果を報告。"}'
+# Fallback: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽3号、subtask_1363a完了。commit番号と動作確認結果を報告。" report_completed ashigaru3
 ```
