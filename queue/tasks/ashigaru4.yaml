@@ -147,3 +147,60 @@ tasks:
   - git add queue/reports/ && git commit && git push origin main
   - POST /api/inbox_write で report_completed を karo に送信
   timestamp: '2026-05-09T07:31:38.520586+09:00'
+- agent: ashigaru4
+  task_id: subtask_1656_stt_status_script
+  parent_cmd: cmd_1656
+  status: assigned
+  bloom_level: L3
+  description: "【cmd_1656】ドズル社動画 STT/index 状態管理スクリプト化 + work_video_map.md 4-5月分追記。\n\
+    \n殿原文: 「STT済かどうか / scene_search_v2の対象動画を即把握できる状態にしたい」\n\n## Task 1: スクリプト化\n-\
+    \ projects/dozle_kirinuki/context/stt_index_status.md を生成するロジックを\n  scripts/gen_stt_index_status.py\
+    \ として正規スクリプト化\n- 入力: work/ 配下 dir + data/scene_index_v2/chunks_metadata.json +\
+    \ shorts_upload_map.md + work_video_map.md\n- 出力: stt_index_status.md\n- 既存スクリプト類との整合性確認\
+    \ (乱造禁止・重複スクリプトがあれば統合)\n\n## Task 2: work_video_map.md 4-5月分追記\n- projects/dozle_kirinuki/context/work_video_map.md\
+    \ を Read\n- 4-5月の本編動画 (約60 dir) を追記\n- 元動画ID は input/*.info.json or merged_*.json\
+    \ から抽出\n- 公開済みショート紐付け情報は shorts_upload_map.md 4-5月分も補完\n\n## 完了条件\n- python3 scripts/gen_stt_index_status.py\
+    \ で実行可能\n- stt_index_status.md の video_id 不明件数が大幅減少\n- work_video_map.md が5/9時点の全\
+    \ work/ dir カバー\n- git commit 済 (push は家老が実施)\n- 完了後 karo に report_received で\
+    \ inbox 通知"
+  target_path: projects/dozle_kirinuki/scripts/gen_stt_index_status.py
+  acceptance_criteria:
+  - scripts/gen_stt_index_status.py が存在し python3 で実行可能
+  - 実行後 projects/dozle_kirinuki/context/stt_index_status.md が更新される
+  - work_video_map.md に 4-5月分の動画IDが追記済み
+  - stt_index_status.md の video_id 不明件数が大幅減少
+  - git commit 済
+  timestamp: '2026-05-09T08:19:49.424879+09:00'
+- agent: ashigaru4
+  task_id: subtask_1675_d_generated_report
+  parent_cmd: cmd_1675
+  status: done
+  bloom_level: L4
+  description: "【cmd_1675-D】instructions/generated/ のdeprecated化 + その他finding解消 +\
+    \ 最終報告書作成。\n\n## 修正対象\n\n### C001: instructions/generated/ をdeprecated化\n`git\
+    \ mv instructions/generated instructions/generated.deprecated`\n(codex/copilot/kimi\
+    \ CLI は現在使用予定なし・cmd_1675で殿が解消を命じた)\n\n### M002: scripts/precompact_hook.sh の shogun_to_karo.yaml\
+    \ 直読み修正\nL88-89付近: `CMD_QUEUE=...queue/shogun_to_karo.yaml` を\ncurl フォールバック付きに変更:\n\
+    ```bash\nACTIVE_CMDS=$(curl --max-time 2 -s http://192.168.2.4:8770/api/cmd_list?status=in_progress&slim=1\
+    \ 2>/dev/null)\nif [ -z \"$ACTIVE_CMDS\" ]; then\n  # fallback: YAML直読み\nfi\n\
+    ```\n\n### M003: shared_context/procedures/dashboard_api_usage.md:103\n「段階的に curl\
+    \ 経由へ」→「2026-Q3 までに全置換。残務はcmd_1673 follow-up cmd にて家老が起票」\n\n### M004: instructions/ashigaru.md\
+    \ に「殿激怒」API禁止リスト追加\nkaro.md L195-198 と同様のリストを ashigaru.md に追加:\n- `cat/tail queue/tasks/other_ashigaru*.yaml`\
+    \ 禁止 → `curl /api/task_list?agent=...`\n- `cat queue/reports/*.yaml` 禁止 → `curl\
+    \ /api/report_detail?id=...`\n\n### M005: shared_context/task_yaml_schema.md のCHK4/CHK7\n\
+    CHK4/CHK7 に「緊急 fallback (API down時の手書きYAML用)。通常は POST /api/cmd_create / /api/task_create\
+    \ を使え」と明記\n\n## 最終報告書作成\nqueue/reports/2026-05-09_cmd_1675_api_rules_unification.md\
+    \ に:\n- cmd_1673 19件 finding 全件の処理結果 (修復/deferred/重複)\n- subtask A/B/C/D の完了状況\n\
+    - karo API field名統一 (from_agent→from, content→message) 反映確認\n\n## 完了手順\n1) advisor()\
+    \ を呼び出せ\n2) 各修正実施 → git commit\n3) 報告書作成 → git add -f queue/reports/2026-05-09_cmd_1675_api_rules_unification.md\
+    \ → commit\n4) POST /api/inbox_write で karo に report_received 通知"
+  target_path: /home/murakami/multi-agent-shogun/queue/reports/2026-05-09_cmd_1675_api_rules_unification.md
+  acceptance_criteria:
+  - instructions/generated/ が generated.deprecated/ にリネーム済
+  - scripts/precompact_hook.sh の shogun_to_karo.yaml 直読み修正済
+  - dashboard_api_usage.md:103 の段階移行に期限記載済
+  - instructions/ashigaru.md に殿激怒APIリスト追加済
+  - task_yaml_schema.md CHK4/CHK7 にfallback明記済
+  - queue/reports/2026-05-09_cmd_1675_api_rules_unification.md 存在・19件処理結果記載
+  - git commit 済
+  timestamp: '2026-05-09T09:09:02.480160+09:00'
