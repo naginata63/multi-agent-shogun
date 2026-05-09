@@ -6,7 +6,7 @@
 ## ワークフロー
 
 ### Step 1: 事前確認
-1. `queue/shogun_to_karo.yaml` でparent_cmdの全commandを必ず読め（要約ではなく原文）
+1. `curl -s http://192.168.2.4:8770/api/cmd_detail?id=<parent_cmd>` で lord_original / purpose / acceptance_criteria を取得・原文確認
 2. 既存成果物（drafts/配下等）を Read ツールで全文確認
 3. `advisor()` 呼び出し（実装前必須）
 
@@ -27,7 +27,13 @@
 ### Step 5: 完了報告
 1. `queue/reports/{agent}_report_{task_id}.yaml` に報告YAML書き込み
 2. `git add <dir> && git commit` （git add . 禁止）
-3. `bash scripts/inbox_write.sh karo "完了報告" report_received {agent_id}` で家老通知
+3. 家老通知（primary）:
+   ```bash
+   curl -s -X POST http://192.168.2.4:8770/api/inbox_write \
+     -H 'Content-Type: application/json' \
+     -d '{"to":"karo","from":"{agent_id}","type":"report_received","message":"完了報告"}'
+   ```
+   （障害時のみ: `bash scripts/inbox_write.sh karo "完了報告" report_received {agent_id}`）
 
 ## 品質基準
 - acceptance_criteriaの全項目を満たすこと
