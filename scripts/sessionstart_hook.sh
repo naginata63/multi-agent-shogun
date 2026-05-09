@@ -31,6 +31,21 @@ fi
 
 SOURCE=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('source', 'unknown'))" 2>/dev/null || echo "unknown")
 
+# Step 0: Auto-start SSE Monitor for source=startup/compact (cmd_1674)
+if [ "$SOURCE" = "startup" ] || [ "$SOURCE" = "compact" ]; then
+    if [ -n "$AGENT_ID" ]; then
+        MONITOR_PID=$(pgrep -f "curl.*inbox_stream.*agent=${AGENT_ID}" 2>/dev/null | head -1 || true)
+        if [ -z "$MONITOR_PID" ]; then
+            # No Monitor running → start one in background
+            (
+                curl -N -s "http://192.168.2.4:8770/api/inbox_stream?agent=${AGENT_ID}" 2>/dev/null | \
+                grep --line-buffered "^data:" 2>/dev/null
+            ) &
+            sleep 1  # Brief startup wait
+        fi
+    fi
+fi
+
 # Check API key availability (VERTEX_API_KEY優先)
 GEMINI_STATUS=""
 if [ -n "${VERTEX_API_KEY:-}" ]; then

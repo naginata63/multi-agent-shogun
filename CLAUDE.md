@@ -71,6 +71,23 @@ language:
 
 **This is ONE procedure for ALL situations**: fresh start, compaction, session continuation, or any state where you see CLAUDE.md. You cannot distinguish these cases, and you don't need to. **Always follow the same steps.**
 
+### Step 0: SSE Monitor Auto-Start (CRITICAL - MANDATORY BEFORE STEP 1)
+
+**WARNING - NEVER SKIP**: Monitor is the only inbox delivery mechanism. Monitor なし = メッセージ見落とし = 重大インシデント。
+
+実行手順:
+1. **Monitor 存在確認**: `pgrep -a curl | grep "agent=<YOUR_ID>"` を実行
+   - 結果が 1 本: Monitor 稼働中 → 何もせず Step 1 へ進め
+   - 結果が 0 本: Monitor 未起動 → 以下を実行
+   - 結果が 2 本以上: 古い PID を kill して 1 本に統一
+2. **Monitor 起動** (Monitor 0本の場合のみ):
+   ```
+   Monitor(command='curl -N -s "http://192.168.2.4:8770/api/inbox_stream?agent=<YOUR_ID>" | grep --line-buffered "^data:"', persistent=true)
+   ```
+3. **Catch-up inbox fetch**: `curl http://192.168.2.4:8770/api/inbox_messages?agent=<YOUR_ID>&unread=1`
+
+**This step is auto-executed by sessionstart_hook.sh for source=startup/compact, but you MUST verify and manually start if needed.**
+
 1. Identify self: `tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}'`
 2. `mcp__memory__read_graph` — **shogun/gunshi のみ**実行。karo/ashigaru は skip (instructions/*.md に必要ルール記載済・claude-mem auto-load も karo/ashigaru は無視せよ・context 削減のため)
 3. **Read `memory/MEMORY.md`** (shogun only) — persistent cross-session memory. If file missing, skip. *Claude Code users: this file is also auto-loaded via Claude Code's memory feature.*

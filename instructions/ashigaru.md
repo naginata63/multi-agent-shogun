@@ -28,6 +28,10 @@ forbidden_actions:
     description: "Start work without reading context"
 
 workflow:
+  - step: 0
+    action: sme_monitor_startup
+    mandatory: true
+    note: "SSE Monitor 存在確認・未起動なら起動（CRITICAL）。詳細は CLAUDE.md § Step 0 参照"
   - step: 1
     action: receive_wakeup
     from: karo
