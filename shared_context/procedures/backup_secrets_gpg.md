@@ -70,5 +70,8 @@ echo "確認後、必要に応じて $PROJECT_ROOT/config/ に手動コピーし
 ```bash
 git add scripts/backup_secrets.sh scripts/restore_secrets.sh backups/secrets/README.md .gitignore
 git commit -m "feat(cmd_1368): config秘密鍵GPG暗号化バックアップスクリプト作成"
-bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽1号、subtask_1368a完了。暗号化・復号化テスト結果を報告。" report_completed ashigaru1
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write \
+  -H 'Content-Type: application/json' \
+  -d '{"to":"karo","from":"ashigaru1","type":"report_received","message":"足軽1号、subtask_1368a完了。暗号化・復号化テスト結果を報告。"}'
+# Fallback: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo "足軽1号、subtask_1368a完了。暗号化・復号化テスト結果を報告。" report_completed ashigaru1
 ```

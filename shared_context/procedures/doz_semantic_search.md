@@ -153,6 +153,17 @@ git commit -m "feat(cmd_1421): DoZセマンティック検索基盤構築 subtit
 ## Step6: 軍師QC + 完了報告
 
 ```bash
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write \
+  -H 'Content-Type: application/json' \
+  -d '{"to":"gunshi","from":"ashigaru5","type":"qc_request","message":"足軽5号、subtask_1421a完了。DoZセマンティック検索BQ登録完了（{N}チャンク）。QCせよ: 3クエリ検索結果の妥当性・ノイズ率確認。dataset=doz_subtitle_semantic"}'
+
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write \
+  -H 'Content-Type: application/json' \
+  -d '{"to":"karo","from":"ashigaru5","type":"report_received","message":"足軽5号、subtask_1421a完了。subtitle_semantic_index.py拡張+DoZ8本BQ登録({N}チャンク)+検索テスト済。軍師QC依頼済。"}'
+```
+
+（障害時フォールバック）:
+```bash
 bash scripts/inbox_write.sh gunshi \
   "足軽5号、subtask_1421a完了。DoZセマンティック検索BQ登録完了（{N}チャンク）。QCせよ: 3クエリ検索結果の妥当性・ノイズ率確認。dataset=doz_subtitle_semantic" \
   qc_request ashigaru5

@@ -76,6 +76,13 @@ ffprobe -v quiet -show_entries format=duration -of csv=p=0 ${OUTPUT_FILE}
 
 ### Step4: 報告
 ```bash
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write \
+  -H 'Content-Type: application/json' \
+  -d '{"to":"karo","from":"ashigaru{N}","type":"report_received","message":"足軽N号、subtask_XXX完了。動画合成完了。${OUTPUT_FILE}"}'
+```
+
+（障害時フォールバック）:
+```bash
 bash scripts/inbox_write.sh karo \
   "足軽N号、subtask_XXX完了。動画合成完了。${OUTPUT_FILE}" \
   report_completed ashigaruN
