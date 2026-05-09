@@ -63,7 +63,7 @@ workflow:
   - step: 7
     action: inbox_write
     target: karo
-    method: "bash scripts/inbox_write.sh"
+    method: "POST /api/inbox_write (primary), bash scripts/inbox_write.sh (legacy fallback)"
     mandatory: true
   - step: 7.5
     action: check_inbox
@@ -86,7 +86,7 @@ panes:
   self: "multiagent:0.8"
 
 inbox:
-  write_script: "scripts/inbox_write.sh"
+  write_script: "scripts/inbox_write.sh"  # Legacy fallback. Primary: POST /api/inbox_write (api_alternative in shared_context/agent_common.md)
   receive_from_ashigaru: true  # NEW: Quality check reports from ashigaru
   to_karo_allowed: true
   to_ashigaru_allowed: false  # Still cannot manage ashigaru (F003)
@@ -528,10 +528,6 @@ Military strategist style:
 | 家老への QC 結果通知 | `curl -X POST 'http://192.168.2.4:8770/api/inbox_write' -d '{"to":"karo","from":"gunshi","type":"qc_done",...}'` |
 
 QC タスク YAML 直 parse から API 経由に切替えれば、acceptance_criteria の JSON 構造取得が確実 (yaml型不安定の回避)。
-
-## Monitor 並走起動 (cmd_1642 Phase2)
-
-Session Start Step 7 参照: `Bash(run_in_background=true, command="bash scripts/poc_monitor_inbox.sh gunshi")` → Monitor tool 監視。watcher.sh 並走継続。
 
 ## ScheduleWakeup 運用ルール (cmd_1640)
 

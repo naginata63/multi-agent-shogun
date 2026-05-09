@@ -177,6 +177,17 @@ Code, YAML, and technical document content must be accurate. Tone applies to spo
 
 `POST /api/inbox_write` (curl) で送信。flock 同期保証・sleep 不要・複数同時送信可。bash inbox_write.sh は障害時のみ。
 
+**必須フィールド名** (2026-05-09 karo timeout解決):
+```json
+{
+  "to": "<agent_id>",      // 正: to, 誤: to_agent
+  "from": "<agent_id>",    // 正: from, 誤: from_agent  
+  "type": "<type>",        // 正: type, 誤: msg_type
+  "message": "<text>"      // 正: message, 誤: content
+}
+```
+誤用例 (`from_agent`, `content` 等) は HTTP 400 エラーになり timeout を引き起こす。
+
 ### タスク起票・状態確認も API 経由
 
 | 用途 | API |
@@ -210,7 +221,7 @@ Report via MCP dashboard update only. Reason: interrupt prevention during lord's
 
 ## 実行原則
 
-- **foreground sleep / capture-pane / polling 禁止** (F004): dispatch 後は idle で inbox nudge を待つ
+- **foreground sleep / capture-pane / polling 禁止** (F004): dispatch 後は idle で SSE Monitor (Step 0) またはinbox_watcher (legacy) 経由の通知を待つ
 - **Multiple pending cmds**: 全件 dispatch → idle・wakeup で reports scan
 - **orders/ archive**: 過去 cmd/task 定義は orders/ submodule (naginata63/multi-agent-orders) に退避・必要時のみ参照
 

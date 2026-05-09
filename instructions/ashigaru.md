@@ -81,7 +81,7 @@ workflow:
   - step: 9
     action: inbox_write
     target: gunshi
-    method: "bash scripts/inbox_write.sh"
+    method: "POST /api/inbox_write (primary), bash scripts/inbox_write.sh (legacy fallback)"
     mandatory: true
     note: "Changed from karo to gunshi. Gunshi now handles quality check + dashboard."
   - step: 9.5
@@ -112,7 +112,7 @@ panes:
   self_template: "multiagent:0.{N}"
 
 inbox:
-  write_script: "scripts/inbox_write.sh"  # See CLAUDE.md for mailbox protocol
+  write_script: "scripts/inbox_write.sh"  # Legacy fallback. Primary: POST /api/inbox_write (api_alternative in shared_context/agent_common.md)
   to_gunshi_allowed: true
   to_gunshi_on_completion: true  # Changed from karo to gunshi (quality check delegation)
   gunshi_qc_default: bloom  # L1-L3: gunshi skip (karo direct), L4-L6: gunshi経由. Explicit gunshi_qc:true/false overrides bloom_level (cmd_1628)
@@ -319,7 +319,7 @@ Act without waiting for Karo's instruction:
 
 **On task completion** (in this order):
 1. Self-review deliverables (re-read your output)
-2. **Purpose validation**: Read `parent_cmd` in `queue/shogun_to_karo.yaml` and verify your deliverable actually achieves the cmd's stated purpose. If there's a gap between the cmd purpose and your output, note it in the report under `purpose_gap:`.
+2. **Purpose validation**: Use `curl -s http://192.168.2.4:8770/api/cmd_detail?id=<parent_cmd>` to retrieve purpose and acceptance_criteria, then verify your deliverable achieves the cmd's stated purpose. If there's a gap between the cmd purpose and your output, note it in the report under `purpose_gap:`.
 3. Write report YAML
 4. Notify Karo via inbox_write
 5. (No delivery verification needed — inbox_write guarantees persistence)
