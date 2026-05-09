@@ -68,9 +68,12 @@ sed -i "s/\.png\"/\.png?t=$(date +%Y%m%d%H%M%S)\"/" ${GALLERY_HTML}
 
 ### Step5: 報告
 ```bash
-bash scripts/inbox_write.sh karo \
-  "足軽N号、subtask_XXX完了。漫画パネルPNG生成完了（${PANEL_IDS}）。" \
-  report_completed ashigaruN
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write \
+  -H 'Content-Type: application/json' \
+  -d '{"to":"karo","from":"ashigaru{N}","type":"report_received","message":"足軽N号、subtask_XXX完了。漫画パネルPNG生成完了（${PANEL_IDS}）。"}'
+# Fallback: bash scripts/inbox_write.sh karo \
+#   "足軽N号、subtask_XXX完了。漫画パネルPNG生成完了（${PANEL_IDS}）。" \
+#   report_completed ashigaruN
 ```
 
 ## 注意事項
