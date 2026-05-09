@@ -71,7 +71,10 @@ python3 -c "import json; d=json.load(open('projects/dozle_kirinuki/analytics/das
 
 ## 完了報告
 ```bash
-bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
-  "足軽X号、subtask_1434a完了。Phase1+2実装済み。data.json新keys確認済み。" \
-  report_completed ashigaruX
+curl -s -X POST http://192.168.2.4:8770/api/inbox_write \
+  -H 'Content-Type: application/json' \
+  -d '{"to":"karo","from":"ashigaru{X}","type":"report_received","message":"足軽X号、subtask_1434a完了。Phase1+2実装済み。data.json新keys確認済み。"}'
+# Fallback: bash /home/murakami/multi-agent-shogun/scripts/inbox_write.sh karo \
+#   "足軽X号、subtask_1434a完了。Phase1+2実装済み。data.json新keys確認済み。" \
+#   report_completed ashigaruX
 ```
