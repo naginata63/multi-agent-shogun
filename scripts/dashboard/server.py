@@ -3333,7 +3333,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 if msg_type not in CANONICAL_TYPES:
                     error_response(self, 400, {
                         'error': f'Invalid type: {msg_type!r}. Must be one of {sorted(CANONICAL_TYPES)}'
-                    }, ensure_ascii=False)
+                    })
                     return
 
                 if not target or not message:
