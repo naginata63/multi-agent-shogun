@@ -85,11 +85,31 @@ case "$AGENT_ID" in
     *)         ROLE="不明（${AGENT_ID}）" ;;
 esac
 
-# ─── Active cmds from shogun_to_karo.yaml (shogun/karo) ───
-CMD_QUEUE="$SCRIPT_DIR/queue/shogun_to_karo.yaml"
+# ─── Active cmds from API or shogun_to_karo.yaml (shogun/karo) ───
 ACTIVE_CMDS=""
-if [ -f "$CMD_QUEUE" ] && { [ "$AGENT_ID" = "shogun" ] || [ "$AGENT_ID" = "karo" ]; }; then
-    ACTIVE_CMDS=$("$PYTHON" -c "
+if { [ "$AGENT_ID" = "shogun" ] || [ "$AGENT_ID" = "karo" ]; }; then
+    # Try API first (curl with 2sec timeout)
+    ACTIVE_CMDS=$(curl --max-time 2 -s "http://192.168.2.4:8770/api/cmd_list?status=in_progress&slim=1" 2>/dev/null | "$PYTHON" -c "
+import json, sys
+try:
+    data = json.load(sys.stdin)
+    cmds = data.get('commands', [])
+    active = []
+    for c in cmds:
+        cid = c.get('id', '?')
+        proj = c.get('project', '')
+        purp = c.get('purpose', '')[:80]
+        active.append(f'{cid} [in_progress] ({proj}) {purp}')
+    print('\n'.join(active) if active else '')
+except Exception:
+    print('')
+" 2>/dev/null || true)
+
+    # Fallback to YAML if API fails or returns empty
+    if [ -z "$ACTIVE_CMDS" ]; then
+        CMD_QUEUE="$SCRIPT_DIR/queue/shogun_to_karo.yaml"
+        if [ -f "$CMD_QUEUE" ]; then
+            ACTIVE_CMDS=$("$PYTHON" -c "
 import yaml, sys
 try:
     with open('$CMD_QUEUE') as f:
@@ -107,6 +127,8 @@ try:
 except Exception:
     print('')
 " 2>/dev/null || true)
+        fi
+    fi
 fi
 
 # ─── Agent-managed subtasks (karo) ───

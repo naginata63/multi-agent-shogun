@@ -191,10 +191,10 @@ cmd.command 内に "Phase N" キーワードが現れる場合 (cmd_1434 等)、
 | CHK1 | Bash tmux capture-pane | `-S -100` 以上必須 | 対象外 |
 | CHK2 | 足軽の Write/Edit/Bash | work/cmd_* 直書込・/tmp 書込 BLOCK (target_path 一致は許可) | 常時 |
 | CHK3 | task YAML Write/Edit | steps 多行 BLOCK + 新規 task_id の procedure: 不在 BLOCK | 常時 (procedure: は新規 task_id のみ) |
-| CHK4 | shogun_to_karo.yaml 将軍編集 | 新規 cmd 起票に lord_original 欄必須 | 新規 cmd のみ |
+| CHK4 | shogun_to_karo.yaml 将軍編集 | 新規 cmd 起票に lord_original 欄必須。**※ 緊急 fallback (API down時の手書きYAML用)。通常は POST /api/cmd_create を使え** | 新規 cmd のみ |
 | CHK5 | task YAML 編集 | verify: 宣言済 task の status:done 遷移を verify_result:pass 未達なら BLOCK (verify_exempt: true 宣言済は免除) | verify: 欄なし・verify_exempt ありは素通り |
 | CHK6 | advisor tool 呼出 | logs/advisor_calls.log 追記 (side-effect のみ・BLOCK しない) | 対象外 |
-| CHK7 | queue/tasks/{ashigaru*,gunshi}.yaml 編集 | 新規 task_id に 9 必須フィールド欠落 BLOCK | NEW task_id のみ (既存素通り) |
+| CHK7 | queue/tasks/{ashigaru*,gunshi}.yaml 編集 | 新規 task_id に 9 必須フィールド欠落 BLOCK。**※ 緊急 fallback (API down時の手書きYAML用)。通常は POST /api/task_create を使え** | NEW task_id のみ (既存素通り) |
 | CHK8 | Bash `git add` | `.` / `-A` / `--all` / `*` / `-f .` を BLOCK (引用符・heredoc 誤検知回避) | 常時 |
 
 ---

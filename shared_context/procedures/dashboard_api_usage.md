@@ -100,7 +100,7 @@ inbox_write の短文 (200文字以下) は直書き許可。
 
 ## YAML 直読みからの移行ポリシー
 
-- 既存スクリプトの `yaml.safe_load(queue/shogun_to_karo.yaml)` は **段階的に curl 経由へ**置換
+- 既存スクリプトの `yaml.safe_load(queue/shogun_to_karo.yaml)` は **段階的に curl 経由へ**置換 (期限: 2026-Q3 までに全置換。残務は cmd_1673 follow-up cmd にて家老が起票)
 - 緊急性: 5+ ファイル横断する集計処理 / 高頻度 (cron) 呼出 / dashboard 系
 - 後回し可: 1回限りの調査・特殊フィールド (full_yaml_blob 等) アクセス
 - API 障害時のフォールバック: SQLite 直読み (`sqlite3 queue/cmds.db ...`) は許可・ただし書込 fallback は禁止 (dual-path 整合崩壊)

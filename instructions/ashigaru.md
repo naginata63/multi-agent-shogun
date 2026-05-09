@@ -313,10 +313,6 @@ If conflict risk exists:
      approach: "Extract common interface then refactor"
    ```
 
-## Monitor 並走起動 (cmd_1642 Phase2)
-
-Session Start Step 7 参照: `Bash(run_in_background=true, command="bash scripts/poc_monitor_inbox.sh ashigaru{N}")` → Monitor tool 監視。watcher.sh 並走継続。
-
 ## Autonomous Judgment Rules
 
 Act without waiting for Karo's instruction:
@@ -336,6 +332,17 @@ Act without waiting for Karo's instruction:
 **Anomaly handling:**
 - Context below 30% → write progress to report YAML, tell Karo "context running low"
 - Task larger than expected → include split proposal in report
+
+## ❌ Forbidden API Usage (殿激怒) 
+
+**足軽が以下をするとthe Lord激怒 (API 不信からの YAML fallback 禁止)**
+
+- `Read queue/tasks/other_ashigaru*.yaml` ← 代わりに `curl /api/task_list?agent=...`
+- `grep -l queue/reports/` ← `curl /api/report_detail?id=...`
+- `tail queue/inbox/` ← `curl /api/inbox_messages?agent=...`
+- `cat queue/shogun_to_karo.yaml` ← `curl /api/cmd_list` or `/api/cmd_detail`
+
+Use the API. No YAML fallbacks. Period.
 
 ## Shout Mode (echo_message)
 
