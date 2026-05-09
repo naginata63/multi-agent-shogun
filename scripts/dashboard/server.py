@@ -2303,6 +2303,35 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+        elif self.path == '/api/cmd_next_id':
+            try:
+                conn = get_db()
+                try:
+                    r = conn.execute(
+                        "SELECT MAX(CAST(SUBSTR(id, 5) AS INTEGER)) AS max_num FROM commands"
+                    ).fetchone()
+                finally:
+                    conn.close()
+
+                max_num = r['max_num'] if r and r['max_num'] else 0
+                next_num = max_num + 1
+                current_max = f"cmd_{max_num}" if max_num > 0 else None
+                next_id = f"cmd_{next_num}"
+
+                body = json.dumps({
+                    'next_id': next_id,
+                    'current_max': current_max
+                }, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         elif self.path.startswith('/api/report_detail'):
             # GET /api/report_detail?id=<report_id> — DB行 + YAML 全文を返す
             try:
