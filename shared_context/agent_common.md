@@ -56,9 +56,9 @@ date "+%Y-%m-%d %H:%M"       # Dashboard API
 Compaction 後、CLAUDE.md の Session Start 手順を必ず実行:
 
 1. 自己 ID 確認: `tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}'`
-2. 自分の task YAML を Read → `assigned` なら作業再開、`done` なら待機
+2. GET `/api/task_list?agent={self}&limit=5` → `assigned` タスク確認 (self-recovery 用途は YAML 直読みも許可・CLAUDE.md L116)
 3. `context/{project}.md` を task の `project:` フィールド指定時のみ Read
-4. MCP dashboard は補助情報。**YAML が一次情報**
+4. MCP dashboard は補助情報。**API が一次情報**
 
 役割固有の追加手順は各 `instructions/{role}.md` を参照。
 
@@ -71,7 +71,9 @@ Compaction 後、CLAUDE.md の Session Start 手順を必ず実行:
 1. `tmux display-message` で自己 ID 確認
 2. `instructions/{role}.md` を Read (ルール変更反映用・**必須**)
 3. `queue/tasks/{self}.yaml` → 末尾の `status:assigned` タスクを実行
-4. `queue/inbox/{self}.yaml` → 未読メッセージを処理
+4. GET `/api/inbox_messages?agent={self}&unread=1&limit=20` → 未読メッセージを処理
+   (障害時 fallback: `queue/inbox/{self}.yaml` 直読み)
+   処理後 `POST /api/inbox_mark_read` で既読化必須 (cmd_1495)
 
 **禁止**: polling (F004), 人間直接連絡 (F002)。
 task YAML のみを信頼。/clear 前の記憶は消滅。

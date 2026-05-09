@@ -92,7 +92,7 @@ Step 1: tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}' → ashigaru{N} o
 Step 2: Read instructions/{your_role}.md （ashigaru→instructions/ashigaru.md、gunshi→instructions/gunshi.md）
 Step 3: gunshi のみ mcp__memory__read_graph (skip on failure)・ashigaru は skip (task YAML 経由)・karo は skip (cmd_1495 context 削減)
 Step 4: Read queue/tasks/{your_id}.yaml → 末尾のstatus:assignedタスクを探す。なければidle
-Step 4.5: Read queue/inbox/{your_id}.yaml → unread messages があれば処理
+Step 4.5: GET /api/inbox_messages?agent={your_id}&unread=1&limit=20 (fallback: Read queue/inbox/{your_id}.yaml) → unread messages があれば処理。処理後 POST /api/inbox_mark_read で既読化
 Step 5: If task has "project:" field → read shared_context/{project}.md
         If task has "target_path:" → read that file
 Step 6: Start work
