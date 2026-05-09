@@ -45,6 +45,20 @@ _INBOX_QUEUES = defaultdict(lambda: _queue_module.Queue(maxsize=1000))
 _INBOX_QUEUES_LOCK = threading.Lock()
 
 
+def error_response(handler, status_code, message_or_dict):
+    """Send error JSON response with guaranteed Content-Length header."""
+    if isinstance(message_or_dict, str):
+        body = {'error': message_or_dict}
+    else:
+        body = message_or_dict
+    resp = json.dumps(body, ensure_ascii=False).encode('utf-8')
+    handler.send_response(status_code)
+    handler.send_header('Content-Type', 'application/json; charset=utf-8')
+    handler.send_header('Content-Length', str(len(resp)))
+    handler.end_headers()
+    handler.wfile.write(resp)
+
+
 def _push_to_inbox_queue(target_agent, message_dict):
     try:
         _INBOX_QUEUES[target_agent].put_nowait(message_dict)
