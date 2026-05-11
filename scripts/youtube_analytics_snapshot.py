@@ -351,12 +351,13 @@ def get_recent_shorts_feed_check(analytics, videos, days_lookback=7, threshold_p
             shorts_pct = -1
 
         elapsed_days = (today - pub_dt).days
-        is_warn = (
-            elapsed_days >= 2
-            and views > 0
-            and shorts_pct != -1
-            and shorts_pct < threshold_pct
-        ) or (elapsed_days >= 2 and views == 0)
+        is_warn = v.get("privacy_status") == "public" and (
+            (elapsed_days >= 2
+             and views > 0
+             and shorts_pct != -1
+             and shorts_pct < threshold_pct)
+            or (elapsed_days >= 2 and views == 0)
+        )
 
         results.append({
             "id": v["id"], "title": v.get("title", ""),
@@ -911,7 +912,8 @@ def generate_report(channel_stats, videos, daily_stats, traffic_sources,
     # AI分析
     # 直近 Shorts feed 露出チェック (殿命 2026-05-10)
     if shorts_feed_check:
-        warns = [c for c in shorts_feed_check if c.get("is_warning")]
+        public_only = [c for c in shorts_feed_check if c.get("privacy_status") == "public"]
+        warns = [c for c in public_only if c.get("is_warning")]
         if warns:
             lines.append("## ⚠️ 直近 Shorts feed 露出低下")
             lines.append("")
@@ -931,7 +933,7 @@ def generate_report(channel_stats, videos, daily_stats, traffic_sources,
         lines.append("")
         lines.append("| pub | title | 尺 | views | avgPct | SHORTS% | 警告 |")
         lines.append("|---|---|---:|---:|---:|---:|:---:|")
-        for c in shorts_feed_check[:10]:
+        for c in public_only[:10]:
             title = c.get("title", "")[:40]
             avgPct = f'{c["avg_view_pct"]:.1f}%' if c.get("avg_view_pct") is not None else "-"
             warn = "⚠️" if c.get("is_warning") else ("-" if c.get("note") else "")
