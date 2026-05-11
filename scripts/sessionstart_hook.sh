@@ -31,23 +31,11 @@ fi
 
 SOURCE=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('source', 'unknown'))" 2>/dev/null || echo "unknown")
 
-# Step 0: Auto-start SSE Monitor for source=startup/compact (cmd_1674)
-# pgrep pattern: pgrep -a curl | grep "agent=ID" 形式で self-reference を回避 (殿命 2026-05-09・f6fd7e4)
-# 旧 pattern (pgrep -f "curl.*inbox_stream.*agent=ID") は bash の eval 文字列を hit して偽陽性
-if [ "$SOURCE" = "startup" ] || [ "$SOURCE" = "compact" ]; then
-    if [ -n "$AGENT_ID" ]; then
-        MONITOR_PID=$(pgrep -a curl 2>/dev/null | grep "agent=${AGENT_ID}" | awk '{print $1}' | head -1 || true)
-        if [ -z "$MONITOR_PID" ]; then
-            # No Monitor running → start one in background with robust daemonization (cmd_1674)
-            (
-                nohup curl -N -s "http://192.168.2.4:8770/api/inbox_stream?agent=${AGENT_ID}" 2>&1 | \
-                grep --line-buffered "^data:" 2>/dev/null
-            ) </dev/null &
-            disown
-            sleep 1  # Brief startup wait to ensure curl process is stable
-        fi
-    fi
-fi
+# Step 0: SSE Monitor 起動は CLAUDE.md Step 0-C (Monitor tool 経由) に一本化 (2026-05-12 殿命)
+# 旧 implementation (cmd_1674) は nohup curl をバックグラウンド起動していたが、
+# Claude Code の Monitor tool ハンドラに繋がっておらず inbox event を処理できぬ孤児だった。
+# PRECHECK が hit するため Monitor tool 起動が抑制され、メッセージ受信機能が停止する構造バグ。
+# Hook は context 注入のみに専念し、実際の Monitor 起動はエージェント自身が Step 0-C で行う。
 
 # Check API key availability (VERTEX_API_KEY優先)
 GEMINI_STATUS=""
