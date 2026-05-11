@@ -1,51 +1,28 @@
 tasks:
-- agent: ashigaru7
-  task_id: subtask_1671_a7
-  status: done
-  parent_cmd: cmd_1671
+- task_id: subtask_1680_c2
+  parent_cmd: cmd_1680
+  assigned_to: ashigaru7
+  agent: ashigaru7
   bloom_level: L3
-  description: 'cmd_1668 MEDIUM/LOW 2件修正: inbox_write.sh fallback grep削除 + ntfy_listener.sh
-    since リセット修正'
-  target_path: /home/murakami/multi-agent-shogun/scripts/inbox_write.sh
-  steps:
-  - Read scripts/inbox_write.sh L132-167 (_update_task_done) を確認
-  - 'M5修正: L148-159 の fallback grep (最後のstatus:assignedを取得) を削除。cmd_id が取得できない場合は何もせず
-    warning ログを出力するだけにする'
-  - Read scripts/ntfy_listener.sh L242-310 を確認
-  - 'L3修正: SINCE_TS を while ループ外で初期化し、再接続時は前回接続の since を保持 (切断中のメッセージを取りこぼさない)'
-  - bash -n で両スクリプトの構文チェック
-  - 'git add scripts/inbox_write.sh scripts/ntfy_listener.sh && git commit -m ''fix(infra):
-    inbox_write fallback削除+ntfy_listener since保持 (cmd_1671 M5/L3)'''
-  - POST /api/inbox_write で report_completed を karo に送信 (subtask_1671_a7完了)
-  timestamp: '2026-05-09T07:10:20.833422+09:00'
-- agent: ashigaru7
-  task_id: subtask_1675_c_procedures
-  parent_cmd: cmd_1675
+  gunshi_qc: false
+  title: 'cmd_1680-C2: vocab_helper.py import統合 (STT_M002真の完了)'
+  description: 'subtask_1680_cでvocab_helper.pyは作成済みだがdead code状態。各スクリプトからimport統合を実施:
+
+
+    (1) vocal_stt_pipeline.py: 既存の_apply_vocab実装を削除し「from .vocab_helper import apply_vocabulary」または「from
+    vocab_helper import apply_vocabulary」に置換
+
+    (2) stt_merge.py: 同様に既存_apply_vocab実装を削除しvocab_helperからimport
+
+
+    vocab_helper.pyの場所: projects/dozle_kirinuki/scripts/vocab_helper.py
+
+    transcribe_with_speakers.pyはSTT_C001で削除済みなので対象外。'
+  target_path: projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py
+  steps: 1.grep -rln _apply_vocab projects/dozle_kirinuki/scripts/ → 統合済みなら0件。2.grep
+    -rln "from vocab_helper\|import vocab_helper" projects/dozle_kirinuki/scripts/
+    → vocal_stt_pipeline.py + stt_merge.py がhit。3.python3 -c "import ast; ast.parse(open("projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py").read())"→構文エラーなし
+  notes: 'blocked_by: subtask_1680_a2 (vocal_stt_pipeline.py修正完了後に着手推奨。ファイル競合RACE-001防止)'
   status: done
-  bloom_level: L3
-  description: "【cmd_1675-C】shared_context/procedures/*.md 内の bash inbox_write.sh\
-    \ primary 例示を curl API 経路に置換する。\n\n## 修正対象 (cmd_1673 H007, H005)\n\n### H007:\
-    \ procedures/*.md の inbox_write.sh primary 例示\n1) `grep -rl 'inbox_write.sh' shared_context/procedures/`\
-    \ でhit一覧確認\n2) 各ファイルの家老通知/完了報告箇所で bash 直叩きが primary の箇所を:\n   変更前: `bash scripts/inbox_write.sh\
-    \ karo \"...\" report_received ashigaru{N}`\n   変更後 (primary):\n   ```bash\n \
-    \  curl -s -X POST http://192.168.2.4:8770/api/inbox_write \\\n     -H 'Content-Type:\
-    \ application/json' \\\n     -d '{\"to\":\"karo\",\"from\":\"ashigaru{N}\",\"\
-    type\":\"report_received\",\"message\":\"...\"}'\n   ```\n   bash inbox_write.sh\
-    \ を fallback として残す (コメント: 「障害時のみ」)\n\n### H005: shared_context/procedures/document_design.md\n\
-    L9付近: `queue/shogun_to_karo.yaml でparent_cmdの全commandを必ず読め` を:\n`curl -s http://192.168.2.4:8770/api/cmd_detail?id=<parent_cmd>\
-    \ で lord_original/purpose/acceptance_criteria を取得・原文読み` に変更\n\n## ⚠️ Git Safety\
-    \ プロトコル必須 (5+ファイル一括修正)\n① SAVE: git add shared_context/procedures/ && git commit\
-    \ -m 'save: before procedures API update'\n② TEST: 1ファイルだけ修正→git diff で確認\n③ RUN:\
-    \ 残りファイル修正\n④ CHECK: git diff --name-status (D が出たら即STOP・報告)\n⑤ OK→commit / NG→git\
-    \ restore shared_context/procedures/ &karo報告\n\n## 完了手順\n1) advisor() を呼び出せ\n\
-    2) git safetyプロトコルに従い修正\n3) git commit -m 'fix(procedures): inbox_write API primary化\
-    \ H007/H005 (cmd_1675-C)'\n4) POST /api/inbox_write で karo に report_received 通知\
-    \ (修正ファイル数・行数サマリ)"
-  target_path: /home/murakami/multi-agent-shogun/shared_context/procedures/
-  acceptance_criteria:
-  - shared_context/procedures/ 内の bash inbox_write.sh primary 例示がcurl API primaryに置換済
-    (or fallback表記化)
-  - document_design.md の shogun_to_karo.yaml 直読み → curl /api/cmd_detail に修正済
-  - git safetyプロトコル遵守 (D=STOP確認済)
-  - git commit 済
-  timestamp: '2026-05-09T09:09:02.467925+09:00'
+  timestamp: '2026-05-11T07:57:48.687093+09:00'
+  completed_at: '2026-05-12T08:18:06+09:00'

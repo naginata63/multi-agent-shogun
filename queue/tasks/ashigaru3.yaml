@@ -70,98 +70,74 @@ tasks:
   target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/
   task_id: subtask_1636_batch3
   timestamp: '2026-05-05T15:22:55.852528+09:00'
-- acceptance_criteria:
-  - 14本全て merged_<id>.json が srt_and_candidates/ に存在
-  - 全merged JSON で A-F speakers = 0
-  - RAM available>5GB 維持・OOM未発生
-  agent: ashigaru3
+- agent: ashigaru3
+  task_id: subtask_1671_a3a
+  status: assigned
+  parent_cmd: cmd_1671
   bloom_level: L3
-  description: 'cmd_1636 直接4並列: ash3 担当 14本 (BcPWm_mCpp4〜QCFyL7tG-v4) DL→Demucs→STT→speaker_mapping'
-  gunshi_qc: false
-  notes: '4並列本番。GEMINI API期限切れのためscene_search_v2 build禁止。エラー時スキップ継続可。git push は家老が実施。[BLOCKED] YouTube IP ban: 並列DL禁止ルール違反で発動。6/14完了(成功:Tdgz/X3cM/05zh/XB-X/sml-a/D4_8)、残8本DL失敗。IP ban解除待機中。並列1-2+5秒で再開可能。'
-  parent_cmd: cmd_1636
-  priority: high
+  description: 'cmd_1667 CRITICAL+HIGH+LOW 8件修正 (main.py wave1): WhisperX撤去/1080p閾値/main_speaker
+    default統一/Remotion CLIチェック/dead code削除等'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/main.py
+  steps:
+  - Read main.py 冒頭 (L1-150) + L480-720 (WhisperX経路) + L1250-1400 (shorts mode) を把握
+  - 'C001修正: main.py L482-489 --diarize argparse + L642-714 WhisperX経路を完全削除。STTはAssemblyAI必須
+    (MEMORY鉄則) 違反を解消'
+  - 'H002修正: main.py L845 の 1080p 再DL閾値 480 → 360 に修正 (コメントL832「分析用360p」と整合)'
+  - 'V_M010修正: main.py L1322 の main_speaker default ''unknown'' → ''dozle_club'' に統一
+    (L1267と整合)'
+  - 'L001修正: main.py L437-440 起動チェックに Remotion CLI チェック (''npx remotion --version''
+    or ''which npx'') を追加'
+  - 'L003修正: main.py L1213-1214 の channel_icon dead variable を削除'
+  - 'L007修正: main.py の --mode single dead code (L1412-1453付近) を argparse + 実装ごと削除'
+  - 'V_L010修正: main.py L213 の timeout=300 を REMOTION_RENDER_TIMEOUT_SEC = 300 定数化'
+  - 'V_L011修正: main.py L268-281 の finally unlink 2連 try/except を _safe_unlink(path)
+    ヘルパで統一'
+  - python3 -m py_compile projects/dozle_kirinuki/scripts/main.py で構文チェック
+  - 'git add projects/dozle_kirinuki/scripts/main.py && git commit -m ''fix(video):
+    WhisperX撤去+1080p閾値+dead code除去+定数化 (cmd_1671 C001/H002/V_M010/L001/L003/L007/V_L010/V_L011)'''
+  - POST /api/inbox_write で report_completed を karo に送信 (subtask_1671_a3a完了)
+  timestamp: '2026-05-09T07:10:20.764858+09:00'
+- agent: ashigaru3
+  task_id: subtask_1671_a3b
   status: blocked
-  steps: '0) advisor()呼出 1) 事前メモリ確認: free -h && nvidia-smi --query-gpu=memory.used,memory.total
-    --format=csv,noheader 2) cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
-    && source ~/.bashrc && source venv/bin/activate 3) 以下14本を順次処理。各動画: VIDEO_ID=<id>
-    → mkdir -p work/cmd_1636_<id>/{input,output} → downloader.py + vocal_stt_pipeline.py
-    → merged_{id}.json → A-F検証 4) 処理対象14本: BcPWm_mCpp4 Tdgz_MMfBAU X3cMBasYcSA 05zhA1M5SU0
-    XB-XKVQRCok sml-aYEMIKM D4_8sRpAKQo WbYEt3Pv0BE 8r1cEKpTM5M NgkCZL-uhZI WylcM9Jly2s
-    pIrocoqvwJg HnDcGHXKJFQ QCFyL7tG-v4 5) 5本ごとにメモリ確認。異常→即STOP→inbox karo 6) 全完了後:
-    成功/失敗一覧 + 最終メモリ状態 inbox karo報告 7) advisor()呼出'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/
-  task_id: subtask_1636_fullbatch3
-  timestamp: '2026-05-05T15:29:03.054235+09:00'
-- task_id: subtask_1664_fix_server
-  agent: ashigaru3
-  parent_cmd: cmd_1664
-  title: server.py busy_timeout 全経路統一 + query_db エラー処理改善
-  description: scripts/dashboard/server.py の sqlite3.connect() 経路 23箇所で PRAGMA busy_timeout
-    が未設定 (L57 get_db() の1箇所のみ設定済)。全接続を get_db() 経由に統一し busy_timeout=10000ms を確実に適用する。また
-    query_db() の OperationalError silent ignore を可視化に置換する。コード修正の前に必ず server.py L26
-    で DB_PATH を確認してから作業せよ (実DBは queue/cmds.db)。
-  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
+  parent_cmd: cmd_1671
   bloom_level: L3
-  status: done
-  priority: high
+  description: 'cmd_1667 CRITICAL/HIGH 2件修正 (main.py wave2 - blocked): C002 main.py呼出箇所
+    4引数追加 + H004 shorts override 4引数追加 (subtask_1671_a3a と subtask_1671_a5 完了後に実施)'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/main.py
+  blocked_by:
+  - subtask_1671_a3a
+  - subtask_1671_a5
   steps:
-  - 0. server.py L26 で DB_PATH を確認 (実DBは queue/cmds.db・data/dashboard.db は旧パスで存在しない)
-  - 1. Read scripts/dashboard/server.py L50-120 で get_db() の現実装確認
-  - 2. get_db() に PRAGMA busy_timeout = 10000 を追加 (既に L2825 で 1箇所設定あるがget_db()には未設定)
-  - 3. grep -n 'sqlite3.connect' scripts/dashboard/server.py で全接続箇所を列挙
-  - 4. get_db() を使わずに直接 sqlite3.connect() している箇所を get_db() 経由に統一 (ただし migration 等の起動時1回限りの処理は慎重に)
-  - '5. query_db() L106-107 の except sqlite3.OperationalError: return [] を except
-    sqlite3.OperationalError as e: print(f''[WARN] query_db error: {e}'', file=sys.stderr);
-    return [] に変更'
-  - '6. 変更後に server.py の syntax check: python3 -m py_compile scripts/dashboard/server.py'
-  - 7. advisor() を呼び出して変更内容を確認せよ
-  - 8. git diff scripts/dashboard/server.py を確認し意図外変更がないことを確認
-  - 9. git add scripts/dashboard/server.py && git commit
-  - 10. karo へ report_received inbox_write で通知 (変更行数・テスト結果明記)
-  acceptance_criteria:
-  - server.py L26 DB_PATH = queue/cmds.db を確認してから作業した証跡
-  - get_db() に PRAGMA busy_timeout = 10000 追加済み
-  - 直接 sqlite3.connect() 経路のうち get_db() 統一可能なものを統一 (移行不可の起動時処理は理由を明記)
-  - query_db() の OperationalError が stderr にログ出力されるよう変更
-  - python3 -m py_compile でシンタックスエラーなし
-  - git commit 済み (cmd_1664 明記)
-  timestamp: '2026-05-07T06:34:49.111963+09:00'
-- task_id: subtask_1666_remnant_cleanup
+  - subtask_1671_a5 (vertical_convert.py) の変更内容を確認 (追加された4引数の名前とデフォルト値を把握)
+  - 'C002 call site修正: main.py L1366-1381 の vertical_convert() 呼出に secondary_speaker
+    / main_tachie_override / secondary_tachie_override / hook_fontcolor を追加'
+  - 'H004修正: main.py の shorts mode で main_tachie_override / secondary_tachie_override
+    / hook_fontcolor を vertical_convert 呼出に渡すよう追加'
+  - python3 -m py_compile で構文チェック
+  - 'git add projects/dozle_kirinuki/scripts/main.py && git commit -m ''fix(video):
+    main.py C002 call site + H004 override渡し (cmd_1671)'''
+  - POST /api/inbox_write で report_completed を karo に送信 (subtask_1671_a3b完了)
+  timestamp: '2026-05-09T07:10:24.460023+09:00'
+- task_id: subtask_1681_analysis
   agent: ashigaru3
-  parent_cmd: cmd_1666
-  title: server.py L2826-2829 dead remnant 削除 (busy_timeout 5000→10000 逆作用解消)
-  description: cmd_1664 ash3修正のQCで軍師が発見した dead remnant 3件 (QC1664_FIX_R001〜R003) を物理削除する。最重要は
-    L2829 `_conn.execute('PRAGMA busy_timeout = 5000')` — これは get_db() で設定済の 10000ms
-    を 5000ms に逆作用でダウングレードする。L2826/L2827 は旧接続方式の dead import/dead variable。
-  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
-  bloom_level: L3
-  status: done
-  priority: high
-  steps:
-  - 0. server.py L25-30 で DB_PATH を確認 (server.py 実コード確認から始めよ)
-  - 1. Read queue/reports/gunshi_report_qc_1664_fix_server.yaml で削除対象 3 件を確認
-  - '2. server.py の実際の行番号を grep で確認: grep -n ''import sqlite3 as _sqlite3\|_db_path
-    = os.path\|PRAGMA busy_timeout = 5000'' scripts/dashboard/server.py'
-  - 3. 行番号を目視確認してから Edit tool で削除 (行番号ズレあり注意)
-  - '   - `import sqlite3 as _sqlite3` → 削除'
-  - '   - `_db_path = os.path.join(BASE_DIR, ''queue'', ''cmds.db'')` → 削除'
-  - '   - `_conn.execute(''PRAGMA busy_timeout = 5000'')` → 削除'
-  - '4. 類似 remnant を L2952/L3007 周辺で grep確認: grep -n ''PRAGMA busy_timeout = 5000\|_sqlite3\|_db_path''
-    scripts/dashboard/server.py'
-  - 5. 発見した remnant もすべて削除 (get_db() で 10000ms 設定済のため手動 PRAGMA は全廃)
-  - 6. python3 -m py_compile scripts/dashboard/server.py でシンタックスチェック
-  - 7. curl -s -w '\nHTTP %{http_code}\n' http://192.168.2.4:8770/api/cmd_list?limit=3
-    で動作確認
-  - 8. git add scripts/dashboard/server.py && git commit (cmd_1666 明記)
-  - 9. curl POST /api/inbox_write で家老 (karo) に report_received 通知
+  parent_cmd: cmd_1681
+  status: in_progress
+  bloom_level: L4
+  gunshi_qc: false
+  title: 'cmd_1681: Shorts feed 崖落ち原因調査 (5/6→5/7比較分析)'
+  description: 5/7以降 SHORTS% 49%→10% の崖落ち原因調査。YouTube Data API + Analytics API を用いた数値検証必須。推測のみ不可。
+  target_path: queue/reports/2026-05-12_cmd_1681_shorts_shadowban_analysis.md
+  steps: '1.advisor()呼出 2.projects/dozle_kirinuki/analytics/2026-05-12_snapshot.md
+    を Read して5/6 vs 5/7の境界確認 3.5/6と5/7投稿動画のメタデータ差分比較 (Data API videos.list) 4.Analytics
+    API トラフィックソース内訳 5/6 vs 5/7-5/11比較 5.5/7-5/11連続10%前後の共通点抽出 6.4/28 YPP NG履歴との時系列整合確認
+    7.報告書: queue/reports/2026-05-12_cmd_1681_shorts_shadowban_analysis.md 8.git commit
+    9.karo に report_received inbox通知'
   acceptance_criteria:
-  - L2826 `import sqlite3 as _sqlite3` 削除済 (grep で消えていることを確認)
-  - L2827 `_db_path = os.path.join(...)` 削除済
-  - L2829 `PRAGMA busy_timeout = 5000` 削除済 (逆作用を除去し get_db の 10000ms が生きる)
-  - L2952/L3007 周辺の類似 remnant も確認・削除
-  - python3 -m py_compile PASS
-  - curl GET /api/cmd_list 正常返却
-  - git commit 済み
-  - 家老 inbox 通知済
-  timestamp: '2026-05-07T07:08:37.172035+09:00'
+  - YouTube Data API + Analytics API 数値検証済
+  - 5/6 vs 5/7 境界のメタデータ差分明記
+  - トラフィックソース内訳比較あり
+  - シャドウバン断定は4/28 YPP NG履歴との整合後
+  - 報告書 queue/reports/ 格納
+  - git commit 済
+  timestamp: '2026-05-12T08:18:51.531296+09:00'

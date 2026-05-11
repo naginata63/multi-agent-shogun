@@ -69,30 +69,72 @@ tasks:
   - git add projects/dozle_kirinuki/context/ && git commit
   timestamp: '2026-05-06T16:25:51.112110+09:00'
 - agent: ashigaru2
-  task_id: subtask_1671_a2
-  status: done
-  parent_cmd: cmd_1671
+  task_id: subtask_1674_sessionstart_step0
+  parent_cmd: cmd_1674
+  status: in_progress
   bloom_level: L3
-  description: 'cmd_1668 CRITICAL/HIGH/MEDIUM 7件修正: precompact_hook.sh パス修正 + cron_health_check
-    C12/C13/C15追加 + ntfy.sh重複行削除/status transition厳格化 + stop_hook二重発火ガード + fix_panes.shモデル修正
-    + dashboard_lifecycle.sh コメント整合'
-  target_path: /home/murakami/multi-agent-shogun/scripts
-  steps:
-  - 'C2: scripts/precompact_hook.sh L138 の DASHBOARD_FILE を ''$SCRIPT_DIR/../dashboard.md''
-    (project root) に修正。ls で存在確認'
-  - 'H1: scripts/cron_health_check.sh の TARGETS 配列に C12 (hotfix_trend.log) / C13 (monthly_feedback_review.log)
-    / C15 (chroma_mcp_health.log) を追加'
-  - 'H2: scripts/ntfy.sh L26-27 の重複 IP 置換行の2行目を削除 (1行目で十分)'
-  - 'H3: scripts/stop_hook_inbox.sh L162-198 の fall-through で LAST_MSG 解析に入る前に STOP_HOOK_ACTIVE=True
-    の場合 LAST_MSG 解析をスキップするガードを追加'
-  - 'H5: scripts/fix_panes.sh L65-72 のフォールバック分岐をsettings.yaml準拠に修正: karo(i=0)→sonnet,
-    gunshi(i=TOTAL-1)→opus[1m], ashigaru→haiku'
-  - 'M1: scripts/ntfy.sh の _update_cmd_done が ''cmd_NNN完了'' 文字列にのみトリガーする問題 → awk条件を
-    inbox type=report_completed 経由に限定するか、または blocked/assigned ステータスは除外する修正を追加'
-  - 'M3: scripts/dashboard_lifecycle.sh L13 の「廃止済み」コメントを「dashboard.md は lifecycle
-    スクリプトで管理中 (active)」に修正'
-  - 各スクリプトの bash -n 構文チェック
-  - 'git add scripts/ && git commit -m ''fix(infra): precompact path/cron C12-C15/ntfy
-    fixes/stop_hook guard/fix_panes model (cmd_1671 C2/H1/H2/H3/H5/M1/M3)'''
-  - POST /api/inbox_write で report_completed を karo に送信 (subtask_1671_a2完了)
-  timestamp: '2026-05-09T07:10:20.752234+09:00'
+  description: "【cmd_1674】SessionStart Step 0 (SSE Monitor 起動) を source=startup でも必ず実行される構造に改修する。\n\
+    \n殿原文: 「ベータも実施 — sessionstart_hook.sh を改修し source=startup でも Monitor 起動を強制する文言にする」\n\
+    \n## 現状調査\n1) scripts/sessionstart_hook.sh を全文読む\n2) CLAUDE.md の Step 0 記述を確認\
+    \ (system-reminderのStep 0セクション)\n3) instructions/ashigaru.md / karo.md の Session\
+    \ Start 手順を確認\n\n## 設計: 案A〜D比較 (最低3案)\n- 案A: sessionstart_hook.sh で source=startup\
+    \ 時に Monitor コマンドを自動実行\n- 案B: CLAUDE.md の Step 0 文言を強化 (CRITICAL化・NEVER SKIP追加)\n\
+    - 案C: instructions/*.md 各エージェント手順に Step 0 を明示追加\n- 案D: A+B+C の組み合わせ\n各案: メリット・デメリット・実装コスト・確実性\n\
+    \n## 実装 (推奨案)\n- sessionstart_hook.sh: source=startup 時の Monitor 起動を追加実装\n- CLAUDE.md:\
+    \ Step 0 の文言を強化\n- instructions/*.md: 必要なら各エージェント手順に追記\n\n## 検証\n1) switch_cli.sh\
+    \ でash1を再起動 → Monitor 自動起動を確認 (tmux pane 0.1 の Monitor 確認)\n2) /clear を ash1 に送信\
+    \ → Monitor 自動起動を確認\n※ 実際の /clear 送信は家老に報告して実施してもらう (足軽は tmux send-keys 禁止)\n\
+    \  → 代わりに sessionstart_hook.sh の動作ロジックをコードレビューで検証でも可\n\n## 成果物\n- queue/reports/2026-05-09_cmd_1674_sessionstart_step0_enforcement.md\
+    \ (案A〜D比較 + 実装内容)\n- 改修ファイル一覧\n- git commit & push\n- ntfy: bash scripts/ntfy.sh\
+    \ \"✅ cmd_1674完了: Step0 Monitor強制起動実装済\"\n- 完了後 karo に report_received で inbox\
+    \ 通知"
+  target_path: queue/reports/2026-05-09_cmd_1674_sessionstart_step0_enforcement.md
+  acceptance_criteria:
+  - queue/reports/2026-05-09_cmd_1674_sessionstart_step0_enforcement.md 存在
+  - 案A〜D (最低3案) の比較 + 推奨案明記
+  - 推奨案実装済 (sessionstart_hook.sh 改修 含む)
+  - 改修ファイル全て commit & push 済
+  - ntfy で殿に完了通知
+  timestamp: '2026-05-09T08:15:50.981903+09:00'
+- agent: ashigaru2
+  task_id: subtask_1663a_whisperx_refactor
+  parent_cmd: cmd_1663
+  status: assigned
+  bloom_level: L3
+  description: "【cmd_1663-A CRITICAL】transcribe_with_speakers.py を WhisperX依存から AssemblyAI\
+    \ + ECAPA-TDNN 経路に移行 (or legacy/ 移動)。\n\n## 背景\ncmd_1671でWhisperX撤去決定済。しかし transcribe_with_speakers.py\
+    \ が auto_fetch.py 経由でWhisperX依存が継続している (軍師報告 C001)。\n\n## 調査先\n- projects/dozle_kirinuki/scripts/transcribe_with_speakers.py\n\
+    - projects/dozle_kirinuki/scripts/auto_fetch.py\n- projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py\
+    \ (AssemblyAI経路参照用)\n\n## 実装方針\n1) まず Read して現状把握\n2) advisor() 呼び出し\n3) 選択肢A:\
+    \ vocal_stt_pipeline.py の AssemblyAI経路を使うようにリファクタ\n   選択肢B: 使われていないなら projects/dozle_kirinuki/scripts/legacy/\
+    \ に移動\n4) git add && git commit\n5) karo に report_received で通知 (to=karo, from=ashigaru2,\
+    \ type=report_received, message=対応内容サマリ)"
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/scripts/transcribe_with_speakers.py
+  acceptance_criteria:
+  - transcribe_with_speakers.py の WhisperX/auto_fetch.py 依存が解消または legacy/ 移動
+  - git commit 済
+  - py_compile PASS (修正した場合)
+  timestamp: '2026-05-09T10:21:48.458388+09:00'
+- task_id: subtask_1683_rules
+  agent: ashigaru2
+  parent_cmd: cmd_1683
+  status: done
+  bloom_level: L2
+  title: 'cmd_1683: YouTube字幕並列DL IP BAN 再発防止ルール更新'
+  description: memory feedback更新 + 全足軽YAML/スクリプトのルール明記確認。コード改修禁止。ルール文書のみ。
+  target_path: memory/feedback/feedback_youtube_subtitle_ip_ban.md
+  steps: '1.Read memory/feedback/feedback_youtube_subtitle_ip_ban.md 2.advisor()呼出
+    3.cookie認証時は直列1本・間隔10秒以上に厳格化 / 認証なし時のみ並列1-2・間隔5秒許容 / cookie認証時のGoogle アカウントスパムフラグ長期影響を追記
+    / cmd_1681 AC6確定教訓(5/5→5/7 SHORTS% 49→10%崖落ち)を追記 4.queue/tasks/ + shared_context/
+    + projects/dozle_kirinuki/scripts/ でyt-dlp/timedtext/subtitle/字幕を含む箇所をgrep→並列DL制約明記の要否確認
+    5.欠落あれば該当ファイルに追記 6.CLAUDE.md への YouTube DL制約セクション追加は家老判断: 既存memory feedbackリンクで足りるなら不要
+    7.報告書: queue/reports/2026-05-12_cmd_1683_youtube_dl_rules_update.md (修正前後diff・grep点検結果・追加防御ルール)
+    8.git commit 9.karo に report_received inbox通知'
+  acceptance_criteria:
+  - memory/feedback/feedback_youtube_subtitle_ip_ban.md にcookie認証時の厳格化ルール追記済
+  - grep点検結果一覧 (該当箇所・対応要否) 報告書に含む
+  - 報告書 queue/reports/2026-05-12_cmd_1683_youtube_dl_rules_update.md 格納
+  - コード変更なし (ルール文書のみ)
+  - git commit 済
+  timestamp: '2026-05-12T08:19:05.638434+09:00'
+  completed_at: '2026-05-12T08:25:37+09:00'

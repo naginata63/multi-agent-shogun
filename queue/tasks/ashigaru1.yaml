@@ -52,39 +52,6 @@ tasks:
   task_id: subtask_1613e
   timestamp: '2026-05-04T08:42:02.809416+09:00'
 - acceptance_criteria:
-  - merged_IKu8Dad0YyY.json が srt_and_candidates/ に存在
-  - A-F speakers = 0件
-  - 'RAM・GPU VRAM ピーク値を報告 (異常: RAM>40GB or VRAM>7.5GB)'
-  - dmesg に OOM-killer 出現なし
-  agent: ashigaru1
-  bloom_level: L3
-  description: 'cmd_1636 Phase A 試運転1本目 (ash1): IKu8Dad0YyY を DL→Demucs→STT→speaker_mapping
-    まで処理し、メモリ使用量を記録して家老に報告'
-  gunshi_qc: false
-  notes: 【CRITICAL】処理中に RAM>40GB or swap使用>0 or dmesg OOM 検出時は即停止してinbox karoにエスカレ。これはPhase
-    A試運転 (2並列安全確認)。ash2と同時実行中のため並列メモリ消費に注意。GEMINI API は期限切れのためscene_search_v2 build
-    は実行禁止 (indexingは後工程で別タスク化)。git push は家老が実施。
-  parent_cmd: cmd_1636
-  priority: high
-  status: in_progress
-  steps: '0) advisor()呼出 1) Read /home/murakami/multi-agent-shogun/.claude/commands/video-pipeline.md
-    2) 【事前メモリ記録】free -h && nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader
-    → 値をメモ 3) VIDEO_ID=IKu8Dad0YyY / WORK_DIR=/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/cmd_1636_IKu8Dad0YyY
-    4) mkdir -p $WORK_DIR/input $WORK_DIR/output 5) 【DL】cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
-    && source ~/.bashrc && source venv/bin/activate && python3 scripts/downloader.py
-    ''https://www.youtube.com/watch?v=IKu8Dad0YyY'' --output-dir work/cmd_1636_IKu8Dad0YyY/input/
-    6) 【Demucs中メモリ記録】vocal_stt_pipeline.py 実行前後に free -h && nvidia-smi を実行 7) 【STT+speaker_mapping】source
-    ~/.bashrc && source venv/bin/activate && python3 scripts/vocal_stt_pipeline.py
-    work/cmd_1636_IKu8Dad0YyY/input/IKu8Dad0YyY.mp4 --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_IKu8Dad0YyY.json
-    --work-dir work/cmd_1636_IKu8Dad0YyY/output/ --cache 8) 【完了後メモリ記録】free -h && nvidia-smi
-    → ピークRAM/VRAMを記録 9) 【A-F検証】python3 -c "import json; d=json.load(open(''work/srt_and_candidates/merged_IKu8Dad0YyY.json''));
-    words=d.get(''words'',d.get(''segments'',[])); bad=[w for w in words if w.get(''speaker'','''')
-    in [''A'',''B'',''C'',''D'',''E'',''F'']]; print(f''A-F: {len(bad)}''); assert
-    not bad,''A-F残存''" 10) advisor()呼出 11) inbox karo 完了報告 (RAM使用量・GPU VRAM使用量・A-F=0確認・処理時間)'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_IKu8Dad0YyY.json
-  task_id: subtask_1636_stepA1
-  timestamp: '2026-05-05T15:20:01.432320+09:00'
-- acceptance_criteria:
   - merged_mvHqvnHOI7o.json 存在・A-F=0
   - RAM/VRAM ピーク値報告
   - OOM-killer 未発生
@@ -204,300 +171,40 @@ tasks:
     pushは家老が実施。
   timestamp: '2026-05-05T16:45:23.821335+09:00'
 - agent: ashigaru1
-  task_id: subtask_1636_testdl
-  status: done
-  priority: high
-  parent_cmd: cmd_1636
+  task_id: subtask_1656_b_video_map
+  status: blocked
+  parent_cmd: cmd_1656
   bloom_level: L3
-  gunshi_qc: false
-  description: 'cmd_1636 新版downloader.py --cookies-from-browser chrome 動作確認テスト: 1本(gap7LGY3n88)
-    DL + vocal_stt_pipeline。成功確認後に家老に報告'
-  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_gap7LGY3n88.json
-  steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki
-    && source ~/.bashrc && source venv/bin/activate 2) VIDEO_ID=gap7LGY3n88 && mkdir
-    -p work/cmd_1636_${VIDEO_ID}/{input,output} 3) DLテスト: [ -f work/cmd_1636_${VIDEO_ID}/input/${VIDEO_ID}.mp4
-    ] && echo ''SKIP DL'' || python3 scripts/downloader.py ''https://www.youtube.com/watch?v=''${VIDEO_ID}
-    work/cmd_1636_${VIDEO_ID}/input/ ${VIDEO_ID} --cookies-from-browser chrome 4)
-    DL成功確認: ls -lh work/cmd_1636_${VIDEO_ID}/input/${VIDEO_ID}.mp4 5) STT実行: python3
-    scripts/vocal_stt_pipeline.py work/cmd_1636_${VIDEO_ID}/input/${VIDEO_ID}.mp4
-    --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_${VIDEO_ID}.json
-    --work-dir work/cmd_1636_${VIDEO_ID}/output/ --cache 6) 検証: python3 -c "import
-    json; d=json.load(open(''/home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_gap7LGY3n88.json''));
-    sf=d.get(''speaker_frames'',[]); bad=[x for x in sf if x.get(''speaker'','''')
-    in list(''ABCDEF'')]; print(f''A-F speakers: {len(bad)} / total: {len(sf)}'')"
-    7) GZ1O6k1Fe3A STTのみ再試行: python3 scripts/vocal_stt_pipeline.py work/cmd_1636_GZ1O6k1Fe3A/input/GZ1O6k1Fe3A.mp4
-    --output /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/work/srt_and_candidates/merged_GZ1O6k1Fe3A.json
-    --work-dir work/cmd_1636_GZ1O6k1Fe3A/output/ --cache 8) 検証: merged_GZ1O6k1Fe3A.json
-    でA-F=0確認 9) 結果報告: DL成功/失敗・A-F件数・エラーがあれば全文 10) advisor()呼出 11) inbox karo 結果報告
-    (成功なら残38本展開の許可を求めよ・失敗なら詳細エラー報告)'
-  acceptance_criteria:
-  - merged_gap7LGY3n88.json が srt_and_candidates/ に存在
-  - merged_gap7LGY3n88.json でA-F speakers = 0
-  - merged_GZ1O6k1Fe3A.json が存在 (STTのみ再試行)
-  - merged_GZ1O6k1Fe3A.json でA-F speakers = 0
-  notes: 将軍がdownloader.pyに--cookies-from-browserを実装済(commit 94ae3b3)。Chrome拡張・cookies.txt配置不要。テスト成功なら家老が残38本を展開する。GZ1O6k1Fe3AはDL済み(649MB)+demucs完了のためSTTのみ再試行。git
-    pushは家老が実施。
-  timestamp: '2026-05-05T18:44:15.633415+09:00'
-- agent: ashigaru1
-  task_id: subtask_1642_doc
-  status: done
-  priority: high
-  parent_cmd: cmd_1642
-  bloom_level: L3
-  gunshi_qc: false
-  description: 'cmd_1642 Phase2 ドキュメント整備: CLAUDE.md Session Start Step7 + instructions
-    4ファイル + shutsujin STEP 6.6 + poc_monitor_inbox.sh改善'
-  target_path: /home/murakami/multi-agent-shogun/CLAUDE.md
-  steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) [CLAUDE.md] Read
-    CLAUDE.md → Session Start セクション (Step 1-6) を確認 → Step 6の後に Step 7追加: ''7. **Monitor起動
-    (Phase 2 並走運用)**: `Bash(run_in_background=true, command="bash scripts/poc_monitor_inbox.sh
-    queue/inbox/{agent_id}.yaml")` → Monitor tool で stdout 監視。既存 inbox_watcher.sh
-    と並走・本Monitorが受信できれば処理継続。'' (5行以内・簡潔に) 3) [instructions/ashigaru.md] Read instructions/ashigaru.md
-    → /clear Recovery セクションの後に追加: ''## Monitor 並走起動 (cmd_1642 Phase2) / Session Start
-    Step 7 参照: Bash(run_in_background=true, scripts/poc_monitor_inbox.sh {inbox_path})
-    → Monitor tool 監視。watcher.sh 並走継続。'' 4) [instructions/karo.md] Read instructions/karo.md
-    → 同様のMonitor起動セクション追加 5) [instructions/shogun.md] Read instructions/shogun.md
-    → 同様追加 6) [instructions/gunshi.md] Read instructions/gunshi.md → 同様追加 (ScheduleWakeup運用ルールの後など)
-    7) [shutsujin_departure.sh STEP 6.6] Read /home/murakami/multi-agent-shogun/shutsujin_departure.sh
-    行909-955を確認 → STEP 6.6ブロックの末尾(log_success行の後)に以下コメントブロック追加: ''# STEP 6.6.1 (Phase
-    2 並走): poc_monitor_inbox.sh による Monitor tool 並走監視 (cmd_1642) / # 各エージェントの Claude
-    セッション内で Session Start Step 7 が Monitor を起動する / # 本 STEP 6.6 の inbox_watcher.sh
-    は物理的に継続稼働 (Phase 3 廃止予定・cmd_1643)'' 8) [poc_monitor_inbox.sh改善] Read scripts/poc_monitor_inbox.sh
-    → agent_id引数サポート強化: 第1引数がagent_id (karo等) なら queue/inbox/{agent_id}.yaml を自動解決するよう分岐追加。現状は完全パス渡しのみ。改善後:
-    bash scripts/poc_monitor_inbox.sh karo でも動く 9) git add CLAUDE.md instructions/shogun.md
-    instructions/karo.md instructions/ashigaru.md instructions/gunshi.md shutsujin_departure.sh
-    scripts/poc_monitor_inbox.sh && git diff --cached --stat && git commit -m ''docs(cmd_1642):
-    Phase2 Monitor並走 CLAUDE.md+instructions+shutsujin更新'' && git push origin main
-    10) advisor()呼出 11) inbox karo 完了報告'
-  acceptance_criteria:
-  - CLAUDE.md Session Start にStep 7 Monitor起動追加済
-  - instructions/shogun.md・karo.md・ashigaru.md・gunshi.md にMonitor起動セクション追加済 (4ファイル)
-  - shutsujin_departure.sh STEP 6.6末尾にPhase2並行運用コメント追加済
-  - 'scripts/poc_monitor_inbox.sh がagent_id引数対応 (例: bash scripts/poc_monitor_inbox.sh
-    karo)'
-  - git commit + push済
-  notes: 'RACE-001: instructions/gunshi.md は gunshi も参照するが書込みは本タスクのみ(gunshiは読取専用)。shutsujin_departure.sh
-    はルートにある(/home/murakami/multi-agent-shogun/shutsujin_departure.sh)。git add時はパス確認せよ。修正は最小限・現行watcher削除禁止。'
-  timestamp: '2026-05-06T03:59:01.566438+09:00'
-  completed_at: '2026-05-06T04:10:31+09:00'
-- agent: ashigaru1
-  task_id: subtask_1643_sse_impl
-  status: cancelled
-  priority: high
-  parent_cmd: cmd_1643
-  bloom_level: L4
-  gunshi_qc: false
-  description: 'cmd_1643: server.py に SSE endpoint /api/inbox_stream 実装 + /api/inbox_write
-    に in-memory queue push追加'
-  target_path: /home/murakami/multi-agent-shogun/scripts/dashboard/server.py
-  steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) Read scripts/dashboard/server.py
-    → import部・do_GET・do_POST・inbox_write handler(行2843付近)の構造を把握 3) [実装A: in-memory
-    queue] server.py のimport部(行16付近)に `import queue as _queue` 追加。グローバル変数として `_sse_queues:
-    dict = {}` と `_sse_lock = threading.Lock()` を追加 (既存 _jobs_lock の近く) 4) [実装B: /api/inbox_stream
-    GET endpoint] do_GET の elif チェーン末尾に追加: `elif self.path.startswith(''/api/inbox_stream''):`
-    → urllib.parse.urlparse で agent パラメータ取得 → agent が空なら 400 → Content-Type: text/event-stream
-    / Cache-Control: no-cache / Connection: keep-alive ヘッダ送信 → q = _queue.Queue()
-    → _sse_lock で _sse_queues.setdefault(agent, []).append(q) → try/finally ループ: try:
-    msg = q.get(timeout=30) → wfile.write(f''data: {json.dumps(msg)}\n\n''.encode())
-    → wfile.flush() / except _queue.Empty: wfile.write(b'': heartbeat\n\n'') → wfile.flush()
-    / finally: _sse_lock で _sse_queues[agent].remove(q) 5) [実装C: inbox_write への push]
-    do_POST の /api/inbox_write handler の成功レスポンス直前に追加: `with _sse_lock:` → `for q in
-    _sse_queues.get(target, []):` → `try: q.put_nowait({''type'': msg_type, ''from'':
-    from_agent, ''task_id'': body.get(''task_id'',''''), ''msg_id'': actual_msg_id,
-    ''timestamp'': now_jst.strftime(''%Y-%m-%dT%H:%M:%S'')})` → `except: pass` 6)
-    [動作確認] bash scripts/dashboard/server.py &>/dev/null & sleep 1 → curl -s --no-buffer
-    -N ''http://192.168.2.4:8770/api/inbox_stream?agent=karo'' & sleep 1 → POST /api/inbox_write
-    でkaro宛テストメッセージ → SSEストリームにdata行が出力されることを確認 → pkill -f ''curl.*inbox_stream'' 7)
-    git add scripts/dashboard/server.py && git diff --cached --stat && git commit
-    -m ''feat(cmd_1643): server.py SSE /api/inbox_stream endpoint + in-memory queue
-    push'' && git push origin main 8) advisor()呼出 9) inbox karo 完了報告'
-  acceptance_criteria:
-  - server.py に /api/inbox_stream?agent=<id> GET endpoint 追加済
-  - /api/inbox_write 成功時に _sse_queues[target] へ put_nowait 実装済
-  - curl --no-buffer でSSEストリーム接続→inbox_write後にdata:行が届くことを動作確認
-  - heartbeat (30s timeout) も出力されること確認
-  - git commit + push済
-  notes: 'server.pyは scripts/dashboard/server.py。threading は import済。SSE: Content-Type=text/event-stream,
-    Cache-Control=no-cache, Connection=keep-alive の3ヘッダ必須。wfile.write後にflush()必須(バッファリング対策)。既存YAML/SQLite書込みは削除せず・SSE
-    pushを追加するだけ。'
-  timestamp: '2026-05-06T04:33:18.520094+09:00'
-- agent: ashigaru1
-  task_id: subtask_1647_prewrite_ch00_ch03
-  status: done
-  priority: high
-  parent_cmd: cmd_1647
-  bloom_level: L3
-  gunshi_qc: false
-  description: 'cmd_1647 Phase1: ch00-ch03 の事前4項目 (対象問題・持ち帰り・ストーリー・実例) を作成し殿確認用ファイルに出力'
-  target_path: projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch00_ch03.md
-  steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) 設計書精読: projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md
-    §7 章別詳細設計 (ch00-ch03) + §11 事前4項目プロトコル + §2 困りごと11件 + §3 3層世界観 3) 各章で以下4項目をMarkdown形式で作成:
-    [1]対象問題: この章で解決する困りごと (困りごと11件+3層欠如マッピングと紐付け) [2]持ち帰り: 受講者が章末で言える1文/できる1動作 [3]ストーリー:
-    現象→対策の物語線 [4]実例: 受講者の現場(営業/PM/データ分析)に置換可能な具体例 4) ch00: 導入 / 3層世界観+11困りごと / ch01:
-    /command+Skill布石 / ch02: 失敗3パターン診断 / ch03: context window 3制約 5) 出力先: projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch00_ch03.md
-    に章ごとセクション形式で出力 6) git add -f projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch00_ch03.md
-    && git commit -m ''feat(udemy): v5 ch00-ch03 事前4項目作成 (Phase1)'' && git push origin
-    main 7) advisor()呼出 8) inbox karo 完了報告 (4章×4項目の概要サマリ)'
-  acceptance_criteria:
-  - ch00-ch03 各章の事前4項目 (対象問題・持ち帰り・ストーリー・実例) が全て記述済
-  - 各項目が設計書 §7 章別詳細設計と整合している
-  - 困りごと11件 + 3層欠如マッピングとの紐付けが明記
-  - 実例が受講者ペルソナ (営業/PM/データ分析) に置換可能な具体性を持つ
-  - projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch00_ch03.md 作成済
-  - git commit + push済 (git add -f 使用)
-  notes: '入力ファイル: projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md
-    (860行)。§7 (L216-) の章別詳細設計・§11 (L758-) の事前4項目プロトコル・§2 (L62-) の困りごと11件を必ず参照。ゼロベース原則:
-    文章コピペ禁止・概念とコード片のみ流用可。git add -f 必須 (projects/ は gitignore対象)。'
-  timestamp: '2026-05-06T05:08:45.438850+09:00'
-  completed_at: '2026-05-06T05:36:49+09:00'
-- agent: ashigaru1
-  task_id: subtask_1648_sse_impl
-  status: done
-  completed_at: '2026-05-06T05:29:13+09:00'
-  priority: high
-  parent_cmd: cmd_1648
-  bloom_level: L4
-  gunshi_qc: true
-  description: 'cmd_1648 Phase1: server.py に SSE endpoint + feature flag + SQLite未読取得
-    + Last-Event-ID + in-memory queue を実装'
-  target_path: scripts/dashboard/server.py
-  steps: '0) advisor()呼出 1) cd /home/murakami/multi-agent-shogun 2) 設計資料精読: queue/cmd_payloads/cmd_1643.json
-    (SubtaskA設計コード) + queue/reports/2026-05-06_cmd_1646_a_design_qc.md (CRITICAL5件+改善提案)
-    3) server.py (scripts/dashboard/server.py) の構造確認: import部 + DashboardHandlerクラス構造
-    + do_GET + /api/inbox_write handler + 末尾のThreadingHTTPServer起動部 4) [実装] 以下を全て
-    server.py に追記/修正: (a)import追加: import queue as _queue_module, threading, os (既存importに追加)
-    (b)global state: _INBOX_QUEUES = defaultdict(lambda: _queue_module.Queue(maxsize=1000))
-    + _INBOX_QUEUES_LOCK = threading.Lock() (c)protocol_version = ''HTTP/1.1'' を DashboardHandler
-    クラスに明示 (d)/api/inbox_stream endpoint: ENABLE_SSE_INBOX env check → false=404 /
-    true=SSE generator。SQLite未読先push (read=0のmsg_idを Last-Event-IDで差分取得) + in-memory
-    queue.get(timeout=30) + keepalive ping + wfile.flush() + SQL injection対策 (re.match
-    でagent validate) (e)Last-Event-ID対応: request headerから取得→SQLiteで該当以降の未読をpush (f)/api/inbox_write
-    handler内に _push_to_inbox_queue() 呼出追加 5) python3 -m py_compile scripts/dashboard/server.py
-    で構文チェック PASS確認 6) 動作テスト: ENABLE_SSE_INBOX=false → curl -s -o /dev/null -w ''%{http_code}''
-    http://localhost:8770/api/inbox_stream?agent=karo が 404確認 → ENABLE_SSE_INBOX=true
-    で server.py 再起動 → curl -N --no-buffer http://localhost:8770/api/inbox_stream?agent=test_agent
-    で SSE接続確認 → /api/inbox_write でテストメッセージ → SSE event受信確認 7) テスト結果を queue/reports/2026-05-06_cmd_1648_phase1_unit_test.md
-    に記録 8) git add scripts/dashboard/server.py queue/reports/2026-05-06_cmd_1648_phase1_unit_test.md
-    && git commit -m ''feat(inbox): SSE endpoint /api/inbox_stream + feature flag
-    + Last-Event-ID 実装 (cmd_1648 Phase1)'' && git push origin main 9) advisor()呼出
-    10) inbox gunshi 実装完了・QC依頼 (subtask_1648_qc起票依頼はkaro経由)'
-  acceptance_criteria:
-  - server.py に /api/inbox_stream?agent=<id> SSE endpoint 実装済
-  - ENABLE_SSE_INBOX 環境変数による feature flag 実装済 (default=false)
-  - ENABLE_SSE_INBOX=false で 404 応答確認済
-  - ENABLE_SSE_INBOX=true で SSE event 配信確認済 (curl -N で stdout に流れる)
-  - SSE 接続初期化時に SQLite から未読 (read=0) を先 push する実装済
-  - Last-Event-ID ヘッダー対応実装済 (再接続時に該当 msg_id 以降を SQLite から取得)
-  - in-memory queue (defaultdict + threading.Queue・maxsize=1000) 実装済 + Full 例外処理
-  - /api/inbox_write 内に queue.put_nowait 追加実装済
-  - protocol_version='HTTP/1.1' 明示済
-  - python3 -m py_compile PASS
-  - agent パラメータ validation (SQL injection 対策) 実装済
-  - queue/reports/2026-05-06_cmd_1648_phase1_unit_test.md 作成 (テスト結果記録)
-  - 既存 inbox_watcher.sh / Monitor (cmd_1642) は触らない (rollback 確保)
-  - git commit 済
-  notes: 'server.py は stdlib http.server.ThreadingHTTPServer + BaseHTTPRequestHandler
-    (Flask非使用)。詳細設計: queue/cmd_payloads/cmd_1643.json SubtaskA + queue/reports/2026-05-06_cmd_1646_a_design_qc.md
-    §2。CRITICAL: server.py再起動でin-memory queue消失→接続初期化時SQLite未読を必ずpush。feature flag
-    ENABLE_SSE_INBOX=falseがdefault(本番環境への即時影響を防ぐ)。既存inbox_watcher.sh/CLAUDE.md/instructions*.mdは本cmdでは絶対触るな。gunshi
-    QC後にkaroに報告すること。git add -f不要(server.pyはgit管理済・reports/はgit add -f必須)。'
-  timestamp: '2026-05-06T05:14:10.789768+09:00'
-- agent: ashigaru1
-  task_id: subtask_1647_write_ch00_ch01
-  status: done
-  parent_cmd: cmd_1647
-  bloom_level: L3
-  description: 'cmd_1647 Phase2: ch00(導入・全体地図) + ch01(SlashCommand/Skill布石) 本文執筆・udemy-checker
-    🟢'
-  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/lectures/
-  steps: 1) curriculum_intermediate_v5_marp.md + v5_design.md + 自分の prewrite md 精読
-    2) advisor()呼出 3) 担当章をMarp形式で執筆 4) udemy-checker /udemy-checker <ファイルパス> で 🟢 確認
-    5) NGワードgrep 6) git add -f → commit 7) 全章完了後 inbox karo report_received
-  acceptance_criteria:
-  - 担当章すべての .md (Marp) + .html 作成済
-  - udemy-checker 🟢 達成 (観点A-E満足)
-  - NGワードリスト全件grep 0件
-  - 各章末に「強化した層：●層(L1/L2/L3)」1行明記
-  - JIT→必要時取得 / Lazy Load→必要時読込 置換済
-  - git add -f → commit + push 済
-  - inbox_write karo report_received 送信済
-  notes: '担当章: ch00(導入), ch01(SlashCommand/Skill)
-
-    prewrite: intermediate_v5_prewrite_ch00_ch03.md (ch00/ch01分担)
-
-    【入力ファイル】
-
-    - projects/udemy_course/drafts/lectures/curriculum_intermediate_v5_marp.md (v5設計書・主体)
-
-    - projects/udemy_course/v5_design.md
-
-    - 自分の担当章の prewrite md (下記target_path参照)
-
-
-    【執筆ルール】
-
-    - Marp形式 (.md) で執筆 → Marp CLI で .html 生成
-
-    - NGワード: 経済/階層/JIT/Lazy Load/queue/tasks/shogun/karo/ashigaru/gunshi/multi-agent-shogun
-    → 0件
-
-    - JIT→必要時取得 / Lazy Load→必要時読込 に置換
-
-    - 各章末に「強化した層：●層（L1/L2/L3）」1行明記
-
-    - udemy-checker 🟢 まで回し直し (最大3回)
-
-    - git add -f (gitignored) → commit (1章ずつ)
-
-    - 完了後 inbox karo report_received
-
-
-    【3層フレーム】L1=ch01-02 / L2=ch03-04 / L3=ch05-08
-
-    【困りごとマッピング】curriculum_intermediate_v5_marp.md §2 参照
-
-    【Skills縦糸】ch01(布石)→ch07(発展)→ch11(完成)'
-  timestamp: '2026-05-06T07:12:19.771206+09:00'
-  completed_at: '2026-05-06T07:27:13+09:00'
-- agent: ashigaru1
-  task_id: subtask_url_fix_index
-  status: done
-  completed_at: '2026-05-06T10:33:23+09:00'
-  parent_cmd: cmd_1647
-  bloom_level: L1
-  description: '緊急: drafts/index.html に v5 リンクを追加 (殿レビュー URL 修正)'
-  target_path: /home/murakami/multi-agent-shogun/projects/udemy_course/drafts/index.html
-  steps: '1) Read index.html 2) <h1>タイトルを「最新 v5」に変更 3) summaryを v5完了に更新 4) 中級編セクションの先頭に
-    v5 ブロックを追加(NEW バッジ付き): カリキュラム→curriculum_intermediate_v5.html, ch00〜ch11 全12章→lectures/intermediate_v5_chXX_*.html
-    5) 既存 v4 を「旧版」扱いに降格 6) git add -f → commit → push 7) inbox karo report_received'
-  acceptance_criteria:
-  - index.html タイトルが v5 最新版を示している
-  - curriculum_intermediate_v5.html へのリンクあり
-  - lectures/intermediate_v5_ch00_intro.html 〜 ch11_skill.html 全12章へのリンクあり
-  - git add -f → commit → push 済
-  - http://192.168.2.4:8773/ でアクセス可能なこと確認
-  notes: '【緊急】殿が http://192.168.2.4:8773/intermediate_v5/ を開いて 404 になった。index.html
-    が v4 止まりで v5 リンクがない。v5 章別HTML は全て lectures/ 配下にある: intermediate_v5_ch00_intro.html
-    〜 ch11_skill.html。git add -f (gitignored) で強制 add 必須。'
-  timestamp: '2026-05-06T10:21:06.025042+09:00'
-- agent: ashigaru1
-  task_id: subtask_1655_phaseA_extract
-  status: assigned
-  parent_cmd: cmd_1655
-  bloom_level: L3
-  description: 'cmd_1655 Phase A: v4スタイル正典抽出 + ch00/ch01 適用'
-  target_path: /home/murakami/multi-agent-shogun/shared_context/marp_v4_style_template.md
+  description: 'cmd_1656: work_video_map.md に4-5月分(約60 dir)の video_id を追記'
+  target_path: /home/murakami/multi-agent-shogun/projects/dozle_kirinuki/context/work_video_map.md
   steps:
-  - 1. projects/udemy_course/drafts/lectures/intermediate_v4_ch01_prompt_function.md
-    を読む
-  - '2. frontmatter style全体・<!-- _class: cover --> カバースライドブロック・.meta div・section padding
-    50px 70px・flex layout・speakerノートHTMLコメント形式を抽出'
-  - 3. shared_context/marp_v4_style_template.md に正典保存 (frontmatter style + カバースライド例
-    + .meta div例 + speakerノート例)
-  - 4. intermediate_v5_ch00_intro.md と intermediate_v5_ch01_3layer.md を読み、v4スタイルを適用
-    (既存本文は壊さず・スタイル要素のみ追加/差替え・カバースライドに章番号/タイトル/FREEバッジ/講師名なぎなた)
-  - '5. Marp CLI で .html 再生成: npx @marp-team/marp-cli <file>.md -o <file>.html'
-  - 6. git add -f projects/udemy_course/ shared_context/marp_v4_style_template.md
-    && git commit
-  - 7. karo へ inbox report_received
-  timestamp: '2026-05-06T11:36:32.480348+09:00'
+  - Read projects/dozle_kirinuki/context/work_video_map.md で現在の3月分を確認
+  - ls projects/dozle_kirinuki/work/ で4-5月分(202604/202605始まり)のworkディレクトリ一覧を取得
+  - 各workディレクトリの input/*.info.json または merged_*.json から video_id (YouTube ID) を抽出
+  - 抽出できない場合はフォルダ名からタイトルを記録し video_id は TBD と記載
+  - projects/dozle_kirinuki/context/shorts_upload_map.md を確認して4-5月の公開済みショートと本編の紐付けを補完
+  - work_video_map.md に 4月/5月元動画セクションを追記 (3月分と同じフォーマット)
+  - git add + commit
+  timestamp: '2026-05-06T16:25:41.612197+09:00'
+- task_id: subtask_1682_fix
+  agent: ashigaru1
+  parent_cmd: cmd_1682
+  status: done
+  bloom_level: L2
+  title: 'cmd_1682: snapshot.py 非公開動画除外フィルタ修正'
+  description: scripts/youtube_analytics_snapshot.py の get_recent_shorts_feed_check()
+    で非公開動画が警告対象になるバグを修正。(1) privacy_status を check dict に追加 (2) is_warn 判定に privacy_status==public
+    条件追加 (3) レポート生成側でも非公開除外 (4) テスト実行で誤検知消えること確認
+  target_path: scripts/youtube_analytics_snapshot.py
+  steps: '1.advisor()呼出 2.Read scripts/youtube_analytics_snapshot.py L283-360+L911-934
+    3.privacy_status を is_warn 前に確認できる修正実装 4.python scripts/youtube_analytics_snapshot.py
+    --dry-run (or dry_run的確認) 5.報告書: queue/reports/2026-05-12_cmd_1682_snapshot_filter_fix.md
+    (修正前後diff・警告動画数変化) 6.git commit 7.karo に report_received inbox通知'
+  acceptance_criteria:
+  - privacy_status != public の動画が is_warn 対象外
+  - レポート生成側でも非公開動画が除外
+  - テスト実行で誤検知なし確認
+  - git commit 済
+  - 報告書 queue/reports/2026-05-12_cmd_1682_snapshot_filter_fix.md 格納
+  timestamp: '2026-05-12T08:18:39.705749+09:00'
+  completed_at: '2026-05-12T08:25:37+09:00'
