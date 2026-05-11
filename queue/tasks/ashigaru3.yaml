@@ -122,7 +122,7 @@ tasks:
 - task_id: subtask_1681_analysis
   agent: ashigaru3
   parent_cmd: cmd_1681
-  status: in_progress
+  status: done
   bloom_level: L4
   gunshi_qc: false
   title: 'cmd_1681: Shorts feed 崖落ち原因調査 (5/6→5/7比較分析)'
@@ -141,3 +141,4 @@ tasks:
   - 報告書 queue/reports/ 格納
   - git commit 済
   timestamp: '2026-05-12T08:18:51.531296+09:00'
+  completed_at: '2026-05-12T08:32:05+09:00'

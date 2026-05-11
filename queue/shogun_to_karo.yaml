@@ -528,950 +528,216 @@ commands:
   - 既存の inbox_write 動作（gunshi 以外の宛先）を壊さない
   - server.py の python3 -m py_compile PASS
   - git commit + push 完了
-- id: cmd_1636
-  status: cancelled
-  priority: high
-  purpose: 4/2 以降未処理 57 本を 4 ashigaru 並列で video-pipeline 処理し、scene_search_v2 index
-    に追加して 124 動画体制を達成する。
-  timestamp: '2026-05-05T15:03:04+09:00'
-  project: dozle_kirinuki
-  lord_original: 'b実行 (殿命 2026-05-05 15:05 — 将軍提案『解釈 B: ash5 続行で cmd_1631 完遂・並行で 57
-    本未処理を 4-8 並列処理する cmd_1636 を即起票』への殿応諾)'
-  north_star: PC 換装 (Ryzen 7 5800X 8C/16T + NVMe Gen4 + RAM 48GB) で得た並列処理性能を活かし、4/2
-    以降公開された 57 本のドズル社動画を一気に STT パイプライン処理 → scene_search_v2 index に追加する。シリアル処理なら 20-30
-    時間かかる作業を 4 並列で 3-4 時間に圧縮し、index を 67 → 124 動画 (約 1.85 倍) に拡充。最新動画も含めた網羅的な字幕検索基盤を確立する。
-  command_text: "## 背景\n\ncmd_1632 で発見された 4/2 以降未処理動画 57 本は、CSV 上 `analyzed=False\
-    \ / indexed=False` のまま放置されていた。PC 換装で得た 8C/16T + NVMe Gen4 性能を活かし並列処理で一気に index\
-    \ 拡充する。\n\n殿のベンチマーク要望 (2026-05-05) で並列処理性能を実証 — 並列効率 91% (16 並列で 14.6x 加速) を確認済。本\
-    \ cmd で実環境ワークロード (動画 STT) で並列効果を可視化する。\n\ncmd_1631 (xZTtk4pJcAs 1 本処理・ash5 が現在実行中)\
-    \ と並走 — 1 本処理は完了させ、本 cmd で 57 本一気処理。\n\n## 入力データ (確認済み)\n\n- 未処理動画リスト: cmd_1632\
-    \ audit script の出力 `queue/reports/2026-05-05_cmd_1632_video_index_audit.md` 末尾「4/2\
-    \ 以降未処理動画 top N」セクション\n- CSV ソース: `projects/dozle_kirinuki/data/dozle_video_list.csv`\
-    \ の `analyzed=False AND published_at >= 2026-04-02` 行\n- 既存 work dir: `projects/dozle_kirinuki/work/<YYYYMMDD>_<title>/`\
-    \ 配下に既に DL 済の mp4 があれば再利用\n- 出力先: `projects/dozle_kirinuki/work/srt_and_candidates/merged_<video_id>.json`\
-    \ + `merged_<video_id>.srt`\n\n## 担当 + bloom_level\n\n- ash1-4 並列稼働 (各 ash ~14\
-    \ 本・57 ÷ 4 ≒ 15 本/ash・端数は ash1 が +3)\n- bloom_level: **L4** (パイプライン実行・複数ツール協調・並列処理)\n\
-    - gunshi_qc: **true** (57 本まとめての話者識別精度チェック必須)\n\n## 並列度の設計\n\n### GPU 競合対策\n-\
-    \ RTX 4060 Ti は 1 個共有・8GB VRAM\n- Demucs (GPU 必須・VRAM ~3GB) と STT GPU 部分を **ash\
-    \ 内で順次実行**\n- ash 間は並列だが、Demucs/STT GPU 部分は OS スケジューラ任せ (4 並列でも待ち発生 → 全体時間は 1.5-2\
-    \ 倍に伸びる前提)\n- **AssemblyAI/Deepgram API は network bound** ゆえ完全並列\n\n### CPU 並列\n\
-    - ECAPA-TDNN 話者識別: CPU バウンド・4 並列で完全並列効く\n- merged JSON 生成: I/O 中心・並列効く\n- yt-dlp\
-    \ DL: network 並列効く\n\n### 推定時間\n- 1 本あたり 25-30 分 (Demucs 5 + STT 10-15 + 話者識別\
-    \ 5 + マージ 5)\n- シリアル: 57 × 27 = 約 25 時間\n- 4 並列: 15 × 27 = 約 6.7 時間 (実際は GPU 競合で\
-    \ 4-5 時間)\n- **目標: 4 時間以内**\n\n## 手順\n\n### Phase 1: 未処理リスト取得 + 振分け (家老責務)\n\n\
-    1. cmd_1632 audit 報告書から 4/2 以降 `analyzed=False` 動画 57 本の video_id list を抽出\n2.\
-    \ リスト 4 等分し、ash1/2/3/4 に各 ~14 本割当 (家老選定)\n3. 各 subtask に video_id list を target_path\
-    \ に明記\n4. PR 動画 (Hulu PR / 商品 PR 等) は STT 不要なので除外可 (家老判断)\n\n### Phase 2: 各 ash\
-    \ の video-pipeline 実行 (並列)\n\n各 subtask の steps (ash N ごと):\n\n```\n0) advisor()\
-    \ 呼出\n1) /video-pipeline スキル起動 (HL/SH 候補選定はスキップ・STT までで止める)\n2) 担当 video_id list\
-    \ を読込\n3) 各 video について:\n   a. 既存 work dir 確認: projects/dozle_kirinuki/work/*_<title>/\
-    \ に mp4 あれば再利用\n   b. なければ yt-dlp で 1080p DL (work/<YYYYMMDD>_<title>/<video_id>.mp4)\n\
-    \   c. Demucs ボーカル分離 → vocals.wav 抽出 (GPU)\n   d. AssemblyAI 主 STT + Deepgram\
-    \ fill (gap 補填)\n   e. ECAPA-TDNN 話者特定 (run_speaker_match_only.py で他 67 本の voice\
-    \ embedding と照合し A-F → 実名 mapping)\n   f. SRT + merged JSON 生成\n4) 出力: srt_and_candidates/merged_<video_id>.json\
-    \ + .srt (上書き禁止・新規のみ)\n5) 各 video 完了後 subtitle_speaker_qc.py --audio-merge で識別率\
-    \ 95% 以上確認\n6) 識別率不足は再実行 + gunshi escalate\n7) advisor() 呼出\n8) inbox karo 完了報告\
-    \ (処理 video 数 + 識別率平均 + 失敗 video あれば列挙)\n```\n\n### Phase 3: 軍師 QC (gunshi)\n\n\
-    9. 4 ash 全完了後・gunshi が以下を確認:\n   - 57 本の merged JSON が全件 srt_and_candidates/ に存在\
-    \ (orphan 確認)\n   - 各 merged JSON の話者ラベルにアルファベット A-F が 0 件 (xZTtk4pJcAs 教訓)\n\
-    \   - 識別率平均が 90% 以上\n   - 失敗 video の列挙 + 再処理推奨判断\n10. QC PASS なら家老へ報告・QC FAIL\
-    \ なら escalate\n\n### Phase 4: scene_search_v2 index 反映 (家老または ash 任意)\n\n11. `python3\
-    \ scripts/scene_search_v2.py build --update` で差分 embedding 追加 (57 本分・推定 30-60\
-    \ 分)\n12. `python3 scripts/scene_search_v2.py info` で n_videos が 67 → 124 (or\
-    \ 近似値) になっていることを確認\n13. テスト query 5 件: ドズル社の代表的フレーズ (例: 'てぇてぇ' 'パール' '鬼畜')で新動画もヒットすることを確認\n\
-    14. `python3 projects/dozle_kirinuki/scripts/audit_video_index_consistency.py`\
-    \ で 57 本全て quality_status=ok 確認\n\n### Phase 5: 完了処理 (家老責務)\n\n15. CSV 更新: 57\
-    \ 本の `analyzed=True / indexed=True / quality_status=ok` 反映\n16. `git add projects/dozle_kirinuki/data/dozle_video_list.csv`\
-    \ (data/scene_index_v2/ は .gitignored)\n17. work/<YYYYMMDD>_<title>/ の追加 mp4 等は\
-    \ git ignored か確認 (容量大ゆえ git に入れるべきでない)\n18. `git commit -m 'feat(scene_search):\
-    \ 4/2 以降 57 本 index 追加 — 67→124 動画 (cmd_1636)'`\n19. `git push origin main`\n\
-    20. 完了報告書 `queue/reports/2026-05-05_cmd_1636_57video_parallel_indexing.md`\n \
-    \  - 各 ash 担当 video list + 識別率\n   - 並列処理時間 vs シリアル推定時間 (PC 換装効果実証)\n   - 失敗 video\
-    \ 列挙 + 再処理計画\n21. 殿レビュー用 ntfy: `bash scripts/ntfy.sh '✅ cmd_1636完了: 67→124動画index拡充。並列処理\
-    \ N 時間 (シリアル推定 25h)・換装効果X倍'`\n\n## 共通ルール\n\n- 出力先: 既存パス (`projects/dozle_kirinuki/work/srt_and_candidates/`・`projects/dozle_kirinuki/work/<YYYYMMDD>_<title>/`)\
-    \ のみ\n- 新規 .py 禁止 (既存 video-pipeline スキル + speaker_id.py 等流用)\n- python3 -c ワンライナー使い捨て禁止\n\
-    - ffmpeg は h264_nvenc (GPU)・libx264 禁止 (本 cmd では再エンコード少ないが原則)\n- Gemini API はテキスト処理に使うな\
-    \ (Claude CLI Opus 4.6 を使え)\n- 中間成果物は work/<YYYYMMDD>_<title>/ 配下保存 (/tmp 禁止)\n\
-    - git commit + push 済が完了条件 (CSV のみ・index は .gitignored)\n- gunshi_qc=true ゆえ gunshi\
-    \ 経由で karo へ報告\n\n## 注意事項\n\n- /video-pipeline は通常 HL/SH 候補選定 (軍師集合知 5 回) まで含むが、本\
-    \ cmd では **STT までで停止** せよ (集合知は別 cmd)\n- 4 並列で GPU 競合発生・OS スケジューラ任せ (kernel queue\
-    \ で待ち発生は許容)\n- API rate limit: AssemblyAI/Deepgram 各々の月額 quota と rate limit を事前確認・超過時\
-    \ STOP + escalate\n- ECAPA-TDNN 照合の reference voice embedding は他 67 本から取得済 (cmd_1613\
-    \ / cmd_1605 動作実績)\n- xZTtk4pJcAs と同じ A-F 残存事故を防ぐため、各 video 完了時に必ず話者ラベル grep で実名のみ確認\n\
-    - ディスク容量: 57 本 × ~500 MB (1080p 30 分) = 約 30 GB · 残量 1.1 TB ゆえ OK\n- PR 動画 (Hulu\
-    \ PR / 商品 PR ・短尺) は STT 価値薄ゆえ家老判断でスキップ可 — その場合 CSV に index_skip_reason='PR' と記載"
-  acceptance_criteria:
-  - cmd_1632 audit 報告書から 4/2 以降未処理 video_id 57 本リスト抽出済 (PR 除外あれば残数明記)
-  - 57 本 (or PR 除外後の本数) の merged_<video_id>.json + .srt が projects/dozle_kirinuki/work/srt_and_candidates/
-    に存在
-  - 全 merged JSON の話者ラベルにアルファベット A-F が 0 件 (xZTtk4pJcAs 教訓・全件 grep 確認)
-  - subtitle_speaker_qc.py 識別率平均 90% 以上
-  - scene_search_v2.py info で n_videos が 67 → 124 (or PR 除外後の近似値) に増加
-  - scene_search_v2.py query テスト 5 件で新動画も hit する
-  - audit_video_index_consistency.py で 57 本全て quality_status=ok
-  - CSV (dozle_video_list.csv) で 57 本の analyzed/indexed が True に更新済
-  - gunshi QC PASS (識別精度 + 並列処理整合性)
-  - 並列処理時間がシリアル推定 (25h) の 1/3 以下 (4 時間以内目標)
-  - git commit + push 済 (CSV のみ・index は .gitignored)
-  - queue/reports/2026-05-05_cmd_1636_57video_parallel_indexing.md 完了報告書作成 (PC 換装効果実証込み)
-  - 殿レビュー用 ntfy 送信済 (並列処理時間 vs シリアル推定の比較含む)
-  notify_karo: true
-- id: cmd_1642
-  status: done
-  priority: high
-  purpose: 全 10 agent で Monitor を起動し inbox 通知を Anthropic 純正に切替・既存 inbox_watcher.sh
-    と並走で安定確認・shutsujin STEP 6.6 置換。
-  timestamp: '2026-05-06T03:55:12+09:00'
-  project: multi-agent-shogun
-  lord_original: ヤろう (殿命 2026-05-06 10:00 — cmd_1640 Phase 1 完了 (Monitor POC + audit
-    log 稼働中)・将軍提案『Phase 2 = Monitor 全 ash 拡大適用 + shutsujin STEP 6.6 置換』への殿応諾)
-  north_star: cmd_1640 で確立した Monitor POC + inbox_audit.log 基盤を全 10 agent (将軍 + 家老
-    + 足軽 1-7 + 軍師) に展開。shutsujin_departure.sh STEP 6.6 を Monitor 起動 instruction に置換し、ad-hoc
-    inbox_watcher.sh × 10 を Anthropic 純正に置換する Phase 2 完遂。次の Phase 3 (cmd_1643+ で旧
-    watcher 物理廃止) への基盤確立。
-  command_text: "## 背景\n\ncmd_1640 (Phase 1) で達成済:\n- ✅ `server.py /api/inbox_write`\
-    \ に `logs/inbox_audit.log` 追記実装 (本番稼働中・最新 02:07:48 まで記録)\n- ✅ ash1 で Monitor POC\
-    \ 動作確認 (`Monitor(command='tail -F logs/inbox_audit.log | grep --line-buffered\
-    \ \" ashigaru1 \"', persistent=true)`)\n- ✅ 既存 `inbox_watcher.sh × 10` は rollback\
-    \ 確保で並走中\n\nPhase 2 では:\n- 残り 9 agent (ash2-7 / karo / gunshi / shogun) に Monitor\
-    \ 展開\n- shutsujin_departure.sh STEP 6.6 を Monitor 起動 instruction に置換\n- 24 時間以上の並走観察で通知到達率検証\n\
-    - 既存 inbox_watcher.sh は **本 cmd では物理削除しない** (Phase 3 = cmd_1643+ で削除)\n\n## 担当\
-    \ + bloom_level\n\n- 家老配分 (3-4 subtask)\n- bloom_level: **L4** (infra runtime\
-    \ 切替・全 agent 動作影響)\n- gunshi_qc: **true** (全 agent 影響・通知到達率 QC 必須)\n\n## 4 サブタスク\n\
-    \n### Subtask A: Monitor 起動 instruction の中央化 (家老 + ash 任意)\n\n#### 設計\n各 agent\
-    \ が起動時に自動的に Monitor 起動できるよう、CLAUDE.md または instructions/*.md に Monitor 起動手順を追加:\n\
-    \n```\n## Session Start Step 7 (新規追加)\n各 agent はセッション開始時に Monitor を起動せよ:\n\n \
-    \ Monitor(\n    command=\"tail -F logs/inbox_audit.log | grep --line-buffered\
-    \ ' <self_agent_id> '\",\n    description=\"inbox audit for <self_agent_id>\"\
-    ,\n    persistent=true,\n    timeout_ms=3600000\n  )\n\n注意: <self_agent_id> は\
-    \ Step 1 で取得済の自分の agent_id (shogun/karo/ashigaruN/gunshi)\n```\n\n手順:\n1. CLAUDE.md\
-    \ の Session Start セクションに Step 7 追加 (家老責務)\n2. instructions/*.md (4 ファイル) も同 instruction\
-    \ を反映\n3. 既存 cmd 1640 の monitor_poc.md を参考に正確な command 文字列を確定\n\n### Subtask B:\
-    \ 全 agent で Monitor 起動 (ash1-7 + karo + gunshi + shogun)\n\n#### 設計\n各 agent が**自分のセッション内で**\
-    \ Monitor を起動。本 cmd 実行中に手動起動 (家老 inbox 経由で各 agent に指示)。\n\n手順 (家老が各 agent に inbox\
-    \ 通知):\n1. ash2-7 + karo + gunshi + shogun の 9 agent に「Monitor 起動指示」を inbox 経由で送信\n\
-    2. 各 agent が自分のセッション内で Monitor 起動 (Subtask A の command 文字列を使用)\n3. 起動確認: 各 agent\
-    \ から「Monitor 起動完了」を inbox karo へ報告\n4. 全 9 agent + ash1 (既起動) = 10 agent で並走稼働確認\n\
-    \n### Subtask C: shutsujin_departure.sh STEP 6.6 修正 (ash 1 名)\n\n#### 設計\n現状の\
-    \ STEP 6.6 (`inbox_watcher.sh × 10` nohup 起動) を **Monitor 起動 instruction を各 agent\
-    \ CLI コマンドに含める形** に変更。\n\n旧 (現状):\n```bash\n# STEP 6.6: inbox_watcher 起動\nnohup\
-    \ bash inbox_watcher.sh shogun ... &\nnohup bash inbox_watcher.sh karo ... &\n\
-    ...\n```\n\n新方針:\n```bash\n# STEP 6.6: inbox_watcher 並走 (Phase 2 並行運用・Phase 3\
-    \ で削除予定)\n# 既存 inbox_watcher は rollback のため継続稼働\nnohup bash inbox_watcher.sh shogun\
-    \ ... &\n...\n\n# Monitor は各 agent の Session Start で自動起動 (CLAUDE.md Step 7)\n\
-    ```\n\n→ 本 cmd では **inbox_watcher.sh は物理的に削除しない**。並走運用で観察。\n\n手順 (ash 1 名 — bash\
-    \ + tmux 知識ある者):\n1. shutsujin_departure.sh L909-955 周辺を Read\n2. 既存 inbox_watcher\
-    \ 起動コードに「Phase 2 並行運用・Phase 3 で削除予定」コメント追記\n3. 新規セクション「Monitor 自動起動」を CLAUDE.md\
-    \ Session Start Step 7 と整合させる旨をコメントで記述\n4. bash -n 構文チェック\n5. git commit + push\n\
-    \n### Subtask D: 24 時間並走観察 + QC (gunshi)\n\n#### 設計\n軍師が 24 時間以上の運用観察で通知到達率を比較・QC:\n\
-    \n#### 観察項目\n- inbox_audit.log への追記タイミングと Monitor 通知到達のラグ\n- 既存 inbox_watcher.sh\
-    \ の send-keys 通知と Monitor 通知の重複確認\n- どちらか一方の通知失敗事例の検出\n- 各 agent のセッション稼働率と Monitor\
-    \ の生存率 (/clear 等で消失するケース)\n\n#### QC 報告\n軍師が `queue/reports/2026-05-06_cmd_1642_monitor_phase2_qc.md`\
-    \ 作成:\n- 24h 観察結果\n- 通知到達率 (Monitor / 既存 watcher / 両方)\n- 失敗事例の検出\n- Phase 3 (cmd_1643\
-    \ — inbox_watcher.sh 廃止) 起票判断\n\n手順 (gunshi):\n1. cmd_1642 Subtask A-C 完了確認後・観察開始\n\
-    2. 24 時間以上の運用 (本 cmd dispatch 後に開始)\n3. inbox_audit.log と各 agent の Monitor 受信ログを比較\n\
-    4. QC 報告書作成\n5. 殿レビュー用 ntfy 送信\n\n## 完了基準\n\n- 全 10 agent で Monitor 起動済 (起動確認\
-    \ inbox 報告 10 件)\n- CLAUDE.md / instructions/*.md に Session Start Step 7 (Monitor\
-    \ 起動) 追加済\n- shutsujin_departure.sh STEP 6.6 に並行運用コメント追加済\n- 既存 inbox_watcher.sh\
-    \ は並走稼働継続 (物理削除しない)\n- 24 時間並走観察完了・QC 報告書作成\n- 通知到達率 95% 以上 (Monitor 経路)\n- gunshi\
-    \ QC PASS\n- git commit + push 済 (3-4 commit)\n- queue/reports/2026-05-06_cmd_1642_monitor_phase2_qc.md\
-    \ 作成\n\n## 共通ルール\n\n- 出力先: `CLAUDE.md`, `instructions/*.md`, `shutsujin_departure.sh`,\
-    \ `queue/reports/`\n- 新規 .py 禁止 (本 cmd は既存設定変更 + 観察のみ)\n- 中間成果物は queue/reports/\
-    \ 配下保存\n- git commit + push 済が完了条件\n- gunshi_qc=true ゆえ gunshi 経由で karo 報告\n\n\
-    ## 注意事項\n\n- **Monitor は session 依存** — agent が /clear したら Monitor 消失 → 次回 Session\
-    \ Start Step 7 で再起動される設計\n- 既存 inbox_watcher.sh は **本 cmd では絶対に削除しない** (rollback\
-    \ 確保)\n- shutsujin_departure.sh は次回 PC 起動時 or 手動再 shutsujin 時に効く・現セッションには即時影響なし\n\
-    - 通知が**両方届く** (Monitor + 既存 watcher) ことは Phase 2 では許容・Phase 3 で一本化\n- 各 agent\
-    \ の Monitor 起動指示は inbox 経由で 1 件ずつ・並列起動で混乱しないよう注意"
-  acceptance_criteria:
-  - 全 10 agent (shogun/karo/ashigaru1-7/gunshi) で Monitor 起動済 — 起動確認 inbox 報告 10 件
-  - CLAUDE.md に Session Start Step 7 (Monitor 起動) 追加済
-  - instructions/*.md (shogun/karo/ashigaru/gunshi の 4 ファイル) に Monitor 起動 instruction
-    反映済
-  - shutsujin_departure.sh STEP 6.6 に Phase 2 並行運用コメント追加済 (実体は既存 inbox_watcher.sh
-    と Monitor 並走)
-  - 既存 inbox_watcher.sh は物理稼働継続・本 cmd では削除しない
-  - 24 時間並走観察完了・queue/reports/2026-05-06_cmd_1642_monitor_phase2_qc.md 作成
-  - Monitor 経由の通知到達率 95% 以上 (24h 観察で集計)
-  - gunshi QC PASS (全 agent Monitor 稼働 + 通知到達率 + 失敗事例なし)
-  - git commit + push 済 (関連 3-4 commit)
-  - Phase 3 (cmd_1643 — inbox_watcher.sh 物理廃止) 起票判断資料 (QC 報告書末尾) 作成
-  notify_karo: true
-  completed_at: '2026-05-06T05:14:39+09:00'
-- id: cmd_1643
-  status: cancelled
-  priority: high
-  purpose: server.py に SSE endpoint 追加 + 各 ash の Monitor を curl --no-buffer SSE 接続に切替
-    + ファイル仲介を完全廃止する。
-  timestamp: '2026-05-06T04:31:12+09:00'
-  project: multi-agent-shogun
-  lord_original: aあん cmd起票からの流れを書け (殿命 2026-05-06 10:30 — A 案『SSE direct stream』を採用・YAML/tail/inotifywait
-    完全脱却の方向で cmd_1643 起票指示)
-  north_star: 本プロジェクトの inbox 通知機構を『ファイル仲介ゼロ・SQLite + API + Monitor 完結』に進化させる。YAML
-    監視・tail -F・inotifywait のすべてから脱却し、Anthropic 純正 Monitor + SSE (Server-Sent Events)
-    で次世代設計を実現。Phase 4 (cmd_1644 で旧 inbox_watcher.sh 物理廃止) への決定的な一歩。
-  command_text: "## 背景\n\ncmd_1640 (Phase 1 Monitor POC) で audit log 設計→cmd_1642 (Phase\
-    \ 2) で軍師が誤って YAML 監視に切替→殿の指摘で『tail も YAML も脱却』方向確定。\n\n殿の真意 (2026-05-06 10:30):\n\
-    - YAML 監視やめたい\n- tail も使わない方が良い\n- = ファイル仲介を完全廃止\n\n結論: **A 案 (SSE direct stream)**\
-    \ 採用。SQLite + server.py + curl --no-buffer + Monitor の連携で、ファイル監視一切不要の設計に進化。\n\n\
-    ## cmd 起票からの流れ (本 cmd の本質)\n\n```\n[現状の流れ — cmd_1640+1642 完了時点]\n\n殿/将軍が curl\
-    \ POST /api/cmd_create で cmd 起票\n   ↓\nserver.py:\n   ① SQLite INSERT (cmds table)\n\
-    \   ② queue/shogun_to_karo.yaml 追記 (旧式)\n   ③ inbox_write.sh 呼出 → karo の inbox\
-    \ 通知\n      ├→ queue/inbox/karo.yaml 追記\n      ├→ logs/inbox_audit.log 追記 (cmd_1640\
-    \ で実装)\n      └→ tmux send-keys 'inbox1' (旧 inbox_watcher 経由)\n   ↓\n[現状の通知経路\
-    \ — 二重稼働]\n   経路 A: inbox_watcher.sh (inotifywait + send-keys) ← 旧式・本番運用中\n  \
-    \ 経路 B: Monitor (tail -F YAML or audit log) ← Phase 2 並走テスト\n   ↓\nkaro の Claude\
-    \ Code が通知受信\n```\n\n```\n[本 cmd 完了後の流れ — A 案 SSE direct stream]\n\n殿/将軍が curl\
-    \ POST /api/cmd_create\n   ↓\nserver.py:\n   ① SQLite INSERT (cmds table)\n  \
-    \ ② SQLite INSERT (inbox table — karo 宛 task_assigned 等)\n   ③ in-memory queue\
-    \ (Python threading.Queue) に push\n      └─ 各 agent ごとに 1 queue\n   ↓\nserver.py\
-    \ の SSE generator (/api/inbox_stream?agent=karo) が:\n   ④ in-memory queue から get\n\
-    \   ⑤ SSE event として yield (data: {json}\\n\\n)\n   ↓\nkaro の Monitor:\n   curl\
-    \ -N http://localhost:8770/api/inbox_stream?agent=karo (常時接続中)\n   ⑥ SSE event\
-    \ を受信 → stdout 1 行\n   ⑦ Monitor が stdout = 1 通知として karo の Claude Code に push\n\
-    \   ↓\nkaro が通知受信 → /api/inbox_messages?agent=karo&unread=1 で詳細取得\n```\n\n→ ファイル監視一切不要・YAML/tail/inotifywait\
-    \ すべて廃止可能。\n\n## 担当 + bloom_level\n\n- 家老配分 (3 subtask)\n- bloom_level: **L4**\
-    \ (server.py SSE 実装 + Monitor 統合 + 全 agent 切替)\n- gunshi_qc: **true** (本番経路の根幹変更・QC\
-    \ 必須)\n\n## 3 サブタスク\n\n### Subtask A: server.py に SSE endpoint 実装 (ash3 推奨・bloom\
-    \ L4)\n\n#### 設計\n```python\n# server.py に追加\nimport queue, threading\nfrom collections\
-    \ import defaultdict\n\n# global state\n_INBOX_QUEUES = defaultdict(queue.Queue)\
-    \  # agent_id -> Queue\n_INBOX_QUEUES_LOCK = threading.Lock()\n\n# /api/inbox_write\
-    \ 内で push\ndef _push_to_inbox_queue(target_agent, message_dict):\n    with _INBOX_QUEUES_LOCK:\n\
-    \        _INBOX_QUEUES[target_agent].put(message_dict)\n\n# 新 endpoint /api/inbox_stream?agent=<id>\n\
-    def do_GET_inbox_stream(self, agent):\n    self.send_response(200)\n    self.send_header('Content-Type',\
-    \ 'text/event-stream')\n    self.send_header('Cache-Control', 'no-cache')\n  \
-    \  self.send_header('Connection', 'keep-alive')\n    self.end_headers()\n    \n\
-    \    q = _INBOX_QUEUES[agent]\n    while True:\n        try:\n            msg\
-    \ = q.get(timeout=30)  # 30秒で keep-alive ping\n            data = json.dumps(msg,\
-    \ ensure_ascii=False)\n            self.wfile.write(f'data: {data}\\n\\n'.encode('utf-8'))\n\
-    \            self.wfile.flush()\n        except queue.Empty:\n            self.wfile.write(b':\
-    \ keepalive\\n\\n')\n            self.wfile.flush()\n        except Exception:\n\
-    \            break\n```\n\n#### 既存 /api/inbox_write を拡張\n```python\n# 既存 SQLite\
-    \ INSERT + audit log 追記の後に:\nmessage_summary = {\n    'msg_id': msg_id,\n    'task_id':\
-    \ task_id,\n    'type': msg_type,\n    'from': from_agent,\n    'to': target_agent,\n\
-    \    'timestamp': now_jst_str,\n}\n_push_to_inbox_queue(target_agent, message_summary)\n\
-    ```\n\n#### 受入\n- /api/inbox_stream?agent=ashigaru1 に curl -N で接続 → 30 秒後に keep-alive\
-    \ ping\n- 別ターミナルから /api/inbox_write を叩く → SSE event が届く\n- python3 -m py_compile\
-    \ PASS\n\n### Subtask B: Monitor を SSE 接続に切替 (ash 任意・全 10 agent・bloom L3)\n\n\
-    #### 設計\n```python\n# 各 agent の Session Start Step 7 (cmd_1642 で追加済) を更新\nMonitor(\n\
-    \    command=\"curl -N --no-buffer http://localhost:8770/api/inbox_stream?agent=<self_agent_id>\"\
-    ,\n    description=\"inbox SSE stream for <self_agent_id>\",\n    persistent=true,\n\
-    \    timeout_ms=3600000\n)\n```\n\n#### 段階移行\n1. ash1 で SSE 接続 POC (既存 tail -F\
-    \ Monitor と並走)\n2. 1 時間動作観察 → SSE 安定確認\n3. ash2-7 + karo + gunshi + shogun 順次切替\n\
-    4. 旧 tail -F Monitor は順次停止\n\n#### CLAUDE.md / instructions 更新\n- Session Start\
-    \ Step 7 の Monitor command を SSE 接続版に更新\n- 全 agent が次回 Session Start で SSE Monitor\
-    \ を起動するように\n\n### Subtask C: gunshi QC + Phase 4 起票判断 (bloom L5)\n\n#### 観察項目\n\
-    - SSE 接続の安定性 (24h 中の切断回数)\n- メッセージ取りこぼし率 (curl POST /api/inbox_write した数 vs Monitor\
-    \ 通知件数)\n- 既存 inbox_watcher.sh と SSE Monitor の整合性\n- in-memory queue のメモリ消費\n\n\
-    #### QC 報告書\n`queue/reports/2026-05-06_cmd_1643_sse_stream_qc.md`:\n- A 案 SSE\
-    \ 設計の動作実績\n- 24h 観察での取りこぼし 0 件確認\n- Phase 4 (cmd_1644 — 旧 inbox_watcher.sh 物理廃止)\
-    \ 起票判断\n- YAML / tail / inotifywait からの完全脱却達成度評価\n\n## 完了基準\n\n- server.py に SSE\
-    \ endpoint /api/inbox_stream 実装済 (push queue + generator)\n- /api/inbox_write\
-    \ 内で in-memory queue への push 実装済\n- 全 10 agent (shogun/karo/ash1-7/gunshi) が SSE\
-    \ Monitor で接続済\n- CLAUDE.md / instructions/*.md の Session Start Step 7 を SSE 版に更新\n\
-    - 24h 並走観察で SSE Monitor の取りこぼし 0 件\n- 既存 inbox_watcher.sh は本 cmd では並走稼働継続 (rollback\
-    \ 確保)\n- 既存 tail -F Monitor (cmd_1642) は廃止\n- gunshi QC PASS + Phase 4 (cmd_1644)\
-    \ 起票判断資料\n- queue/reports/2026-05-06_cmd_1643_sse_stream_qc.md 作成\n- git commit\
-    \ + push (server.py + CLAUDE.md + instructions)\n\n## 共通ルール\n\n- 出力先: `scripts/dashboard/server.py`\
-    \ + `CLAUDE.md` + `instructions/*.md` + `queue/reports/`\n- 新規 .py 禁止 (本 cmd は既存\
-    \ server.py 拡張のみ)\n- 中間成果物は queue/reports/ 配下保存\n- git commit + push 済が完了条件\n\
-    - gunshi_qc=true ゆえ gunshi 経由で karo 報告\n\n## 注意事項\n\n- in-memory queue は server.py\
-    \ プロセス内のみ — server.py 再起動で queue クリア (= rollback で SQLite から再構成可)\n- SSE 接続は curl\
-    \ -N で必須 (バッファリング無効化)\n- keep-alive ping (30秒) で接続維持・タイムアウトに強い設計\n- 既存 inbox_watcher.sh\
-    \ は **本 cmd では絶対に削除しない** (rollback 確保)\n- shutsujin の STEP 6.6 旧 watcher 起動も触らない\
-    \ (Phase 4 で対応)\n- in-memory queue が無制限肥大化しないよう maxsize=1000 等の上限設定推奨\n- HTTP\
-    \ server (BaseHTTPRequestHandler 系) でなく Flask 等への移行が必要なら別 cmd で検討"
-  acceptance_criteria:
-  - server.py に /api/inbox_stream?agent=<id> SSE endpoint 実装済
-  - /api/inbox_write 内で in-memory queue への push 実装済
-  - 全 10 agent で SSE Monitor 接続済 (起動確認 inbox 報告 10 件)
-  - CLAUDE.md / instructions/*.md の Session Start Step 7 を SSE 版に更新済
-  - 24h 並走観察で SSE Monitor 取りこぼし 0 件確認
-  - 既存 inbox_watcher.sh は並走稼働継続 (本 cmd では物理削除しない)
-  - 旧 tail -F Monitor (cmd_1642) は本 cmd 完了時点で廃止
-  - gunshi QC PASS + Phase 4 (cmd_1644) 起票判断資料作成
-  - queue/reports/2026-05-06_cmd_1643_sse_stream_qc.md 作成
-  - git commit + push 済 (関連 commit 全件)
-  notify_karo: true
-- id: cmd_1644
-  status: done
-  priority: high
-  purpose: A/B/C 3 案の inbox 通知機構設計を軍師が技術 QC し、推奨案 + リスク評価 + 移行コスト見積もりを報告書化する。
-  timestamp: '2026-05-06T04:39:54+09:00'
-  project: multi-agent-shogun
-  lord_original: 軍師にqc依頼 (殿命 2026-05-06 10:40 — cmd_1643 (A 案 SSE direct stream) は将軍越権で取消済・代わりに『A
-    案/B 案/C 案』を軍師に QC レビュー依頼することで殿が技術判断したい)
-  north_star: inbox 通知機構の進化方針 (YAML 脱却・tail/inotifywait 廃止) について、3 案 (A=SSE / B=inotifywait+tail
-    / C=現状維持) を軍師が技術 QC レビューし、殿の判断材料となる中立的な技術評価書を作成する。実装 cmd 起票は本 QC 後・殿判断ベースで別途起票。
-  command_text: "## 背景\n\ncmd_1640 (Phase 1 Monitor POC) → cmd_1642 (Phase 2 並走) で\
-    \ Monitor + audit log + tail -F の設計を試したが、軍師 QC で『tail -F は atomic write の inode\
-    \ 変更で限界・inotifywait 化必須』と指摘 (cmd_1642 報告書 L191-204)。\n\n殿の真意 (2026-05-06 10:30):\n\
-    - YAML 監視そのものから脱却したい\n- tail も使わない方が良い\n- ファイル仲介を完全廃止したい\n\n将軍は A 案 (SSE direct\
-    \ stream) で cmd_1643 を起票したが、**殿命未確認の越権起票**として取消。代わりに本 cmd_1644 で **3 案を軍師が中立 QC\
-    \ レビュー** して、殿が判断する流れに修正。\n\n## 担当 + bloom_level\n\n- **gunshi 単独** (技術 QC レビュー)\n\
-    - bloom_level: **L6** (技術設計評価・3 案比較・移行ロードマップ提案)\n- gunshi_qc: **false** (軍師自身の\
-    \ QC レポート)\n\n## レビュー対象 — 3 案\n\n### 案 A: SSE direct stream (将軍提案・取消済 cmd_1643)\n\
-    \n#### 設計概要\n```\n[流れ]\n殿 cmd 起票 → server.py /api/cmd_create\n   ↓ SQLite INSERT\
-    \ + in-memory queue.put()\n   ↓\nserver.py /api/inbox_stream?agent=<id>:\n   SSE\
-    \ generator が queue.get() → yield 'data: {json}\\n\\n'\n   ↓\nagent の Monitor:\
-    \ curl -N --no-buffer ... (常時接続)\n   stdout 1 行 = 1 通知\n   ↓\nClaude Code が native\
-    \ 通知受信\n```\n\n#### 設計の特徴\n- ファイル仲介ゼロ (YAML / audit log / inotifywait 不要)\n- in-memory\
-    \ queue で push 駆動\n- 全 10 agent が常時 SSE 接続\n- inode 問題完全回避\n\n#### 取消版 payload\n\
-    `queue/cmd_payloads/cmd_1643.json` に詳細あり\n\n### 案 B: inotifywait + tail-1 (軍師\
-    \ cmd_1642 報告書 L209-211 推奨)\n\n#### 設計概要\n```\n[流れ]\nMonitor(\n    command=\"\
-    inotifywait -m -e modify,close_write,moved_to logs/inbox_audit.log | while read;\
-    \ do tail -1 logs/inbox_audit.log | grep ' <agent_id> '; done\",\n    persistent=true\n\
-    )\n```\n\n#### 設計の特徴\n- Monitor + inotifywait のハイブリッド\n- audit log を中央集約・各 agent\
-    \ が grep filter\n- inode 変更も検知可能 (IN_MOVED_TO)\n- tail -1 でラグ時の取りこぼし可能性 (連続追記時)\n\
-    - ファイル仲介は残る (audit log 経由)\n\n### 案 C: 現状維持 (cmd_1642 並走運用継続)\n\n#### 設計概要\n```\n\
-    [現状]\n- 既存 inbox_watcher.sh × 10 (inotifywait + tmux send-keys) → 本番運用\n- Monitor\
-    \ (tail -F YAML) ← Phase 2 で実装・並走テスト\n- 両者同時稼働で通知重複\n```\n\n#### 設計の特徴\n- 既存運用を変更しない\n\
-    - 通知重複は許容\n- YAML 監視継続\n- 進化なし\n\n## レビュー観点 (5 軸)\n\n各案について以下 5 軸で評価:\n\n1. **YAML\
-    \ 脱却度** (殿の核心要望)\n   - 完全脱却 / 部分脱却 / 維持\n2. **取りこぼし耐性**\n   - inode 変更・atomic\
-    \ write・logrotate での挙動\n3. **実装複雑度**\n   - server.py 変更規模・運用変更影響範囲\n4. **rollback\
-    \ 可能性**\n   - 失敗時の戻し方・既存資産への影響\n5. **Anthropic 純正度**\n   - Monitor 活用度・将来の Anthropic\
-    \ API 進化との整合\n\n## 出力\n\n軍師が以下の構造で報告書作成: `queue/reports/2026-05-06_cmd_1644_inbox_design_qc.md`\n\
-    \n```markdown\n# cmd_1644 inbox 通知機構 3 案 QC レビュー報告書\n\n## 0. エグゼクティブサマリ\n- 推奨案:\
-    \ [A/B/C のいずれか]\n- 推奨度: ★1-5\n- 移行コスト: [低/中/高] + 工数\n- 主要リスク: 1-3 個\n\n## 1. 案\
-    \ A: SSE direct stream\n### 1.1 5 軸評価\n[各軸の評価と根拠]\n### 1.2 メリット\n### 1.3 デメリット\n\
-    ### 1.4 移行コスト\n\n## 2. 案 B: inotifywait + tail-1\n[同様の構造]\n\n## 3. 案 C: 現状維持\n\
-    [同様の構造]\n\n## 4. 3 案比較表\n| 軸 | A | B | C |\n[5 軸 × 3 案 の matrix]\n\n## 5. 推奨と根拠\n\
-    [軍師の最終判断]\n\n## 6. 推奨案の実装ロードマップ (Phase 別)\n[Phase 1-3 の実装手順案]\n\n## 7. リスクと対策\n\
-    [技術 / 運用 / 互換性]\n\n## 8. 殿への判断材料\n- A 採用なら → cmd_1645 (実装) を起票推奨\n- B 採用なら → cmd_1645\
-    \ (実装) を起票推奨\n- C 採用なら → 進化停止・現状維持\n```\n\n## 手順\n\n0. advisor() 呼出\n1. 入力資料 Read:\n\
-    \   - `queue/cmd_payloads/cmd_1643.json` (取消版・A 案詳細設計)\n   - `queue/reports/2026-05-06_cmd_1642_monitor_phase2_qc.md`\
-    \ (B 案推奨の根拠)\n   - `queue/reports/2026-05-05_cmd_1639_anthropic_agent_api_research.md`\
-    \ (Anthropic API 調査全体)\n   - `scripts/dashboard/server.py` (server.py の現状把握)\n\
-    \   - `scripts/inbox_watcher.sh` (既存 watcher の現状)\n2. 3 案を 5 軸で評価\n3. 比較 matrix\
-    \ 作成\n4. 推奨案決定 + 根拠\n5. 推奨案の実装ロードマップ案 (Phase 1-3)\n6. リスク + 対策\n7. 報告書 markdown\
-    \ で作成\n8. advisor() 呼出 (中立性 + 網羅性確認)\n9. inbox karo 完了報告\n\n## 必達制約\n\n- **QC\
-    \ レビューのみ・実装禁止** (実装 cmd は本 QC 後・殿判断ベースで別途起票)\n- 中立性厳守: 将軍提案 (A 案) を盲目的に推奨しない・技術的妥当性で判断\n\
-    - 既存 inbox_watcher.sh / Monitor (cmd_1642) は触らない\n- 軍師単独完遂・足軽起動禁止\n- 報告書は markdown\
-    \ 形式・章立て明確に\n\n## 共通ルール\n\n- 出力先: `queue/reports/2026-05-06_cmd_1644_inbox_design_qc.md`\n\
-    - 新規 .py 禁止 (本 cmd は QC のみ)\n- WebFetch / WebSearch 利用可 (Anthropic ドキュメント参照のため)\n\
-    - claude-code-guide subagent 活用推奨\n- git commit 必須 (push は家老責務)"
-  acceptance_criteria:
-  - queue/reports/2026-05-06_cmd_1644_inbox_design_qc.md 報告書作成
-  - 3 案 (A/B/C) すべての 5 軸評価 (YAML 脱却度・取りこぼし耐性・実装複雑度・rollback 可能性・Anthropic 純正度) が含まれる
-  - 3 案比較 matrix (5 軸 × 3 案) が含まれる
-  - 推奨案 (A/B/C のいずれか) と根拠が明記
-  - 推奨案の実装ロードマップ (Phase 1-3) が含まれる
-  - リスク一覧 (技術 / 運用 / 互換性) が含まれる
-  - 殿への判断材料セクション (採用案ごとの次アクション提案)
-  - 中立性厳守 (将軍 A 案を盲目的推奨していない・技術的根拠で判断)
-  - git commit 済
-  notify_karo: true
-  completed_at: '2026-05-06T05:32:24+09:00'
-- id: cmd_1645
-  status: done
-  priority: high
-  purpose: v5 設計書の全専門用語を軍師が精査し、AI 業界未確立用語 (JIT/Lazy Load 含む) を確立用語に置換する修正版を作成する。
-  timestamp: '2026-05-06T04:52:36+09:00'
-  project: udemy_course
-  lord_original: 軍師に依頼、ほか専門用語も精査 (殿命 2026-05-06 10:50 — v5 設計書で『JIT / Lazy Load』が
-    AI 業界未確立用語と判明・他の流用専門用語も含めて軍師が精査・修正する)
-  north_star: Udemy 中級編 v5 設計書 (curriculum_intermediate_v5_marp.md) の全専門用語を AI 業界の確立用語と照合し、CS/web/general
-    の流用用語を業界標準に置換または『業界用語併記』形式に修正する。受講者ペルソナ (社会人 2-3 年目) への伝達精度と商品としての権威性を両立させる。
-  command_text: "## 背景\n\n殿の指摘 (2026-05-06 10:45):\n> 『jit と lazy load という用語まだ ai\
-    \ 界隈で使わないと思う。しらべたか？類するai用語は？』\n\n軍師 cmd_1638 で v5 設計書に『JIT (Just-in-Time)』『Lazy\
-    \ Load』を使ったが、これは CS / Web 一般用語の流用で AI 業界未確立。受講者ペルソナ (社会人 2-3 年目・横文字きつい) への伝達精度と商品としての権威性に響くため、**全専門用語を精査・置換**せよ。\n\
-    \n## 担当 + bloom_level\n\n- **gunshi 単独** (用語精査 + 修正)\n- bloom_level: **L6** (用語確立度評価\
-    \ + 受講者ペルソナ + 修正版作成)\n- gunshi_qc: **false** (軍師自身)\n\n## 入力資料\n\n1. v5 設計書: `projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md`\
-    \ (改訂対象)\n2. v5 方針書: `projects/udemy_course/v5_design.md`\n3. 将軍の事前調査メモ (本 cmd\
-    \ 起票時の整理):\n\n### 将軍が事前に調べた『JIT / Lazy Load』の代替候補\n\n| 旧用語 (流用) | 推奨置換候補 (AI 業界確立度)\
-    \ |\n|------------|--------------------------|\n| **JIT (Just-in-Time)** ⭐ | **RAG\
-    \ (Retrieval-Augmented Generation)** ⭐⭐⭐⭐⭐ |\n|             | **必要時取得 (On-Demand\
-    \ Retrieval)** ⭐⭐ |\n|             | **動的コンテキスト注入** (平易日本語) |\n| **Lazy Load**\
-    \ ⭐ | **Selective Context Injection** ⭐⭐⭐ |\n|             | **遅延読込 (用語注記: AI\
-    \ 業界では Sparse Retrieval / Top-K Retrieval と関連)** |\n|             | 削除 (概念説明のみで用語使わない)\
-    \ |\n\n## 軍師の精査範囲 — 全専門用語\n\n### 1. 既出問題用語 (殿指摘)\n- **JIT (Just-in-Time)**\n-\
-    \ **Lazy Load**\n\n### 2. 軍師が照合確認すべき疑わしい用語 (将軍の事前リスト)\n- **ハーネス / ハーネスエンジニアリング**\
-    \ ← 本講座独自? AI 業界での確立度?\n- **L1 / L2 / L3** ← 本講座独自表記 (商標ではない・内輪表記として OK か)\n-\
-    \ **Context Rot** ← 用法揺れあり (cmd_1638 改訂時に確認済)\n- **silent fail** ← AI 業界で確立? CS\
-    \ 一般用語?\n- **phase gate** ← 業界用語?\n- **SessionStart hook / PreCompact hook** ←\
-    \ Claude Code 公式用語 (確立)\n- **/command / /advisor / /handoff** ← Claude Code 公式用語\
-    \ (確立)\n- **Skill** ← Claude Code 公式用語 (確立)\n- **MCP (Model Context Protocol)**\
-    \ ← Anthropic 公式 (確立)\n- **Bloom Taxonomy / Bloom レベル** ← 教育学標準 (確立)\n- **subagent\
-    \ (Agent tool)** ← Anthropic 公式 (確立)\n- **claude-mem / mem-search** ← 本講座 plugin\
-    \ 由来 (固有名詞)\n- **acceptance_criteria** ← agile 用語 (確立)\n- **TL;DR** ← Web 一般用語\
-    \ (確立)\n- **Primacy bias / Recency bias** ← 心理学 (確立)\n\n### 3. 軍師の精査基準\n\n各用語について以下を判定:\n\
-    \n| 判定 | 対応 |\n|-----|------|\n| ⭐⭐⭐⭐⭐ AI 業界完全確立 | そのまま使用 (例: RAG, MCP, Skill)\
-    \ |\n| ⭐⭐⭐⭐ 業界で広く使われる | そのまま使用 + 平易な日本語注記 |\n| ⭐⭐⭐ 業界で部分的に使われる | 平易日本語を主・業界用語を併記\
-    \ |\n| ⭐⭐ 業界で稀に使われる | 平易日本語のみ・業界用語注記レベル |\n| ⭐ AI 業界未確立 (CS/Web 流用) | **削除 or\
-    \ 業界確立用語に置換** ← JIT/Lazy Load はここ |\n\n## 軍師の作業手順\n\n0. advisor() 呼出\n1. v5 設計書を\
-    \ Read (curriculum_intermediate_v5_marp.md 全文)\n2. 全専門用語を grep で抽出 + リスト化\n3.\
-    \ WebSearch / WebFetch で AI 業界での確立度を調査:\n   - Anthropic 公式ドキュメント\n   - LangChain\
-    \ / LlamaIndex / OpenAI Cookbook\n   - 学術論文 (arxiv の AI 関連)\n   - 主要 AI ブログ (HuggingFace,\
-    \ AnyScale, Pinecone 等)\n4. 各用語に確立度 ⭐1-5 を付与\n5. ⭐1-2 の用語を確立用語に置換 or 平易日本語化\n\
-    6. 修正版 v5 設計書を作成 (curriculum_intermediate_v5_marp.md を更新)\n7. NG ワードリスト (§ 8)\
-    \ に追加: JIT / Lazy Load および他の精査結果で⭐1判定された用語\n8. Marp HTML 再生成 (curriculum_intermediate_v5.html)\n\
-    9. 用語精査報告書 `queue/reports/2026-05-06_cmd_1645_v5_term_audit.md`:\n   - 精査全用語一覧表\
-    \ (用語 | 確立度 | 出現箇所 | 対応)\n   - 修正前後の比較\n   - 残った業界用語の併記方針\n10. advisor() 呼出 (中立性\
-    \ + 網羅性確認)\n11. inbox karo 完了報告\n\n## 必達制約\n\n- v5 設計書の構造 (12 章・困りごと 11 個・3 層フレーム・セマンティック検索二重登場\
-    \ 等) は維持\n- 用語の置換のみ・章構成の変更禁止\n- 受講者ペルソナ (社会人 2-3 年目・横文字きつい) への配慮厳守\n- 軍師単独完遂・足軽起動禁止\n\
-    - WebSearch で確立度を事実ベースで判定 (推測判定禁止)\n\n## 共通ルール\n\n- 出力先: `projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md`\
-    \ (上書き) + `.html` + `queue/reports/2026-05-06_cmd_1645_v5_term_audit.md`\n- 新規\
-    \ .py 禁止 (用語精査のみ)\n- WebFetch / WebSearch 利用必須 (確立度の事実根拠)\n- claude-code-guide\
-    \ subagent 活用推奨 (Anthropic 公式用語確認)\n- git commit + push 済が完了条件 (.gitignored ゆえ\
-    \ git add -f 使用)"
-  acceptance_criteria:
-  - v5 設計書の全専門用語を grep で抽出・リスト化済
-  - 各用語に AI 業界確立度 ⭐1-5 を付与 (WebSearch / WebFetch ベースの事実根拠付き)
-  - JIT / Lazy Load が AI 業界確立用語 (RAG / 必要時取得 / Selective Context Injection 等) に置換済
-  - 他の⭐1-2 判定用語も適切に置換 or 平易化
-  - v5 設計書 (curriculum_intermediate_v5_marp.md) の全章で用語修正済
-  - NG ワードリスト (§ 8) に JIT / Lazy Load および他の⭐1判定用語追加済
-  - Marp HTML 再生成済 (curriculum_intermediate_v5.html)
-  - queue/reports/2026-05-06_cmd_1645_v5_term_audit.md 報告書作成 (全用語の確立度評価 + 修正前後比較)
-  - v5 構造 (12 章・困りごと 11 個・3 層フレーム・セマンティック検索二重登場) が維持されている
-  - 受講者ペルソナ (社会人 2-3 年目) への配慮 (横文字過多にしない・併記原則) 維持
-  - git commit + push 済 (.gitignored ゆえ git add -f 使用)
-  notify_karo: true
-  completed_at: '2026-05-06T05:32:41+09:00'
-- id: cmd_1646
-  status: done
-  priority: high
-  purpose: A 案 (SSE direct stream) の設計を軍師が単独 QC し、実装前に技術的問題点 + 改善提案 + 詳細実装ロードマップを報告書化する。
-  timestamp: '2026-05-06T04:58:02+09:00'
-  project: multi-agent-shogun
-  lord_original: A案だ、今度こそ設計のqcを頼む。比較せよとはいってないはなから (殿命 2026-05-06 11:00 — 殿のYAML脱却ビジョン優先で
-    A 案 (SSE direct stream) 採用確定・軍師に A 案単独の設計 QC を依頼・比較依頼は将軍越権だった反省)
-  north_star: A 案 (SSE direct stream) を採用確定の前提で、軍師が実装前の設計妥当性を QC する。SSE 実装・in-memory
-    queue・全 10 agent 同時接続・rollback 戦略について技術的な抜け穴を洗い出し、実装 cmd 起票前に設計を完成度高く仕上げる。
-  command_text: "## 背景\n\n殿命: A 案 (SSE direct stream) で YAML 脱却を貫く方針確定 (2026-05-06\
-    \ 11:00)。\n\n将軍が cmd_1644 で 3 案比較を依頼したのは越権 (殿は最初から A 案 QC だけ望んでいた)。今回は **A 案単体の設計\
-    \ QC** に絞り、実装前に設計を完成度高く仕上げる。\n\n軍師は cmd_1644 で『A 案の YAML 脱却度 = 5/5・Anthropic 純正度\
-    \ = 5/5』と評価済。本 cmd では A 案を**実装前提**として、技術的な抜け穴を洗い出す。\n\n## 担当 + bloom_level\n\n\
-    - **gunshi 単独** (設計 QC)\n- bloom_level: **L6** (実装前設計レビュー・抜け穴検出)\n- gunshi_qc:\
-    \ **false** (軍師自身の QC)\n\n## 入力資料\n\n1. A 案詳細設計 (取消版): `queue/cmd_payloads/cmd_1643.json`\
-    \ (将軍が起票したが取消・設計内容は有効)\n2. cmd_1644 軍師 QC 報告書: `queue/reports/2026-05-06_cmd_1644_inbox_design_qc.md`\
-    \ (A 案の 5 軸評価)\n3. cmd_1639 Anthropic API 調査: `queue/reports/2026-05-05_cmd_1639_anthropic_agent_api_research.md`\n\
-    4. server.py 現状: `scripts/dashboard/server.py` (3389 行・SSE 関連実装は 0 件)\n5. cmd_1642\
-    \ Phase 2 QC: `queue/reports/2026-05-06_cmd_1642_monitor_phase2_qc.md`\n\n## A\
-    \ 案 設計 (本 cmd の QC 対象・cmd_1643.json 参照)\n\n### Step 1-7 の流れ\n```\n殿/将軍が curl POST\
-    \ /api/cmd_create\n   ↓\nserver.py:\n   ① SQLite INSERT (cmds + inbox)\n   ② in-memory\
-    \ queue.put() (Python threading.Queue)\n   ↓\nserver.py /api/inbox_stream?agent=<id>:\n\
-    \   SSE generator が queue.get() → yield 'data: {json}\\n\\n'\n   ↓\nagent の Monitor:\
-    \ curl -N --no-buffer ... (常時接続)\n   stdout 1 行 = 1 通知\n   ↓\nClaude Code が native\
-    \ 通知受信 → /api/inbox_messages で詳細取得\n```\n\n### 主要要素\n- server.py に `/api/inbox_stream`\
-    \ 新設 (~100 行)\n- in-memory queue (defaultdict + threading.Queue)\n- 全 10 agent\
-    \ が常時 curl -N SSE 接続\n- 既存 inbox_watcher.sh は並走 (rollback 確保)\n\n## QC 観点 (8 軸)\n\
-    \n軍師が以下の 8 軸で **A 案の抜け穴 + 改善提案** を出せ:\n\n### 1. SSE 実装の技術的妥当性\n- BaseHTTPRequestHandler\
-    \ で SSE が正しく実装可能か (Flask への移行必要か)\n- text/event-stream + 'data: ...\\n\\n' フォーマット\n\
-    - Connection: keep-alive の挙動\n- generator の thread-safe 性\n\n### 2. in-memory\
-    \ queue の設計\n- defaultdict + threading.Queue の thread-safe 性\n- maxsize 設定 (推奨値・未設定時のメモリ肥大化)\n\
-    - queue が満杯時の挙動 (block / 例外 / drop)\n- queue の永続化要否 (server.py 再起動で消失する点の許容度)\n\
-    \n### 3. 全 10 agent 同時 SSE 接続の負荷\n- BaseHTTPRequestHandler は thread-per-request\
-    \ か process-per-request か\n- 10 connection 同時保持の実 CPU/メモリ負荷\n- queue.get(timeout=30)\
-    \ の thread が 10 個動く・コンテキストスイッチコスト\n- keep-alive ping 30秒間隔の妥当性\n\n### 4. SSE 接続の信頼性\n\
-    - ネットワーク切断時の挙動\n- agent 側の curl -N 自動再接続\n- 再接続時に取りこぼし回避 (queue は server.py 内で保持されるが\
-    \ SSE 切断中の event は失われる?)\n- agent /clear → Monitor 再起動時のキューずれ\n\n### 5. server.py\
-    \ 拡張の影響範囲\n- 既存 endpoint への影響\n- HTTP server core の同時 connection 上限\n- グローバル state\
-    \ (defaultdict) 追加の影響\n- 既存 hook / webhook との競合\n\n### 6. rollback 戦略\n- /api/inbox_stream\
-    \ を停止する手順\n- 既存 inbox_watcher.sh への完全フォールバック\n- 部分 rollback (一部 agent だけ Monitor\
-    \ 継続) の可能性\n\n### 7. 段階移行ロードマップ\n- 1 agent (ash1) で先行 POC\n- 2-5 agent 拡大\n- 全\
-    \ 10 agent 移行\n- 既存 watcher の段階廃止 (Phase 4 cmd 候補)\n- 各 phase の完了基準 + 工数\n\n###\
-    \ 8. 殿運用シナリオ別の検証\n- 殿が cmd 連発 (1 秒に 5 件) した場合の queue 挙動\n- 殿が長時間 idle (PC スリープ)\
-    \ → 再接続時の挙動\n- agent /clear → Monitor 再起動の race condition\n- server.py 再起動時の queue\
-    \ 消失への対処\n\n## 軍師の作業手順\n\n0. advisor() 呼出\n1. 入力資料 5 件 Read\n2. 8 軸で A 案を QC (各軸で『抜け穴』『改善提案』を\
-    \ 1-3 個出す)\n3. 最終的な実装ロードマップを Phase 別に提示 (cmd_1647+ で起票する内容)\n4. 報告書作成: `queue/reports/2026-05-06_cmd_1646_a_design_qc.md`:\n\
-    \   - 8 軸別 QC 評価\n   - 抜け穴 + 改善提案 (matrix)\n   - 実装前に決定すべき設計判断 (server.py 改修方針\
-    \ / Flask 移行要否 / queue maxsize 等)\n   - Phase 別実装ロードマップ\n   - リスク + 対策\n5. advisor()\
-    \ 呼出 (実装前 QC の網羅性確認)\n6. inbox karo 完了報告\n\n## 必達制約\n\n- A 案単独の QC のみ・他案との比較禁止\
-    \ (殿命)\n- **実装禁止** (実装は本 QC 後・別 cmd で起票)\n- 既存 inbox_watcher.sh / Monitor (cmd_1642)\
-    \ は触らない\n- 軍師単独完遂・足軽起動禁止\n- 報告書は markdown 形式・章立て明確に\n\n## 共通ルール\n\n- 出力先: `queue/reports/2026-05-06_cmd_1646_a_design_qc.md`\n\
-    - 新規 .py 禁止 (本 cmd は QC のみ)\n- WebFetch / WebSearch 利用可 (SSE/Python HTTP server\
-    \ のベストプラクティス調査)\n- claude-code-guide subagent 活用推奨\n- git commit 必須 (push は家老責務)"
-  acceptance_criteria:
-  - queue/reports/2026-05-06_cmd_1646_a_design_qc.md 報告書作成
-  - 8 軸 QC 評価 (SSE 実装・queue 設計・10 agent 接続負荷・SSE 信頼性・server.py 影響・rollback・段階移行・殿運用シナリオ)
-    すべて含まれる
-  - 各軸で『抜け穴』+『改善提案』が 1-3 個ずつ提示される
-  - 実装前に決定すべき設計判断 (Flask 移行要否・queue maxsize 等) のリスト化
-  - Phase 別実装ロードマップ (cmd_1647+ 起票案) が含まれる
-  - リスク一覧 (技術 / 運用 / 互換性) が含まれる
-  - 他案 (B/C) との比較は含まれない (殿命)
-  - 軍師中立性 — 実装可能性 + 抜け穴の両面を技術的根拠で評価
-  - git commit 済
-  notify_karo: true
-  completed_at: '2026-05-06T06:29:16+09:00'
-- id: cmd_1647
-  status: done
-  priority: high
-  purpose: v5 設計書に基づき 12 章の本文 (.md + .html) を執筆・udemy-checker 🟢 + gunshi QC PASS まで完遂する。
-  timestamp: '2026-05-06T05:05:42+09:00'
-  project: udemy_course
-  lord_original: 中級編v5作成開始せよ (殿命 2026-05-06 11:15 — Phase 3 章別執筆を開始・cmd_1638 軍師設計書
-    + cmd_1645 用語精査済 curriculum を入力に 12 章を執筆フェーズへ移行)
-  north_star: Udemy 中級編 v5 を Phase 3 (章別執筆) で完成させる。cmd_1638 軍師設計書 (12 章 880 行) + cmd_1645
-    用語精査結果 (JIT/Lazy Load 置換済) を入力資料として、12 章 × .md + .html を執筆し、udemy-checker v2 (観点
-    E 追加版) で各章 🟢 達成 + gunshi QC PASS で公開可能品質に仕上げる。
-  command_text: "## 背景\n\nv5 設計フェーズ完了:\n- cmd_1637/1638: 軍師が curriculum_intermediate_v5_marp.md\
-    \ (880 行) を作成 (10 項目改訂版)\n- cmd_1645: 用語精査完了 (JIT/Lazy Load → 必要時取得/必要時読込・他 ⭐3\
-    \ 以上維持)\n- v5_design.md (272 行・本日 NG ワードリスト更新済) で全方針確定\n\nPhase 3 = 章別執筆フェーズ。12\
-    \ 章を 4 ash 並列で執筆 → udemy-checker v2 で \U0001F7E2 達成 → gunshi QC PASS。\n\n## 担当\
-    \ + bloom_level\n\n- 家老配分 (12 章 → 4 ash × 3 章/ash)\n- bloom_level: **L4** (初学者向け文章リライト・udemy-checker\
-    \ 反復)\n- gunshi_qc: **true** (全章整合性 + 困りごとマッピング + 3 層フレーム整合)\n\n## 入力資料 (執筆者が必読)\n\
-    \n1. **設計書 (主軸)**: `projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md`\
-    \ (880 行・cmd_1638 改訂版)\n   - 12 章詳細設計 (Emotional Hook + 学習目標 + 解説アウトライン 5-6 項目)\n\
-    \   - 困りごと → 章マッピング表\n   - L1/L2/L3 階層マッピング\n   - セマンティック検索 ch04↔ch07 二重登場\n \
-    \  - ch00 の 3 層世界観 + 11 困りごとフック\n   - ch10 逆引き辞典 (症状 → 現象 → 対策 3 段構造)\n   - Skills\
-    \ 縦糸 (ch01 → ch07 → ch11)\n2. **方針書**: `projects/udemy_course/v5_design.md` (272\
-    \ 行)\n   - ビジョン・受講者ペルソナ\n   - **NG ワードリスト** (経済/階層/工程検問/JIT/Lazy Load 等)\n   -\
-    \ 章タイトル原則\n   - 二段階執筆 (事前 4 項目 → 本文)\n   - v4 流用方針 (ゼロベース)\n3. **用語精査結果**: `queue/reports/2026-05-06_cmd_1645_v5_term_audit.md`\n\
-    \   - JIT → 必要時取得 (Selective Retrieval)\n   - Lazy Load → 必要時読込 (On-Demand Loading)\n\
-    \   - 他 ⭐3 以上は維持\n4. **udemy-checker v2**: `.claude/agents/udemy-checker.md`\n\
-    \   - 観点 A-E (E = 商品汎用性 = cmd_1635 で追加)\n5. **v4 参考**: `projects/udemy_course/drafts/lectures/intermediate_v4_chXX_*.md`\
-    \ (流用度は v5_design.md § 11 参照・コピペ禁止)\n\n## 章配分 (家老調整可・推奨案)\n\n| ash | 担当章 | 層 |\
-    \ 推定工数 |\n|-----|------|----|--------|\n| ash1 | ch00 (導入)・ch01 (L1)・ch02 (L1)\
-    \ | 導入+L1 | 1.5 日 |\n| ash2 | ch03 (L2)・ch04 (L2) | L2 | 1.5 日 |\n| ash3 | ch05\
-    \ (L3)・ch06 (L3) | L3 前半 | 1 日 |\n| ash4 | ch07 (L3)・ch08 (L3) | L3 後半 | 1.5 日\
-    \ |\n| ash5 | ch09 (応用)・ch10 (逆引き) | 応用+逆引き | 1 日 |\n| ash6 | ch11 (統合演習) | 演習\
-    \ | 1 日 |\n\n計 12 章・4-6 ash 並列・3-5 日見込み。\n\n## 二段階執筆プロトコル (殿命・v5_design.md § 10\
-    \ 準拠)\n\n### Step 1: 事前 4 項目 (殿確認必須)\n\n各章の執筆者は本文書く前に以下 4 項目を `queue/reports/cmd_1647_chXX_pre.md`\
-    \ に提示:\n\n```markdown\n# ch00 事前 4 項目\n\n## 1. 対象問題 (ch00 フック → 解決する困りごと番号)\n\
-    ## 2. 持ち帰り (受講者が章末で言える 1 文 / できる 1 動作)\n## 3. ストーリー (困った状態 → 学習 → 解決 の物語線)\n##\
-    \ 4. 実例 (受講者の現場 (営業/PM/データ分析) に置換可能な具体例)\n```\n\n殿が確認 → OK で Step 2 へ・修正指示なら再提示。\n\
-    \n### Step 2: 本文執筆\n\n殿の OK 後に `intermediate_v5_chXX_*.md` を Marp 形式で執筆:\n- スライド\
-    \ 8-12 枚\n- Emotional Hook (設計書の通り)\n- 各スライドに speaker notes (HTML コメント `<!-- ...\
-    \ -->` で記述)\n- NG ワードリスト全件 grep で 0 件確認\n- 用語精査結果に従い JIT/Lazy Load 等の置換用語使用\n\n\
-    ### Step 3: udemy-checker レビュー\n\n各章の .md を `Task tool with subagent_type=udemy-checker`\
-    \ でレビュー:\n- 観点 A-E (A=わからない / B=論理破綻 / C=詰まる / D=良かった / **E=商品汎用性**)\n- \U0001F7E2\
-    \ (理解できた) 達成まで補修反復 (上限 5 回)\n- 5 回超 → gunshi escalate\n\n### Step 4: HTML 生成\n\
-    \n`marp intermediate_v5_chXX_*.md -o intermediate_v5_chXX_*.html` で派生生成。.md と内容一致確認。\n\
-    \n### Step 5: 章単位 commit\n\n```bash\ngit add projects/udemy_course/drafts/lectures/intermediate_v5_chXX_*.{md,html}\n\
-    git commit -m 'feat(udemy): intermediate v5 chXX 執筆 (cmd_1647)'\n```\n\n### Step\
-    \ 6: 軍師 QC (全章執筆完了後)\n\n軍師が以下を確認:\n- 事前 4 項目との整合性\n- 困りごと 11 個全件マッピング (取りこぼし 0)\n\
-    - セマンティック検索 ch04↔ch07 橋渡しが機能\n- 3 層フレーム (L1/L2/L3) 章マッピング維持\n- NG ワードリスト全件 grep\
-    \ で 0 件\n- 持ち帰りが各章で明確\n- 全章 udemy-checker \U0001F7E2 達成済\n\nQC 報告書: `queue/reports/2026-05-06_cmd_1647_v5_phase3_qc.md`\n\
-    \n## 完了基準\n\n- 12 章すべての .md (Marp) + .html 作成済 (intermediate_v5_chXX_*.{md,html})\n\
-    - 各章で事前 4 項目を殿確認済 → OK 後に本文執筆\n- 全 12 章で udemy-checker \U0001F7E2 達成 (観点 A-E すべて満足)\n\
-    - NG ワードリスト全件 grep で 0 件 (経済/階層/JIT/Lazy Load/queue/tasks/shogun/karo/ashigaru/gunshi/multi-agent-shogun)\n\
-    - 用語精査結果に従い JIT → 必要時取得・Lazy Load → 必要時読込 が反映\n- セマンティック検索 ch04 → ch07 橋渡しスライド明示\n\
-    - 3 層フレーム (ch01-02 L1 / ch03-04 L2 / ch05-08 L3) 維持\n- 困りごと 11 個全件マッピング (ch10\
-    \ 逆引き辞典で再構成)\n- gunshi QC PASS\n- 章単位 git commit + push 済\n- queue/reports/2026-05-06_cmd_1647_v5_phase3_qc.md\
-    \ 完了報告書作成\n- 殿レビュー URL ntfy 送信 (http://192.168.2.4:8773/intermediate_v5/)\n\n\
-    ## 共通ルール\n\n- 出力先: `projects/udemy_course/drafts/lectures/intermediate_v5_*.md`\
-    \ + `.html`\n- 新規 .py 禁止 (本文執筆のみ)\n- v4 ファイル (intermediate_v4_*.md) には**触らない**\
-    \ (v5 完成後に archive 予定)\n- 中間成果物は `queue/reports/cmd_1647_chXX_*.md` 配下保存\n- git\
-    \ commit + push 済が完了条件\n- gunshi_qc=true ゆえ gunshi 経由で karo 報告\n- 殿の二段階執筆プロトコル厳守\
-    \ (事前 4 項目 → 殿 OK → 本文)\n\n## 注意事項\n\n- 受講者ペルソナ「社会人 2-3 年目・横文字きつい」を絶対に外すな\n- v4\
-    \ のコピペ禁止・参考程度・ゼロベース執筆\n- セマンティック検索の ch04 章末橋渡しと ch07 章冒頭回収は必須\n- ch00 で 11 困りごとフック・ch10\
-    \ で逆引き辞典のペア構造維持\n- Skills 縦糸 (ch01 → ch07 → ch11) で skill が育つ物語\n- 各章末に「強化した層」を\
-    \ 1 行明記 (cmd_1638 修正で確定)"
-  acceptance_criteria:
-  - 12 章すべての .md (Marp) + .html 作成済 (intermediate_v5_ch00-11_*.{md,html})
-  - 各章で事前 4 項目を殿確認済 → OK 後に本文執筆 (二段階執筆プロトコル準拠)
-  - 全 12 章で udemy-checker 🟢 達成 (観点 A-E すべて満足)
-  - NG ワードリスト (経済/階層/JIT/Lazy Load/queue/tasks/shogun/karo/ashigaru/gunshi/multi-agent-shogun)
-    全件 grep で 0 件
-  - JIT → 必要時取得 / Lazy Load → 必要時読込 の置換用語が反映
-  - セマンティック検索 ch04 章末橋渡し + ch07 章冒頭回収スライド明示
-  - 3 層フレーム (L1=ch01-02 / L2=ch03-04 / L3=ch05-08) 維持
-  - 困りごと 11 個全件マッピング維持 (ch10 逆引き辞典で再構成)
-  - Skills 縦糸 (ch01 → ch07 → ch11) で skill が育つ物語が機能
-  - 各章末に『強化した層』1 行明記 (cmd_1638 修正で確定)
-  - gunshi QC PASS
-  - 章単位 git commit + push 済
-  - queue/reports/2026-05-06_cmd_1647_v5_phase3_qc.md 完了報告書作成
-  - 殿レビュー URL ntfy 送信 (http://192.168.2.4:8773/intermediate_v5/)
-  notify_karo: true
-  completed_at: '2026-05-06T08:03:55+09:00'
-- id: cmd_1648
-  status: done
-  priority: high
-  purpose: server.py に SSE endpoint /api/inbox_stream + in-memory queue + SQLite 未読取得
-    + feature flag を実装し、単体テストで動作確認する。
-  timestamp: '2026-05-06T05:12:37+09:00'
-  project: multi-agent-shogun
-  lord_original: すすめよ (殿命 2026-05-06 11:30 — cmd_1646 軍師 A 案単独 QC で 5 件 CRITICAL 抜け穴
-    + Phase 別ロードマップ提示済・Phase 1 (server.py SSE 実装 + 5 落とし穴対策 + feature flag) を進めよ)
-  north_star: A 案 (SSE direct stream) の Phase 1 を実装。server.py に SSE endpoint 追加・5
-    つの critical 抜け穴 (stdlib 認識訂正済 / queue ロスト対策 / Last-Event-ID / feature flag / SPOF
-    対策) を実装段階で塞ぐ。Phase 2-3 (cmd_1649/1650) で段階展開・Phase 4 (cmd_1651) で旧 watcher 廃止という
-    3 週間ロードマップの第一歩。
-  command_text: "## 背景\n\ncmd_1644 (3 案 QC) → 殿が A 案採用確定 → cmd_1646 (A 案単独 8 軸 QC)\
-    \ で 5 件 CRITICAL 抜け穴洗い出し。本 cmd_1648 で Phase 1 を実装。\n\n軍師の Phase 別ロードマップ (`queue/reports/2026-05-06_cmd_1646_a_design_qc.md`\
-    \ §4):\n- **Phase 1 (本 cmd_1648・1-2 日)**: server.py SSE endpoint + 5 抜け穴対策 + 単体テスト\n\
-    - Phase 2 (cmd_1649・0.5 日 + 24h): gunshi 1 agent SSE 接続テスト\n- Phase 3 (cmd_1650・2-3\
-    \ 日 + 1 週間観察): 全 10 agent 段階展開\n- Phase 4 (cmd_1651・別 cmd): inbox_watcher.sh 廃止\
-    \ + shutsujin STEP 6.6 削除\n\n## 担当 + bloom_level\n\n- ash 1 名 (server.py 改修経験のある\
-    \ ash3 推奨・cmd_1635 で server.py 改修実績)\n- bloom_level: **L4** (server.py SSE 実装\
-    \ + threading + SQLite 連携)\n- gunshi_qc: **true** (本番経路根幹変更・Phase 2 着手前 QC 必須)\n\
-    \n## 入力資料 (実装者必読)\n\n1. **A 案 8 軸 QC 報告書**: `queue/reports/2026-05-06_cmd_1646_a_design_qc.md`\
-    \ (594 行)\n   - §0 エグゼクティブサマリ (5 件 CRITICAL 抜け穴)\n   - §1 stdlib HTTP server 訂正\
-    \ (Flask 不要)\n   - §2 8 軸 QC + 改善提案コード片\n   - §3 実装前決定事項 6 項目\n   - §4 Phase 別ロードマップ\n\
-    2. **A 案詳細設計**: `queue/cmd_payloads/cmd_1643.json` (取消版・設計内容は有効)\n3. **server.py\
-    \ 現状**: `scripts/dashboard/server.py` (3389 行)\n   - L7: `import http.server`\n\
-    \   - L1704: `class DashboardHandler(http.server.BaseHTTPRequestHandler):`\n \
-    \  - L3384: `server = http.server.ThreadingHTTPServer(...)`\n   - 既存 `/api/inbox_write`\
-    \ (cmd_1640 で audit log 追記実装済)\n\n## 実装内容 (5 件 CRITICAL 抜け穴を全部塞ぐ)\n\n### C1: stdlib\
-    \ HTTP server 認識\n- Flask 移行は不要 (軍師訂正)\n- `BaseHTTPRequestHandler` の `do_GET`\
-    \ 内で SSE 実装\n- `protocol_version = 'HTTP/1.1'` を明示 (keep-alive のため)\n\n### C2:\
-    \ SQLite を Single Source of Truth\n- in-memory queue は通知トリガーとしてのみ使用\n- SSE 接続初期化時に\
-    \ SQLite の未読 (`read=0`) を全件先 push\n- queue 自体は揮発でも、SSE 接続ごとに SQLite から復元可能\n\n\
-    ```python\n# SSE generator 内\ndef do_GET_inbox_stream(self, agent):\n    # 接続初期化:\
-    \ SQLite から未読を取得して push\n    unread = sqlite.execute(\n        \"SELECT id, type,\
-    \ from_agent, task_id, timestamp FROM inbox \"\n        \"WHERE agent=? AND read=0\
-    \ ORDER BY id ASC\", (agent,)\n    ).fetchall()\n    \n    for msg in unread:\n\
-    \        yield f\"id: {msg[0]}\\ndata: {json.dumps(dict(msg))}\\n\\n\"\n    \n\
-    \    # その後 in-memory queue から get-loop\n    q = _INBOX_QUEUES[agent]\n    while\
-    \ True:\n        try:\n            msg = q.get(timeout=30)\n            yield\
-    \ f\"id: {msg['id']}\\ndata: {json.dumps(msg)}\\n\\n\"\n        except queue.Empty:\n\
-    \            yield \": keepalive\\n\\n\"\n```\n\n### H3: Last-Event-ID 対応\n- SSE\
-    \ event に `id: <msg_id>` を必ず付与\n- `Last-Event-ID` ヘッダー受信時に該当 msg_id 以降を SQLite\
-    \ から取得\n\n```python\nlast_id = self.headers.get('Last-Event-ID', '0')\nresume\
-    \ = sqlite.execute(\n    \"SELECT id, ... FROM inbox WHERE agent=? AND id > ?\
-    \ ORDER BY id ASC\",\n    (agent, last_id)\n).fetchall()\n```\n\n### H4: feature\
-    \ flag\n- `ENABLE_SSE_INBOX=true/false` 環境変数で切替\n- default は **false** (実装直後は無効・テスト後に\
-    \ true)\n- false の時は /api/inbox_stream が 404 を返す\n\n```python\n# server.py 起動時\n\
-    ENABLE_SSE_INBOX = os.environ.get('ENABLE_SSE_INBOX', 'false').lower() == 'true'\n\
-    \n# /api/inbox_stream handler 内\nif not ENABLE_SSE_INBOX:\n    self.send_response(404)\n\
-    \    self.end_headers()\n    self.wfile.write(b'SSE inbox stream is disabled (set\
-    \ ENABLE_SSE_INBOX=true)')\n    return\n```\n\n### H5: SPOF (Single Point of Failure)\
-    \ 対策\n- 既存 inbox_watcher.sh は **本 cmd では並走稼働継続** (rollback 確保)\n- systemd 化は別\
-    \ cmd (cmd_1651 候補)\n- Monitor 側の自動再接続は Phase 2 (cmd_1649) で確認\n- 本 cmd では「並走で済ませる」割切り\n\
-    \n### 追加: in-memory queue 設計\n- `defaultdict(lambda: queue.Queue(maxsize=1000))`\
-    \ で agent ごとに 1 queue\n- maxsize=1000 で無制限肥大化を防ぐ\n- `put_nowait` + Full 例外時は warning\
-    \ ログ + drop (SQLite に残るので情報損失なし)\n\n```python\n_INBOX_QUEUES = defaultdict(lambda:\
-    \ queue.Queue(maxsize=1000))\n_INBOX_QUEUES_LOCK = threading.Lock()\n\n# /api/inbox_write\
-    \ 内 (既存 SQLite INSERT + audit log 追記の後に)\nif ENABLE_SSE_INBOX:\n    try:\n   \
-    \     with _INBOX_QUEUES_LOCK:\n            q = _INBOX_QUEUES[target_agent]\n\
-    \        q.put_nowait({\n            'id': msg_id,\n            'type': msg_type,\n\
-    \            'from_agent': from_agent,\n            'task_id': task_id,\n    \
-    \        'timestamp': now_jst_str,\n        })\n    except queue.Full:\n     \
-    \   print(f'[SSE] WARN: queue full for {target_agent} (drop notification, SQLite\
-    \ preserves)')\n```\n\n## 担当 ash の手順\n\n0. advisor() 呼出\n1. 入力資料 3 件 Read (軍師\
-    \ QC 報告書 §0-4 / cmd_1643.json / server.py 現状)\n2. server.py L7 / L1704 / L3384\
-    \ 確認 (stdlib HTTP server)\n3. server.py に以下を追加 (~150 行想定):\n   - グローバル: `_INBOX_QUEUES\
-    \ = defaultdict(lambda: queue.Queue(maxsize=1000))` + lock\n   - 環境変数 `ENABLE_SSE_INBOX`\
-    \ 読込\n   - `/api/inbox_stream` GET handler (do_GET 内で path 分岐追加)\n   - `/api/inbox_write`\
-    \ 内に queue.put_nowait 追加 (既存 SQLite INSERT + audit log の後)\n   - `protocol_version\
-    \ = 'HTTP/1.1'` を DashboardHandler に明示\n4. python3 -m py_compile scripts/dashboard/server.py\
-    \ で構文チェック\n5. 単体テスト:\n   a. ENABLE_SSE_INBOX=true で server.py 再起動\n   b. ターミナル\
-    \ A: `curl -N http://localhost:8770/api/inbox_stream?agent=ashigaru1`\n   c. ターミナル\
-    \ B: `curl -X POST http://localhost:8770/api/inbox_write --data @<test.json>`\
-    \ (target=ashigaru1)\n   d. ターミナル A の SSE 通知到達確認\n   e. ターミナル A の curl を中断 → 再接続時に\
-    \ Last-Event-ID 動作確認\n   f. ENABLE_SSE_INBOX=false で再起動 → /api/inbox_stream が\
-    \ 404 確認\n6. 単体テスト結果を `queue/reports/2026-05-06_cmd_1648_phase1_unit_test.md`\
-    \ 作成\n7. git commit: `feat(server): A 案 SSE inbox stream Phase 1 実装 + feature\
-    \ flag (cmd_1648)`\n8. advisor() 呼出 (実装の網羅性確認)\n9. inbox karo 完了報告\n\n## 完了基準\n\
-    \n- server.py に `/api/inbox_stream?agent=<id>` SSE endpoint 実装済 (5 件 CRITICAL\
-    \ 抜け穴対策込み)\n- ENABLE_SSE_INBOX=false の時 404 確認済\n- ENABLE_SSE_INBOX=true の時 SSE\
-    \ event 配信確認済\n- SQLite 未読の初期 push 動作確認済\n- Last-Event-ID 対応動作確認済\n- in-memory\
-    \ queue maxsize=1000 設定済 + Full 例外処理\n- protocol_version='HTTP/1.1' 明示済\n- python3\
-    \ -m py_compile PASS\n- 既存 inbox_watcher.sh / Monitor (cmd_1642) は触らない (rollback\
-    \ 確保)\n- queue/reports/2026-05-06_cmd_1648_phase1_unit_test.md 作成 (テスト結果記録)\n\
-    - gunshi QC PASS\n- git commit 済 (push は家老責務)\n\n## 共通ルール\n\n- 出力先: `scripts/dashboard/server.py`\
-    \ + `queue/reports/`\n- 新規 .py 禁止 (本 cmd は server.py 拡張のみ)\n- 中間成果物は queue/reports/\
-    \ 配下保存\n- git commit 済が完了条件\n- gunshi_qc=true ゆえ gunshi 経由で karo 報告\n\n## 注意事項\n\
-    \n- ENABLE_SSE_INBOX **default は false** で実装 (動作確認後・Phase 2 で true に切替)\n- 既存\
-    \ /api/inbox_write の挙動は変えない (queue.put_nowait は副作用追加のみ)\n- SSE generator 内の `wfile.flush()`\
-    \ 必須 (バッファリング無効化)\n- `Connection: keep-alive` ヘッダー明示\n- agent パラメータの validation\
-    \ (英数字 + アンダースコアのみ・SQL injection 対策)\n- 既存 inbox_watcher.sh は絶対に削除しない (Phase 4\
-    \ = cmd_1651 で対応)\n- shutsujin_departure.sh STEP 6.6 は本 cmd では触らない"
-  acceptance_criteria:
-  - server.py に /api/inbox_stream?agent=<id> SSE endpoint 実装済
-  - ENABLE_SSE_INBOX 環境変数による feature flag 実装済 (default=false)
-  - ENABLE_SSE_INBOX=false で 404 応答確認済
-  - ENABLE_SSE_INBOX=true で SSE event 配信確認済 (curl -N で stdout に流れる)
-  - SSE 接続初期化時に SQLite から未読 (read=0) を先 push する実装済
-  - Last-Event-ID ヘッダー対応実装済 (再接続時に該当 msg_id 以降を SQLite から取得)
-  - in-memory queue (defaultdict + threading.Queue・maxsize=1000) 実装済 + Full 例外処理
-  - /api/inbox_write 内に queue.put_nowait 追加実装済
-  - protocol_version='HTTP/1.1' 明示済
-  - python3 -m py_compile PASS
-  - agent パラメータ validation (SQL injection 対策) 実装済
-  - queue/reports/2026-05-06_cmd_1648_phase1_unit_test.md 作成 (テスト結果記録)
-  - 既存 inbox_watcher.sh / Monitor (cmd_1642) は触らない (rollback 確保)
-  - gunshi QC PASS
-  - git commit 済
-  notify_karo: true
-  completed_at: '2026-05-06T06:29:00+09:00'
-- id: cmd_1652
-  status: done
-  priority: medium
-  purpose: dashboard に cancel ボタンを追加・/api/cmd_cancel エンドポイント実装・既存 done ボタンと同等の UX
-    を実現する。
-  timestamp: '2026-05-06T05:17:30+09:00'
-  project: multi-agent-shogun
-  lord_original: ダッシュボードにdone ボタン用意してもらったがcanceled もほしい (殿命 2026-05-06 11:35 — MCP
-    dashboard に cancel ボタン追加・done ボタンは既存)
-  north_star: MCP dashboard (http://192.168.2.4:8770/) で殿が cmd の状態を変更する UI を充実させ、cancel
-    操作を done と同じ手軽さで実行可能にする。pending/in_progress の cmd を殿判断で即時 cancelled に変更できるようにし、運用負荷を下げる。
-  command_text: "## 背景\n\n殿命: ダッシュボード (MCP dashboard・http://192.168.2.4:8770/) に既に\
-    \ done ボタンはあるが、cancel ボタンがない。pending/in_progress の cmd を殿判断で即 cancelled に変更したいケースが頻繁にある\
-    \ (本日も cmd_1643 取消があった)。\n\nCLAUDE.md の `cmd_status_transitions` には既に `pending\
-    \ → cancelled (withdrawn by shogun)` が定義済。UI 側に cancel 操作の入口を追加するだけで実現可能。\n\n\
-    ## 担当 + bloom_level\n\n- ash (HTML/JS + Python 両方できる ash・推奨 ash2 か ash6・ash3 は\
-    \ cmd_1648 で稼働中の可能性)\n- bloom_level: **L3** (UI 追加 + API endpoint 1 個実装)\n- gunshi_qc:\
-    \ **false** (UI 追加のみ・QC 不要レベル)\n- 工数: 0.5 日\n\n## 実装内容\n\n### 1. /api/cmd_cancel\
-    \ エンドポイント実装 (server.py)\n\n```python\n# /api/cmd_cancel?id=cmd_XXX または POST {\"\
-    id\": \"cmd_XXX\"}\nelif self.path.startswith('/api/cmd_cancel'):\n    # query\
-    \ string or POST body から cmd_id 取得\n    cmd_id = parse_qs(urlparse(self.path).query).get('id',\
-    \ [''])[0]\n    if not cmd_id:\n        # POST body 経路\n        body_len = int(self.headers.get('Content-Length',\
-    \ 0))\n        body = json.loads(self.rfile.read(body_len)) if body_len else {}\n\
-    \        cmd_id = body.get('id', '')\n    \n    if not cmd_id:\n        self.send_response(400)\n\
-    \        self._json_response({'error': 'id required'})\n        return\n    \n\
-    \    # SQLite 更新\n    conn = sqlite3.connect(DB_PATH)\n    cur = conn.cursor()\n\
-    \    cur.execute(\n        \"UPDATE cmds SET status='cancelled', updated_at=?\
-    \ WHERE id=? AND status IN ('pending', 'in_progress')\",\n        (datetime.now(jst).isoformat(),\
-    \ cmd_id)\n    )\n    affected = cur.rowcount\n    conn.commit()\n    conn.close()\n\
-    \    \n    if affected == 0:\n        self._json_response({'ok': False, 'reason':\
-    \ 'cmd not found or already done/cancelled'})\n    else:\n        # YAML 側も更新\
-    \ (dual-path 整合)\n        # shogun_to_karo.yaml の該当 cmd の status を cancelled に\n\
-    \        # ※既存の done 処理を参考に実装\n        self._json_response({'ok': True, 'cmd_id':\
-    \ cmd_id, 'new_status': 'cancelled'})\n```\n\n### 2. dashboard HTML に cancel ボタン追加\n\
-    \n既存の done ボタンと同じ位置・同じレイアウトで:\n\n```html\n<!-- cmd 一覧の各行に cancel ボタン追加 -->\n<button\
-    \ onclick=\"cancelCmd('cmd_1234')\" class=\"btn-cancel\">キャンセル</button>\n```\n\
-    \n```javascript\nasync function cancelCmd(cmdId) {\n    if (!confirm(`${cmdId}\
-    \ を cancelled に変更しますか？\\n進行中の作業は手動で停止する必要があります。`)) return;\n    \n    const r\
-    \ = await fetch(`/api/cmd_cancel?id=${cmdId}`, {method: 'POST'});\n    const data\
-    \ = await r.json();\n    if (data.ok) {\n        alert(`${cmdId} を cancelled に変更しました`);\n\
-    \        location.reload();\n    } else {\n        alert(`失敗: ${data.reason ||\
-    \ data.error}`);\n    }\n}\n```\n\n### 3. ボタンスタイル\n\n```css\n.btn-cancel {\n \
-    \   background-color: #f87171;  /* 既存 done と区別する色・赤系 */\n    color: white;\n \
-    \   padding: 0.25rem 0.75rem;\n    border-radius: 4px;\n    cursor: pointer;\n\
-    \    border: none;\n    margin-left: 0.5rem;\n}\n.btn-cancel:hover {\n    background-color:\
-    \ #ef4444;\n}\n```\n\n## 担当 ash の手順\n\n0. advisor() 呼出\n1. server.py の既存 /api/cmd_done\
-    \ エンドポイント (or 同等) を Read して実装パターン確認\n2. /api/cmd_cancel を同パターンで実装\n3. dashboard\
-    \ HTML (server.py 内 or 別 .html) で done ボタンの位置を確認\n4. cancel ボタン追加 (HTML + JS +\
-    \ CSS)\n5. 動作確認:\n   - dashboard 開く\n   - 適当な pending cmd の cancel ボタンクリック\n \
-    \  - confirm ダイアログ確認\n   - cancel 実行 → status が cancelled に変わることを確認\n   - リロードで反映確認\n\
-    6. python3 -m py_compile PASS\n7. git add scripts/dashboard/server.py (dashboard\
-    \ HTML が server.py 内ならこれだけ)\n8. git commit -m 'feat(dashboard): cancel ボタン追加 +\
-    \ /api/cmd_cancel endpoint (cmd_1652)'\n9. advisor() 呼出\n10. inbox karo 完了報告\n\
-    \n## 完了基準\n\n- /api/cmd_cancel?id=cmd_XXX エンドポイント実装済 (POST or GET)\n- pending/in_progress\
-    \ の cmd のみ cancelled に変更可 (done/already cancelled は弾く)\n- dashboard HTML に cancel\
-    \ ボタン追加済\n- confirm ダイアログ実装済 (誤操作防止)\n- ボタンスタイル (赤系・done と区別) 実装済\n- 既存 done ボタンの動作に影響なし\n\
-    - python3 -m py_compile PASS\n- 動作確認: dashboard で実際に cancel ボタンクリック → status 変更確認\n\
-    - git commit 済 (push は家老責務)\n\n## 共通ルール\n\n- 出力先: `scripts/dashboard/server.py`\
-    \ (HTML/JS/CSS が同 file 内ならこれのみ)\n- 新規 .py 禁止 (server.py 拡張のみ)\n- 中間成果物は queue/reports/\
-    \ 配下保存\n- git commit 済が完了条件\n\n## 注意事項\n\n- cancel は **取り消し不能** (cancelled → 他状態への戻しは別\
-    \ cmd 起票必要) ゆえ confirm 必須\n- 既存 done ボタンの実装パターンに合わせること (UX 統一)\n- SQLite + YAML\
-    \ dual-path の整合性確保 (cmd_1488/1494 教訓)\n- pending/in_progress 以外の status からの cancel\
-    \ は明示的に拒否 (already done を上書きしない)"
-  acceptance_criteria:
-  - /api/cmd_cancel エンドポイント実装済 (cmd_id を query or body で受取)
-  - pending/in_progress の cmd のみ cancelled に変更可・done/already cancelled は弾く
-  - dashboard HTML に cancel ボタン追加済 (既存 done と同位置・赤系スタイルで区別)
-  - 確認ダイアログ実装済 (confirm())
-  - 既存 done ボタンの動作に影響なし
-  - SQLite + YAML dual-path で status 整合更新済
-  - python3 -m py_compile PASS
-  - 実機動作確認 (dashboard で cancel ボタンクリック → status 変更確認)
-  - git commit 済
-  notify_karo: true
-  completed_at: '2026-05-06T06:29:00+09:00'
-- id: cmd_1649
+- id: cmd_1650
   status: in_progress
   priority: high
-  purpose: 軍師セッションで SSE Monitor を起動し、24h 観察で SSE 通知到達率と取りこぼし 0 件を確認する。
-  timestamp: '2026-05-06T05:36:44+09:00'
+  purpose: Phase 3 — SSE Monitor を全 10 agent (karo/ashigaru1-7/gunshi/shogun) に展開し、既存
+    inbox_watcher.sh と並走稼働で最低 1 週間 safety net を維持。cmd_1646 軸 4 SSE 信頼性確保の最終段。
+  timestamp: '2026-05-07T05:50:00+09:00'
   project: multi-agent-shogun
-  lord_original: 進め 軍師のwatch erはきる？ (殿命 2026-05-06 11:50 — cmd_1648 完了 (Phase 1 SSE
-    実装済) を受け Phase 2 = 軍師 1 名 SSE 接続テストを進めよ・軍師の既存 watcher を切るかは判断要)
-  north_star: A 案 Phase 2 として軍師 (gunshi) 1 名のセッションで SSE Monitor を起動し、24 時間観察で取りこぼし
-    0 件を検証する。Phase 3 (全 10 agent 展開) への判断材料を得る。既存 inbox_watcher.sh は **並走継続** (rollback
-    確保) で safety net を維持する。
-  command_text: "## 背景\n\ncmd_1648 (Phase 1) で server.py に SSE endpoint 実装完了:\n- /api/inbox_stream?agent=<id>\
-    \ 動作確認済 (14/14 AC PASS・gunshi QC PASS)\n- 5 件 CRITICAL 抜け穴すべて対策済\n- ENABLE_SSE_INBOX=true/false\
-    \ の feature flag 実装済\n\nPhase 2 で **軍師 1 名のみ** SSE Monitor を試運転し、24h 観察で取りこぼし\
-    \ 0 件を確認する。\n\n## 殿のご質問への回答 — 軍師の既存 watcher は切らない\n\n殿: 「軍師の watcher は切る？」\n\n\
-    **Phase 2 では切らない**。理由:\n- 1 名だけ既存 watcher 切断 = その 1 名が SSE 単一障害点に\n- SSE 失敗時の\
-    \ rollback 困難\n- まず**並走 24h テスト**で安定確認 → Phase 4 (cmd_1651) で全 agent 一括廃止が安全\n\
-    \nPhase 2 設計:\n- 軍師の **既存 inbox_watcher.sh (gunshi 用)** は **継続稼働** (rollback 確保)\n\
-    - 軍師セッション内で SSE Monitor を**追加起動** (並走)\n- 通知が両方届く (重複は許容・取りこぼし防止優先)\n- 24h 観察で\
-    \ SSE 単体の到達率を計測\n\n## 担当 + bloom_level\n\n- **gunshi 単独** (Phase 2 テストの主体)\n-\
-    \ bloom_level: **L4** (SSE Monitor 起動 + 24h 観察 + 結果集計)\n- gunshi_qc: **false**\
-    \ (軍師自身のテスト)\n\n## 入力資料\n\n1. cmd_1648 軍師 QC 報告書: `queue/reports/2026-05-06_cmd_1648_phase1_qc.md`\n\
-    2. cmd_1648 単体テスト報告書: `queue/reports/2026-05-06_cmd_1648_phase1_unit_test.md`\n\
-    3. cmd_1646 A 案 8 軸 QC 報告書 §4 Phase 2 設計: `queue/reports/2026-05-06_cmd_1646_a_design_qc.md`\n\
-    4. server.py 現状 (SSE 実装済・cmd_1648 で be80269 反映)\n\n## 手順 (gunshi が自分で実行)\n\n###\
-    \ Step 1: 環境変数有効化 + server.py 再起動\n\n軍師が server.py の ENABLE_SSE_INBOX=true で再起動:\n\
-    \n```bash\n# systemd unit に環境変数追加 (永続化) or 一時的に環境変数で再起動\n# 永続化案: ~/.config/systemd/user/mcp-dashboard.service\
-    \ の [Service] セクションに\n#   Environment=ENABLE_SSE_INBOX=true\n# を追加 → systemctl\
-    \ --user daemon-reload && restart\n\n# 一時的検証 (sufficient for Phase 2 テスト):\nENABLE_SSE_INBOX=true\
-    \ python3 scripts/dashboard/server.py &\n# (既存 systemd 起動は systemctl stop した後に手動起動)\n\
-    ```\n\n注意: 軍師は systemd ユニット編集の権限あり・かつ rollback 容易ゆえ systemd 永続化を推奨。\n\n### Step\
-    \ 2: 軍師セッション内で SSE Monitor 起動\n\n軍師が自分の Claude Code セッション内で:\n\n```python\nMonitor(\n\
-    \    command=\"curl -N --no-buffer http://localhost:8770/api/inbox_stream?agent=gunshi\"\
-    ,\n    description=\"SSE inbox stream for gunshi (Phase 2 test)\",\n    persistent=true,\n\
-    \    timeout_ms=3600000\n)\n```\n\n### Step 3: 既存 inbox_watcher.sh は触らない (並走確認)\n\
-    \n```bash\n# 軍師の既存 watcher プロセス確認 (停止しない)\nps aux | grep -E \"inbox_watcher.sh.*gunshi\"\
-    \ | grep -v grep\n# → 1 プロセス稼働中であること\n```\n\n### Step 4: 24h 観察開始\n\n観察項目を `queue/reports/2026-05-06_cmd_1649_phase2_observation.md`\
-    \ に記録:\n\n- SSE 接続維持時間 (24h 連続接続できるか)\n- keep-alive ping (30 秒) の挙動\n- 軍師宛 inbox\
-    \ メッセージ受信件数 (SSE 通知 + 既存 watcher 通知の両方カウント)\n- **取りこぼし** = SSE 通知到達失敗で既存 watcher\
-    \ だけ通知が来た回数\n- **重複** = SSE + 既存 watcher 両方通知が来た回数\n- SSE 接続断絶回数 + 自動再接続成否 (Monitor\
-    \ の挙動)\n\n### Step 5: テスト用 inbox_write を 5-10 回 (24h 中)\n\n軍師が定期的にテスト用 inbox_write\
-    \ を発行 (殿実運用と並行):\n\n```bash\n# 1 時間に 1 回程度・テスト task_id で実行\ncurl -X POST http://localhost:8770/api/inbox_write\
-    \ \\\n     -H 'Content-Type: application/json' \\\n     --data '{\"to\":\"gunshi\"\
-    ,\"from\":\"gunshi\",\"type\":\"wake_up\",\"message\":\"PHASE2_TEST_<N>\",\"task_id\"\
-    :\"phase2_test_<timestamp>\"}'\n```\n\n→ SSE Monitor + 既存 watcher 両方が反応することを確認\n\
-    \n### Step 6: 24h 後の集計 + 報告書作成\n\n```\nqueue/reports/2026-05-06_cmd_1649_phase2_observation.md:\n\
-    \  - 観察期間: 2026-05-06 12:00 〜 2026-05-07 12:00 (24h)\n  - 受信件数 (SSE / 既存 watcher\
-    \ / 両方)\n  - 取りこぼし件数 (SSE 失敗のみ)\n  - SSE 接続断絶回数 + 自動再接続成否\n  - keep-alive ping\
-    \ 動作状況\n  - 結論: Phase 3 起票判断 (取りこぼし 0 件で Phase 3 進行可)\n```\n\n### Step 7: Phase\
-    \ 3 起票判断\n\n- ✅ 取りこぼし 0 件 + SSE 接続安定 → Phase 3 (cmd_1650) 起票推奨\n- ⚠️ 取りこぼし 1 件以上\
-    \ → 原因調査 + 改善後再テスト\n- ❌ SSE 完全動作不能 → A 案見直し or B 案再評価\n\n## 完了基準\n\n- ENABLE_SSE_INBOX=true\
-    \ で server.py 起動済 (永続化推奨)\n- 軍師セッション内で SSE Monitor 起動済 (Step 2)\n- 既存 inbox_watcher.sh\
-    \ (gunshi 用) は並走稼働継続 (本 cmd では切らない)\n- 24h 観察完了\n- queue/reports/2026-05-06_cmd_1649_phase2_observation.md\
-    \ 作成 (受信件数・取りこぼし・接続断絶記録)\n- Phase 3 (cmd_1650) 起票判断資料が含まれる\n- git commit 済 (Monitor\
-    \ 起動 instruction や systemd 修正があれば・それ以外は観察のみ)\n\n## 共通ルール\n\n- 出力先: `queue/reports/2026-05-06_cmd_1649_phase2_observation.md`\n\
-    - 新規 .py 禁止 (本 cmd は観察 + 設定のみ)\n- 既存 inbox_watcher.sh は本 cmd では絶対に切らない (rollback\
-    \ 確保)\n- 軍師単独完遂・足軽起動禁止\n\n## 注意事項\n\n- ENABLE_SSE_INBOX=true 永続化は systemd unit\
-    \ 編集が確実 (本 cmd 対象内)\n- server.py 再起動時に既存接続 (cmd_1648 で確立した SSE 接続) が一旦切断されるが、Monitor\
-    \ が自動再接続するか確認 (Phase 2 観察項目)\n- 24h 観察中に他の cmd 進行 (cmd_1647 章別執筆等) があるが、それらは軍師宛通知ではない可能性あり\
-    \ → 軍師宛のみ集計\n- Phase 3 着手前に必ず本 cmd の Phase 2 結果を確認・取りこぼし 0 件のみ進行可\n- 取りこぼし発生時は\
-    \ Phase 3 起票せず原因調査 cmd を別途起票"
+  lord_original: 3いこうしよう (殿命 2026-05-07 朝・cmd_1649 24h 観察完走 (06:28 JST) を待たず Phase
+    3 を即起票せよ・家老は cmd_1649 軍師最終判定書受領 + 取りこぼし steady-state ゼロ確認後に着手)
+  north_star: cmd_1646 軸 4 SSE 信頼性確保。Phase 1 (cmd_1648 SSE 実装) → Phase 2 (cmd_1649
+    軍師 1 名 24h 観察) → Phase 3 (本 cmd 全 10 agent 展開) の最終段。Phase 2 で steady-state 100%
+    配信実証済 (Round 2)・Round 1 の起動初期 race condition は warm-up 30 秒運用ルールで吸収。既存 inbox_watcher.sh
+    は最低 1 週間並走稼働で rollback 確保 (cmd_1646 §5 段階移行戦略と整合)。最終的に取りこぼし steady-state ゼロを確認したら
+    cmd_1651 で既存 watcher 廃止判断。
   acceptance_criteria:
-  - ENABLE_SSE_INBOX=true で server.py 起動済 (環境変数永続化を systemd unit に反映済 or 一時的設定で起動確認)
-  - 軍師セッション内で SSE Monitor (curl -N /api/inbox_stream?agent=gunshi) 起動済
-  - 既存 inbox_watcher.sh (gunshi 用) は並走稼働継続・本 cmd では切らない
-  - 24 時間観察完了 (2026-05-06 12:00 〜 2026-05-07 12:00 想定)
-  - queue/reports/2026-05-06_cmd_1649_phase2_observation.md 作成 (観察期間・受信件数・取りこぼし件数・接続断絶回数記録)
-  - テスト用 inbox_write を 5-10 回発行・SSE Monitor + 既存 watcher 両方の反応確認
-  - SSE 接続断絶 + 自動再接続の挙動記録
-  - Phase 3 (cmd_1650) 起票判断資料 (取りこぼし 0 件なら推奨・1 件以上なら改善必要)
-  - git commit 済 (systemd unit 修正があれば)
+  - '前提: cmd_1649 軍師最終判定書受領済 + 取りこぼし steady-state ゼロ確認済 (Round 2 100% 配信が 24h 維持)'
+  - 全 10 agent (karo/ashigaru1-7/gunshi/shogun) で SSE Monitor 起動済 (curl -N /api/inbox_stream?agent={role}
+    を各 pane で稼働)
+  - Monitor 起動から 30 秒は warm-up 期間として扱う運用ルールを shared_context/agent_common.md または instructions/*.md
+    に明文化
+  - 既存 inbox_watcher.sh は並走稼働継続 (本 cmd では切らない・最低 1 週間 safety net 維持)
+  - dashboard_lifecycle.sh server.py 再起動越え SSE 自動再接続確認 (1h 毎再起動を 1 週間で約 168 回経験・curl
+    自動再接続またはラッパー再接続で配信継続)
+  - 実運用メッセージ (家老/将軍からの本物 task_assigned 等) を 10 件以上 SSE + 既存 watcher 両経路で受信検証
+  - 1 週間後の最終判定書 queue/reports/2026-05-XX_cmd_1650_phase3_observation.md 作成 (取りこぼし件数集計
+    + 既存 watcher 廃止判断 = cmd_1651 起票推奨可否)
+  - git commit 済 (運用ルール明文化分・Monitor 起動スクリプト等あれば)
+  command: '殿原文 (丸写し): 「3いこうしよう (殿命 2026-05-07 朝・cmd_1649 24h 観察完走 (06:28 JST) を待たず
+    Phase 3 を即起票せよ・家老は cmd_1649 軍師最終判定書受領 + 取りこぼし steady-state ゼロ確認後に着手)」
+
+
+    Phase 3 = SSE Monitor を全 10 agent (karo/ashigaru1-7/gunshi/shogun) に展開する。前提として
+    cmd_1649 軍師最終判定書 (06:28 JST 完走後) を受領し、24h 観察で取りこぼし steady-state ゼロを確認してから着手せよ。cmd_1649
+    中間報告 (queue/reports/2026-05-06_cmd_1649_phase2_observation.md) §7.1 で軍師が指摘した Phase
+    3 設計反映点 (warm-up 30 秒・既存 watcher 並走 1 週間以上) を必ず instructions または shared_context
+    に明文化すること。dashboard_lifecycle.sh の server.py 再起動 (1h 毎) を跨いだ SSE 自動再接続が 1 週間 (約
+    168 回) 動作するかが最大の検証点。実装は家老設計・足軽実装・軍師 QC の通常フロー。'
   notify_karo: true
-- id: cmd_1653
+- id: cmd_1680
   status: done
   priority: high
-  purpose: v5 設計書 (curriculum_intermediate_v5_marp.md) + 4 ash の prewrite md (ch00-03/04-06/07-09/10-11)
-    + v5_design.md を軍師が殿の 7 件指摘で再改訂する。
-  timestamp: '2026-05-06T06:57:06+09:00'
-  project: udemy_course
-  lord_original: 差し戻しコマンド発令 (殿命 2026-05-06 06:40 — 殿レビューで v5 設計書 + cmd_1647 Phase
-    1 (4 ash 事前 4 項目) に 7 件の修正指摘 — ① 困りごと並び替え ② ch03 単発プロンプト最適化からの脱却 ③ Lost in the
-    Middle 対策の仕組み化視点 ④ 通常命令ではなく長文 context で発生する明記 ⑤ 実例を長文ユースケースに ⑥ handoff の用途訂正 ⑦
-    こまめなドキュメント化の正しい定義)
-  north_star: Udemy 中級編 v5 を『中級編らしい仕組み化講座』に再昇華。単発プロンプト最適化 (初級編領域) ではなく、長文 context
-    を扱う仕組み化技術 (RAG / chunk / subagent / memory / hooks) を物語の主軸に据える。殿の 7 件の修正指摘を全反映し、cmd_1647
-    Phase 2 (本文執筆) 着手前に設計を最終形に仕上げる。
-  command_text: "## 背景\n\n殿が cmd_1647 Phase 1 (4 ash の事前 4 項目) をレビューした結果、v5 全体に 7\
-    \ 件の重大修正指摘:\n\n1. **困りごと 11 個の並び順が思いつき順** — 解決章順 (ch01→ch08) に並び替え必要\n2. **ch03\
-    \ が単発プロンプト最適化** (TL;DR/末尾サマリ) になっており**初級編領域**・中級編らしさ欠如\n3. **Lost in the Middle\
-    \ 対策が単発プロンプト技術** — 仕組み化視点 (物理分割/subagent/手動ドキュメント化) に再設計\n4. **「通常命令では起きない・長文\
-    \ context で発生」** が明記されていない — 受講者がいつ遭遇するか不明確\n5. **実例が短文寄り** — 長文ユースケース (ソースコード/仕様書/議事録/多文献)\
-    \ に再構成\n6. **handoff の用途を将軍が誤用** — handoff は session 切替用 (Context Rot 対策)・**LitM\
-    \ 対策ではない**\n7. **「こまめなドキュメント化」の正しい定義** — memory file / 手動 .md 整理であり handoff ではない\n\
-    \n## 担当 + bloom_level\n\n- **gunshi 単独** (用語精査 + 設計再改訂)\n- bloom_level: **L6**\
-    \ (体系再設計・章間整合性・物語性向上)\n- gunshi_qc: **false** (軍師自身)\n- 工数: 1 日想定\n\n## 入力資料\n\
-    \n1. **改訂対象**:\n   - `projects/udemy_course/drafts/curriculum_intermediate_v5_marp.md`\
-    \ (880 行・cmd_1638 改訂版)\n   - `projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch00_ch03.md`\n\
-    \   - `projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch04_ch06.md`\n\
-    \   - `projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch07_ch09.md`\n\
-    \   - `projects/udemy_course/drafts/lectures/intermediate_v5_prewrite_ch10_ch11.md`\n\
-    \   - `projects/udemy_course/v5_design.md` (272 行・本日 NG ワード更新済)\n2. **参考**:\n\
-    \   - cmd_1645 用語精査報告書: `queue/reports/2026-05-06_cmd_1645_v5_term_audit.md`\n\
-    \   - cmd_1638 改訂報告書\n   - Liu et al. 2023 Lost in the Middle 論文 (arxiv 2307.03172)\n\
-    \   - Claude Code skill 定義 `.claude/skills/handoff/SKILL.md` (用途確認)\n\n## 殿の 7\
-    \ 件修正指摘 (詳細)\n\n### ① 困りごと 11 個並び替え (章順に再番号)\n\n| 新# | 困りごと | 解決章 |\n|----|---------|------|\n\
-    | ① | 同じ作業を毎回手動 | ch01 |\n| ② | 既存資産を確認せず新規作成 | ch01 |\n| ③ | AI が推測で動く | ch02\
-    \ |\n| ④ | Lost in the Middle (長文中央読み飛ばし) | ch03 |\n| ⑤ | 完了伝達抜け | ch04 |\n| ⑥\
-    \ | 言ったのにやってくれない | ch05 |\n| ⑦ | AI 出力盲信 | ch06 |\n| ⑧ | 大事な context を見ない | ch07\
-    \ |\n| ⑨ | API 変更後壊れる | ch07 |\n| ⑩ | 止めろが伝わらない | ch08 |\n| ⑪ | silent fail |\
-    \ ch08 |\n\n→ ch00 のフックリスト + 各章の Hook + ch10 逆引き辞典 + 4 ash prewrite md すべてを新番号に統一。\n\
-    \n### ② ch03 を「現象解説 + 仕組み化方向性」に再設計\n\n旧 (単発プロンプト最適化):\n- Step 1: 容量上限\n- Step\
-    \ 2: Lost in the Middle 定義\n- Step 3: Context Rot\n- Step 4: ❌ TL;DR 配置\n- Step\
-    \ 5: ❌ 末尾サマリ\n- Step 6: 章末演習\n\n新 (現象解説 + 仕組み方向性):\n- Step 1: context window 容量上限の現実\n\
-    - Step 2: **Lost in the Middle 現象** (Liu et al. 2023・通常命令では起きない・長文 5k token+ で発生と明記)\n\
-    - Step 3: **Context Rot 現象**\n- Step 4: 「**配置工夫の限界**」と宣言 (TL;DR/末尾サマリは補助レベル)\n\
-    - Step 5: 仕組み化対策の **3 方向性** 提示:\n  - **物理的な分割 (chunk)** → ch04 で実装\n  - **サブエージェント化\
-    \ (Task tool)** → ch05 で実装\n  - **手動ドキュメント化 (memory file / .md 整理)** → ch04 +\
-    \ ch07 で実装\n- Step 6: 章末で「次章 ch04 で実装本体」と橋渡し\n\n### ③ Lost in the Middle 対策の仕組み化視点\n\
-    \n中級編対策ピラミッド (再構成):\n\n```\n[初級レベル — ch03 で軽く触れる]\n  TL;DR 配置 / 末尾サマリ — 単発プロンプト技術\n\
-    \n[中級レベル — ch03/04/05/07 で本格対策]\n  ① 物理的な分割 (chunk)        → ch04 (chunk + RAG\
-    \ + claude-mem)\n  ② サブエージェント化            → ch05 (subagent + 役割別分業)\n  ③ 手動ドキュメント化\
-    \            → ch04 (memory file / .md 整理)\n  ④ PreToolUse hook で auto grep →\
-    \ ch07 (自動化)\n```\n\n### ④ 「通常命令では起きない・長文で発生」を明記\n\nch03 冒頭の前置き必須:\n> 「Lost in\
-    \ the Middle は **通常の指示では起きません**。**ソースコード・仕様書・議事録・多文献等の長文 (5,000 token 以上)** を\
-    \ AI に渡す時に発生する現象です。」\n\n### ⑤ 実例を長文ユースケースに再構成\n\n旧実例 (短文寄り or 不適):\n- 営業: 提案書\
-    \ (短文)\n- データ分析: 長対話 (Context Rot 寄り・LitM ではない)\n\n新実例 (長文ユースケース):\n- **エンジニア**:\
-    \ 1500 行のコードレビュー\n- **PM**: 50 ページの仕様書からテストケース生成\n- **マーケ**: 1 ヶ月分の Slack 履歴から競合動向抽出\n\
-    - **研究者/コンサル**: 10 論文を並べて要点抽出\n- **法務**: 長い契約書から特定条項を引出\n\n営業/PM/データ分析の 3 業種 framework\
-    \ は維持しつつ、**長文遭遇シーン**にフォーカスし直す。\n\n### ⑥ handoff の用途訂正\n\n旧 (誤用): 「長文遭遇 → /handoff\
-    \ で構造化保存」\n新 (正): \n- handoff = **session 切替時の状態保存** (Context Rot 対策・現セッションの状態を凝縮)\n\
-    - LitM 対策ではない\n- ch04 で扱う場合は **Context Rot 対策**として位置づけ\n\n軍師は `.claude/skills/handoff/SKILL.md`\
-    \ を Read して正確な定義を確認・反映せよ。\n\n### ⑦ 「こまめなドキュメント化」の正しい定義\n\n旧 (誤): handoff で構造化保存\n\
-    新 (正):\n- **手動 .md ファイル整理**: 長文を section ごとに別 .md に分けて保存\n- **memory file 追加**:\
-    \ 永続的なルール/教訓を memory/*.md に\n- **claude-mem への observation 追加**: 過去対話の永続保存\n\n\
-    ch04 / ch07 で具体的な実装方法を扱う。\n\n## 軍師の作業手順\n\n0. advisor() 呼出\n1. 入力資料 5 件 + cmd_1645\
-    \ 用語精査結果 Read\n2. **`.claude/skills/handoff/SKILL.md` を Read** (handoff の正確な用途確認)\n\
-    3. v5_design.md 修正:\n   - 困りごと 11 個並び替え (章順)\n   - NG ワードリスト更新 (必要なら)\n4. curriculum_intermediate_v5_marp.md\
-    \ 修正:\n   - 困りごと 11 個再番号\n   - ch00 フックリスト・ch10 逆引き辞典で新番号\n   - **ch03 を「現象解説\
-    \ + 仕組み方向性」に再設計** (TL;DR は補助レベル)\n   - ch03 冒頭に「通常命令では起きない・長文で発生」前置き\n   - ch03\
-    \ → ch04/05/07 への橋渡し強化\n5. 4 ash の prewrite md 修正:\n   - 困りごと再番号\n   - ch03 (ash1)\
-    \ を仕組み視点に再設計\n   - ch03 実例を長文ユースケース (コード/仕様書/議事録/多文献) に\n   - handoff の言及があれば訂正\
-    \ (LitM 対策ではない)\n6. ch04 prewrite (ash2 担当) 強化:\n   - chunk + RAG + claude-mem\
-    \ を主役に\n   - 「手動ドキュメント化」の正しい実装明記\n7. ch05 prewrite (ash2 担当) 強化:\n   - subagent\
-    \ (Task tool) を LitM 対策として明記\n8. ch07 prewrite (ash3 担当) 強化:\n   - PreToolUse\
-    \ hook auto grep を LitM 対策として明記\n9. Marp HTML 再生成 (curriculum_intermediate_v5.html\
-    \ + v5_phase1_review.html)\n10. 用語精査差分報告書 `queue/reports/2026-05-06_cmd_1653_v5_revision.md`\
-    \ 作成:\n   - 7 件指摘の対応マトリクス\n   - 修正前後の比較\n   - 残存リスク\n11. advisor() 呼出 (網羅性確認)\n\
-    12. inbox karo 完了報告\n\n## 必達制約\n\n- v5 構造 (12 章・困りごと 11 個・3 層フレーム) は維持\n- 章数変更禁止\n\
-    - 受講者ペルソナ (社会人 2-3 年目・横文字きつい) 配慮維持\n- handoff の本来用途を skill 定義から再確認\n- TL;DR /\
-    \ 末尾サマリは削除せず・「補助レベル」と明示\n- 軍師単独完遂・足軽起動禁止\n\n## 共通ルール\n\n- 出力先: 上記 5 ファイル + queue/reports/2026-05-06_cmd_1653_v5_revision.md\n\
-    - 新規 .py 禁止 (用語精査 + 文章修正のみ)\n- WebFetch / WebSearch 利用可\n- claude-code-guide subagent\
-    \ 活用推奨\n- git commit + push 済が完了条件 (.gitignored ゆえ git add -f 使用)"
-  acceptance_criteria:
-  - 困りごと 11 個が章順 (ch01→ch08) に並び替え済 (新番号で再構成)
-  - v5_design.md / curriculum_intermediate_v5_marp.md / 4 ash prewrite md すべてで新番号に統一
-  - ch03 が「現象解説 + 仕組み化方向性」に再設計済 (TL;DR/末尾サマリは補助レベル)
-  - ch03 冒頭に「通常命令では起きない・長文 (5,000 token+) で発生」前置き明記
-  - ch03 実例が長文ユースケース (コードレビュー/仕様書/議事録/多文献) に再構成
-  - ch03 → ch04/ch05/ch07 への橋渡し (物理分割/subagent/手動ドキュメント化) が明確
-  - ch04 で chunk + RAG + claude-mem + 手動ドキュメント化 (memory file / .md 整理) が主役として強化
-  - ch05 で subagent (Task tool) が LitM 対策として明記
-  - ch07 で PreToolUse hook auto grep が LitM 対策として明記
-  - handoff の用途が「session 切替用 (Context Rot 対策)」として正しく記述・LitM 対策の誤用は削除
-  - handoff skill 定義 (.claude/skills/handoff/SKILL.md) との整合確認
-  - queue/reports/2026-05-06_cmd_1653_v5_revision.md 報告書作成 (7 件指摘対応マトリクス)
-  - Marp HTML 再生成済 (curriculum_intermediate_v5.html + v5_phase1_review.html 両方)
-  - v5 構造 (12 章・困りごと 11 個・3 層フレーム・セマンティック検索二重登場) 維持
-  - git commit + push 済 (.gitignored ゆえ git add -f 使用)
-  notify_karo: true
-  completed_at: '2026-05-06T07:11:12+09:00'
-- id: cmd_1655
-  status: in_progress
-  priority: high
-  purpose: Udemy中級v5 全12章スライドフォーマットをv4スタイルに統一する (カバースライド・.meta div・padding・flex layout・speakerノート・用語テーブル)
-  timestamp: '2026-05-06T11:35:06+09:00'
-  project: udemy_course
-  lord_original: Udemy中級さ かきかた スライドふぉーまっと V4と違うんだが V5見にくい
-  command: '【Phase A】ash1: intermediate_v4_ch01_prompt_function.md から v4 Marp スタイルブロック全体
-    (frontmatter style + <!-- _class: cover --> + .meta div + section padding 50px
-    70px + flex layout + speakerノートHTMLコメント) を抽出して shared_context/marp_v4_style_template.md
-    に保存。【Phase B・Phase A完了後】ash1-7 が v5 全12章に v4スタイルを適用 (既存本文は壊さずスタイル要素のみ追加/差替え・各章カバースライドに章番号・タイトル・FREEバッジ・講師「なぎなた」)・Marp
-    CLI で .html 再生成・git add -f + commit。【Phase C】gunshi QC: 全12章で v4同等スタイル適用確認。【完了後】ntfy
-    で殿に URL 再通知 (http://192.168.2.4:8773/curriculum_intermediate_v5.html)。共通ルール: git
-    push 禁止 (家老が実施)・RACE-001 (同一ファイル競合禁止)。'
-  acceptance_criteria:
-  - '全12章 (ch00〜ch11) に <!-- _class: cover --> カバースライドが存在する'
-  - 全12章に .meta div (章番号・FREEバッジ・講師名「なぎなた」) が存在する
-  - '全12章の frontmatter style に section padding: 50px 70px が含まれる'
-  - '全12章の frontmatter style に display: flex layout が含まれる'
-  - 全12章に speakerノート HTML コメントが存在する
-  - 全12章の .html が Marp CLI で再生成済み
-  - 軍師 QC PASS
-- id: cmd_1656
-  status: pending
-  priority: medium
-  purpose: ドズル社動画 STT/index 状態管理スクリプト化 + work_video_map.md 4-5月分追記
-  timestamp: '2026-05-06T11:39:26+09:00'
+  purpose: cmd_1679 で検出された STT パイプライン残課題 8 件を一括修正・cmd_1663 audit 残課題も同時解消
+  timestamp: '2026-05-11T07:43:18+09:00'
   project: dozle_kirinuki
-  lord_original: STT済かどうか / scene_search_v2の対象動画を即把握できる状態にしたい
-  command: '【Task 1: スクリプト化】projects/dozle_kirinuki/context/stt_index_status.md を生成するロジックを
-    scripts/gen_stt_index_status.py として正規スクリプト化。入力: work/ 配下 dir + data/scene_index_v2/chunks_metadata.json
-    + shorts_upload_map.md + work_video_map.md。出力: stt_index_status.md。既存スクリプト類との整合性確認
-    (乱造禁止)。cron 設定 (毎日1回) or scene_search_v2 build hook 連携の選択も判断せよ。【Task 2: video_id
-    補完】4-5月の本編動画 (約60 dir) を work_video_map.md に追記。元動画ID は input/*.info.json or merged_*.json
-    から抽出可能。公開済みショート紐付け情報は shorts_upload_map.md 4-5月分も補完。【完了条件】stt_index_status.md
-    で video_id 不明 = 0 (or ほぼ 0) / work_video_map.md が5/6時点全 work/ dir カバー / git commit。git
-    push は家老が実施。'
+  lord_original: いにん (深夜矛盾検出 cmd_1679 で軍師が出した残課題を家老に委任して修正させよ)
+  north_star: cmd_1679 で軍師が出した STT パイプライン矛盾 15 件のうち、legacy 移動 (transcribe_with_speakers.py
+    / diarize.py) で 7 件は既に解消。残る現役コード 8 件 (C003/H001/M003/M004/M005/L001/L002 + 派生)
+    の根本修正。cmd_1663 audit から 2 日経過しても未修正の残課題が混在するため一括対応。
+  command_text: "## 背景\n\n軍師 cmd_1679 矛盾検出報告書: `queue/reports/gunshi_stt_contradiction_20260511.yaml`\
+    \ (247行)\n軍師指摘 15 件のうち、本日殿命で legacy 移動済 (cmd_1679-A 相当):\n- `transcribe_with_speakers.py`\
+    \ (154行・stub) → `legacy/`\n- `diarize.py` (78行・孤立) → `legacy/`\n- 既存の `legacy/transcribe_with_speakers.py`\
+    \ (185行) → `legacy/transcribe_with_speakers_predeprecated_185lines.py` リネーム\n\n\
+    上記で解消: C001 (transcribe_with_speakers dead code) / C002 (diarize 孤立) / H002-H004\
+    \ (diarize 派生) / M001 (torchaudio パッチ恒久化) / L003 (OMP threads 重複)。\n\n**残課題 8\
+    \ 件を一括修正せよ**。\n\n## タスク (8 件)\n\n### 1. STT_C003 (CRITICAL): vocal_stt_pipeline.py\
+    \ PROJECT_DIR 4-up 依存\n\n**ファイル**: `projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py:32`\n\
+    \n**現状**:\n```python\nPROJECT_DIR = Path(__file__).parent.parent.parent.parent\
+    \  # multi-agent-shogun root\n```\n4-up depth 完全依存・ファイル移動で誤った root を指す。cmd_1663\
+    \ H004 が**2日経過しても未修正**。\n\n**修正**:\n```python\nimport os\nPROJECT_DIR = Path(os.environ.get('SHOGUN_ROOT')\
+    \ or Path(__file__).resolve().parents[3])\n```\n\n### 2. STT_H001 (HIGH): ECAPA-TDNN\
+    \ 話者照合ロジック 3 箇所重複\n\n**ファイル**:\n- `projects/dozle_kirinuki/scripts/speaker_id.py:61`\
+    \ (`identify_speakers` VAD ベース)\n- `projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py:507`\
+    \ (`run_speaker_identification` AssemblyAI 前提)\n- `projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py:687`\
+    \ (`run_direct_speaker_identification` direct)\n\n**現状**: cosine similarity max\
+    \ + threshold 比較ロジックが 3 箇所で再実装・閾値修正時の同期もれリスク。\n\n**修正**: 共通関数 `_compute_speaker_match(seg_audio,\
+    \ embeddings, classifier, F, threshold) -> str` を `speaker_id.py` に新設し、3 関数全てを共通呼び出しに置換。\n\
+    \n### 3. STT_M003 (MEDIUM): AssemblyAI upload timeout 不足\n\n**ファイル**: `projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py:208`\n\
+    \n**現状**: `timeout=300` (5分) → 60 分動画+遅い回線で不足。\n\n**修正**: `env override `ASSEMBLYAI_UPLOAD_TIMEOUT`\
+    \ 対応 + default 1800 (30分) に引き上げ。\n```python\nupload_timeout = int(os.environ.get('ASSEMBLYAI_UPLOAD_TIMEOUT',\
+    \ '1800'))\n```\n\n### 4. STT_L001 (LOW): AssemblyAI poll timeout 不足\n\n**ファイル**:\
+    \ `projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py:246`\n\n**現状**: `ASSEMBLYAI_MAX_POLL=60`\
+    \ (10分 timeout) → 40 分超動画で hang リスク。\n\n**修正**: env override 残しつつ default を 120\
+    \ (20分) に引き上げ。動画長に応じた可変ロジックは v2 で。\n\n### 5. STT_M004 (MEDIUM): stt_merge.py legacy\
+    \ mode video_id 推論バグ\n\n**ファイル**: `projects/dozle_kirinuki/scripts/stt_merge.py:662-665`\n\
+    \n**現状**:\n```python\nvideo_id = stem.split(\"_\")[-1] if \"_\" in stem else stem\n\
+    ```\n`_sVuKf5Zu4A` のような先頭 `_` video_id で 'sVuKf5Zu4A' 誤抽出 (先頭 `_` 落ち)。\n\n**修正**:\
+    \ regex 化\n```python\nimport re\nm = re.match(r'^merged_(.+)$', stem)\nvideo_id\
+    \ = m.group(1) if m else stem\n```\n\n### 6. STT_M005 (MEDIUM): speaker_id.py\
+    \ 二重ガード閾値不一致\n\n**ファイル**: `projects/dozle_kirinuki/scripts/speaker_id.py:186,\
+    \ 194`\n\n**現状**:\n- L186 `if duration < MIN_SEG_DURATION:` (0.5s)\n- L194 `if\
+    \ seg_audio.shape[1] < 4000:  # < 0.25s at 16kHz`\n→ 0.5s と 0.25s の二重判定・意図不明確。\n\
+    \n**修正**: 統一 → MIN_SEG_DURATION ベースの 1 箇所判定\n```python\nmin_samples = int(MIN_SEG_DURATION\
+    \ * sr)\nif seg_audio.shape[1] < min_samples:\n    continue\n```\nL186 の duration\
+    \ 判定は重複削除。\n\n### 7. STT_L002 (LOW): is_garbage_text のハードコード\n\n**ファイル**: `projects/dozle_kirinuki/scripts/stt_merge.py:431,\
+    \ 440`\n\n**現状**: `[\"ぺけたん\"]` のような garbage word リストがコード内ハードコード。\n\n**修正**: `projects/dozle_kirinuki/context/garbage_words.yaml`\
+    \ (新規) を作成し、起動時にロード。default 値は現行リストをそのまま yaml 化。\n\n### 8. STT_M002 (MEDIUM):\
+    \ apply_vocabulary 重複\n\n**ファイル**: `projects/dozle_kirinuki/scripts/vocal_stt_pipeline.py`\
+    \ / `stt_merge.py` に独立実装\n\n**現状**: custom_vocabulary.yaml 適用ロジックが 2-3 箇所で再実装\
+    \ (transcribe_with_speakers.py 内も legacy 移動済だが現役 2 箇所残)・更新漏れリスク。\n\n**修正**: 共通\
+    \ helper `projects/dozle_kirinuki/scripts/apply_vocabulary.py` を新規作成し、両 .py から\
+    \ import 経由で呼び出し。auto_fetch.py L487 で既に `apply_vocabulary` import 痕跡あり (要確認・既存があれば再利用)。\n\
+    \n## 共通ルール\n\n- 新規 .py 禁止・既存スクリプト改修ベース (例外: garbage_words.yaml と apply_vocabulary.py\
+    \ は殿命の集約方針ゆえOK)\n- テスト書くな (cmd_1679 read-only 制約の延長で本cmdも軽量修正のみ・回帰テストは家老QC時に既存パイプライン\
+    \ smoke test)\n- 軍師QC必須: 修正後に軍師に再 audit 依頼 (前cmd_1663 audit 後 2 日未修正の再発防止)\n-\
+    \ ntfy で殿に完了通知\n- 報告書: `queue/reports/2026-05-11_cmd_1680_stt_fixes.md`\n\n##\
+    \ 完了条件\n\n- 8 件全て修正済 (CRITICAL 1 + HIGH 1 + MEDIUM 4 + LOW 2)\n- 軍師再 audit で各\
+    \ finding が PASS or 別 finding に置換確認\n- 既存パイプライン smoke test (vocal_stt_pipeline.py\
+    \ を 1 動画で実行) PASS\n- 報告書 commit & push 済\n- ntfy で殿に完了通知"
   acceptance_criteria:
-  - scripts/gen_stt_index_status.py が存在し python3 で実行可能
-  - 実行後 projects/dozle_kirinuki/context/stt_index_status.md が更新される
-  - work_video_map.md に 4-5月分 (約60 dir) の動画IDが追記済み
-  - stt_index_status.md の video_id 不明件数が大幅減少 (可能な限り 0 に近づける)
+  - vocal_stt_pipeline.py:32 PROJECT_DIR が env override + resolve() 化 (STT_C003)
+  - speaker_id.py に _compute_speaker_match 共通関数追加 + 3 箇所から呼出 (STT_H001)
+  - vocal_stt_pipeline.py:208 AssemblyAI upload timeout が env override + default 1800
+    (STT_M003)
+  - vocal_stt_pipeline.py:246 ASSEMBLYAI_MAX_POLL default 120 (STT_L001)
+  - stt_merge.py:662-665 video_id 抽出が regex 化 (STT_M004)
+  - speaker_id.py:186,194 二重ガード閾値が MIN_SEG_DURATION 統一 (STT_M005)
+  - stt_merge.py:431,440 garbage_words が yaml 化 (STT_L002)
+  - apply_vocabulary 共通 helper 化・現役 2 箇所が import 経由 (STT_M002)
+  - 軍師再 audit PASS
+  - 既存パイプライン smoke test PASS
+  - 報告書 commit & push 済
+  - ntfy で殿に完了通知
+- id: cmd_1681
+  status: done
+  priority: high
+  purpose: 5/7 以降 Shorts feed 露出比率が 49%→10% へ崖落ちした原因調査・シャドウバン疑い検証
+  timestamp: '2026-05-12T06:05:00+09:00'
+  lord_original: 'B Cやれ (Shorts feed 露出低下5本のうち B: 5/6 vs 5/7 比較分析)'
+  project: dozle_kirinuki
+  command: '殿原文: 「B Cやれ (Shorts feed 露出低下5本のうち B: 5/6 vs 5/7 比較分析)」
+
+
+    projects/dozle_kirinuki/analytics/2026-05-12_snapshot.md の ''Shorts feed 露出 (過去7日投稿)''
+    表で 5/6 SHORTS%=49% → 5/7 SHORTS%=10% の境界を境にアルゴリズム評価が下落している (シャドウバン疑い)。
+
+
+    調査項目:
+
+    1. **5/6 と 5/7 投稿動画のメタデータ差分比較**: title・description・tags・category・thumbnail・hashtag・尺・upload
+    time (YouTube Data API videos.list で取得)
+
+    2. **YouTube Studio コミュニティガイドライン違反/著作権警告履歴の確認**: 4/28 YPP「再利用コンテンツ」NG履歴との関連を含む
+
+    3. **5/7-5/11 投稿5本連続で SHORTS% 10%前後** = 単発でなく持続的低下。Pattern recognition で共通点抽出
+    (主演キャラ・尺・テーマ・投稿時刻等)
+
+    4. **Analytics API のトラフィックソース内訳** を 5/6 vs 5/7-5/11 で比較 (insightTrafficSourceType
+    + insightTrafficSourceDetail)
+
+    5. **5/6 動画と 5/7 動画の thumbnail/title 比較**: AI生成画像比率・テキスト密度・キャラ構成等
+
+
+    出力先: queue/reports/2026-05-12_cmd_1681_shorts_shadowban_analysis.md (CLAUDE.md
+    cmd 報告書格納場所ルール準拠)
+
+
+    足軽振り分けは家老の判断 (ashigaru3 か ashigaru4 推奨・YouTube API 経験者)。
+
+
+    NG: 推測のみで結論出すな・必ず YouTube Data API + Analytics API の数値検証を伴え。シャドウバン断定は4/28 YPP
+    NG履歴との時系列整合まで確認後とせよ。'
+- id: cmd_1682
+  status: done
+  priority: medium
+  purpose: youtube_analytics_snapshot.py の Shorts feed 露出警告ロジックから非公開動画を除外 (誤検知バグ修正)
+  timestamp: '2026-05-12T06:05:30+09:00'
+  lord_original: 'B Cやれ (Shorts feed 露出低下5本のうち C: snapshot スクリプトの非公開動画除外フィルタ修正)'
+  project: dozle_kirinuki
+  command: '殿原文: 「B Cやれ (Shorts feed 露出低下5本のうち C: snapshot スクリプトの非公開動画除外フィルタ修正)」
+
+
+    scripts/youtube_analytics_snapshot.py L283-360 の get_recent_shorts_feed_check()
+    で `is_warn` 判定時に privacy_status を見ておらず、非公開動画も警告対象になっておる (2026-05-12 snapshot で
+    [確認用・非公開] 断崖絶壁 が誤検知)。
+
+
+    修正項目:
+
+    1. **privacy_status を check 結果 dict に含める** (L353-360 付近、is_warn の前)
+
+    2. **is_warn 判定から privacy_status != ''public'' を除外**: `is_warn = (privacy_status
+    == ''public'') and (上記既存条件)` の形
+
+    3. **L911-934 のレポート生成側でも privacy_status == ''public'' のみ表に出す** (非公開を完全に表から消すか、''非公開''
+    note 付き別表示)
+
+    4. **テスト**: 修正後 `python scripts/youtube_analytics_snapshot.py --dry-run` (もし dry-run
+    flag が無ければ追加) で 2026-05-12 のスナップショットを再生成し、[確認用・非公開] が警告から消えていることを確認
+
+    5. **既存スナップショット (projects/dozle_kirinuki/analytics/2026-05-12_snapshot.md) は再生成不要**:
+    次回 cron 実行時に正しく出ればよし
+
+
+    出力先: queue/reports/2026-05-12_cmd_1682_snapshot_filter_fix.md
+
+
+    足軽振り分けは家老の判断 (ashigaru1 推奨・dashboard/analytics 経験者)。
+
+
+    NG: privacy_status の取得経路を変更するな (L167 で取得済みを参照せよ)。報告書には diff (修正前/後の警告動画数) を必ず含めよ。'
+- id: cmd_1683
+  status: done
+  priority: high
+  purpose: YouTube字幕並列DL IP BAN 再発防止 — memory feedback 更新 + 全足軽 task YAML / 関連スクリプトのルール明記確認
+  timestamp: '2026-05-12T07:42:00+09:00'
+  lord_original: A. 再発防止 cmd 起票 (memory更新 + 全足軽YAML確認)
+  project: dozle_kirinuki
+  command: "殿原文: 「A. 再発防止 cmd 起票 (memory更新 + 全足軽YAML確認)」\n\n背景: cmd_1681 AC6 検証結果で、5/5\
+    \ の YouTube 字幕並列DL (cookie認証ON) が 5/7 SHORTS feed 推薦抑制の最有力原因と確定 (2日ラグ・cookie認証で\
+    \ Google アカウント側にもスパムフラグ残留可能性)。既存 memory/feedback/feedback_youtube_subtitle_ip_ban.md\
+    \ には『並列1-2+間隔5秒以上』とあったが、cookie認証時のリスクが反映されておらぬ。\n\nやるべきこと:\n\n1. memory/feedback/feedback_youtube_subtitle_ip_ban.md\
+    \ を更新:\n   - cookie認証 (yt-dlp --cookies / OAuth ログイン状態) 時は『直列1本ずつ・間隔10秒以上』に厳格化\n\
+    \   - 認証なし時のみ『並列1-2・間隔5秒』を許容 (現行ルール維持)\n   - cookie認証時の IP BAN は Google アカウントにもスパムフラグが残留し、推薦エンジン側に長期影響しうる旨を明記\n\
+    \   - cmd_1681 AC6 確定の事実 (5/5 → 5/7 SHORTS% 49→10% 崖落ち) を教訓として追記\n\n2. 全足軽 (ashigaru1-7)\
+    \ の task YAML テンプレートまたは共通ルール参照を grep で点検:\n   - queue/tasks/*.yaml + shared_context/*.md\
+    \ + projects/dozle_kirinuki/scripts/ 配下で『yt-dlp』『timedtext』『subtitle』『字幕』を含む箇所を列挙\n\
+    \   - 並列DL 制約が明記されているか確認・欠落していれば追記指示\n\n3. CLAUDE.md または shared_context/agent_common.md\
+    \ に『YouTube DL 制約』セクションを追加 (任意・家老判断):\n   - 全エージェント横断のルールとして並列制約を一元化すべきか判断\n \
+    \  - 既存 memory feedback リンクで足りるなら新規追加不要\n\n4. 報告書: queue/reports/2026-05-12_cmd_1683_youtube_dl_rules_update.md\n\
+    \   - 修正前/後の memory feedback の diff\n   - grep 点検結果 (該当箇所一覧・対応要否)\n   - 追加した防御ルール一覧\n\
+    \n推奨担当: ashigaru1 (dashboard/script 経験者) または ashigaru2。\n\nNG:\n- 既存スクリプトの動作変更はするな\
+    \ (memory + task YAML + ルール明記のみ・コード改修は別 cmd)\n- yt-dlp の cookie 削除など過剰防衛するな (cookie\
+    \ が必要な正当ユースケース有り)\n- ルールは 'should' でなく 'MUST' で書け (cmd_1681 のような痛い目をまた見るため)"

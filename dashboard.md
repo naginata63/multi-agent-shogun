@@ -25,54 +25,65 @@
 - ash1 (work_video_map 4-5月追記) + ash2 (実行検証) は blocked 待機中
 - 再開サイン待ち
 
-## 🚨 要対応 (殿の判断が必要な事項)
-### 🚨 cmd_1670 inbox_write WAL修復済 — server.py要再起動 (2026-05-09)
-WAL有効化 + subprocess timeout延長 + スキーマ初期化コード追加 実装済 (commit c56fe38)。
-**変更は server.py プロセス再起動後に有効**。
-- 次回定期再起動 (dashboard_lifecycle.sh・1時間毎) で自動反映予定
-- 緊急の場合: 将軍が手動再起動
+## 🚨 要対応
+## 🚨 要対応
 
-⚠️ **新知見**: 今朝 (04:30頃) server.py が約2時間ハングしていた実証あり。
-  バックグラウンドcurlが `real 124m28s` 後に HTTP 400 を受信 → ハング期間中に全エージェントのAPI呼び出しが止まっていた可能性。
-  再発抑止のため、server.py再起動後に WAL+スキーマ初期化が有効になることが重要。
+### 🚨 diarize.py 運用方針確定 (cmd_1679 STT_C002)
+- **内容**: diarize.py (78行) は完全孤立dead script。pyannote直接経路 vs vocal_stt_pipeline AssemblyAI+ECAPA-TDNN の二重話者分離経路の方針未確定
+- **選択肢**: (a)完全削除 (b)legacy/移動 (c)vocal_stt_pipeline統合
+- **殿の判断が必要**: どの経路を正規とするか決定せよ
+- **詳細**: queue/reports/gunshi_stt_contradiction_20260511.yaml STT_C002
 
-### 🚨 cmd_1669 watcher代替機構: 殿判断待ち (2026-05-09)
-軍師設計書完了。推奨案 **D** (SSE Monitor + 軽量中央 1 daemon)。
-**殿への質問 Q1-Q6**:
-- Q1: CONTEXT-RESET ハード(/clear) vs ソフト(Claude内処理) 既定 → 推奨: 既定ソフト・フラグで上書き可
-- Q2: dispatcher SPOF 許容度 → 推奨: systemd Restart=always のみで開始
-- Q3: nudge 完全廃止 OK か → 推奨: 廃止 (SSE 100%実証済)
-- Q4: watcher 段階廃止 P3経由 vs 即時廃止 → 推奨: P3経由必須 (1週間 safety net)
-- Q5: SSE multiplex 改修 → 推奨: MVP は 9並列curl・後日改善
-- Q6: cmd_1668 C1 CHECK制約修正を P0 に組み込む → 推奨: YES・今週中に別cmd
-詳細: `queue/reports/2026-05-09_cmd_1669_watcher_replacement_design.md`
+### 🚨 cmd_1678 follow-up: YouTube/外部連携 解消作業 (2026-05-10)
+- **YT_C001**: auto_fetch.py CHANNEL_ID yaml single source 化
+- **YT_H001**: add_chapters.py dead code 削除
+- **YT_H002/H003**: WhisperX残骸・gsutil vs gcloud 統一
+- **follow-up cmd_1678-A〜E 起票待ち**
 
-### 🚨 STT_N001: --gemini help文と実装の乖離 — 殿判断待ち
-`vocal_stt_pipeline.py` L903 で `--gemini` の help が「[DEPRECATED — 無視されます]」だが、
-実装は stt_merge.py に転送して実際に speaker 割当に使用 (HIGH)。
-選択肢:
-- (a) 真に無視するなら L920-925/L1010 の gemini 経路を削除
-- (b) 機能維持するなら help 文を「(deprecated・互換のため動作)」に修正
-詳細: queue/reports/gunshi_stt_contradiction_20260507.yaml → STT_N001
+### 🚨 cmd_1679 follow-up: STT残課題 (cmd_1663 残7件+新3件)
+- **STT_C001**: transcribe_with_speakers.py 完全削除
+- **STT_C003/H001**: PROJECT_DIR fix + ECAPA-TDNN 共通化
+- **follow-up cmd_1679-A〜E 起票待ち**
 
-### 🚨 Udemy v5 中級 Phase 3 出品準備 — 殿判断待ち
-cmd_1655 全 5 Phase 完了・軍師 QC 11/11 PASS (2026-05-06)。
-次フェーズ候補:
-- cmd_1659: Phase 3 出品準備 (Udemy アップロード・説明文・価格設定等)
-- cmd_1660: 殿最終レビュー (http://192.168.2.4:8773/ で全12章確認)
-殿の GO サインで家老が起票する。
+## 🚨 要対応
 
-### 🚨 cmd_1671: remotion-project/ 設計変更 — 殿判断待ち (2026-05-09)
-軍師矛盾検出で remotion-project/ (殿の personal workspace・.gitignore 除外) に 5件の判断事項:
-- **V_H007** `bg_full.mp4` 不在 → DozFull コンポジション render 不能。(a) public/に配置 or (b) DozFull削除か
-- **V_H007b** remotion-project/ 起動手順・コンポジション使用法が未文書化 → context/ に 1ページ追記するか否か (推奨:追記)
-- **H003/V_M008/V_M009** Root.tsx ハードコード (FULL_SEC/OrarishTelop duration/text) → defaultProps+CLI引数化するか否か
-殿の yes/no でよい。詳細: queue/reports/2026-05-09_cmd_1671_all_findings_remediation.md §(d)
+### 🚨【要殿判断】cmd_1676 実装方針確認 (軍師設計完了)
+軍師推奨: **案A（誤key → HTTP 400 + typo_hint 即返）を即実装** + 案C(完全対称化)は別cmd(cmd_1676b)で段階移行
+殿への質問:
+- Q1: 案A単独で進めて良いか？(軍師推奨: YES)
+- Q2: cmd_create/task_create 等 passthrough 系 endpoint にも ALLOWED_KEYS チェックを適用するか？
+- Q3: 案C(完全対称化)を採用する場合、alias 期限は何ヶ月か？
+- Q4: KNOWN_TYPOS dict に hint を入れることで LLM 誤学習の懸念はあるか？(軍師見解: 問題なし)
+報告書: queue/reports/2026-05-09_cmd_1676_api_symmetric_keys.md
 
-### 🚨 Dashboard API 自己文書化 cmd — 殿確認待ち
-server.py 全30+エンドポイントの error/success response に expected/example/doc を同梱する改修。
-家老が purpose/acceptance_criteria 案を起票予定 → 殿OK後発令。
-(根拠: 2026-05-06 inbox body/from typo で5通読み損ね・殿激怒)
+### 🚨【要殿判断】cmd_1656 Revert の意図確認
+- 殿が cf0e7fd Revert で ashigaru4 の commit (work_video_map.md 4-5月分追記) を取り消した
+- 再着手するか？ or cmd_1656 を cancelled 扱いで終結か？
+
+### 🚨【要殿判断】instructions/generated.deprecated/ 完全削除判断
+- cmd_1675-D で generated/ → generated.deprecated/ にリネーム済
+- 完全削除するか？
+
+## 🚨 要対応
+
+### 🚨【要殿判断】cmd_1656 Revert の意図確認
+- 殿が `cf0e7fd Revert` で ashigaru4 の commit (work_video_map.md 4-5月分追記・stt_index_status.md) を取り消した
+- 「1656とめよ」命令後に Revert 実行と思われるが、**再着手する必要があるか？**
+  - 不要 → cmd_1656 を cancelled 扱いで終結
+  - 必要 → 別タイミングで再起票
+
+### 🚨【要殿判断】instructions/generated/ 削除判断 (cmd_1673 C001)
+- `instructions/generated.deprecated/` にリネーム済 (cmd_1675-D で実施)
+- 完全削除するか？ → 家老は殿の判断を待つ
+
+## 🚨 要対応
+
+### 🚨【要殿判断】instructions/generated/ 削除 or deprecated リネーム (cmd_1673 C001)
+- `instructions/generated/` 配下 (codex/copilot/kimi 系 7-8ファイル) がAPI化前 (2026-02頃) のスナップショットで停止
+- codex/copilot/kimi CLI を今後使う予定があるか？
+  - **不要** → 削除 or `instructions/generated.deprecated/` にリネーム推奨
+  - **使う予定あり** → 最新 instructions から再生成が必要
+- **家老は殿の判断を待ち、follow-up cmd_1673c を起票する**
 
 ## ⚔️ 戦果 (夜間矛盾検出)
 
@@ -185,12 +196,118 @@ server.py 全30+エンドポイントの error/success response に expected/exa
 - cmd_1641 infra矛盾 H5/M9: ntfy.sh二重置換・inbox_watcher drift等 — 別cmd対応予定
 - cmd_1623 矛盾検出 H1 (main.py:remotion-overlay/project不一致) — 別cmd対応予定
 
-## 🔄 進行中 (harness-cleanup)
+## 🔄 進行中
+## 🔄 進行中
 
-### cmd_1669 委任済 — ashigaru watcher 代替機構設計 (2026-05-09 03:59)
-- **担当**: 軍師 (gunshi_watcher_design_1669)
-- **報告書予定**: `queue/reports/2026-05-09_cmd_1669_watcher_replacement_design.md`
-- **目的**: inbox_watcher.sh (inotifywait×9体) を廃止し代替機構を3案設計・推奨案確定・殿提示
-- **設計対象**: watcher 4機能 (clear_command/model_switch/CONTEXT-RESET/hang recovery) 全て
-- **評価対象**: 過去暴走4種 (silent_fail誤検知/clear二重発火/nudge連投/Enter迷子) 再発リスク
-- **lord_original**: 「え？作ればいいじゃん代替手段　軍師に設計させよ」
+### cmd_1650 — Phase3 SSE全agent展開 (in_progress)
+- subtask_1650_a1: ashigaru1 assigned (2026-05-12 起動通知済)
+
+### cmd_1680 — STTパイプライン残課題修正 (in_progress)
+- subtask_1680_c2: ashigaru7 in_progress (vocab_helper import統合)
+- subtask_1680_h001: ashigaru6 assigned (STT_H001 _compute_speaker_match新設)
+- subtask_1680_reqc: gunshi blocked (c2+h001完了後 最終QC)
+- submodule projects/dozle_kirinuki コミット済 (8822999)
+
+## 🔄 進行中
+
+### cmd_1650 SSE Monitor 全10agent展開 (2026-05-07~)
+- **目的**: Phase 3 SSE Monitor 全agent展開・1週間安全網維持
+- **担当**: 足軽1 (subtask_1650_a1_sse_phase3)
+- **状態**: 長期観察中 (1週間後に最終判定書作成)
+
+## 🔄 進行中
+
+### cmd_1679 夜間矛盾検出: STTパイプライン (2026-05-11)
+- **目的**: vocal_stt_pipeline.py/stt_merge.py/speaker_id系 矛盾検出
+- **担当**: 軍師 (gunshi_1679_stt_audit)
+- **期限**: 朝06:00 JST
+
+### cmd_1650 SSE Monitor 全10agent展開 (2026-05-07~)
+- **目的**: Phase 3 SSE Monitor 全agent展開・1週間安全網維持
+- **担当**: 足軽1 (subtask_1650_a1_sse_phase3)
+- **状態**: 長期観察中 (1週間後に最終判定書作成)
+
+## 🔄 進行中
+
+### cmd_1650 SSE Monitor 全10agent展開 (2026-05-07~)
+- **目的**: Phase 3 SSE Monitor 全agent展開・1週間安全網維持
+- **担当**: 足軽1 (subtask_1650_a1_sse_phase3)
+- **状態**: 長期観察中 (1週間後に最終判定書作成)
+
+## 🔄 進行中
+
+### cmd_1678 夜間矛盾検出: YouTube/外部連携 (2026-05-10)
+- **目的**: youtube_uploader.py/downloader.py/note系/API連携 矛盾検出
+- **担当**: 軍師 (gunshi_1678_youtube_audit)
+- **期限**: 朝06:00 JST
+
+### cmd_1650 SSE Monitor 全10agent展開 (2026-05-07~)
+- **目的**: Phase 3 SSE Monitor 全agent展開・1週間安全網維持
+- **担当**: 足軽1 (subtask_1650_a1_sse_phase3)
+- **状態**: 長期観察中 (1週間後に最終判定書作成)
+
+## ✅ 最近の戦果
+## ✅ 最近の戦果
+- **cmd_1664** (2026-05-09) — server.py遅延解消・_init_db_pragmas+timeout統一・並列10curl 4.5ms平均・Phase 3土台固め完了 (軍師QC PASS)
+- **cmd_1675** A/B/D (2026-05-09) — API前提ルール統一・instructions/*.md+agent_common.md+CLAUDE.md修正・generated.deprecated化 (C完了待ち)
+- **cmd_1673** (2026-05-09) — API前提未更新ルール監査完了・19件finding
+- **cmd_1661** (2026-05-09) — cmd_cancel subtask自動伝播 実装完了
+
+## ✅ 最近の戦果
+- **cmd_1673** (2026-05-09) — API前提未更新ルール監査完了・19件finding (C2/H7/M5/L5)・報告書 queue/reports/2026-05-09_cmd_1673_pre_api_rules_audit.md
+- **cmd_1661** (2026-05-09) — cmd_cancel subtask自動伝播 実装完了・軍師QC PASS・git push済
+- **cmd_1672** (2026-05-08) — RAG実装完了 (D2 fix + server.py統合)
+- **cmd_1671** (2026-05-09) — cmd_1667/1668 49件findings全件解消完了
+
+## ✅ 最近の戦果
+- **cmd_1661** (2026-05-09) — cmd_cancel subtask自動伝播 実装完了・軍師QC PASS・git push済
+- **cmd_1672** (2026-05-08) — RAG実装完了 (D2 fix + server.py統合)
+- **cmd_1671** (2026-05-09) — cmd_1667/1668 49件findings全件解消完了
+
+## ✅ 戦果
+## ✅ 戦果
+
+### cmd_1679 夜間矛盾検出: STTパイプライン ✅ (2026-05-11 02:37 JST)
+- **結果**: 15件 (CRITICAL×3 / HIGH×4 / MEDIUM×5 / LOW×3)
+- **新発見 CRITICAL**: transcribe_with_speakers.py 完全dead (154行・呼出元ゼロ) / diarize.py 完全dead (78行・殿判断要) / PROJECT_DIR 4-up depth 未修正継続
+- **cmd_1663 残課題 7件依然未修正** (H002/H004/M001/M002/L001/L002/L003)
+- **報告書**: queue/reports/gunshi_stt_contradiction_20260511.yaml
+- **推奨**: cmd_1679-A(transcribe_with_speakers削除) / cmd_1679-B(diarize.py方針=殿判断) / cmd_1679-C(PROJECT_DIR) / D/E
+
+### cmd_1678 夜間矛盾検出: YouTube/外部連携 ✅ (2026-05-10 02:30 JST)
+- **結果**: 15件 (CRITICAL×1 / HIGH×4 / MEDIUM×5 / LOW×5)
+- **最重要**: YT_C001 auto_fetch.py CHANNEL_ID yaml single source 違反
+- **報告書**: queue/reports/gunshi_youtube_contradiction_20260510.yaml
+
+## ✅ 戦果
+
+### cmd_1678 夜間矛盾検出: YouTube/外部連携 ✅ (2026-05-10 02:30 JST)
+- **結果**: 15件 (CRITICAL×1 / HIGH×4 / MEDIUM×5 / LOW×5)
+- **最重要**: YT_C001 auto_fetch.py CHANNEL_ID ハードコード (yaml single source 違反)
+- **主要HIGH**: add_chapters.py ハードコードチャプター(dead code) / merged_whisperx.srt 残骸 / gsutil vs gcloud storage 混在 / flock なし書込競合
+- **報告書**: queue/reports/gunshi_youtube_contradiction_20260510.yaml
+- **推奨follow-up**: cmd_1678-A(CRITICAL解消) / cmd_1678-B(H001) / cmd_1678-C(H002) / cmd_1678-D(OAuth共通化) / cmd_1678-E(M001)
+
+## 🚨要対応
+## 🚨要対応
+
+### 🚨【殿判断】Shorts feed SHORTS% 崖落ち対策テスト (cmd_1681)
+
+**背景**: 5/7以降 SHORTS feed流入 39,283→1,807 (-95.4%)。ashigaru3 調査で2つの有力仮説が浮上:
+
+**仮説A (最有力)**: 4/28 YPP「再利用コンテンツ」NG → 推薦エンジン遅延反映 (9日ラグ) 
+**仮説B (新発見)**: 5/7から title/tags/description に AI関連キーワード初登場 (`AI漫画` `AI画像生成`) → YouTubeアルゴリズム影響の可能性
+
+**殿への提案**: 次回投稿 (1-2本) で AI関連キーワードを完全除外してテスト
+- title の `#ai漫画` 削除
+- tags から AI漫画 除外
+- description の「AI画像生成」記載を削除またはぼかす
+→ SHORTS% が 20%以上に回復すれば仮説B確定・復帰策が判明
+
+**詳細**: queue/reports/2026-05-12_cmd_1681_shorts_shadowban_analysis.md
+
+---
+
+### 🚨【検討】cmd_1650 (SSE Phase 3) 停滞中 (5日経過)
+
+5/7起票から進捗なし。継続するか別アプローチに切替えるか殿判断仰ぐ。
