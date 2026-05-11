@@ -23,8 +23,8 @@ skill:
 cli:
   default: claude
   agents:
-    shogun: { type: claude, model: "opus[1m]" }
-    karo: { type: claude, model: sonnet }  # 家老=Sonnet（/advisor opus呼出対応）
+    shogun: { type: claude, model: "opus[1m]", effort: high }  # 将軍=Opus 1M+effort high（殿命 2026-05-11）
+    karo: { type: claude, model: sonnet, effort: low }  # 家老=Sonnet+effort low（コンパクション頻度低減・cmd_1670 殿命 2026-05-09）
     gunshi: { type: claude, model: "opus[1m]" }
     ashigaru1: { type: glm, model: glm }
     ashigaru2: { type: glm, model: glm }
@@ -50,6 +50,12 @@ capability_tiers:
   glm:                    # cli.agents.ashigaru{1-7}.model == "glm"
     max_bloom: 4          # L1-L4: Z.AI GLM-5.1
     cost_group: glm
+  haiku:                  # cli.agents.ashigaru{1-7}.model == "haiku" (Anthropic Haiku 4.5・GLM代替)
+    max_bloom: 4          # L1-L4: 高速・低コスト
+    cost_group: claude_max
+  sonnet:                 # cli.agents.ashigaru{1-7}.model == "sonnet" (Anthropic Sonnet 4.6)
+    max_bloom: 5          # L1-L5: 中量級
+    cost_group: claude_max
   "opus[1m]":             # Claude Opus 4.7 (1M context)
     max_bloom: 6          # L5-L6: 分析・創造・戦略
     cost_group: claude_max
