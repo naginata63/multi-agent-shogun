@@ -17,6 +17,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 import datetime
 from pathlib import Path
 
@@ -279,6 +280,95 @@ def get_per_video_analytics(analytics, videos):
         })
 
     return sorted(results, key=lambda x: x["views"], reverse=True)
+
+
+def get_recent_shorts_feed_check(analytics, videos, days_lookback=7, threshold_pct=20):
+    """直近投稿 Shorts の SHORTS feed 露出率をチェック (殿 2026-05-10)。
+
+    返り値: list of dict (published_at 降順)。各動画ごとに:
+      - id, title, published_at, duration_sec
+      - views, avg_view_pct
+      - shorts_feed_pct: SHORTS feed 比率 (0-100, データなしは -1)
+      - is_warning: 投稿後 2日以上経過し shorts_feed_pct < threshold_pct なら True
+    """
+    import datetime as _dt
+    today = _dt.date.today()
+    cutoff = today - _dt.timedelta(days=days_lookback)
+    end = today - _dt.timedelta(days=1)
+    shorts = [v for v in videos if is_short(v) and v.get("privacy_status") == "public"]
+    recent = []
+    for v in shorts:
+        pub_str = v.get("published_at", "")
+        try:
+            pub_dt = _dt.datetime.fromisoformat(pub_str.replace("Z", "+00:00")).date()
+        except Exception:
+            continue
+        if pub_dt >= cutoff:
+            recent.append((v, pub_dt))
+    recent.sort(key=lambda x: x[1], reverse=True)
+
+    results = []
+    for v, pub_dt in recent:
+        s = pub_dt.strftime("%Y-%m-%d")
+        e = end.strftime("%Y-%m-%d")
+        if pub_dt > end:
+            results.append({
+                "id": v["id"], "title": v.get("title", ""),
+                "published_at": pub_dt.isoformat(),
+                "duration_sec": v.get("duration_sec", 0),
+                "views": 0, "avg_view_pct": None,
+                "shorts_feed_pct": -1, "is_warning": False,
+                "note": "投稿直後・データ反映待ち",
+            })
+            continue
+        try:
+            r = analytics.reports().query(
+                ids=f"channel=={CHANNEL_ID}", startDate=s, endDate=e,
+                metrics="views,averageViewPercentage",
+                filters=f'video=={v["id"]}',
+            ).execute()
+            if r.get("rows"):
+                row = r["rows"][0]
+                views = int(row[0])
+                avg_pct = round(float(row[1]), 1) if row[1] is not None else None
+            else:
+                views, avg_pct = 0, None
+        except Exception as ex:
+            print(f"  [警告] shorts_feed_check views {v['id']}: {ex}")
+            views, avg_pct = -1, None
+        try:
+            r2 = analytics.reports().query(
+                ids=f"channel=={CHANNEL_ID}", startDate=s, endDate=e,
+                metrics="views",
+                dimensions="insightTrafficSourceType",
+                filters=f'video=={v["id"]}',
+            ).execute()
+            src_map = {row[0]: int(row[1]) for row in r2.get("rows", [])}
+            total = sum(src_map.values())
+            shorts_pct = src_map.get("SHORTS", 0) * 100 // total if total > 0 else 0
+        except Exception as ex:
+            print(f"  [警告] shorts_feed_check src {v['id']}: {ex}")
+            shorts_pct = -1
+
+        elapsed_days = (today - pub_dt).days
+        is_warn = (
+            elapsed_days >= 2
+            and views > 0
+            and shorts_pct != -1
+            and shorts_pct < threshold_pct
+        ) or (elapsed_days >= 2 and views == 0)
+
+        results.append({
+            "id": v["id"], "title": v.get("title", ""),
+            "published_at": pub_dt.isoformat(),
+            "duration_sec": v.get("duration_sec", 0),
+            "privacy_status": v.get("privacy_status", "public"),
+            "views": views, "avg_view_pct": avg_pct,
+            "shorts_feed_pct": shorts_pct,
+            "is_warning": is_warn,
+        })
+        time.sleep(0.3)
+    return results
 
 
 def get_traffic_sources(analytics):
@@ -682,7 +772,8 @@ def send_ntfy_if_needed(channel_stats, video_diffs, prev_raw, videos):
 
 
 def generate_report(channel_stats, videos, daily_stats, traffic_sources,
-                    video_diffs, prev_raw, llm_analysis, per_video_analytics=None):
+                    video_diffs, prev_raw, llm_analysis, per_video_analytics=None,
+                    shorts_feed_check=None):
     """レポートMarkdown生成"""
     lines = []
     lines.append(f"# YouTube Analytics Snapshot — {DATE_STR}")
@@ -818,6 +909,42 @@ def generate_report(channel_stats, videos, daily_stats, traffic_sources,
         lines.append("")
 
     # AI分析
+    # 直近 Shorts feed 露出チェック (殿命 2026-05-10)
+    if shorts_feed_check:
+        warns = [c for c in shorts_feed_check if c.get("is_warning")]
+        if warns:
+            lines.append("## ⚠️ 直近 Shorts feed 露出低下")
+            lines.append("")
+            lines.append("以下の動画は投稿後 2 日以上経過しても SHORTS feed 流入比率が 20% 未満。アルゴリズム推薦から外れている可能性。")
+            lines.append("")
+            lines.append("| pub | title | 尺 | views | avgPct | SHORTS% |")
+            lines.append("|---|---|---:|---:|---:|---:|")
+            for c in warns:
+                title = c.get("title", "")[:40]
+                avgPct = f'{c["avg_view_pct"]:.1f}%' if c.get("avg_view_pct") is not None else "-"
+                lines.append(
+                    f"| {c['published_at'][:10]} | {title} | {c.get('duration_sec',0)}s | "
+                    f"{c.get('views',0):,} | {avgPct} | {c.get('shorts_feed_pct',-1)}% |"
+                )
+            lines.append("")
+        lines.append("## 直近 Shorts feed 露出 (過去7日投稿)")
+        lines.append("")
+        lines.append("| pub | title | 尺 | views | avgPct | SHORTS% | 警告 |")
+        lines.append("|---|---|---:|---:|---:|---:|:---:|")
+        for c in shorts_feed_check[:10]:
+            title = c.get("title", "")[:40]
+            avgPct = f'{c["avg_view_pct"]:.1f}%' if c.get("avg_view_pct") is not None else "-"
+            warn = "⚠️" if c.get("is_warning") else ("-" if c.get("note") else "")
+            note = c.get("note", "")
+            extra = f" ({note})" if note else ""
+            lines.append(
+                f"| {c['published_at'][:10]} | {title}{extra} | {c.get('duration_sec',0)}s | "
+                f"{c.get('views',0):,} | {avgPct} | {c.get('shorts_feed_pct',-1)}% | {warn} |"
+            )
+        lines.append("")
+        lines.append("---")
+        lines.append("")
+
     lines.append("## AI分析")
     lines.append("")
     lines.append("> **注意**: 以下はLLMによる自動生成分析です。数値の正確性は保証されません。判断の際は上記の実データと照合してください。")
@@ -927,6 +1054,23 @@ def main():
         except Exception as e:
             print(f"  [警告] 周回率取得失敗: {e}")
 
+    # 直近 Shorts feed 露出チェック (殿命 2026-05-10)
+    shorts_feed_check = []
+    if analytics:
+        print("[analytics] 直近 Shorts feed 露出チェック...")
+        try:
+            shorts_feed_check = get_recent_shorts_feed_check(analytics, videos, days_lookback=7)
+            warns = [c for c in shorts_feed_check if c.get("is_warning")]
+            print(f"  対象 {len(shorts_feed_check)}本 / 警告 {len(warns)}本")
+            for c in shorts_feed_check[:10]:
+                pub = c.get("published_at", "")[:10]
+                sh = c.get("shorts_feed_pct", -1)
+                warn_mark = " ⚠️" if c.get("is_warning") else ""
+                title = c.get("title", "")[:30]
+                print(f"    {pub} SHORTS={sh:>3}% views={c.get('views',0):>6} {title}{warn_mark}")
+        except Exception as e:
+            print(f"  [警告] shorts_feed_check 失敗: {e}")
+
     # --- Phase1 追加API指標 ---
     content_type_stats = {}
     if analytics:
@@ -995,6 +1139,7 @@ def main():
         "device_stats": device_stats,
         "retention_top5": retention_top5,
         "impressions_ctr": impressions_ctr,
+        "shorts_feed_check": shorts_feed_check,
     }
     raw_path = ANALYTICS_DIR / f"{DATE_STR}_raw.json"
     with open(raw_path, "w", encoding="utf-8") as f:
@@ -1008,7 +1153,8 @@ def main():
 
     # レポート生成
     report = generate_report(channel_stats, videos, daily_stats, traffic_sources,
-                             video_diffs, prev_raw, llm_analysis, per_video_analytics)
+                             video_diffs, prev_raw, llm_analysis, per_video_analytics,
+                             shorts_feed_check)
     report_path = ANALYTICS_DIR / f"{DATE_STR}_snapshot.md"
     with open(report_path, "w", encoding="utf-8") as f:
         f.write(report)
@@ -1019,6 +1165,22 @@ def main():
 
     # ntfy通知
     send_ntfy_if_needed(channel_stats, video_diffs, prev_raw, videos)
+
+    # 直近 Shorts feed 露出低下警告 (殿命 2026-05-10)
+    warns = [c for c in (shorts_feed_check or []) if c.get("is_warning")]
+    if warns and NTFY_SCRIPT.exists():
+        labels = []
+        for c in warns[:3]:
+            t = c.get("title", "")[:18]
+            sh = c.get("shorts_feed_pct", -1)
+            v = c.get("views", 0)
+            labels.append(f"{t}(SHORTS:{sh}%/views:{v:,})")
+        msg = f"⚠️ Shorts feed 露出低下 {len(warns)}本: " + " / ".join(labels)
+        try:
+            subprocess.run(["bash", str(NTFY_SCRIPT), msg], timeout=10, check=False)
+            print(f"[analytics] shorts_feed 警告 ntfy 送信: {msg}")
+        except Exception as e:
+            print(f"[analytics] shorts_feed 警告 ntfy 失敗: {e}")
 
     # crontab登録
     setup_crontab()
