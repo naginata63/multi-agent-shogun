@@ -229,3 +229,24 @@ tasks:
   - 報告書 queue/reports/2026-05-12_cmd_1684_b_404_fallback.md 格納
   timestamp: '2026-05-12T18:56:45.553529+09:00'
   completed_at: '2026-05-12T19:00:26+09:00'
+- task_id: subtask_1685_hint
+  agent: ashigaru1
+  parent_cmd: cmd_1685
+  status: done
+  bloom_level: L1
+  title: 'cmd_1685: server.py 404 hint 文言差し替え'
+  description: server.py の 404 fallback 2箇所 (L2699・L3891) の hint を自己学習誘導文言に差し替え。systemctl
+    restart + テスト確認。
+  target_path: scripts/dashboard/server.py
+  steps: '1.grep -n "unknown endpoint" scripts/dashboard/server.py で2箇所確認 2.両方の hint
+    を指定文言に差し替え: STOP guessing endpoint names. (1) Read shared_context/procedures/dashboard_api_usage.md
+    ... (2) grep scripts/dashboard/server.py for self.path == /api/ ... Do not retry
+    with another guess. 3.systemctl --user restart mcp-dashboard.service 4.curl http://192.168.2.4:8770/api/foo_nonexistent
+    で404+新hint即返却確認 5.git commit 6.karo に report_received inbox通知'
+  acceptance_criteria:
+  - L2699 と L3891 両方の hint 文言が差し替え済
+  - curl /api/foo_nonexistent で 404 + 新 hint JSON 即返却 (10秒以内)
+  - git commit 済
+  - 報告書 queue/reports/2026-05-13_cmd_1685_404_hint_readme.md 格納
+  timestamp: '2026-05-13T02:03:33.044733+09:00'
+  completed_at: '2026-05-13T02:05:51+09:00'
