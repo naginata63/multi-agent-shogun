@@ -138,3 +138,23 @@ tasks:
   - git commit 済
   timestamp: '2026-05-12T08:19:05.638434+09:00'
   completed_at: '2026-05-12T08:25:37+09:00'
+- task_id: subtask_1684_a
+  agent: ashigaru2
+  parent_cmd: cmd_1684
+  status: done
+  bloom_level: L2
+  title: 'cmd_1684-A: dashboard_api_usage.md 全面更新'
+  description: shared_context/procedures/dashboard_api_usage.md を server.py の全エンドポイントを網羅する完全リストに更新。cmd_status_change/cmd_cancel/task_update/task_create/cmd_next_id
+    等の未文書化 endpoint を全て追記。
+  target_path: shared_context/procedures/dashboard_api_usage.md
+  steps: '1.grep -n "self.path" scripts/dashboard/server.py で全 /api/ エンドポイントを列挙 2.advisor()呼出
+    3.dashboard_api_usage.md を更新: GET系/POST系完全リスト + 各エンドポイントの payload例/response例 +
+    部下別推奨シナリオ更新 4.git commit 5.karo に report_received inbox通知'
+  acceptance_criteria:
+  - server.py の全 /api/ エンドポイントが dashboard_api_usage.md に記載
+  - cmd_status_change/cmd_cancel/task_update/cmd_next_id の payload例・response例あり
+  - 部下別推奨シナリオ更新済
+  - git commit 済
+  - 報告書 queue/reports/2026-05-12_cmd_1684_a_api_manual.md 格納
+  timestamp: '2026-05-12T18:56:53.080999+09:00'
+  completed_at: '2026-05-12T19:05:07+09:00'

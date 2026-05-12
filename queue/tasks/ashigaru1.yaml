@@ -208,3 +208,24 @@ tasks:
   - 報告書 queue/reports/2026-05-12_cmd_1682_snapshot_filter_fix.md 格納
   timestamp: '2026-05-12T08:18:39.705749+09:00'
   completed_at: '2026-05-12T08:25:37+09:00'
+- task_id: subtask_1684_b
+  agent: ashigaru1
+  parent_cmd: cmd_1684
+  status: done
+  bloom_level: L2
+  title: 'cmd_1684-B: server.py 404 fallback 追加 (即日修正)'
+  description: scripts/dashboard/server.py の HTTP handler に 存在しないエンドポイント (/api/ 始まり)
+    への 404 即返却 fallback を追加。hang 防止。
+  target_path: scripts/dashboard/server.py
+  steps: 1.advisor()呼出 2.grep -n "self.path" scripts/dashboard/server.py で if/elif
+    チェーン末尾確認 3.else直前に /api/ 始まりの未知パスに 404+{error:unknown endpoint,hint:see dashboard_api_usage.md}
+    を返すブロック追加 4.systemctl --user restart mcp-dashboard.service 5.curl http://192.168.2.4:8770/api/cmd_update
+    で 404+JSON即返却確認(10秒以内・hang しないこと) 6.git commit 7.karo に report_received inbox通知
+  acceptance_criteria:
+  - curl http://192.168.2.4:8770/api/cmd_update が 404 + JSON 即返却 (10秒以内)
+  - 既存エンドポイントへの影響なし
+  - systemctl restart 後に SSE stream が復帰
+  - git commit 済
+  - 報告書 queue/reports/2026-05-12_cmd_1684_b_404_fallback.md 格納
+  timestamp: '2026-05-12T18:56:45.553529+09:00'
+  completed_at: '2026-05-12T19:00:26+09:00'
