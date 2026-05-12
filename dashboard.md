@@ -293,6 +293,28 @@
 
 ### 🚨【殿判断】Shorts feed SHORTS% 崖落ち対策テスト (cmd_1681)
 
+**背景**: 5/7以降 SHORTS feed流入 39,283→1,807 (-95.4%)。2つの有力仮説:
+
+**仮説A**: 4/28 YPP「再利用コンテンツ」NG → 推薦エンジン遅延反映 (9日ラグ)
+**仮説B**: 5/7から title/tags/description に AI関連キーワード初登場 → アルゴリズム影響の可能性
+
+**提案**: 次回投稿で AI関連キーワード (`#ai漫画`・`AI画像生成`) 完全除外テスト
+
+**詳細**: queue/reports/2026-05-12_cmd_1681_shorts_shadowban_analysis.md
+
+---
+
+### ✅【完了】cmd_1687: CRITICAL/HIGH インフラ修正 (2026-05-13)
+
+- **C1 (CRITICAL)**: precompact_hook.sh dashboard.md パス regression → 足軽3号が修正・commit 826b6e8
+- **H2 (HIGH)**: monitor.sh + context_watcher.sh が PC換装後4日間未稼働 → 足軽4号が watcher_supervisor に自動起動ロジック追加・commit 82109e0
+
+両件解消・push済み。
+
+## 🚨要対応
+
+### 🚨【殿判断】Shorts feed SHORTS% 崖落ち対策テスト (cmd_1681)
+
 **背景**: 5/7以降 SHORTS feed流入 39,283→1,807 (-95.4%)。ashigaru3 調査で2つの有力仮説が浮上:
 
 **仮説A (最有力)**: 4/28 YPP「再利用コンテンツ」NG → 推薦エンジン遅延反映 (9日ラグ) 
