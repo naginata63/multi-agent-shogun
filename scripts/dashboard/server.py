@@ -2696,7 +2696,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             except Exception as e:
                 print(f"[inbox_stream] error: {e}", file=os.sys.stderr)
         elif self.path.startswith('/api/'):
-            body = json.dumps({'error': 'unknown endpoint', 'hint': 'see dashboard_api_usage.md'}).encode('utf-8')
+            body = json.dumps({'error': 'unknown endpoint', 'hint': 'STOP guessing endpoint names. (1) Read shared_context/procedures/dashboard_api_usage.md (2) grep scripts/dashboard/server.py for self.path == /api/'}).encode('utf-8')
             self.send_response(404)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.send_header('Content-Length', str(len(body)))
@@ -3888,7 +3888,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             except Exception as e:
                 error_response(self, 500, {'error': str(e)})
         elif self.path.startswith('/api/'):
-            body = json.dumps({'error': 'unknown endpoint', 'hint': 'see dashboard_api_usage.md'}).encode('utf-8')
+            body = json.dumps({'error': 'unknown endpoint', 'hint': 'STOP guessing endpoint names. (1) Read shared_context/procedures/dashboard_api_usage.md (2) grep scripts/dashboard/server.py for self.path == /api/'}).encode('utf-8')
             self.send_response(404)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.send_header('Content-Length', str(len(body)))
