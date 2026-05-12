@@ -2695,6 +2695,13 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                         break
             except Exception as e:
                 print(f"[inbox_stream] error: {e}", file=os.sys.stderr)
+        elif self.path.startswith('/api/'):
+            body = json.dumps({'error': 'unknown endpoint', 'hint': 'see dashboard_api_usage.md'}).encode('utf-8')
+            self.send_response(404)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
         else:
             self.send_response(404)
             self.end_headers()
@@ -3880,6 +3887,13 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 self.wfile.write(resp)
             except Exception as e:
                 error_response(self, 500, {'error': str(e)})
+        elif self.path.startswith('/api/'):
+            body = json.dumps({'error': 'unknown endpoint', 'hint': 'see dashboard_api_usage.md'}).encode('utf-8')
+            self.send_response(404)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
         else:
             self.send_response(404)
             self.end_headers()
