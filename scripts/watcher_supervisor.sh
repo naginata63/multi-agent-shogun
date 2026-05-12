@@ -40,6 +40,25 @@ start_watcher_if_missing() {
     nohup bash scripts/inbox_watcher.sh "$agent" "$pane" "$cli" >> "$log_file" 2>&1 &
 }
 
+ensure_monitor_running() {
+    local pid_file="$SCRIPT_DIR/logs/monitor.pid"
+    if [[ -f "$pid_file" ]]; then
+        local pid
+        pid=$(cat "$pid_file")
+        if kill -0 "$pid" 2>/dev/null; then
+            return 0
+        fi
+    fi
+    bash scripts/monitor.sh start >> "$SCRIPT_DIR/logs/monitor_supervisor.log" 2>&1
+}
+
+ensure_context_watcher_running() {
+    if pgrep -f "scripts/context_watcher.sh" >/dev/null 2>&1; then
+        return 0
+    fi
+    nohup bash scripts/context_watcher.sh >> "$SCRIPT_DIR/logs/context_watcher_supervisor.log" 2>&1 &
+}
+
 while true; do
     start_watcher_if_missing "shogun" "shogun:main.0" "logs/inbox_watcher_shogun.log"
     start_watcher_if_missing "karo" "multiagent:agents.0" "logs/inbox_watcher_karo.log"
@@ -51,5 +70,7 @@ while true; do
     start_watcher_if_missing "ashigaru6" "multiagent:agents.6" "logs/inbox_watcher_ashigaru6.log"
     start_watcher_if_missing "ashigaru7" "multiagent:agents.7" "logs/inbox_watcher_ashigaru7.log"
     start_watcher_if_missing "gunshi" "multiagent:agents.8" "logs/inbox_watcher_gunshi.log"
+    ensure_monitor_running
+    ensure_context_watcher_running
     sleep 5
 done
