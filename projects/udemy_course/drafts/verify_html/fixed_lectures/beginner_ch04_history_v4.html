@@ -1,42 +1,29 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>beginner_ch04_history_v4</title><style>
-body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
-h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.3em; }
-h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.1em; }
-table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 0.82em; }
-th { background: #1e3a8a; color: #fff; padding: 5px 7px; }
-td { padding: 5px 7px; border: 1px solid #d1d5db; vertical-align: top; }
-tr:nth-child(even) td { background: #f3f4f6; }
-code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.88em; }
-pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; overflow-x: auto; font-size: 0.82em; }
-@media (max-width: 768px) { body { padding: 8px; font-size: 13.5px; } table { font-size: 0.76em; } }
-</style></head><body><nav style="background:#1e3a8a; color:#fff; padding:8px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
-<a href="../index.html" style="color:#fde68a; margin-right:10px;">← ハブ</a>
-<a href="index.html" style="color:#fff; text-decoration:underline;">📂 修正版19章リスト</a>
-</nav><h1>📝 beginner_ch04_history_v4</h1><!-- _class: cover -->
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>beginner_ch04_history_v4</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;max-width:1200px;margin:0 auto;padding:16px;line-height:1.6;color:#1f2937;background:#fafafa}h1{color:#1e3a8a;border-bottom:3px solid #1e3a8a;padding-bottom:0.3em;font-size:1.3em}h2{color:#2563eb;border-bottom:1px solid #93c5fd;padding-bottom:0.2em;margin-top:1.5em;font-size:1.1em}table{border-collapse:collapse;width:100%;margin:.8em 0;font-size:.82em}th{background:#1e3a8a;color:#fff;padding:5px 7px}td{padding:5px 7px;border:1px solid #d1d5db;vertical-align:top}tr:nth-child(even) td{background:#f3f4f6}code{background:#f0f0f0;padding:1px 4px;border-radius:3px;font-size:.88em}pre{background:#1e293b;color:#f1f5f9;padding:.6em;border-radius:5px;overflow-x:auto;font-size:.82em}@media (max-width:768px){body{padding:8px;font-size:13.5px}table{font-size:.76em}}</style></head><body><nav style="background:#1e3a8a;color:#fff;padding:8px;border-radius:5px;margin-bottom:15px;font-size:.9em"><a href="../index.html" style="color:#fde68a;margin-right:10px">← ハブ</a><a href="index.html" style="color:#fff;text-decoration:underline">📂 修正版19章リスト</a></nav><h1>📝 beginner_ch04_history_v4</h1><!-- _class: cover -->
 
-<h1>生成AIエンジニアリングの歴史</h1>
+<h1>なぜ「3階層」なのか — 5年で AI 開発が辿った道</h1>
 <h2>2020年のLLM誕生から3階層モデルへ</h2>
 <div class="meta">
-初級編 — 第4章 (約 25 min)<br><br>
+第4章 (約 25 min)<br><br>
 「Claude Code はじめての一歩 — AI開発の基礎を1日で習得」<br><br>
 </div>
 
 <!--
 スピーカーノート:
-こんにちは。第4章「生成AIエンジニアリングの歴史」を始めます。前章までの第2章・第3章では、CLAUDE.md と .md 仲間たち (commands/skills/agents/imports/global) という L2 コンテキストエンジニアリングの道具立てを学びました。プロジェクトに合わせて AI を導くための具体的な仕組みです。この第4章では視点を一段引いて、「なぜ 3 階層 (L1 プロンプト / L2 コンテキスト / L3 ハーネス) という構造に至ったのか」を歴史の流れから理解します。2020年のGPT-3 から ChatGPT、RAG、CLAUDE.md、そして Claude Code の hook まで。25 分かけて、私たちが今使っている仕組みの裏側にある必然性を辿りましょう。
+こんにちは。第4章「生成AIエンジニアリングの歴史」を始めます。前章までの第2章・第3章では、CLAUDE.md と .md 仲間たち (agents/commands/skills/imports/global) という L2 コンテキストエンジニアリングの道具立てを学びました。プロジェクトに合わせて AI を導くための具体的な仕組みです。この第4章では視点を一段引いて、「なぜ 3 階層 (L1 プロンプト / L2 コンテキスト / L3 ハーネス) という構造に至ったのか」を歴史の流れから理解します。2020年のGPT-3 から ChatGPT、RAG、CLAUDE.md、そして Claude Code の hook まで。25 分かけて、私たちが今使っている仕組みの裏側にある必然性を辿りましょう。
 -->
 
 <hr />
 <h1>🗺️ 前章の復習 — .md 仲間たちから歴史へ</h1>
 <p><strong>前章 (第3章) で身につけたこと</strong>:<br />
-- <strong>6 つの .md 設定機構</strong> (CLAUDE.md / .claude/agents/ / commands / skills / imports / global CLAUDE.md) の全体像<br />
-- 必須は <strong>CLAUDE.md だけ</strong>・残り 5 つは段階的に導入する拡張機能<br />
+- <strong>.md 仲間たち 4 つ</strong> (agents / commands / skills / imports) + 前章復習の <strong>global CLAUDE.md</strong> の全体像<br />
+- <strong>commands と skills は同じ機能の旧/新形式</strong> (2026 年 1 月公式マージ・新規は skills 推奨・既存 commands は legacy 互換・同名衝突は Skills 優先)<br />
+- 必須は <strong>CLAUDE.md だけ</strong>・仲間たちは段階的に導入する拡張機能<br />
 - skills は <code>.claude/skills/&lt;name&gt;/SKILL.md</code> ディレクトリ形式で <strong>オンデマンド読込</strong><br />
 - サブエージェント呼出は <strong>5 方式</strong> (自動委譲・自然言語名指し・@-mention・<code>--agent</code> CLI・Agent ツール)<br />
 - global とプロジェクト CLAUDE.md は <strong>「上書き」ではなく「連結」</strong> (後勝ち)</p>
 <p><strong>本章 (第4章) で広げること</strong>: なぜ CLAUDE.md や hook が必要になったのか — <strong>3 階層 (L1/L2/L3) に至った歴史</strong>を時系列で辿る</p>
 <!--
-前章までで、CLAUDE.md と .md 仲間たちを学びました。L2 コンテキストエンジニアリングの具体的な道具立てですね。でもここで疑問が湧きます。「なぜこんな仕組みが必要になったのか?」「最初からあったのか?」答えは「最初はなかった」です。プロンプトだけの時代、コンテキストファイルが生まれた時代、hook という安全装置が必要になった時代 — 生成 AI の 5 年間の歴史が、今の 3 階層モデルを必然として導きました。本章ではその歴史を時系列で辿ります。
+前章までで、CLAUDE.md と .md 仲間たちを学びました。L2 コンテキストエンジニアリングの具体的な道具立てですね。ここで補足です。「commands と skills」は別機能ではなく、同じカスタムスラッシュコマンド機能の旧形式・新形式で、2026 年 1 月に公式マージされました。新規は skills 推奨・既存 commands は legacy 互換で動作継続・同名衝突は Skills 優先、というのが現在の整理です。さて、ここで疑問が湧きます。「なぜこんな仕組みが必要になったのか?」「最初からあったのか?」答えは「最初はなかった」です。プロンプトだけの時代、コンテキストファイルが生まれた時代、hook という安全装置が必要になった時代 — 生成 AI の 5 年間の歴史が、今の 3 階層モデルを必然として導きました。本章ではその歴史を時系列で辿ります。
 -->
 
 <hr />
