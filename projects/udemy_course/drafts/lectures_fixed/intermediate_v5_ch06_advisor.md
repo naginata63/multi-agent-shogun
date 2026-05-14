@@ -38,7 +38,6 @@ style: |
 <div class="meta">
 中級編 — 第6章 (約 15 min)<span class="free">FREE</span><br><br>
 「AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全解説」<br><br>
-講師: なぎなた
 </div>
 
 ---

@@ -31,7 +31,6 @@ style: |
 <div class="meta">
 中級編 — 第2章 (約 25 min)<span class="free">FREE</span><br><br>
 「AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全解説」<br><br>
-講師: なぎなた
 </div>
 
 <!--

@@ -1,39 +1,29 @@
-<!DOCTYPE html>
-<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>初級ch05 hook入門 (★致命傷修正) (修正版)</title><style>
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>beginner_ch05_hook_v4</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
 h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.3em; }
 h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.1em; }
-h3 { color: #4b5563; margin-top: 1em; font-size: 1.0em; }
-hr { border: none; border-top: 2px dashed #cbd5e1; margin: 2em 0; }
 table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 0.82em; }
 th { background: #1e3a8a; color: #fff; padding: 5px 7px; }
 td { padding: 5px 7px; border: 1px solid #d1d5db; vertical-align: top; }
 tr:nth-child(even) td { background: #f3f4f6; }
 code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.88em; }
 pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; overflow-x: auto; font-size: 0.82em; }
-pre code { background: transparent; color: inherit; }
-blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.7em; color: #78350f; }
 @media (max-width: 768px) { body { padding: 8px; font-size: 13.5px; } table { font-size: 0.76em; } }
-</style></head><body>
-<nav style="background:#1e3a8a; color:#fff; padding:8px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
+</style></head><body><nav style="background:#1e3a8a; color:#fff; padding:8px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
 <a href="../index.html" style="color:#fde68a; margin-right:10px;">← ハブ</a>
 <a href="index.html" style="color:#fff; text-decoration:underline;">📂 修正版19章リスト</a>
-</nav>
-<h1>📝 初級ch05 hook入門 (★致命傷修正) <small style="color:#6b7280; font-size:0.7em;">(修正版 v1)</small></h1>
-<!-- _class: cover -->
+</nav><h1>📝 beginner_ch05_hook_v4</h1><!-- _class: cover -->
 
 <h1>Hookの入門</h1>
 <h2>AIの安全装置を作る</h2>
 <div class="meta">
 初級編 — 第5章 (約 30 min) [L3 ハーネス入門]<br><br>
 「Claude Code はじめての一歩 — AI開発の基礎を1日で習得」<br><br>
-講師: なぎなた
 </div>
 
 <!--
 スピーカーノート:
-こんにちは、なぎなたと申します。この第5章では、Claude Codeの「Hook」という仕組みを学びます。前章で 3階層モデルの L3 ハーネスが Anthropic 公式の概念 (Agent = Model + Harness) であり、hook はその実装基盤を構成する公式機能の一つだと学びました。本章ではその hook の最も基本的なイベントである PreToolUse を実際に使い、AI がプロジェクトで作業する際に危険な操作を自動的に検知してブロックする安全装置を作ります。30分で、その仕組みと設定方法をしっかり理解しましょう。
+この第5章では、Claude Codeの「Hook」という仕組みを学びます。前章で 3階層モデルの L3 ハーネスが Anthropic 公式の概念 (Agent = Model + Harness) であり、hook はその実装基盤を構成する公式機能の一つだと学びました。本章ではその hook の最も基本的なイベントである PreToolUse を実際に使い、AI がプロジェクトで作業する際に危険な操作を自動的に検知してブロックする安全装置を作ります。30分で、その仕組みと設定方法をしっかり理解しましょう。
 -->
 
 <hr />
@@ -482,5 +472,4 @@ exit 0   # ブロックせず、観察だけして実行を許可
 
 <!--
 ご視聴ありがとうございました。この第5章で、3階層モデルの最後のピース「L3 ハーネス」の代表的な公式機能である Hook の仕組みを理解いただけたでしょうか。Hook は公式 29 種類のライフサイクルイベントに任意の処理を発火させる仕組みで、本章ではその中の PreToolUse を使ってコマンド実行前の検査を行い、危険な操作を exit 2 + stderr メッセージで自動ブロックする方法を学びました。hook へのデータ受け渡しは stdin 経由の JSON、ここだけはコピペが効かない部分なので忘れないでください。これで L1 プロンプト、L2 コンテキスト、L3 ハーネスの 3 層が揃い、安心して AI に作業を任せられる基盤が完成しました。次は最終章「中級編への橋渡し」で、これまでの学びを整理し、次のステップを確認します。
--->
-</body></html>
+--></body></html>

@@ -31,7 +31,6 @@ style: |
 <div class="meta">
 初級編 — 第4章 (約 25 min)<br><br>
 「Claude Code はじめての一歩 — AI開発の基礎を1日で習得」<br><br>
-講師: なぎなた
 </div>
 
 <!--
