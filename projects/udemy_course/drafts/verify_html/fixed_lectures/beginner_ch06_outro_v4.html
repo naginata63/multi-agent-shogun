@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>初級ch06 終章 (修正版)</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.3em; }
+h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.1em; }
+h3 { color: #4b5563; margin-top: 1em; font-size: 1.0em; }
+hr { border: none; border-top: 2px dashed #cbd5e1; margin: 2em 0; }
+table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 0.82em; }
+th { background: #1e3a8a; color: #fff; padding: 5px 7px; }
+td { padding: 5px 7px; border: 1px solid #d1d5db; vertical-align: top; }
+tr:nth-child(even) td { background: #f3f4f6; }
+code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.88em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; overflow-x: auto; font-size: 0.82em; }
+pre code { background: transparent; color: inherit; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.7em; color: #78350f; }
+@media (max-width: 768px) { body { padding: 8px; font-size: 13.5px; } table { font-size: 0.76em; } }
+</style></head><body>
+<nav style="background:#1e3a8a; color:#fff; padding:8px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
+<a href="../index.html" style="color:#fde68a; margin-right:10px;">← ハブ</a>
+<a href="index.html" style="color:#fff; text-decoration:underline;">📂 修正版19章リスト</a>
+</nav>
+<h1>📝 初級ch06 終章 <small style="color:#6b7280; font-size:0.7em;">(修正版 v1)</small></h1>
+<!-- _class: cover -->
+
+<h1>3階層の統合と次のステップ</h1>
+<h2>初級編を終えて — 中級編への橋渡し</h2>
+<div class="meta">
+初級編 — 第6章 終章 (約 25 min) [3階層統合・橋渡し]<br>
+<span class="free">FREE PREVIEW</span><br><br>
+「Claude Code はじめての一歩 — AI開発の基礎を1日で習得」<br><br>
+講師: なぎなた
+</div>
+
+<!--
+スピーカーノート:
+お疲れさまでした。7 つのレクチャー、約 3 時間を共に歩んでいただきありがとうございます。前章 (第 5 章) では L3 ハーネスの公式実装機能である PreToolUse Hook を実装し、stdin から JSON を受け取り exit 2 でブロックする最小例を動かしました。これでようやく L1 プロンプト、L2 コンテキスト、L3 ハーネスの 3 階層 (Anthropic 公式: Agent = Model + Harness) がすべて揃った状態です。この終章は、初級編で身につけた 3 つの力を振り返り、次にどこへ進むべきかを見定める時間です。25 分間、自分の成長を確認しながらリラックスしてご覧ください。この終章も無料プレビューです。
+-->
+
+<hr />
+<h2>この 25 分で得られること</h2>
+<ol>
+<li>初級編の <strong>3つの学習到達点</strong> を自分の言葉で説明できる</li>
+<li>中級編で学ぶ <strong>全体像</strong> を把握する</li>
+<li>自分にとって次に進むべき <strong>ステップ</strong> を判断できる</li>
+</ol>
+<!--
+この終章では 3 つのことを確認します。まず初級編で何を学んだかを、3 階層モデルで整理して振り返ります。前章で完成した L3 ハーネスまで含めた全体像を、ここで一度俯瞰します。次に中級編で何が待っているかをプレビューします。最後に、あなたにとって次のアクションは何かを判断します。終章を見終わった時、「自分は確実に成長した」と実感できるはずです。
+-->
+
+<hr />
+<h1>3階層で振り返る初級編</h1>
+<blockquote>
+<p>前章で L3 ハーネスを実装した今、3 階層全体を一枚絵で見直してみます</p>
+</blockquote>
+<p>この講座は <strong>3つの階層</strong> でAI開発の基礎を構築しました:</p>
+<table>
+<thead>
+<tr>
+<th>階層</th>
+<th>名称</th>
+<th>対応章</th>
+<th>役割</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L1</strong></td>
+<td>プロンプト</td>
+<td>第1章</td>
+<td>AIに指示を確実に伝える</td>
+</tr>
+<tr>
+<td><strong>L2</strong></td>
+<td>コンテキスト</td>
+<td>第2〜4章</td>
+<td>プロジェクト知識をAIに共有する</td>
+</tr>
+<tr>
+<td><strong>L3</strong></td>
+<td>ハーネス</td>
+<td>第5章</td>
+<td>hooks/skills/sub-agents 等でAIの動作を制御・拡張する周辺基盤</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Anthropic 公式の業界標準定義: <strong>Agent = Model + Harness</strong> (Engineering Blog 2025-11「Effective harnesses for long-running agents」)<br />
+この 3 層が揃って、AI は「理解し・文脈を持ち・安全に動く」開発パートナーになる</p>
+</blockquote>
+<!--
+序章で「3 階層モデル」を preview してお伝えしました。ここまで全章を見ていただいた今、改めてこの表を見ると、それぞれの階層が何を意味しているかが実感として分かるはずです。L1 のプロンプトは第 1 章、L2 のコンテキストは第 2 章から第 4 章、L3 のハーネスは第 5 章で学びました。L3 ハーネスは「Agent = Model + Harness」という Anthropic 公式の業界標準定義の通り、hook だけでなく skill やサブエージェントなど AI モデルの周辺で動く実装基盤全体を指します。前章で実装した PreToolUse Hook は、その中でも最も基本となる入口でした。この 3 層が揃うことで、AI は単なるチャットツールから、あなたのプロジェクトを理解し安全に動く開発パートナーに変わります。
+-->
+
+<hr />
+<h1>到達点1: プロンプト [L1] — AIに確実に伝える</h1>
+<p><strong>何を学んだか</strong>:<br />
+- 構造化プロンプトの書き方（入力・処理・出力の3要素）<br />
+- Before/Afterで確認した「伝わる指示」と「伝わらない指示」の差</p>
+<p><strong>何が解決できたか</strong>:<br />
+- AIへの指示が <strong>毎回ブレる問題</strong> を解決<br />
+- 同じプロンプトで <strong>再現性のある結果</strong> を得られる</p>
+<blockquote>
+<p>プロンプト = AIとのコミュニケーションの「基礎言語」</p>
+</blockquote>
+<!--
+第 1 章で学んだプロンプト基礎。これは 3 階層の一番下、L1 にあたります。AI に「伝わる指示」と「伝わらない指示」の差は、構造化するだけで劇的に変わります。入力・処理・出力の 3 要素に分解して書くことで、AI への指示がブレなくなり、再現性のある結果が得られる。これが AI 開発の第一歩であり、すべての基盤です。
+-->
+
+<hr />
+<h1>到達点2: コンテキスト [L2] — プロジェクト知識の共有</h1>
+<p><strong>何を学んだか</strong>:<br />
+- CLAUDE.md（第2章）— AIに読ませるプロジェクトの「説明書」<br />
+- .md 仲間たち（第3章）— 3 大カテゴリ (<strong>CLAUDE.md / commands / skills</strong>) と CLAUDE.md 内の <code>@path</code> 取り込み構文<br />
+- 歴史と意義（第4章）— なぜ3階層が必要なのか</p>
+<p><strong>何が解決できたか</strong>:<br />
+- AIに毎回前提条件を説明する手間が <strong>ゼロに</strong><br />
+- 設定ファイル1つでAIの振る舞いが <strong>自動で変わる</strong></p>
+<blockquote>
+<p>コンテキスト = AIに「プロジェクトの文脈」を永続的に与える仕組み</p>
+</blockquote>
+<!--
+第 2 章から第 4 章で学んだコンテキスト層。CLAUDE.md は「AI 向けの README」として、プロジェクトのルールを AI に教える仕組みです。第 3 章では、CLAUDE.md・commands・skills という 3 つの大カテゴリの .md ファイル群を学びました。imports は別立てのファイル種別ではなく、CLAUDE.md の中で他のファイルを取り込む `@path` 構文として位置付くものなので、ここでは並列ではなく「CLAUDE.md 内の取り込み構文」として整理し直しています。そして第 4 章で、DevOps から SRE、Platform Engineering を経て AI Engineering に至る歴史の流れの中で、このコンテキスト層がなぜ必要なのかを理解しました。人間が毎回説明しなくても、AI がプロジェクトの文脈を理解して動く。これが L2 の価値です。
+-->
+
+<hr />
+<h1>到達点3: ハーネス [L3] — AIを制御・拡張する周辺基盤</h1>
+<p><strong>何を学んだか</strong>:<br />
+- hookの仕組み — AIのライフサイクルイベント (公式 29 種類) に任意の処理を発火させる仕組み<br />
+- PreToolUse Hook でコマンド実行前に検査・ブロック (<code>stdin JSON 受取</code> + <code>exit 2 + stderr メッセージ</code>)</p>
+<p><strong>何が解決できたか</strong>:<br />
+- <code>rm -rf</code> や <code>sudo</code> 等の <strong>危険操作を自動検知</strong><br />
+- AIが勝手にファイルを消すリスクを <strong>排除</strong></p>
+<blockquote>
+<p>ハーネス = AI モデルを「実際に仕事を完遂する work engine」に変える周辺基盤<br />
+安全装置はその中の代表的な一用途</p>
+</blockquote>
+<!--
+第 5 章で学んだ hook。3 階層の最上層、L3 にあたります。Hook は AI のライフサイクルイベント、公式 29 種類のタイミングに任意の処理を発火させる仕組みで、本章ではその中の最も基本となる PreToolUse を入口に体験しました。受け渡しは標準入力経由の JSON、ブロックは exit 2 + stderr メッセージ、これがコピペで動く公式仕様の最小形でした。L3 ハーネスは Anthropic 公式の業界標準概念で、hook だけでなく skill やサブエージェントなど、AI を「実際に仕事を完遂する work engine」に変える周辺基盤全体を指します。安全装置は、その中で最も初心者が体験しやすい代表用途のひとつです。プロンプトで指示し、コンテキストで文脈を与え、ハーネスで制御・拡張する。この 3 層が揃って初めて、AI は安全で頼れる開発パートナーになります。
+-->
+
+<hr />
+<h1>初級編で解決した3つの課題</h1>
+<table>
+<thead>
+<tr>
+<th>課題</th>
+<th>解決策</th>
+<th>階層</th>
+<th>学んだ章</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AIへの指示が毎回ブレる</td>
+<td><strong>構造化プロンプト</strong></td>
+<td>L1</td>
+<td>第1章</td>
+</tr>
+<tr>
+<td>AIに毎回ルールを説明する手間</td>
+<td><strong>CLAUDE.md + .md群</strong></td>
+<td>L2</td>
+<td>第2〜3章</td>
+</tr>
+<tr>
+<td>AIが危険な操作をする不安</td>
+<td><strong>PreToolUse Hook</strong></td>
+<td>L3</td>
+<td>第5章</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>この3つが揃えば、Claude Code は「安心して使える開発パートナー」になる</p>
+</blockquote>
+<!--
+表に整理すると、初級編で解決した課題が明確に見えます。L1 のプロンプトで指示のブレをなくし、L2 のコンテキストで繰り返しの説明をなくし、L3 のハーネスで安全性を確保する。L3 の代表例として前章では PreToolUse Hook を実装しました。この 3 つが揃った状態が、Claude Code を本格的に活用するための基盤です。次に、この基盤の上に何を積み上げていくのか。それが中級編のテーマです。
+-->
+
+<hr />
+<h1>中級編のプレビュー</h1>
+<blockquote>
+<p>中級編では、今日学んだ3階層を <strong>深掘り</strong> し、新しい技術と運用を加えていきます</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>初級編 (今)</th>
+<th>中級編 (次)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>所要時間</td>
+<td>約 3 時間 / 7 章</td>
+<td>約 13 時間 / 12 章（1日30分×4週間程度）</td>
+</tr>
+<tr>
+<td>L1 プロンプト</td>
+<td>基礎の構造化</td>
+<td>高度なテンプレート化</td>
+</tr>
+<tr>
+<td>L2 コンテキスト</td>
+<td>30行ミニマム</td>
+<td>永続化・マルチプロジェクト</td>
+</tr>
+<tr>
+<td>L3 ハーネス</td>
+<td>1本の入門 PreToolUse Hook</td>
+<td>18本の実装例で主要カテゴリ (ファイル保護・コマンド検査・通知など) を学ぶ</td>
+</tr>
+<tr>
+<td><strong>MCP</strong></td>
+<td><strong>今回未対応</strong></td>
+<td><strong>自前構築 + 永続化バックエンド</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>MCP</strong>（Model Context Protocol）= LLM と外部ツール・データソース・API を繋ぐ <strong>オープンソース標準プロトコル</strong>。Claude Code を数百の外部ツールに接続するための公式仕様。claude-mem のような「記憶を拡張する MCP サーバー」はその一用途例にすぎず、課題追跡・監視データ分析・DB クエリ・デザイン統合など幅広い領域で使われている</p>
+</blockquote>
+<!--
+初級編が各階層の「入り口」だったのに対し、中級編は「実戦」に踏み込みます。L3 ハーネスは入門の 1 本から 18 本の実装例へ広がります。「網羅する」とは言わず、あくまでファイル保護・コマンド検査・通知といった主要カテゴリの代表例として学ぶ位置付けです。特に注目してほしいのが MCP です。MCP は「Model Context Protocol」の略で、LLM と外部ツール・データソース・API を繋ぐオープンソース標準プロトコル、つまり業界標準の規格そのものです。「AI の記憶を拡張する仕組み」と狭く説明されることがありますが、それは claude-mem などの一用途例で、本来はもっと広い接続規格です。中級編では自前の MCP サーバーを構築して、その仕組み自体を体験します。プロンプト・コンテキスト・ハーネスの深化に加えて、この MCP が中級編の大きな柱です。
+-->
+
+<hr />
+<h1>「今日のあなた」と「中級編修了のあなた」</h1>
+<p><strong>今日のあなた (初級編修了)</strong>:<br />
+- 構造化プロンプトでAIに <strong>確実に伝える</strong> ことができる<br />
+- CLAUDE.md 30行でAIに <strong>プロジェクトの文脈</strong> を与えられる<br />
+- PreToolUse Hook 1本で <strong>基本の安全装置</strong> を作れる</p>
+<p><strong>中級編修了のあなた</strong>:<br />
+- 18本のhook実装例で主要カテゴリを <strong>使い分け</strong> られる<br />
+- 自前のMCPサーバー（自分のPCで動くAI用の追加プログラム）を <strong>構築</strong> できる<br />
+- 1人+1AIで <strong>本格的な自動化パイプライン</strong>（テスト→ビルド→デプロイを自動でつなぐ仕組み）を構築できる</p>
+<blockquote>
+<p>初級編は「AI開発の運転免許」。中級編は「自分のプロジェクトを安心して任せられる相棒づくり」</p>
+</blockquote>
+<!--
+この違いを比べてみましょう。今日のあなたは、構造化プロンプトで AI に確実に伝えることができ、CLAUDE.md でプロジェクトの文脈を与えられ、PreToolUse Hook 1 本で基本的な安全装置を作れます。これは立派な基礎です。一方、中級編を修了したあなたは、18 本の hook 実装例を主要カテゴリで使い分け、自前の MCP サーバーを構築し、1 人 +1 AI で本格的な自動化パイプラインを構築できます。例えるなら、初級編で運転免許を取得し、中級編で自分のプロジェクトを安心して任せられる相棒を育てるイメージです。
+-->
+
+<hr />
+<h1>次のステップ</h1>
+<ol>
+<li><strong>中級編へ進む</strong> — この基礎の上に実戦スキルを積み上げる</li>
+<li><strong>自分のプロジェクトで試す</strong> — 今日学んだ3階層を実際のプロジェクトに適用</li>
+<li><strong>コミュニティに参加する</strong> — 他の受講生と知見を共有</li>
+</ol>
+<blockquote>
+<p>初級編の理解が深まれば、中級編のスピード感についていけます</p>
+</blockquote>
+<!--
+次に取るべきステップは 3 つあります。一番おすすめなのは、中級編に進むこと。今日の基礎、特に前章の PreToolUse Hook の動作原理がしっかり身についていれば、中級編の内容もスムーズに理解できます。同時に、自分のプロジェクトで今日学んだ 3 階層を試してみてください。構造化プロンプト、CLAUDE.md、PreToolUse Hook — この 3 つを自分の環境で動かすことで理解が深まります。また、Udemy の Q&A セクションで他の受講生と交流することもおすすめです。
+-->
+
+<hr />
+<!-- _class: cover -->
+
+<h1>あなたは確実に成長しました</h1>
+<div class="meta">
+✅ L1 プロンプト — AIに確実に伝える構造化の書き方<br>
+✅ L2 コンテキスト — CLAUDE.md / commands / skills でプロジェクト知識を共有<br>
+✅ L3 ハーネス — PreToolUse Hookで AI の動作を安全に制御 (Agent = Model + Harness)<br><br>
+
+<b>この3層が、AI開発の基礎の基礎。<br>
+ここから先は、あなたのペースで。</b><br><br>
+
+初級編をご完走いただき、ありがとうございました。<br>
+中級編でまたお会いしましょう。
+</div>
+
+<!--
+ご視聴、本当にありがとうございました。7 つのレクチャーを完走したあなたは、AI 開発の基礎を確実に身につけました。L1 プロンプト、L2 コンテキスト、L3 ハーネス — この 3 階層の仕組みは、Anthropic 公式の「Agent = Model + Harness」という業界標準定義そのものに対応する AI 開発の基礎の基礎です。前章で実装した PreToolUse Hook は、その入口でした。ここから先は、あなたのペースで進んでください。中級編でより深く学ぶもよし、まずは自分のプロジェクトで試すもよし。あなたの AI 開発の旅は、今日から始まっています。応援しています。
+-->
+</body></html>

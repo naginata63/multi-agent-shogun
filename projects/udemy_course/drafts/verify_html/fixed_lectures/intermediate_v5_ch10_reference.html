@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中級ch10 逆引き辞典 (修正版)</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.3em; }
+h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.1em; }
+h3 { color: #4b5563; margin-top: 1em; font-size: 1.0em; }
+hr { border: none; border-top: 2px dashed #cbd5e1; margin: 2em 0; }
+table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 0.82em; }
+th { background: #1e3a8a; color: #fff; padding: 5px 7px; }
+td { padding: 5px 7px; border: 1px solid #d1d5db; vertical-align: top; }
+tr:nth-child(even) td { background: #f3f4f6; }
+code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.88em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; overflow-x: auto; font-size: 0.82em; }
+pre code { background: transparent; color: inherit; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.7em; color: #78350f; }
+@media (max-width: 768px) { body { padding: 8px; font-size: 13.5px; } table { font-size: 0.76em; } }
+</style></head><body>
+<nav style="background:#1e3a8a; color:#fff; padding:8px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
+<a href="../index.html" style="color:#fde68a; margin-right:10px;">← ハブ</a>
+<a href="index.html" style="color:#fff; text-decoration:underline;">📂 修正版19章リスト</a>
+</nav>
+<h1>📝 中級ch10 逆引き辞典 <small style="color:#6b7280; font-size:0.7em;">(修正版 v1)</small></h1>
+<!-- _class: cover -->
+
+<h1>困った時の逆引き辞典</h1>
+<h2>症状 → 原因 → 対策 → 該当章を30秒で引く</h2>
+<div class="meta">
+中級編 — 第10章 (約 25 min)<span class="free">FREE</span><br><br>
+「AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全解説」<br><br>
+講師: なぎなた
+</div>
+
+<!--
+スピーカーノート:
+第10章へようこそ。ここまで第1章から第9章まで、たくさんの道具を学んできました。プロンプトの資産化、長い文章の配置、自動メモリ、役割別のファイル分業、レビュー、自動 hook、失敗の検知、そして前章 (ch09) では 3 層を業務に組み合わせる型を 3 ケースで見ました。道具は増えましたが、いざ現場で「あれ? AIの挙動が変だ」となったとき、「どの章で何を学んだっけ?」と迷子になりがちです。この章では、全11件の困りごとを「症状から引ける辞書」としてまとめます。詰まった瞬間に30秒で解決策を見つけられるようになりましょう。
+-->
+
+<hr />
+<h2>前章 (ch09) からの繋がり</h2>
+<blockquote>
+<p>ch09 で学んだこと:<br />
+- <strong>3 ケース</strong> (営業 / PMサポート / データ分析) で 3 層の組み合わせ方を具体化<br />
+- 「どの層から始めるか」の判断基準 = <strong>自分の困りごとに合う層</strong>を最初の一手にする<br />
+- 3 ケースに共通する型: <strong>「定型化 → 検索 → 担保」</strong><br />
+- 「公式機能 (advisor ツール / PostToolUse hook / MCP)」と「<strong>本リポジトリ独自カスタム</strong> (<code>/handoff</code> 等)」の区別</p>
+</blockquote>
+<p><strong>ch10 で扱うこと:</strong></p>
+<pre><code>ここまで → 3層を業務に組み合わせる「型」を持てた
+   ↓
+本章   → 型を実践しても詰まる瞬間に「症状 → 該当章」を 30 秒で逆引きできる辞典を持つ
+   ↓
+持帰り  → 全 11 件の困りごとを 3 層で再整理した「現場用ブックマーク」
+</code></pre>
+<p>ch01〜ch08 は <strong>道具の章</strong>、ch09 は <strong>使い方の章</strong>、本章は <strong>詰まったときの辞書の章</strong> です。</p>
+<!--
+ch09 で 3 層の組み合わせ方を 3 ケースで見ました。しかし型を持っても、実務では「あれ? どこで詰まったんだろう」という瞬間が必ず来ます。そのときに 30 秒で該当章にたどり着く辞書を作るのが本章です。ch09 末尾で強調した「公式機能と本リポジトリ独自カスタムの区別」の目線も、本章の辞書を引くときに役立ちます。
+-->
+
+<hr />
+<h2>この章で出てくる用語</h2>
+<blockquote>
+<p>初めて登場する表現がありますが、どれも前章までに学んだ内容の言い換えです。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>用語</th>
+<th>この章での意味</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>3層 (プロンプト/コンテキスト/ハーネス)</strong></td>
+<td>AI を使いこなす 3 つの土台。第1〜9章で順に学んできた。<strong>ハーネス</strong>は Anthropic 公式概念 (Engineering Blog「Effective harnesses for long-running agents」2025-11) — Agent = Model + Harness の Harness 層</td>
+</tr>
+<tr>
+<td><strong>逆引き辞典</strong></td>
+<td>「症状」から「対策」を引ける一覧表</td>
+</tr>
+<tr>
+<td><strong>3段早見表</strong></td>
+<td>症状 → 現象 → 対策 → 該当章 の4列で並べた表</td>
+</tr>
+<tr>
+<td><strong>カスタムスラッシュコマンド</strong></td>
+<td><code>/&lt;任意名&gt;</code> を Skills (<code>.claude/skills/&lt;name&gt;/SKILL.md</code>) または legacy <code>.claude/commands/&lt;name&gt;.md</code> で定義する自分専用コマンド (組込 <code>/clear</code> <code>/compact</code> 等とは別物)</td>
+</tr>
+</tbody>
+</table>
+<!--
+4つの用語を確認します。ハーネスは Anthropic 公式概念で、業界標準用語です。カスタムスラッシュコマンドは「組込コマンド」「バンドルスキル」「本リポジトリ独自カスタム」の階層構造を持ちます (詳細は次スライド)。
+-->
+
+<hr />
+<h2>スラッシュコマンドの 4 階層 — 区別の前提</h2>
+<blockquote>
+<p>本章で頻出する <code>/command</code> 系の用語は <strong>4 階層に分かれる</strong>。「公式」と「本リポジトリ独自」を混同しないこと</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>階層</th>
+<th>例</th>
+<th>出所</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>機構</strong> (built-in mechanism)</td>
+<td>スラッシュコマンドという仕組み自体</td>
+<td>Claude Code 本体機能</td>
+</tr>
+<tr>
+<td><strong>組込コマンド</strong></td>
+<td><code>/clear</code> <code>/compact</code> <code>/init</code> <code>/memory</code> <code>/agents</code> <code>/model</code> 等</td>
+<td>公式コマンド表に掲載</td>
+</tr>
+<tr>
+<td><strong>バンドルスキル</strong></td>
+<td><code>/review</code> <code>/security-review</code> <code>/simplify</code> 等</td>
+<td>Anthropic 公式同梱</td>
+</tr>
+<tr>
+<td><strong>独自カスタム</strong></td>
+<td><code>/handoff</code> <code>/advisor</code> <code>/senkyou</code> 等</td>
+<td><strong>本リポジトリ独自実装</strong> (各自で作成)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>作成方式</strong>: Skills (<code>.claude/skills/&lt;name&gt;/SKILL.md</code>) が推奨・legacy <code>.claude/commands/&lt;name&gt;.md</code> 単一ファイルも併存。公式は「カスタムコマンドはスキルにマージ」と明記</p>
+</blockquote>
+<!--
+本章では何度も /handoff や /advisor が出てきます。これらは「本リポジトリ独自のカスタムスラッシュコマンド」で、Claude Code 標準にはありません。自分の現場で類似機能を使うには、自前で Skills (`.claude/skills/<name>/SKILL.md`) を作る必要があります。一方、advisor「ツール」(advisor_20260301) や PostToolUse hook は Anthropic 公式機能です。コマンド名とツール名を区別する目線が大事です。
+-->
+
+<hr />
+<h2>この章で学ぶこと</h2>
+<ol>
+<li>全11件の困りごとを <strong>症状から逆引き</strong> できるようになる</li>
+<li>困りごとを <strong>3つの層</strong> で分類し、「どの層が足りないか」を即座に特定できる</li>
+<li>似た症状の <strong>見分け方</strong> を理解する</li>
+<li>現場で詰まったとき、<strong>30秒で該当章を見つける</strong> ことができる</li>
+</ol>
+<!--
+この章の目標はシンプルです。「詰まったとき、どこを見ればいいかを即座に判断できる」こと。知識の確認ではなく、実務で使える辞書を作ります。
+-->
+
+<hr />
+<h1>「あれ、どの章で学んだっけ?」</h1>
+<blockquote>
+<p>ch01 から ch09 まで、11 の困りごとに対して 11 の道具を学びました。<br />
+しかし実務で「AIが変だ」と感じた瞬間、「これ、どの困りごとだったか?」と迷子になります。</p>
+</blockquote>
+<p><strong>実務あるある</strong>:<br />
+- AIに要約を頼んだら、勝手に推測で補完した ← どの章?<br />
+- 毎回同じプロンプトを手入力している ← どの章?<br />
+- 先週の修正をAIが忘れている ← どの章?</p>
+<!--
+実際の現場でこの3つが起きたとき、すぐに該当章を思い出せますか? この章では、そういう「迷子」をなくす辞書を作ります。
+-->
+
+<hr />
+<h2>ch00 で提示した11の困りごと — おさらい</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>困りごと</th>
+<th>解決した章</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>①</td>
+<td>既にあるものを確認せず新規作成してしまう</td>
+<td>ch01</td>
+</tr>
+<tr>
+<td>②</td>
+<td>同じ作業を毎回手動で繰り返している</td>
+<td>ch01</td>
+</tr>
+<tr>
+<td>③</td>
+<td>AIが確認せず推測で突進する</td>
+<td>ch02</td>
+</tr>
+<tr>
+<td>④</td>
+<td>長い文章の中央が読み飛ばされる</td>
+<td>ch03 + ch04/05/07</td>
+</tr>
+<tr>
+<td>⑤</td>
+<td>完了したことを次に伝え忘れる</td>
+<td>ch04</td>
+</tr>
+<tr>
+<td>⑥</td>
+<td>「言ったのにやってくれない」</td>
+<td>ch05</td>
+</tr>
+<tr>
+<td>⑦</td>
+<td>AI出力を信じて失敗する</td>
+<td>ch06</td>
+</tr>
+<tr>
+<td>⑧</td>
+<td>外部の仕様変更後にテストせず壊れる</td>
+<td>ch07</td>
+</tr>
+<tr>
+<td>⑨</td>
+<td>大事な資料を確認せず進める</td>
+<td>ch07 / ch04</td>
+</tr>
+<tr>
+<td>⑩</td>
+<td>失敗を見逃される</td>
+<td>ch08</td>
+</tr>
+<tr>
+<td>⑪</td>
+<td>「止めろ」が伝わらない</td>
+<td>ch08</td>
+</tr>
+</tbody>
+</table>
+<!--
+ch00で提示した11の困りごとの全リストです。このすべてを、この章で「辞書」として再構成します。
+-->
+
+<hr />
+<h1>3段早見表 — 症状から引く</h1>
+<blockquote>
+<p>現場で起きた症状 → AIの中で起きている現象 → 使うべき対策 → 該当章</p>
+</blockquote>
+<p>以下の表は <strong>ブックマーク推奨</strong> です。詰まった瞬間に開いて、症状を探してください。</p>
+<!--
+ここからがこの章のメインです。全11件を「症状→現象→対策→該当章」の4列で並べます。あとで印刷 or ブックマークしてお使いください。
+-->
+
+<hr />
+<h2>3段早見表 (1/3) — プロンプト層の困りごと</h2>
+<table>
+<thead>
+<tr>
+<th>症状 (現場で起きること)</th>
+<th>現象 (AIの中で何が起きているか)</th>
+<th>対策 (使う道具)</th>
+<th>章</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AIが勝手に推測で補完した</td>
+<td>確認指示がプロンプトにない</td>
+<td>診断チェックリスト + 確認テンプレ</td>
+<td>ch02</td>
+</tr>
+<tr>
+<td>毎回同じプロンプトを手入力している</td>
+<td>プロンプトが資産化されていない</td>
+<td><strong>カスタムスラッシュコマンド</strong> を Skills (<code>.claude/skills/&lt;name&gt;/SKILL.md</code>) で作成 ※自分で作る</td>
+<td>ch01</td>
+</tr>
+<tr>
+<td>既存の資料を無視して新規作成した</td>
+<td>「既存を確認せよ」指示がない</td>
+<td>既存確認付き <strong>カスタムスラッシュコマンド</strong> を Skills で作成 ※自分で作る</td>
+<td>ch01</td>
+</tr>
+</tbody>
+</table>
+<p><strong>共通パターン</strong>: プロンプトに「確認せよ」「既存を使え」という指示が書かれていない</p>
+<!--
+まずプロンプト層の3件。どれも「指示の書き方」の問題です。カスタムスラッシュコマンドは Claude Code 組込コマンド (/clear 等) とは別物で、各自で Skills 形式 (`.claude/skills/<name>/SKILL.md`) を定義して作るものです (legacy `.claude/commands/<name>.md` 単一ファイル形式も併存)。プロンプトを書き直すか自分専用コマンドを作れば即解決できます。
+-->
+
+<hr />
+<h2>3段早見表 (2/3) — コンテキスト層の困りごと</h2>
+<table>
+<thead>
+<tr>
+<th>症状</th>
+<th>現象</th>
+<th>対策</th>
+<th>章</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>長文の中央にある重要情報が無視された</td>
+<td>長文の中央が読み飛ばされる現象 (Lost in the Middle: 長い文章の真ん中にある情報が抜け落ちる現象)</td>
+<td>TL;DR + 重要情報を冒頭/末尾に配置</td>
+<td>ch03</td>
+</tr>
+<tr>
+<td>先週の修正内容をAIが知らない</td>
+<td>過去の記憶が引き継がれていない</td>
+<td><strong>自動メモリ</strong> (公式 <code>MEMORY.md</code> + トピックファイル・<code>~/.claude/projects/&lt;project&gt;/memory/</code> に格納) + 引き継ぎファイル</td>
+<td>ch04</td>
+</tr>
+<tr>
+<td>関連資料を確認せず回答した</td>
+<td>必要な資料が自動的に検索されていない</td>
+<td>必要時取得 (必要な時だけ読み込む) + 自動取得 hook</td>
+<td>ch07 / ch04</td>
+</tr>
+</tbody>
+</table>
+<p><strong>共通パターン</strong>: AIに「知らせるべき情報」が届いていない、または忘れている</p>
+<!--
+コンテキスト層の3件。「自動メモリ」は Claude Code 公式機能で、`~/.claude/projects/<project>/memory/MEMORY.md` (マシンローカル・git 管理外) に最初の 200 行または 25KB が会話開始時に読み込まれます。トピックファイルは Claude が必要時にオンデマンドで読み込む構造で、claude-mem 等の外部 MCP サーバーとは別物です。
+-->
+
+<hr />
+<h2>3段早見表 (3/3) — ハーネス層の困りごと</h2>
+<table>
+<thead>
+<tr>
+<th>症状</th>
+<th>現象</th>
+<th>対策</th>
+<th>章</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>「こうして」と言ったのに別のことをした</td>
+<td>役割と指示が1人に詰め込まれている</td>
+<td>役割別ファイル分業</td>
+<td>ch05</td>
+</tr>
+<tr>
+<td>AIの出力を鵜呑みにして失敗した</td>
+<td>第三者レビューが入っていない</td>
+<td><strong>advisor ツール</strong> (Anthropic 公式 <code>advisor_20260301</code>・beta) で第三者AIレビュー ※ <code>/advisor</code> 名のスラッシュコマンドは本リポジトリ独自スキル</td>
+<td>ch06</td>
+</tr>
+<tr>
+<td>外部サービスの仕様変更で壊れた</td>
+<td>変更後の自動テストがない</td>
+<td>作業後の自動検証 (<strong>PostToolUse</strong> hook — 公式 hook 29 種類の 1 つ)</td>
+<td>ch07</td>
+</tr>
+<tr>
+<td>エラーが黙って握りつぶされた</td>
+<td>失敗検知の仕組みがない</td>
+<td>段階確認 + watcher (定期的に自動チェックする仕組み)</td>
+<td>ch08</td>
+</tr>
+<tr>
+<td>「止めて」と言ったのに止まらなかった</td>
+<td>実行を止めるガードがない</td>
+<td>禁止操作リスト (本リポジトリ独自の設計パターン名・<strong>PreToolUse</strong> hook で実装)</td>
+<td>ch08</td>
+</tr>
+</tbody>
+</table>
+<p><strong>共通パターン</strong>: AI の動きを監視・制御する「仕組み」(= ハーネス層) が足りない</p>
+<!--
+ハーネス層の5件。最多です。ハーネスは Anthropic 公式概念 (Agent = Model + Harness) で、hook・advisor・watcher 等が実装パーツです。advisor は公式ツール (advisor_20260301) ですが、`/advisor` 名のスラッシュコマンドは本リポジトリ独自スキル (内部で公式 advisor ツールを呼ぶ) であることに注意。PostToolUse / PreToolUse は公式 hook 29 種類のうちの 2 つです。禁止操作リスト (D001-D005) は本リポジトリ独自の設計パターン名で、PreToolUse hook という公式仕組みの上に各自で内容を定義するものです。
+-->
+
+<hr />
+<h1>3層インデックス — 「どの層が足りないか」から引く</h1>
+<blockquote>
+<p>症状から引くだけでも便利ですが、<strong>「どの層が欠けているか」</strong> を特定できれば、もっと早く解決できます。</p>
+</blockquote>
+<p>11の困りごとはすべて、<strong>3つの層のいずれかが足りない</strong> から起きています。</p>
+<!--
+もう一つの逆引き方法です。「症状」から探すのではなく、「どの層が足りないか」から探します。ハーネスは Anthropic 公式概念で、業界標準では Agent = Model + Harness と定義されます。
+-->
+
+<hr />
+<h2>3層別分類 — 全11件を層で整理</h2>
+<table>
+<thead>
+<tr>
+<th>不足している層</th>
+<th>該当する困りごと</th>
+<th>対策章</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>プロンプト層不足</strong></td>
+<td>①既存を無視 ②手動繰返 ③推測で突進</td>
+<td>ch01 / ch02</td>
+</tr>
+<tr>
+<td><strong>コンテキスト層不足</strong></td>
+<td>④中央が読まれない ⑤完了を忘れる</td>
+<td>ch03 / ch04</td>
+</tr>
+<tr>
+<td><strong>ハーネス層不足</strong> (Anthropic 公式概念)</td>
+<td>⑥言ったのに違う ⑦盲信 ⑧仕様変更で壊れる ⑩失敗を隠す ⑪止まらない</td>
+<td>ch05 / ch06 / ch07 / ch08</td>
+</tr>
+<tr>
+<td><strong>複合 (要組み合わせ)</strong></td>
+<td>⑨資料未確認 (コンテキスト + ハーネスの両方)</td>
+<td>ch04 + ch07</td>
+</tr>
+</tbody>
+</table>
+<!--
+3つの層で11件を整理しました。ハーネス層が5件と最多です。「何かが変だ」と感じたら、まず「ハーネス層が足りないのでは?」と疑うのがコツです。ハーネスは Anthropic Engineering Blog「Effective harnesses for long-running agents」(2025-11) で定義された公式概念で、hook・advisor・watcher・禁止操作リスト等の実装パーツの総称です。
+-->
+
+<hr />
+<h2>使い方 — 現場で詰まったら</h2>
+<p><strong>ステップ1</strong>: 症状を確認する<br />
+- 「AIが何かおかしい」と感じたら、具体的に何が起きているかを言葉にする</p>
+<p><strong>ステップ2</strong>: 3段早見表の「症状」列から該当行を探す<br />
+- 似た症状が複数あれば、「現象」列で見分ける</p>
+<p><strong>ステップ3</strong>: 「対策」列の道具を使う<br />
+- 該当章を見直せば、具体的な手順が載っている</p>
+<p><strong>所要時間</strong>: 慣れれば <strong>30秒</strong> で該当箇所にたどり着ける</p>
+<!--
+実務での使い方です。3ステップで解決策にたどり着けます。最初は表を行き来するかもしれませんが、2〜3回使えば「これは〇〇層だ」と瞬時に判断できるようになります。
+-->
+
+<hr />
+<h1>現場の具体例で練習</h1>
+<blockquote>
+<p>3つのパターンを実際の業務で追ってみましょう。</p>
+</blockquote>
+<hr />
+<h2>パターン1: 営業担当のケース</h2>
+<p><strong>症状</strong>: AIに「先週の商談メモを要約して」と頼んだら、AIが勝手に「案件はクローズ」と出力した</p>
+<p><strong>分析</strong>:<br />
+1. AIが<strong>確認せず推測で出力</strong>した = 困りごと③<br />
+2. どの層? → <strong>プロンプト層不足</strong><br />
+3. 対策 → ch02 の診断10項目で「確認問いかけ」を追加</p>
+<p><strong>改善後のプロンプト例</strong>:</p>
+<pre><code>先週の商談メモを要約して。
+ただし、不明な点は推測せず「不明」と明記すること。
+</code></pre>
+<!--
+営業現場での例です。「案件はクローズ」とAIが勝手に判断したのは、プロンプトに「推測するな」という指示がなかったから。ch02の診断10項目の1つ「確認を求める指示があるか」に該当します。
+-->
+
+<hr />
+<h2>パターン2: PMサポートのケース</h2>
+<p><strong>症状</strong>: 仕様変更メールをAIに読ませたら、古い仕様の箇所を無視して回答した</p>
+<p><strong>分析</strong>:<br />
+1. 長文メールの<strong>中央にある変更箇所が読み飛ばされた</strong> = 困りごと④<br />
+2. どの層? → <strong>コンテキスト層不足</strong><br />
+3. 対策 → ch03 の TL;DR 配置 + ch04 の必要時取得</p>
+<p><strong>改善策</strong>:<br />
+- メールの<strong>先頭に「変更点サマリ」を3行で書く</strong> (ch03)<br />
+- 過去の仕様変更履歴を自動メモリから検索できるようにする (ch04)</p>
+<!--
+PMサポートの例です。長いメールの中ほどにある変更点が無視されたのは、Lost in the Middle現象。ch03で学んだ「重要情報は冒頭か末尾に」を適用すれば防げます。過去の仕様変更履歴は公式自動メモリ (MEMORY.md + トピックファイル) に蓄積しておけば、Claude が必要時にオンデマンドで読み込みます。
+-->
+
+<hr />
+<h2>パターン3: データ分析担当のケース</h2>
+<p><strong>症状</strong>: 毎週同じ前処理プロンプトをコピペしている</p>
+<p><strong>分析</strong>:<br />
+1. 同じ作業を<strong>毎回手動で繰り返している</strong> = 困りごと②<br />
+2. どの層? → <strong>プロンプト層不足</strong><br />
+3. 対策 → ch01 の <strong>カスタムスラッシュコマンド</strong> (Skills) → ch11 の Skill 化深掘りへ</p>
+<p><strong>改善ステップ</strong>:<br />
+1. まずカスタムスラッシュコマンド (Skills 形式 <code>.claude/skills/&lt;name&gt;/SKILL.md</code> 推奨・legacy <code>.claude/commands/&lt;name&gt;.md</code> も可) でプロンプトを資産化 (ch01)<br />
+2. 慣れたらより高度な自動化へ (詳しくはch11で解説)</p>
+<!--
+データ分析の例です。「毎週コピペ」はもったいない。ch01で学んだカスタムスラッシュコマンド (Skills) で資産化すれば、1回の呼び出しで済みます。配置の標準形式は `.claude/skills/<name>/SKILL.md` というディレクトリ + エントリポイントの構造で、description のみが常駐し本体はオンデマンド読込される設計です。さらにch11でSkill化を深掘りすれば、AIが文脈で自律的に呼び出すようになります。
+-->
+
+<hr />
+<h1>似た症状の見分け方</h1>
+<blockquote>
+<p>困りごとによっては症状が似ています。ここで間違えると「違う章を見直す」ことになります。<br />
+2つの見分け方を押さえましょう。</p>
+</blockquote>
+<hr />
+<h2>見分け方①: 「推測で突進」と「盲信して失敗」</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>③ 推測で突進 (AIが確認せず勝手に進める)</th>
+<th>⑦ 盲信して失敗 (AI出力を信じ込む)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>いつ起きる?</strong></td>
+<td>AIが<strong>出力する前</strong></td>
+<td>AIの<strong>出力を見た後</strong></td>
+</tr>
+<tr>
+<td><strong>誰が悪い?</strong></td>
+<td>AI (指示不足)</td>
+<td>人 (確認不足)</td>
+</tr>
+<tr>
+<td><strong>どの層?</strong></td>
+<td>プロンプト層</td>
+<td>ハーネス層</td>
+</tr>
+<tr>
+<td><strong>対策章</strong></td>
+<td>ch02</td>
+<td>ch06</td>
+</tr>
+<tr>
+<td><strong>対策</strong></td>
+<td>プロンプトに確認指示を追加</td>
+<td><strong>advisor ツール</strong> (Anthropic 公式・beta) で第三者レビュー</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>判断のコツ</strong>: AIが<strong>出力する前</strong>に起きるなら③、<strong>出力を見た後</strong>に気づくなら⑦</p>
+</blockquote>
+<!--
+一番間違えやすい2つの困りごとです。「AIが勝手に進めた」のか「AIの出力を自分が信じ込んだ」のか。タイミングで判別します。advisor は Anthropic 公式 advisor_20260301 tool で、本リポジトリでは `/advisor` という独自カスタムスラッシュコマンド経由で呼んでいますが、ツール自体は公式機能です。
+-->
+
+<hr />
+<h2>見分け方②: 「忘れている」と「読み飛ばしている」</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>⑤ 完了を忘れる (過去の作業を覚えていない)</th>
+<th>④ 中央が読まれない (長文の真ん中が抜け落ちる)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>症状</strong></td>
+<td>過去にやったことをAIが知らない</td>
+<td>長文の中ほどが無視される</td>
+</tr>
+<tr>
+<td><strong>原因</strong></td>
+<td>記憶が引き継がれていない</td>
+<td>配置の問題 (Lost in the Middle)</td>
+</tr>
+<tr>
+<td><strong>どの層?</strong></td>
+<td>コンテキスト層</td>
+<td>コンテキスト層</td>
+</tr>
+<tr>
+<td><strong>対策章</strong></td>
+<td>ch04 (自動メモリ・引き継ぎ)</td>
+<td>ch03 (配置技術)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>判断のコツ</strong>: 「前回やったこと」を覚えていない → ch04 / 長文の特定箇所が無視される → ch03</p>
+</blockquote>
+<!--
+もう一つの間違えやすいペアです。どちらもコンテキスト層ですが、対策が違います。「忘れている」のか「見落としている」のかで該当章が変わります。
+-->
+
+<hr />
+<h2>見分け方③: 「言ったのに違う」と「止まらない」</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>⑥ 言ったのに違う (指示を部分的に無視)</th>
+<th>⑪ 止まらない (止めても実行が続く)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>症状</strong></td>
+<td>AIが指示を部分的に無視する</td>
+<td>「止めて」と言っても実行が続く</td>
+</tr>
+<tr>
+<td><strong>原因</strong></td>
+<td>役割・指示が1人に詰め込まれている</td>
+<td>実行を止める仕組みがない</td>
+</tr>
+<tr>
+<td><strong>どの層?</strong></td>
+<td>ハーネス層 (役割分業)</td>
+<td>ハーネス層 (ガード機構)</td>
+</tr>
+<tr>
+<td><strong>対策章</strong></td>
+<td>ch05 (役割別ファイル)</td>
+<td>ch08 (禁止操作リスト = PreToolUse hook で実装)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>判断のコツ</strong>: AIが<strong>部分的に間違える</strong> → ch05 / AIが<strong>止まらない</strong> → ch08</p>
+</blockquote>
+<!--
+3つ目のペアです。どちらもハーネス層ですが、「指示の整理」か「実行の停止」かで分かれます。役割別ファイル (`instructions/` 配下) は VSCode + GitHub Copilot 公式 `.github/instructions/` 規約を Claude Code 用にアレンジした本リポジトリ独自の運用パターン (詳細は ch05)。禁止操作リスト (D001-D005) は本リポジトリ独自の設計パターン名で、PreToolUse hook という公式仕組みの上に実装します。
+-->
+
+<hr />
+<h1>最初に試すべき道具 5選</h1>
+<blockquote>
+<p>困りごとが起きたとき、<strong>どれか1つでも試すと効果的</strong>な道具を5つ厳選しました。<br />
+まずはこの5つから試してみてください。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>順位</th>
+<th>道具</th>
+<th>公式/独自</th>
+<th>なぜ効くのか</th>
+<th>詳細は</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>カスタムスラッシュコマンド</strong> (Skills)</td>
+<td>機構は公式・<strong>コマンド本体は自分で作る</strong></td>
+<td>同じ作業の繰り返しを即座に終わらせる</td>
+<td>ch01</td>
+</tr>
+<tr>
+<td>2</td>
+<td>診断チェックリスト</td>
+<td>本講座独自の運用ガイド</td>
+<td>プロンプトの「推測で突進」を防ぐ</td>
+<td>ch02</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>自動メモリ</strong> (MEMORY.md)</td>
+<td>Claude Code 公式機能</td>
+<td>過去の修正・決定事項を忘れないようにする</td>
+<td>ch04</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>advisor ツール</strong> (<code>advisor_20260301</code>)</td>
+<td>Anthropic 公式 (beta)</td>
+<td>別のAIに見直してもらうことで盲信を防ぐ ※ <code>/advisor</code> 名スラッシュコマンドは本リポジトリ独自</td>
+<td>ch06</td>
+</tr>
+<tr>
+<td>5</td>
+<td>禁止操作リスト (PreToolUse hook 実装)</td>
+<td>hook は公式・リスト中身は本リポジトリ独自</td>
+<td>「止めて」が伝わらない問題を解決する</td>
+<td>ch08</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>コツ</strong>: 困りごとが起きたら、まず「プロンプト層・コンテキスト層・ハーネス層」のどれが足りないかをざっくり分類 → 上の表から該当する道具を試す</p>
+</blockquote>
+<!--
+現場ですぐ使える道具を5つに絞りました。重要なのは「公式機能」と「本リポジトリ独自」の区別です。例えば「自動メモリ」「advisor ツール」「PreToolUse hook」は公式機能ですが、「診断チェックリスト」「禁止操作リスト (D001-D005)」「`/advisor` 名のスラッシュコマンド」は本リポジトリ独自の設計パターンです。自分の現場で類似機能を使うには、独自部分は自前で Skill を作る必要があります。全部一気に覚える必要はありません。まずは「該当しそうな道具を1つ試す」ことから始めてください。
+-->
+
+<hr />
+<h1>講座完了後の継続学習</h1>
+<blockquote>
+<p>この講座が終わっても、学びは続きます。以下の方法で知識を維持・発展させてください。</p>
+</blockquote>
+<p><strong>継続のコツ 3 つ</strong>:</p>
+<ol>
+<li><strong>週に1回、自分専用の道具を使う</strong></li>
+<li>カスタムスラッシュコマンド (Skills) や hook を1つでいいので毎週使う</li>
+<li>
+<p>使わないと忘れる → 使い続けることで定着</p>
+</li>
+<li>
+<p><strong>困りごとが起きたらこの逆引き辞典を開く</strong></p>
+</li>
+<li>講座の内容は忘れても、この章の表があれば振り返れる</li>
+<li>
+<p>ブックマークしておいて、詰まった瞬間に開く習慣</p>
+</li>
+<li>
+<p><strong>公式ドキュメント・コミュニティを活用する</strong></p>
+</li>
+<li>Claude Code 公式ドキュメント (<code>code.claude.com/docs/ja/</code>) で最新機能を確認</li>
+<li>Anthropic Engineering Blog (harness 関連記事 2025-11 / 2026-03 等) も実装ヒントが豊富</li>
+<li>新しい hook イベント (公式 29 種類) や Skill の使い方が追加されることがある</li>
+</ol>
+<!--
+講座が終わっても、学びはここからが本番です。「使わないと忘れる」ので、週1回は必ずAI道具を使ってください。そして困ったときは、この逆引き辞典に戻ってきてください。Anthropic Engineering Blog の harness 関連記事 (「Effective harnesses for long-running agents」2025-11、「Harness design for long-running application development」2026-03) は、本講座の L3 ハーネス層をさらに深掘りしたい受講者に強くおすすめです。
+-->
+
+<hr />
+<h1>全11件 早見マップ</h1>
+<blockquote>
+<p>1枚にまとめました。印刷して手元に置いておくと便利です。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>困りごと</th>
+<th>層</th>
+<th>対策章</th>
+<th>対策道具 (公式/独自)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>①</td>
+<td>既存を無視して新規作成</td>
+<td>プロンプト</td>
+<td>ch01</td>
+<td>カスタムスラッシュコマンド (Skills・自作)</td>
+</tr>
+<tr>
+<td>②</td>
+<td>同じ作業を繰り返す</td>
+<td>プロンプト</td>
+<td>ch01</td>
+<td>カスタムスラッシュコマンド (Skills・自作)</td>
+</tr>
+<tr>
+<td>③</td>
+<td>推測で突進する</td>
+<td>プロンプト</td>
+<td>ch02</td>
+<td>診断10項目 (講座独自ガイド)</td>
+</tr>
+<tr>
+<td>④</td>
+<td>長文の中央が読まれない</td>
+<td>コンテキスト</td>
+<td>ch03</td>
+<td>TL;DR 配置</td>
+</tr>
+<tr>
+<td>⑤</td>
+<td>完了を次に伝え忘れる</td>
+<td>コンテキスト</td>
+<td>ch04</td>
+<td>自動メモリ (公式 MEMORY.md)</td>
+</tr>
+<tr>
+<td>⑥</td>
+<td>言ったのに違う</td>
+<td>ハーネス</td>
+<td>ch05</td>
+<td>役割別ファイル (VSCode 由来命名を Claude Code 用に派生)</td>
+</tr>
+<tr>
+<td>⑦</td>
+<td>盲信して失敗</td>
+<td>ハーネス</td>
+<td>ch06</td>
+<td>advisor ツール (公式・beta)</td>
+</tr>
+<tr>
+<td>⑧</td>
+<td>仕様変更で壊れる</td>
+<td>ハーネス</td>
+<td>ch07</td>
+<td>PostToolUse hook (公式・29 種類の 1 つ)</td>
+</tr>
+<tr>
+<td>⑨</td>
+<td>資料を確認せず進める</td>
+<td>複合</td>
+<td>ch07 / ch04</td>
+<td>UserPromptSubmit hook + 必要時取得</td>
+</tr>
+<tr>
+<td>⑩</td>
+<td>失敗を見逃される</td>
+<td>ハーネス</td>
+<td>ch08</td>
+<td>段階確認 + watcher</td>
+</tr>
+<tr>
+<td>⑪</td>
+<td>止まらない</td>
+<td>ハーネス</td>
+<td>ch08</td>
+<td>禁止操作リスト (PreToolUse hook 実装)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>この章のまとめ</h2>
+<blockquote>
+<p><strong>「詰まったら、まず『どの層が欠けているか』を特定し、3段逆引き表で該当章を即座に見つけられる」</strong></p>
+</blockquote>
+<ol>
+<li><strong>3段早見表</strong> = 症状 → 現象 → 対策 → 該当章 (全11件)</li>
+<li><strong>3層インデックス</strong> = どの層が足りないか → 困りごと → 対策章</li>
+<li><strong>似た症状の見分け方</strong> = タイミングと原因で判別</li>
+<li><strong>現場での使い方</strong> = 症状を言葉にする → 表から探す → 30秒で解決</li>
+<li><strong>公式/独自の区別</strong> = カスタムスラッシュコマンドは自作、advisor/hook/MEMORY.md は公式機能</li>
+</ol>
+<!--
+辞書の使い方を整理しました。前章 (ch09) で身につけた「公式機能と本リポジトリ独自の区別」の目線が、本章の辞書を引くときに役立ちます。自分の現場で再現するときに「これは Claude Code に最初から入っている?」「自分で作る必要がある?」を見分けてください。
+-->
+
+<hr />
+<h2>この章で強化した層</h2>
+<blockquote>
+<p><strong>強化した層: 全層 (L1 プロンプト層 / L2 コンテキスト層 / L3 ハーネス層)</strong></p>
+<p>逆引き辞典は、これまで学んだ全層の知識を「使える形」で再整理する章です。<br />
+特定の層だけでなく、全層を横断して復習・実践できる点がこの章の価値です。</p>
+<p>※ <strong>ハーネス層</strong>は Anthropic 公式概念 (Engineering Blog「Effective harnesses for long-running agents」2025-11) — Agent = Model + Harness の Harness 層</p>
+</blockquote>
+<!--
+この章は特定の新しい道具を1つ学ぶのではなく、全層の知識を「辞書」として再構成する章です。現場で詰まったときに「どの層が足りないか」を即座に判断できることが、この章の到達点です。3 層のうちハーネス層は Anthropic 公式概念で業界標準として確立しており、本講座の独自用語ではない点を改めて強調します。
+-->
+
+<hr />
+<!-- _class: cover -->
+
+<h1>第10章 完了</h1>
+<h2>次は 第11章「Skill 化 — 自分専用の道具を『仕組み』にする」</h2>
+<div class="meta">
+✅ 3段早見表で症状から対策を引ける<br>
+✅ 3層インデックスで不足層を特定できる<br>
+✅ 似た症状を見分けられる<br>
+✅ 現場で30秒で該当章を見つけられる<br>
+✅ 公式機能と本リポジトリ独自カスタムを区別できる<br>
+<b>続けて第11章をお楽しみください</b>
+</div>
+
+<!--
+第10章、お疲れさまでした。次は第11章「Skill 化」です。ここまで学んだ道具を、自分専用の Skills (`.claude/skills/<name>/SKILL.md` ディレクトリ + エントリポイント形式) として「仕組み」にする集大成の章です。本章で身につけた「公式機能と本リポジトリ独自の区別」の目線が、自分で Skill を作るときに「何を公式機能の上に積み上げるか」を判断する基準になります。
+-->
+</body></html>

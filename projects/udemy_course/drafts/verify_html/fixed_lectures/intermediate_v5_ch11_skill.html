@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中級ch11 Skill (修正版)</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.3em; }
+h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.1em; }
+h3 { color: #4b5563; margin-top: 1em; font-size: 1.0em; }
+hr { border: none; border-top: 2px dashed #cbd5e1; margin: 2em 0; }
+table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 0.82em; }
+th { background: #1e3a8a; color: #fff; padding: 5px 7px; }
+td { padding: 5px 7px; border: 1px solid #d1d5db; vertical-align: top; }
+tr:nth-child(even) td { background: #f3f4f6; }
+code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.88em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; overflow-x: auto; font-size: 0.82em; }
+pre code { background: transparent; color: inherit; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.7em; color: #78350f; }
+@media (max-width: 768px) { body { padding: 8px; font-size: 13.5px; } table { font-size: 0.76em; } }
+</style></head><body>
+<nav style="background:#1e3a8a; color:#fff; padding:8px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
+<a href="../index.html" style="color:#fde68a; margin-right:10px;">← ハブ</a>
+<a href="index.html" style="color:#fff; text-decoration:underline;">📂 修正版19章リスト</a>
+</nav>
+<h1>📝 中級ch11 Skill <small style="color:#6b7280; font-size:0.7em;">(修正版 v1)</small></h1>
+<!-- _class: cover -->
+
+<h1>自分専用の Skill を作る</h1>
+<h2>— 3 層統合の到達点</h2>
+<div class="meta">
+中級編 — 第11章 (約 30 min)<span class="free">FREE</span><br><br>
+「AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全解説」<br><br>
+講師: なぎなた
+</div>
+
+<!--
+スピーカーノート:
+中級編、最終章へようこそ。ここまでの 10 章で 3 層 (プロンプト/コンテキスト/ハーネス) の道具を一通り学び、前章 (ch10) では困った時の 30 秒逆引き辞典を整備しました。本章ではいよいよ「自分専用の Skill」を 1 つ完成させて、3 層を統合した到達点を持ち帰ってもらいます。中級編 1 章 (カスタムスラッシュコマンド) の布石が、ここでようやく回収されます。
+-->
+
+<hr />
+<h2>前章 (ch10) からの繋がり</h2>
+<blockquote>
+<p>ch10 で学んだこと:<br />
+- <strong>3 段早見表</strong> (症状 → 現象 → 対策 → 該当章) で全 11 件の困りごとを逆引きできるようになった<br />
+- <strong>3 層インデックス</strong> (どの層が欠けているか → 該当章) で素早く判別できるようになった<br />
+- <strong>「公式機能 (advisor ツール / PostToolUse hook / MEMORY.md) と本リポジトリ独自カスタム (<code>/handoff</code> 等) の区別」</strong> が現場での再現性を担保する目線として固まった</p>
+</blockquote>
+<p><strong>ch11 で扱うこと:</strong></p>
+<pre><code>ここまで → 詰まった瞬間に該当章を 30 秒で引ける辞典を持てた
+   ↓
+本章   → 自分の業務に合わせた Skill を 1 つ自作し、3 層を 1 ファイルに統合する
+   ↓
+持帰り  → 「文脈で AI が自律呼出する自分専用の道具」を 1 つ完成させた状態
+</code></pre>
+<p>ch01〜ch08 は <strong>道具の章</strong>、ch09 は <strong>使い方の章</strong>、ch10 は <strong>辞書の章</strong>、本章は <strong>集大成の章</strong> です。</p>
+<!--
+ch10 で身につけた「公式機能と本リポジトリ独自の区別」が、本章では Skill 自作の前提になります。Skill の機構は Claude Code 公式機能ですが、書き込む内容 (業務知識) は完全に自分のもの。「機構は公式 / 中身は自分」の線引きを忘れずに進めてください。
+-->
+
+<hr />
+<h2>この章で出てくる用語</h2>
+<blockquote>
+<p>初出ではない用語が多いですが、ここで配置と呼称を最終確定します。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>用語</th>
+<th>この章での意味</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Skill</strong></td>
+<td>Claude Code 公式機能。<code>.claude/skills/&lt;skill-name&gt;/SKILL.md</code> というディレクトリ + エントリポイント形式で配置する再利用可能な業務知識パッケージ。<strong>description のみが常駐し、本体は使用時にオンデマンド読込される</strong></td>
+</tr>
+<tr>
+<td><strong>カスタムスラッシュコマンド</strong></td>
+<td><code>/&lt;任意名&gt;</code> を Skills で定義する自分専用コマンド (legacy <code>.claude/commands/&lt;name&gt;.md</code> 単一ファイル形式も併存)。組込 <code>/clear</code> <code>/compact</code> 等とは別物</td>
+</tr>
+<tr>
+<td><strong>hook</strong></td>
+<td>AI のライフサイクルイベント (公式 29 種類) に任意処理を差し込む公式仕組み。ch07 で 4 つを代表例として扱った</td>
+</tr>
+<tr>
+<td><strong>3 層</strong></td>
+<td>プロンプト層 (L1) / コンテキスト層 (L2) / ハーネス層 (L3)。<strong>ハーネス</strong>は Anthropic 公式概念 (Engineering Blog「Effective harnesses for long-running agents」2025-11) — Agent = Model + Harness の Harness 層</td>
+</tr>
+</tbody>
+</table>
+<!--
+4 つの用語の中で本章の主役は Skill です。重要な点は「description は常駐 / 本体はオンデマンド読込」という二段構造。これを理解すると、後で出てくる「AI が自律呼出する」仕組みが腑に落ちます。
+-->
+
+<hr />
+<h1>ch11. 自分専用の Skill を作る — 3 層統合の到達点</h1>
+<blockquote>
+<p>これまでの 3 層をすべて組み合わせて、<br />
+<strong>AI が文脈で自律的に呼び出す「自分専用の業務知識パッケージ」</strong> を完成させます。</p>
+</blockquote>
+<!--
+スピーカーノート: この章は中級編の最終章です。ch01で学んだカスタムスラッシュコマンド (Skills/legacy commands)、ch07 で学んだ hook、そしてこの ch11 で深掘りする Skill 設計。これらが揃ったとき、AI があなたの「自律発動アシスタント」になります。では見ていきましょう。
+-->
+
+<hr />
+<h2>この章で解決する「困りごと」</h2>
+<blockquote>
+<p><strong>「3 層は理解したが、自分の業務で AI が自律発動する道具がまだ 1 つも完成していない」</strong></p>
+</blockquote>
+<ul>
+<li>ch01 で <strong>カスタムスラッシュコマンド</strong> (Skills/legacy commands) を覚えた — でも<strong>毎回自分で呼び出す</strong>必要がある</li>
+<li>ch07 で hook を覚えた — でもこれは<strong>発動タイミングの制御</strong>であって<strong>処理の中身</strong>ではない</li>
+<li><strong>「プロンプトの資産化」と「自動化の仕組み」を統合し、AI に自律発動させる</strong>もう一段上の設計が必要</li>
+</ul>
+<!--
+スピーカーノート: ここで受講者に質問してみましょう。「毎回同じプロンプトをコピペしている人、手を挙げてください」。この「困りごと」は多くの方が抱えています。ch01 のカスタムスラッシュコマンドで資産化できても、まだ自分で呼び出す必要がありますよね。それを「AI が文脈を読み取って自律的に呼ぶ」段階に引き上げるのが Skill 設計の主眼です。
+-->
+
+<hr />
+<h2>本章のゴール</h2>
+<p><strong>持ち帰り</strong> (章末で言える 1 文):</p>
+<blockquote>
+<p>「自分の業務知識を Skill に書き込み、<br />
+AI が文脈で自律的に呼び出す自分専用の道具を完成させた」</p>
+</blockquote>
+<p><strong>できるようになること</strong>:<br />
+- <code>.claude/skills/&lt;name&gt;/SKILL.md</code> のディレクトリ + エントリポイント形式で自分専用の Skill を作成できる<br />
+- Skill 内で 3 層 (プロンプト / コンテキスト / ハーネス) を統合していることを説明できる<br />
+- Skill と hook を連携させて自動発動する構想を立てられる</p>
+<!--
+スピーカーノート: この章を終えた後、「自分の業務で文脈発動する AI 道具を 1 つ完成させた」と言える状態がゴールです。演習で実際に 1 つ作りますので、自分の現場の作業を思い浮かべてください。配置は単一 .md ファイルではなくディレクトリ形式 (SKILL.md がエントリポイント) が公式標準です。
+-->
+
+<hr />
+<h2>Skills の縦糸 — 講座全体での繋がり</h2>
+<pre><code>ch01 [布石]    「カスタムスラッシュコマンド (Skills/legacy commands) でプロンプトを資産化」
+               → 「自律発動する道具」として Skill の本格設計を予告
+
+ch07 [発展]    「hook と Skill の連携」
+               → hook = いつ動くか (公式 29 種類のイベント) / Skill = 何を呼ぶか
+
+ch11 [完成]    ★ 今ここ ★
+               → 自分専用の Skill を完成させる (3 層統合の到達点)
+</code></pre>
+<!--
+スピーカーノート: ch01 で「カスタムスラッシュコマンドの先にあるもの」として Skill を予告しました。ch07 で hook の発火イベントは公式 29 種類あり、その中の代表 4 つを軸に学びました。そして今このch11で、ついに完成させます。この「縦糸」の繋がりを意識しながら進めましょう。
+-->
+
+<hr />
+<h2>カスタムスラッシュコマンドから Skill へ — なぜもう一段上が必要か</h2>
+<p><strong>具体例</strong>: 「毎週月曜に議事録を要約して日報を作る」業務</p>
+<table>
+<thead>
+<tr>
+<th>やり方</th>
+<th>手順</th>
+<th>問題点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>毎回ゼロから書く</td>
+<td>プロンプトを毎週新規作成</td>
+<td>非効率・品質バラつき</td>
+</tr>
+<tr>
+<td><strong>カスタムスラッシュコマンド</strong> 化 (Skills/legacy commands)</td>
+<td>日報プロンプトを <code>/weekly-report</code> 等で資産化</td>
+<td>まだ<strong>自分で呼び出す</strong>必要がある</td>
+</tr>
+<tr>
+<td><strong>Skill (自律発動)</strong> 化 ★</td>
+<td>業務知識を Skill 本体に書き込み・description で発動条件を定義</td>
+<td><strong>AI が文脈を読み取って自律的に呼び出す</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>手動呼出</strong>: 人が <code>/&lt;コマンド&gt;</code> で意図的に呼び出す<br />
+<strong>自律発動</strong>: <strong>description のキーワードマッチ</strong>で AI が自律的に Skill 本体を読み込む</p>
+</blockquote>
+<!--
+スピーカーノート: この表の一番下「Skill (自律発動)」が重要です。カスタムスラッシュコマンドまでは人が「日報作って」と指示する必要があります。しかし description を整えて自律発動の文脈を Skill 側に書き込むと、AI が「これは日報の文脈だ」と判断して Skill 本体をオンデマンド読込します。同じ Skills 機構の中で「手動呼出」と「自律発動」の使い分けが鍵です。
+-->
+
+<hr />
+<h2>Skill の構造 — ディレクトリ + エントリポイント</h2>
+<pre><code>.claude/skills/
+└── weekly-report/        ← ディレクトリ名がコマンド名 /weekly-report になる
+    └── SKILL.md          ← エントリポイント (公式標準)
+</code></pre>
+<blockquote>
+<p><strong>公式標準</strong>: <code>.claude/skills/&lt;skill-name&gt;/SKILL.md</code> (ディレクトリ + SKILL.md エントリポイント)<br />
+<strong>personal</strong>: <code>~/.claude/skills/&lt;skill-name&gt;/SKILL.md</code><br />
+<strong>legacy 互換</strong>: <code>.claude/commands/&lt;name&gt;.md</code> (単一 .md 単独動作・サポートファイル機能なし)</p>
+</blockquote>
+<!--
+スピーカーノート: Skill の配置は単一の .md ファイルではなく、「ディレクトリ + SKILL.md エントリポイント」が公式標準です。ディレクトリ形式にすることで、Skill 本体以外にサポートファイル (テンプレート、スクリプト、参考データ等) を同梱できます。legacy として `.claude/commands/<name>.md` の単一 .md ファイル形式も併存しますが、サポートファイル機能はありません。新規作成は公式標準のディレクトリ形式で進めてください。
+-->
+
+<hr />
+<h2>Skill ファイルの中身 — frontmatter + 本文</h2>
+<p><strong><code>.claude/skills/weekly-report/SKILL.md</code></strong>:</p>
+<pre><code class="language-yaml">---
+name: weekly-report
+description: 週次業務日報を半自動生成する。議事録要約 + 過去記憶検索 + 指定フォーマットのドラフト出力まで一貫して担当。Use when ユーザーが週報・日報・週次サマリの作成を依頼したとき、または議事録ファイル更新後に週次集約が必要なとき。
+---
+</code></pre>
+<pre><code class="language-markdown">## この Skill がやること
+1. 今週の議事録ファイル (.md) を読み込む
+2. 「決定事項」「宿題」「次週の予定」を抽出
+3. 過去の週報 (MEMORY.md / トピックファイル) を必要時に参照し、継続中タスクを補完
+4. 指定フォーマットで週報ドラフトを出力
+
+## 出力フォーマット
+### 今週のハイライト (3 行以内)
+### 決定事項
+### 宿題 (担当・期限付き)
+### 来週の予定
+
+## 注意事項
+- 推測で補完せず、議事録にない情報は「未記載」と明記
+- 前週からの継続タスクは必ず参照
+</code></pre>
+<!--
+スピーカーノート: description は公式推奨形式「〇〇する。Use when ××のとき。」に揃えています。これが「自律発動の引き金」になります。日本語起動フレーズだけを列挙するパターンは本講座の昔の運用なので、現在は「何をするか」+「Use when ユースケース」の自然文形式が公式推奨です。description は常駐し、本文 (## 以下) は使用時にオンデマンド読込される二段構造を意識してください。
+-->
+
+<hr />
+<h2>Skill を作る手順 (4 ステップ)</h2>
+<h3>Step 1: 自分の「繰り返し作業」を 1 つ選ぶ (5 分)</h3>
+<blockquote>
+<p>「毎週 / 毎日 / 毎月、同じ手順でやっていること」を 1 つ見つける</p>
+</blockquote>
+<p>具体例:<br />
+- 営業: 商談メモから提案書ドラフトを作る<br />
+- PM サポート: ミーティング議事録からタスク管理表を更新する<br />
+- データ分析: 分析レポートの定型フォーマットを生成する</p>
+<h3>Step 2: 「何を読み込み → 何を出力するか」に分解 (10 分)</h3>
+<blockquote>
+<p>入力 (何を読むか) → 処理 (どう変換するか) → 出力 (何を作るか)</p>
+</blockquote>
+<h3>Step 3: <code>.claude/skills/&lt;name&gt;/SKILL.md</code> に frontmatter + 本文を書く (10 分)</h3>
+<blockquote>
+<p>ディレクトリを作り、SKILL.md をエントリポイントとして配置 (legacy 単一 .md 形式ではなくディレクトリ形式が公式標準)</p>
+</blockquote>
+<h3>Step 4: 実際に呼び出して動作確認 (5 分)</h3>
+<blockquote>
+<p>AI に「週報作って」と伝えるだけで description マッチで自律発動するかを確認</p>
+</blockquote>
+<!--
+スピーカーノート: 4 ステップ合計 30 分で完成します。一番重要なのは Step 2 の「入力 → 処理 → 出力」の分解です。ここを丁寧にやれば、Skill 本文はそれに沿って書くだけです。Step 3 はディレクトリ形式 (`.claude/skills/<name>/SKILL.md`) を必ず守ってください。単一 .md でも legacy で動きますが、サポートファイルを後で足せなくなります。
+-->
+
+<hr />
+<h2>3 層統合 — Skill が 3 つの層を統合する仕組み</h2>
+<p><strong>Skill 1 つの中に、講座で学んだ 3 層がすべて入っている</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>層</th>
+<th>Skill 内での役割</th>
+<th>対応箇所</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>プロンプト層</strong></td>
+<td>日報フォーマット・抽出ルールの指示</td>
+<td>Skill 本文の「やること」「フォーマット」「注意事項」</td>
+</tr>
+<tr>
+<td><strong>コンテキスト層</strong></td>
+<td>過去の週報を MEMORY.md / トピックファイルから必要時に参照</td>
+<td>「過去の週報を参照」ステップ</td>
+</tr>
+<tr>
+<td><strong>ハーネス層</strong> (Anthropic 公式概念)</td>
+<td>hook (公式 29 種類イベントの 1 つ) 連携で議事録更新時に自律発動</td>
+<td>ch07 で学んだ hook と連携 (構想レベル)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Skill = <strong>3 層を 1 つにまとめた「自分専用の業務知識パッケージ」</strong></p>
+</blockquote>
+<!--
+スピーカーノート: この表が講座全体の集大成です。プロンプト層は ch01-02、コンテキスト層は ch03-04、ハーネス層は ch05-08 で学びました。ハーネスは Anthropic 公式概念 (Engineering Blog 2025-11) で「Agent = Model + Harness」が業界標準定義です。Skill はこれら 3 層を 1 つのディレクトリに統合します。「3 層をバラバラに学んだ意味」がここで繋がります。
+-->
+
+<hr />
+<h2>演習: 自分の業務 Skill を作ってみよう</h2>
+<h3>演習の流れ</h3>
+<ol>
+<li><strong>自分の業務で「毎週繰り返している手作業」を 1 つ選ぶ</strong> (5 分)</li>
+<li><strong>その手作業を「入力 → 処理 → 出力」に分解する</strong> (10 分)</li>
+<li><strong><code>.claude/skills/&lt;name&gt;/SKILL.md</code> ディレクトリ + エントリポイント形式で frontmatter + 本文を書く</strong> (10 分)</li>
+<li><strong>実際に呼び出して動作確認</strong> (5 分)</li>
+</ol>
+<h3>受講者の現場に置き換えたバリエーション</h3>
+<table>
+<thead>
+<tr>
+<th>業務</th>
+<th>Skill 名</th>
+<th>入力</th>
+<th>出力</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>営業</td>
+<td><code>proposal-draft</code></td>
+<td>商談メモ</td>
+<td>提案書ドラフト</td>
+</tr>
+<tr>
+<td>PM サポート</td>
+<td><code>task-update</code></td>
+<td>議事録</td>
+<td>タスク管理表</td>
+</tr>
+<tr>
+<td>データ分析</td>
+<td><code>report-gen</code></td>
+<td>クエリ結果</td>
+<td>定型レポート</td>
+</tr>
+</tbody>
+</table>
+<!--
+スピーカーノート: 演習のポイント: まず「毎週繰り返している手作業」を 1 つ選んでください。営業の方なら商談メモ、PM なら議事録、データ分析の方ならレポート作成。自分の現場に当てはめて考えながら進めると理解が深まります。Step 3 ではディレクトリを作って SKILL.md を配置する点を忘れずに。
+-->
+
+<hr />
+<h2>Skill と hook の連携 — さらに先へ</h2>
+<p>ch07 で学んだ hook (公式 29 種類イベント) と Skill を組み合わせると、<strong>完全な自動化</strong>が実現する:</p>
+<pre><code>┌───────────────────┐
+│  議事録が更新された │ ← タイミング (FileChanged 等の公式 hook が検知)
+└────────┬──────────┘
+         │
+         ▼
+┌───────────────────┐
+│  Skill が発動する   │ ← 業務知識 (Skill 本体をオンデマンド読込)
+│  「週報作成」       │
+│  1. 議事録を読む    │
+│  2. MEMORY.md を参照│
+│  3. ドラフトを出力  │
+└───────────────────┘
+</code></pre>
+<blockquote>
+<p><strong>hook = 「いつ動くか」の引き金</strong> (公式 29 種類のライフサイクルイベント)<br />
+<strong>Skill = 「何を呼ぶか」の業務知識セット</strong> (description で自律発動条件を定義)<br />
+<strong>hook + Skill = 完全な自動化</strong></p>
+</blockquote>
+<!--
+スピーカーノート: ch07 で学んだ hook が「引き金」、この章で作る Skill が「弾丸」です。hook イベントは公式 29 種類あり、その中から FileChanged 等の適切なイベントを選んで Skill 発火に連動させます。発動するタイミングと、Skill が実行する処理内容は別々に設計できます。まずは Skill 単体で完成させ、余裕があれば hook 連携に挑戦してください。
+-->
+
+<hr />
+<h2>講座の到達点 — ここまでの旅の振り返り</h2>
+<h3>3 層を順に強化してきた軌跡</h3>
+<pre><code>ch01-02  プロンプト層  → 指示を資産化・診断する
+ch03-04  コンテキスト層 → 長文を作らない・必要なものを呼び戻す
+ch05-08  ハーネス層    → 分業・レビュー・自動化・安全装置
+                       (※ハーネスは Anthropic 公式概念・Engineering Blog 2025-11)
+ch09     3 層統合       → 業務に組み込む型
+ch10     逆引き辞典     → 困った時の羅針盤
+ch11     ★ Skill 完成  → 自分専用の業務知識パッケージ
+</code></pre>
+<h3>次の一手</h3>
+<blockquote>
+<p>自分の現場で <strong>「週に 1 回使う Skill」</strong> を 1 つ作り、<br />
+<strong>1 ヶ月運用</strong>してみる</p>
+</blockquote>
+<h3>発展: hook 連携で自動化</h3>
+<blockquote>
+<p>ch07 の hook (公式 29 種類イベントの 1 つ) と連携して「ファイル更新で自律発動」を実現する</p>
+</blockquote>
+<!--
+スピーカーノート: 講座の旅を振り返りましょう。ch01 でプロンプトを資産化し、ch03 でコンテキストを整理し、ch05 でハーネスを組み立てました。そして今、3 層を統合する Skill を完成させました。ハーネスは Anthropic 公式概念で業界標準として確立しており、本講座の独自用語ではない点も再確認しておきます。次の一手は「週 1 回使う Skill を 1 つ作り、1 ヶ月運用する」ことです。
+-->
+
+<hr />
+<h2>まとめ</h2>
+<ul>
+<li><strong>Skill</strong> = <code>.claude/skills/&lt;name&gt;/SKILL.md</code> というディレクトリ + エントリポイント形式に業務知識を書き込む公式機能</li>
+<li>description のみが常駐し、本体は使用時にオンデマンド読込される</li>
+<li>description の自然文 + Use when 形式が <strong>自律発動の引き金</strong></li>
+<li>Skill は <strong>3 層 (プロンプト / コンテキスト / ハーネス) を統合</strong>する</li>
+<li>カスタムスラッシュコマンド (Skills/legacy commands) は「人が呼ぶ」→ <strong>Skill 自律発動は「AI が文脈で呼ぶ」</strong></li>
+<li>hook (公式 29 種類イベント) と Skill を連携させれば、<strong>完全な自動化</strong>が実現する</li>
+<li>講座の到達点は <strong>「自分専用の業務知識パッケージ」を 1 つ完成させる</strong> こと</li>
+</ul>
+<!--
+スピーカーノート: まとめです。Skill = `.claude/skills/<name>/SKILL.md` ディレクトリ + エントリポイント形式に業務知識を書き込む公式機能。description のみが常駐し、本体はオンデマンド読込。3 層を統合する。カスタムスラッシュコマンドは人が呼ぶ、Skill 自律発動は AI が文脈で呼ぶ。hook と連携すれば完全自動化。講座の到達点は「自分専用の業務知識パッケージを 1 つ完成させる」こと。中級編全章、お疲れさまでした。
+-->
+
+<blockquote>
+<p><strong>強化した層: 全層統合 (L1 プロンプト層 + L2 コンテキスト層 + L3 ハーネス層) — Skill で 3 層を 1 つのディレクトリに統合し、自分専用の業務知識パッケージを作り上げる。3 層統合の到達点。</strong></p>
+</blockquote>
+<!--
+スピーカーノート: 本章のフッターは「ハーネス層 (L3) 単独」ではなく「全層統合 (L1+L2+L3)」と明示します。本文で「Skill = 3 層を 1 つにまとめた自分専用の業務知識パッケージ」と繰り返し強調している以上、フッターも全層併記が整合的だからです。ch10 末尾の全層併記方式とも揃います。
+-->
+
+<hr />
+<!-- _class: cover -->
+
+<h1>第11章 完了</h1>
+<h2>— 中級編 完結</h2>
+<div class="meta">
+✅ Skill のディレクトリ + エントリポイント構造を理解した<br>
+✅ 3 層統合の仕組みを説明できる<br>
+✅ 自分の業務 Skill を 1 つ作成した<br>
+✅ hook + Skill の連携構想を立てた<br>
+✅ 公式機能と本リポジトリ独自の境界線を区別できる<br><br>
+<b>中級編 全章完結、お疲れさまでした</b>
+</div>
+
+<!--
+スピーカーノート: 中級編、ここで完結です。ch00 から ch11 までの 12 章を通じて、3 階層モデルを骨組みに据えて 11 の困りごとを潰してきました。最後に身につけた「Skill = 3 層統合のディレクトリ + エントリポイント」は、現場で 1 ヶ月運用してみることで初めて血肉になります。本講座が、皆さんの現場で AI を「自律発動する道具」に育てていく出発点になれば幸いです。
+-->
+</body></html>

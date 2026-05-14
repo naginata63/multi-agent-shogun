@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>初級ch03 .md仲間 (修正版)</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.3em; }
+h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.1em; }
+h3 { color: #4b5563; margin-top: 1em; font-size: 1.0em; }
+hr { border: none; border-top: 2px dashed #cbd5e1; margin: 2em 0; }
+table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 0.82em; }
+th { background: #1e3a8a; color: #fff; padding: 5px 7px; }
+td { padding: 5px 7px; border: 1px solid #d1d5db; vertical-align: top; }
+tr:nth-child(even) td { background: #f3f4f6; }
+code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.88em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; overflow-x: auto; font-size: 0.82em; }
+pre code { background: transparent; color: inherit; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.7em; color: #78350f; }
+@media (max-width: 768px) { body { padding: 8px; font-size: 13.5px; } table { font-size: 0.76em; } }
+</style></head><body>
+<nav style="background:#1e3a8a; color:#fff; padding:8px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
+<a href="../index.html" style="color:#fde68a; margin-right:10px;">← ハブ</a>
+<a href="index.html" style="color:#fff; text-decoration:underline;">📂 修正版19章リスト</a>
+</nav>
+<h1>📝 初級ch03 .md仲間 <small style="color:#6b7280; font-size:0.7em;">(修正版 v1)</small></h1>
+<!-- _class: cover -->
+
+<h1>第3章 .md仲間たち</h1>
+<h2>commands / skills / agents / imports — コンテキストを深める設定ファイル群</h2>
+<div class="meta">
+初級編 — 第3章 (約 30 min)<br><br>
+「Claude Code はじめての一歩 — AI開発の基礎を1日で習得」<br><br>
+講師: なぎなた
+</div>
+
+<!--
+スピーカーノート:
+こんにちは。第3章「.md仲間たち」を始めます。前章では CLAUDE.md を学びました。プロジェクトルートに 30 行の説明書を置けば、新しい会話を始めるたびに AI が自動でルールを読んでくれる、L2 コンテキストエンジニアリングの土台です。今日はその CLAUDE.md の周りにある「.md 仲間たち」を見ていきます。具体的には、サブエージェントを定義する `.claude/agents/`、定型操作を保存する `.claude/commands/`、ワークフローをオンデマンドで読み込ませる `.claude/skills/`、そして CLAUDE.md 内から他のファイルを取り込む `@path` imports。これらは CLAUDE.md がプロジェクト全体の説明書なら、特定用途の補強パッケージという位置付けです。30 分かけて全体像と使い分け、そして初心者がどの順番で導入すべきかを確認しましょう。
+-->
+
+<hr />
+<h1>🗺️ 前章の復習 — CLAUDE.md と L2 の続き</h1>
+<p><strong>前章 (第2章) で身につけたこと</strong>:<br />
+- CLAUDE.md = AI に読ませるプロジェクトの説明書 (3階層モデルの <strong>L2 コンテキスト</strong>)<br />
+- <strong>4階層構造</strong>（管理 / ユーザー / プロジェクト / ローカル）を「<strong>連結</strong>」して読込<br />
+- <strong>5セクション30行</strong> ミニマムで始める<br />
+- <strong>新しい会話/セッション開始時に自動読み込み</strong>（<code>/clear</code>・<code>/compact</code> 後も再読込）</p>
+<p><strong>本章 (第3章) で広げること</strong>: CLAUDE.md の周りにある <strong>.md 仲間たち</strong> = commands / skills / agents / imports。CLAUDE.md がプロジェクト全体の説明書なら、これらは <strong>特定用途の補強パッケージ</strong></p>
+<!--
+前章の復習からです。CLAUDE.md はプロジェクトルートに置いて自動読み込みされる説明書で、4階層構造で連結されて AI に渡される、ということを学びました。5セクション30行のミニマム構成から始めれば十分というのもポイントでした。本章はその CLAUDE.md の周りにある仲間たち、commands・skills・agents・imports を見ていきます。これらは全部書く必要はなく、必要に応じて段階的に導入するものですが、それぞれの役割を「名前と1行」で説明できるようになるのが本章のゴールです。
+-->
+
+<hr />
+<h2>この章で出てくる用語</h2>
+<blockquote>
+<p>📝 まず名前だけ覚えておきましょう。後ほど詳しく解説します</p>
+<p><strong>結論</strong>: <strong>必須は CLAUDE.md だけ</strong>。残り 5 つは Step 2・Step 3 で段階的に導入する拡張機能です</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>用語</th>
+<th>一言でいうと</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>.claude/agents/</strong></td>
+<td>AIに特定の役割を与える設定ファイル（サブエージェント定義）</td>
+</tr>
+<tr>
+<td><strong>commands</strong></td>
+<td>よく使う指示をテンプレート化したもの（<code>/&lt;名前&gt;</code> で起動）</td>
+</tr>
+<tr>
+<td><strong>skills</strong></td>
+<td>ワークフロー定義。<strong>必要時にオンデマンドで読み込まれる</strong>（例：テスト→ビルド→デプロイを一発で）</td>
+</tr>
+<tr>
+<td><strong>imports</strong></td>
+<td>CLAUDE.md 内の <code>@path</code> 構文で他ファイルを取り込む機能</td>
+</tr>
+<tr>
+<td><strong>global CLAUDE.md</strong></td>
+<td>前章の 4 階層のうち <strong>ユーザー層</strong> (<code>~/.claude/CLAUDE.md</code>)</td>
+</tr>
+</tbody>
+</table>
+<!--
+このスライドは用語の予告編です。「.claude/agents/ ってなんだろう」「commands と skills の違いは?」と思いながら、まず名前だけ頭に入れてください。後のスライドで 1 つずつ詳しく解説します。global CLAUDE.md は前章で扱った 4 階層構造のうち、ユーザー層に当たるファイルだということだけ押さえておいてください。
+-->
+
+<hr />
+<h2>この 30 分で得られること</h2>
+<ol>
+<li><strong>6つの設定機構</strong> を名前と役割で挙げられる</li>
+<li><strong>CLAUDE.md / .claude/agents/ / commands / skills / imports / global</strong> の使い分けを説明できる</li>
+<li><strong>初心者がどの順番で導入すべきか</strong> 判断できる</li>
+<li>各機構が <strong>「なくても動くが、あると劇的に変わる」</strong> 理由を理解する</li>
+</ol>
+<!--
+この章のゴールは4つです。CLAUDE.mdだけだと思っていた設定が、実は6つ以上のファイル群で支えられていることに気づくのが第一歩。そして「全部書かないといけないの？」という不安を「いいえ、必要なものだけ」という安心感に変えていただきます。
+-->
+
+<hr />
+<h1>.mdファイル群の全体像</h1>
+<blockquote>
+<p>🪞 「CLAUDE.md以外にも、AIが読む説明書がある？」</p>
+<p><strong>結論</strong>: 必須は CLAUDE.md だけ。残り5つは Step 2 以降で段階的に導入する拡張機能です</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>機構</th>
+<th>役割</th>
+<th>例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CLAUDE.md</strong></td>
+<td>プロジェクト固有ルール</td>
+<td>コーディング規約・使用技術</td>
+</tr>
+<tr>
+<td><strong>.claude/agents/</strong></td>
+<td>役割別の行動指針（サブエージェント定義）</td>
+<td>専門分野ごとの切り替え</td>
+</tr>
+<tr>
+<td><strong>commands/</strong></td>
+<td>スラッシュコマンドのテンプレート</td>
+<td>定型操作の保存</td>
+</tr>
+<tr>
+<td><strong>skills/</strong></td>
+<td>再利用ワークフロー（オンデマンド読込）</td>
+<td>複数ステップの自動化</td>
+</tr>
+<tr>
+<td><strong>imports</strong></td>
+<td>CLAUDE.md 内の <code>@path</code> 構文</td>
+<td>共通設定のプロジェクト間共有</td>
+</tr>
+<tr>
+<td><strong>global CLAUDE.md</strong></td>
+<td>前章 4 階層の <strong>ユーザー層</strong></td>
+<td>ユーザー全体の好み・ルール</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>この6つが連携して、AIに「文脈」を与える</p>
+</blockquote>
+<!--
+CLAUDE.mdは「メインの説明書」でした。でもAIには、もっとたくさんの「説明書」があります。この表の6つが、Claude Codeの.md設定ファイル群の全体像です。以降のスライドで1つずつ解説します。まずは「6つある」という全体像を頭に入れてください。global CLAUDE.md は前章で扱った 4 階層構造のユーザー層に当たるので、新しいファイルというより「前章の振り返り」の位置付けです。
+-->
+
+<hr />
+<h1>CLAUDE.md — すべての基盤（前章復習）</h1>
+<p>前章で学んだ <strong>プロジェクト固有のルールファイル</strong>:</p>
+<pre><code># プロジェクトの技術スタック
+- 言語: TypeScript
+- フレームワーク: Next.js
+- テスト: Jest
+
+# コーディング規約
+- インデント: 2スペース
+- 命名: camelCase
+</code></pre>
+<ul>
+<li>プロジェクトルートに配置 → <strong>新しい会話/セッションの開始時に自動読み込み</strong></li>
+<li>4 階層 (管理 / ユーザー / プロジェクト / ローカル) を <strong>「連結」して読込</strong></li>
+<li>「このプロジェクトではどうするか」を <strong>永続化</strong> する</li>
+</ul>
+<blockquote>
+<p>CLAUDE.mdは土台。残り5機構はこの土台を拡張する仲間たち</p>
+</blockquote>
+<!--
+CLAUDE.mdは前章で詳しく学びました。プロジェクトルートに置くだけで、新しい会話やセッションを開始するたびに自動で読み込まれる、プロジェクト固有のルールファイルです。4 階層構造で連結読み込みされるという挙動も思い出してください。6機構のうち最も重要で、すべての基盤になります。残り5つは、このCLAUDE.mdを拡張する仲間たちです。
+-->
+
+<hr />
+<h1>agents/ — エージェントの行動指針</h1>
+<p><strong>1つのプロジェクトで、AIの「役割」を切り替える仕組み</strong>:</p>
+<p>イメージ: 1つの会社に「営業部」「開発部」「品質管理部」があるように、同じAIに役割別のマニュアルを用意します。</p>
+<pre><code>「フロントエンド専門エージェントを使って、このボタンの色を変えて」
+  → Claude が .claude/agents/frontend.md の指針に従って回答
+
+「コードレビュアー エージェントでこの PR を見て」
+  → Claude が .claude/agents/reviewer.md の指針に従って回答
+</code></pre>
+<p>配置場所: <code>.claude/agents/&lt;name&gt;.md</code> (プロジェクト) / <code>~/.claude/agents/&lt;name&gt;.md</code> (ユーザー) — <strong>ディレクトリ内に 1ファイル=1エージェント</strong> (YAML フロントマター付き Markdown)</p>
+<blockquote>
+<p>1つのCLAUDE.md + 複数の <code>.claude/agents/*.md</code> = 役割分担</p>
+</blockquote>
+<!--
+agents/ は、1つのプロジェクトの中でAIの役割を切り替える仕組みです。1ファイル1エージェントで `.claude/agents/<名前>.md` に配置し、YAML フロントマターで description などを記述します。フロントエンド専門のAI、バックエンド専門のAI、コードレビュー専門のAI。それぞれに異なる行動指針を与えることで、1つのプロジェクトで複数の役割を持たせられます。次のスライドで呼び出し方を整理します。
+-->
+
+<hr />
+<h1>agents/ の呼び出し方 — 5 方式と注意点</h1>
+<p><strong>呼び出しの 5 方式（Claude Code 公式）</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>方式</th>
+<th>例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>description ベースの自動委譲</strong></td>
+<td>Claude が状況判断して自動委譲</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>自然言語でサブエージェント名を指定</strong></td>
+<td>「フロントエンドエージェントを使って」</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>@-mention</strong></td>
+<td><code>@"frontend (agent)"</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>CLI フラグ</strong></td>
+<td><code>claude --agent frontend "..."</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Agent (旧 Task) ツール経由</strong></td>
+<td>コード/別エージェントから呼び出し</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意 (混同しやすい点)</strong>:<br />
+- <code>/agents</code> コマンドはエージェントの <strong>管理</strong> (作成・編集・削除) 用で、<strong>呼び出しには使いません</strong><br />
+- <code>/agent &lt;name&gt;</code> のような <strong>個別呼び出しコマンドは存在しません</strong><br />
+- 初級では <strong>①description ベースの自動委譲</strong> と <strong>②自然言語での名指し</strong> を覚えれば十分</p>
+<!--
+呼び出し方は公式で 5 通りあります。description ベースの自動委譲、自然言語でのサブエージェント名指定、@-mention、CLI フラグ --agent、そして Agent ツール経由。初級編では「○○エージェントを使って」と自然言語で頼む、または description マッチで Claude に自動委譲してもらう、この 2 つを覚えれば十分です。@-mention や --agent や Agent ツール経由は中級編で扱います。注意点として、`/agents` というスラッシュコマンドはエージェントの管理（作成・編集・削除）用であって呼び出し用ではありません。`/agent <name>` のような個別呼び出しコマンドは存在しないので、これも混同しないようにしてください。
+-->
+
+<hr />
+<h1>commands — ワンクリックコマンド</h1>
+<p><strong>よく使う操作を「定型文」として保存する仕組み</strong>:</p>
+<pre><code>.claude/commands/
+  ├── review.md      → /review で起動
+  ├── test.md        → /test で起動
+  └── deploy.md      → /deploy で起動
+</code></pre>
+<p>メリット:<br />
+- <strong>何度も同じ指示を書かなくていい</strong><br />
+- チーム内で <strong>指示を共有</strong> できる<br />
+- スラッシュ (<code>/</code>) で <strong>1クリック実行</strong></p>
+<blockquote>
+<p>「毎回同じプロンプトをコピペしている」なら commands にすべきサイン</p>
+</blockquote>
+<!--
+commandsは、よく使う指示をテンプレート化する仕組みです。「このファイルをレビューして」を毎回手入力する代わりに、/reviewと打つだけで実行できるようになります。チーム開発では特に強力で、定型操作をファイルとして共有できるからです。「毎回同じプロンプトをコピペしている」なら、commandsにするタイミングです。次のスライドでもう少し細かく中身を見てみましょう。
+-->
+
+<hr />
+<h1>commands の具体例</h1>
+<p><strong><code>.claude/commands/review.md</code> の中身</strong>:</p>
+<pre><code class="language-markdown">以下のファイルのコードレビューをお願いします。
+- セキュリティ上の問題がないか確認
+- パフォーマンスの改善点があれば指摘
+- 可読性についてコメント
+</code></pre>
+<p>使い方: <code>/review</code> と入力するだけ</p>
+<ul>
+<li>チーム全員が <strong>同じ基準でレビュー</strong> を依頼できる</li>
+<li>プロンプトの品質が <strong>ブレない</strong></li>
+<li>新しいメンバーも <strong>即座に同じ品質</strong> の指示を出せる</li>
+</ul>
+<!--
+実際のcommandsファイルの中身を見てみましょう。例えばreview.mdなら、このようにレビューの基準を書いておきます。使う時はスラッシュreviewと入力するだけ。チーム全員が同じ基準でレビューを依頼できるので、プロンプトの品質がブレません。
+-->
+
+<hr />
+<h1>skills の具体例 — <code>.claude/skills/deploy/SKILL.md</code></h1>
+<p><strong>複数ステップの作業を1コマンドにまとめる仕組み</strong>:</p>
+<pre><code class="language-markdown">1. テストを実行する
+2. テストが成功したらビルドする
+3. ビルドが成功したらデプロイする
+4. 失敗したらエラー内容を報告する
+</code></pre>
+<p>使い方: <code>/deploy</code> と入力するだけ（Claude が <strong>必要時にオンデマンドで読み込む</strong>）</p>
+<ul>
+<li>commandsの review.md は <strong>毎回同じ指示</strong> を出す（条件分岐なし）</li>
+<li>skillsの deploy.md は <strong>結果を見て次の行動を変える</strong>（成功→次へ、失敗→報告）</li>
+<li>この「<strong>条件によって動きを変える</strong>」のが最大の違い</li>
+</ul>
+<!--
+これは skills の具体例です。実際のファイルは `.claude/skills/deploy/SKILL.md` という形で、deploy という名前のディレクトリの中に SKILL.md というエントリポイントファイルを置きます。中身は複数ステップのワークフローで、結果を見て次の行動を変える条件分岐が含められます。commands の review.md が毎回同じ指示を出すのに対し、skills の deploy.md は「成功したら次へ・失敗したら報告」のように結果に応じて分岐する点が最大の違いです。
+-->
+
+<hr />
+<h1>skills — 再利用可能なワークフロー</h1>
+<p>commands と skills の違いを整理しましょう:</p>
+<table>
+<thead>
+<tr>
+<th>特徴</th>
+<th>commands</th>
+<th>skills</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>指示の出し方</td>
+<td>毎回 <strong>同じ内容を固定</strong> で出す</td>
+<td>結果を見て <strong>次の行動を変える</strong></td>
+</tr>
+<tr>
+<td>条件による分岐</td>
+<td>できない</td>
+<td>できる（成功→次、失敗→報告など）</td>
+</tr>
+<tr>
+<td>自動化の範囲</td>
+<td>単発操作</td>
+<td><strong>ワークフロー全体</strong></td>
+</tr>
+<tr>
+<td>配置形式</td>
+<td><code>.claude/commands/&lt;name&gt;.md</code> (単一ファイル)</td>
+<td><strong><code>.claude/skills/&lt;name&gt;/SKILL.md</code></strong>（<strong>ディレクトリ + SKILL.md エントリポイント</strong>）</td>
+</tr>
+<tr>
+<td>読込挙動</td>
+<td>スラッシュ実行時にロード</td>
+<td><strong>description のみ常駐・本体はオンデマンド読込</strong></td>
+</tr>
+<tr>
+<td>自律発動</td>
+<td>しない</td>
+<td><strong>description のキーワードマッチで Claude が自動起動</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>commands = 定型文 / skills = 定型ワークフロー（オンデマンド読込）</p>
+</blockquote>
+<!--
+skillsはcommandsの進化版です。commandsが「1回の指示」なら、skillsは「複数ステップからなるワークフロー」を定義できます。配置形式が大事で、commands は単一の .md ファイル、skills はディレクトリの中に SKILL.md というエントリポイントを置く形式です。Claude Code 公式ドキュメントでも、各スキルは SKILL.md をエントリポイントとするディレクトリ、と明記されています。skills のもう 1 つの特徴は、description のキーワードマッチで Claude が自動起動してくれることです。例えば「漫画ショート作って」と書けば、`.claude/skills/manga-short/SKILL.md` の description にマッチして自動で発動します。本体は使う瞬間にだけ読み込まれる「オンデマンド読込」なので、書いたスキルが何個あっても起動時のコンテキストを圧迫しません。初級編では「commandsより高度な自動化ができる、ディレクトリ形式で配置する」という理解で十分です。
+-->
+
+<hr />
+<h1>imports — CLAUDE.md 内の <code>@path</code> 構文</h1>
+<p><strong>共通設定をプロジェクト間で共有する仕組み</strong>:</p>
+<p>CLAUDE.md の中に <code>@path</code>（<code>@</code> は「このファイルを読み込んで」という意味の記号）と書くと、そのファイルの中身が <strong>CLAUDE.md と一緒に起動時にコンテキストに読み込まれます</strong>:</p>
+<pre><code class="language-markdown"># CLAUDE.md の中身
+@shared/coding_rules.md
+@shared/test_rules.md
+</code></pre>
+<p><strong>仕様 (Claude Code 公式)</strong>:<br />
+- <strong>相対パスはインポート元ファイル基準</strong>・絶対パスも可<br />
+- <strong>再帰的インポート可・最大 5 ホップ</strong>まで辿る<br />
+- imports は <strong>CLAUDE.md 内部の構文機能</strong> であり、独立した .md ファイル種別ではない</p>
+<blockquote>
+<p>「5プロジェクトで同じルールをコピペしている」なら imports で統合</p>
+</blockquote>
+<!--
+importsは、CLAUDE.mdの中から外部ファイルを取り込む仕組みです。CLAUDE.mdに @パス と書くだけで、そのファイルの中身が展開されて、CLAUDE.md と一緒にコンテキストに読み込まれます。相対パスはインポート元ファイル基準で、絶対パスも使えます。再帰的なインポートも可能で、@で読み込まれたファイルが更に @ で別ファイルを呼ぶ、というのを最大 5 ホップまで辿ってくれます。注意点として、imports は CLAUDE.md 内部の構文機能であって、commands や skills のような独立した「.md ファイル種別」ではありません。例えば5つのプロジェクトで共通のコーディング規約がある場合、1箇所に置いてimportsで読み込めば、各プロジェクトのCLAUDE.mdに同じ内容をコピペする必要がありません。ルールの変更も1ファイル直すだけで全プロジェクトに反映されます。
+-->
+
+<hr />
+<h1>global CLAUDE.md — 全プロジェクト共通設定</h1>
+<p><strong>あなたのPC全体で共有する「AIの好み」</strong>:</p>
+<p>配置場所: <code>~/.claude/CLAUDE.md</code> ＝ 前章 第2章で扱った <strong>4 階層構造のうちユーザー層</strong></p>
+<pre><code># 全プロジェクト共通の好み
+- 回答は日本語で
+- コメントは最小限に
+- テストは必ず書く
+</code></pre>
+<ul>
+<li>すべてのプロジェクトで <strong>自動的に読み込まれる</strong></li>
+<li>プロジェクトの CLAUDE.md と <strong>「上書き」ではなく「連結」</strong> されて AI に渡される</li>
+<li>矛盾する記述がある場合、<strong>プロジェクト指示が後に読まれるため、Claude はそちらに従う傾向</strong>（「<strong>後勝ち</strong>」)</li>
+<li>「このPCのユーザーの好み」を <strong>一元管理</strong></li>
+</ul>
+<blockquote>
+<p>global = 全体の好み / プロジェクト CLAUDE.md = 固有のルール（<strong>両者は連結</strong>）</p>
+</blockquote>
+<!--
+global CLAUDE.mdは、あなたのPC全体に適用される設定です。前章で 4 階層構造を学んだとき、ユーザー層として紹介したのがまさにこのファイルです。ホームディレクトリの下の.claudeフォルダに置きます。例えば「回答は日本語で」「コメントは最小限に」といった、すべてのプロジェクトに共通する好みを書いておくと、どのプロジェクトを開いてもAIがその好みを反映します。ここで重要なのは、global とプロジェクト CLAUDE.md の関係です。「プロジェクトがglobalを上書きする」のではなく、両者は連結されて AI に渡されます。ただし矛盾する記述があった場合、プロジェクト指示が後に読まれるため、Claude はそちらに従う傾向があります。これを「後勝ち」と呼びます。上書きではなく、後に読まれた方が優先される、という挙動です。
+-->
+
+<hr />
+<h1>6機構の関係性 — レイヤー構造</h1>
+<table>
+<thead>
+<tr>
+<th>レイヤー</th>
+<th>対象</th>
+<th>機構</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Global</strong></td>
+<td>全プロジェクト</td>
+<td>global CLAUDE.md（前章 4 階層のユーザー層）</td>
+</tr>
+<tr>
+<td><strong>Project</strong></td>
+<td>プロジェクト全体</td>
+<td>CLAUDE.md</td>
+</tr>
+<tr>
+<td><strong>Role</strong></td>
+<td>役割・共通設定</td>
+<td>.claude/agents/, imports</td>
+</tr>
+<tr>
+<td><strong>Operation</strong></td>
+<td>定型操作</td>
+<td>commands, skills</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>上位レイヤー → <strong>広い範囲に適用</strong></li>
+<li>下位レイヤー → <strong>具体的な操作の自動化</strong></li>
+<li>すべての層は「<strong>連結</strong>」されて AI に渡され、矛盾時は <strong>後に読まれたもの (＝より具体的なもの) が従われやすい</strong></li>
+</ul>
+<!--
+6機構をレイヤー構造で整理するとこのようになります。一番上が全プロジェクトに適用されるglobal CLAUDE.md、これは前章の4階層構造のユーザー層に当たります。その下がプロジェクト固有のCLAUDE.md。さらに下に役割や共通設定、そして一番下が具体的な操作の自動化。上位ほど広い範囲、下位ほど具体的。すべての層は連結されて AI に渡されて、矛盾があった場合は後に読まれた方、つまりより具体的な指示が従われやすい、という構造です。この階層構造を理解しておくと、どこに何を書くべきか迷わなくなります。
+-->
+
+<hr />
+<h1>初心者はどの順番で導入すべきか</h1>
+<p><strong>3段階の拡張パス</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>段階</th>
+<th>導入する機構</th>
+<th>タイミング</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Step 1</strong></td>
+<td>CLAUDE.md</td>
+<td>最初から（必須）</td>
+</tr>
+<tr>
+<td><strong>Step 2</strong></td>
+<td>commands</td>
+<td>同じ指示を3回以上書いたら</td>
+</tr>
+<tr>
+<td><strong>Step 3</strong></td>
+<td>skills, imports, .claude/agents/</td>
+<td>チーム開発や複雑化したら</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>global CLAUDE.md はPC設定時に1回書くだけ</p>
+</blockquote>
+<!--
+「全部書かないといけないの？」と不安になる必要はありません。最初はCLAUDE.mdだけ。それで十分です。同じ指示を3回以上書いたらcommandsに。チーム開発が始まったり、プロジェクトが複雑になったら残りの機構を導入する。この順番で無理なく拡張してください。
+-->
+
+<hr />
+<h1>まとめ — .md仲間たちの全体像</h1>
+<table>
+<thead>
+<tr>
+<th>機構</th>
+<th>一言で言うと</th>
+<th>導入タイミング</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CLAUDE.md</td>
+<td>プロジェクトの説明書</td>
+<td><strong>Step 1: 最初から（必須）</strong></td>
+</tr>
+<tr>
+<td>commands</td>
+<td>定型指示のテンプレート（<code>.claude/commands/&lt;name&gt;.md</code>）</td>
+<td><strong>Step 2: 同じ指示を3回書いたら（推奨）</strong></td>
+</tr>
+<tr>
+<td>global CLAUDE.md</td>
+<td>全体の好み設定（<code>~/.claude/CLAUDE.md</code>）</td>
+<td><strong>Step 2: PC設定時に1回（推奨）</strong></td>
+</tr>
+<tr>
+<td>.claude/agents/</td>
+<td>AIの役割別マニュアル（サブエージェント）</td>
+<td>Step 3: 役割を分けたくなったら（任意）</td>
+</tr>
+<tr>
+<td>skills</td>
+<td>ワークフローのオンデマンド読込（<code>.claude/skills/&lt;name&gt;/SKILL.md</code>）</td>
+<td>Step 3: 作業を自動化したくなったら（任意）</td>
+</tr>
+<tr>
+<td>imports</td>
+<td>CLAUDE.md 内の <code>@path</code> 構文</td>
+<td>Step 3: 複数プロジェクトで同じルールを使うなら（任意）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>ポイント</strong>: まず CLAUDE.md だけ書けばOK。必要になってから Step 2、Step 3 と増やしていけばよい</p>
+<!--
+6機構をまとめました。CLAUDE.mdだけが必須。残り5つは「あったら便利」な拡張機能です。配置場所を正確に覚えておくのも大事です。commands は単一ファイル `.claude/commands/<name>.md`、skills はディレクトリ形式 `.claude/skills/<name>/SKILL.md`、agents は `.claude/agents/<name>.md`、imports は CLAUDE.md 内の @path 構文です。最初はCLAUDE.mdだけ書いて、必要に応じてcommandsやglobal CLAUDE.mdを追加していく。この順番で無理なく拡張していきましょう。
+-->
+
+<hr />
+<h1>確認問題</h1>
+<p><strong>Q1</strong>: AIにプロジェクト固有のルールを教えるファイルは何か？</p>
+<details><summary>回答</summary>CLAUDE.md（プロジェクトルートに配置・新しい会話/セッション開始時に自動読込）</details>
+
+<p><strong>Q2</strong>: 「同じレビュー指示を毎回手入力している」→ どの機構を使うべきか？</p>
+<details><summary>回答</summary>commands（`.claude/commands/review.md` のように単一ファイルでテンプレートを配置・`/review` で起動）</details>
+
+<p><strong>Q3</strong>: 5つのプロジェクトで共通のコーディング規約を1箇所で管理するには？</p>
+<details><summary>回答</summary>imports または global CLAUDE.md。どちらも「1箇所に書いて使い回す」仕組みです。使い分けの基準: **imports** はプロジェクトのルール（CLAUDE.md 内で `@path` 構文・チーム共有向け）、**global CLAUDE.md** はあなた個人の好み（`~/.claude/CLAUDE.md`・1人で使う設定）</details>
+
+<!--
+3問の確認問題です。Q1はCLAUDE.md。プロジェクトルートに置くだけで新しいセッション開始時に自動読み込みされます。Q2はcommands。同じ指示を3回以上書いたらテンプレート化するサインで、`.claude/commands/<名前>.md` の単一ファイル形式で配置します。Q3はimportsかglobal CLAUDE.md。どちらも「1箇所に書いて使い回す」仕組みですが、importsはプロジェクトのルール共有、globalはユーザー個人の好みという違いがあります。
+-->
+
+<hr />
+<!-- _class: cover -->
+
+<h1>第3章 完了</h1>
+<h2>次は 第4章「歴史と意義 — なぜ3階層なのか」</h2>
+<div class="meta">
+✅ 6つの.md設定機構の全体像を理解<br>
+✅ CLAUDE.md / .claude/agents/ / commands / skills / imports / global の使い分け<br>
+✅ サブエージェント呼び出しの 5 方式（自動委譲・自然言語・@-mention・CLI フラグ・Agent ツール）<br>
+✅ skills は <code>.claude/skills/&lt;name&gt;/SKILL.md</code> ディレクトリ形式 (オンデマンド読込)<br>
+✅ imports は CLAUDE.md 内の <code>@path</code> 構文（最大 5 ホップ）<br>
+✅ global とプロジェクト CLAUDE.md は「上書き」ではなく「連結」（後勝ち）<br>
+✅ 初心者の導入順序（CLAUDE.md → commands → skills/agents/imports）を把握<br><br>
+<b>続けて 第4章 をお楽しみください</b>
+</div>
+
+<!--
+ご視聴ありがとうございました。この章では、CLAUDE.md以外の5つの.md仲間たちを学びました。.claude/agents/、commands、skills、imports、global CLAUDE.md。全部覚える必要はありません。「CLAUDE.md以外にも5つの拡張がある」ということと、「必要になったら段階的に導入する」という2点を押さえておいてください。配置場所のポイント — commands は単一 .md ファイル、skills は SKILL.md エントリポイントを持つディレクトリ、agents は .claude/agents/<name>.md、imports は CLAUDE.md 内の @path 構文 — も今後の章で繰り返し出てくるので、ここで一度整理できたのは大きな収穫です。次の第4章では、なぜ3階層（プロンプト・コンテキスト・ハーネス）という構造が必要なのか、歴史的な背景から解説します。
+-->
+</body></html>

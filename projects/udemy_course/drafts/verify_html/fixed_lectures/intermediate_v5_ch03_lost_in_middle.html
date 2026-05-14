@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中級ch03 LitM (修正版)</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.3em; }
+h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.1em; }
+h3 { color: #4b5563; margin-top: 1em; font-size: 1.0em; }
+hr { border: none; border-top: 2px dashed #cbd5e1; margin: 2em 0; }
+table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 0.82em; }
+th { background: #1e3a8a; color: #fff; padding: 5px 7px; }
+td { padding: 5px 7px; border: 1px solid #d1d5db; vertical-align: top; }
+tr:nth-child(even) td { background: #f3f4f6; }
+code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.88em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; overflow-x: auto; font-size: 0.82em; }
+pre code { background: transparent; color: inherit; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.7em; color: #78350f; }
+@media (max-width: 768px) { body { padding: 8px; font-size: 13.5px; } table { font-size: 0.76em; } }
+</style></head><body>
+<nav style="background:#1e3a8a; color:#fff; padding:8px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
+<a href="../index.html" style="color:#fde68a; margin-right:10px;">← ハブ</a>
+<a href="index.html" style="color:#fff; text-decoration:underline;">📂 修正版19章リスト</a>
+</nav>
+<h1>📝 中級ch03 LitM <small style="color:#6b7280; font-size:0.7em;">(修正版 v1)</small></h1>
+<!-- _class: cover -->
+
+<h1>長文 context は読まれない</h1>
+<h2>— Lost in the Middle (LitM) と根本対策</h2>
+<div class="meta">
+中級編 — 第3章 (約 25 min)<span class="free">FREE</span><br><br>
+「AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全解説」<br><br>
+講師: なぎなた
+</div>
+
+<!-- Speaker note: ch03はコンテキスト層 (L2) の入口です。前章 ch02 ではプロンプト層 (L1) の品質診断で「AI が推測で突進する」原因をプロンプト側で抑える方法を学びました。本章はその次のステップとして「プロンプトが完璧でも、長文 context になると AI が読み飛ばす」という別レイヤーの問題に視点を移します。「長文 context は読まれない」という事実から始めますが、本章は対策の方向性まで。具体的な道具は ch04/05/07 で学びます。本章も無料プレビューです -->
+
+<hr />
+<h1>ch03. 長文 context は読まれない — Lost in the Middle (LitM) と根本対策</h1>
+<h2>コンテキスト層の第一歩</h2>
+<hr />
+<h2>この章で解決する「困りごと」</h2>
+<blockquote>
+<p><strong>④ 長文の中央の参照情報が読み飛ばされる</strong> (Lost in the Middle)</p>
+</blockquote>
+<ul>
+<li>5,000 行のコードレビューを依頼したら核心バグを見落とした</li>
+<li>30 ページの議事録を要約させたら中盤の決定事項が抜けた</li>
+<li>200 ページの仕様書から重要要件を引き出すよう頼んだら見落とされた</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>本章の対策は、通常の短い命令では起きない問題を扱います</strong><br />
+<strong>長文 context (5,000 文字以上)</strong> のコードレビュー・仕様書・議事録で発生する現象が対象です</p>
+</blockquote>
+<!-- Speaker note: 「通常の短い命令では起きない」ことを必ず強調してください。受講者が「すべてのプロンプトでLitMを気にしなきゃ」と誤解しないように。5,000文字以上が目安です。ch02 で扱った「推測突進/確認不足/範囲過大」の 3 パターンは短いプロンプトでも起きますが、本章の現象は長文 context 固有です -->
+
+<hr />
+<h2>章のゴール</h2>
+<p><strong>言える 1 文:</strong></p>
+<blockquote>
+<p>Lost in the Middle は長文 context でのみ発生する。配置技術は緩和策で、根本対策は「長文を作らない仕組み化」</p>
+</blockquote>
+<p><strong>できる 1 動作:</strong></p>
+<blockquote>
+<p>長文での失敗要因を 3 つに区別して説明できる。自分の長文ユースケースを列挙し、どの章で対処するか判別できる</p>
+</blockquote>
+<hr />
+<h2>前章からのつながり</h2>
+<ul>
+<li>ch01: プロンプトを資産化 (プロンプト層 L1)</li>
+<li>ch02: 推測突進 / 確認不足 / 範囲過大 の <strong>3 パターン</strong> を 10 項目チェックリストで診断 (プロンプト層 L1)</li>
+</ul>
+<blockquote>
+<p>プロンプトの品質を高めても、<strong>長文 context になると AI が読み飛ばす</strong> という別レイヤーの問題が残る<br />
+プロンプト層 (L1) から <strong>コンテキスト層 (L2)</strong> へ視点を移す</p>
+</blockquote>
+<!-- Speaker note: ch02 で学んだ「プロンプト側の対策」はあくまで命令文の品質改善でした。一方、本章の Lost in the Middle はプロンプトをいくら丁寧に書いても発生する別問題です。ch02 の 10 項目チェックリストでも防げない、と明確に区別しておくと受講者の理解が深まります -->
+
+<hr />
+<h2>長文 context が起きる 4 つのユースケース</h2>
+<table>
+<thead>
+<tr>
+<th>ユースケース</th>
+<th>具体例</th>
+<th>文字数の目安</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>コードレビュー</strong></td>
+<td>複数ファイルの一括レビュー</td>
+<td>5,000 行+</td>
+</tr>
+<tr>
+<td><strong>仕様書の分析</strong></td>
+<td>200 ページの要件定義書</td>
+<td>数万文字</td>
+</tr>
+<tr>
+<td><strong>議事録の要約</strong></td>
+<td>30 ページの会議録</td>
+<td>1 万文字+</td>
+</tr>
+<tr>
+<td><strong>多文献参照</strong></td>
+<td>10 本以上の資料の横断分析</td>
+<td>数万文字</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>200-500 文字の通常の業務命令では起きない問題</strong><br />
+5,000 文字以上の長文を AI に渡したときに初めて発生する</p>
+</blockquote>
+<hr />
+<h2>長文 context での失敗要因は 3 つに整理できる</h2>
+<pre><code>┌──────────────────────────────────────────┐
+│  ① 容量上限 (公式仕様)                   │
+│  context window のサイズには限界がある    │
+├──────────────────────────────────────────┤
+│  ② Lost in the Middle (研究で確認)      │
+│  長い参照情報の中央が読み飛ばされる       │
+├──────────────────────────────────────────┤
+│  ③ Context Rot (コミュニティ用語)        │
+│  会話が長くなると応答品質が劣化する       │
+└──────────────────────────────────────────┘
+</code></pre>
+<blockquote>
+<p>出所はそれぞれ違うが、共通点は <strong>どれも長文 context 固有</strong></p>
+</blockquote>
+<!-- Speaker note: この 3 つの区別が重要。容量上限は公式仕様 (Anthropic 等が context window サイズを明記)・LitM は 2023 年の論文で確認された現象・Context Rot は Chroma 等のコミュニティ/研究で提唱された用語であり Anthropic 公式制約ではありません。「公式 3 大制約」のような並列ラベルは避け、それぞれの出所が異なることを意識してもらうと正確な学習になります。容量上限は「量の問題」、LitMは「配置の問題」、Context Rotは「時間の問題」 -->
+
+<hr />
+<h2>失敗要因① 容量上限 (公式仕様)</h2>
+<h3>AI が一度に覚えられる量には限界がある</h3>
+<ul>
+<li>AI には <strong>context window</strong> と呼ばれる「一度に読める量の上限」がある (AI の短期記憶の容量のようなもの)</li>
+<li>この上限を超えると、<strong>古い情報から順に押し出される</strong></li>
+<li>会話が長くなるほど、最初の方の内容を忘れる</li>
+</ul>
+<p><strong>具体例:</strong></p>
+<blockquote>
+<p>200 ページの仕様書を全て渡すと、前半の概要説明は認識しているが、後半の詳細要件が押し出されてしまう</p>
+<p>すべてを一度に渡すことはできない — <strong>分割が必要</strong></p>
+</blockquote>
+<!-- Speaker note: 容量上限は最も直感的な制約で、Anthropic/OpenAI 等が公式に context window サイズを明記している公式仕様です。「AIの短期記憶には限界がある」と説明すると受講者は納得しやすい。ただし「容量を増やせば解決する」わけではない点に注意 — LitMとContext Rotは別問題です -->
+
+<hr />
+<h2>失敗要因② Lost in the Middle (LitM)</h2>
+<h3>長い参照情報の「中央」が読み飛ばされる</h3>
+<p><strong>正確な定義:</strong></p>
+<blockquote>
+<p>参照情報 (添付ドキュメント・過去のログ等) が長く、その <strong>中央に重要な事実</strong> があると AI が読み飛ばしやすい現象 (2023 年の研究で確認)</p>
+</blockquote>
+<p><strong>❌ 誤解:</strong> 「指示が長すぎると、指示の中央が読み飛ばされる」<br />
+<strong>✅ 正解:</strong> 「参照情報が長く、その中央にある重要事実が読み飛ばされる」</p>
+<hr />
+<h2>Lost in the Middle — なぜ起きるか</h2>
+<p>AI は長文を処理するとき、<strong>冒頭と末尾</strong> に注意を向けやすい性質がある:</p>
+<pre><code>┌──────────────────────────────────────┐
+│  冒頭 → → → 読まれやすい ✅        │
+├──────────────────────────────────────┤
+│                                      │
+│  中央部分 → → → 読み飛ばされやすい ❌│
+│  ★ ここに重要な数字・要件があると…   │
+│                                      │
+├──────────────────────────────────────┤
+│  末尾 → → → 読まれやすい ✅         │
+└──────────────────────────────────────┘
+</code></pre>
+<blockquote>
+<p>冒頭と末尾は認識しやすいが、中央は「ぼんやり」読まれがち</p>
+</blockquote>
+<hr />
+<h2>Lost in the Middle — 具体例</h2>
+<p><strong>営業パーソンの例:</strong></p>
+<blockquote>
+<p>顧客の商談履歴 (10 件分) を AI に渡して「提案のポイントを抽出して」と頼んだ。真ん中にある重要な「予算上限の言及」を見落として、予算オーバーの提案を作ってしまった</p>
+</blockquote>
+<p><strong>PM サポートの例:</strong></p>
+<blockquote>
+<p>要件定義書 (50 ページ) を AI に渡して「テストケースを作って」と頼んだ。中盤の「エラーハンドリング要件」を読み飛ばし、エラー系テストケースが 0 件に</p>
+</blockquote>
+<p><strong>データ分析者の例:</strong></p>
+<blockquote>
+<p>複数文献 (10 本以上) を渡して傾向分析を頼んだ。中盤の重要な引用が無視された</p>
+</blockquote>
+<hr />
+<h2>失敗要因③ Context Rot (コミュニティ/研究用語)</h2>
+<h3>会話が長くなると応答の質が劣化する</h3>
+<ul>
+<li>同じ会話セッションで何往復も対話を続けると、<strong>最初の重要な合意事項が劣化</strong> する</li>
+<li>「前に決めたこと」を AI が忘れ、別の前提で答え始める</li>
+</ul>
+<p><strong>具体例:</strong></p>
+<blockquote>
+<p>長い対話で「異常値 = 前年比 200% 以上の数字」と合意したのに、10 往復後に AI が勝手に「150% 以上」で除外し始めた</p>
+<p>※ <strong>「Context Rot」は Chroma 等の研究/コミュニティが提唱した用語</strong> であり、Anthropic 公式の制約として明文化されているものではありません。容量上限 (公式仕様) や LitM (論文で確認) とは出所が異なる点に注意してください</p>
+<p>会話は <strong>長く続けるほど品質が下がる傾向がある</strong> — 適切なタイミングで区切る必要がある</p>
+</blockquote>
+<!-- Speaker note: Context Rot は Chroma 等のコミュニティ/研究で観察された現象として知られていますが、Anthropic が「公式制約」として明示している用語ではありません。受講者が「公式の制約として 3 つある」と誤解しないよう、出所が異なることをここで明示します。実務的には「会話が長くなると品質が下がる傾向」を意識しておけば十分で、用語そのものは絶対的なものではありません -->
+
+<hr />
+<h2>3 つの失敗要因のまとめ</h2>
+<table>
+<thead>
+<tr>
+<th>失敗要因</th>
+<th>何が起きるか</th>
+<th>出所</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>容量上限</strong></td>
+<td>古い情報が押し出される</td>
+<td>公式仕様 (context window)</td>
+</tr>
+<tr>
+<td><strong>Lost in the Middle</strong></td>
+<td>中央の重要事実が読み飛ばされる</td>
+<td>2023 年の論文で確認</td>
+</tr>
+<tr>
+<td><strong>Context Rot</strong></td>
+<td>応答品質が劣化する</td>
+<td>コミュニティ/研究で提唱</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>共通点: どれも <strong>長文 context</strong> が原因。短いプロンプトでは起きない<br />
+出所は異なるが、対策の方向性 (長文を作らない仕組み化) は共通</p>
+</blockquote>
+<!-- Speaker note: 出所の違いをハッキリさせるのがポイントです。「公式 3 大制約」と並列ラベルを付けると Context Rot を Anthropic 公式と誤認させてしまうので避けます。対策の方向性が共通なので、実務的には 3 つをセットで意識して OK ですが、用語の権威性は同等ではない、と理解してもらいます -->
+
+<hr />
+<h2>緩和策: 配置技術</h2>
+<p>Lost in the Middle を <strong>一時的に和らげる</strong> 方法:</p>
+<p><strong>① 冒頭に TL;DR (要約) を置く</strong></p>
+<blockquote>
+<p>【重要】この顧客の予算上限は 500 万円</p>
+</blockquote>
+<p><strong>② 末尾にサマリ (まとめ) を置く</strong></p>
+<blockquote>
+<p>テストケースには必ずエラー系を含めること</p>
+</blockquote>
+<p><strong>③ 重要な結論を冒頭・末尾に重複して配置</strong></p>
+<blockquote>
+<p>冒頭と末尾は AI が認識しやすい → 重要事実をそこに置く</p>
+</blockquote>
+<!-- Speaker note: 配置技術は実務ですぐ使えるテクニックです。ただし「緩和策」に過ぎないことを次のスライドで強調します。TL;DRとサマリだけで全て解決すると思わないように注意喚起してください -->
+
+<hr />
+<h2>でも、配置技術には限界がある</h2>
+<p><strong>配置技術は「緩和策」であって「根本対策」ではない:</strong></p>
+<ul>
+<li>長文化が進むほど、中央の「無視される範囲」が広がる</li>
+<li>TL;DR とサマリだけでは、詳細な要件を伝えきれない</li>
+<li>200 ページの仕様書を TL;DR 1 行で代替するのは不可能</li>
+</ul>
+<blockquote>
+<p>❌ 「TL;DR と末尾サマリで全部解決する」<br />
+✅ 「配置技術は緩和策。<strong>根本対策は長文を作らない仕組み化</strong>」</p>
+</blockquote>
+<!-- Speaker note: この否定→肯定の流れがch03の核心です。「緩和策で満足しない」姿勢を強調。受講者が「じゃあどうするの？」と思うタイミングで根本対策の3方向性を提示します -->
+
+<hr />
+<h2>根本対策: 長文を作らない仕組み化</h2>
+<p><strong>3 つの方向性:</strong></p>
+<table>
+<thead>
+<tr>
+<th>方向性</th>
+<th>何をするか</th>
+<th>詳細は</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>分割 + 検索</strong></td>
+<td>長文を短く分割し、必要な部分だけ渡す</td>
+<td>ch04</td>
+</tr>
+<tr>
+<td><strong>物理分割</strong></td>
+<td>長文を別の AI セッションに分担する</td>
+<td>ch05</td>
+</tr>
+<tr>
+<td><strong>自動取得</strong></td>
+<td>AI が必要な部分を自動で検索・注入する</td>
+<td>ch07</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>この 3 つを組み合わせることで、<strong>長文をそもそも作らない</strong> 設計に転換する</p>
+</blockquote>
+<!-- Speaker note: 3つの方向性はch04/05/07へのロードマップです。ここでは「何をするか」の概要だけでOK。詳細は各章で。この見取り図が頭に入っていれば後の章が理解しやすい -->
+
+<hr />
+<h2>方向性①: 分割 + 検索 (ch04 へ)</h2>
+<p><strong>ch04 で学ぶこと:</strong><br />
+- 長文を <strong>短い塊 (chunk)</strong> — 数段落ずつに区切った小さなまとまり — に分割する設計<br />
+- <strong>検索拡張生成 (RAG)</strong> — 外部データから関連する部分だけを検索して AI に渡す仕組み<br />
+- <strong>永続記憶</strong> — 過去の発見を意味検索で呼び戻す<br />
+- <strong>手動ドキュメント化</strong> — こまめに重要決定をファイルに残す習慣</p>
+<blockquote>
+<p><strong>200 ページ全量を渡すのではなく、「必要な部分だけ検索して取り出す」</strong></p>
+</blockquote>
+<!-- Speaker note: ここがch03の核心です。「TL;DRで解決」という浅い理解をあえて否定し、根本対策への意識付けを行います。受講者が「じゃあどうするの？」と思ったタイミングで次スライドへ -->
+
+<hr />
+<h2>方向性②: 物理分割 (ch05 へ)</h2>
+<p><strong>ch05 で学ぶこと:</strong><br />
+- AI を <strong>複数の役割に分ける</strong> — 1 つの AI にすべてを任せない<br />
+- <strong>別の AI セッション</strong> に長文処理を分担させる<br />
+- 主文脈には <strong>サマリだけ</strong> を持ち帰る</p>
+<blockquote>
+<p><strong>長文全体を 1 つのセッションで処理せず、分担して LitM を回避</strong></p>
+</blockquote>
+<!-- Speaker note: ch05の物理分割は実務ですぐ使える強力な手法です。1つのAIセッションに長文を全部詰め込むのではなく、役割ごとにセッションを分けるだけでLitMリスクが大幅に下がります -->
+
+<hr />
+<h2>方向性③: 自動取得 (ch07 へ)</h2>
+<p><strong>ch07 で学ぶこと:</strong><br />
+- <strong>hook</strong> = AI のライフサイクルイベント (セッション開始 / プロンプト送信 / ツール実行前後 / 圧縮前 / 終了 等) に任意の処理を差し込む仕組み — 公式機能 (29 種類)<br />
+- 本章 (ch03) で必要なのは、その中の <strong>UserPromptSubmit hook + additionalContext</strong> という <strong>一用途</strong>: プロンプト送信時に <strong>関連ドキュメントを自動で検索・注入</strong> する使い方<br />
+- 人手で長文を添付する必要がなくなる</p>
+<blockquote>
+<p><strong>「人間が検索する」から「AI が自動で検索する」へ</strong><br />
+ch04 の検索技術が、ch07 で hook (公式機能) の <strong>一用途</strong> として自動化される</p>
+</blockquote>
+<!-- Speaker note: hook は「AI のライフサイクルイベントに任意処理を差し込む公式機能 (29 種類)」であり、本章で扱う「送信瞬間の自動関連資料注入」はその UserPromptSubmit hook + additionalContext という一用途にすぎません。受講者が「hook = 自動取得だけ」と誤って覚えないよう、ここで広義定義を先に提示しておくことが重要です。ch07で hook 全体像と他の代表用途 (PreToolUse/PostToolUse/Stop 等) を詳しく学びます。ch04で手動検索を学び、その仕組みを理解した上でch07で自動化する流れ -->
+
+<hr />
+<h2>ch03 の位置づけ — 全体地図</h2>
+<pre><code>ch03 [本章]  ← 失敗要因の理解 + 根本対策の方向性
+ │
+ ├→ ch04: 分割 + 検索 + 永続記憶 + 手動ドキュメント化
+ │         (長文を作らない主役 4 道具)
+ │
+ ├→ ch05: 役割別分業 + 物理分割
+ │         (長文を別セッションに分担)
+ │
+ └→ ch07: hook (公式機能) による自動取得
+           (検索を自動化して人手をなくす)
+</code></pre>
+<blockquote>
+<p>ch03 は「<strong>診断</strong>」、ch04/05/07 が「<strong>治療</strong>」</p>
+</blockquote>
+<!-- Speaker note: ch03は「診断」、ch04/05/07が「治療」という対比を強調します。医者が診断書を書いてから治療方針を決めるのと同じ流れ。この見取り図を意識すると後の章の学習効果が高まります。ch02 が「プロンプト品質の診断」だったのに対し、ch03 は「コンテキスト品質の診断」 — 診断→治療の構造が L1 でも L2 でも繰り返されています -->
+
+<hr />
+<h2>章末ミニ演習</h2>
+<p>自分の長文ユースケースを列挙してみよう:</p>
+<ol>
+<li>普段 AI に渡している長文 (5,000 文字以上) を 3 つ挙げる</li>
+<li>それぞれに 3 つの失敗要因 (容量上限 / LitM / Context Rot) のどれが当てはまるか判定</li>
+<li>根本対策の方向性 (分割+検索 / 物理分割 / 自動取得) のどれが最適か考える</li>
+<li>ch04 / ch05 / ch07 のどれで対策するかを判別</li>
+</ol>
+<blockquote>
+<p>自分のユースケース → 該当する章 が見えれば、この章のゴール達成</p>
+</blockquote>
+<hr />
+<h2>ch03 まとめ</h2>
+<ul>
+<li>長文 context での失敗要因は <strong>3 つに整理できる</strong>: 容量上限 (公式仕様) / Lost in the Middle (論文で確認) / Context Rot (コミュニティ用語)</li>
+<li>これらは <strong>長文 context (5,000 文字以上) でのみ発生</strong> — 短いプロンプトでは無関係</li>
+<li>配置技術 (TL;DR / 末尾サマリ) は <strong>緩和策に過ぎない</strong></li>
+<li><strong>根本対策 = 長文を作らない仕組み化</strong></li>
+<li>具体的な道具は ch04 / ch05 / ch07 で学ぶ</li>
+</ul>
+<blockquote>
+<p>強化した層：コンテキスト層 (L2) — LitM 現象の正確な定義と、根本対策の方向性 (ch04/05/07) を把握する。</p>
+</blockquote>
+<!-- Speaker note: まとめでは「3つの失敗要因の区別」と「根本対策＝長文を作らない仕組み化」を再度強調。3 つの用語の出所が異なる (公式仕様/論文/コミュニティ) ことを最後に一度念押ししておくと、受講者が他資料で「Context Rot は公式制約ではない」と気づいた時の混乱を予防できます。ch04で分割+検索を学ぶ予告をしてモチベーションを高めてください -->
+
+<hr />
+<!-- _class: cover -->
+
+<h1>第3章 完了</h1>
+<h2>次は 第4章「分割 + 検索 — 長文を作らない主役 4 道具」</h2>
+<div class="meta">
+✅ 3 つの失敗要因（容量上限/LitM/Context Rot）を出所込みで区別して説明できる<br>
+✅ 配置技術は緩和策であり根本対策ではないことを理解した<br>
+✅ 根本対策＝長文を作らない仕組み化の 3 つの方向性を把握した<br>
+✅ ch04/05/07 のどれで対策するかを判別できる<br><br>
+<b>続けて第4章をお楽しみください</b>
+</div>
+</body></html>

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中級ch00 講座ゴール (修正版)</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.3em; }
+h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.1em; }
+h3 { color: #4b5563; margin-top: 1em; font-size: 1.0em; }
+hr { border: none; border-top: 2px dashed #cbd5e1; margin: 2em 0; }
+table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 0.82em; }
+th { background: #1e3a8a; color: #fff; padding: 5px 7px; }
+td { padding: 5px 7px; border: 1px solid #d1d5db; vertical-align: top; }
+tr:nth-child(even) td { background: #f3f4f6; }
+code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.88em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; overflow-x: auto; font-size: 0.82em; }
+pre code { background: transparent; color: inherit; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.7em; color: #78350f; }
+@media (max-width: 768px) { body { padding: 8px; font-size: 13.5px; } table { font-size: 0.76em; } }
+</style></head><body>
+<nav style="background:#1e3a8a; color:#fff; padding:8px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
+<a href="../index.html" style="color:#fde68a; margin-right:10px;">← ハブ</a>
+<a href="index.html" style="color:#fff; text-decoration:underline;">📂 修正版19章リスト</a>
+</nav>
+<h1>📝 中級ch00 講座ゴール <small style="color:#6b7280; font-size:0.7em;">(修正版 v1)</small></h1>
+<!-- _class: cover -->
+
+<h1>講座のゴール — 3 層の世界観と「困りごと」の正体</h1>
+<h2>— 導入：本講座で何が変わるか</h2>
+<div class="meta">
+中級編 — 第0章 (約 20 min)<span class="free">FREE</span><br><br>
+「AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全解説」<br><br>
+講師: なぎなた
+</div>
+
+<!--
+スピーカーノート:
+中級編へようこそ。初級編の終章で「L1 プロンプト・L2 コンテキスト・L3 ハーネス」の 3 階層が一通り揃った状態にたどり着きました。中級編では、その基礎の上に実戦レベルの設計を積み上げていきます。第 0 章では、まず初級編で身につけた 3 階層を一度だけ俯瞰したあと、AI 活用で誰もが直面する 11 の「あるある困りごと」を一気に並べ、それぞれが 3 層のどこの欠落かを見える化します。20 分でこの全体地図を頭に描けるよう、リラックスしてご覧ください。本章は無料プレビューです。
+-->
+
+<hr />
+<h1>ch00. 講座のゴール — 3 層の世界観と「困りごと」の正体</h1>
+<hr />
+<h2>初級編からの橋渡し — 3 階層モデル復習</h2>
+<blockquote>
+<p>初級編で身につけた <strong>3 つの力</strong> を、ここで一度だけ俯瞰します</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>階層</th>
+<th>役割</th>
+<th>初級編で学んだこと</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L1 プロンプト</strong></td>
+<td>AI に確実に伝える</td>
+<td>構造化プロンプト (入力・処理・出力の 3 要素)</td>
+</tr>
+<tr>
+<td><strong>L2 コンテキスト</strong></td>
+<td>プロジェクト知識の共有</td>
+<td>CLAUDE.md / commands / skills (.md の 3 大カテゴリ)</td>
+</tr>
+<tr>
+<td><strong>L3 ハーネス</strong></td>
+<td>AI モデルを実用基盤に乗せる</td>
+<td>PreToolUse Hook 1 本 (公式 29 種類のうち代表)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Anthropic 公式の業界標準定義: <strong>Agent = Model + Harness</strong><br />
+(Engineering Blog 2025-11「Effective harnesses for long-running agents」)<br />
+hooks / skills / sub-agents 等で AI を実用レベルで動かす周辺基盤全体を「ハーネス」と呼びます</p>
+</blockquote>
+<p>中級編では、この 3 層を <strong>実戦レベルまで深掘り</strong> していきます。</p>
+<!-- Speaker note: 中級編に入る前に、初級編で学んだ 3 階層モデルを軽く復習します。初級編を未受講の方も、この 1 スライドで全体感が掴めるよう作っています。L1 プロンプトは「指示のブレをなくす構造化プロンプト」、L2 コンテキストは「CLAUDE.md / commands / skills の 3 大カテゴリでプロジェクト知識を共有」、L3 ハーネスは「PreToolUse Hook 1 本で AI の動作を制御」 — これが初級編の到達点でした。ハーネスについては Anthropic 公式の業界標準定義「Agent = Model + Harness」が 2025 年 11 月の Engineering Blog 記事「Effective harnesses for long-running agents」で明示されており、本講座でも公式概念として扱います。中級編では、この 3 層をそれぞれ実戦レベルまで深掘りしていきます。 -->
+
+<hr />
+<h2>あなたに聞きます</h2>
+<p>こんな経験、ありませんか？</p>
+<ul>
+<li>AI に<strong>同じ説明を 5 回</strong>繰り返した</li>
+<li>「完了しました」と言われたが、<strong>後で見たら嘘</strong>だった</li>
+<li>先週直したバグの調査を、<strong>また最初から</strong>やり直している</li>
+<li>長い資料を渡したのに、<strong>真ん中の重要な数字</strong>を見落としていた</li>
+</ul>
+<!-- Speaker note: 受講者に「ありますよね？」と問いかけます。ここで共感を作るのがこの章の最大の目的です。4つの例のうち、どれか一つでも当てはまる人は手を挙げてもらうと参加度が上がります。 -->
+
+<hr />
+<h2>「あるある」を 11 件集めました</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>困りごと</th>
+<th>よくある光景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>①</td>
+<td><strong>既にあるものを確認せず新規作成</strong></td>
+<td>先週書いたプロンプトを探すのに 15 分</td>
+</tr>
+<tr>
+<td>②</td>
+<td><strong>同じ作業を毎回手動で繰り返す</strong></td>
+<td>議事録要約のプロンプト、毎回ゼロから書く</td>
+</tr>
+<tr>
+<td>③</td>
+<td>AI が<strong>推測で勝手に進める</strong></td>
+<td>「理解しました」→ 結果が全然違う</td>
+</tr>
+<tr>
+<td>④</td>
+<td><strong>長文の中央</strong>が読み飛ばされる</td>
+<td>30 ページの議事録、中盤の決定事項が抜ける</td>
+</tr>
+<tr>
+<td>⑤</td>
+<td><strong>完了したことを</strong>次に伝え忘れる</td>
+<td>先週直したこと、今週は忘れてる</td>
+</tr>
+<tr>
+<td>⑥</td>
+<td><strong>「言ったのにやってくれない」</strong></td>
+<td>指示したはずが反映されていない</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>「あるある」を 11 件集めました (続き)</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>困りごと</th>
+<th>よくある光景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>⑦</td>
+<td>AI 出力を<strong>盲信して失敗</strong></td>
+<td>「完璧です」の言葉を信じて提出 → 数字が間違ってた</td>
+</tr>
+<tr>
+<td>⑧</td>
+<td><strong>API 変更後に</strong>テストせず壊れる</td>
+<td>昨日動いたコードが今日は動かない</td>
+</tr>
+<tr>
+<td>⑨</td>
+<td><strong>大事なドキュメントを</strong>確認しない</td>
+<td>手元の仕様書があるのに参照せず進める</td>
+</tr>
+<tr>
+<td>⑩</td>
+<td><strong>失敗を隠して</strong>動かす</td>
+<td>エラーが出たのに「たぶん大丈夫」で進める</td>
+</tr>
+<tr>
+<td>⑪</td>
+<td><strong>「止めろ」が伝わらない</strong></td>
+<td>「そこはやらないで」と言ったのに実行された</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>全 11 件、心当たりありませんか？</p>
+</blockquote>
+<!-- Speaker note: 後半5件は「AIを信用しすぎる」「確認しない」「失敗を隠す」など、より深刻な問題です。⑦〜⑪は第6章以降のハーネス層で扱います。まずは①〜⑥の身近な困りごとから見ていきましょう。 -->
+
+<hr />
+<h2>ここで宣言します</h2>
+<blockquote>
+<p><strong>これらの困りごとは、すべて「3 層のどこかが欠けている」から起こります</strong></p>
+</blockquote>
+<p>「AI が悪い」「自分がダメ」ではありません。<br />
+<strong>仕組みの欠落</strong> が原因です。</p>
+<p>本講座で、この 3 層を順に強化していきます。</p>
+<!-- Speaker note: ここが本講座の核心メッセージです。「AIが悪い」でも「自分がダメ」でもない。仕組みが足りていないだけ、という捉え方に変えることで、受講者は「自分にもできる」という感覚を持てます。ゆっくり・丁寧に伝えてください。 -->
+
+<hr />
+<h2>3 層の世界観</h2>
+<pre><code>┌─────────────────────────────────────────┐
+│  プロンプト層 (Prompt)                   │
+│  「AI への 1 回の指示の質」               │
+│  ── 定型プロンプトの保存・診断             │
+├─────────────────────────────────────────┤
+│  コンテキスト層 (Context)                │
+│  「AI に何を覚えさせ、何を見せるか」       │
+│  ── 必要な情報を必要な時だけ取り出す       │
+├─────────────────────────────────────────┤
+│  ハーネス層 (Harness)                    │
+│  「AI を実用レベルで動かす周辺基盤」       │
+│  ── hooks / skills / sub-agents / 自動化   │
+└─────────────────────────────────────────┘
+</code></pre>
+<blockquote>
+<p>ハーネスは Anthropic 公式の業界標準概念 (Agent = Model + Harness)</p>
+</blockquote>
+<!-- Speaker note: 3 層の図を板書するイメージで説明します。プロンプト層は「1 回の指示の質」＝目に見えやすい。コンテキスト層は「AI に何を見せるか」＝設計が必要。ハーネス層は「AI を実用レベルで動かす周辺基盤」＝Anthropic 公式の「Agent = Model + Harness」に対応する層で、hooks・skills・sub-agents・自動化全般を含みます。最も設計難度が高いですが効果も最大。上から順に強化していきます。 -->
+
+<hr />
+<h2>3 層のイメージ</h2>
+<ul>
+<li><strong>プロンプト層</strong> = 「1 回の指示の質」</li>
+<li>例：「議事録を要約して」を資産化する仕組み</li>
+<li><strong>コンテキスト層</strong> = 「AI に何を見せるか」</li>
+<li>例：長文を全部渡すのではなく、必要な部分だけ取り出す</li>
+<li><strong>ハーネス層</strong> = 「AI を実用レベルで動かす周辺基盤」 (Anthropic 公式: Agent = Model + Harness)</li>
+<li>例：hooks でルールを書いておけば、AI が自動で守る</li>
+</ul>
+<!-- Speaker note: 各層を日常的な例えで説明します。プロンプト層＝「お願いの仕方メモ」。コンテキスト層＝「必要な資料だけ机に置く」。ハーネス層＝「手順書を壁に貼っておく + 担当を分けて + レビュー役を置く」。ハーネスは安全装置だけでなく、hook・skill・サブエージェント等、AI モデルを実用レベルで動かす周辺基盤全体を指します。具体例でイメージを掴ませてください。 -->
+
+<hr />
+<h2>11 困りごと → どの層が欠けているか</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>困りごと</th>
+<th>欠けている層</th>
+<th>解決する章</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>①</td>
+<td>確認せず新規作成</td>
+<td>プロンプト層</td>
+<td>ch01</td>
+</tr>
+<tr>
+<td>②</td>
+<td>同じ作業を毎回手動</td>
+<td>プロンプト層</td>
+<td>ch01</td>
+</tr>
+<tr>
+<td>③</td>
+<td>推測で勝手に進める</td>
+<td>プロンプト層</td>
+<td>ch02</td>
+</tr>
+<tr>
+<td>④</td>
+<td>長文の中央が読み飛ばされる</td>
+<td>コンテキスト層</td>
+<td>ch03+04</td>
+</tr>
+<tr>
+<td>⑤</td>
+<td>完了したことを忘れる</td>
+<td>コンテキスト層</td>
+<td>ch04</td>
+</tr>
+<tr>
+<td>⑥</td>
+<td>「言ったのにやってくれない」</td>
+<td>ハーネス層</td>
+<td>ch05</td>
+</tr>
+<tr>
+<td>⑦</td>
+<td>AI 出力を盲信</td>
+<td>ハーネス層</td>
+<td>ch06</td>
+</tr>
+<tr>
+<td>⑧</td>
+<td>API 変更後に壊れる</td>
+<td>ハーネス層</td>
+<td>ch07</td>
+</tr>
+<tr>
+<td>⑨</td>
+<td>大事な情報を確認しない</td>
+<td>コンテキスト+ハーネス</td>
+<td>ch07</td>
+</tr>
+<tr>
+<td>⑩</td>
+<td>失敗を隠す</td>
+<td>ハーネス層</td>
+<td>ch08</td>
+</tr>
+<tr>
+<td>⑪</td>
+<td>「止めろ」が伝わらない</td>
+<td>ハーネス層</td>
+<td>ch08</td>
+</tr>
+</tbody>
+</table>
+<!-- Speaker note: 11件の困りごとを3層にマッピングする表です。ここでは「全ての困りごとは3層のどれかが欠けているから起きる」という対応関係を理解してもらいます。①②③はプロンプト、④⑤はコンテキスト、⑥以降はハーネスという傾向を強調してください。 -->
+
+<hr />
+<h2>集計すると</h2>
+<ul>
+<li><strong>プロンプト層</strong> が欠けている → 3 件 (①②③)</li>
+<li><strong>コンテキスト層</strong> が欠けている → 2 件 (④⑤)</li>
+<li><strong>ハーネス層</strong> が欠けている → 5 件 (⑥⑦⑧⑩⑪)</li>
+<li><strong>複合</strong> → 1 件 (⑨)</li>
+</ul>
+<blockquote>
+<p>ハーネス層の欠如が一番多い。<br />
+つまり「AI を実用レベルで動かす周辺基盤」が一番のボトルネック。</p>
+</blockquote>
+<!-- Speaker note: 集計結果のポイントは「ハーネス層が 5 件で最多」です。多くの人はプロンプトの書き方ばかり気にしますが、実は「AI を実用レベルで動かす周辺基盤」(ハーネス) の欠如が最も多い困りごとの原因。この発見に少し驚く受講者もいるはずです。 -->
+
+<hr />
+<h2>12 章の全体地図</h2>
+<pre><code>ch00 [導入]           ← 今ここ。3 層の地図と困りごとの正体
+
+ch01 [プロンプト層]   プロンプトを資産にする
+ch02 [プロンプト層]   よくある失敗 3 パターンの診断
+
+ch03 [コンテキスト層] Lost in the Middle と長文の根本対策
+ch04 [コンテキスト層] 長文を作らない仕組み
+
+ch05 [ハーネス層]     役割別ファイルで AI を分業させる
+ch06 [ハーネス層]     第三者 AI に見直してもらう
+ch07 [ハーネス層]     自動で動かす — 主要 4 つの hook (全 29 種類のうち代表)
+ch08 [ハーネス層]     失敗を見逃さない仕組み
+
+ch09 [応用]           3 層を統合して業務に組み込む
+ch10 [逆引き]         困った時の逆引き辞典
+ch11 [演習]           自分専用の Skill を作る
+</code></pre>
+<!-- Speaker note: 全 12 章のロードマップです。各章がどの層を強化するかを示しています。プロンプト層 (ch01-02) → コンテキスト層 (ch03-04) → ハーネス層 (ch05-08) の順で進むことを強調。ch09-11 は応用編で、3 層を統合します。ch07 で扱うのは Claude Code の hook 全 29 種類のうち代表的な 4 つで、網羅ではなく主要なライフサイクル位置を体験する位置付けです。「全タイミングを網羅」ではなく「主要な代表を体得」という距離感で構えてください。 -->
+
+<hr />
+<h2>講座が終わると、あなたのリポジトリにこれが残る</h2>
+<table>
+<thead>
+<tr>
+<th>道具</th>
+<th>役割</th>
+<th>いつ使うか</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>カスタムスラッシュコマンド (Skills / <code>.claude/commands/&lt;名前&gt;.md</code>)</td>
+<td>毎回書いているプロンプトを 1 コマンド化</td>
+<td>毎回同じプロンプトを書く時</td>
+</tr>
+<tr>
+<td><code>memory</code> (過去の知識の引き出し)</td>
+<td>AI が過去の合意事項を思い出す</td>
+<td>「前に合意したこと」を思い出す時</td>
+</tr>
+<tr>
+<td><code>hook</code> (ライフサイクルイベントへの自動処理)</td>
+<td>「このファイルは必ず確認」などを自動化</td>
+<td>忘れがちな確認作業を自動化する時</td>
+</tr>
+<tr>
+<td><code>Skill</code> (再利用可能なワークフロー定義・必要時にオンデマンド読込)</td>
+<td>特定の業務フロー全体を仕組み化</td>
+<td>一連の作業を AI に任せる時</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>これらが <strong>あなたのプロジェクトフォルダ</strong> に残ります。<br />
+講座が終わっても、そのまま業務で使い続けられます。</p>
+</blockquote>
+<!-- Speaker note: 講座の実用性を強調します。「座学で終わらない」ことが受講者のモチベーションに直結します。各道具は実際にファイルとして残るので、明日から業務で使えることを伝えてください。なお、Claude Code 公式には「/command」という単一コマンドは存在しません。本講座でいう「自作のスラッシュコマンド」は、推奨される Skills (`.claude/skills/<名前>/SKILL.md` のディレクトリ形式) か、legacy の `.claude/commands/<名前>.md` (単一 .md) として保存します。詳細は ch01 で扱います。Skill は「常駐」ではなく、description が常駐して本体は必要時にオンデマンド読込される設計です — この点も ch11 で実装演習します。 -->
+
+<hr />
+<h2>この講座の学び方</h2>
+<ol>
+<li><strong>動画を止める</strong> — コードが出たら実際に手を動かす</li>
+<li><strong>自分で試す</strong> — サンプルをそのままではなく、自分の業務に置き換えて実行</li>
+<li><strong>章末で確認</strong> — 各章の「持ち帰り」で理解度をセルフチェック</li>
+</ol>
+<blockquote>
+<p>「見るだけ」ではなく「やる」講座です。</p>
+</blockquote>
+<!-- Speaker note: 学び方の3つのポイント。「動画を止める」「自分で試す」「章末で確認」は本講座の基本スタンスです。特に「自分の業務に置き換えて試す」ことを強調。サンプルをコピペするだけでなく、自分の現場に当てはめることで理解度が跳ね上がります。 -->
+
+<hr />
+<h2>章のまとめ</h2>
+<ul>
+<li>AI 活用の困りごとは <strong>3 層のどこかが欠けている</strong> から起こる</li>
+<li>プロンプト層 / コンテキスト層 / ハーネス層 (Anthropic 公式: Agent = Model + Harness)</li>
+<li>本講座は、この 3 層を <strong>順に強化</strong> していく</li>
+<li>講座が終わると、具体的な道具が <strong>あなたのリポジトリに残る</strong></li>
+</ul>
+<hr />
+<h2>持ち帰り</h2>
+<p><strong>言える 1 文:</strong></p>
+<blockquote>
+<p>自分の困りごとは、プロンプト・コンテキスト・ハーネスの 3 層のどれかが欠けているから起こる。この講座でその 3 層を順に強化していく</p>
+</blockquote>
+<p><strong>できる 1 動作:</strong></p>
+<blockquote>
+<p>11 件の困りごとのうち自分に当てはまるものを挙げ、「それはどの層が欠けているか」を判別できる</p>
+</blockquote>
+<hr />
+<blockquote>
+<p>強化した層：3 層の地図を頭に描いた。以降の章で各層を順に強化していく。</p>
+</blockquote>
+<hr />
+<!-- _class: cover -->
+
+<h1>第0章 完了</h1>
+<h2>次は 第1章「プロンプトを資産にする」</h2>
+<div class="meta">
+✅ 11 の困りごとが「3 層の欠落」として説明できる<br>
+✅ プロンプト/コンテキスト/ハーネスの 3 層を説明できる<br>
+✅ 12 章の全体地図を頭に描いた<br><br>
+<b>続けて第1章をお楽しみください</b>
+</div>
+</body></html>

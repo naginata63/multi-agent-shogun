@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中級ch01 /command (修正版)</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.3em; }
+h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.1em; }
+h3 { color: #4b5563; margin-top: 1em; font-size: 1.0em; }
+hr { border: none; border-top: 2px dashed #cbd5e1; margin: 2em 0; }
+table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 0.82em; }
+th { background: #1e3a8a; color: #fff; padding: 5px 7px; }
+td { padding: 5px 7px; border: 1px solid #d1d5db; vertical-align: top; }
+tr:nth-child(even) td { background: #f3f4f6; }
+code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.88em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; overflow-x: auto; font-size: 0.82em; }
+pre code { background: transparent; color: inherit; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.7em; color: #78350f; }
+@media (max-width: 768px) { body { padding: 8px; font-size: 13.5px; } table { font-size: 0.76em; } }
+</style></head><body>
+<nav style="background:#1e3a8a; color:#fff; padding:8px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
+<a href="../index.html" style="color:#fde68a; margin-right:10px;">← ハブ</a>
+<a href="index.html" style="color:#fff; text-decoration:underline;">📂 修正版19章リスト</a>
+</nav>
+<h1>📝 中級ch01 /command <small style="color:#6b7280; font-size:0.7em;">(修正版 v1)</small></h1>
+<!-- _class: cover -->
+
+<h1>プロンプトを資産にする</h1>
+<h2>— カスタムスラッシュコマンドと Skill 布石（プロンプト層の第一歩）</h2>
+<div class="meta">
+中級編 — 第1章 (約 30 min)<span class="free">FREE</span><br><br>
+「AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全解説」<br><br>
+講師: なぎなた
+</div>
+
+<!--
+スピーカーノート:
+中級編第1章へようこそ。前章では 3 階層モデル (L1 プロンプト・L2 コンテキスト・L3 ハーネス) を俯瞰し、11 の困りごとを「3 層のどこかが欠けている」として説明できる地図を頭に描きました。本章ではいよいよ L1 プロンプト層の第一歩として「プロンプトを資産化する」スキルを身につけます。Claude Code 公式の機能であるカスタムスラッシュコマンド (自作の `/<名前>`) を使って、毎回ゼロから書いていたプロンプトを 1 コマンドで呼び出せるようにします。本章は無料プレビューです。
+-->
+
+<hr />
+<h1>ch01. プロンプトを資産にする — カスタムスラッシュコマンドと Skill 布石</h1>
+<hr />
+<h2>この章で解決する「困りごと」</h2>
+<p>前章で挙げた <strong>11 の困りごと</strong> のうち、本章で解決するのは:</p>
+<blockquote>
+<p><strong>① 既にあるものを確認せず新規作成してしまう</strong><br />
+<strong>② 同じ作業を毎回手動で繰り返している</strong></p>
+</blockquote>
+<ul>
+<li>先週も似たプロンプトを書いた気がする…</li>
+<li>議事録要約のプロンプト、どこに保存したっけ？</li>
+<li>毎回ゼロからプロンプトを書いている。書くたびに品質がブレる</li>
+</ul>
+<blockquote>
+<p>プロンプトが「使い捨て」だから、同じ労力を何度も払っている</p>
+</blockquote>
+<!-- Speaker note: 前章 ch00 で提示した 11 件の困りごとリストのうち、①「確認せず新規作成」と②「同じ作業を毎回手動」が本章のターゲットです。どちらもプロンプト層 (L1) の欠如が原因。「先週も似たプロンプト書いた気がする」という感覚は多くの人が持っているはず。ここで「自分のことだ」と思ってもらいます。 -->
+
+<hr />
+<h2>章のゴール</h2>
+<p><strong>言える 1 文:</strong></p>
+<blockquote>
+<p>プロンプトをカスタムスラッシュコマンド (<code>.claude/commands/&lt;名前&gt;.md</code> または <code>.claude/skills/&lt;名前&gt;/SKILL.md</code>) として保存すれば、次から 1 コマンドで同じ品質の結果を得られる</p>
+</blockquote>
+<p><strong>できる 1 動作:</strong></p>
+<blockquote>
+<p>カスタムスラッシュコマンドを 1 つ作って動かせる。自分の業務でカスタムスラッシュコマンド化候補を 3 件挙げられる</p>
+</blockquote>
+<hr />
+<h2>「使い捨て」と「資産」の違い</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>使い捨てプロンプト</th>
+<th>資産化プロンプト</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>書く回数</td>
+<td>毎回ゼロから</td>
+<td><strong>1 回だけ</strong></td>
+</tr>
+<tr>
+<td>品質</td>
+<td>毎回ブレる</td>
+<td><strong>安定</strong></td>
+</tr>
+<tr>
+<td>探す手間</td>
+<td>「どこに書いたっけ?」</td>
+<td><strong>コマンド 1 つ</strong></td>
+</tr>
+<tr>
+<td>改善</td>
+<td>毎回一から直す</td>
+<td><strong>蓄積される</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>1 回書いて何度でも使える = <strong>資産</strong></p>
+</blockquote>
+<!-- Speaker note: 使い捨てと資産の対比表を解説します。ここで伝えたいのは「書く回数・品質・探す手間・改善」の4軸すべてで資産化が有利ということ。特に「改善が蓄積される」は重要で、使い捨てでは毎回ゼロリセットですが、資産化すれば一度の改善が永続します。 -->
+
+<hr />
+<h2>カスタムスラッシュコマンド — プロンプトを資産にする仕組み</h2>
+<pre><code>.claude/commands/
+  └── summarize-meeting.md   ← このファイルがプロンプト本体
+</code></pre>
+<ul>
+<li><code>.claude/commands/</code> フォルダに Markdown ファイルを置くだけ</li>
+<li>ファイル名がそのままコマンド名になる</li>
+<li>例: <code>summarize-meeting.md</code> → <code>/summarize-meeting</code> で呼び出し</li>
+</ul>
+<blockquote>
+<p>※ Claude Code 公式に <code>/command</code> という単一コマンドは存在しません。<br />
+「カスタムスラッシュコマンド」とは、自分で <code>/&lt;任意の名前&gt;</code> を作る仕組みのことです。</p>
+</blockquote>
+<!-- Speaker note: カスタムスラッシュコマンドの仕組みを初めて紹介するスライドです。仕組みはシンプル：Markdown ファイルを置くだけ。フォルダ名は `.claude/commands/` 固定。ファイル名 = コマンド名という直感的な対応関係を強調してください。「プログラミング不要」であることも安心材料として伝えます。注意点として「/command」という単一コマンドは Claude Code 公式に存在しないこと、私たちは「自作のスラッシュコマンドの仕組み」を学んでいることを明示します。 -->
+
+<hr />
+<h2>実演: カスタムスラッシュコマンドを作ってみよう</h2>
+<h3>Step 1 — フォルダを作る</h3>
+<p>プロジェクトのルートに <code>.claude/commands</code> フォルダを作ります:</p>
+<pre><code class="language-bash">mkdir -p .claude/commands
+</code></pre>
+<blockquote>
+<p>※ VS Code のエクスプローラーから「新しいフォルダー」で作っても OK です</p>
+</blockquote>
+<h3>Step 2 — プロンプトファイルを書く</h3>
+<pre><code class="language-markdown">&lt;!-- .claude/commands/summarize-meeting.md --&gt;
+以下の議事録を読み、要点を 3 つにまとめてください。
+
+## 出力形式
+- 決定事項
+- 次回のアクション
+- 未解決の課題
+
+## 対象ファイル
+$ARGUMENTS
+</code></pre>
+<blockquote>
+<p><code>$ARGUMENTS</code> には、コマンド呼び出し時に渡した内容が入ります。<br />
+後ほど実演します。</p>
+</blockquote>
+<!-- Speaker note: 実演の Step1 と Step2 です。ここでは実際に VS Code かターミナルを開いてデモすることを推奨。mkdir -p .claude/commands を実行し、summarize-meeting.md をその場で作ることで、受講者に「これだけ？」という驚きを与えます。$ARGUMENTS の概念は次のスライドで詳しく説明します。 -->
+
+<hr />
+<h2>実演: カスタムスラッシュコマンドを呼び出す</h2>
+<h3>Step 3 — 使う</h3>
+<p>プロンプト欄にこう入力するだけ:</p>
+<pre><code>/summarize-meeting @meeting-2026-05-06.md
+</code></pre>
+<ul>
+<li><code>/summarize-meeting</code> = コマンド名</li>
+<li><code>@meeting-2026-05-06.md</code> = 対象ファイル (引数)</li>
+<li><code>@ファイル名</code> で AI にそのファイルを読み込ませる Claude Code の参照記法</li>
+</ul>
+<blockquote>
+<p><strong>毎回プロンプトを書く必要がなくなりました</strong></p>
+</blockquote>
+<!-- Speaker note: Step3 の実演です。実際に /summarize-meeting @meeting-2026-05-06.md と入力して AI がどう動くかを見せます。ポイントは「プロンプトの中身は一切書いていない」こと。コマンド名とファイル参照だけで、あらかじめ用意したフォーマット通りの出力が得られる驚きを伝えてください。@file 記法は Claude Code の汎用機能で、commands/skills 内に限らず使えます。 -->
+
+<hr />
+<h2>引数付き呼出の仕組み</h2>
+<pre><code class="language-markdown">&lt;!-- .claude/commands/weekly-report.md --&gt;
+以下の進捗データから、週次レポートを作成してください。
+
+## フォーマット
+1. 今週の成果 (3 行以内)
+2. 課題と対応状況
+3. 来週の予定
+
+## 対象
+$ARGUMENTS
+</code></pre>
+<pre><code>/weekly-report @progress.md
+</code></pre>
+<ul>
+<li><code>$ARGUMENTS</code> の位置に <code>@progress.md</code> の中身が差し込まれるイメージ</li>
+<li><strong>プロンプトの中身は変えずに、対象だけ変えられる</strong></li>
+</ul>
+<!-- Speaker note: $ARGUMENTS の仕組みを図解します。「テンプレートの穴埋め」というイメージで伝えると分かりやすい。プロンプトの中身 (出力形式や指示) は固定で、対象ファイルだけ差し替える。これが「資産化」の核心です。プログラミングの関数に慣れている人は「引数のようなもの」と説明してもよいです。なお、個別位置の引数は `$N` 記法 (`$0` が第 1 引数、`$1` が第 2 引数 — 0 ベース番号付け) が公式仕様にありますが、本講座は `$ARGUMENTS` (全引数まとめて) のシンプル形のみ扱います。 -->
+
+<hr />
+<h2>Script / Slash Command / Skill — 3 つの道具の使い分け</h2>
+<table>
+<thead>
+<tr>
+<th>観点</th>
+<th>Script (Bash 等)</th>
+<th>カスタムスラッシュコマンド (<code>/name</code>)</th>
+<th>Skill</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>起動</td>
+<td>コマンドライン手動</td>
+<td>ユーザーが <code>/&lt;名前&gt;</code> と入力</td>
+<td><strong>description のキーワードマッチで AI が自律呼出</strong></td>
+</tr>
+<tr>
+<td>配置</td>
+<td>任意のフォルダ</td>
+<td><code>.claude/commands/&lt;名前&gt;.md</code> (legacy)</td>
+<td><code>.claude/skills/&lt;名前&gt;/SKILL.md</code> (公式標準・ディレクトリ形式)</td>
+</tr>
+<tr>
+<td>引数</td>
+<td>CLI 引数</td>
+<td><code>$ARGUMENTS</code> / <code>@file</code> 参照</td>
+<td>プロンプト本文から AI が抽出</td>
+</tr>
+<tr>
+<td>学習負荷</td>
+<td>低</td>
+<td>中</td>
+<td>やや高 (但し再利用最大)</td>
+</tr>
+<tr>
+<td>用途</td>
+<td>手動繰り返し作業</td>
+<td>定型プロンプトの資産化</td>
+<td><strong>業務領域知識のオンデマンド読込</strong></td>
+</tr>
+<tr>
+<td>本講座での位置</td>
+<td>補助</td>
+<td><strong>← 今ここ (ch01)</strong></td>
+<td>到達点 (ch11)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>公式は「カスタムコマンドはスキルにマージされました」と明記。本章では分かりやすさのため legacy の <code>.claude/commands/</code> から入り、ch11 で Skill (ディレクトリ形式) に進みます。</p>
+</blockquote>
+<!-- Speaker note: 3 つの道具を表で対比します。Slash Command の配置パスは legacy 形式の単一 .md と、推奨される Skill のディレクトリ形式 (`.claude/skills/<名前>/SKILL.md`) があることを示します。Skill の自律発動条件は「description のキーワードマッチ」で、これが ch11 で扱う最も重要なポイントです。ここで「Skill = 業務領域知識をオンデマンドで呼ばれる小さなプレイブック」というイメージを植え付けてください。 -->
+
+<hr />
+<h2>3 つの道具 — ざっくり言うと</h2>
+<ul>
+<li><strong>Script</strong>: シェルスクリプトと同じ。手動で叩く</li>
+<li><strong>カスタムスラッシュコマンド</strong>: <code>/&lt;任意名&gt;</code> で呼び出す定型プロンプト。<strong>本章の主役</strong></li>
+<li><strong>Skill</strong>: description のキーワードに合致すると AI が文脈を判断して<strong>自律的に呼び出す</strong>。ch11 で作る</li>
+</ul>
+<blockquote>
+<p>まずはカスタムスラッシュコマンドをマスターして、最後に Skill に到達する。</p>
+</blockquote>
+<!-- Speaker note: 3 つの道具のざっくりとした説明です。ここで重要なのは「段階的に学ぶ」というメッセージ。まず Script (手動) → カスタムスラッシュコマンド (半自動) → Skill (自律) と進む流れを強調。Skill の自律呼出は「description のキーワードマッチ」が発火条件、という公式仕様も一言添えます。受講者が「Skill まで行かないと意味ない？」と不安にならないよう、「カスタムスラッシュコマンドだけでも十分に実用的」であることを伝えてください。 -->
+
+<hr />
+<h2>業務 3 例 — カスタムスラッシュコマンド化候補あぶり出し</h2>
+<h3>営業パーソンの例</h3>
+<ul>
+<li>毎回やっている: 顧客への提案メールをゼロからプロンプトで書く</li>
+<li>カスタムスラッシュコマンド化: <code>.claude/commands/proposal-email.md</code></li>
+<li>「顧客名・商談内容・条件を入力して提案メールを作成」</li>
+<li>次から <code>/proposal-email</code> で 1 発</li>
+</ul>
+<h3>PM サポートの例</h3>
+<ul>
+<li>毎回やっている: 進捗レポートのフォーマットから毎回作り直す</li>
+<li>カスタムスラッシュコマンド化: <code>.claude/commands/weekly-report.md</code></li>
+<li><code>/weekly-report @進捗.md</code> で即座に生成</li>
+</ul>
+<h3>データ分析者の例</h3>
+<ul>
+<li>毎回やっている: 「このデータの傾向を教えて」と毎回手動で書く</li>
+<li>カスタムスラッシュコマンド化: <code>.claude/commands/analyze-trend.md</code></li>
+<li><code>/analyze-trend @sales.csv</code> で 1 発</li>
+</ul>
+<!-- Speaker note: 3 つの職種 (営業・PM・データ分析) ごとの具体例を紹介します。受講者が自分の職種に近いものを見つけられるように。「これ、まさに自分が毎回やっていることだ」と気づくのがゴール。もし受講者の職種がこれらと違えば、次のスライドで自分の業務に置き換えてもらいます。 -->
+
+<hr />
+<h2>あなたの業務で 3 つ挙げてみよう</h2>
+<blockquote>
+<p><strong>動画を止めて</strong>、自分の業務で「毎回ゼロから書いているプロンプト」を 3 つ挙げてください。</p>
+</blockquote>
+<ol>
+<li><strong><em>_</em></strong><strong><em>_</em></strong>_ → コマンド名: <code>/_________</code></li>
+<li><strong><em>_</em></strong><strong><em>_</em></strong>_ → コマンド名: <code>/_________</code></li>
+<li><strong><em>_</em></strong><strong><em>_</em></strong>_ → コマンド名: <code>/_________</code></li>
+</ol>
+<blockquote>
+<p>この 3 つが、あなたの最初の資産になります。</p>
+</blockquote>
+<!-- Speaker note: ここで動画を止めてもらうアクティビティです。「毎回ゼロから書いているプロンプト」を 3 つ挙げる演習。受講者が自分の業務に当てはめることで理解度が跳ね上がります。演習後に「どんなコマンドを作りそうですか？」と問いかけると参加度が上がります。 -->
+
+<hr />
+<h2>Skill 布石 — 次の段階への予告</h2>
+<blockquote>
+<p>カスタムスラッシュコマンドは <strong>ユーザーが手動で呼ぶ</strong> 道具 (<code>/&lt;名前&gt;</code> と入力)<br />
+<strong>Skill</strong> は AI が <strong>description のキーワードマッチで自律的に呼ぶ</strong> 道具</p>
+</blockquote>
+<p><strong>例:</strong><br />
+- カスタムスラッシュコマンド版: <code>/proposal-email</code> と手動で呼ぶ<br />
+- <strong>Skill</strong> 版: 商談メモを渡すと、description に「提案メール作成」相当のキーワードがマッチして AI が<strong>勝手に</strong>過去の提案パターンを参照してメールを作る</p>
+<blockquote>
+<p>Skill の詳細は <strong>ch11</strong> で。まずはカスタムスラッシュコマンドで土台を固めましょう。</p>
+</blockquote>
+<!-- Speaker note: Skill は「description のキーワードマッチで AI が自律判断で呼ぶ道具」という布石のスライドです。ch11 で詳しくやる予告ですが、ここでは「カスタムスラッシュコマンドをマスターすれば自然と Skill への道が開ける」という安心感を与えます。「今はカスタムスラッシュコマンドに集中すれば OK」というメッセージを忘れずに。Skill の発火条件 = description のキーワード一致、という公式仕様も予告しておくと ch11 でスムーズに入れます。 -->
+
+<hr />
+<h2>章のまとめ</h2>
+<ul>
+<li>プロンプトは<strong>使い捨て</strong>から<strong>資産</strong>に変えられる</li>
+<li><code>.claude/commands/&lt;名前&gt;.md</code> に置くだけでカスタムスラッシュコマンドになる</li>
+<li>引数 (<code>$ARGUMENTS</code>) で対象だけ変えられる</li>
+<li>Script / カスタムスラッシュコマンド / Skill の使い分けができる</li>
+<li><strong>自分の業務のカスタムスラッシュコマンド化候補を 3 つ挙げた</strong></li>
+</ul>
+<!-- Speaker note: 章のまとめです。5 つのポイントを振り返ります。「使い捨て→資産」の意識変化がこの章の最大の成果です。次章 (ch02) では「プロンプトの書き方が悪くて失敗する 3 パターン」を扱います。この章で資産化の土台を作った上で、次章で品質の診断方法を学びます。 -->
+
+<hr />
+<h2>持ち帰り</h2>
+<p><strong>言える 1 文:</strong></p>
+<blockquote>
+<p>プロンプトをカスタムスラッシュコマンドとして保存すれば、次から 1 コマンドで同じ品質の結果を得られる。さらに Skill (<code>.claude/skills/&lt;名前&gt;/SKILL.md</code>) に進めば、description のキーワードマッチで AI が自律的に呼んでくれるようになる</p>
+</blockquote>
+<p><strong>できる 1 動作:</strong></p>
+<blockquote>
+<p>カスタムスラッシュコマンドを 1 つ作って動かせる。自分の業務でカスタムスラッシュコマンド化候補を 3 件挙げられる</p>
+</blockquote>
+<hr />
+<blockquote>
+<p>強化した層：プロンプト層 (L1) — プロンプトを資産化する第一歩。</p>
+</blockquote>
+<hr />
+<!-- _class: cover -->
+
+<h1>第1章 完了</h1>
+<h2>次は 第2章「よくある失敗 3 パターンの診断」</h2>
+<div class="meta">
+✅ プロンプトを使い捨てから資産に変えられる<br>
+✅ カスタムスラッシュコマンドを作って動かせる<br>
+✅ Script / カスタムスラッシュコマンド / Skill の使い分け<br>
+✅ 自分の業務のカスタムスラッシュコマンド化候補を 3 件挙げた<br><br>
+<b>続けて第2章をお楽しみください</b>
+</div>
+</body></html>

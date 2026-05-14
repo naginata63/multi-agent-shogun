@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中級ch09 業務統合 (修正版)</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.3em; }
+h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.1em; }
+h3 { color: #4b5563; margin-top: 1em; font-size: 1.0em; }
+hr { border: none; border-top: 2px dashed #cbd5e1; margin: 2em 0; }
+table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 0.82em; }
+th { background: #1e3a8a; color: #fff; padding: 5px 7px; }
+td { padding: 5px 7px; border: 1px solid #d1d5db; vertical-align: top; }
+tr:nth-child(even) td { background: #f3f4f6; }
+code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.88em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; overflow-x: auto; font-size: 0.82em; }
+pre code { background: transparent; color: inherit; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.7em; color: #78350f; }
+@media (max-width: 768px) { body { padding: 8px; font-size: 13.5px; } table { font-size: 0.76em; } }
+</style></head><body>
+<nav style="background:#1e3a8a; color:#fff; padding:8px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
+<a href="../index.html" style="color:#fde68a; margin-right:10px;">← ハブ</a>
+<a href="index.html" style="color:#fff; text-decoration:underline;">📂 修正版19章リスト</a>
+</nav>
+<h1>📝 中級ch09 業務統合 <small style="color:#6b7280; font-size:0.7em;">(修正版 v1)</small></h1>
+<!-- _class: cover -->
+
+<h1>3層を統合して業務に組み込む</h1>
+<h2>— 営業 / PM / データ分析 — 自分の現場で始める型</h2>
+<div class="meta">
+中級編 — 第9章 (約 25 min)<span class="free">FREE</span><br><br>
+「AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全解説」<br><br>
+講師: なぎなた
+</div>
+
+<!--
+スピーカーノート:
+第9章へようこそ。ここまで8章にわたって3層の道具を学んできました。前章 (ch08) で Anthropic 公式概念「ハーネス」(Agent = Model + Harness) の実装パーツ — 段階確認・watcher・dry-run・禁止操作リスト・公式 Permissions モデル・PreToolUse BLOCK プロトコル — が揃いました。本章では「自分の業務にどう組み合わせるか」という実務のギャップを埋めます。営業・PMサポート・データ分析の3ケースで、3層の組み合わせ方を具体的に見ていきましょう。なぎなたと申します。
+-->
+
+<hr />
+<h2>前章 (ch08) からの繋がり</h2>
+<blockquote>
+<p>ch08 で学んだこと:<br />
+- <strong>「黙って失敗」の 3 パターン</strong> (例外握り潰し / 代替値隠蔽 / 条件漏れ)<br />
+- <strong>段階確認・watcher・<code>--dry-run</code>・禁止操作リスト</strong> の 4 解決策<br />
+- <strong>公式 Permissions モデル</strong> (2 軸構造: 6 種権限モード × Allow/Ask/Deny ルール)<br />
+- <strong>PreToolUse BLOCK プロトコル</strong> (exit code 2 + stderr / stdout JSON <code>permissionDecision:"deny"</code>)<br />
+- Anthropic 公式概念「ハーネス」(Agent = Model + Harness) の実装層が完成</p>
+</blockquote>
+<p><strong>ch09 で扱うこと:</strong></p>
+<pre><code>ここまで → ハーネス層 (L3) の道具が揃った
+   ↓
+本章   → プロンプト層 (L1) + コンテキスト層 (L2) + ハーネス層 (L3) を「自分の業務」で組み合わせる
+   ↓
+持帰り  → 営業 / PM / データ分析 — 3 ケースで「型」を手にする
+</code></pre>
+<p>ch01〜ch08 は <strong>道具の章</strong>、本章は <strong>使い方の章</strong>。3 層を統合して業務に組み込む型を提示します。</p>
+<!--
+ch08 までで 3 層それぞれの道具が出揃いました。プロンプト層 (L1)、コンテキスト層 (L2)、ハーネス層 (L3) - ハーネスは Anthropic 公式概念で、Engineering Blog「Effective harnesses for long-running agents」(2025-11) と「Harness design for long-running application development」(2026-03) で定義された Agent = Model + Harness の Harness 層を指します。本章は使い方の章。道具を 1 つずつ覚えるのではなく、3 層を組み合わせて「自分の業務」に当てはめる型を 3 ケースで提示します。
+-->
+
+<hr />
+<h2>この章で学ぶこと</h2>
+<ol>
+<li>営業・PMサポート・データ分析の<strong>3ケース</strong>で3層の組み合わせ方を説明できる</li>
+<li>自分の業務に置換可能な<strong>組み合わせの型</strong>を1つ考案できる</li>
+<li><strong>「どの層から始めるか」</strong>の優先順位判断ができる</li>
+</ol>
+<blockquote>
+<p><strong>本章の略語</strong>: RAG = Retrieval-Augmented Generation (検索拡張生成) / MCP = Model Context Protocol (LLM と外部ツール・データソース・API を繋ぐオープンソース標準プロトコル・記憶拡張はその一用途例)</p>
+</blockquote>
+<!--
+この章では3つの到達点を目指します。3つの職種ケースで3層の組み合わせを具体化し、最後に「自分の業務ではどの層から手をつけるべきか」の判断基準を身につけます。MCP は「Model Context Protocol」の略で、LLM と外部ツール・データソース・API を繋ぐオープンソース標準プロトコルです。記憶拡張はその代表的な一用途例に過ぎず、定義そのものではない点に注意してください (詳細は ch04・ch11 で扱います)。
+-->
+
+<hr />
+<h1>道具は覚えた。でも自分の現場ではどう使う?</h1>
+<blockquote>
+<p>ch01〜ch08で3層の道具を学んだ。しかし、自分の現場に戻ったら<strong>何から始めればいいか分からない</strong> — このギャップを埋めるのが本章です</p>
+</blockquote>
+<ul>
+<li>道具は9種類以上 (カスタムコマンド / 診断 / chunk / RAG (Retrieval-Augmented Generation) / memory / 役割別ファイル / advisor / hook / 禁止操作...)</li>
+<li>でも「全部一度に導入」は現実的ではない</li>
+<li><strong>自分の困りごとに合う層から始める</strong>のが正解</li>
+</ul>
+<!--
+ch01からch08で多くの道具を学びました。しかし現場に戻ると「何から始めればいいか分からない」という声がよくあります。全部一度に導入するのは無理です。本章では「自分の困りごとに合う層から始める」というアプローチを3つのケースで具体化します。
+-->
+
+<hr />
+<h2>3層の復習 — 何を強化したいかで選ぶ</h2>
+<table>
+<thead>
+<tr>
+<th>層</th>
+<th>強化する内容</th>
+<th>代表的な道具</th>
+<th>こんな困りごとに</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>プロンプト層</strong></td>
+<td>1回の指示の質</td>
+<td>カスタムスラッシュコマンド / 診断チェックリスト</td>
+<td>同じプロンプトを毎回書いている</td>
+</tr>
+<tr>
+<td><strong>コンテキスト層</strong></td>
+<td>AIに覚えさせる知識</td>
+<td>chunk / RAG / memory / 検索</td>
+<td>過去の知識をAIが知らない</td>
+</tr>
+<tr>
+<td><strong>ハーネス層</strong></td>
+<td>自動化と安全装置</td>
+<td>hook / advisor / 禁止操作リスト</td>
+<td>AIに任せきりで品質が見えない</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>自分の困りごとが「どの列」に当てはまるか — それが「どの層から始めるか」のヒント<br />
+※ <strong>ハーネス層</strong>は Anthropic 公式概念 (Engineering Blog「Effective harnesses for long-running agents」2025-11)。Agent = Model + Harness の Harness 層に hook / 安全装置 / advisor を実装します。</p>
+</blockquote>
+<!--
+3層の復習です。横に「こんな困りごとに」の列を追加しました。自分が抱えている困りごとがどの列に当てはまるかを考えると、自然と「どの層から始めるべきか」が見えてきます。ハーネスは Anthropic 公式概念で、Agent = Model + Harness という業界標準定義です。本章ではこの 3 層をどう組み合わせるかを 3 ケースで具体化します。
+-->
+
+<hr />
+<h2>ケース① — 営業の3層組み合わせ</h2>
+<blockquote>
+<p><strong>現場の声</strong>: 「顧客への提案メールを毎回ゼロから書いている。前回の要望も調べ直している」</p>
+</blockquote>
+<p><strong>プロンプト層</strong> — カスタムスラッシュコマンドで定型化 (ch01 で作成)</p>
+<pre><code>/propose-mail @顧客A議事録.md
+  ※「@ファイル名」はAIにそのファイルを読み込ませる指定です
+  ※ カスタムスラッシュコマンドは Skills (`.claude/skills/&lt;name&gt;/SKILL.md`) で定義
+   (legacy `.claude/commands/&lt;name&gt;.md` 単一ファイル形式も併存)
+→ 件名・トーン・締めの一言が毎回ゼロからではなく、
+   テンプレートベースで生成される
+</code></pre>
+<p><strong>コンテキスト層</strong> — memory検索で過去を呼び戻す<br />
+- 前回の顧客要望・クレーム履歴を意味検索 (ch04 で紹介)<br />
+- 例: 外部 MCP サーバー <code>claude-mem</code> で「この顧客について検索」と自然文入力するイメージ (MCP の自然文呼出は公式仕様・claude-mem 固有 UI 詳細は別途公式 README で確認)<br />
+- 「この顧客は前回〇〇に不満だった」を自動参照</p>
+<p><strong>ハーネス層</strong> — advisor で念押し<br />
+- 提案内容に「前回の要望との矛盾」がないか第三者レビュー (Anthropic 公式 <code>advisor_20260301</code> ツール・ch06 で詳述・beta 機能)</p>
+<!--
+1つ目のケースは営業です。顧客提案メールを毎回ゼロから書いている場合、プロンプト層のカスタムコマンド化が最初の一手です。カスタムスラッシュコマンドは Skills (`.claude/skills/<name>/SKILL.md`) ディレクトリ形式が公式推奨で、legacy の `.claude/commands/<name>.md` 単一ファイル形式も併存しています (ch01 で詳述)。次にコンテキスト層で過去の顧客対応履歴を意味検索できるようにします。MCP は LLM と外部ツールを繋ぐオープン標準で、自然文での MCP サーバー呼出は公式仕様。ただし claude-mem 固有の UI 表記や検索体験は claude-mem 公式 README/GitHub で別途確認してください。最後にハーネス層で advisor (Anthropic 公式 advisor_20260301 ツール・beta 機能) による念押しレビューを入れます。
+-->
+
+<hr />
+<h2>ケース② — PMサポートの3層組み合わせ</h2>
+<blockquote>
+<p><strong>現場の声</strong>: 「タスクの粒度がバラバラで、AIに任せると抜けが出る。進捗も見えない」</p>
+</blockquote>
+<p><strong>プロンプト層</strong> — タスクを構造化して書く<br />
+- ch02の診断10項目を適用: タスクの前提・出力形式・完了条件を明記</p>
+<p><strong>コンテキスト層</strong> — <code>/handoff</code> でセッション跨ぎの引き継ぎ<br />
+- 前回の進捗・決定事項を次セッションに引き継ぎ<br />
+- 「先週どこまで進んだか」をゼロから説明しなおす必要がなくなる<br />
+- ⚠️ <code>/handoff</code> は <strong>本リポジトリ独自のカスタムスラッシュコマンド</strong> (本講座の Skills として定義) であり、<strong>Claude Code 標準のスラッシュコマンドではない</strong>。自分の現場で類似機能を使うには自前で Skill (<code>.claude/skills/handoff/SKILL.md</code>) を作成する</p>
+<p><strong>ハーネス層</strong> — advisor + 自動チェック<br />
+- WBS（プロジェクトのタスク分解表）の妥当性を advisor (Anthropic 公式 tool) にレビュー<br />
+- ドキュメントやスプレッドシート更新後に自動で内容チェック (ch07 で学んだ <strong>PostToolUse hook</strong> — 公式 hook 29 種類の 1 つで「ツール実行が成功した直後」に発火)</p>
+<!--
+2つ目のケースはPMサポートです。タスク管理の粒度がバラバラなら、まずプロンプト層でタスクの書き方を構造化します。次にコンテキスト層でセッションを跨ぐ引き継ぎを仕組み化しますが、ここで使う `/handoff` は本リポジトリ独自のカスタムスラッシュコマンドである点に必ず注意してください。Claude Code 標準コマンド表 (`/init`・`/clear`・`/compact`・`/review` 等) には掲載されておらず、自分の現場で類似機能を使うには Skills (`.claude/skills/handoff/SKILL.md`) として自前で作成する必要があります。最後にハーネス層で advisor (Anthropic 公式 advisor_20260301 tool) による自動レビューと、PostToolUse hook (公式 hook 29 種類の 1 つ・「ツール実行成功後」に発火) によるテスト実行を入れます。
+-->
+
+<hr />
+<h2>ケース③ — データ分析の3層組み合わせ</h2>
+<blockquote>
+<p><strong>現場の声</strong>: 「分析のたびに前提条件を説明している。前処理でミスに気づかない」</p>
+</blockquote>
+<p><strong>プロンプト層</strong> — 分析要件をタグで構造化（ch02で学んだ「確認指示」の応用です。<code>&lt;目的&gt;</code>のように山括弧で囲むと、AIが「ここは目的・ここはデータ」と構造を理解しやすくなります）</p>
+<pre><code>&lt;目的&gt;売上の前年比較&lt;/目的&gt;
+&lt;データ&gt;sales_2025.csv&lt;/データ&gt;
+&lt;出力&gt;グラフ付きレポート&lt;/出力&gt;
+</code></pre>
+<ul>
+<li>目的・データソース・出力形式をタグで明記 → AIが「何を分析すべきか」を勘違いしない<br />
+  （このように<code>&lt; &gt;</code>で囲む書き方を「XMLタグ」と呼びます。HTMLを知らなくても、AIに渡す指示を構造化するだけならこの書き方だけで十分です）</li>
+</ul>
+<p><strong>コンテキスト層</strong> — memoryで過去の分析結果を記憶<br />
+- 「前回は〇〇のデータ品質に問題があった」等の注意事項を記憶<br />
+- 同じミスを繰り返さない</p>
+<p><strong>ハーネス層</strong> — AIに役割を分けて分業 + 段階確認（ch05で学んだ役割別ファイル + ch08の段階確認）<br />
+- AIに「データ取得担当」「分析担当」「レポート担当」の役割を割り当てて分業<br />
+- 前処理後のデータ件数を段階確認 (チェックポイント) で検証 (ch08 解決策①)</p>
+<!--
+3つ目のケースはデータ分析です。分析前提を毎回説明しているなら、プロンプト層で構造化します。過去の分析で得た知見はmemoryに蓄積し、ハーネス層で役割別の分業と段階確認を入れます。自社の分析対象データやレポート形式に置き換えて応用できます。役割別ファイルは ch05、段階確認は ch08 解決策①で扱った道具です。役割別ファイルの構成パターンは VSCode Copilot 由来の `.github/instructions/` 規約を Claude Code 用にアレンジした本リポジトリ独自運用ですが、その背景は ch05 で詳述しています。
+-->
+
+<hr />
+<h2>「どの層から始めるか」の判断基準</h2>
+<blockquote>
+<p>自分の困りごとに合う層を<strong>最初の一手</strong>にする — 全部一度に導入しなくていい</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>困りごとの特徴</th>
+<th>最初の一手</th>
+<th>具体的にやること</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>「毎回同じプロンプトを書いている」</td>
+<td><strong>プロンプト層</strong></td>
+<td>カスタムスラッシュコマンド (Skills) を 1 つ作る</td>
+</tr>
+<tr>
+<td>「過去の知識をAIが知らない」</td>
+<td><strong>コンテキスト層</strong></td>
+<td>memoryに1件書く / 意味検索を試す</td>
+</tr>
+<tr>
+<td>「AIに任せきりで品質が見えない」</td>
+<td><strong>ハーネス層</strong></td>
+<td>advisor を 1 回呼ぶ / hook を 1 つ入れる</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>最初は<strong>1層・1つ</strong>でいい。効果を確認してから次の層に進む</p>
+</blockquote>
+<!--
+重要なのは「全部一度にやらない」ことです。自分の困りごとに合う層を1つ選び、そこから始めます。効果を確認してから次の層に進む。この段階的なアプローチが確実です。カスタムスラッシュコマンドは Skills 形式 (`.claude/skills/<name>/SKILL.md`) で 1 つ作るところから始めるのが推奨です。
+-->
+
+<hr />
+<h2>3ケースの比較 — 共通パターンを見抜く</h2>
+<table>
+<thead>
+<tr>
+<th>観点</th>
+<th>営業</th>
+<th>PMサポート</th>
+<th>データ分析</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>最初の一手</td>
+<td>カスタムコマンドでメール定型化</td>
+<td>タスク構造化</td>
+<td>分析要件の構造化</td>
+</tr>
+<tr>
+<td>検索の活用</td>
+<td>顧客対応履歴の検索</td>
+<td>進捗の引き継ぎ</td>
+<td>過去分析結果の記憶</td>
+</tr>
+<tr>
+<td>安全装置</td>
+<td>advisor 念押し</td>
+<td>自動チェック (PostToolUse hook)</td>
+<td>段階確認</td>
+</tr>
+<tr>
+<td>共通点</td>
+<td><strong>プロンプト定型化 + 知識の検索 + 品質の担保</strong></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>3ケースに共通する<strong>「定型化 → 検索 → 担保」</strong>の3ステップが、業務への適用パターン</p>
+</blockquote>
+<!--
+3ケースを横並べで比較すると、共通パターンが浮かび上がります。どのケースも「プロンプトの定型化」「知識の検索」「品質の担保」の3ステップで構成されています。このパターンを自分の業務に当てはめるのが本章の持ち帰りです。
+-->
+
+<hr />
+<h2>この章のまとめ</h2>
+<ul>
+<li><strong>3ケース</strong> (営業・PM・データ分析) で3層の組み合わせ方を具体的に見た</li>
+<li><strong>「どの層から始めるか」</strong>は自分の困りごとに合う層を最初の一手にする</li>
+<li>共通パターン: <strong>定型化 → 検索 → 担保</strong> の3ステップ</li>
+<li>最初は<strong>1層・1つ</strong>でいい — 効果を確認してから次に進む</li>
+<li>自分の業務に当てはめた構想図を1枚書き出すことが、次章への準備</li>
+<li>⚠️ 本章で扱った <code>/handoff</code> は <strong>本リポジトリ独自のカスタムスラッシュコマンド</strong> であり、Claude Code 標準には含まれない (自前 Skill 化が必要)。一方 <code>advisor</code> ツール / <code>PostToolUse</code> hook / <code>MCP</code> は <strong>公式機能</strong></li>
+</ul>
+<blockquote>
+<p><strong>強化した層</strong>: 3層を統合 — 業務に組み込む型を持てる<br />
+※ ハーネス層 = Anthropic 公式概念 (Agent = Model + Harness)</p>
+</blockquote>
+<!--
+この章で学んだことを振り返りましょう。3つの職種ケースで3層の組み合わせ方を見て、共通パターンを導き出しました。自分の困りごとに合う層から始める — これが業務適用のコツです。本章で出た /handoff は本リポジトリ独自のカスタムスラッシュコマンド (Skills で自前定義) で、Claude Code 標準ではありません。一方 advisor ツール (advisor_20260301)・PostToolUse hook (公式 29 種類の 1 つ)・MCP (Model Context Protocol) は公式機能です。両者を区別する習慣を、次章でも持ち続けてください。次章は「困った時の逆引き辞典」で、実務で詰まったときのガイドを持ち帰ります。
+-->
+
+<hr />
+<h2>確認問題</h2>
+<p><strong>Q1</strong>: 「毎回同じプロンプトを書いている」という困りごとがある場合、どの層から始めるのが適切ですか?</p>
+<p><strong>Q2</strong>: 営業ケースで「前回の顧客クレーム」をAIに自動参照させるには、どの層の技術を使いますか?</p>
+<p><strong>Q3</strong>: 3ケースに共通する「定型化 → 検索 → 担保」のうち、「担保」にあたる代表的な道具を2つ挙げてください。</p>
+<hr />
+<p><strong>A1</strong>: プロンプト層です。まずカスタムスラッシュコマンド (Skills 形式 <code>.claude/skills/&lt;name&gt;/SKILL.md</code> 推奨) で繰り返し使うプロンプトを1つ資産化します。「毎回同じものを書いている」= プロンプト層の課題と判断できます。</p>
+<p><strong>A2</strong>: コンテキスト層の技術 (memory検索 / RAG / MCP サーバー) を使います。過去の顧客対応履歴をmemoryに蓄積しておき、プロンプト送信時に意味検索で関連履歴を自動参照させます。外部 MCP サーバー (例: <code>claude-mem</code>) を組み合わせる構成が代表例ですが、claude-mem 固有の UI/コマンド体系は claude-mem 公式 README で別途確認してください。</p>
+<p><strong>A3</strong>: <strong>advisor</strong> (Anthropic 公式 <code>advisor_20260301</code> ツール・第三者AIレビュー) と <strong>段階確認</strong> (チェックポイント・ch08 解決策①) の2つです。いずれもハーネス層 (Anthropic 公式概念「Agent = Model + Harness」の Harness 層) に属する「品質を担保する」仕組みです。</p>
+<!--
+確認問題の解答です。Q1はプロンプト層 (カスタムスラッシュコマンドは Skills 形式が推奨)、Q2はコンテキスト層の検索技術 (claude-mem 等の MCP サーバー連携が代表)、Q3はadvisor (公式 tool) と段階確認です。自分の困りごとを3層のどれに当てはまるか考える癖をつけると、道具の選び方が上達します。「公式機能 (advisor / PostToolUse hook / MCP)」と「本講座独自 (/handoff)」を区別する目線も忘れずに。
+-->
+
+<hr />
+<!-- _class: cover -->
+
+<h1>第9章 完了!</h1>
+<h2>次章: 困った時の逆引き辞典</h2>
+<div class="meta">
+✅ 3ケースで3層の組み合わせ方を理解した<br>
+✅ 自分の業務に当てはめる型を持てた<br>
+✅ 「どの層から始めるか」の判断基準を身につけた<br>
+✅ `/handoff` 等の独自カスタムスラッシュコマンドと Claude Code 標準の区別を意識した<br>
+✅ advisor / PostToolUse / MCP が公式機能であることを確認した<br><br>
+▶ 第10章: 詰まったときに「どの層が欠けているか」から逆引きする
+</div>
+
+<!--
+第9章、お疲れさまでした。次は第10章「困った時の逆引き辞典」です。実務で詰まったとき、症状から「どの層が欠けているか」を逆引きできる辞典を持ち帰ります。これまでの学びを実践に移すための強力な道しるべになります。本章で身につけた「公式機能/独自カスタムの区別」の目線は、次章の逆引き辞典で扱う各スラッシュコマンドの位置付けを正しく理解するためにも重要です。
+-->
+</body></html>

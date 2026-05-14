@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中級ch05 役割別ファイル (修正版)</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.3em; }
+h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.1em; }
+h3 { color: #4b5563; margin-top: 1em; font-size: 1.0em; }
+hr { border: none; border-top: 2px dashed #cbd5e1; margin: 2em 0; }
+table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 0.82em; }
+th { background: #1e3a8a; color: #fff; padding: 5px 7px; }
+td { padding: 5px 7px; border: 1px solid #d1d5db; vertical-align: top; }
+tr:nth-child(even) td { background: #f3f4f6; }
+code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.88em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; overflow-x: auto; font-size: 0.82em; }
+pre code { background: transparent; color: inherit; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.7em; color: #78350f; }
+@media (max-width: 768px) { body { padding: 8px; font-size: 13.5px; } table { font-size: 0.76em; } }
+</style></head><body>
+<nav style="background:#1e3a8a; color:#fff; padding:8px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
+<a href="../index.html" style="color:#fde68a; margin-right:10px;">← ハブ</a>
+<a href="index.html" style="color:#fff; text-decoration:underline;">📂 修正版19章リスト</a>
+</nav>
+<h1>📝 中級ch05 役割別ファイル <small style="color:#6b7280; font-size:0.7em;">(修正版 v1)</small></h1>
+<!-- _class: cover -->
+
+<!--
+スピーカーノート:
+第5章へようこそ。ch04 で「長文を作らない仕組み」(方向性① 分割+検索) を 4 道具 (chunk / RAG / claude-mem / 手動ドキュメント化) で実装しました。本章は ch03 LitM の根本対策のうち「方向性② 物理分割」を扱います。役割別ファイルとサブエージェントの 2 本柱で、指示の長文化と参照情報の長文化の両方を解消します。
+-->
+
+<h1>第5章: 役割別ファイルで AI を分業させる</h1>
+<h2>3 段重ね + サブエージェントで「言ったのにやってくれない」を防ぐ</h2>
+<div class="meta">
+中級編 — 第5章 (約 30 min)<span class="free">FREE</span><br><br>
+「AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全解説」<br><br>
+講師: なぎなた
+</div>
+
+<hr />
+<h2>前回の復習 — ch04 の核心</h2>
+<blockquote>
+<p>ch04 で学んだこと:<br />
+- <strong>4 つの主役道具</strong> (chunk / RAG (Retrieval-Augmented Generation) / claude-mem / 手動ドキュメント化) で長文を作らない設計を実装<br />
+- 「全部添付」から「必要な分だけ検索して渡す」への転換 = <strong>方向性① 分割 + 検索</strong><br />
+- <code>MEMORY.md</code> (<code>~/.claude/projects/&lt;project&gt;/memory/</code>) は Claude Code 公式の自動メモリ機能 (会話開始時に 200 行/25KB 自動読込)</p>
+</blockquote>
+<p><strong>今日のテーマ</strong>: 情報を「どう読み込ませるか」を<strong>役割別に整理</strong>し、さらに<strong>長文を別の AI に分担</strong>する = <strong>方向性② 物理分割</strong></p>
+<!-- Speaker note: ch04 の 4 道具と「方向性① 分割+検索」を最初に再確認します。本章は「方向性② 物理分割」を扱うこと、ch07 で「方向性③ 自動取得」を扱うことを明示しておくと、3 章セットの位置付けが明確になります -->
+
+<hr />
+<h2>今回の「困りごと」</h2>
+<blockquote>
+<p><strong>⑥「言ったのにやってくれない」が頻発する</strong></p>
+</blockquote>
+<p>「AI に『タスク分解して』と頼んだのに、勝手に進捗確認まで始めた」<br />
+「指示の最後に書いた重要なルールが無視される」<br />
+「同じ AI に何でも頼んでいるから、指示が膨らみすぎて抜けが発生する」</p>
+<blockquote>
+<p><strong>④ 補足</strong>: 主文脈に長文 doc を持ち込むと Lost in the Middle (LitM) が起きる (ch03)</p>
+</blockquote>
+<hr />
+<h2>本章の学習目標</h2>
+<!--
+スピーカーノート:
+この章では 2 つの解決策を学びます。3 段重ねの役割別ファイルとサブエージェント。どちらも ch03 LitM の根本対策 (方向性② 物理分割) です。
+-->
+
+<ol>
+<li><strong><code>CLAUDE.md</code> / 役割別ファイル / 個別指示の 3 段重ね</strong> を説明できる</li>
+<li><strong>サブエージェント</strong> で長文を別の AI に分担し LitM (Lost in the Middle) を回避できる</li>
+<li><code>CLAUDE.md</code> の読込挙動・他ツールとの違いを理解する</li>
+<li>サブエージェントの <strong>5 つの呼出方式</strong> (自動委譲 / 自然言語 / @-mention / <code>--agent</code> CLI / Agent ツール) を知る</li>
+<li>自分の業務に<strong>役割分業</strong>を適用する構想ができる</li>
+</ol>
+<hr />
+<h2>初級 ch03 との接続 — <code>.claude/agents/</code> と <code>instructions/</code> の使い分け</h2>
+<blockquote>
+<p>初級編 ch03 で <strong><code>.claude/agents/&lt;name&gt;.md</code></strong> という Claude Code 公式のサブエージェント定義を紹介しました。本章では、それに加えて <strong><code>instructions/&lt;role&gt;.md</code></strong> という別の置き場所を扱います。両者の関係を最初に整理しておきます。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>置き場所</th>
+<th>出所</th>
+<th>役割</th>
+<th>本章での扱い</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.claude/agents/&lt;name&gt;.md</code></td>
+<td><strong>Claude Code 公式</strong></td>
+<td>サブエージェント定義 (YAML frontmatter 付き Markdown)</td>
+<td>本章「柱②」で扱う</td>
+</tr>
+<tr>
+<td><code>instructions/&lt;role&gt;.md</code></td>
+<td><strong>本リポジトリ独自</strong> (VSCode + GitHub Copilot 由来)</td>
+<td>役割別の指示ファイル</td>
+<td>本章「柱①」で扱う</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>両者は併存可能で、目的が違います。サブエージェント定義 (<code>.claude/agents/</code>) は <strong>別 AI を起動するための公式仕様</strong>。<code>instructions/</code> は <strong>メイン AI に役割別ルールを読ませるための独自運用</strong>です。</p>
+</blockquote>
+<!-- Speaker note: 初級ch03 で扱った `.claude/agents/` と、本章で扱う `instructions/` のパスが異なることが受講者の混乱要因になりやすいため、冒頭で対比表を提示します。両者は併存可能で、出所が違う (前者=公式、後者=本リポジトリ独自) ことを強調してください。`instructions/` の由来は本章後半で詳しく扱います -->
+
+<hr />
+<h2>現象 — こんな経験ありませんか?</h2>
+<p><strong>ケース A</strong>: 営業の AI に「メール返信」「提案書作成」「競合分析」を全部 <code>CLAUDE.md</code> に書いている。指示が長すぎてメールのトーン指定が無視される</p>
+<p><strong>ケース B</strong>: PM の AI に「タスク分解して」と頼んだのに、勝手に進捗確認まで始めてしまった</p>
+<p><strong>ケース C</strong>: 100 ページの企画書を 1 つの AI にチェックさせたら、中盤の重要な指摘を見落とした (ch03 LitM)</p>
+<hr />
+<h2>対策の方向性 — 「全部入り」からの脱却</h2>
+<pre><code>Before:  1つのAIに全部頼む → 指示が膨大 → 抜け漏れ + LitM発生
+
+After:   役割別にファイルを分ける + 長文は別AIに分担
+         → 指示が短く明確 → LitMも起きない
+</code></pre>
+<p><strong>核心</strong>: 1 つの AI に「何でも屋」をやらせない。役割を分けて、それぞれに最小限の指示を渡す = <strong>方向性② 物理分割</strong></p>
+<hr />
+<h2>本章の解決策 — 2 本の柱</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>解決策</th>
+<th>効果</th>
+<th>該当層</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>①</td>
+<td><strong>3 段重ねの役割別ファイル</strong></td>
+<td>指示が短く明確になり、抜け漏れが激減</td>
+<td>コンテキスト層 (L2)</td>
+</tr>
+<tr>
+<td>②</td>
+<td><strong>サブエージェントで長文を物理分割</strong></td>
+<td>主文脈に長文を持ち込まず LitM を回避</td>
+<td>ハーネス層 (L3)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>※ 役割別ファイルは「AI に渡す指示の整理」=コンテキスト層性格。サブエージェントは「Claude の動作を拡張する仕組み」=ハーネス層。<strong>本章は L2 と L3 にまたがります</strong></p>
+</blockquote>
+<hr />
+<!-- _class: cover -->
+
+<h1>柱①: 3 段重ねの役割別ファイル</h1>
+<h2>「全部入り」をやめて、役割ごとに整理する</h2>
+<hr />
+<h2>「全部入り」の罠</h2>
+<!--
+スピーカーノート:
+CLAUDE.md に全部書く罠を実例で示します。メール・提案書・データ分析のルールが混在 → ch03 の LitM で後半が読み飛ばされる。受講者に「自分の CLAUDE.md は何行あるか?」と問いかけてください。
+-->
+
+<p>よくある <code>CLAUDE.md</code>:</p>
+<pre><code class="language-markdown"># 私のAIルール
+
+## 基本方針
+- 丁寧な言葉遣い
+- 日本語で回答
+
+## メール返信のルール
+- 宛先は CC に営業部長を入れる
+- 署名は自社テンプレートを使う
+- 返信は24時間以内
+
+## 提案書作成のルール
+- 競合比較表を必ず含める
+- 価格は標準プランから提示
+- 図表は3枚以上
+
+## データ分析のルール
+- 欠損値は除外してから分析
+- 可視化は棒グラフと折れ線を併用
+- 統計的有意差も確認する
+
+... (まだ 60 行続く)
+</code></pre>
+<p><strong>問題</strong>: ch03 で学んだ通り、100 行の指示は後半が読み飛ばされる</p>
+<hr />
+<h2>なぜ「全部入り」が失敗するのか?</h2>
+<table>
+<thead>
+<tr>
+<th>問題</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>指示の最後のルールが無視される</td>
+<td>ch03 Lost in the Middle — 長い指示の中央〜末尾が読み飛ばされる</td>
+</tr>
+<tr>
+<td>無関係なルールが混在</td>
+<td>メール返信時にデータ分析ルールまで読む無駄</td>
+</tr>
+<tr>
+<td>役割が曖昧</td>
+<td>「この AI は何担当?」が不明確</td>
+</tr>
+<tr>
+<td>更新が怖い</td>
+<td>100 行の中に重要なルールが埋もれていて、編集すると壊れそう</td>
+</tr>
+</tbody>
+</table>
+<p><strong>ch04 の「長文を作らない」設計思想と同じ問題</strong> — 指示ファイルが長文になっている</p>
+<hr />
+<h2>解決策: 3 段重ねに分ける</h2>
+<!--
+スピーカーノート:
+3 層アーキテクチャの図を説明します。第1層 CLAUDE.md は常駐・全役割共通・30 行以内。第2層役割別ファイルは必要な役割だけ。第3層個別指示は使い捨て。各層の役割分担が明確になることがポイントです。
+-->
+
+<pre><code>┌────────────────────────────────────────┐
+│  第1層: CLAUDE.md (常駐ルール)          │
+│  全役割で共通する最低限のルール          │
+│  例: 「日本語で回答」「丁寧な言葉遣い」  │
+│  → 会話開始時に読み込まれる (短く保つ)  │
+├────────────────────────────────────────┤
+│  第2層: 役割別ファイル                   │
+│  各役割に固有のルール                    │
+│  例: instructions/email.md (メール担当)  │
+│       instructions/proposal.md (提案担当)│
+│  → 必要な役割のファイルだけ読み込む      │
+├────────────────────────────────────────┤
+│  第3層: 個別指示 (タスク)               │
+│  その都度の具体的な指示                  │
+│  例: 「このメールに返信して」            │
+│  → そのタスク限定の指示                  │
+└────────────────────────────────────────┘
+</code></pre>
+<hr />
+<h2>第1層: CLAUDE.md の読込仕様 (Claude Code 固有)</h2>
+<blockquote>
+<p><code>CLAUDE.md</code> は <strong>Claude Code 固有の自動読込ファイル</strong>です。他ツールには別の規約があります:</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>ツール</th>
+<th>自動読込ファイル</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Claude Code</strong></td>
+<td><code>CLAUDE.md</code></td>
+</tr>
+<tr>
+<td>Cursor</td>
+<td><code>.cursorrules</code></td>
+</tr>
+<tr>
+<td>Windsurf</td>
+<td><code>.windsurfrules</code></td>
+</tr>
+<tr>
+<td>VSCode + GitHub Copilot</td>
+<td><code>.github/copilot-instructions.md</code> / <code>.github/instructions/*.instructions.md</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>CLAUDE.md</code> の読込挙動 (公式)</strong>:<br />
+- <strong>タイミング</strong>: 新しい会話/セッションの開始時に読込 (プロセス再起動は不要)。<code>/clear</code> や <code>/compact</code> の後もディスクから再読込<br />
+- <strong>階層 (4 階層)</strong>: ① 管理ポリシー / ② ユーザー <code>~/.claude/CLAUDE.md</code> / ③ プロジェクト <code>./CLAUDE.md</code> または <code>./.claude/CLAUDE.md</code> / ④ ローカル <code>./CLAUDE.local.md</code><br />
+- <strong>マージ挙動</strong>: 発見されたすべての <code>CLAUDE.md</code> は<strong>連結</strong>される (上書きではない)。矛盾時は後に読まれるプロジェクト指示が優先されやすい</p>
+<!-- Speaker note: CLAUDE.md は Claude Code 固有のファイルであり、Cursor や Windsurf は別の規約 (.cursorrules / .windsurfrules) を使っていることを明示します。受講者が他ツールに移行した時に混乱しないよう、ツール別の対応表を示してください。読込タイミングは「プロセス再起動」ではなく「新しい会話/セッション開始時」が正しい表現です -->
+
+<hr />
+<h2>分類の基準 — 変更頻度 × 適用範囲</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>全役割で共通</th>
+<th>特定の役割のみ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>変更頻度: 低</strong></td>
+<td>CLAUDE.md (第1層)</td>
+<td>役割別ファイル (第2層)</td>
+</tr>
+<tr>
+<td><strong>変更頻度: 高</strong></td>
+<td>(CLAUDE.md に入れない)</td>
+<td>個別指示 (第3層)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>コツ</strong>:<br />
+- CLAUDE.md は <strong>30 行以内</strong> に保つ (= ch03 配置技術の実践)<br />
+- 役割別ファイルは <strong>その役割の AI だけが読む</strong> (= ch04 必要時読込の実践)<br />
+- 個別指示は <strong>使い捨て</strong> で書く (常駐ルールに混ぜない)</p>
+<hr />
+<h2>Before / After 実例</h2>
+<p><strong>Before</strong> (全部入り 100 行):</p>
+<pre><code>CLAUDE.md (100行)
+├── 基本方針 (5行)
+├── メールルール (20行)
+├── 提案書ルール (25行)
+├── データ分析ルール (30行)
+└── その他 (20行)
+</code></pre>
+<p><strong>After</strong> (3 段重ね):</p>
+<pre><code>CLAUDE.md (15行) — 基本方針だけ
+instructions/email.md (20行) — メール担当のルール
+instructions/proposal.md (25行) — 提案担当のルール
+instructions/analysis.md (30行) — 分析担当のルール
+
+個別指示: 「このメールに返信して」(その都度)
+</code></pre>
+<hr />
+<h2>⚠️ <code>instructions/</code> ディレクトリの出所 (重要)</h2>
+<blockquote>
+<p><code>instructions/&lt;role&gt;.md</code> は <strong>本リポジトリ独自の運用パターン</strong>です。Claude Code 標準ではありません。</p>
+</blockquote>
+<p><strong>由来</strong>: VSCode + GitHub Copilot 公式の <strong><code>.github/instructions/NAME.instructions.md</code></strong> 規約に着想を得て、Claude Code 用にアレンジしたものです。</p>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>VSCode + GitHub Copilot (公式)</th>
+<th>本リポジトリ (派生・独自)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>配置場所</td>
+<td><code>.github/instructions/</code></td>
+<td>top-level <code>instructions/</code></td>
+</tr>
+<tr>
+<td>ファイル形式</td>
+<td><code>&lt;NAME&gt;.instructions.md</code></td>
+<td><code>&lt;role&gt;.md</code></td>
+</tr>
+<tr>
+<td>読み込み機構</td>
+<td>VSCode 設定 <code>chat.instructionsFilesLocations</code> で自動</td>
+<td>CLAUDE.md からの明示的 Read 指示で実現</td>
+</tr>
+<tr>
+<td>frontmatter</td>
+<td>YAML <code>applyTo</code> フィールド</td>
+<td>(本リポジトリでは未使用)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Claude Code 単体で類似機能を実現する公式の選択肢</strong>: ①<code>.claude/skills/</code> (オンデマンド読込) / ②<code>@path</code> imports (CLAUDE.md 内) / ③ <code>.claude/agents/</code> (サブエージェント定義)</p>
+<!-- Speaker note: `instructions/` ディレクトリの由来を明確にします。受講者が「謎の独自規約」と感じないよう、VSCode + GitHub Copilot 公式の `.github/instructions/` を起源として紹介し、本リポジトリではそれを Claude Code 用にアレンジしている点を説明してください。Claude Code 標準として誤認させないことが重要です。Claude Code 単体での代替手段 (skills / @path imports / agents) も併記すると、受講者が自分の環境に合わせて選択できます -->
+
+<hr />
+<h2>役割別ファイルはどう読み込まれるのか?</h2>
+<p><strong>Claude Code 標準のしくみ</strong> (CLAUDE.md 経由):</p>
+<pre><code>CLAUDE.md (会話開始時に自動読込)
+  ↓
+  「メール案件の時は instructions/email.md を Read せよ」
+  「提案書案件の時は instructions/proposal.md を Read せよ」
+  ↓
+ユーザーが「このメールに返信して」と指示
+  ↓
+AI が CLAUDE.md の指示に従って instructions/email.md を Read tool で読込
+  ↓
+個別指示はその都度プロンプトに直接書く
+</code></pre>
+<p><strong>ポイント</strong>: <code>instructions/</code> ディレクトリのファイルは Claude Code が自動では読まない (<code>CLAUDE.md</code> ではない)。CLAUDE.md に「いつ・どれを Read するか」の指示を書くことで、AI が必要時に Read する仕組み。</p>
+<blockquote>
+<p>※ より自動化したい場合は ch07 の hook (UserPromptSubmit hook で関連ファイルを注入) と組み合わせる選択肢もあります</p>
+</blockquote>
+<hr />
+<h2>3 段重ねが機能する理由</h2>
+<pre><code>メール返信を頼む:
+  1. CLAUDE.md → 「日本語で回答」「丁寧な言葉遣い」(会話開始時に読む)
+  2. instructions/email.md → 「CC に営業部長を入れる」「署名テンプレ使用」(メール案件で Read)
+  3. 個別指示 → 「この顧客メールに返信して」(今回のみ)
+
+提案書作成を頼む:
+  1. CLAUDE.md → 「日本語で回答」「丁寧な言葉遣い」(会話開始時に読む)
+  2. instructions/proposal.md → 「競合比較表を含める」「図表3枚以上」(提案案件で Read)
+  3. 個別指示 → 「A社向けの提案書を作成して」(今回のみ)
+</code></pre>
+<p><strong>無関係なルールが混入しない</strong> → 指示が短く明確 → 抜け漏れ激減</p>
+<hr />
+<!-- _class: cover -->
+
+<h1>柱②: サブエージェントで長文を物理分割</h1>
+<h2>ch03 LitM のもう一つの根本対策</h2>
+<hr />
+<h2>長文レビューの問題</h2>
+<p><strong>シナリオ</strong>: 100 ページの企画書を AI にチェックしてほしい。</p>
+<pre><code>あなた: 「この 100 ページの企画書をレビューして」
+
+AI:  (100 ページを読み込む)
+     → ch03 LitM が発生
+     → 中盤の重要なリスク指摘を見落とす
+     → 「問題ありません」と回答 ← 嘘
+</code></pre>
+<p><strong>ch04 の chunk + RAG も一つの解決策</strong>ですが、別のアプローチがあります。</p>
+<hr />
+<h2>サブエージェント = 「別の AI に丸投げ」</h2>
+<!--
+スピーカーノート:
+サブエージェントの図を説明します。メイン AI から別 AI に仕事を振る → 別 AI が独立して処理 → 結果だけ報告。メインの文脈が短いまま保たれる = LitM 発生なし、という流れを強調してください。
+-->
+
+<div class="vocab-box">
+
+### 用語: サブエージェント (Subagent)
+
+**メインの AI** から **別の AI** に作業を依頼する Claude Code 公式の仕組み。
+
+ざっくりいうと: 「AI が別の AI に『この部分お願い』と仕事を振る」
+
+</div>
+
+<pre><code>メインAI (あなたが話しているAI)
+  │
+  ├──「企画書のレビュー、100ページあるから別AIにお願いして」
+  │
+  └──→ サブエージェント (別のAI)
+         │
+         ├── 100ページを独立して読む
+         ├── レビュー結果をまとめる
+         │
+         └──→ メインAIに報告: 「リスク指摘が3件見つかりました」
+</code></pre>
+<hr />
+<h2>サブエージェントの定義方法 (公式仕様)</h2>
+<p><strong>配置場所</strong>:<br />
+- <strong>プロジェクト用</strong>: <code>.claude/agents/&lt;name&gt;.md</code><br />
+- <strong>ユーザー用</strong> (全プロジェクト共通): <code>~/.claude/agents/&lt;name&gt;.md</code></p>
+<p><strong>ファイル形式</strong>: YAML frontmatter 付き Markdown</p>
+<pre><code class="language-markdown">---
+name: reviewer
+description: 長文ドキュメントをレビューしてリスク指摘を抽出する。Use when ユーザーが企画書・提案書・契約書のレビューを依頼するとき
+tools: Read, Grep, Glob
+---
+
+# サブエージェント: reviewer の指示書
+
+あなたは長文レビュー専門のサブエージェントです。
+渡されたドキュメントを通読し、以下の観点でリスクを抽出してください:
+- セキュリティ上の問題
+- 法務リスク
+- 数値の不整合
+...
+</code></pre>
+<blockquote>
+<p>※ これは初級 ch03 で予告した <code>.claude/agents/</code> の <strong>公式定義方法</strong>です。本章「柱①」の <code>instructions/</code> (本リポジトリ独自) とは別物。</p>
+</blockquote>
+<!-- Speaker note: サブエージェントの定義方法は Claude Code 公式仕様です。`.claude/agents/<name>.md` に YAML frontmatter 付き Markdown で書きます。`name` `description` は必須、`tools` で使えるツールを限定できます。description は「何をするか + Use when ユースケース前置き」形式が公式推奨です -->
+
+<hr />
+<h2>サブエージェントの 5 つの呼出方式 (公式)</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>方式</th>
+<th>例</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>①</td>
+<td><strong>自動委譲</strong> (description ベース)</td>
+<td>自動</td>
+<td>description のキーワードマッチで自動起動</td>
+</tr>
+<tr>
+<td>②</td>
+<td><strong>自然言語でのサブエージェント名指定</strong></td>
+<td>「reviewer エージェントで企画書を見て」</td>
+<td>明示的に指定したいとき</td>
+</tr>
+<tr>
+<td>③</td>
+<td><strong>@-mention</strong></td>
+<td><code>@"reviewer (agent)"</code> でレビューを依頼</td>
+<td>チャット内での明示的呼出</td>
+</tr>
+<tr>
+<td>④</td>
+<td><strong>CLI フラグ <code>--agent</code></strong></td>
+<td><code>claude --agent reviewer</code></td>
+<td>CLI 起動時に直接指定</td>
+</tr>
+<tr>
+<td>⑤</td>
+<td><strong>Agent ツール経由</strong> (旧 Task)</td>
+<td>コード/スクリプト内から API 経由で起動</td>
+<td>自動化スクリプトから呼出</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⚠️ <code>/agents</code> は <strong>管理用</strong> のタブ付きインターフェース (呼出用ではない)。<code>/agent &lt;name&gt;</code> という個別呼出コマンドは公式に<strong>存在しません</strong>。</p>
+</blockquote>
+<!-- Speaker note: サブエージェント呼出は 5 方式あります。自動委譲・自然言語指定・@-mention・--agent CLI フラグ・Agent ツール経由。受講者が「呼び方は自然言語と自動委譲しかない」と誤解しないよう、5 方式すべてを提示してください。`/agents` は管理用で呼出用ではないこと、`/agent <name>` は存在しないコマンドであることも明示します -->
+
+<hr />
+<h2>なぜ LitM が防げるのか?</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>メイン AI が全部やる</th>
+<th>サブエージェントに分担</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>メインの文脈</strong></td>
+<td>100 ページの企画書 + 会話履歴</td>
+<td>サマリだけ (3-5 行)</td>
+</tr>
+<tr>
+<td><strong>LitM リスク</strong></td>
+<td>高い (長文が混入)</td>
+<td>なし (メインは短いまま)</td>
+</tr>
+<tr>
+<td><strong>レビュー品質</strong></td>
+<td>中盤が読み飛ばされる</td>
+<td>サブエージェントは 100 ページだけに集中</td>
+</tr>
+</tbody>
+</table>
+<p><strong>核心</strong>: 長文をメインの文脈に<strong>持ち込まない</strong>。別の AI に読んでもらって、結果だけを受け取る。</p>
+<hr />
+<h2>サブエージェントが効く場面</h2>
+<table>
+<thead>
+<tr>
+<th>場面</th>
+<th>何を分担するか</th>
+<th>効果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>企画書レビュー</td>
+<td>100 ページの企画書全体</td>
+<td>メインは結果だけ受け取る</td>
+</tr>
+<tr>
+<td>複数資料の調査</td>
+<td>10 個の PDF レポート</td>
+<td>各資料の要約だけ受け取る</td>
+</tr>
+<tr>
+<td>大規模な文書作成</td>
+<td>対象ファイル 20 個</td>
+<td>変更提案だけ受け取る</td>
+</tr>
+<tr>
+<td>テスト一括確認</td>
+<td>100 個のテストケース</td>
+<td>結果サマリだけ受け取る</td>
+</tr>
+</tbody>
+</table>
+<p><strong>共通パターン</strong>: 「長文を読む作業」を別 AI に丸投げ → メインは短い結果だけ処理</p>
+<hr />
+<h2>ch04 との使い分け</h2>
+<table>
+<thead>
+<tr>
+<th>アプローチ</th>
+<th>手法</th>
+<th>適している場面</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ch04: chunk + RAG</strong></td>
+<td>長文を小片に分けて検索</td>
+<td>「特定の箇所だけ知りたい」場合</td>
+</tr>
+<tr>
+<td><strong>ch05: サブエージェント</strong></td>
+<td>長文を別 AI に丸投げ</td>
+<td>「全体をちゃんと見てほしい」場合</td>
+</tr>
+<tr>
+<td><strong>組み合わせ</strong></td>
+<td>chunk → サブエージェント</td>
+<td>まず chunk で関連部分を特定 → その部分の深掘りを別 AI に依頼</td>
+</tr>
+</tbody>
+</table>
+<p><strong>どちらも ch03 LitM の根本対策</strong> — 「長文をメインの文脈に持ち込まない」という共通の哲学</p>
+<hr />
+<h2>実践: サブエージェントの使い方</h2>
+<p>Claude Code では、ユーザーが「長文のレビューをして」と頼むと、AI が自動的にサブエージェント (自動委譲) を使って分担します。</p>
+<pre><code>あなた: 「この 100 ページの企画書をレビューして」
+
+AI:
+1. description マッチで reviewer サブエージェントを起動 (自動委譲)
+2. サブエージェントに企画書全体を渡す
+3. サブエージェントが独立してレビュー
+4. レビュー結果を受け取る
+5. あなたに報告: 「リスク指摘が 3 件見つかりました」
+</code></pre>
+<p><strong>メイン AI の文脈には、レビュー結果のサマリだけが残る</strong> → LitM 発生なし</p>
+<blockquote>
+<p>明示的に指定したい場合は <code>@"reviewer (agent)"</code> や <code>--agent reviewer</code> を使う</p>
+</blockquote>
+<hr />
+<h2>サブエージェントの注意点</h2>
+<blockquote>
+<p><strong>⚠️ サブエージェントは万能ではありません</strong></p>
+</blockquote>
+<ul>
+<li><strong>指示は明確に</strong>: 「レビューして」より「セキュリティ上の問題がないか確認して」</li>
+<li><strong>結果は検証する</strong>: サブエージェントも AI。ch06 で学ぶ第三者レビュー (advisor) で検証を</li>
+<li><strong>使いどころを見極める</strong>: 短い文章ならメイン AI で十分。長文 (数十ページ以上) でこそ本領発揮</li>
+<li><strong>description が呼出の鍵</strong>: 自動委譲で起動させたいなら、description に「何をするか + Use when」を明記</li>
+</ul>
+<hr />
+<h2>実例①: 営業担当の役割分業</h2>
+<!--
+スピーカーノート:
+営業の 3 段重ね実例です。CLAUDE.md には基本方針だけ、instructions/email.md にメール固有ルール、instructions/proposal.md に提案書固有ルール。各タスクで必要なファイルだけ読む → 無関係ルールが混入しない、という点を強調。
+-->
+
+<p><strong>現象</strong>: 営業の AI に「顧客メール返信」「提案書作成」「競合分析」を全部 <code>CLAUDE.md</code> に書いている。指示が長すぎて、メール返信のトーン指定が無視される</p>
+<p><strong>3 段重ね解決</strong>:</p>
+<pre><code>CLAUDE.md (15行):
+  - 自社製品の基本情報
+  - 丁寧な言葉遣い
+  - 「メール案件は instructions/email.md を Read」「提案案件は instructions/proposal.md を Read」
+
+instructions/email.md:
+  - 顧客メール返信のトーン・テンプレート
+  - CC ルール・署名
+
+instructions/proposal.md:
+  - 提案書のフォーマット
+  - 競合比較表の必須項目
+</code></pre>
+<p>各タスクで必要なファイルだけ読み込む → 無関係なルールが混入しない</p>
+<p><strong>置換</strong>: 自社の業務区分に変えて即応用</p>
+<hr />
+<h2>実例②: PM サポートの役割分業</h2>
+<!--
+スピーカーノート:
+PM の 3 段重ね実例です。「タスク分解して」と頼んだのに進捗確認まで始める → 役割別ファイルで分離 → 指示時にどの役割を呼ぶか明示。自社の PM 業務フローに置換して即応用できる点を強調してください。
+-->
+
+<p><strong>現象</strong>: PM の AI に「タスク分解」「進捗確認」「ステークホルダー報告」を全部頼んでいる。「タスク分解して」と頼んだのに進捗確認まで始めてしまう</p>
+<p><strong>3 段重ね解決</strong>:</p>
+<pre><code>CLAUDE.md (10行):
+  - プロジェクトの基本情報
+  - 役割別ファイルの読込ルール
+
+instructions/task_decompose.md:
+  - タスク分解のフォーマット (大→中→小に細分化)
+  - 依存関係の明記ルール
+
+instructions/progress_report.md:
+  - 進捗レポートのフォーマット
+  - リスク記載ルール
+</code></pre>
+<p>指示時にどの役割を呼ぶか明示 → 抜けも余計な動作も防げる</p>
+<p><strong>置換</strong>: 自社の PM 業務フローに変えて即応用</p>
+<hr />
+<h2>実例③: データ分析の役割分業 + サブエージェント</h2>
+<p><strong>現象</strong>: 分析 AI に「データ前処理」「統計分析」「レポート作成」を 1 つのプロンプトで頼む。前処理で型変換ミスに気づかず、間違った統計結果をレポートに書いてしまう</p>
+<p><strong>3 段重ね + サブエージェント解決</strong>:</p>
+<pre><code>CLAUDE.md (10行):
+  - データソースの基本情報
+
+instructions/preprocess.md:
+  - 前処理のルール (欠損値の扱い・型変換)
+
+instructions/analysis.md:
+  - 分析手法の選択基準
+
+instructions/report.md:
+  - レポートのフォーマット
+
++ .claude/agents/data_validator.md (公式サブエージェント定義):
+  前処理結果の検証を別 AI に依頼 → 型変換ミスを検出
+</code></pre>
+<p>各工程の品質が独立して担保される</p>
+<p><strong>置換</strong>: 自社のデータパイプライン (抽出/変換/分析/可視化) に変えて即応用</p>
+<hr />
+<h2>3 段重ね + サブエージェントの全体図</h2>
+<!--
+スピーカーノート:
+全体図で 3 段重ねとサブエージェントの関係を整理します。3 段重ねが LitM 予防、サブエージェントが LitM 回避。どちらも ch03 LitM の根本対策 (方向性② 物理分割) であることを再確認してください。
+-->
+
+<pre><code>┌─────────────────────────────────────────────────┐
+│  第1層: CLAUDE.md (常駐ルール・全役割共通・短い)  │
+│  ← Claude Code 公式・会話開始時に自動読込        │
+├─────────────────────────────────────────────────┤
+│  第2層: instructions/&lt;role&gt;.md (役割別)           │
+│  ← 本リポジトリ独自 (VSCode Copilot 由来派生)    │
+│  ← CLAUDE.md の指示で必要時に Read              │
+├─────────────────────────────────────────────────┤
+│  第3層: 個別指示 (その都度の具体的指示)           │
+│  ← 使い捨てで書く。常駐ルールに混ぜない          │
+└─────────────────────────────────────────────────┘
+         │
+         │ 長文 (数十ページ以上) が発生したら
+         ▼
+┌─────────────────────────────────────────────────┐
+│  サブエージェント (Claude Code 公式)              │
+│  .claude/agents/&lt;name&gt;.md に YAML 定義           │
+│  5 つの呼出方式 (自動委譲/自然言語/@-mention      │
+│                   /--agent CLI/Agent ツール)      │
+│  ← ch03 LitM 根本対策: メイン文脈に長文を持ち込まない │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<hr />
+<h2>章末ミニ演習</h2>
+<p><strong>やってみよう</strong>:</p>
+<ol>
+<li>自分の <code>CLAUDE.md</code> を見直す — 30 行を超えているなら、役割別に分割する構想を立てる</li>
+<li>自分の業務で「同じ AI に何でも頼んでいる」箇所を 3 つ挙げる</li>
+<li>そのうち 1 つを 3 段重ねでどう分けるか構想を書き出す</li>
+<li>長文 (数十ページ以上) を扱う業務があれば、サブエージェントに分担させる構想も書く</li>
+</ol>
+<p><strong>体験してほしいこと</strong>:<br />
+- 「全部入り」がいかに危険かを実感する<br />
+- 役割別に分けると指示がどう短く明確になるかを体感する</p>
+<hr />
+<h2>本章のまとめ</h2>
+<!--
+スピーカーノート:
+3 段重ねで指示を短く明確に、サブエージェントで長文を物理分割。ch04 の chunk+RAG と ch05 のサブエージェントは、どちらも ch03 LitM の根本対策です。次章 ch06 では第三者 AI による検証 (advisor) を学びます。
+-->
+
+<ul>
+<li><strong>3 段重ね</strong> (CLAUDE.md / <code>instructions/&lt;role&gt;.md</code> / 個別指示) で指示を短く明確にする</li>
+<li><strong><code>CLAUDE.md</code> は Claude Code 固有</strong>の自動読込ファイル (Cursor は <code>.cursorrules</code>、Windsurf は <code>.windsurfrules</code>)</li>
+<li><strong><code>instructions/</code></strong> は VSCode + GitHub Copilot 公式 <code>.github/instructions/</code> 由来の命名を Claude Code 用に派生させた<strong>本リポジトリ独自運用</strong></li>
+<li><strong>サブエージェント</strong> (<code>.claude/agents/&lt;name&gt;.md</code> 公式仕様) で長文を別 AI に分担し、メイン文脈に LitM を起こさない</li>
+<li>サブエージェント呼出は <strong>5 方式</strong> (自動委譲 / 自然言語 / @-mention / <code>--agent</code> CLI / Agent ツール)</li>
+<li>ch04 (chunk + RAG = 方向性①) と ch05 (サブエージェント = 方向性②) は <strong>ch03 LitM の 2 つの根本対策</strong></li>
+</ul>
+<p><strong>持ち帰り</strong>:<br />
+「全部入り <code>CLAUDE.md</code> を 3 段重ねに分ければ、AI の役割が明確になり抜け漏れが激減する。長文はサブエージェントに分担すれば LitM を回避できる」</p>
+<blockquote>
+<p><strong>強化した層: コンテキスト層 (L2) + ハーネス層 (L3)</strong> — 役割別ファイル (L2: 指示の整理) + サブエージェント (L3: AI の動作拡張) の 2 軸で物理分割を実装</p>
+</blockquote>
+<hr />
+<!-- _class: cover -->
+
+<h1>第5章 完了</h1>
+<h2>次は 第6章「第三者 AI に見直してもらう」</h2>
+<div class="meta">
+✅ 3 段重ねの役割別ファイル (CLAUDE.md / instructions/ / 個別指示) で指示を明確にした<br>
+✅ instructions/ の出所 (VSCode Copilot 由来・本リポジトリ独自派生) を理解した<br>
+✅ サブエージェント (.claude/agents/) の公式定義方法と 5 つの呼出方式を理解した<br>
+✅ ch03 LitM の 2 つの根本対策 (方向性① + 方向性②) を理解した<br><br>
+<b>続けて第6章をお楽しみください</b>
+</div>
+</body></html>

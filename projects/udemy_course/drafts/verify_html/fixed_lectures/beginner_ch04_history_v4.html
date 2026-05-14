@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>初級ch04 歴史 (修正版)</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.3em; }
+h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.1em; }
+h3 { color: #4b5563; margin-top: 1em; font-size: 1.0em; }
+hr { border: none; border-top: 2px dashed #cbd5e1; margin: 2em 0; }
+table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 0.82em; }
+th { background: #1e3a8a; color: #fff; padding: 5px 7px; }
+td { padding: 5px 7px; border: 1px solid #d1d5db; vertical-align: top; }
+tr:nth-child(even) td { background: #f3f4f6; }
+code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.88em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; overflow-x: auto; font-size: 0.82em; }
+pre code { background: transparent; color: inherit; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.7em; color: #78350f; }
+@media (max-width: 768px) { body { padding: 8px; font-size: 13.5px; } table { font-size: 0.76em; } }
+</style></head><body>
+<nav style="background:#1e3a8a; color:#fff; padding:8px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
+<a href="../index.html" style="color:#fde68a; margin-right:10px;">← ハブ</a>
+<a href="index.html" style="color:#fff; text-decoration:underline;">📂 修正版19章リスト</a>
+</nav>
+<h1>📝 初級ch04 歴史 <small style="color:#6b7280; font-size:0.7em;">(修正版 v1)</small></h1>
+<!-- _class: cover -->
+
+<h1>生成AIエンジニアリングの歴史</h1>
+<h2>2020年のLLM誕生から3階層モデルへ</h2>
+<div class="meta">
+初級編 — 第4章 (約 25 min)<br><br>
+「Claude Code はじめての一歩 — AI開発の基礎を1日で習得」<br><br>
+講師: なぎなた
+</div>
+
+<!--
+スピーカーノート:
+こんにちは。第4章「生成AIエンジニアリングの歴史」を始めます。前章までの第2章・第3章では、CLAUDE.md と .md 仲間たち (commands/skills/agents/imports/global) という L2 コンテキストエンジニアリングの道具立てを学びました。プロジェクトに合わせて AI を導くための具体的な仕組みです。この第4章では視点を一段引いて、「なぜ 3 階層 (L1 プロンプト / L2 コンテキスト / L3 ハーネス) という構造に至ったのか」を歴史の流れから理解します。2020年のGPT-3 から ChatGPT、RAG、CLAUDE.md、そして Claude Code の hook まで。25 分かけて、私たちが今使っている仕組みの裏側にある必然性を辿りましょう。
+-->
+
+<hr />
+<h1>🗺️ 前章の復習 — .md 仲間たちから歴史へ</h1>
+<p><strong>前章 (第3章) で身につけたこと</strong>:<br />
+- <strong>6 つの .md 設定機構</strong> (CLAUDE.md / .claude/agents/ / commands / skills / imports / global CLAUDE.md) の全体像<br />
+- 必須は <strong>CLAUDE.md だけ</strong>・残り 5 つは段階的に導入する拡張機能<br />
+- skills は <code>.claude/skills/&lt;name&gt;/SKILL.md</code> ディレクトリ形式で <strong>オンデマンド読込</strong><br />
+- サブエージェント呼出は <strong>5 方式</strong> (自動委譲・自然言語名指し・@-mention・<code>--agent</code> CLI・Agent ツール)<br />
+- global とプロジェクト CLAUDE.md は <strong>「上書き」ではなく「連結」</strong> (後勝ち)</p>
+<p><strong>本章 (第4章) で広げること</strong>: なぜ CLAUDE.md や hook が必要になったのか — <strong>3 階層 (L1/L2/L3) に至った歴史</strong>を時系列で辿る</p>
+<!--
+前章までで、CLAUDE.md と .md 仲間たちを学びました。L2 コンテキストエンジニアリングの具体的な道具立てですね。でもここで疑問が湧きます。「なぜこんな仕組みが必要になったのか?」「最初からあったのか?」答えは「最初はなかった」です。プロンプトだけの時代、コンテキストファイルが生まれた時代、hook という安全装置が必要になった時代 — 生成 AI の 5 年間の歴史が、今の 3 階層モデルを必然として導きました。本章ではその歴史を時系列で辿ります。
+-->
+
+<hr />
+<h2>この章で学ぶこと</h2>
+<ol>
+<li><strong>2020-2025年の生成AIの進化</strong> を時系列で理解する</li>
+<li><strong>プロンプトエンジニアリング (L1)</strong> がどのように生まれたかを説明できる</li>
+<li><strong>コンテキストエンジニアリング (L2)</strong> がなぜ必要になったかを理解する</li>
+<li><strong>ハーネスエンジニアリング (L3)</strong> がどのような事故・必要性から生まれたかを語れる</li>
+<li><strong>3階層が揃って初めて成り立つ理由</strong> を歴史の流れから説明できる</li>
+</ol>
+<!--
+最初にこの章のゴールを確認しましょう。この章が終わった時、皆さんは2020年から2025年までの生成AIの進化を自分の言葉で語れるようになります。特に、L1プロンプト、L2コンテキスト、L3ハーネスという3つの階層が、それぞれどのような歴史的背景から誕生したのか。技術的な前提知識は不要です。ストーリーとして楽しんでください。
+-->
+
+<hr />
+<h1>2020年 — 大規模言語モデルの幕開け</h1>
+<p><strong>GPT-3 (1750億パラメータ)</strong></p>
+<ul>
+<li>OpenAIがGPT-3をリリース</li>
+<li>従来のAIとは次元が違う <strong>文章生成能力</strong></li>
+<li>「Few-shot learning（例示学習）」— 例を数個見せるだけで新しいタスクを実行</li>
+<li>しかしAPI経由のみで、一般ユーザーには遠い存在</li>
+</ul>
+<blockquote>
+<p>GPT-3は「AIが人間らしい文章を書ける」という事実を世界に示した</p>
+</blockquote>
+<!--
+2020年、OpenAIがGPT-3をリリースしました。1750億個のパラメータを持つこのモデルは、それまでのAIとは圧倒的に次元が違う文章生成能力を示しました。特に画期的だったのが「Few-shot learning」です。これまでのAIは大量の訓練データが必要でしたが、GPT-3は例を数個見せるだけで、翻訳でも要約でも質問応答でもこなせる。ただし、当時はAPI経由でしか使えず、開発者や研究者の一部が触れるだけでした。一般のエンジニアにとってはまだ遠い存在でした。
+-->
+
+<hr />
+<h1>生成AIエンジニアリング年表 2020-2025</h1>
+<table>
+<thead>
+<tr>
+<th>年</th>
+<th>出来事</th>
+<th>誕生した層</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2020</td>
+<td><strong>GPT-3</strong> リリース</td>
+<td>LLMの可能性を実証</td>
+</tr>
+<tr>
+<td>2022</td>
+<td><strong>ChatGPT</strong> 一般公開</td>
+<td><strong>L1 プロンプトエンジニアリング誕生</strong></td>
+</tr>
+<tr>
+<td>2023</td>
+<td><strong>GPT-4 / Claude 2</strong></td>
+<td>高度な推論・長文脈</td>
+</tr>
+<tr>
+<td>2023</td>
+<td><strong>RAG</strong>（検索拡張生成）普及</td>
+<td>L2 コンテキストの萌芽</td>
+</tr>
+<tr>
+<td>2024</td>
+<td><strong>CLAUDE.md / .cursorrules</strong> 定着</td>
+<td><strong>L2 コンテキストエンジニアリング確立</strong></td>
+</tr>
+<tr>
+<td>2024</td>
+<td><strong>Cursor</strong> 登場</td>
+<td>AIコーディング専用エディタ</td>
+</tr>
+<tr>
+<td>2024-2025</td>
+<td><strong>Claude Code</strong> (Anthropic)</td>
+<td><strong>L3 ハーネスエンジニアリング誕生</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>5年で「AIと話す」から「AIに開発させる」へ — そして「AIを制御・拡張する」へ</p>
+</blockquote>
+<!--
+生成AIの主要な出来事を年表にまとめました。太字の「誕生」列に注目してください。2022年のChatGPTでL1プロンプトエンジニアリングが生まれ、2023年のRAGから始まった文脈管理が2024年にCLAUDE.mdや.cursorrulesとして定着し、L2コンテキストエンジニアリングが確立しました。そして 2024 年から 2025 年にかけて Claude Code が hook や Permissions などの制御機構を整備し、L3 ハーネスエンジニアリングが姿を現します。なお Anthropic 公式の Engineering Blog では 2025 年 11 月に「Effective harnesses for long-running agents」という記事が出ており、「ハーネス」は業界の公式用語として定着しました。各機能の正確なリリース時期は公式 changelog を参照すべきですが、講座では「2024〜2025 にかけて段階的に整備された」という幅で押さえます。
+-->
+
+<hr />
+<h1>L1誕生 — プロンプトエンジニアリング</h1>
+<p><strong>2022年: ChatGPTが新しい仕事の分野を生んだ</strong></p>
+<ul>
+<li>2022年11月: ChatGPTが一般公開、2ヶ月で1億ユーザーに</li>
+<li>AIとの対話が「誰でもできる」ことに — プロンプトが結果を左右する</li>
+<li>「どう指示を出すか」がスキルとして認識され、<strong>プロンプトエンジニアリング</strong> という仕事の分野が確立</li>
+<li>Few-shot（例示学習）、Chain-of-Thought（思考の連鎖 — 推論ステップを段階的に出力させる手法）、システムプロンプト等の技術が体系化</li>
+</ul>
+<blockquote>
+<p>プロンプトは新しいプログラミング言語 — 自然言語でAIを動かす時代の始まり</p>
+</blockquote>
+<!--
+2022年11月30日、OpenAIがChatGPTを一般公開しました。世界中に衝撃を与え、2ヶ月で1億人のユーザーを獲得します。ここで重要だったのが「プロンプト」です。AIにどう指示を出すかで、結果がまるで違う。「要約して」と言うだけでも、「300字で中学生にもわかるように要約して」と言えば精度が劇的に上がる。この「AIへの指示の出し方」がプロンプトエンジニアリングという新しいスキルとして認識され、仕事の分野として確立されました。Few-shotプロンプティング、Chain-of-Thought、システムプロンプトといった技術が次々と体系化されました。L1、プロンプトエンジニアリングの誕生です。
+-->
+
+<hr />
+<h1>L2誕生① — プロンプトが足りない瞬間</h1>
+<p><strong>プロンプトだけでは実務で破綻する3つの壁</strong></p>
+<ol>
+<li><strong>同じ指示を毎回繰り返す疲弊</strong> — プロジェクトのルールを毎チャットで説明し直す非効率</li>
+<li><strong>プロジェクト規約をAIが守れない</strong> — 「うちはTabインデント」と伝えてもSpaceで出力される</li>
+<li><strong>複数ファイル横断の文脈が消える</strong> — 前回の会話内容をAIが忘れ、一貫性が崩れる</li>
+</ol>
+<blockquote>
+<p>プロンプトは「その場の指示」には強いが、「継続的な指示」には弱い</p>
+</blockquote>
+<!--
+ChatGPTが普及してしばらくすると、現場のエンジニアたちがある壁にぶつかりました。1つ目、同じ指示を毎回繰り返す疲弊です。プロジェクトのコーディング規約やアーキテクチャの決定事項を、新しいチャットを始めるたびに説明し直す。これは非常に非効率でした。2つ目、プロジェクト規約をAIが守れない。「うちはTabインデントを使う」と伝えても、Spaceで出力されたり、禁止しているライブラリを使ったりする。3つ目、複数ファイル横断の文脈が消える。前回の会話で決めたことをAIが忘れ、一貫性が崩れる。これらは「プロンプトを工夫する」だけでは解決できない問題でした。
+-->
+
+<hr />
+<h1>L2誕生② — コンテキストファイルの革命</h1>
+<p><strong>2023-2024年: AIにプロジェクトを教える指示書が生まれた</strong></p>
+<ul>
+<li><strong>RAG (2023年)</strong> — Retrieval-Augmented Generation（検索拡張生成）。外部ドキュメントを検索してプロンプトに埋め込む。外部知識活用の先駆け</li>
+<li><strong>CLAUDE.md (2024年)</strong> — プロジェクトのルール・方針・制約を1ファイルに永続化。AIが新しい会話/セッション開始時に自動読み込み (4 階層を連結)</li>
+<li><strong>.cursorrules / AGENTS.md</strong> — ドット始まりは「隠しファイル」（設定用ファイル）の慣習。同じ概念がエディタ横断で共通化。「プロジェクトにAIを教える指示書」として定着</li>
+<li><strong>コンテキストエンジニアリング</strong> がL2として確立</li>
+</ul>
+<blockquote>
+<p>「毎回説明する」から「ファイルに書いておく」へ — プロンプトの外に知識を置く転換</p>
+</blockquote>
+<!--
+L2の誕生ストーリーです。2023年、RAGという技術が注目されました。外部のドキュメントを検索して、関連部分をプロンプトに追加する。プロンプトの中にすべて書くのではなく、外に知識を置くという画期的な発想でした。これが2024年にCLAUDE.mdという形で結実します。プロジェクトのルール、方針、制約を1つのMarkdownファイルにまとめておくと、新しい会話やセッションを始めるたびに AI が自動的に読み込んでくれる。前章で扱った 4 階層構造で「連結」読み込みされる挙動も、ここで生まれたデザインです。同じことが.cursorrulesやAGENTS.mdという名前でも実践され、「プロジェクトにAIを教える指示書」という概念がエディタを超えて共通化されました。Claude Code は CLAUDE.md を読み、Cursor は .cursorrules を読む、というツール固有性はあるものの、根本のアイデアは共通です。こうしてコンテキストエンジニアリングがL2として確立したのです。
+-->
+
+<hr />
+<h1>L3誕生① — AIが暴走する瞬間</h1>
+<p><strong>エージェントの自律化が生んだ恐怖の事例</strong></p>
+<ul>
+<li><strong>危険コマンドの実行</strong> — AIが <code>rm -rf</code>（フォルダ丸ごと削除）や <code>git push --force</code>（履歴を上書き破壊）を意図せず実行</li>
+<li><strong>無限ループとコスト爆発</strong> — エージェントが同じエラーを繰り返し返し、API利用料が膨張</li>
+<li><strong>意図しないファイル削除</strong> — 自律的なファイル操作で重要なファイルが消える事故が多発</li>
+<li>2023-2024年: AIが「自律する」ほど <strong>リスクが増大</strong> するジレンマ</li>
+</ul>
+<blockquote>
+<p>AIが「自律する」なら、人間は「制御」しなければならない — しかし制御の仕組みがない</p>
+</blockquote>
+<!--
+2023年後半から2024年にかけて、AIは「言われたことをやる」だけでなく「自ら考えて行動する」エージェントに進化しました。しかし自律性が高まると同時に、恐ろしい事故が増え始めました。AIが意図せず危険なコマンドを実行してしまう。`rm -rf`でファイルを消したり、`git push --force`で履歴を破壊したり。エージェントがエラーにハマって無限ループに陥り、API利用料が数万円単位で膨らむ事例も報告されました。自律的なファイル操作で、重要な本番ファイルが消える事故も多発しました。AIが便利になればなるほど、リスクも増大するジレンマ。制御の仕組みが急務となりました。
+-->
+
+<hr />
+<h1>L3誕生② — ハーネスという設計分野が現れた</h1>
+<p><strong>2024-2025年: ハーネスエンジニアリングの誕生</strong></p>
+<ul>
+<li><strong>Claude Code Hook</strong> — AI のライフサイクルイベントに任意の処理を差し込む仕組み。公式では <strong>全 29 種類</strong>のイベント (<code>SessionStart</code> / <code>UserPromptSubmit</code> / <code>PreToolUse</code> / <code>PostToolUse</code> / <code>Stop</code> / <code>PreCompact</code> 等) が用意され、本書では代表的な数個を扱う</li>
+<li><strong>Permission モデル</strong> — <strong>2 軸構造</strong>で AI の操作を制御。①権限モード (<code>default</code> / <code>acceptEdits</code> / <code>plan</code> / <code>auto</code> / <code>dontAsk</code> / <code>bypassPermissions</code> の 6 種) で全体動作・②ツール個別ルール (<code>Allow</code> / <code>Ask</code> / <code>Deny</code> の 3 種) で個別操作</li>
+<li><strong>サブエージェント・スキル・サンドボックス</strong> — モデルを「実際に仕事を完遂する <strong>work engine</strong>」に変える周辺コード・設定・実行ロジック一式</li>
+<li>業界では <strong>「Agent = Model + Harness」</strong> が公式定義として定着 (Anthropic Engineering Blog 2025-11「Effective harnesses for long-running agents」)</li>
+</ul>
+<blockquote>
+<p>ハーネス = 安全装置だけではない。<strong>hooks/skills/sub-agents/コンテキストポリシー/回復経路</strong> 等を束ねた <strong>AI を実運用で信頼できる形にする設計分野</strong></p>
+</blockquote>
+<!--
+この恐怖と必要性に応えるため、2024年後半から2025年にかけて、AI を制御・拡張する仕組みが次々と整備されました。代表的なのが Claude Code の Hook 機能です。AI の動きには「セッション開始」「プロンプト送信」「ツール使用前後」「圧縮前」「終了」など多くのライフサイクルイベントがあり、公式では合計 29 種類のイベントに任意の処理を差し込めます。本書では PreToolUse・PostToolUse・Stop など代表的な数個を扱いますが、これは全体の一部だと覚えておいてください。Permission モデルは 2 軸構造です。1 軸目は全体の動きを切り替える権限モードで default・acceptEdits・plan・auto・dontAsk・bypassPermissions の 6 種。2 軸目は個々のツールに対する Allow・Ask・Deny の 3 種ルール。歴史的にはまず Allow/Ask/Deny の 3 段ルールが先行し、後にモード制が追加された、という流れがあります。そして 2025 年 11 月、Anthropic Engineering Blog で「Effective harnesses for long-running agents」という記事が公開され、「ハーネス」が業界の公式用語として明確に位置付けられました。「Agent = Model + Harness」、つまりエージェントとは「モデル本体 + その周辺の実装基盤」のセットである、という定義です。L3 はこの周辺の実装基盤、hooks・skills・サブエージェント・コンテキストポリシー・回復経路などを束ねた設計分野です。「安全装置」はその代表的な用途の一つに過ぎません。
+-->
+
+<hr />
+<h1>3階層統合 — 揃って初めて成り立つ</h1>
+<table>
+<thead>
+<tr>
+<th>階層</th>
+<th>役割</th>
+<th>なぜ必要か</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L1 プロンプト</strong></td>
+<td>AIに意図を伝える</td>
+<td>ChatGPTで証明された基本インターフェース</td>
+</tr>
+<tr>
+<td><strong>L2 コンテキスト</strong></td>
+<td>プロジェクト知識を永続化</td>
+<td>プロンプトだけでは文脈が消える</td>
+</tr>
+<tr>
+<td><strong>L3 ハーネス</strong></td>
+<td>hooks/skills/sub-agents 等で AI を制御・拡張する周辺基盤 (Anthropic 公式: Agent = Model + Harness)</td>
+<td>エージェントが自律するからこそ境界と回復経路が必要</td>
+</tr>
+</tbody>
+</table>
+<p><strong>L1だけ</strong> — 毎回ゼロから説明する非効率<br />
+<strong>L2だけ</strong> — 危険な操作を止め・回復させる仕組みがない<br />
+<strong>L3だけ</strong> — 「何をするべきか」の文脈がない</p>
+<p>車に例えれば: <strong>L1 = ハンドル</strong>（方向を指示）、<strong>L2 = ナビゲーション</strong>（目的地までの知識）、<strong>L3 = シャシー・ブレーキ・サスペンション一式</strong>（車として走らせる土台と安全装置）。3つ揃って初めて安全に走れる。</p>
+<blockquote>
+<p><strong>3つ揃って「文脈を理解し、安全に、再現性よく」自律動作できる</strong></p>
+</blockquote>
+<!--
+ここがこの章のハイライトです。3階層は偶然生まれたものではありません。L1はChatGPTが証明した基本インターフェース。L2はプロンプトだけでは文脈が消えるという限界からの必然。L3はエージェントが自律するからこそ必要な、ハーネスという周辺基盤です。Anthropic の公式定義「Agent = Model + Harness」が示すように、ハーネスは「安全装置」だけでなく、hooks・skills・サブエージェント・コンテキストポリシー・回復経路など、モデルを実運用で信頼できる形にする実装基盤全体を指します。どれか1つでは機能しないことも重要です。L1だけでは毎回文脈を説明し直す非効率な状態。L2だけでは危険な操作を止められず、エラーから自動で回復もできない。L3だけでは「何をするべきか」の文脈がない。車に例えれば、L1はハンドル、L2はナビゲーション、L3はシャシーやブレーキ、サスペンションを含む車体全体。3つ揃って初めて、AIは文脈を理解し、安全に、再現性よく自律動作できるのです。
+-->
+
+<hr />
+<h1>この章のまとめ</h1>
+<ol>
+<li><strong>2020年のGPT-3</strong> から始まり、<strong>ChatGPT</strong> がL1プロンプトエンジニアリングを誕生させた</li>
+<li>プロンプトの限界から <strong>RAG → CLAUDE.md</strong> へ、L2コンテキストエンジニアリングが確立した</li>
+<li>エージェントの暴走事故と自律化の必要性から <strong>Hook・Permissions・サブエージェント</strong> が整備され、L3ハーネスエンジニアリングが誕生した (Anthropic 公式概念「Agent = Model + Harness」)</li>
+<li><strong>3階層 (L1/L2/L3)</strong> は生成AIの5年間の進化が導いた必然的な設計</li>
+</ol>
+<blockquote>
+<p>プロンプト・CLAUDE.md・hook — 生成AIの5年間の歴史が結実した3つの柱</p>
+</blockquote>
+<!--
+この章のまとめです。2020年のGPT-3から始まった生成AIの進化は、2022年にChatGPTがL1プロンプトエンジニアリングを生み、その限界から2024年にCLAUDE.mdがL2コンテキストエンジニアリングを確立し、エージェントの暴走事故と自律化の必要性から 2024〜2025 年にかけて hook・Permissions・サブエージェントといったハーネスの構成要素が整備され、L3 ハーネスエンジニアリングが誕生しました。ハーネスは Anthropic Engineering Blog (2025年11月「Effective harnesses for long-running agents」) で公式概念として明確化され、業界では「Agent = Model + Harness」が標準定義として定着しています。3階層モデルは偶然ではなく、5年間の歴史が導いた必然的な設計なのです。次の第5章では、この3階層の最後のピース、L3の代表機能である hook の入門を学びます。
+-->
+
+<hr />
+<h1>確認問題</h1>
+<p><strong>Q1</strong>: 2022年のChatGPT登場により、どのような新しい職能が確立されたか？</p>
+<p><strong>Q2</strong>: プロンプトだけでは実務で破綻する「3つの壁」とは何か？</p>
+<p><strong>Q3</strong>: AIエージェントの自律化により多発した事故例を2つ以上挙げ、L3ハーネスがどのように防ぐかを説明せよ。</p>
+<blockquote>
+<p>回答は次のスライドにあります</p>
+</blockquote>
+<!--
+3問の確認問題です。Q1はChatGPTがもたらした変化を問う問題。Q2はプロンプトの限界を3つ挙げられるかの確認。Q3はエージェントの暴走事例とハーネスによる防衛策を具体例で説明できるかのチェックです。少し考えてから次のスライドを見てください。
+-->
+
+<hr />
+<h1>確認問題 — 回答</h1>
+<p><strong>A1</strong>: <strong>プロンプトエンジニアリング</strong>。AIへの指示の出し方で結果が劇的に変わることがわかり、「AIにどう伝えるか」が職能として認識・体系化された。</p>
+<p><strong>A2</strong>:<br />
+1. <strong>同じ指示を毎回繰り返す疲弊</strong> — プロジェクトのルールを毎チャットで説明し直す<br />
+2. <strong>プロジェクト規約をAIが守れない</strong> — 伝えたルールが反映されない<br />
+3. <strong>複数ファイル横断の文脈が消える</strong> — 前回の会話内容をAIが忘れる</p>
+<p><strong>A3</strong>: 例：AIが <code>git push --force</code>（履歴を上書き破壊）を意図せず実行してリモート履歴を破壊。エージェントがエラーで無限ループに陥りAPI利用料が膨張。L3ハーネスは <strong>PreToolUse hook</strong>（ツール使用前の割り込みチェック・公式 29 種類のイベントの 1 つ）で危険な操作を事前にブロックし、<strong>Permission の 2 軸構造</strong>（権限モード × Allow/Ask/Deny ルール）で「Deny」または「Ask」に設定することで事故を防止できる。</p>
+<!--
+解答例です。A1はプロンプトエンジニアリングが職能として確立されたことを確認。A2は毎回の繰り返し、規約の未遵守、文脈消失の3つが書けていればOKです。A3はAIの暴走事例を具体的に挙げ、ハーネスによる防止策が説明できていれば正解です。PreToolUse は公式 29 種類の hook イベントの 1 つ、Permission は権限モード(6種) × ツール個別ルール(3種) の 2 軸構造、ということまで触れられたら完璧です。自信がなければ、該当するスライドを見返してください。
+-->
+
+<hr />
+<!-- _class: cover -->
+
+<h1>第4章 完了</h1>
+<h2>生成AIエンジニアリングの歴史</h2>
+<div class="meta">
+✅ GPT-3 → ChatGPT(L1) → RAG・CLAUDE.md(L2) → Hook(L3) の流れ<br>
+✅ L1 プロンプトエンジニアリング誕生の背景<br>
+✅ L2 コンテキストエンジニアリング誕生の背景<br>
+✅ L3 ハーネスエンジニアリング誕生の背景 (Anthropic 公式: Agent = Model + Harness)<br>
+✅ Hook は公式 29 種類のライフサイクルイベント・Permission は 2 軸構造<br>
+✅ 3階層 (L1/L2/L3) は生成AI進化の必然<br><br>
+<b>次は 第5章「hookの入門 — AIの安全装置を作る」</b>
+</div>
+
+<!--
+第4章、お疲れさまでした。この章では生成AIエンジニアリングの5年間の歴史を辿り、L1プロンプト、L2コンテキスト、L3ハーネスという3つの階層が、それぞれどのような歴史的背景から誕生したのかを理解しました。特に L3 ハーネスは Anthropic 公式の概念で、「Agent = Model + Harness」という業界定義の通り、hooks・skills・サブエージェントなど周辺基盤の総称だ、ということを押さえてください。次は第5章で、3階層のうち L3 の代表機能である hook の入門を学びます。公式 29 種類のうち代表的なイベントから入り、安全装置の具体的な仕組みを理解して、3階層の全体像を完成させましょう。
+-->
+</body></html>

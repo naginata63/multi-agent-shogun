@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>初級ch05 hook入門 (★致命傷修正) (修正版)</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.3em; }
+h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.1em; }
+h3 { color: #4b5563; margin-top: 1em; font-size: 1.0em; }
+hr { border: none; border-top: 2px dashed #cbd5e1; margin: 2em 0; }
+table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 0.82em; }
+th { background: #1e3a8a; color: #fff; padding: 5px 7px; }
+td { padding: 5px 7px; border: 1px solid #d1d5db; vertical-align: top; }
+tr:nth-child(even) td { background: #f3f4f6; }
+code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.88em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; overflow-x: auto; font-size: 0.82em; }
+pre code { background: transparent; color: inherit; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.7em; color: #78350f; }
+@media (max-width: 768px) { body { padding: 8px; font-size: 13.5px; } table { font-size: 0.76em; } }
+</style></head><body>
+<nav style="background:#1e3a8a; color:#fff; padding:8px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
+<a href="../index.html" style="color:#fde68a; margin-right:10px;">← ハブ</a>
+<a href="index.html" style="color:#fff; text-decoration:underline;">📂 修正版19章リスト</a>
+</nav>
+<h1>📝 初級ch05 hook入門 (★致命傷修正) <small style="color:#6b7280; font-size:0.7em;">(修正版 v1)</small></h1>
+<!-- _class: cover -->
+
+<h1>Hookの入門</h1>
+<h2>AIの安全装置を作る</h2>
+<div class="meta">
+初級編 — 第5章 (約 30 min) [L3 ハーネス入門]<br><br>
+「Claude Code はじめての一歩 — AI開発の基礎を1日で習得」<br><br>
+講師: なぎなた
+</div>
+
+<!--
+スピーカーノート:
+こんにちは、なぎなたと申します。この第5章では、Claude Codeの「Hook」という仕組みを学びます。前章で 3階層モデルの L3 ハーネスが Anthropic 公式の概念 (Agent = Model + Harness) であり、hook はその実装基盤を構成する公式機能の一つだと学びました。本章ではその hook の最も基本的なイベントである PreToolUse を実際に使い、AI がプロジェクトで作業する際に危険な操作を自動的に検知してブロックする安全装置を作ります。30分で、その仕組みと設定方法をしっかり理解しましょう。
+-->
+
+<hr />
+<h2>🎯 この 30 分で得られること</h2>
+<ol>
+<li><strong>Hookとは何か</strong> — AIのライフサイクルイベントに任意の処理を発火させる仕組みを説明できる</li>
+<li><strong>PreToolUse Hook</strong> の仕組みと役割を理解する</li>
+<li>AIの危険操作を <strong>自動検知・ブロックする仕組み</strong> を説明できる</li>
+</ol>
+<!--
+この章の目標は3つです。まず Hook が何かを理解し、次に最も重要な PreToolUse Hook の仕組みを学び、最終的に「AI が危険な操作をする前に自動で止める仕組み」を自分の言葉で説明できるようになります。Hook には公式で 29 種類のライフサイクルイベントがありますが、本章ではその代表例である PreToolUse 1 つに集中します。讲座全体を通して一貫するテーマは「安全」です。
+-->
+
+<hr />
+<h1>前章からの続き — L3ハーネスの代表機能を実装する</h1>
+<blockquote>
+<p>前章 (第4章) で確認した到達点:<br />
+<strong>L1 プロンプト</strong> = 人間の意図を伝える<br />
+<strong>L2 コンテキスト</strong> = プロジェクト知識を永続化する<br />
+<strong>L3 ハーネス</strong> = hooks/skills/sub-agents 等でAIを制御・拡張する周辺基盤<br />
+(Anthropic 公式: <strong>Agent = Model + Harness</strong> / Engineering Blog 2025-11)</p>
+</blockquote>
+<ul>
+<li>L1 と L2 は <strong>指示を与える</strong> 仕組み</li>
+<li>L3 ハーネスは <strong>動作を監視・制御・拡張</strong> する設計分野で、その中心実装の一つが <strong>Hook</strong></li>
+<li>前章で触れた <strong>公式 29 種類のライフサイクルイベント</strong> のうち、本章は最も基本となる <strong>PreToolUse</strong> に絞って入門する</li>
+<li>建築現場に「安全監督」がいるように、PreToolUse Hook は <strong>AI のツール実行直前に立ち止まる監視役</strong></li>
+</ul>
+<blockquote>
+<p>💡 この章で学ぶ Hook = <strong>L3 ハーネスの公式実装機能 / その入口にあたる PreToolUse</strong></p>
+</blockquote>
+<!--
+前章「生成AIエンジニアリングの歴史」で、3階層モデルが必然的に生まれた経緯と、特に L3 ハーネスが Anthropic 公式の概念であることを学びました。L3 ハーネスは「Agent = Model + Harness」の通り、hooks や skills、サブエージェントなどモデル周辺の実装基盤全体を指します。その中で hook は公式 29 種類のライフサイクルイベントに任意の処理を差し込める仕組みで、本章ではその最も基本的な PreToolUse に絞って入門します。L1 と L2 は AI に「こうしてほしい」と指示する仕組みですが、L3 ハーネスは AI の動作を制御・拡張する設計分野です。今日はその中で「やってはいけないことを自動で防ぐ」用途を入口に体験します。
+-->
+
+<hr />
+<h1>あなたのコード、無防備じゃありませんか？</h1>
+<blockquote>
+<p>🪞 AIに「このファイルを消して」と言われたら、どうしますか？</p>
+</blockquote>
+<ul>
+<li>AIは強力な道具 — しかし <strong>誤操作のリスク</strong> もある</li>
+<li><code>rm -rf</code>（ファイルの一括削除）や <code>sudo</code>（管理者権限での実行）など、取り返しのつかないコマンドを実行する可能性</li>
+<li><strong>人間が毎回確認するのは現実的ではない</strong></li>
+</ul>
+<blockquote>
+<p>⚡ Hookは、AIが危険な操作をする前に <strong>自動で立ち止まらせる</strong> 安全装置として機能します</p>
+</blockquote>
+<!--
+AIは便利ですが、指示次第ではプロジェクトを破壊するコマンドも実行できてしまいます。「rm -rf」でファイルを一括削除したり、「sudo」で管理者権限を使ってシステム設定を変更したり。毎回人間が確認するのは非現実的です。そこで Hook の出番です。Hook は AI のライフサイクルイベントに任意の処理を発火させる広い仕組みですが、その代表的な用途のひとつが「AI が危険な操作を実行する前に自動的に止める安全装置」です。たった 1 本の設定で、あなたのコードを守れます。
+-->
+
+<hr />
+<h1>Hookとは — AIのライフサイクルに割り込む仕組み</h1>
+<p><strong>Hook = AI のライフサイクルイベント (セッション開始 / プロンプト送信 / ツール実行前後 / 圧縮前 / 終了 など) に、任意の処理を発火させる仕組み</strong></p>
+<ul>
+<li>Claude Codeが <strong>ツールを使う前</strong> にチェック処理を挟める (本章のテーマ)</li>
+<li>Claude Codeが <strong>ツールを使った後</strong> に通知処理を挟める</li>
+<li>セッション開始時に資料を自動で渡す、終了時にログを残す、なども同じ仕組み</li>
+<li><strong>安全装置はそのうちの代表的な一用途</strong></li>
+</ul>
+<blockquote>
+<p>💡 銀行のATMで「大金を引き出す前に暗証番号を確認する」のと同じ — 実行前に一旦止めて確認する用途は、Hook の使い道のひとつです</p>
+</blockquote>
+<!--
+Hook の本質は「AI のライフサイクルイベントに、独自の処理を発火させる仕組み」です。ツール実行前後はもちろん、セッション開始、プロンプト送信時、コンテキスト圧縮の直前、終了時など、AI が動作する各タイミングに割り込めます。前章の 3階層モデルで言えば、Hook は L3 ハーネスを構成する公式機能のひとつで、AI の振る舞いを監視・拡張・制御するための窓口です。本章ではその代表用途である「ツール実行前の安全チェック」に絞りますが、Hook 自体は「安全装置」だけではなく、資料の自動注入や運用記録など幅広い用途を持つことを覚えておいてください。
+-->
+
+<hr />
+<h1>この章で扱うイベント — <strong>PreToolUse 1つだけ</strong></h1>
+<blockquote>
+<p>💡 まず安心情報: Hook には <strong>公式で全 29 種類</strong> のイベントがありますが、<strong>初級編で覚えるのはこの 1 つだけ</strong> です。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>イベント</th>
+<th>タイミング</th>
+<th>代表的な用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PreToolUse</strong> ★</td>
+<td>ツール実行の <strong>前</strong></td>
+<td>危険なコマンドをブロック</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>残り 28 種類のうち、本講座中級編で扱う代表例: <strong>PostToolUse / SubagentStop / SessionStart / PreCompact / Notification / Stop</strong> など</li>
+<li>「他にも多様なタイミングで割り込める」とだけ知っておけば十分です — 全 29 種類を一度に覚える必要はありません</li>
+</ul>
+<!--
+Claude Code の hook には公式で 29 種類のイベントがあります。これは前章の歴史で触れたとおり「公式仕様」です。本講座の初級編で深く学ぶのは PreToolUse 1 つだけ。残り 28 種類のうち、よく使う PostToolUse・SubagentStop・SessionStart・PreCompact・Notification・Stop などは中級編で扱いますので、ここで暗記する必要はありません。表を 1 行にしぼったのは「PreToolUse に集中しよう」という目印です。PreToolUse はツールが実行される「前」に割り込むイベントで、危険なコマンドをブロックするのに使います。ちなみに「SubagentStop」は a が小文字、これは公式表記なので大文字 A で書くと動きません — 中級編で扱うときに改めて触れます。
+-->
+
+<hr />
+<h1>PreToolUse Hook — コマンド実行前のチェックポイント</h1>
+<p><strong>PreToolUse = ツールが実行される「直前」に検査を挟む仕組み</strong></p>
+<pre><code>AIがコマンドを生成
+       ↓
+  【PreToolUse Hook】← ここで検査！
+       ↓
+  安全 → 実行
+  危険 → ブロック (STOP)
+</code></pre>
+<ul>
+<li>AIが生成したコマンドを <strong>実行前に検査</strong></li>
+<li>危険なパターンに一致すれば <strong>自動でブロック</strong></li>
+<li>人間の確認なしに <strong>瞬時に判断</strong></li>
+</ul>
+<!--
+PreToolUse Hookの動きを図で示しました。AIがコマンドを生成すると、すぐに実行されるわけではありません。間にPreToolUse Hookが入ります。ここでコマンドの内容を検査し、安全ならそのまま実行、危険なら「STOP」でブロックします。人間がいちいち確認しなくても、瞬時に判断して防いでくれます。これが L3 ハーネスを使った安全制御の基本パターンです。
+-->
+
+<hr />
+<h1>Before / After — Hookの有無でこう変わる</h1>
+<p><strong>Hookなし</strong>:</p>
+<ul>
+<li>AIが <code>rm -rf /project</code> を生成 → <strong>そのまま実行</strong> → プロジェクト消滅</li>
+<li>後から気づいても <strong>取り返しがつかない</strong></li>
+</ul>
+<p><strong>Hookあり</strong>:</p>
+<ul>
+<li>AIが <code>rm -rf /project</code> を生成 → <strong>Hookが検知</strong> → チェックスクリプトが <code>STOP: 危険な操作を検知しました</code> と表示</li>
+<li>実行される前に <strong>自動ブロック</strong> → プロジェクトは無事</li>
+</ul>
+<blockquote>
+<p>🛡️ たった1本のHookで、致命的な事故を <strong>未然に防げる</strong></p>
+</blockquote>
+<!--
+Hookの有無で何が変わるか、極端な例で示します。Hookがなければ、AIが生成した危険なコマンドがそのまま実行されてしまい、プロジェクトが消滅する可能性があります。Hookがあれば、コマンドが実行される前に自動検知してブロック。「STOP: 危険な操作を検知しました」というメッセージが出て、実行は中止されます。たった 1 本の Hook で、致命的な事故を未然に防げるのです。これが L3 ハーネスの威力のひとつです。
+-->
+
+<hr />
+<h1>設定ファイルの構造 — 少しずつ組み立てる</h1>
+<p><strong><code>.claude/settings.json</code></strong> — プロジェクト直下に <strong>自分で新規作成する</strong> ファイルです:</p>
+<blockquote>
+<p>💡 まだ存在しない場合、<code>.claude/</code> フォルダを作り、その中に <code>settings.json</code> を作ります</p>
+</blockquote>
+<p><strong>Step 1</strong>: 一番外枠 — Hook設定の「入れ物」を作る:</p>
+<pre><code class="language-json">{ &quot;hooks&quot;: { } }
+</code></pre>
+<p><strong>Step 2</strong>: どのイベントに反応するか — PreToolUse（ツール実行前）を指定:</p>
+<pre><code class="language-json">{ &quot;hooks&quot;: { &quot;PreToolUse&quot;: [ ] } }
+</code></pre>
+<p><strong>Step 3</strong>: どのツールに反応するか — <code>matcher</code> で Bash（コマンド実行）を指定:</p>
+<pre><code class="language-json">{ &quot;hooks&quot;: { &quot;PreToolUse&quot;: [ { &quot;matcher&quot;: &quot;Bash&quot; } ] } }
+</code></pre>
+<p><strong>Step 4</strong>: 実行する処理を追加 — 内側の <code>"hooks"</code> にチェックコマンドを書く（<strong>外側 hooks = 設定の入れ物 / 内側 hooks = 実行リスト</strong> と役割が違う点に注意。詳しい覚え方は下のコードのすぐ下に）:</p>
+<pre><code class="language-json">{
+  &quot;hooks&quot;: {                       // ← 外側 = 「Hook 設定全体の入れ物」
+    &quot;PreToolUse&quot;: [
+      {
+        &quot;matcher&quot;: &quot;Bash&quot;,
+        &quot;hooks&quot;: [                 // ← 内側 = 「実行するコマンドのリスト」
+          { &quot;type&quot;: &quot;command&quot;, &quot;command&quot;: &quot;bash scripts/pretool_check.sh&quot; }
+        ]
+      }
+    ]
+  }
+}
+</code></pre>
+<blockquote>
+<p>💡 <strong>入れ子の <code>hooks</code> が2回出てくる理由</strong>: 外側は「設定の入れ物」、内側は「実行リスト」。<strong>役割が違うのに同じ単語</strong> ですが、Claude Code の設定書式の決まりなので、初学者はまず「<strong>外側＝箱・内側＝中身</strong>」と覚えるだけでOKです。</p>
+</blockquote>
+<ul>
+<li>チェックスクリプトが <strong>exit 2</strong> を返すと <strong>実行がブロックされます</strong> (詳しい意味は次のスライドで)</li>
+</ul>
+<!--
+Hookの設定は、プロジェクトの`.claude/settings.json`ファイルに書きます。段階的に組み立てると分かりやすいです。まず外枠の「hooks」入れ物を作り、次にイベントの「PreToolUse」を指定し、反応対象の「matcher」でBashツールを指定し、最後に実行するコマンドを書きます。外側の `hooks` は「設定全体の入れ物」、内側の `hooks` は「実行するコマンドのリスト」と役割が違いますが、Claude Codeの設定書式の決まりです。最初は「外側＝箱・内側＝中身」と単純に覚えれば十分です。
+-->
+
+<hr />
+<h1><code>exit</code> とは？ — スクリプトの「終了報告」</h1>
+<blockquote>
+<p>Step 4 で <code>bash scripts/pretool_check.sh</code> を呼ぶと、スクリプトの結果は <strong>数字で報告</strong> されます。これが <code>exit コード</code> です。</p>
+</blockquote>
+<ul>
+<li><code>exit</code> = <strong>シェルスクリプトを終了するコマンド</strong> (Unix の慣習)</li>
+<li>直後の数字は「終了状況の報告」</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>数字</th>
+<th>意味</th>
+<th>由来</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>exit 0</code></strong></td>
+<td>「異常なし」 — そのまま実行を続ける</td>
+<td>Unix 標準（成功 = 0）</td>
+</tr>
+<tr>
+<td><code>exit 1</code></td>
+<td>「何らかのエラー」</td>
+<td>Unix 標準（汎用エラー）</td>
+</tr>
+<tr>
+<td><strong><code>exit 2</code></strong></td>
+<td>「<strong>危険検知 → 実行をブロック</strong>」 + stderr にメッセージ出力</td>
+<td><strong>Claude Code 固有の PreToolUse BLOCK プロトコル</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡 <strong>覚え方</strong>: <code>exit 0</code> = 緑信号 / <code>exit 2</code> = 赤信号。本章はこの2つだけ覚えればOK。</p>
+<p>⚠️ <code>exit 2 = ブロック</code> は Claude Code が PreToolUse hook 用に決めた取り決め。Unix 一般では「2」に固有の意味はありません — 混同しないように注意。</p>
+<p>📝 上級の代替: stdout に <code>permissionDecision: "deny"</code> を含む JSON を返す方式もあります（中級編で扱います）</p>
+</blockquote>
+<!--
+exitコマンドの意味をシェル一般とClaude Code固有に分けて整理しました。Unixでは「exit 0 = 成功」「それ以外 = 何らかのエラー」が慣習です。Claude Code はこの仕組みに乗って PreToolUse Hook で「exit 2 = 危険検知だからブロック、メッセージは stderr へ」という固有のプロトコルを定めています。初級編では exit 0 と exit 2 の 2 つだけ覚えれば本章のスクリプトは全て読めます。中級編では stdout に JSON で `permissionDecision: "deny"` を返す上級の代替方式も扱います。
+-->
+
+<hr />
+<h1><code>pretool_check.sh</code> の作り方 — 3ステップで組む</h1>
+<blockquote>
+<p>Step 4 で指定した <code>bash scripts/pretool_check.sh</code> の <strong>本体ファイル</strong> を、プロジェクト直下の <code>scripts/</code> フォルダに新規作成します。</p>
+</blockquote>
+<p><strong>Step A</strong>: <code>scripts/</code> フォルダを作り、その中に <code>pretool_check.sh</code> という空ファイルを作成</p>
+<p><strong>Step B</strong>: シェルスクリプトの宣言と「<strong>何もせず成功する</strong>」最小骨格を書く:</p>
+<pre><code class="language-bash">#!/bin/bash    # ← このファイルが bash で動くと宣言
+exit 0         # ← 何もせず「異常なし」で終了
+</code></pre>
+<p><strong>Step C</strong>: 「危険なら止める」検査を追加。<strong>Claude Code は hook に JSON を「標準入力 (stdin)」経由で渡す</strong> ので、まず JSON を受け取って <code>tool_input.command</code> を取り出してから判定します（<strong>コードの意味は次スライドの前提知識表で読み解きます — 今は形だけ眺めるのでOK</strong>）:</p>
+<pre><code class="language-bash">#!/bin/bash
+INPUT=$(cat)                                       # stdin から JSON を全部読み込む
+COMMAND=$(echo &quot;$INPUT&quot; | jq -r '.tool_input.command')  # コマンド文字列を取り出す
+if echo &quot;$COMMAND&quot; | grep -q 'rm -rf'; then
+  echo &quot;STOP: 危険な操作を検知しました&quot; &gt;&amp;2
+  exit 2       # ← 危険検知 → ブロック
+fi
+exit 0         # ← 安全 → 実行を続ける
+</code></pre>
+<blockquote>
+<p>💡 ファイル作成後 <strong>実行権限</strong> を付けます: <code>chmod +x scripts/pretool_check.sh</code> (= <strong>このファイルを実行できるように許可する</strong> ためのコマンド・一度だけの作業)</p>
+<p>💡 <code>jq</code> コマンドが必要です: 未インストールなら <code>sudo apt install jq</code> (Ubuntu) または <code>brew install jq</code> (macOS) で導入できます</p>
+</blockquote>
+<!--
+settings.json とは別に、本体のチェックスクリプト pretool_check.sh を scripts/ フォルダに作ります。シェルスクリプトに馴染みがない方のために 3 段階に分けました。Step A で空ファイルを作り、Step B で「何もせず成功する」最小骨格を書き、Step C で検査を追加します。先頭の #!/bin/bash は「このファイルは bash で動かす」という宣言です。Claude Code の hook は JSON ペイロードを標準入力経由で渡すので、まず INPUT=$(cat) で受け取り、jq で .tool_input.command を取り出します。この受け取り方が公式の仕様で、これを使わないとコマンドの中身が取れません。最後に chmod +x で実行権限を付けるのを忘れないでください。jq コマンドが未導入の方は apt や brew で先にインストールしておきましょう。これで settings.json から呼び出されたときに動作します。
+-->
+
+<hr />
+<h1>ブロック例 — 何を防ぐのか</h1>
+<p>よくある危険パターンと検知例:</p>
+<table>
+<thead>
+<tr>
+<th>危険パターン</th>
+<th>具体例</th>
+<th>被害</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>再帰削除</td>
+<td><code>rm -rf /</code></td>
+<td>OS / プロジェクト全体を消去</td>
+</tr>
+<tr>
+<td>特権実行</td>
+<td><code>sudo</code>, <code>su</code></td>
+<td>システム設定を変更</td>
+</tr>
+<tr>
+<td>データ破壊</td>
+<td><code>DROP TABLE</code></td>
+<td>データベースのテーブルを削除</td>
+</tr>
+<tr>
+<td>強制push</td>
+<td><code>git push --force</code></td>
+<td>リモートの履歴を破壊</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡 これらを <strong>数行のスクリプトで検知</strong> できます。コードを読む前に、5つの前提知識を確認しましょう:</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>書き方</th>
+<th>意味</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>INPUT=$(cat)</code></td>
+<td><strong>標準入力 (stdin)</strong> から JSON を全部読み取って <code>INPUT</code> 変数に入れる。Claude Code は hook に <strong>JSON ペイロードを stdin 経由で渡す</strong> のが公式仕様</td>
+</tr>
+<tr>
+<td><code>jq -r '.tool_input.command'</code></td>
+<td>JSON から <code>.tool_input.command</code> フィールド (AI が実行しようとしたコマンド) を取り出す。<code>-r</code> は「クォートなしで生の文字列を返す」オプション</td>
+</tr>
+<tr>
+<td><code>\|</code> (パイプ)</td>
+<td>左のコマンドの出力を、右のコマンドに渡す仕組み</td>
+</tr>
+<tr>
+<td><code>grep -q</code></td>
+<td>指定した文字列が含まれているかを調べるコマンド（<code>-q</code> は「結果を黙って判定する」オプション）</td>
+</tr>
+<tr>
+<td><code>if ... then ... fi</code></td>
+<td>「もし〜なら〜する」の条件分岐。<code>fi</code> は <code>if</code> の終わりを示す（if を逆さにした文字）</td>
+</tr>
+<tr>
+<td><code>exit 数字</code></td>
+<td>スクリプトを終了し、数字を「結果の報告」として Claude Code に伝える (exit 2 = ブロック)</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-bash"># pretool_check.sh の中身（最小例）— 上の表を見ながら読んでみましょう:
+
+#!/bin/bash
+# Claude Code が JSON を stdin で渡してくるので、まずそれを受け取る
+INPUT=$(cat)
+# JSON から AI が実行しようとしたコマンドを取り出す
+COMMAND=$(echo &quot;$INPUT&quot; | jq -r '.tool_input.command')
+
+# COMMAND の中に「rm -rf」が含まれているか判定
+if echo &quot;$COMMAND&quot; | grep -q 'rm -rf'; then
+  echo &quot;STOP: 危険な操作を検知しました&quot; &gt;&amp;2  # 理由を stderr に出す
+  exit 2  # ブロック（exit 2 = 「危険だから止まれ」という合図）
+fi
+exit 0    # 安全（そのまま実行）
+</code></pre>
+<blockquote>
+<p>💡 <strong>このコードは「読めなくてもOK」です</strong> — 表の説明を眺めて「stdin で受けて、jq でコマンドを取り出して、grep で判定してそう」と思えれば十分。コピペで動くので、中身を理解するのは後回しで構いません。</p>
+</blockquote>
+<!--
+Hookが防ぐべき危険なパターンを4つ紹介します。再帰削除はプロジェクトやOS全体を消去してしまう致命的な操作。特権実行はシステム設定を変更してしまう危険性があります。データ破壊はデータベースのテーブルを削除。強制 push はリモートの履歴を破壊します。これらを、数行のシェルスクリプトで検知できるのが Hook の強みです。重要なポイントは、Claude Code の hook が **stdin 経由で JSON ペイロードを渡してくる** ことです。$1 や $CLAUDE_TOOL_INPUT といった引数や環境変数は公式仕様には存在しません — 必ず INPUT=$(cat) で受け取って jq で取り出します。これは公式仕様なので、コピペした後も覚えておくと中級編がスムーズです。L3 ハーネスはこのようなシンプルな検査で大きな安全性を実現します。
+-->
+
+<hr />
+<h1>Hookの実行フローまとめ</h1>
+<pre><code>1. ユーザーがプロンプトを入力
+2. AIがツールの使用を判断（例: Bash で rm -rf を実行）
+3. PreToolUse Hook が発動
+4. Claude Code がチェックスクリプトに JSON を stdin で渡す
+5. スクリプトが JSON から .tool_input.command を取り出して検査
+6. 安全（exit 0）→ 実行継続
+   危険（exit 2 + stderr メッセージ）→ ブロック + 警告表示
+7. AIがブロック理由を受け取り、別の方法を検討
+</code></pre>
+<blockquote>
+<p>Hookは <strong>「検閲」ではなく「安全ネット」</strong> — AIも理由を理解して別案を出す</p>
+</blockquote>
+<!--
+Hookの全体フローを整理します。ユーザーのプロンプトに対して AI がツールを使おうとすると、PreToolUse Hook が発動します。このとき Claude Code は hook 用のスクリプトに JSON ペイロードを標準入力経由で渡します。スクリプトは JSON から .tool_input.command を取り出して検査し、安全なら exit 0 で実行継続、危険なら exit 2 + stderr メッセージでブロックします。重要なのは、ブロックされた後も AI は理由を受け取り、別の安全な方法を自動的に検討する点です。Hook は単に「禁止」するのではなく、AI により良い選択を促す安全ネットとして働きます。
+-->
+
+<hr />
+<h1>🖐️ ミニ演習 — 自分でHookを設定してみよう</h1>
+<p><strong>手順 (5分)</strong>:</p>
+<ol>
+<li>プロジェクト直下に <code>.claude/</code> フォルダを作る</li>
+<li>その中に <code>settings.json</code> を作成し、以下を貼り付け:</li>
+</ol>
+<pre><code class="language-json">{
+  &quot;hooks&quot;: {
+    &quot;PreToolUse&quot;: [
+      {
+        &quot;matcher&quot;: &quot;Bash&quot;,
+        &quot;hooks&quot;: [
+          { &quot;type&quot;: &quot;command&quot;, &quot;command&quot;: &quot;bash scripts/hook_demo.sh&quot; }
+        ]
+      }
+    ]
+  }
+}
+</code></pre>
+<ol>
+<li><code>scripts/hook_demo.sh</code> を新規作成して以下を貼り付け、<code>chmod +x scripts/hook_demo.sh</code> で実行権限を付与:</li>
+</ol>
+<pre><code class="language-bash">#!/bin/bash
+# Claude Code が stdin で JSON を渡してくるので受け取る
+INPUT=$(cat)
+# AI が実行しようとしたコマンドを取り出して標準エラーに表示
+COMMAND=$(echo &quot;$INPUT&quot; | jq -r '.tool_input.command')
+echo &quot;[CHECK] $COMMAND&quot; &gt;&amp;2
+exit 0   # ブロックせず、観察だけして実行を許可
+</code></pre>
+<blockquote>
+<p>💡 <code>INPUT=$(cat)</code> で標準入力 (stdin) から JSON を全部読み取り、<code>jq</code> で <code>tool_input.command</code> フィールドを取り出します。<strong>hook は stdin から JSON を受け取るのが公式仕様</strong> — <code>$1</code> や独自の環境変数で取り出す方法は公式に存在しません。<strong>コピペで動かない致命傷を避けるためにも、必ずこの形を使ってください</strong>。</p>
+</blockquote>
+<ol>
+<li><strong>新しいセッションを開始</strong> (Claude Code 上で <code>/clear</code> を実行するか、ターミナルを一度終了して再度 <code>claude</code> で起動) して settings.json を読み直させる</li>
+<li>Claude Codeに「現在のディレクトリのファイル一覧を表示して」と入力 → <code>[CHECK] ls -la</code> のようにコマンドが表示されれば <strong>Hookが動いている証拠</strong></li>
+</ol>
+<blockquote>
+<p>💡 この設定は「ブロックしない」安全な練習用です。まず「Hookが正しく反応しているか」を確認するのが目的です。本番のブロック設定（exit 2）は中級編で学びます。</p>
+</blockquote>
+<!--
+ミニ演習です。settings.json と本体スクリプト hook_demo.sh の 2 ファイルを作って、hook が動くことを観察します。ポイントは hook_demo.sh の INPUT=$(cat) と jq の組み合わせ。これが公式仕様の「hook は stdin から JSON ペイロードを受け取る」を実装した最小コードです。$1 で受け取る書き方や $CLAUDE_TOOL_INPUT のような環境変数は公式にはなく、コピペしても動かないので必ずこの形を使ってください。設定を反映させるには /clear で新しいセッションを開始するか、ターミナルを一度終了して claude を再起動します。実行して「現在のディレクトリのファイル一覧を表示して」と頼んだとき [CHECK] ls -la のように表示されれば成功です。
+-->
+
+<hr />
+<h1>📚 まとめ — この章で学んだこと</h1>
+<p><strong>3つのポイント</strong>:</p>
+<ol>
+<li><strong>Hook = L3ハーネスの公式実装機能</strong> — AI のライフサイクルイベント (公式 29 種類) に任意の処理を発火させ、動作を制御・拡張する仕組み</li>
+<li><strong>PreToolUse Hook</strong> — コマンド実行前に検査し、危険な操作を自動ブロック (exit 2 + stderr メッセージ)</li>
+<li><strong>設定はシンプル</strong> — <code>.claude/settings.json</code> + チェックスクリプト数行で安全装置が有効に。<strong>hook へのデータ受け渡しは stdin 経由の JSON</strong> が公式仕様</li>
+</ol>
+<blockquote>
+<p>3階層モデルの全体像:<br />
+<strong>L1 プロンプト</strong> + <strong>L2 コンテキスト</strong> + <strong>L3 ハーネス (Agent = Model + Harness)</strong> = 安心してAIに任せる基盤</p>
+</blockquote>
+<!--
+まとめです。この章で学んだことを 3 つのポイントで整理します。Hook は L3 ハーネスを構成する公式機能のひとつで、AI のライフサイクルイベント、公式 29 種類のタイミングに任意の処理を発火させて動作を制御・拡張します。特に PreToolUse Hook は、コマンド実行前に検査を行い、危険な操作を exit 2 + stderr メッセージで自動ブロックします。設定は settings.json とチェックスクリプト数行でできますが、hook へのデータ受け渡しは標準入力 (stdin) 経由の JSON が公式仕様、という点だけは忘れないでください。ここまでで 3 階層モデルの全てを学びました。L1 プロンプト、L2 コンテキスト、L3 ハーネス。「Agent = Model + Harness」の通り、この 3 つが揃って初めて、安心して AI に作業を任せられる基盤が完成します。
+-->
+
+<hr />
+<h1>🚀 次のレクチャー予告 (第6章)</h1>
+<h2><strong>終章: 中級編への橋渡し</strong> (25 min)</h2>
+<blockquote>
+<p>初級編で3つの武器を手に入れました。プロンプト、コンテキスト、ハーネス。<br />
+これは「入り口」に過ぎません。</p>
+</blockquote>
+<ul>
+<li>初級編の <strong>学習到達点3点</strong> を振り返る</li>
+<li>中級編で学ぶ <strong>本格的な自動化システム</strong> の全体像</li>
+<li>自分にとって <strong>次に進むべきステップ</strong> を判断する</li>
+</ul>
+<!--
+次は最終章「中級編への橋渡し」です。ここまでで3階層モデルの全てを学びました。L1プロンプトで意図を伝え、L2コンテキストで知識を永続化し、L3ハーネスで安全性を確保する。この3つの武器が揃いました。しかし、これは「入り口」に過ぎません。最終章では、初級編の学習到達点を振り返り、中級編で学ぶ本格的な自動化システムの全体像を紹介します。あなたにとって次に進むべきステップを判断する材料になります。
+-->
+
+<hr />
+<!-- _class: cover -->
+
+<h1>第5章 完了 🎓</h1>
+<h2>次は終章「中級編への橋渡し」</h2>
+<div class="meta">
+✅ Hookとは何か (L3ハーネスの公式実装機能・29種類のライフサイクルイベント)<br>
+✅ PreToolUse Hook の仕組みと役割<br>
+✅ AI の危険操作を自動検知・ブロックする仕組み (exit 2 + stderr / stdin JSON 受取)<br><br>
+<b>続けて終章をお楽しみください</b>
+</div>
+
+<!--
+ご視聴ありがとうございました。この第5章で、3階層モデルの最後のピース「L3 ハーネス」の代表的な公式機能である Hook の仕組みを理解いただけたでしょうか。Hook は公式 29 種類のライフサイクルイベントに任意の処理を発火させる仕組みで、本章ではその中の PreToolUse を使ってコマンド実行前の検査を行い、危険な操作を exit 2 + stderr メッセージで自動ブロックする方法を学びました。hook へのデータ受け渡しは stdin 経由の JSON、ここだけはコピペが効かない部分なので忘れないでください。これで L1 プロンプト、L2 コンテキスト、L3 ハーネスの 3 層が揃い、安心して AI に作業を任せられる基盤が完成しました。次は最終章「中級編への橋渡し」で、これまでの学びを整理し、次のステップを確認します。
+-->
+</body></html>

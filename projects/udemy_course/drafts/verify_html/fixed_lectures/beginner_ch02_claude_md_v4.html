@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>初級ch02 CLAUDE.md (修正版)</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.3em; }
+h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.1em; }
+h3 { color: #4b5563; margin-top: 1em; font-size: 1.0em; }
+hr { border: none; border-top: 2px dashed #cbd5e1; margin: 2em 0; }
+table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 0.82em; }
+th { background: #1e3a8a; color: #fff; padding: 5px 7px; }
+td { padding: 5px 7px; border: 1px solid #d1d5db; vertical-align: top; }
+tr:nth-child(even) td { background: #f3f4f6; }
+code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.88em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; overflow-x: auto; font-size: 0.82em; }
+pre code { background: transparent; color: inherit; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.7em; color: #78350f; }
+@media (max-width: 768px) { body { padding: 8px; font-size: 13.5px; } table { font-size: 0.76em; } }
+</style></head><body>
+<nav style="background:#1e3a8a; color:#fff; padding:8px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
+<a href="../index.html" style="color:#fde68a; margin-right:10px;">← ハブ</a>
+<a href="index.html" style="color:#fff; text-decoration:underline;">📂 修正版19章リスト</a>
+</nav>
+<h1>📝 初級ch02 CLAUDE.md <small style="color:#6b7280; font-size:0.7em;">(修正版 v1)</small></h1>
+<!-- _class: cover -->
+
+<h1>第2章 CLAUDE.md ミニマム</h1>
+<h2>L2: コンテキストエンジニアリング — プロジェクトの「説明書」</h2>
+<div class="meta">
+初級編 — 第2章 (約 30 min)<br><br>
+「Claude Code はじめての一歩 — AI開発の基礎を1日で習得」<br><br>
+講師: なぎなた
+</div>
+
+<!--
+スピーカーノート:
+こんにちは。第2章「CLAUDE.md ミニマム」を始めます。前章では、L1 プロンプトエンジニアリングとして「AIに確実に伝える3要素 (文脈・指示・形式)」を学びました。@file 参照や段階分解・箇条書きで、再現性のある指示を1つ書く力はもう身に付いています。ですが、同じ前提を毎回プロンプトに書くのは面倒ですし、新しい会話を始めるたびにプロジェクトのルールを説明し直すのも非効率です。そこで本章では、3階層モデルの L2 コンテキストエンジニアリングに進み、Claude Code を使いこなす上で最も重要な設定ファイル「CLAUDE.md」を学びます。CLAUDE.md は、プロジェクトのルールを書いておけば AI が新しいセッションを開始するたびに自動で読み込んでくれる「説明書」です。30分間で、なぜ必要なのか、どう書くのか、書くとどう変わるのかを理解していただきます。
+-->
+
+<hr />
+<h1>🗺️ 前章の復習 — 3階層モデルと L1</h1>
+<table>
+<thead>
+<tr>
+<th>階層</th>
+<th>名前</th>
+<th>何をするか</th>
+<th>学習進捗</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L1</td>
+<td>プロンプト</td>
+<td>AIに指示を出す</td>
+<td>✅ 第1章で習得</td>
+</tr>
+<tr>
+<td><strong>L2</strong></td>
+<td><strong>コンテキスト</strong></td>
+<td><strong>AIに前提知識を与える</strong></td>
+<td>← <strong>今ここ (第2章〜)</strong></td>
+</tr>
+<tr>
+<td>L3</td>
+<td>ハーネス (Anthropic公式概念)</td>
+<td>hooks / skills / sub-agents 等で AI のライフサイクルを制御・拡張する層</td>
+<td>第5章以降</td>
+</tr>
+</tbody>
+</table>
+<p><strong>前章で身につけたこと</strong>:<br />
+- プロンプト3要素 (文脈・指示・形式) で AI に確実に伝える<br />
+- @file 参照・段階分解・箇条書きなどの実践テクニック</p>
+<p><strong>本章で身につけること</strong>: その「文脈」を CLAUDE.md に<strong>永続化</strong>して、毎回書かなくても済むようにする</p>
+<!--
+前章の復習からです。L1 プロンプトエンジニアリングでは、文脈・指示・形式の3要素でプロンプトを整理する技術を学びました。@file 参照や段階分解で、AI に意図を確実に伝える基礎ができたはずです。本章はその次のステップ、L2 コンテキストエンジニアリングです。3要素のうち「文脈」 — プロジェクトの前提情報・規約・禁止事項など — を毎回プロンプトに書く代わりに、ファイルに保存して自動的に読み込ませる仕組みを学びます。具体的には CLAUDE.md という設定ファイルです。これを書いておけば、AI は新しい会話を開始するたびに、プロジェクトのルールを把握した状態でスタートしてくれます。なお、表の L3 ハーネスは Anthropic が2025年11月の Engineering Blog 記事「Effective harnesses for long-running agents」で公式に使い始めた業界標準用語で、後の章で詳しく扱います。
+-->
+
+<hr />
+<h2>この 30 分で得られること</h2>
+<ol>
+<li><strong>CLAUDE.mdの役割</strong> を自分の言葉で説明できる</li>
+<li><strong>5セクション構成</strong> で最低限のCLAUDE.mdを書ける</li>
+<li><strong>あり/なしでAIの振る舞いが変わる理由</strong> を説明できる</li>
+<li><strong>よくある書き方の失敗</strong> を避けられる</li>
+</ol>
+<blockquote>
+<p>💡 <strong>キーワード</strong>: AIに渡す情報を整理する手法を「<strong>コンテキストエンジニアリング</strong>」と呼びます。難しそうに聞こえますが、要は「AIに読ませる説明書を書くこと」です。この章でその基本を身につけます。</p>
+</blockquote>
+<!--
+この章のゴールは4つです。一番重要なのは、CLAUDE.mdありとなしでAIの振る舞いがどう変わるかを「理由付きで」説明できるようになることです。具体的なサンプルもお見せします。30分後には、あなた自身のプロジェクトでCLAUDE.mdを書き始める準備ができているはずです。
+-->
+
+<hr />
+<h1>CLAUDE.mdとは — AIに読ませるREADME</h1>
+<blockquote>
+<p>🪞 「新しいプロジェクトに入った時、最初に何を読みますか？」</p>
+</blockquote>
+<ul>
+<li>新しいプロジェクト → まず <strong>README.md</strong> を読む</li>
+<li>AIも同じ → <strong>CLAUDE.md</strong> を読む</li>
+<li><strong>CLAUDE.md = AIに読ませるプロジェクトの説明書</strong></li>
+</ul>
+<blockquote>
+<p>Claude Codeは <strong>新しい会話/セッションを開始すると自動的に CLAUDE.md を読み込み</strong>、プロジェクトのルールを理解する。<code>/clear</code> や <code>/compact</code> の後も<strong>ディスクから再読込される</strong> (プロセスの再起動は不要)</p>
+</blockquote>
+<!--
+人間が新しいプロジェクトに入った時、まずREADME.mdを読んで「このプロジェクトは何で、どう動いているのか」を理解しますよね。Claude Codeも同じことをします。新しい会話やセッションを開始すると、自動的にCLAUDE.mdというファイルを探して読み込みます。`/clear` で会話をリセットしたり `/compact` で要約した後も、ディスクから再読み込みされるので、ルールが消えてしまうことはありません。プロセスを再起動する必要はなく、新しい会話を始めるだけで毎回反映されます。これがCLAUDE.mdの基本的な役割です。
+-->
+
+<hr />
+<h1>📁 CLAUDE.md は階層構造 — 4階層を「連結」して読込</h1>
+<table>
+<thead>
+<tr>
+<th>階層</th>
+<th>配置パス</th>
+<th>何のため</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>① 管理ポリシー</td>
+<td>OS 配下 (例: <code>/Library/Application Support/ClaudeCode/CLAUDE.md</code>)</td>
+<td>組織レベル</td>
+</tr>
+<tr>
+<td>② <strong>ユーザー指示</strong></td>
+<td><code>~/.claude/CLAUDE.md</code></td>
+<td>自分の全プロジェクト共通</td>
+</tr>
+<tr>
+<td>③ <strong>プロジェクト指示</strong></td>
+<td><code>./CLAUDE.md</code> または <code>./.claude/CLAUDE.md</code></td>
+<td>このプロジェクト固有</td>
+</tr>
+<tr>
+<td>④ ローカル</td>
+<td><code>./CLAUDE.local.md</code></td>
+<td>個人用 (<code>.gitignore</code> 推奨)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>重要な挙動 (Claude Code 公式)</strong>:<br />
+- ディレクトリツリーを <strong>上方向に歩いて発見された全 CLAUDE.md を「連結」</strong> (上書きではない)<br />
+- 矛盾時は <strong>後に読まれるプロジェクト指示が従われやすい</strong> (上書きではなく「後勝ち」)<br />
+- サブディレクトリの CLAUDE.md は <strong>オンデマンド読込</strong></p>
+<blockquote>
+<p>最初は ③ プロジェクト指示 (<code>./CLAUDE.md</code>) <strong>1つだけ</strong>で十分。②③ の使い分けは第3章で詳しく扱います</p>
+</blockquote>
+<!--
+CLAUDE.mdは実は4階層の構造を持っています。組織レベルの管理ポリシー、自分の全プロジェクト共通のユーザー指示、プロジェクト固有のプロジェクト指示、そして個人用のローカル。Claude Codeはディレクトリツリーを上方向に歩いて、見つけた全てのCLAUDE.mdを「連結」してコンテキストに読み込みます。これがポイントで、後に読まれるファイルが先に読まれたファイルを「上書き」するわけではなく、すべてが連結されてAIに渡されます。矛盾する指示があった場合は、後に読まれるプロジェクト指示の方が従われやすい、という「後勝ち」の挙動になります。最初は難しく考えず、プロジェクトのルートに `./CLAUDE.md` を1つ置くだけで十分です。複数階層の使い分けは第3章で詳しく見ていきます。
+-->
+
+<hr />
+<h1>なぜCLAUDE.mdが必要なのか</h1>
+<p><strong>CLAUDE.mdなしの会話</strong>:<br />
+- 「このプロジェクトはPythonです」→ 次の会話で忘れる<br />
+- 「テストはpytestで実行して」→ 毎回言わないといけない<br />
+- 「TypeScriptのstrictモードです」→ また忘れる</p>
+<p><strong>CLAUDE.mdありの会話</strong>:<br />
+- 一度書けば <strong>毎セッション自動で読み込まれる</strong><br />
+- プロジェクトのルールを <strong>AIが自動で守る</strong><br />
+- 同じ前提説明の <strong>繰り返しがゼロに</strong></p>
+<!--
+CLAUDE.mdがないと、毎回AIに「このプロジェクトはPythonです」「テストはpytestで」「TypeScriptのstrictモードです」と説明し直す必要があります。会話が長くなると、AIが前の方を忘れてしまうこともあります。CLAUDE.mdがあれば、プロジェクトのルールを一度だけ書けば、AIは新しいセッションのたびに自動で読み込み、ルールを守り続けます。この「繰り返しのゼロ」が最大のメリットです。
+-->
+
+<hr />
+<h1>Before / After — 効果の実感</h1>
+<p><strong>Before (CLAUDE.md なし)</strong>:<br />
+- AI「テストを書きました」 → <strong>Jestで書いてる</strong> (プロジェクトはpytest)<br />
+- AI「コードを修正しました」 → <strong>2スペースインデント</strong> (プロジェクトは4スペース)<br />
+- 毎回指示を繰り返す必要がある</p>
+<p><strong>After (CLAUDE.md あり)</strong>:<br />
+- AI「pytestでテストを書きました」 → 自動で適切なツールを選択<br />
+- AI「4スペースインデントで修正しました」 → コーディング規約を遵守<br />
+- <strong>指示なしで正しい振る舞い</strong></p>
+<!--
+この違いを見てください。CLAUDE.mdがないと、AIはプロジェクトの事情を知らないので、デフォルトの振る舞いをします。PythonプロジェクトなのにJestでテストを書いたり、4スペースのプロジェクトなのに2スペースでコードを書いたり。CLAUDE.mdがあれば、AIは最初からプロジェクトのルールを理解しているので、指示しなくても正しいツールと規約を使います。この違いが、CLAUDE.mdの価値です。
+-->
+
+<hr />
+<h1>5セクション構成 — 30行で書ける</h1>
+<p>CLAUDE.mdは以下の5セクションで構成するのが基本:</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>セクション</th>
+<th>役割</th>
+<th>例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>使用言語・FW（フレームワーク）</td>
+<td>何を使っているか</td>
+<td>Python 3.12 / FastAPI</td>
+</tr>
+<tr>
+<td>2</td>
+<td>コーディング規約</td>
+<td>スタイルの統一</td>
+<td>4スペース / 型ヒント必須</td>
+</tr>
+<tr>
+<td>3</td>
+<td>よく使うコマンド</td>
+<td>ビルド・テスト・実行</td>
+<td><code>pytest</code> / <code>uvicorn</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>禁止事項</td>
+<td>やってはいけないこと</td>
+<td><code>rm -rf</code> 禁止 / <code>main</code>にpush禁止</td>
+</tr>
+<tr>
+<td>5</td>
+<td>プロジェクト構造</td>
+<td>ディレクトリの意味</td>
+<td><code>src/</code> = 本体 / <code>tests/</code> = テスト</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>これだけで <strong>約30行</strong>。最初はこれだけで十分</p>
+</blockquote>
+<!--
+CLAUDE.mdは5つのセクションで構成します。使用している言語とフレームワーク、コーディング規約、よく使うコマンド、禁止事項、そしてプロジェクトのディレクトリ構造です。全部書いても約30行。最初はこのミニマム構成で十分です。後から必要に応じて追加していけばOKです。完璧を目指さず、まずは30行で始めるのがコツです。
+-->
+
+<hr />
+<h1>30行ミニマム版の例</h1>
+<blockquote>
+<p>以下はPythonの例ですが、<strong>中身が読めなくても構いません</strong>。この例はPythonですが、JavaScriptでもGoでも構造は同じです。セクションの構成（5つ）が重要で、中身の技術用語はご自身の使う言語に置き換えてください。構造（5セクション・箇条書き）だけ見てください。</p>
+</blockquote>
+<pre><code class="language-markdown"># CLAUDE.md
+
+## 使用言語・フレームワーク
+- Python 3.12 / FastAPI
+- ORM（データベースを扱いやすくする仕組み）: SQLAlchemy 2.0
+
+## コーディング規約
+- インデント: 4スペース
+- 型ヒント必須（変数の種類を明示する書き方）
+- 関数の説明書き（docstring）はGoogle形式
+
+## よく使うコマンド
+- テスト: pytest tests/
+- 起動: uvicorn app.main:app --reload
+- コード検査（lint）: ruff check .
+
+## 禁止事項
+- 本番DBの直接操作禁止
+- mainブランチへの直接push禁止
+
+## プロジェクト構造
+- app/ = アプリ本体
+- tests/ = テスト
+- migrations/ = データベースの変更履歴（マイグレーション）
+</code></pre>
+<p><strong>保存の手順 (3ステップ)</strong>:<br />
+1. プロジェクトの一番上のフォルダ（ルート）を開く<br />
+2. <code>CLAUDE.md</code> という名前でファイルを作成し、上記を貼り付けて保存<br />
+3. Claude Code で <strong>新しい会話/セッションを開始</strong> → 自動的に読み込まれる (プロセス再起動は不要・<code>/clear</code> 後もディスクから再読込される)</p>
+<blockquote>
+<p>💡 <strong>確認方法</strong>: 新しい会話を始めて「CLAUDE.mdの内容を教えて」と聞けば、正しく読み込まれているかすぐ確認できます</p>
+</blockquote>
+<!--
+これが実際の30行ミニマム版の例です。Pythonの例ですが、構造だけ見てください。言語とフレームワーク、コーディング規約、コマンド、禁止事項、ディレクトリ構造を簡潔に書いています。保存は3ステップです。プロジェクトのルートフォルダにCLAUDE.mdという名前で保存し、Claude Codeで新しい会話やセッションを開始するだけ。プロセスを再起動する必要はなく、新しい会話を始めれば自動的に読み込まれます。`/clear` で会話をリセットした後でも、ディスクから再読込されます。この30行で、AIの振る舞いが劇的に変わります。難しく考える必要はありません。自分のプロジェクトの「基本情報」を箇条書きで書くだけです。
+-->
+
+<hr />
+<h1>セクション詳細 — 使用言語・FW と コーディング規約</h1>
+<blockquote>
+<p>💡 <strong>ここから先はPython固有の用語が出てきます。「そういう設定項目があるんだな」程度に読み流してOK</strong> です。ご自身の言語に置き換えて考えましょう。</p>
+</blockquote>
+<p><strong>使用言語・フレームワーク</strong>:<br />
+- 言語のバージョンまで書く → AIが使える機能を正しく判断<br />
+- 例: 「Python 3.12」と書けば、最新の文法機能（例: 値を代入しつつ比較できる <code>:=</code> 演算子）を使えると判断</p>
+<p><strong>コーディング規約</strong>:<br />
+- インデント幅、命名規則、リンター設定を書く<br />
+- AIが生成するコードの <strong>スタイルが統一される</strong><br />
+- コードレビューの指摘事項が減る</p>
+<blockquote>
+<p>「4スペース」と書くだけで、AIは常に4スペースでインデントする</p>
+</blockquote>
+<!--
+最初の2セクションの詳細です。言語とフレームワークは、バージョンまで含めます。「Python 3.12」と書いておけば、3.12で追加された機能を使って良いとAIが判断します。逆に「Python 3.9」と書いておけば、それ以降の機能は使いません。コーディング規約は、インデント幅や命名規則を書いておくと、AIが生成するコードのスタイルが統一されます。地味ですが、レビューでの指摘を大幅に減らします。
+-->
+
+<hr />
+<h1>セクション詳細 — よく使うコマンド と 禁止事項</h1>
+<p><strong>よく使うコマンド</strong>:<br />
+- テスト、ビルド（プログラムを動かせる形に変換すること）、Lint（コードの問題を自動検査すること）の実行コマンドを書く<br />
+- AIがコード修正後に <strong>テストを実行して確認</strong> する（実行前に人間へ確認することもあります）</p>
+<table>
+<thead>
+<tr>
+<th>プロジェクト</th>
+<th>テストコマンド</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Python</td>
+<td><code>pytest tests/</code></td>
+</tr>
+<tr>
+<td>JavaScript</td>
+<td><code>npm test</code></td>
+</tr>
+<tr>
+<td>Go</td>
+<td><code>go test ./...</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>禁止事項</strong>:<br />
+- 危険な操作 (<code>rm -rf</code> 等) の禁止<br />
+- 本番環境への直接アクセス禁止<br />
+- AIが <strong>実行前に止まる</strong> 安全装置</p>
+<!--
+よく使うコマンドのセクションです。テストコマンドを書いておくと、AIはコードを修正した後に自動的にテストを実行してくれます。プロジェクトによってテストコマンドは違いますが、これを書いておけばAIが間違ったコマンドを使うことがなくなります。禁止事項は安全性の観点で非常に重要です。「本番DBの直接操作禁止」「mainブランチへの直接push禁止」と書いておけば、AIはこれらの操作を実行しようとした瞬間に立ち止まります。
+-->
+
+<hr />
+<h1>効果の検証 — 3つのBefore / After</h1>
+<p><strong>① テストフレームワークの選択</strong>:<br />
+- Before: AIがJestでテストを生成 (プロジェクトはpytest)<br />
+- After: AIがpytestでテストを生成</p>
+<p><strong>② インデントスタイル</strong>:<br />
+- Before: AIが2スペースでコード生成 (プロジェクトは4スペース)<br />
+- After: AIが4スペースでコード生成</p>
+<p><strong>③ セッションを跨ぐ記憶</strong>:<br />
+- Before: 毎回「このプロジェクトはPythonです」と説明<br />
+- After: 新しい会話を開始するだけで自動で理解</p>
+<!--
+3つの具体的なBefore/Afterです。テストフレームワークの選択、インデントスタイル、セッションを跨ぐ記憶。どれもCLAUDE.mdがあるだけで、AIの振る舞いがプロジェクトに適合します。特に3つ目の「セッションを跨ぐ記憶」は重要です。CLAUDE.mdがないと、新しい会話を始めるたびに全てを説明し直す必要があります。CLAUDE.mdがあれば、新しいセッションを開始するだけで自動で読み込まれるので、説明の繰り返しがゼロになります。
+-->
+
+<hr />
+<h1>よくある書き方の失敗 3選</h1>
+<p><strong>❌ 失敗1: 長すぎる</strong><br />
+- 100行以上のCLAUDE.md → AIが重要な部分を見落とす<br />
+- 解決: <strong>30行以内</strong>に収める。詳細は別ファイルに</p>
+<p><strong>❌ 失敗2: 曖昧な表現</strong><br />
+- 「きれいなコードを書いて」→ AIの解釈がバラバラ<br />
+- 解決: <strong>具体的な規約</strong>を書く (例: 「4スペース」)</p>
+<p><strong>❌ 失敗3: 矛盾する指示</strong><br />
+- 「TypeScriptを使って」+ 「JavaScriptで書いて」→ AIが混乱<br />
+- 解決: <strong>一貫性</strong>を確認してから保存する</p>
+<!--
+CLAUDE.mdを書く時によくある失敗を3つ紹介します。1つ目は長すぎること。100行以上書くと、AIが重要な部分を見落とす可能性があります。最初は30行以内に収めましょう。2つ目は曖昧な表現。「きれいなコード」ではAIに伝わりません。「4スペース」「型ヒント必須」のように具体的に書きましょう。3つ目は矛盾する指示。TypeScriptとJavaScriptを同時に指定するとAIが混乱します。保存前に一貫性を確認することが大切です。
+-->
+
+<hr />
+<h1>CLAUDE.mdを書く時のポイント</h1>
+<ol>
+<li><strong>短く始める</strong> — 最初は5セクション30行で十分</li>
+<li><strong>具体的に書く</strong> — 「きれいに」ではなく「4スペース」</li>
+<li><strong>禁止事項を必ず入れる</strong> — 安全性の最低限</li>
+<li><strong>随時アップデート</strong> — プロジェクトの変更点があったら追記する（30行を超えそうなら、古いルールを見直して削る）</li>
+<li><strong>AIの振る舞いを見て調整</strong> — 期待と違ったら追記する</li>
+</ol>
+<blockquote>
+<p><strong>完璧を目指さない</strong> — 30行のCLAUDE.mdが、0行の何倍も価値がある</p>
+</blockquote>
+<!--
+CLAUDE.mdを書く時の5つのポイントです。一番大事なのは「短く始める」ことです。完璧なCLAUDE.mdを最初から書こうとすると、書けません。まずは5セクション30行で始めて、実際にAIを使いながら足りない部分を追加していくのが正しいアプローチです。追加する時は、古いルールを見直して削ることで30行を維持します。30行のCLAUDE.mdが、0行の何倍も価値があります。0行のまま悩むより、30行で始めることが何より重要です。
+-->
+
+<hr />
+<h1>まとめ — この章で学んだこと</h1>
+<ol>
+<li><strong>CLAUDE.md</strong> = AIに読ませるプロジェクトの説明書 (3階層モデルの <strong>L2 コンテキスト</strong>)</li>
+<li><strong>新しい会話/セッション開始時に自動読み込み</strong> → 毎回の説明が不要に (プロセス再起動不要)</li>
+<li><strong>4階層構造</strong> (管理 / ユーザー / プロジェクト / ローカル) を <strong>「連結」</strong> して読込</li>
+<li><strong>5セクション30行</strong> のミニマム構成で十分 — まずは <code>./CLAUDE.md</code> 1つから</li>
+<li>あり/なしでAIの <strong>振る舞いが劇的に変わる</strong></li>
+<li>長すぎ・曖昧・矛盾の <strong>3つの失敗</strong> を避ける</li>
+</ol>
+<blockquote>
+<p>次の章では、CLAUDE.md の周りにある <strong>他の .md ファイル群</strong> (commands / skills / agents / imports) を学びます</p>
+</blockquote>
+<!--
+この章のまとめです。CLAUDE.mdはAIにプロジェクトのルールを教える説明書で、3階層モデルのL2 コンテキストエンジニアリングの中心となるファイルです。新しい会話やセッションを開始すると自動で読み込まれ、4階層構造で連結されて AI に渡されます。5セクション30行のミニマム構成で始められ、ありなしでAIの振る舞いが劇的に変わることを、Before/Afterで確認しました。次の章では、CLAUDE.md の周りにある他の .md ファイル群 — commands、skills、agents、imports — を見ていきます。CLAUDE.md がプロジェクト全体の説明書なら、それ以外の .md ファイルは特定用途の補強パッケージです。
+-->
+
+<hr />
+<h1>確認問題</h1>
+<p><strong>Q1</strong>: CLAUDE.mdの主な役割は何か？</p>
+<details><summary>解答</summary>AIにプロジェクトのルールを教える「説明書」として機能する。新しい会話/セッションの開始時に自動で読み込まれ、毎セッションでルールが適用される (プロセス再起動は不要)。</details>
+
+<p><strong>Q2</strong>: ミニマム構成の5セクションをすべて答えよ。</p>
+<details><summary>解答</summary>使用言語・フレームワーク、コーディング規約、よく使うコマンド、禁止事項、プロジェクト構造</details>
+
+<p><strong>Q3</strong>: CLAUDE.mdで「きれいなコードを書いて」と書くべきでない理由は何か？</p>
+<details><summary>解答</summary>曖昧な表現はAIの解釈がバラバラになるから。「4スペース」「型ヒント必須」のように具体的な規約を書くべき。</details>
+
+<!--
+確認問題です。動画を一時停止して、自分で答えを考えてから解答を開いてみてください。Q1はCLAUDE.mdの本質を問う問題で、読込タイミングまで含めて答えられればより正確です。Q2は5セクション構成をそのまま覚えているかの確認。Q3は「具体的に書く」ことの重要性を理解しているかを問う問題です。3問とも正解できれば、この章の内容はしっかり身についています。
+-->
+
+<hr />
+<h1>次のレクチャー予告</h1>
+<h2><strong>第3章: CLAUDE.mdの仲間たち — commands / skills / agents</strong> (約 30 min)</h2>
+<blockquote>
+<p>CLAUDE.md以外にもAIに渡せる .md ファイル群があります。CLAUDE.md (プロジェクト全体) から特定用途のファイルへ広げる流れを学びます。</p>
+</blockquote>
+<ul>
+<li><code>.claude/commands/&lt;name&gt;.md</code> — 自分用のスラッシュコマンド (定型操作の保存)</li>
+<li><code>.claude/skills/&lt;name&gt;/SKILL.md</code> — 業務領域のワークフロー定義 (必要時にオンデマンド読込)</li>
+<li><code>.claude/agents/&lt;name&gt;.md</code> — サブエージェント (役割別の専門担当)</li>
+<li><code>@path</code> imports — CLAUDE.md 内から他ファイルを取り込む構文</li>
+</ul>
+<blockquote>
+<p>CLAUDE.md がプロジェクト全体の説明書なら、これらは <strong>特定用途の補強パッケージ</strong></p>
+</blockquote>
+<!--
+次の第3章では、CLAUDE.md の周りにある他の .md ファイル群を見ていきます。.claude/commands/ には自分用のスラッシュコマンドを定義できます。.claude/skills/ には業務領域のワークフローを定義してオンデマンドで読み込ませることができます。.claude/agents/ には特定の役割を持つサブエージェントを定義できます。さらに CLAUDE.md 内では @path 構文で他のファイルを取り込むこともできます。CLAUDE.md がプロジェクト全体の説明書なら、これらの .md ファイル群は特定用途の補強パッケージです。それぞれの違いと使い分けを学びましょう。
+-->
+
+<hr />
+<!-- _class: cover -->
+
+<h1>第2章 完了</h1>
+<h2>次は第3章「CLAUDE.mdの仲間たち — commands / skills / agents」</h2>
+<div class="meta">
+✅ CLAUDE.md の役割（AI に読ませるプロジェクト説明書・L2 コンテキスト）<br>
+✅ 4階層構造（管理 / ユーザー / プロジェクト / ローカル）の連結読込<br>
+✅ 5セクション構成（言語・規約・コマンド・禁止・構造）<br>
+✅ 30行ミニマム版の書き方<br>
+✅ あり/なしでAIの振る舞いが変わる理由<br>
+✅ よくある失敗3選の回避方法<br><br>
+<b>続けて第3章をお楽しみください</b>
+</div>
+
+<!--
+ご視聴ありがとうございました。この章でCLAUDE.mdの基本をマスターしました。AIに読ませるプロジェクトの説明書、4階層の連結読込、5セクション30行で書けるミニマム構成、そしてありなしでAIの振る舞いがどう変わるか。これらを押さえていただければ、実際のプロジェクトでCLAUDE.mdを書く準備は完了です。次の章では、CLAUDE.md の仲間たち — commands、skills、agents、imports — を学んで、AI のプロジェクト適応をさらに深めていきます。
+-->
+</body></html>

@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中級ch04 長文対策 (修正版)</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.3em; }
+h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.1em; }
+h3 { color: #4b5563; margin-top: 1em; font-size: 1.0em; }
+hr { border: none; border-top: 2px dashed #cbd5e1; margin: 2em 0; }
+table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 0.82em; }
+th { background: #1e3a8a; color: #fff; padding: 5px 7px; }
+td { padding: 5px 7px; border: 1px solid #d1d5db; vertical-align: top; }
+tr:nth-child(even) td { background: #f3f4f6; }
+code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.88em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; overflow-x: auto; font-size: 0.82em; }
+pre code { background: transparent; color: inherit; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.7em; color: #78350f; }
+@media (max-width: 768px) { body { padding: 8px; font-size: 13.5px; } table { font-size: 0.76em; } }
+</style></head><body>
+<nav style="background:#1e3a8a; color:#fff; padding:8px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
+<a href="../index.html" style="color:#fde68a; margin-right:10px;">← ハブ</a>
+<a href="index.html" style="color:#fff; text-decoration:underline;">📂 修正版19章リスト</a>
+</nav>
+<h1>📝 中級ch04 長文対策 <small style="color:#6b7280; font-size:0.7em;">(修正版 v1)</small></h1>
+<!-- _class: cover -->
+
+<!--
+スピーカーノート:
+第4章へようこそ。ch03で「長文 context では 3 つの失敗要因 (容量上限/LitM/Context Rot) が起きる」「根本対策は長文を作らない仕組み化」と学びました。本章では、その根本対策のうち「方向性①: 分割 + 検索」を 4 つの道具で具体的に実装します。物理分割は ch05、自動取得は ch07 で扱います。
+-->
+
+<h1>第4章: 長文を作らない仕組み</h1>
+<h2>chunk + RAG + 永続記憶 + 手動ドキュメント化で、AIに忘れさせない</h2>
+<div class="meta">
+中級編 — 第4章 (約 35 min)<span class="free">FREE</span><br><br>
+「AI開発の3階層 — プロンプト/コンテキスト/ハーネス エンジニアリング完全解説」<br><br>
+講師: なぎなた
+</div>
+
+<hr />
+<h2>前回の復習 — ch03 の核心</h2>
+<blockquote>
+<p>ch03 で学んだこと:<br />
+- 長文 context での失敗要因は <strong>3 つに整理できる</strong>: 容量上限 (公式仕様) / <strong>Lost in the Middle</strong> (2023 年論文で確認) / Context Rot (コミュニティ/研究で提唱)<br />
+- <strong>配置技術</strong> (TL;DR / 末尾サマリ) は緩和策に過ぎない<br />
+- <strong>根本対策 = 長文を作らない仕組み化</strong> — 3 方向性 (分割+検索 / 物理分割 / 自動取得)</p>
+</blockquote>
+<p><strong>今日のテーマ</strong>: 根本対策の <strong>方向性① 分割 + 検索</strong> を <strong>4 つの道具</strong> で実装する (方向性② は ch05、方向性③ は ch07)</p>
+<!-- Speaker note: ch03 で提示した 3 つの失敗要因とそれぞれの出所 (公式仕様/論文/コミュニティ) を最初に再確認します。3 つの方向性のうち本章は ①、ch05 が ②、ch07 が ③ という分担を明示しておくと、4 章の位置づけが明確になります -->
+
+<hr />
+<h2>今回の「困りごと」</h2>
+<blockquote>
+<p><strong>⑤ 完了したことを次に伝え忘れる</strong></p>
+</blockquote>
+<p>「先週の自分が 2 時間かけて解決したバグの調査結果を、今週の AI が知らない。また最初から調査し直し…」</p>
+<blockquote>
+<p><strong>④ 補足</strong>: 200 ページの仕様書を毎回全部渡したら LitM が起きた (ch03)</p>
+<p><strong>⑨ 補足</strong>: 大事なドキュメントを確認しないで進む</p>
+</blockquote>
+<hr />
+<h2>本章の学習目標</h2>
+<!--
+スピーカーノート:
+この章では4つの道具を順に紹介します。chunk、RAG、claude-mem、手動ドキュメント化。全部で「長文を作らない仕組み」を構成します。
+-->
+
+<ol>
+<li><strong>chunk (長文分割)</strong> で 200 ページ仕様書を 30 の小片に分けられる</li>
+<li><strong>RAG (Retrieval-Augmented Generation / 検索拡張生成)</strong> の概念を理解し、「自分用検索」が作れる</li>
+<li><strong><code>claude-mem</code></strong> (外部 MCP サーバー・別途導入要) で過去の発見を意味で検索できる</li>
+<li><strong>手動でこまめなドキュメント化</strong> (<code>MEMORY.md</code> への書き残し) の習慣を身につける</li>
+<li>handoff/rehydrate の <strong>正しい用途</strong> を理解する (附録参照)</li>
+</ol>
+<hr />
+<h2>現象 — こんな経験ありませんか?</h2>
+<p><strong>ケース A</strong>: 先月 A 社との商談で「予算は Q3 に集中」と合意したのに、今月 AI がその情報を知らない。Q2 予算前提で提案書を作ってしまった</p>
+<p><strong>ケース B</strong>: 200 ページの仕様書を AI に渡して質問したら、中盤の重要な要件が抜けた</p>
+<p><strong>ケース C</strong>: 毎回ゼロから状況を AI に説明している。過去に解決したはずの問題にまたぶつかる</p>
+<hr />
+<h2>対策の方向性 — 「全部添付」からの脱却</h2>
+<pre><code>Before:  200ページ全部 → AI に渡す → LitM 発生 → 重要な部分が読み飛ばされる
+
+After:   200ページ → 30チャンクに分割 → 必要なチャンクだけ検索して渡す
+</code></pre>
+<p><strong>核心</strong>: AI に渡す情報を短く分割する → AI が一度に処理する量が減る → LitM が起きない</p>
+<hr />
+<h2>本章の主役 — 4 つの道具</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>道具</th>
+<th>役割</th>
+<th>例え</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>①</td>
+<td><strong>chunk (長文分割)</strong></td>
+<td>長文を小片に分ける</td>
+<td>図書館の本を章ごとに分ける</td>
+</tr>
+<tr>
+<td>②</td>
+<td><strong>RAG (Retrieval-Augmented Generation)</strong></td>
+<td>関連する小片を検索して渡す</td>
+<td>司書に「このテーマの本の該当章だけ出して」と頼む</td>
+</tr>
+<tr>
+<td>③</td>
+<td><strong>claude-mem</strong> (外部 MCP)</td>
+<td>過去の経験を意味で検索</td>
+<td>自分専用の「仕事メモ検索」</td>
+</tr>
+<tr>
+<td>④</td>
+<td><strong>手動ドキュメント化</strong></td>
+<td>決定事項を都度書き残す</td>
+<td>付箋を貼る習慣</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<!-- _class: cover -->
+
+<h1>主役①: chunk (長文分割)</h1>
+<h2>長文を小片に分けて、必要なものだけ渡す</h2>
+<hr />
+<h2>chunk とは?</h2>
+<!--
+スピーカーノート:
+chunkは「かたまり」という意味です。長い文章をAIが一度に処理できるサイズに分割します。図書館の本を章ごとに分けるイメージで説明してください。
+-->
+
+<p><strong>chunk =「かたまり」</strong></p>
+<p>長い文章を、AI が一度に処理できるサイズの小片に分割する技術です。</p>
+<pre><code>200 ページの仕様書
+  ├── chunk 1: 第1章 概要 (7 ページ)
+  ├── chunk 2: 第2章 要件定義 (12 ページ)
+  ├── chunk 3: 第3章 画面設計 (8 ページ)
+  ...
+  └── chunk 30: 付録 (5 ページ)
+</code></pre>
+<p>各チャンクは 200-500 行 (A4 数枚分) 程度が目安。AI は LitM を起こさずに正確に読めます。</p>
+<hr />
+<h2>なぜ chunk が効くのか?</h2>
+<table>
+<thead>
+<tr>
+<th>Before (全部添付)</th>
+<th>After (chunk 分割)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200 ページ = 約 50,000 トークン</td>
+<td>各チャンク = 約 1,500 トークン</td>
+</tr>
+</tbody>
+</table>
+<p>※ トークン = AI が文字を数える単位。日本語 1 文字 ≒ 1-2 トークン。50,000 トークン ≒ 日本語 3 万文字程度<br />
+| LitM で中央が読み飛ばされる | 各チャンクは短い → LitM 発生しない |<br />
+| 毎回全量を送る = コストも時間も無駄 | 必要なチャンクだけ送る = 効率的 |</p>
+<p><strong>ch03 で学んだ LitM の根本対策そのもの</strong> です。</p>
+<hr />
+<h2>実践: 仕様書を chunk に分ける</h2>
+<p><strong>ステップ</strong>:</p>
+<ol>
+<li>200 ページ仕様書を章・節単位で分割</li>
+<li>各チャンクにタグ (章番号・トピック・キーワード) を付けて検索しやすくする</li>
+<li>質問が来たら「どのチャンクが関連するか」を判定</li>
+<li>関連チャンクだけ AI に渡す</li>
+</ol>
+<p><strong>結果</strong>: 「第5章のエラーハンドリングについて教えて」と聞けば、第5章チャンクだけが渡される。他の 29 チャンクは AI に読まれず、LitM も起きない。</p>
+<hr />
+<h2>chunk の設計のコツ</h2>
+<p><strong>分割の単位は何がいいか?</strong></p>
+<ul>
+<li>章単位 (大きな文書)</li>
+<li>節単位 (中程度の文書)</li>
+<li>段落単位 (短い文書)</li>
+</ul>
+<p><strong>ポイント</strong>: 「AI に一度に読ませたい最小単位」で分ける。チャンク同士が重複しないように境界を明確に。</p>
+<hr />
+<!-- _class: cover -->
+
+<h1>主役②: RAG (検索拡張生成)</h1>
+<h2>関連情報を自動で検索して AI に渡す仕組み</h2>
+<hr />
+<div class="vocab-box">
+
+### 用語: RAG (Retrieval-Augmented Generation)
+
+**検索拡張生成** (Retrieval-Augmented Generation)
+
+外部の知識ベースから関連する情報を検索し、その検索結果を AI に渡して回答を生成させる手法。
+
+**ざっくりいうと**: 「AI に答えさせる前に、関連資料を検索して机の上に置いてから答えさせる」
+
+</div>
+
+<hr />
+<h2>RAG のイメージ</h2>
+<!--
+スピーカーノート:
+RAGの流れを4ステップで説明します。検索→取得→注入→生成。重要なのは「全部読む」のではなく「必要な分だけ検索して読む」という転換です。
+-->
+
+<pre><code>質問: 「A社のQ3予算について教えて」
+    │
+    ▼
+① 検索: 知識ベースから「A社」「予算」「Q3」に関連するチャンクを探す
+    │
+    ▼
+② 取得: 関連チャンク 3 件を特定
+    │
+    ▼
+③ 注入: AI に関連チャンクを渡す
+    │
+    ▼
+④ 生成: AI がチャンクを根拠に回答
+    → 「A社の予算は Q3 (7-9月) に集中する見込みです」
+</code></pre>
+<hr />
+<h2>RAG が解決する問題</h2>
+<table>
+<thead>
+<tr>
+<th>問題</th>
+<th>RAG での解決</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>全部の資料を AI に渡すと LitM</td>
+<td>関連チャンクだけ渡す → 短いから LitM なし</td>
+</tr>
+<tr>
+<td>過去の決定事項を忘れる</td>
+<td>知識ベースに保存 → 検索で即呼び出し</td>
+</tr>
+<tr>
+<td>毎回ゼロから説明</td>
+<td>検索結果が「過去の説明」の代わりに</td>
+</tr>
+</tbody>
+</table>
+<p><strong>要するに</strong>: 「全部読む」から「必要な分だけ検索して読む」への転換</p>
+<hr />
+<h2>RAG の構成要素</h2>
+<pre><code>┌─────────────────────────────────────┐
+│          知識ベース (Knowledge Base)  │
+│  ┌──────┐ ┌──────┐ ┌──────┐        │
+│  │chunk1│ │chunk2│ │chunk3│ ...    │
+│  └──────┘ └──────┘ └──────┘        │
+└──────────┬──────────────────────────┘
+           │ 検索
+           ▼
+┌─────────────────────────────────────┐
+│  AI (Claude)                         │
+│  質問 + 関連チャンク → 回答を生成    │
+└─────────────────────────────────────┘
+</code></pre>
+<p><strong>自分用 RAG</strong>: 自分の業務メモ・決定事項・過去の AI 対話を知識ベースにすれば、「自分専用の検索エンジン + AI」が完成する。</p>
+<hr />
+<!-- _class: cover -->
+
+<h1>主役③: claude-mem</h1>
+<h2>過去の経験を意味で検索する「自分専用の検索」</h2>
+<hr />
+<h2>claude-mem とは?</h2>
+<!--
+スピーカーノート:
+claude-memは外部MCPサーバーです。公式同梱ではないので、npm installとclaude mcp addの導入手順が必要です。MEMORY.md（公式・導入不要）との違いを強調してください。
+-->
+
+<p><strong>外部 MCP (Model Context Protocol) サーバーによる永続記憶データベース</strong> (別途導入必要)</p>
+<ul>
+<li>AI との対話で得られた発見・決定事項を自動・手動で保存</li>
+<li>保存した内容を <strong>意味で検索</strong> できる (次スライドで詳しく)</li>
+<li>セッションが変わっても過去の記憶が残る</li>
+<li><strong>導入手順</strong>: <code>npm install</code> + <code>claude mcp add</code> で設定 → 以降は自動動作</li>
+</ul>
+<p><strong>= 自分専用の小さな RAG</strong> (導入済み前提で解説)</p>
+<hr />
+<h2>「意味で検索」とは?</h2>
+<p><strong>普通の検索 (キーワード検索)</strong>:<br />
+- 「予算」という単語を含む文章を探す<br />
+- 「予算」が書いていないと見つからない</p>
+<p><strong>意味で検索 (意味検索)</strong>:<br />
+- 「お金が使える時期は?」と聞く<br />
+- → 「予算」「Q3 に集中」「7-9 月」など、<strong>関連する内容</strong> をまとめて見つける<br />
+- 同じ単語が書いていなくても、<strong>内容が関連していれば</strong> 命中する</p>
+<p><strong>例え</strong>: キーワード検索 = 索引で単語を引く / 意味検索 = 内容を理解している司書に聞く</p>
+<hr />
+<h2>3 つの検索コマンド (MCP 導入後)</h2>
+<blockquote>
+<p><strong>※</strong>: 以下のコマンドは <code>claude-mem</code> MCP サーバー導入後に利用可能です (前スライド参照)</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>コマンド</th>
+<th>役割</th>
+<th>使いどころ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mem-search</code></td>
+<td>キーワードで記憶を検索</td>
+<td>「あの件どうなったっけ?」</td>
+</tr>
+<tr>
+<td><code>smart_search</code></td>
+<td>文書やコードを構造検索</td>
+<td>「あの提案書の承認フローの箇所はどこ?」</td>
+</tr>
+<tr>
+<td><code>timeline</code></td>
+<td>時系列で記憶を振り返る</td>
+<td>「先週何をやったっけ?」</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>実演: mem-search を使ってみる</h2>
+<p><strong>シナリオ</strong>: 先月 A 社の商談で「Q3 予算集中」と合意したが、今月その情報が必要になった。</p>
+<pre><code>&gt; mem-search &quot;A社 予算時期&quot;
+
+検索結果:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📅 2026-04-15 | 商談メモ
+「A社は Q3 (7-9月) に予算が集中する。
+ 6月までに提案書を提出することで、Q3 予算に間に合う。」
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+</code></pre>
+<p><strong>結果</strong>: 過去の商談記録が即座に呼び出され、正確な提案書が作成できる。</p>
+<hr />
+<h2>実演: timeline で振り返る</h2>
+<p><strong>シナリオ</strong>: 今週やったことを振り返りたい。</p>
+<pre><code>&gt; timeline &quot;先週の作業&quot;
+
+2026-05-01: 顧客 B 社の提案書ドラフト作成
+2026-05-02: 競合分析レポート提出
+2026-05-03: バグ調査 (認証モジュール) → 原因特定済
+</code></pre>
+<p><strong>結果</strong>: セッションが変わっても「何をやったか」が即座に思い出せる。</p>
+<hr />
+<h2>claude-mem = 自分専用 RAG の具体例 (外部 MCP)</h2>
+<blockquote>
+<p><strong>※</strong>: claude-mem は Claude Code 公式同梱ではなく、外部 MCP サーバーです。<code>MEMORY.md</code> (公式・導入不要) と区別して理解しましょう。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>RAG の要素</th>
+<th>claude-mem での実装</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>知識ベース</td>
+<td>永続記憶データベース (裏で自動管理)</td>
+</tr>
+<tr>
+<td>チャンク</td>
+<td>各記憶エントリ (観測レコード)</td>
+</tr>
+<tr>
+<td>検索</td>
+<td><code>mem-search</code> / <code>smart_search</code></td>
+</tr>
+<tr>
+<td>AI への注入</td>
+<td>検索結果をプロンプトに自動挿入</td>
+</tr>
+</tbody>
+</table>
+<p><strong>ch03 の根本対策「長文を作らない」が、ここで具体的な道具になりました。</strong></p>
+<hr />
+<h2>余談: MCP (Model Context Protocol) と他の活用例</h2>
+<p><strong>MCP = LLM と外部ツール・データソース・API を繋ぐオープンソース標準プロトコル</strong></p>
+<p>claude-mem は MCP サーバーの <strong>1 例</strong>。他にも MCP サーバーは多数あり:</p>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>MCP サーバー例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>課題追跡 (Issue Tracker)</td>
+<td>Linear / Jira 連携 MCP</td>
+</tr>
+<tr>
+<td>データベースクエリ</td>
+<td>PostgreSQL / SQLite MCP</td>
+</tr>
+<tr>
+<td>監視・ログ分析</td>
+<td>Datadog / Grafana MCP</td>
+</tr>
+<tr>
+<td>デザイン統合</td>
+<td>Figma MCP</td>
+</tr>
+<tr>
+<td>Web 検索</td>
+<td>Brave / Tavily Search MCP</td>
+</tr>
+<tr>
+<td>ファイル / クラウドストレージ</td>
+<td>Google Drive / Notion MCP</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>本章では claude-mem (記憶用 MCP) を主に扱うが、MCP は「<strong>外部ツール・データを Claude に統合する標準</strong>」と理解しておくと、ch09 (業務統合) で応用が利く</p>
+</blockquote>
+<!-- Speaker note: 中級ch00 で「中級では MCP を扱う」と予告しているため、ここで MCP の概念と他例を 1 スライド補強しておきます。claude-mem しか MCP がない、という誤解を防ぐためです。詳しい MCP 活用は ch09 業務統合で扱う、と予告しておくと講座全体の構造が見えやすくなります。MCP の呼び出し方は自然言語依頼・`@server:protocol://...`・`/mcp__server__prompt` の 3 方式があると公式に明記されています -->
+
+<hr />
+<!-- _class: cover -->
+
+<h1>主役④: 手動でこまめなドキュメント化</h1>
+<h2>RAG の「入力」を自分で作る習慣</h2>
+<hr />
+<h2>なぜ「手動」が主役なのか?</h2>
+<p>RAG がいくら優れていても、<strong>検索される中身がなければ意味がない</strong>。</p>
+<pre><code>RAG の構造:
+  知識ベース (保存する) → 検索 (探す) → AI に渡す (使う)
+      ↑
+  ここを自分で埋める = 手動ドキュメント化
+</code></pre>
+<p><strong>AI が勝手に覚えてくれるわけではない。</strong> 人間が「これは重要」と判断して書き残す習慣が RAG の基盤。</p>
+<hr />
+<h2>何を書き残すべきか?</h2>
+<table>
+<thead>
+<tr>
+<th>種類</th>
+<th>例</th>
+<th>タイミング</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>決定事項</td>
+<td>「A社予算は Q3 に集中」</td>
+<td>商談後すぐ</td>
+</tr>
+<tr>
+<td>教訓</td>
+<td>「メールは週次フォーマットで統一」</td>
+<td>エラー解決後すぐ</td>
+</tr>
+<tr>
+<td>固有名詞</td>
+<td>「B社の担当者は田中さん」</td>
+<td>初回ヒアリング後</td>
+</tr>
+<tr>
+<td>進捗</td>
+<td>「認証バグは原因特定済」</td>
+<td>タスク完了時</td>
+</tr>
+</tbody>
+</table>
+<p><strong>コツ</strong>: 「後で書こう」ではなく「その場で書く」。1 行でいい。</p>
+<hr />
+<h2>実践: MEMORY.md に書く (公式機能・導入不要)</h2>
+<!--
+スピーカーノート:
+ここが公式機能の核心です。MEMORY.md は ~/.claude/projects/<project>/memory/MEMORY.md に置かれます (マシンローカル・git 管理外)。プロジェクトリポジトリ内ではない点を強調してください。受講者に「手順は MEMORY.md ファイルに 1 行書くだけ・次回起動時に自動参照される」と伝えてください。
+-->
+
+<p>Claude Code は新しい会話/セッションの開始時に <strong>自動メモリ機能</strong> で <code>MEMORY.md</code> を読み込みます。</p>
+<ul>
+<li><strong>格納場所</strong>: <code>~/.claude/projects/&lt;project-path&gt;/memory/MEMORY.md</code> (マシンローカル・git 管理外)</li>
+<li>プロジェクトリポジトリ内ではなく、ユーザーホーム下の <code>.claude/projects/...</code> に保存される</li>
+<li><strong>読込ルール</strong>: 「最初の 200 行」または「最初の 25KB」のいずれか先に来る方が会話開始時に読み込まれる</li>
+<li><strong>構造</strong>: <code>MEMORY.md</code> (インデックス) + 詳細トピックは別ファイル群 → Claude が必要時に標準 Read ツールでオンデマンド読込</li>
+</ul>
+<pre><code class="language-markdown"># Memory Index
+
+- A社予算メモ: A社は Q3 (7-9月) に予算が集中。6月までに提案書提出で Q3 予算に間に合う (2026-04-15 商談確認)
+- 認証バグ: 原因はトークン期限切れ。リフレッシュ導入で解決済 (2026-04-20)
+</code></pre>
+<p><strong>たったこれだけ</strong>。この 1 行が次回起動時に自動参照され、大きなミスを防ぐ。</p>
+<hr />
+<h2>手動ドキュメント化 = 「未来の自分への手紙」</h2>
+<blockquote>
+<p><strong>未来の自分</strong>: 「A社の予算いつだっけ…?」</p>
+<p><strong>過去の自分</strong>: (MEMORY.md に書いておいた) 「Q3 だよ」</p>
+</blockquote>
+<p><strong>この「書いておいたおかげで助かった」体験を繰り返すと、習慣になります。</strong></p>
+<hr />
+<h2>4 主役のまとめ</h2>
+<pre><code>主役① chunk        : 長文を小片に分ける → 読み飛ばしを防ぐ
+主役② RAG          : 関連小片を検索して渡す → 全部読ませない
+主役③ claude-mem   : 過去の経験を意味検索 → 「忘れ」を防ぐ (外部 MCP)
+主役④ 手動doc化    : 決定事項を都度書き残す → MEMORY.md 自動読込で即参照
+</code></pre>
+<p><strong>共通の哲学</strong>: 「全部一度に渡す」から「必要なときに必要な分だけ渡す」へ</p>
+<hr />
+<!-- _class: cover -->
+
+<h1>附録: セッション切替時の補助</h1>
+<h2>/handoff /rehydrate と公式 PreCompact hook</h2>
+<blockquote>
+<p>以下のうち <code>/handoff</code> <code>/rehydrate</code> ・個別 <code>memory/*.md</code> の運用規約は <strong>本リポジトリ独自のカスタム実装</strong> で Claude Code 公式機能ではありません。<br />
+一方 <strong>PreCompact (圧縮前フック) は公式 hook イベント (29 種類の 1 つ)</strong>・スクリプト実装は著者独自です。両者を分けて理解してください。</p>
+</blockquote>
+<hr />
+<h2>handoff / rehydrate とは?</h2>
+<table>
+<thead>
+<tr>
+<th>コマンド</th>
+<th>役割</th>
+<th>タイミング</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/handoff</code></td>
+<td>現在の作業状態をファイルに保存</td>
+<td>セッション終了前</td>
+</tr>
+<tr>
+<td><code>/rehydrate</code></td>
+<td>保存したファイルから状態を復元</td>
+<td>新しいセッション開始時</td>
+</tr>
+</tbody>
+</table>
+<p><strong>用途</strong>: セッションが切れる前後の引き継ぎ。<strong>会話の要約 (自動圧縮) が起きる前の安全策としても使えます。</strong></p>
+<blockquote>
+<p>⚠️ <code>/handoff</code> <code>/rehydrate</code> は <strong>本リポジトリ独自のカスタムスラッシュコマンド</strong>で、Claude Code 標準には含まれません。受講者が自前環境で使うには <code>.claude/commands/handoff.md</code> 等を自分で定義する必要があります</p>
+</blockquote>
+<hr />
+<h2>⚠️ handoff は LitM 対策ではありません</h2>
+<blockquote>
+<p><strong>誤用</strong>: 「handoff は長文読み飛ばし (LitM) 対策」</p>
+<p><strong>正しい用途</strong>: 「<strong>セッション切替時の引き継ぎ・圧縮の代替</strong>」</p>
+</blockquote>
+<p><strong>なぜ区別が重要か?</strong></p>
+<ul>
+<li>LitM = 長い参照情報の中央が読み飛ばされる問題 (ch03)</li>
+<li>handoff = セッションがリセットされる問題 (別系統)</li>
+</ul>
+<p>混同すると「handoff すれば LitM は解決」という誤った設計に。</p>
+<hr />
+<h2>handoff / rehydrate の使いどころ</h2>
+<p><strong>ケース</strong>: 金曜に AI と仕様書レビューを終えた。月曜に続きをやりたい。</p>
+<ol>
+<li>金曜の終わり: <code>/handoff</code> → 引き継ぎファイル生成</li>
+<li>月曜の朝: <code>/rehydrate</code> → 文脈を復元</li>
+<li>月曜: 金曜の続きから作業再開</li>
+</ol>
+<p><strong>自分の週次業務の引き継ぎに即適用できます。</strong></p>
+<hr />
+<h2>個別 memory ファイルの分割規約 (本リポジトリ独自)</h2>
+<p>記憶が増えてきたら、<code>MEMORY.md</code> から個別ファイルに分割できます (本リポジトリの運用例):</p>
+<p><strong>作成手順</strong>:<br />
+1. <code>memory/</code> ディレクトリに個別 <code>.md</code> ファイルを作成 (<code>feedback_*.md</code> 等トピック別)<br />
+2. <code>MEMORY.md</code> (インデックス) にエントリを 1 行追記 (リンク形式)<br />
+3. 各ファイルに <code>name</code> / <code>description</code> / <code>type</code> などの YAML frontmatter を付けて管理</p>
+<blockquote>
+<p><strong>※ これは Claude Code 公式機能ではなく、本リポジトリ独自の運用パターンです。公式の自動メモリ機能は「<code>MEMORY.md</code> 自動読込 + トピックファイルのオンデマンド読込」までで、frontmatter 規約は著者独自の整理ルールです</strong></p>
+</blockquote>
+<hr />
+<h2>PreCompact (圧縮前フック) — 公式 hook イベント</h2>
+<blockquote>
+<p><strong>PreCompact は Claude Code 公式の hook イベント</strong> (29 種類のうちの 1 つ・「context 圧縮の直前」に発火)<br />
+<strong>イベント (発火タイミング) 自体は公式機能</strong>・以下で紹介するスクリプト実装は著者独自</p>
+</blockquote>
+<p>AI との対話が長くなると、AI が会話の要約 (自動圧縮) を行って古い内容を整理します。</p>
+<p>この圧縮の <strong>直前</strong> に任意の処理を差し込めるのが <strong>PreCompact hook</strong>:</p>
+<ul>
+<li>圧縮直前: 重要な決定事項・進捗をファイルに自動保存するスクリプトを発火</li>
+<li>圧縮後: 保存したファイルから文脈を復旧</li>
+</ul>
+<p><strong>handoff の自動版</strong> と考えると分かりやすい (hook 全体像は ch07 で詳説)。</p>
+<!-- Speaker note: PreCompact は Anthropic 公式の hook 29 種類のうちの 1 つです。本講座で紹介する「圧縮直前に重要情報を退避するスクリプト」は著者独自の実装パターンですが、hook イベント (PreCompact という発火タイミング) 自体は公式機能です。受講者が「PreCompact は著者独自」と誤って覚えないよう、ここで明確に分離しておきます。詳しい hook 全体像 (29 種類) は ch07 で扱います -->
+
+<hr />
+<h2>本編 4 主役 + 附録の全体図</h2>
+<pre><code>■ 本編: LitM 根本対策の主役 4 道具 (方向性① 分割 + 検索)
+  ① chunk       : 長文を分割
+  ② RAG         : 分割した中身を検索
+  ③ claude-mem  : 過去の経験を意味検索 (= RAG の具体実装・外部 MCP・別途導入)
+  ④ 手動doc化   : MEMORY.md に書き残す (公式・導入不要)
+
+■ 附録 1: セッション切替時の補助 (本リポジトリ独自・公式ではない)
+  /handoff /rehydrate : セッション切替時の引き継ぎ (本リポジトリ独自カスタムコマンド)
+  個別 memory/*.md    : 記憶の分割管理 (本リポジトリ独自の運用規約)
+
+■ 附録 2: 関連する公式 hook イベント (公式機能・スクリプト実装は著者独自)
+  PreCompact          : 圧縮直前に発火する公式 hook (29 種類の 1 つ)
+                        → 圧縮直前の情報退避スクリプトを差し込める
+</code></pre>
+<!-- Speaker note: ここが本章の整理スライドです。本編 4 道具は LitM 根本対策の主役 (方向性①)。附録 1 はカスタムコマンド・運用規約で本リポジトリ独自。附録 2 は PreCompact hook で「イベント自体は公式・スクリプト実装は著者独自」という分離を明示します。受講者が「全部著者独自の運用」と誤解しないよう、PreCompact が公式機能であることを強調してください -->
+
+<hr />
+<h2>実例①: 営業の顧客対応</h2>
+<!--
+スピーカーノート:
+営業の実例です。商談後すぐにMEMORY.mdに書き残す習慣が、後の提案書品質を左右します。「書いておいたおかげで助かった」体験が習慣化の鍵です。
+-->
+
+<p><strong>現象</strong>: A社との商談で「予算は Q3 に集中」と合意したのに、今月 AI がその情報を知らない</p>
+<p><strong>解決</strong>:<br />
+1. 商談後 → <code>MEMORY.md</code> に「A社 Q3 予算集中」を書き残す (主役④)<br />
+2. 提案書作成時 → <code>claude-mem</code> の <code>mem-search</code> で呼び出す (主役③)<br />
+3. 結果 → 正確な Q3 予算前提の提案書が完成</p>
+<p><strong>置換</strong>: 自社の顧客名・案件キーワードに変えて即応用</p>
+<hr />
+<h2>実例②: PM の仕様引き継ぎ</h2>
+<p><strong>現象</strong>: 金曜に AI と仕様書レビューを終えた。月曜に続きをやろうとしたら AI が文脈を失っている</p>
+<p><strong>解決</strong>:<br />
+1. 金曜の終わり → <code>/handoff</code> で引き継ぎファイル生成 (副次)<br />
+2. 月曜の朝 → <code>/rehydrate</code> で文脈復元<br />
+3. 結果 → 金曜の続きから作業再開</p>
+<p><strong>置換</strong>: 自分の週次業務の引き継ぎに即適用</p>
+<hr />
+<h2>実例③: データ分析の必要時読込</h2>
+<!--
+スピーカーノート:
+データ分析の実例です。20個のドキュメントを全部渡すとLitMが起きる → chunk分割して関連チャンクだけ渡す → 短いからLitMなし → 精度向上、という流れを強調してください。
+-->
+
+<p><strong>現象</strong>: 分析プロジェクトに 20 個のドキュメントがある。全部渡すと LitM 発生</p>
+<p><strong>解決</strong>:<br />
+1. 20 個のドキュメントをチャンクに分割 (主役①)<br />
+2. 分析テーマに関連するチャンクだけを検索して渡す (主役②)<br />
+3. 結果 → 短いチャンクだけを渡す → LitM なし → 精度向上</p>
+<p><strong>置換</strong>: 自社のプロジェクトドキュメント構成に即適用</p>
+<hr />
+<h2>章末ミニ演習</h2>
+<p><strong>やってみよう</strong>:</p>
+<ol>
+<li><code>MEMORY.md</code> に「今日の重要な決定事項」を 1 つ書き残す (公式機能・導入不要)</li>
+<li>次回 Claude Code 起動時に、書き残した内容が自動参照されることを確認</li>
+<li>(claude-mem MCP 導入済みの方のみ) <code>mem-search</code> で自分の過去の記憶を検索してみる</li>
+</ol>
+<p><strong>体験してほしいこと</strong>:<br />
+- 「手動で叩く」便利さ<br />
+- 「毎回これをやるのか」という手間の感覚 ← <strong>次章の動機づけ</strong></p>
+<hr />
+<h2>橋渡し — ch07 への伏線</h2>
+<!--
+スピーカーノート:
+4道具の振り返りとch07へのブリッジです。「毎回手で叩くのは現実的か？」という問いがch07 hookの動機づけになります。ch05・ch06を挟んでからのch07で自動化を学びます。
+-->
+
+<blockquote>
+<p><strong>ここまでで覚えた 4 つの道具 (方向性① 分割 + 検索)</strong>:<br />
+- chunk: 長文を分割<br />
+- RAG (Retrieval-Augmented Generation): 関連情報を検索して渡す<br />
+- claude-mem (外部 MCP): 過去の発見を意味検索<br />
+- 手動ドキュメント化: <code>MEMORY.md</code> にこまめに書き残す (公式・導入不要)</p>
+<p><strong>でも、毎回手で叩くの、現実的?</strong><br />
+- 1 日 30 回プロンプトを書いて、その都度 <code>mem-search</code>?</p>
+<p><strong>→ ch05 で「役割別ファイルで分業」(方向性② 物理分割)、ch06 で「第三者 AI レビュー」を学んだ後、ch07 で「hook」(方向性③ 自動取得) を学ぶと、AI がプロンプトを受け取った瞬間に自動で関連情報を引いてくれます。</strong><br />
+<strong>→ さらに ch11 の「Skill」と連携させれば、業務文脈に応じて自律的に道具を呼び出します。</strong></p>
+</blockquote>
+<hr />
+<h2>本章のまとめ</h2>
+<!--
+スピーカーノート:
+4つの主役と附録（独自運用＋公式hook）を振り返りましょう。chunk、RAG、claude-mem、手動ドキュメント化がLitMの根本対策。handoffは独自運用、PreCompactは公式hookという分離を強調してください。
+-->
+
+<ul>
+<li><strong>chunk</strong>: 長文を小片に分け、LitM を根本から防ぐ</li>
+<li><strong>RAG (Retrieval-Augmented Generation)</strong>: 関連情報を検索して渡すことで「全部添付」を回避</li>
+<li><strong>claude-mem</strong> (外部 MCP): 過去の経験を意味で検索する「自分専用検索」(別途導入必要)</li>
+<li><strong>手動ドキュメント化</strong>: <code>~/.claude/projects/&lt;project&gt;/memory/MEMORY.md</code> に書き残す (公式・導入不要) → 未来の自分への手紙</li>
+<li><strong>附録 1</strong>: <code>/handoff</code> <code>/rehydrate</code> ・個別 <code>memory/*.md</code> (本リポジトリ独自の運用) — LitM 対策ではなくセッション切替用</li>
+<li><strong>附録 2</strong>: PreCompact hook (公式 hook イベント・29 種類の 1 つ) — スクリプト実装は著者独自</li>
+</ul>
+<p><strong>持ち帰り</strong>:<br />
+「<strong>長文を作らない仕組み</strong> (chunk + RAG + 永続記憶 + 手動ドキュメント化) で、AI に忘れさせない設計ができる」</p>
+<blockquote>
+<p><strong>強化した層: コンテキスト層 (L2)</strong> — 長文を作らない仕組み (方向性① 分割 + 検索) で LitM の根本対策を実装した</p>
+</blockquote>
+<hr />
+<!-- _class: cover -->
+
+<h1>第4章 完了</h1>
+<h2>次は 第5章「役割別ファイルで AI を分業させる」</h2>
+<div class="meta">
+✅ chunk + RAG で長文を作らない仕組みを理解した<br>
+✅ claude-mem (外部 MCP) で過去の経験を意味検索できる<br>
+✅ MEMORY.md (~/.claude/projects/.../memory/) への書き残し習慣を身につけた<br>
+✅ PreCompact が公式 hook イベントであることを理解した<br><br>
+<b>続けて第5章をお楽しみください</b>
+</div>
+</body></html>
