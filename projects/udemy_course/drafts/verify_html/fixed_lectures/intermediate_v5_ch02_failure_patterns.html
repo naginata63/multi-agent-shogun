@@ -1,18 +1,4 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>intermediate_v5_ch02_failure_patterns</title><style>
-body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
-h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.3em; }
-h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.1em; }
-table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 0.82em; }
-th { background: #1e3a8a; color: #fff; padding: 5px 7px; }
-td { padding: 5px 7px; border: 1px solid #d1d5db; vertical-align: top; }
-tr:nth-child(even) td { background: #f3f4f6; }
-code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.88em; }
-pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; overflow-x: auto; font-size: 0.82em; }
-@media (max-width: 768px) { body { padding: 8px; font-size: 13.5px; } table { font-size: 0.76em; } }
-</style></head><body><nav style="background:#1e3a8a; color:#fff; padding:8px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
-<a href="../index.html" style="color:#fde68a; margin-right:10px;">← ハブ</a>
-<a href="index.html" style="color:#fff; text-decoration:underline;">📂 修正版19章リスト</a>
-</nav><h1>📝 intermediate_v5_ch02_failure_patterns</h1><!-- _class: cover -->
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>intermediate_v5_ch02_failure_patterns</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;max-width:1200px;margin:0 auto;padding:16px;line-height:1.6;color:#1f2937;background:#fafafa}h1{color:#1e3a8a;border-bottom:3px solid #1e3a8a;padding-bottom:0.3em;font-size:1.3em}h2{color:#2563eb;border-bottom:1px solid #93c5fd;padding-bottom:0.2em;margin-top:1.5em;font-size:1.1em}table{border-collapse:collapse;width:100%;margin:.8em 0;font-size:.82em}th{background:#1e3a8a;color:#fff;padding:5px 7px}td{padding:5px 7px;border:1px solid #d1d5db;vertical-align:top}tr:nth-child(even) td{background:#f3f4f6}code{background:#f0f0f0;padding:1px 4px;border-radius:3px;font-size:.88em}pre{background:#1e293b;color:#f1f5f9;padding:.6em;border-radius:5px;overflow-x:auto;font-size:.82em}@media (max-width:768px){body{padding:8px;font-size:13.5px}table{font-size:.76em}}</style></head><body><nav style="background:#1e3a8a;color:#fff;padding:8px;border-radius:5px;margin-bottom:15px;font-size:.9em"><a href="../index.html" style="color:#fde68a;margin-right:10px">← ハブ</a><a href="index.html" style="color:#fff;text-decoration:underline">📂 修正版19章リスト</a></nav><h1>📝 intermediate_v5_ch02_failure_patterns</h1><!-- _class: cover -->
 
 <h1>よくある失敗 3 パターンの診断</h1>
 <h2>— プロンプト層の品質診断</h2>
@@ -23,7 +9,7 @@ pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; o
 
 <!--
 スピーカーノート:
-前章 ch01 ではプロンプトをカスタムスラッシュコマンド (`.claude/commands/<名前>.md` または `.claude/skills/<名前>/SKILL.md`) として「資産化」する第一歩を踏みました。本章はその資産の「品質を診断する」フェーズです。せっかくカスタムスラッシュコマンド化しても、中身が「推測で突進させる」品質では意味がありません。受講者が自分のプロンプトを客観視できるようになることがゴール。「AIが悪い」ではなくプロンプトの書き方に原因があるという視点転換を体験してもらいます。本章も無料プレビューです。
+前章 ch01 ではプロンプトを **Skill** (`.claude/skills/<名前>/SKILL.md`) として「資産化」する第一歩を踏みました。Skill は従来 `.claude/commands/<名前>.md` 形式で提供されていた Commands の新形式として 2026年1月に公式統合され、両形式が引き続きサポートされていますが Skills 形式が推奨です。本章はその資産の「品質を診断する」フェーズです。せっかく Skill 化しても、中身が「推測で突進させる」品質では意味がありません。受講者が自分のプロンプトを客観視できるようになることがゴール。「AIが悪い」ではなくプロンプトの書き方に原因があるという視点転換を体験してもらいます。本章も無料プレビューです。
 -->
 
 <hr />
@@ -58,14 +44,14 @@ pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; o
 <hr />
 <h2>前章からのつながり</h2>
 <ul>
-<li>ch01: プロンプトを <strong>カスタムスラッシュコマンド</strong> (<code>.claude/commands/&lt;名前&gt;.md</code> または <code>.claude/skills/&lt;名前&gt;/SKILL.md</code>) として <strong>資産化</strong> した</li>
+<li>ch01: プロンプトを <strong>Skill</strong> (<code>.claude/skills/&lt;名前&gt;/SKILL.md</code> — <code>.claude/commands/&lt;名前&gt;.md</code> の新形式として 2026年1月に公式統合・両形式とも公式サポート継続だが Skills 推奨) として <strong>資産化</strong> した</li>
 <li>ch02: その資産の <strong>品質を診断</strong> する</li>
 </ul>
 <blockquote>
-<p>せっかくカスタムスラッシュコマンド化しても、中身が「推測で突進させる」品質なら意味がない<br />
+<p>せっかく Skill 化しても、中身が「推測で突進させる」品質なら意味がない<br />
 <strong>資産化 → 品質診断</strong> の順で学ぶ</p>
 </blockquote>
-<!-- Speaker note: ch01 で身につけた「カスタムスラッシュコマンド化」を受けてのブリッジスライドです。資産化と品質診断はセットで、片方だけでは意味がないというメッセージを伝えてください。ch01 で 3 件のカスタムスラッシュコマンド化候補を挙げた人は、その中身をこの章のチェックリストで点検する流れになります -->
+<!-- Speaker note: ch01 で身につけた「Skill 化」を受けてのブリッジスライドです。Skills は Commands の新形式として 2026年1月に公式統合された関係 (Commands ファイル形式もそのまま動くが Skills が推奨) を、必要なら一言補足してください。資産化と品質診断はセットで、片方だけでは意味がないというメッセージを伝えてください。ch01 で 3 件の Skill 化候補を挙げた人は、その中身をこの章のチェックリストで点検する流れになります -->
 
 <hr />
 <h2>失敗には 3 つのパターンがある</h2>
@@ -299,7 +285,7 @@ pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; o
 <p>「データのクレンジングだけを行う。結果を確認したら次の指示を出す」</p>
 <p>複数タスクは <strong>別々のプロンプトに分ける</strong></p>
 </blockquote>
-<!-- Speaker note: 3つのBefore/Afterを通して共通パターンを強調します。確認指示(#3)・範囲制限(#4)・完了条件(#9)の3つが最も抜けやすいです。1タスクずつ分割する例は ch01 で資産化したカスタムスラッシュコマンドを別ファイルに切り出すと運用しやすい点も補足するとよいです -->
+<!-- Speaker note: 3つのBefore/Afterを通して共通パターンを強調します。確認指示(#3)・範囲制限(#4)・完了条件(#9)の3つが最も抜けやすいです。1タスクずつ分割する例は ch01 で資産化した Skill を別ファイルに切り出すと運用しやすい点も補足するとよいです -->
 
 <hr />
 <h2>確認問いかけテンプレ 3 種</h2>
@@ -332,7 +318,7 @@ pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; o
 <h2>章末ミニ演習</h2>
 <p>自分のプロンプトを 10 項目で診断してみよう:</p>
 <ol>
-<li>最近書いたプロンプト (もしくは ch01 で資産化したカスタムスラッシュコマンドの中身) を 1 本選ぶ</li>
+<li>最近書いたプロンプト (もしくは ch01 で資産化した Skill の中身) を 1 本選ぶ</li>
 <li>10 項目チェックリストに照らす</li>
 <li>「抜けている」項目を特定</li>
 <li>確認問いかけテンプレ 3 種から適切なものを追加</li>
@@ -341,7 +327,7 @@ pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; o
 <blockquote>
 <p>10 項目チェック → 原因特定 → テンプレ適用 → 修正完了</p>
 </blockquote>
-<!-- Speaker note: 演習のポイントは「自分のプロンプト」を持ってくること。ch01 でカスタムスラッシュコマンドを作った人はそれを点検対象にすると、資産化と品質診断が地続きで体験できます。用意していない受講者にはサンプルプロンプトを提供すると良い。5分程度で取り組んでもらいます -->
+<!-- Speaker note: 演習のポイントは「自分のプロンプト」を持ってくること。ch01 で Skill を作った人はそれを点検対象にすると、資産化と品質診断が地続きで体験できます。用意していない受講者にはサンプルプロンプトを提供すると良い。5分程度で取り組んでもらいます -->
 
 <hr />
 <h2>ch02 まとめ</h2>

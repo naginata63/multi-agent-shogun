@@ -1,18 +1,4 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>intermediate_v5_ch00_intro</title><style>
-body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
-h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.3em; }
-h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.1em; }
-table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 0.82em; }
-th { background: #1e3a8a; color: #fff; padding: 5px 7px; }
-td { padding: 5px 7px; border: 1px solid #d1d5db; vertical-align: top; }
-tr:nth-child(even) td { background: #f3f4f6; }
-code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.88em; }
-pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; overflow-x: auto; font-size: 0.82em; }
-@media (max-width: 768px) { body { padding: 8px; font-size: 13.5px; } table { font-size: 0.76em; } }
-</style></head><body><nav style="background:#1e3a8a; color:#fff; padding:8px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
-<a href="../index.html" style="color:#fde68a; margin-right:10px;">← ハブ</a>
-<a href="index.html" style="color:#fff; text-decoration:underline;">📂 修正版19章リスト</a>
-</nav><h1>📝 intermediate_v5_ch00_intro</h1><!-- _class: cover -->
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>intermediate_v5_ch00_intro</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;max-width:1200px;margin:0 auto;padding:16px;line-height:1.6;color:#1f2937;background:#fafafa}h1{color:#1e3a8a;border-bottom:3px solid #1e3a8a;padding-bottom:0.3em;font-size:1.3em}h2{color:#2563eb;border-bottom:1px solid #93c5fd;padding-bottom:0.2em;margin-top:1.5em;font-size:1.1em}table{border-collapse:collapse;width:100%;margin:.8em 0;font-size:.82em}th{background:#1e3a8a;color:#fff;padding:5px 7px}td{padding:5px 7px;border:1px solid #d1d5db;vertical-align:top}tr:nth-child(even) td{background:#f3f4f6}code{background:#f0f0f0;padding:1px 4px;border-radius:3px;font-size:.88em}pre{background:#1e293b;color:#f1f5f9;padding:.6em;border-radius:5px;overflow-x:auto;font-size:.82em}@media (max-width:768px){body{padding:8px;font-size:13.5px}table{font-size:.76em}}</style></head><body><nav style="background:#1e3a8a;color:#fff;padding:8px;border-radius:5px;margin-bottom:15px;font-size:.9em"><a href="../index.html" style="color:#fde68a;margin-right:10px">← ハブ</a><a href="index.html" style="color:#fff;text-decoration:underline">📂 修正版19章リスト</a></nav><h1>📝 intermediate_v5_ch00_intro</h1><!-- _class: cover -->
 
 <h1>講座のゴール — 3 層の世界観と「困りごと」の正体</h1>
 <h2>— 導入：本講座で何が変わるか</h2>
@@ -336,9 +322,9 @@ ch11 [演習]           自分専用の Skill を作る
 </thead>
 <tbody>
 <tr>
-<td>カスタムスラッシュコマンド (Skills / <code>.claude/commands/&lt;名前&gt;.md</code>)</td>
-<td>毎回書いているプロンプトを 1 コマンド化</td>
-<td>毎回同じプロンプトを書く時</td>
+<td><code>Skill</code> (新形式 <code>.claude/skills/&lt;名前&gt;/SKILL.md</code> ディレクトリ・旧形式 <code>.claude/commands/&lt;名前&gt;.md</code> 1 ファイルも同機能)</td>
+<td><code>/&lt;名前&gt;</code> で呼び出す自作プロンプト/ワークフロー (必要時にオンデマンド読込)</td>
+<td>毎回同じ作業を AI に任せる時</td>
 </tr>
 <tr>
 <td><code>memory</code> (過去の知識の引き出し)</td>
@@ -350,18 +336,13 @@ ch11 [演習]           自分専用の Skill を作る
 <td>「このファイルは必ず確認」などを自動化</td>
 <td>忘れがちな確認作業を自動化する時</td>
 </tr>
-<tr>
-<td><code>Skill</code> (再利用可能なワークフロー定義・必要時にオンデマンド読込)</td>
-<td>特定の業務フロー全体を仕組み化</td>
-<td>一連の作業を AI に任せる時</td>
-</tr>
 </tbody>
 </table>
 <blockquote>
 <p>これらが <strong>あなたのプロジェクトフォルダ</strong> に残ります。<br />
 講座が終わっても、そのまま業務で使い続けられます。</p>
 </blockquote>
-<!-- Speaker note: 講座の実用性を強調します。「座学で終わらない」ことが受講者のモチベーションに直結します。各道具は実際にファイルとして残るので、明日から業務で使えることを伝えてください。なお、Claude Code 公式には「/command」という単一コマンドは存在しません。本講座でいう「自作のスラッシュコマンド」は、推奨される Skills (`.claude/skills/<名前>/SKILL.md` のディレクトリ形式) か、legacy の `.claude/commands/<名前>.md` (単一 .md) として保存します。詳細は ch01 で扱います。Skill は「常駐」ではなく、description が常駐して本体は必要時にオンデマンド読込される設計です — この点も ch11 で実装演習します。 -->
+<!-- Speaker note: 講座の実用性を強調します。「座学で終わらない」ことが受講者のモチベーションに直結します。各道具は実際にファイルとして残るので、明日から業務で使えることを伝えてください。なお、Claude Code 公式では「自作の `/<名前>` コマンド」機能が『Skills』として整理されました — 旧形式の `.claude/commands/<名前>.md` (1 ファイル) と新形式の `.claude/skills/<名前>/SKILL.md` (ディレクトリ) は別機能ではなく『同じ機能の旧/新 2 つの書き方』で、どちらも同じ `/<名前>` で動作します。同名がある場合は Skills (新形式) が優先され、Commands は互換維持のため残されています。Skills が公式推奨される理由は、(1) サポートファイル (スクリプト・テンプレート・参考資料) を同梱できる、(2) YAML フロントマターで `description`・許可ツール・モデル指定などを宣言できる、(3) description マッチでオンデマンド自動読込される (常駐コストが軽い)、の 3 点です。本講座は新形式の Skills を中心に扱います — 書き方は ch01、自分専用 Skill を作る演習は ch11 です。Skill は「常駐」ではなく description のみが常駐し、本体は必要時にオンデマンド読込される設計、という点も ch11 で実装演習します。 -->
 
 <hr />
 <h2>この講座の学び方</h2>
