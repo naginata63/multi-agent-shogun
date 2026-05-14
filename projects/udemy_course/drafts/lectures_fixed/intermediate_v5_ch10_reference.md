@@ -314,10 +314,10 @@ PMサポートの例です。長いメールの中ほどにある変更点が無
 **分析**:
 1. 同じ作業を**毎回手動で繰り返している** = 困りごと②
 2. どの層? → **プロンプト層不足**
-3. 対策 → ch01 の **カスタムスラッシュコマンド** (Skills) → ch11 の Skill 化深掘りへ
+3. 対策 → 本講座 ch01 の **カスタムスラッシュコマンド** (Skills) → ch11 の Skill 化深掘りへ
 
 **改善ステップ**:
-1. まずカスタムスラッシュコマンド (Skills 形式 `.claude/skills/<name>/SKILL.md` 推奨・legacy `.claude/commands/<name>.md` も可) でプロンプトを資産化 (ch01)
+1. まずカスタムスラッシュコマンド (Skills 形式 `.claude/skills/<name>/SKILL.md` 推奨・legacy `.claude/commands/<name>.md` も可) でプロンプトを資産化 (本講座 ch01)
 2. 慣れたらより高度な自動化へ (詳しくはch11で解説)
 
 <!--

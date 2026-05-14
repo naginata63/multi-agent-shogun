@@ -1,18 +1,4 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>intermediate_v5_ch07_hooks</title><style>
-body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
-h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.3em; }
-h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.1em; }
-table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 0.82em; }
-th { background: #1e3a8a; color: #fff; padding: 5px 7px; }
-td { padding: 5px 7px; border: 1px solid #d1d5db; vertical-align: top; }
-tr:nth-child(even) td { background: #f3f4f6; }
-code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.88em; }
-pre { background: #1e293b; color: #f1f5f9; padding: 0.6em; border-radius: 5px; overflow-x: auto; font-size: 0.82em; }
-@media (max-width: 768px) { body { padding: 8px; font-size: 13.5px; } table { font-size: 0.76em; } }
-</style></head><body><nav style="background:#1e3a8a; color:#fff; padding:8px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
-<a href="../index.html" style="color:#fde68a; margin-right:10px;">← ハブ</a>
-<a href="index.html" style="color:#fff; text-decoration:underline;">📂 修正版19章リスト</a>
-</nav><h1>📝 intermediate_v5_ch07_hooks</h1><!--
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>intermediate_v5_ch07_hooks</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;max-width:1200px;margin:0 auto;padding:16px;line-height:1.6;color:#1f2937;background:#fafafa}h1{color:#1e3a8a;border-bottom:3px solid #1e3a8a;padding-bottom:0.3em;font-size:1.3em}h2{color:#2563eb;border-bottom:1px solid #93c5fd;padding-bottom:0.2em;margin-top:1.5em;font-size:1.1em}table{border-collapse:collapse;width:100%;margin:.8em 0;font-size:.82em}th{background:#1e3a8a;color:#fff;padding:5px 7px}td{padding:5px 7px;border:1px solid #d1d5db;vertical-align:top}tr:nth-child(even) td{background:#f3f4f6}code{background:#f0f0f0;padding:1px 4px;border-radius:3px;font-size:.88em}pre{background:#1e293b;color:#f1f5f9;padding:.6em;border-radius:5px;overflow-x:auto;font-size:.82em}@media (max-width:768px){body{padding:8px;font-size:13.5px}table{font-size:.76em}}</style></head><body><nav style="background:#1e3a8a;color:#fff;padding:8px;border-radius:5px;margin-bottom:15px;font-size:.9em"><a href="../index.html" style="color:#fde68a;margin-right:10px">← ハブ</a><a href="index.html" style="color:#fff;text-decoration:underline">📂 修正版19章リスト</a></nav><h1>📝 intermediate_v5_ch07_hooks</h1><!--
 スピーカーノート:
 第7章の冒頭。ch06 で「advisor は AI が skip することもある (任意発動)」と学んだ。本章は hook (強制発動) を学び、両者を使い分けられるようにする。hook は Anthropic Claude Code 公式機能・全 29 種類のライフサイクルイベントで、本章は代表的な 4 つを抜粋して解説する。「手動 → 自動 → 自律」の中継地点として、ch04 検索を自動化し、ch11 Skill 自律化への橋渡しを担う。
 -->
@@ -361,7 +347,7 @@ PostToolUse → いつも同じテスト実行
 <p>これを実現するのが <strong>Skill との連携</strong>。</p>
 <blockquote>
 <p><strong>Skill とは</strong>: AI が呼び出せる「業務専用の再利用可能なワークフロー定義」(オンデマンド読込)。<br />
-ch01 で扱ったカスタムスラッシュコマンド (<code>.claude/commands/&lt;name&gt;.md</code>) の上位互換 —<br />
+カスタムスラッシュコマンド (<code>.claude/commands/&lt;name&gt;.md</code>) の上位互換 —<br />
 標準形式は <code>.claude/skills/&lt;skill-name&gt;/SKILL.md</code> (ディレクトリ + SKILL.md エントリポイント)。<br />
 公式は「カスタムコマンドはスキルにマージされました」と明記しており、<br />
 AI が文脈 (description のキーワードマッチ) に応じて自律判断で呼び出します (詳細は ch11)</p>

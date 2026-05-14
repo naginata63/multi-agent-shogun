@@ -406,7 +406,7 @@ PostToolUse → いつも同じテスト実行
 これを実現するのが **Skill との連携**。
 
 > **Skill とは**: AI が呼び出せる「業務専用の再利用可能なワークフロー定義」(オンデマンド読込)。
-> ch01 で扱ったカスタムスラッシュコマンド (`.claude/commands/<name>.md`) の上位互換 —
+> カスタムスラッシュコマンド (`.claude/commands/<name>.md`) の上位互換 —
 > 標準形式は `.claude/skills/<skill-name>/SKILL.md` (ディレクトリ + SKILL.md エントリポイント)。
 > 公式は「カスタムコマンドはスキルにマージされました」と明記しており、
 > AI が文脈 (description のキーワードマッチ) に応じて自律判断で呼び出します (詳細は ch11)

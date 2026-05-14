@@ -216,13 +216,11 @@ style: |
 /clear    → 会話をリセット
 ```
 
-> 💡 ターミナルではなく **Claude Code のチャット画面の中** で打つコマンドです。`/init`・`/review`・`/clear` などは Claude Code 公式の組込コマンドで、ほかに公式同梱の `/security-review` `/simplify` などもあります
-
-> 📌 **補足 (公式仕様)**: Claude Code 公式は「**カスタムスラッシュコマンドは Skills 機能にマージ済み**」と明記しており、これから新規に作る場合は Skills 形式 (`.claude/skills/<name>/SKILL.md` ディレクトリ + エントリポイント) が推奨です。`.claude/commands/<name>.md` の単一ファイル形式は legacy 互換として残されています (詳しい作り方は第5章で解説)
+> 💡 ターミナルではなく **Claude Code のチャット画面の中** で打つコマンドです。`/init`・`/review`・`/clear` などは Claude Code 公式の組込コマンドで、ほかに公式同梱の `/security-review` `/simplify` などもあります。自分専用のコマンドも作れます (詳しくは第3章「.md 仲間たち」で解説)
 
 <!--
 スピーカーノート:
-slash command は Claude Code の中で使える便利なコマンドです。ターミナルではなく、Claude Code のチャット画面で `/init` や `/review` と打つだけ。よく使う操作を一発で実行できます。`/init` `/review` `/clear` などは Claude Code 公式の組込コマンド、`/security-review` `/simplify` などは Anthropic が公式に同梱しているバンドルスキルです。自分専用のカスタムスラッシュコマンドも作れますが、ここで一点重要な公式情報があります。Claude Code の公式ドキュメントには「カスタムスラッシュコマンドは Skills 機能にマージされました」と明記されていて、これから新規に作る場合は Skills 形式が推奨されています。Skills の標準形式は `.claude/skills/<name>/SKILL.md` というディレクトリ + エントリポイント方式で、`.claude/commands/<name>.md` の古い単一ファイル形式は legacy 互換として今も使えますが、新規は Skills を使うのが公式の方向性です。詳しい作り方は第5章のhookと skills の回で解説します。
+slash command は Claude Code の中で使える便利なコマンドです。ターミナルではなく、Claude Code のチャット画面で `/init` や `/review` と打つだけ。よく使う操作を一発で実行できます。`/init` `/review` `/clear` などは Claude Code 公式の組込コマンド、`/security-review` `/simplify` などは Anthropic が公式に同梱しているバンドルスキルです。自分専用のコマンドも作れますが、作り方や種類の詳細は第3章「.md 仲間たち」で扱います。本章では「便利な操作の入口がここにある」とだけ押さえてください。
 -->
 
 ---
