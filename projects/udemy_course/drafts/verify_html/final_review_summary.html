@@ -1,0 +1,319 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Udemy 19章 最終レビュー (Opus 4.7 + effort max)</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.3em; }
+h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.1em; }
+table { border-collapse: collapse; width: 100%; margin: 1em 0; font-size: 0.85em; }
+th { background: #1e3a8a; color: #fff; padding: 6px 8px; }
+td { padding: 6px 8px; border: 1px solid #d1d5db; vertical-align: top; }
+tr:nth-child(even) td { background: #f3f4f6; }
+code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+strong { color: #dc2626; }
+@media (max-width: 768px) { body { padding: 8px; font-size: 14px; } table { font-size: 0.78em; } }
+.notice { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 15px 0; border-radius: 4px; }
+</style></head><body>
+<nav style="background:#1e3a8a; color:#fff; padding:10px; border-radius:6px; margin-bottom:20px;">
+<a href="index.html" style="color:#fde68a; margin-right:15px;">← ハブ</a>
+<a href="verify_results.html" style="color:#fff; margin-right:12px;">📋 指摘事項47件</a>
+<a href="by_chapter.html" style="color:#fff; margin-right:12px;">📁 章別チートシート</a>
+<a href="terms_guide.html" style="color:#fff; margin-right:12px;">📘 統一表記ガイド</a>
+<a href="chapter_structure.html" style="color:#fff; margin-right:12px;">🏗️ 章構成</a>
+<a href="fixed_lectures/index.html" style="color:#fff; margin-right:12px;">📝 修正版19章</a>
+<a href="final_review_summary.html" style="color:#fff; text-decoration:underline;">🔍 最終レビュー</a>
+</nav>
+<div class="notice">
+<b>⚠️ C2 「hook 29種類」断定の判定について注意:</b><br>
+レビュアーが「公式9-10種類」と判定しているが、これは事前知識依存判定の可能性 (公式 docs/ja/hooks は将軍が WebFetch で <b>29種類確認済み</b>)。
+本サマリは参考扱い・致命傷 C1-C7 は元公式ドキュメントで二重 verify を推奨。
+</div>
+<h1>Udemy 19章 修正版 最終レビュー 1ページサマリ</h1>
+<h2>1. 章別総覧</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>章</th>
+<th>総合重大度</th>
+<th>主要残存問題</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>初00</td>
+<td>beginner_ch00_intro</td>
+<td>低</td>
+<td>旧講座名残存, フック弱, 断言強め</td>
+</tr>
+<tr>
+<td>初01</td>
+<td>beginner_ch01_prompt</td>
+<td>中</td>
+<td>スライド17枚, フック弱, 公式分類要verify</td>
+</tr>
+<tr>
+<td>初02</td>
+<td>beginner_ch02_claude_md</td>
+<td>中</td>
+<td>walrus誤記, 18枚, local.md要verify</td>
+</tr>
+<tr>
+<td>初03</td>
+<td>beginner_ch03_md_family</td>
+<td>中</td>
+<td>19枚, 用語4語未説明, フック弱</td>
+</tr>
+<tr>
+<td>初04</td>
+<td>beginner_ch04_history</td>
+<td>中</td>
+<td>29種要verify, 6モード要verify, 15枚</td>
+</tr>
+<tr>
+<td>初05</td>
+<td>beginner_ch05_hook</td>
+<td>中</td>
+<td>17枚, フック位置, &gt;&amp;2未説明</td>
+</tr>
+<tr>
+<td>初06</td>
+<td>beginner_ch06_outro</td>
+<td>低</td>
+<td>用語3語未注釈, ライフサイクル唐突</td>
+</tr>
+<tr>
+<td>中00</td>
+<td>intermediate_v5_ch00_intro</td>
+<td>中</td>
+<td>Skill/SC混同, 18枚, フック平坦</td>
+</tr>
+<tr>
+<td>中01</td>
+<td>intermediate_v5_ch01_command</td>
+<td>中</td>
+<td>$N誤記疑, legacy表記, 18枚</td>
+</tr>
+<tr>
+<td>中02</td>
+<td>intermediate_v5_ch02_failure</td>
+<td>中</td>
+<td>Skill/SC混同, 22枚, フック弱</td>
+</tr>
+<tr>
+<td>中03</td>
+<td>intermediate_v5_ch03_lost_mid</td>
+<td>中</td>
+<td>23枚, LitM偏重, hook早出し</td>
+</tr>
+<tr>
+<td>中04</td>
+<td>intermediate_v5_ch04_long_text</td>
+<td>中</td>
+<td>41枚, 29種要verify, 200行根拠</td>
+</tr>
+<tr>
+<td>中05</td>
+<td>intermediate_v5_ch05_role_files</td>
+<td>中-高</td>
+<td>35枚, 5方式要verify, local.md</td>
+</tr>
+<tr>
+<td>中06</td>
+<td>intermediate_v5_ch06_advisor</td>
+<td>中</td>
+<td>tool_ID要verify, 21枚, 29種</td>
+</tr>
+<tr>
+<td>中07</td>
+<td>intermediate_v5_ch07_hooks</td>
+<td>中</td>
+<td>28枚, SubAgentStop表記, jq唐突</td>
+</tr>
+<tr>
+<td>中08</td>
+<td>intermediate_v5_ch08_fail_safe</td>
+<td>中</td>
+<td>29種誤疑, 6モード誤疑, 19枚</td>
+</tr>
+<tr>
+<td>中09</td>
+<td>intermediate_v5_ch09_business</td>
+<td>中</td>
+<td>Skill/SCをlegacy混同, 29種, 14枚</td>
+</tr>
+<tr>
+<td>中10</td>
+<td>intermediate_v5_ch10_reference</td>
+<td><strong>高</strong></td>
+<td>28枚, advisor_ID断定, 公式断定累積</td>
+</tr>
+<tr>
+<td>中11</td>
+<td>intermediate_v5_ch11_skill</td>
+<td><strong>高</strong></td>
+<td>FileChanged誤記, 29種, Skill/SC混同</td>
+</tr>
+</tbody>
+</table>
+<h2>2. 高重大度章の詳細</h2>
+<h3>中10 (逆引き辞典) — 重大度 高</h3>
+<ul>
+<li>公式断定の累積: harness記事 (3箇所)・hook 29種類 (3箇所)・advisor_20260301 tool ID (4箇所)・Agent=Model+Harness定式・URL <code>code.claude.com/docs/ja/</code>・2026-03記事・「コマンドはスキルにマージと明記」— <strong>計7種類の未verify断定が同一章に集中</strong></li>
+<li>スライド28枚 (推奨の2倍超) — 早見表3分割/見分け方3枚/パターン3枚/末尾3枚を統合し14枚以下へ</li>
+<li>ch08で既指摘の問題が未対応のまま再発</li>
+</ul>
+<h3>中11 (Skill) — 重大度 高</h3>
+<ul>
+<li><strong>FileChanged を公式 hook と明記</strong> — 公式hookに存在しない (要verify・受講者を実装段階で誤らせる致命傷級)</li>
+<li>hook 公式29種類 表記が5箇所以上に残存</li>
+<li>「Skills/legacy commands」併記4箇所 — Skill と Custom Slash Commands を別公式機能として整理せず混同</li>
+<li>17枚 → 14枚への圧縮 (3統合提案)</li>
+</ul>
+<h2>3. 致命傷 (Critical issues)</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>内容</th>
+<th>該当章</th>
+<th>対応</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C1</td>
+<td><strong>FileChanged を公式 hook と断定</strong></td>
+<td>中11</td>
+<td>実在公式hook (Stop/PostToolUse) に差替 or「カスタムhook想定」と限定</td>
+</tr>
+<tr>
+<td>C2</td>
+<td><strong>hook「公式29種類」断定 (出典不明)</strong></td>
+<td>初04, 中04, 中06, 中07, 中08, 中09, 中10, 中11</td>
+<td>公式9〜10種に修正 or「複数のライフサイクルイベント」に弱化</td>
+</tr>
+<tr>
+<td>C3</td>
+<td><strong>権限モード6種類 (<code>auto</code>/<code>dontAsk</code>含む)</strong></td>
+<td>初04, 中08</td>
+<td>公式4種 (default/acceptEdits/plan/bypassPermissions) に修正</td>
+</tr>
+<tr>
+<td>C4</td>
+<td><strong>Skills と Custom Slash Commands を「legacy/推奨」関係で混同</strong></td>
+<td>中00, 中02, 中09, 中11</td>
+<td>別公式機能として両立記述 (手動 vs 自律発動)</td>
+</tr>
+<tr>
+<td>C5</td>
+<td><strong>Python 3.12 例として walrus <code>:=</code> (実際は3.8由来)</strong></td>
+<td>初02</td>
+<td>3.10+ <code>match</code>文 or 3.12 <code>type</code>文に差替</td>
+</tr>
+<tr>
+<td>C6</td>
+<td><strong>advisor tool ID <code>advisor_20260301</code>・beta header・<code>platform.claude.com</code> 断定</strong></td>
+<td>中06, 中10</td>
+<td>公式docs再確認・未verify部分削除</td>
+</tr>
+<tr>
+<td>C7</td>
+<td><strong>harness Engineering Blog 2025-11 / 2026-03 断定引用</strong></td>
+<td>全章で連鎖</td>
+<td>URL/タイトル/日付verify or「Anthropicが用いる概念」に弱化</td>
+</tr>
+<tr>
+<td>C8</td>
+<td><strong>CLAUDE.local.md を現行階層として記載</strong> (deprecated疑)</td>
+<td>初02, 中05</td>
+<td>「古い形式・現在は @path import 推奨」と注記</td>
+</tr>
+<tr>
+<td>C9</td>
+<td><strong>MEMORY.md「200行/25KB自動読込」固定値</strong></td>
+<td>中04, 中05</td>
+<td>出典明記 or「(本リポジトリの場合)」と限定</td>
+</tr>
+<tr>
+<td>C10</td>
+<td><strong>スラッシュコマンド <code>$N</code> を0ベースと説明</strong> (Bash由来で1ベースが通説)</td>
+<td>中01</td>
+<td>1ベースに訂正 (要verify)</td>
+</tr>
+<tr>
+<td>C11</td>
+<td><strong>「カスタムコマンドはスキルにマージと公式明記」未出典断定</strong></td>
+<td>中01, 中10</td>
+<td>公式docs該当箇所引用 or 表現弱化</td>
+</tr>
+<tr>
+<td>C12</td>
+<td><strong>サブエージェント呼出5方式 (<code>@-mention</code>・<code>--agent</code> CLI)</strong></td>
+<td>中05</td>
+<td>公式3方式 (自動委譲/明示指定/Agentツール) に縮小検討</td>
+</tr>
+<tr>
+<td>C13</td>
+<td><strong><code>.claude/commands/</code> を "legacy" 表記</strong></td>
+<td>中01</td>
+<td>「単一ファイル形式」に変更 (現役機能)</td>
+</tr>
+<tr>
+<td>C14</td>
+<td><strong>SubAgentStop ↔ SubagentStop 表記揺れ</strong></td>
+<td>中07</td>
+<td>プロジェクト統一表記に置換 (公式英語表記要verify)</td>
+</tr>
+</tbody>
+</table>
+<h2>4. 横断的な残存問題</h2>
+<table>
+<thead>
+<tr>
+<th>問題</th>
+<th>影響範囲</th>
+<th>全体対応方針</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>スライド密度過多</strong> (10-12枚推奨に対し15〜41枚)</td>
+<td>19章中16章</td>
+<td>全章で統合パスを通す — 特に中04 (41枚)・中05 (35枚)・中10 (28枚)・中07 (28枚) は最優先</td>
+</tr>
+<tr>
+<td><strong>公式仕様の未verify断定</strong> (hook 29種・harness記事・advisor ID・MCP等)</td>
+<td>11章</td>
+<td>Anthropic公式docs (docs.anthropic.com/claude-code/) で一括verify → 表現を一斉弱化</td>
+</tr>
+<tr>
+<td><strong>Skills と Custom Slash Commands の混同</strong></td>
+<td>中00/02/09/11+初03</td>
+<td>中級編全章で用語統一: Skill=自律発動 / Slash Command=手動起動 を別物として整理</td>
+</tr>
+<tr>
+<td><strong>フック文型が機能列挙型・痛点呼びかけ不足</strong></td>
+<td>13章</td>
+<td>カバー副題を痛点直撃型 (「〜した経験ありませんか?」) へ前倒し</td>
+</tr>
+<tr>
+<td><strong>未注釈の専門用語</strong> (YAML frontmatter, ライフサイクル, jq, stderr, exit code 2, chunk, TL;DR)</td>
+<td>全章</td>
+<td>初出時の括弧書き短説明を徹底 (社会人2-3年目ターゲット適合)</td>
+</tr>
+<tr>
+<td><strong><code>v4/v5/なぎなた/handoff/rehydrate</code> 削除指示</strong></td>
+<td>全章</td>
+<td><strong>完全遵守済 (PASS)</strong></td>
+</tr>
+</tbody>
+</table>
+<h2>5. 全体所見</h2>
+<p>殿削除指示4項目 (handoff/rehydrate/v4/v5/なぎなた) は19章全てで100%完全遵守されており、章構成・3階層モデルの一貫性・章間ブリッジ設計は良質。構造面の品質は到達済み。一方、Anthropic公式仕様面の未verify断定が<strong>章を跨いで連鎖累積</strong>しており、特に「hook 29種類」「Effective harnesses for long-running agents 2025-11」「advisor_20260301」「権限モード6種」「Skills/legacy commands混同」の5系統は単独章レビューでは指摘されても次章で同表現が再発する構造問題。中11の <code>FileChanged</code> 公式hook誤記は実装段階で受講者を必ず誤らせる致命傷で最優先対応。スライド数は19章中16章で推奨上限を超過しており、中04 (41枚) を筆頭に統合圧縮が体系的に必要。</p>
+<h2>6. 判定</h2>
+<p><strong>⚠️ 修正必要</strong></p>
+<p>公開準備未完了。<strong>3段階の対応が必須</strong>:<br />
+1. <strong>致命傷層</strong> (C1〜C14): Anthropic公式docs一括verifyによる訂正/弱化を全章横断で1パス実施 (特にC1 FileChanged・C2 hook 29種・C4 Skill/SC混同・C5 walrus誤記 は録音前必須)<br />
+2. <strong>構造層</strong>: 中04/05/07/10 のスライド統合を最優先 (各章10枚以上の超過)<br />
+3. <strong>UX層</strong>: フック文型を痛点呼びかけ型へ前倒し・未注釈専門用語の括弧補足</p>
+<p>致命傷層・構造層の対応後に再レビュー → ✅公開準備完了 へ昇格可能。</p>
+</body></html>
