@@ -250,20 +250,29 @@ COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command')
 
 ---
 
-## 14. ハーネス用語 (本講座独自)
+## 14. ハーネス / ハーネスエンジニアリング (Anthropic 公式・業界標準用語) — 【2026-05-14 殿指摘で全面訂正】
 
 ✅ **正典表現**:
-- 「**ハーネスエンジニアリング**は本講座 (multi-agent-shogun プロジェクト) 固有の概念整理であり、Anthropic 公式用語ではない」と必ず注記
-- L3 階層を扱う際は「hooks/skills/sub-agents で AI のライフサイクルを制御する層」など**広義表現**を用いる
-- 安全装置は L3 の代表例として補足
-- `done_gate.sh` `posttool_verify_runner.sh` `pretool_check.sh` などは「本プロジェクトでの実装例 (公式 hook handlers の command 型を使った 1 実装パターン)」と位置付ける
+- **「ハーネス」は Anthropic 公式概念**で、Engineering Blog 複数記事で扱われている業界標準用語
+- 公式定義 (業界標準): **Agent = Model + Harness** — モデルを「実際に仕事を完遂する work engine」に変えるための周辺コード・設定・実行ロジック一式
+- 構成要素 (公式): プロンプト・ツール・コンテキストポリシー・hooks・サンドボックス・サブエージェント・フィードバックループ・回復経路 等
+- 「**ハーネスエンジニアリング**は AI エージェントを実運用で信頼できる形にするための設計分野」と紹介可
+- L3 階層を扱う際: 「hooks/skills/sub-agents 等で Claude の動作を制御・拡張する層 = ハーネス層」と公式整合した広義表現を用いる
+- 公式記事を参照ソースとして示せる:
+  - 「Effective harnesses for long-running agents」(2025-11-26 Anthropic Engineering Blog, Justin Young 著)
+  - 「Harness design for long-running application development」(2026-03-24 Anthropic Engineering Blog)
+- 業界類例 (補強用): OpenAI「Harness engineering: leveraging Codex」/ Martin Fowler / LangChain / Red Hat も同用語採用
 
 ❌ **避けるべき表現**:
-- 「ハーネス = AI の動きに安全装置を付ける」狭義定義 (ch01 L3 階層テーブル)
-- 「ハーネスエンジニアリングの典型パターン」を一般用語のように扱う (ch07 L246)
-- 「禁止操作リスト」を Claude Code 標準機能のような語感で扱う (ch08) — 「本講座独自の設計パターン名・PreToolUse hook で実装」と明示
+- 「ハーネスは**本講座独自用語**」「Anthropic 公式ではない」(過去のレビュー判定が誤り・**完全撤回**)
+- 「ハーネス = AI の動きに**安全装置を付ける**だけ」狭義定義 (ch01 L3 階層テーブル) — 公式は **work engine 化全体**を指す
+- 「禁止操作リスト」「典型パターン」を講座独自命名 *扱いで弱める* — 「PreToolUse hook での安全装置実装パターン」として **公式 harness の一実装例**と位置付け
 
-📚 **根拠**: 公式に「ハーネス」「典型パターン」「禁止操作リスト」用語は存在しない。**verify ID**: v02, v37, v38
+📚 **根拠**:
+- Anthropic Engineering Blog 公式記事 2本 (2025-11 / 2026-03) で「harness」が公式用語として使用
+- 業界全体で「Agent = Model + Harness」が標準定義として確立 (2026 中盤までに完全定着)
+- **verify ID 再判定**: v02 (狭義定義) は依然 🟡部分一致 (公式は広義) / v37 (典型パターン) は ✅ 概念として整合・「公式 harness の一実装パターン」と注記すれば OK / v38 (禁止操作リスト) は実装パターン名として OK
+- **2026-05-14 殿指摘**: 「ハーネスエンジニアリングは Claude が 2月に言い始めた」→ 公式記事 (2025-11, 2026-03) で確認・実体は正しい・将軍の元判定が完全な誤り
 
 ---
 
@@ -313,17 +322,30 @@ COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command')
 
 ---
 
-## 18. instructions/ ディレクトリ命名 (本講座独自)
+## 18. instructions/ ディレクトリ命名 (VSCode + GitHub Copilot 由来・Claude Code 用に派生) — 【2026-05-14 殿指摘で更新】
 
 ✅ **正典表現**:
-- `instructions/email.md` `instructions/proposal.md` 等は**講師独自の運用パターン**である旨を明記
-- 公式が推奨する分割先は ①`.claude/rules/` (パススコープ可能なルール) ②`.claude/skills/` (オンデマンド読込) ③`@path imports` (CLAUDE.md 内)
-- 公式機能と誤認させない注釈を必ず追加
+- **「`instructions/`」の命名・概念は VSCode + GitHub Copilot 公式仕様 `.github/instructions/NAME.instructions.md`** が原型
+  - VSCode 公式: `chat.instructionsFilesLocations` 設定のデフォルトに `.github/instructions` 含む
+  - フォーマット: `.instructions.md` 拡張子・YAML frontmatter に `applyTo` フィールド
+  - Microsoft / GitHub のドキュメント参照可
+- 本リポジトリの `instructions/<role>.md` は **VSCode Copilot 由来命名を Claude Code 用に派生** させた独自運用パターン
+  - 配置場所: top-level `instructions/` (`.github/instructions/` ではない)
+  - ファイル形式: `<role>.md` (`.instructions.md` 拡張子ではない)
+  - 読み込み: CLAUDE.md からの明示的 Read tool 指示で実現 (Claude Code 標準の自動読込ではない)
+- 講座での扱い: 「**VSCode Copilot 公式の `.github/instructions/` 規約に着想を得て、Claude Code 用にアレンジした本リポジトリ独自運用**」と明示
+- 公式が Claude Code 単体で類似機能を提供する場合の選択肢: ①`.claude/rules/` (パススコープ可能なルール) ②`.claude/skills/` (オンデマンド読込) ③`@path imports` (CLAUDE.md 内)
 
 ❌ **避けるべき表現**:
-- `instructions/` 配置を Claude Code 公式の標準のように扱う (ch05 L139-155 等)
+- 「`instructions/` は**本講座独自**」「VSCode 由来は一切触れない」(由来を隠すと受講者が "謎の独自規約" として混乱)
+- `instructions/` を **Claude Code 公式の標準**のように扱う (ch05 L139-155 等)
 
-📚 **根拠**: 公式ドキュメントに `instructions/` への言及一切なし。**verify ID**: v29
+📚 **根拠**:
+- VSCode 公式: https://code.visualstudio.com/docs/copilot/customization/custom-instructions
+- GitHub Copilot 公式: `.github/instructions/NAME.instructions.md` 規約
+- Claude Code 公式ドキュメントには `instructions/` への言及なし (Claude Code 単体で見れば独自)
+- **verify ID 再判定**: v29 (本講座独自) は 🟡部分一致 — 由来は VSCode Copilot 公式・派生は本リポジトリ独自
+- **2026-05-14 殿指摘**: 「instructions は vscode 用じゃない？」→ 由来 confirmed・将軍の元判定「本講座独自」は不正確
 
 ---
 
