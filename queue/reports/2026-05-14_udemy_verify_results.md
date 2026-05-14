@@ -27,6 +27,22 @@
 
 ---
 
+## 📌 用語整理 (殿2026-05-14指摘反映)
+
+「スラッシュコマンド」の階層を明示する:
+
+| 区分 | 例 | 公式? | 講座での扱い |
+|------|----|-------|------------|
+| **スラッシュコマンド機構** (`/<name>` 機能自体) | - | ✅ **公式機能** | 講座で説明OK |
+| **組み込みコマンド** | `/init` `/memory` `/agents` `/plan` `/model` `/effort` `/mcp` `/permissions` `/context` `/clear` `/diff` 等 | ✅ **公式組み込み** | 説明OK・公式ドキュメント引用可 |
+| **バンドルスキル** | `/loop` `/schedule` `/simplify` `/debug` `/batch` `/claude-api` `/security-review` `/review` | ✅ **公式バンドル** | 説明OK |
+| **独自カスタムスラッシュコマンド** | `/handoff` `/advisor` `/rehydrate` 等 | ❌ **本リポジトリ独自** | 「本講座 (本リポジトリ) 独自のカスタム」と注記必須・受講者が再現するには SKILL.md or `.claude/commands/<name>.md` 雛形を提示 |
+| **`/command` 表記** | - | ❌ **公式にも本リポジトリにも非存在** | 誤記の可能性・「カスタムスラッシュコマンド (`/<任意名>`)」に書き換え推奨 |
+
+→ `/handoff` `/advisor` `/rehydrate` を講座で扱うこと自体は問題なし。**「公式組み込みではない・本リポジトリ独自実装」と明示**して、受講者が SKILL.md or `.claude/commands/` で自作する手順を併記すれば成立する。
+
+---
+
 ## 🚨 優先度【高】17項目 (launch前最優先修正)
 
 ### v09 ❌齟齬 — beginner_ch04_history_v4
