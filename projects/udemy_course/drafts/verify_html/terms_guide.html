@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Udemy 章間統一表記ガイド v1</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.4em; }
+h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.15em; }
+h3 { color: #4b5563; margin-top: 1.2em; font-size: 1.05em; }
+table { border-collapse: collapse; width: 100%; margin: 1em 0; font-size: 0.85em; }
+th { background: #1e3a8a; color: #fff; padding: 6px 8px; text-align: left; font-weight: 600; }
+td { padding: 6px 8px; border: 1px solid #d1d5db; vertical-align: top; }
+tr:nth-child(even) td { background: #f3f4f6; }
+code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.8em; border-radius: 6px; overflow-x: auto; font-size: 0.85em; }
+pre code { background: transparent; color: inherit; padding: 0; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; color: #78350f; margin: 0.8em 0; }
+hr { border: none; border-top: 2px solid #cbd5e1; margin: 2em 0; }
+strong { color: #dc2626; }
+li { margin-bottom: 0.3em; }
+@media (max-width: 768px) { body { padding: 8px; font-size: 14px; } table { font-size: 0.78em; } th, td { padding: 4px; } }
+</style>
+</head><body>
+<nav style="background:#1e3a8a; color:#fff; padding:10px; border-radius:6px; margin-bottom:20px;">
+<a href="index.html" style="color:#fde68a; margin-right:15px;">← marp_html ハブ</a>
+<a href="verify_results.html" style="color:#fff; margin-right:15px; text-decoration:underline;">📋 指摘事項47件</a>
+<a href="by_chapter.html" style="color:#fff; margin-right:15px; text-decoration:underline;">📁 章別チートシート</a>
+<a href="terms_guide.html" style="color:#fff; text-decoration:underline;">📘 統一表記ガイド</a>
+</nav>
+<h1>Udemy 19章 修正フェーズ用 章間統一表記ガイド (Canonical Terms Guide)</h1>
+<p><strong>用途</strong>: Pass 4 修正フェーズで各章を書き換える際、章間齟齬を構造的に排除するため。各章修正前に本ガイドを context として渡し、用語・定義・配置パスを揃える。</p>
+<p><strong>適用日</strong>: 2026-05-14</p>
+<p><strong>根拠ソース</strong>:<br />
+- Claude Code 公式ドキュメント (https://code.claude.com/docs/ja/)<br />
+- Anthropic Advisor Tool 公式 (https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool)<br />
+- 47 項目 verify 結果 (queue/reports/2026-05-14_udemy_verify_*.md)</p>
+<hr />
+<h2>1. hook 定義</h2>
+<p>✅ <strong>正典表現</strong>: 「hook = AI のライフサイクルイベント (セッション開始/プロンプト送信/ツール実行前後/圧縮前/終了等) に任意のシェルコマンド・HTTP・MCP ツール・プロンプトを発火させる仕組み。安全装置はその代表的用途の一つ」</p>
+<p>❌ <strong>避けるべき表現</strong>:<br />
+- 「AI の動きに制限をかける仕組み」(狭義すぎる)<br />
+- 「安全装置」単独定義 (用途の一つに過ぎぬ)<br />
+- 「AI に質問を送る瞬間に自動で関連資料を検索して一緒に送る仕組み」(UserPromptSubmit + additionalContext の一用途を全体定義に流用)</p>
+<p>📚 <strong>根拠</strong>: 公式 hooks は 29 種類のライフサイクルイベントで任意処理を差し込む広義機構。安全装置/関連資料注入はいずれも一用途。<strong>verify ID</strong>: v01, v02, v25</p>
+<hr />
+<h2>2. hook 種類数 (29 種)</h2>
+<p>✅ <strong>正典表現</strong>: 「Hook イベントは公式で 29 種類 (SessionStart / Setup / UserPromptSubmit / UserPromptExpansion / PreToolUse / PermissionRequest / PermissionDenied / PostToolUse / PostToolUseFailure / PostToolBatch / Notification / SubagentStart / SubagentStop / TaskCreated / TaskCompleted / Stop / StopFailure / TeammateIdle / InstructionsLoaded / ConfigChange / CwdChanged / FileChanged / WorktreeCreate / WorktreeRemove / PreCompact / PostCompact / Elicitation / ElicitationResult / SessionEnd)。本講座では代表的な 4 つ (または 7 つ) を抜粋して解説」</p>
+<p>❌ <strong>避けるべき表現</strong>:<br />
+- 「Hook は 3 つのタイミング (PreToolUse / PostToolUse / Stop)」(ch04 L159-169)<br />
+- 「Hook には 7 種類のイベント」断定 (ch05 L114, L117)<br />
+- 「4 つのフックを覚えれば AI の動作の前・後・開始時・入力時の全タイミングを網羅できます」(ch07 L120-131)<br />
+- 「自動で動かす — 4 つの hook」断定 (ch00 intro L177)<br />
+- 「18 本の実戦 hook で主要カテゴリを網羅」(ch06 L116-122)</p>
+<p>📚 <strong>根拠</strong>: 公式 hook イベントは 29 種類。代表抜粋は OK だが「網羅」「全タイミング」断定は誤り。<strong>verify ID</strong>: v09, v13, v16, v19, v35</p>
+<hr />
+<h2>3. hook 引数受取仕様 (★致命傷)</h2>
+<p>✅ <strong>正典表現</strong>:</p>
+<pre><code class="language-bash">#!/bin/bash
+INPUT=$(cat)
+COMMAND=$(echo &quot;$INPUT&quot; | jq -r '.tool_input.command')
+# または: COMMAND=$(jq -r '.tool_input.command' &lt; /dev/stdin)
+</code></pre>
+<p>「コマンドフックは stdin から JSON ペイロードを受け取る」</p>
+<p>❌ <strong>避けるべき表現</strong>:<br />
+- <code>$1</code> でコマンド内容を受け取る<br />
+- <code>$CLAUDE_TOOL_INPUT</code> 環境変数で受け取る<br />
+- 「<code>pretool_check.sh "$1"</code> でコマンドを検査」例</p>
+<p>📚 <strong>根拠</strong>: 公式 hook はコマンド型の場合 stdin JSON payload 方式のみ。<code>$1</code> 引数・<code>$CLAUDE_TOOL_INPUT</code> 環境変数は公式仕様に<strong>存在しない</strong>。コピペすると動作しない致命傷ゆえ最優先修正。<strong>verify ID</strong>: v12</p>
+<hr />
+<h2>4. SubagentStop 表記 (a 小文字)</h2>
+<p>✅ <strong>正典表現</strong>: <code>SubagentStop</code> (a は小文字)</p>
+<p>❌ <strong>避けるべき表現</strong>: <code>SubAgentStop</code> (A 大文字・公式仕様に存在せず)</p>
+<p>📚 <strong>根拠</strong>: 公式表記は <code>SubagentStop</code>。<code>SubAgentStop</code> はコピペ動作不可。全章で grep -r 一括置換。<strong>verify ID</strong>: v14</p>
+<hr />
+<h2>5. Skill 配置と仕様</h2>
+<p>✅ <strong>正典表現</strong>:<br />
+- <strong>標準形式</strong>: <code>.claude/skills/&lt;skill-name&gt;/SKILL.md</code> (ディレクトリ + SKILL.md エントリポイント)<br />
+- <strong>personal</strong>: <code>~/.claude/skills/&lt;skill-name&gt;/SKILL.md</code><br />
+- <strong>legacy 互換</strong>: <code>.claude/commands/&lt;name&gt;.md</code> (単一 .md 単独動作・サポートファイル機能なし)<br />
+- <strong>読込挙動</strong>: description のみが常駐し、本体は使用時にオンデマンド読込<br />
+- <strong>自律発動条件</strong>: description のキーワードマッチ<br />
+- <strong>description 公式形式</strong>: 「〇〇する。Use when ユーザーが××を尋ねるとき、××したいとき」(何をするか + Use when ユースケース前置き)</p>
+<p>❌ <strong>避けるべき表現</strong>:<br />
+- <code>.claude/skills/&lt;name&gt;.md</code> の単一ファイル形式を標準として提示 (ch11 L96-102, L137)<br />
+- <code>.claude/skills/*.md</code> という配置パス表記 (ch01 L154-165)<br />
+- 「Skill = 業務領域の常駐道具」(オンデマンド読込なのに「常駐」と誤誘導)<br />
+- 日本語トリガーフレーズ列挙のみ (公式推奨は自然文 + Use when 前置き形式)</p>
+<p>📚 <strong>根拠</strong>: 公式は「各スキルは SKILL.md をエントリポイントとするディレクトリ」と明記。本リポジトリの skill-creator/senkyou 等もディレクトリ形式採用。<strong>verify ID</strong>: v06, v21, v23, v46, v47</p>
+<hr />
+<h2>6. CLAUDE.md 読込挙動</h2>
+<p>✅ <strong>正典表現</strong>:<br />
+- <strong>読込タイミング</strong>: 「新しい会話/セッションの開始時に読み込む」(プロセス再起動は不要)。<code>/clear</code> や <code>/compact</code> の後もディスクから再読込される<br />
+- <strong>階層 (4 階層)</strong>:<br />
+  1. 管理ポリシー (<code>/Library/Application Support/ClaudeCode/CLAUDE.md</code> 等)<br />
+  2. ユーザー指示 <code>~/.claude/CLAUDE.md</code><br />
+  3. プロジェクト指示 <code>./CLAUDE.md</code> または <code>./.claude/CLAUDE.md</code><br />
+  4. ローカル <code>./CLAUDE.local.md</code><br />
+- <strong>マージ挙動</strong>: ディレクトリツリーを上方向に歩いて全 CLAUDE.md を読込・<strong>連結</strong> (上書きではない)。サブディレクトリの CLAUDE.md はオンデマンド読込<br />
+- <strong>優先順位</strong>: 後に読まれるプロジェクト指示が矛盾時に従われやすい (上書きではなく「後勝ち」)<br />
+- <strong>固有性</strong>: Claude Code は <code>CLAUDE.md</code> を読む (<code>AGENTS.md</code> ではない)。Cursor は <code>.cursorrules</code>、Windsurf は <code>.windsurfrules</code></p>
+<p>❌ <strong>避けるべき表現</strong>:<br />
+- 「Claude Code を再起動 → 自動的に読み込まれる」(プロセス再起動誤解)<br />
+- 「プロジェクト CLAUDE.md が global より優先 (上書き)」(連結が正しい)<br />
+- 階層に触れず単一ファイルのように扱う説明</p>
+<p>📚 <strong>根拠</strong>: 公式「各セッションの開始時に読みます」「発見されたすべてのファイルはコンテキストに連結され、互いに上書きするのではなく」。<strong>verify ID</strong>: v03, v04, v08, v31</p>
+<hr />
+<h2>7. Subagent 呼出方式</h2>
+<p>✅ <strong>正典表現</strong>:<br />
+- <strong>定義場所</strong>: <code>.claude/agents/&lt;name&gt;.md</code> (プロジェクト) / <code>~/.claude/agents/&lt;name&gt;.md</code> (ユーザー) の YAML フロントマター付き Markdown<br />
+- <strong>呼出方式 (5 方式)</strong>:<br />
+  1. description ベースの自動委譲<br />
+  2. 自然言語でのサブエージェント名指定<br />
+  3. @-mention (<code>@"agent-name (agent)"</code>)<br />
+  4. CLI フラグ <code>--agent &lt;name&gt;</code><br />
+  5. Agent (旧 Task) ツール経由生成<br />
+- <strong><code>/agents</code> コマンド</strong>: 管理用タブ付きインターフェース (呼出用ではない)<br />
+- <strong><code>/agent &lt;name&gt;</code></strong>: <strong>存在しない</strong> (混同注意)</p>
+<p>❌ <strong>避けるべき表現</strong>:<br />
+- 「呼出は自然言語か自動委譲」のみ (@-mention・<code>--agent</code>・Agent ツールが欠落)<br />
+- 「ユーザーが頼むと AI が自動で起動」断定 (明示指定方式が欠落)<br />
+- <code>/agent &lt;name&gt;</code> 個別呼出コマンドが存在するかのような記述</p>
+<p>📚 <strong>根拠</strong>: 公式は 5 方式すべてを記載。<strong>verify ID</strong>: v05, v30</p>
+<hr />
+<h2>8. imports / @path 構文</h2>
+<p>✅ <strong>正典表現</strong>:<br />
+- 「CLAUDE.md 内で <code>@path/to/import</code> 構文により他ファイルを取り込む機能」<br />
+- 「インポートされたファイルは展開され、CLAUDE.md と一緒に起動時にコンテキストに読込まれる」<br />
+- 「相対パス・絶対パス両方可。相対パスはインポート元ファイル基準」<br />
+- 「再帰的インポート可・最大深度 5 ホップ」<br />
+- imports は <strong>CLAUDE.md 内部の構文機能</strong>であり、独立した .md ファイル種別ではない</p>
+<p>❌ <strong>避けるべき表現</strong>:<br />
+- 「imports」を「commands / skills / imports」の 3 つ並列で「.md 仲間」分類 (ch06 S5)<br />
+- imports が独立したファイル種別かのような誤誘導</p>
+<p>✅ <strong>正しい並列</strong>: 「CLAUDE.md / skills / commands」を 3 大カテゴリとし、imports は <strong>CLAUDE.md 内部の @path 構文として別枠</strong>で説明</p>
+<p>📚 <strong>根拠</strong>: 公式 imports は <code>@path/to/import</code> 構文機能。<strong>verify ID</strong>: v07, v17</p>
+<hr />
+<h2>9. MCP 定義</h2>
+<p>✅ <strong>正典表現</strong>: 「MCP (Model Context Protocol) = LLM と外部ツール・データソース・API を繋ぐオープンソース標準プロトコル。Claude Code を数百の外部ツールに接続し、サーバーがツール・データベース・API へのアクセスを提供する」</p>
+<p><strong>用途例</strong> (公式記載): 課題追跡・監視データ分析・DB クエリ・デザイン統合・ワークフロー自動化・外部イベント対応</p>
+<p><strong>MCP 呼出 3 方式</strong>:<br />
+1. 自然言語で Claude に依頼<br />
+2. <code>@server:protocol://resource/path</code> で参照<br />
+3. <code>/mcp__server__prompt</code> スラッシュコマンド</p>
+<p>❌ <strong>避けるべき表現</strong>:<br />
+- 「MCP = AI の記憶を拡張する仕組み」(ch06 S8) — 公式に「記憶拡張」という説明は一切登場しない<br />
+- 記憶拡張を MCP の定義として中心に置く</p>
+<p>✅ 「claude-mem 等の MCP サーバーは記憶拡張の<strong>一用途例</strong>」として後段で補足する形に。</p>
+<p>📚 <strong>根拠</strong>: 公式定義は「AI ツール統合のためのオープンソース標準」。<strong>verify ID</strong>: v15, v42</p>
+<hr />
+<h2>10. スラッシュコマンド階層 (機構/組込/バンドル/独自カスタム)</h2>
+<p>修正時の最重要トピック。<strong>4 階層を明示</strong>して受講者が「Claude Code 標準」と「本講座独自」を混同しないようにする。</p>
+<p>✅ <strong>正典表現</strong> (4 階層を明示):</p>
+<table>
+<thead>
+<tr>
+<th>階層</th>
+<th>例</th>
+<th>出所</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>機構</strong> (built-in mechanism)</td>
+<td>スラッシュコマンドという仕組み自体</td>
+<td>Claude Code 本体機能</td>
+</tr>
+<tr>
+<td><strong>組込コマンド</strong> (built-in commands)</td>
+<td><code>/clear</code>, <code>/compact</code>, <code>/memory</code>, <code>/init</code>, <code>/agents</code> 等</td>
+<td>公式コマンド表に掲載</td>
+</tr>
+<tr>
+<td><strong>バンドルスキル</strong> (bundled skills)</td>
+<td><code>/review</code>, <code>/security-review</code>, <code>/simplify</code> 等</td>
+<td>Anthropic 公式同梱</td>
+</tr>
+<tr>
+<td><strong>独自カスタム</strong> (custom skills/commands)</td>
+<td><code>/handoff</code>, <code>/advisor</code>, <code>/senkyou</code> 等</td>
+<td>本リポジトリ独自実装</td>
+</tr>
+</tbody>
+</table>
+<p><strong>カスタムコマンド作成方式</strong>:<br />
+- <strong>推奨</strong>: Skills (<code>.claude/skills/&lt;name&gt;/SKILL.md</code>) — ディレクトリ名がコマンド名 <code>/&lt;name&gt;</code> になる<br />
+- <strong>legacy 継続</strong>: <code>.claude/commands/&lt;name&gt;.md</code> 単一ファイル<br />
+- 公式は「カスタムコマンドはスキルにマージされました」と明記</p>
+<p>❌ <strong>避けるべき表現</strong>:<br />
+- 「<code>/command</code> (定型プロンプトの保存)」表記 — 公式に <code>/command</code> という単一コマンドは<strong>存在しない</strong> (ch00 L188-198, ch10 L73/L173/L210/L215)<br />
+- <code>/handoff</code> を Claude Code 標準のように記述 (ch09 L100)<br />
+- <code>/advisor</code> を Claude Code 標準スラッシュコマンドのように繰返し提示 (ch10 L102/L186/L210/L213/L222)<br />
+- 独自カスタムを「組込」「バンドル」と区別なく並列提示</p>
+<p>✅ 独自カスタムを扱う場合は <strong>必ず「本講座/本リポジトリ独自のカスタムスラッシュコマンドであり、Claude Code 標準には含まれない」と注記</strong>せよ。</p>
+<p>📚 <strong>根拠</strong>: 公式コマンド表に <code>/command</code>・<code>/handoff</code>・<code>/advisor</code> の掲載なし。Skills 統合明記。<strong>verify ID</strong>: v20, v40, v43, v44</p>
+<hr />
+<h2>11. Permission モデル (2 軸構造)</h2>
+<p>✅ <strong>正典表現</strong>: 「Permission は 2 軸構造」</p>
+<ul>
+<li><strong>軸 1 — 権限モード (6 種)</strong>: <code>default</code> / <code>acceptEdits</code> / <code>plan</code> / <code>auto</code> / <code>dontAsk</code> / <code>bypassPermissions</code> — 全体動作を制御</li>
+<li><strong>軸 2 — ツール個別ルール (3 種)</strong>: <code>Allow</code> / <code>Ask</code> / <code>Deny</code> — <code>deny → ask → allow</code> の順で評価</li>
+<li><strong>拡張</strong>: PreToolUse フックで実行時拡張も可能</li>
+</ul>
+<p>❌ <strong>避けるべき表現</strong>:<br />
+- 「許可・確認・禁止の 3 段」のみ (軸 1 のモード制が欠落・ch04 L159-169)<br />
+- Allow/Ask/Deny だけで Permission モデル全体を説明したように見せる</p>
+<p>📚 <strong>根拠</strong>: 公式は 2 軸構造を明記。歴史背景説明としても 1 行追記で軸 1 (モード) の存在を併記必須。<strong>verify ID</strong>: v10</p>
+<hr />
+<h2>12. MEMORY.md 自動メモリ機能</h2>
+<p>✅ <strong>正典表現</strong>:<br />
+- <strong>格納場所</strong>: <code>~/.claude/projects/&lt;project&gt;/memory/MEMORY.md</code> (<strong>マシンローカル・git 管理外</strong>)<br />
+- <strong>読込ルール</strong>: 「MEMORY.md の最初の 200 行、または最初の 25KB のいずれか先に来る方が、すべての会話の開始時に読み込まれます」<br />
+- <strong>構造</strong>: MEMORY.md (インデックス) + トピックファイル群<br />
+- <strong>トピックファイル読込</strong>: Claude が必要時に標準 Read ツールでオンデマンド読込<br />
+- <strong>バージョン</strong>: v2.1.59 以降<br />
+- memory MCP とは別物</p>
+<p>❌ <strong>避けるべき表現</strong>:<br />
+- 「<strong>プロジェクト内</strong>の MEMORY.md を自動で読み込みます」(ch04) — 正しくは <code>~/.claude/projects/&lt;project&gt;/memory/</code><br />
+- 「自動検索」(公式用語に存在せず・「Claude が必要時にトピックファイルをオンデマンド読込」が正確)</p>
+<p>📚 <strong>根拠</strong>: 200 行/25KB は公式正解。格納場所がマシンローカルである点が肝。<strong>verify ID</strong>: v27, v45</p>
+<hr />
+<h2>13. PreCompact / PostCompact 公式扱い</h2>
+<p>✅ <strong>正典表現</strong>: 「PreCompact / PostCompact は公式 hook イベント (29 種類の 1 つ)。本講座のスクリプト実装は著者独自だが、<strong>hook イベント自体は公式機能</strong>」</p>
+<p>❌ <strong>避けるべき表現</strong>:<br />
+- PreCompact を「附録: 著者独自の運用例 (公式機能ではありません)」分類 (ch04)</p>
+<p>✅ 「<strong>イベント自体は公式 / スクリプト実装は著者独自</strong>」を明確に分離せよ。</p>
+<p>📚 <strong>根拠</strong>: PreCompact/PostCompact は公式 hook の「Before/After context compaction」。<strong>verify ID</strong>: v28</p>
+<hr />
+<h2>14. ハーネス用語 (本講座独自)</h2>
+<p>✅ <strong>正典表現</strong>:<br />
+- 「<strong>ハーネスエンジニアリング</strong>は本講座 (multi-agent-shogun プロジェクト) 固有の概念整理であり、Anthropic 公式用語ではない」と必ず注記<br />
+- L3 階層を扱う際は「hooks/skills/sub-agents で AI のライフサイクルを制御する層」など<strong>広義表現</strong>を用いる<br />
+- 安全装置は L3 の代表例として補足<br />
+- <code>done_gate.sh</code> <code>posttool_verify_runner.sh</code> <code>pretool_check.sh</code> などは「本プロジェクトでの実装例 (公式 hook handlers の command 型を使った 1 実装パターン)」と位置付ける</p>
+<p>❌ <strong>避けるべき表現</strong>:<br />
+- 「ハーネス = AI の動きに安全装置を付ける」狭義定義 (ch01 L3 階層テーブル)<br />
+- 「ハーネスエンジニアリングの典型パターン」を一般用語のように扱う (ch07 L246)<br />
+- 「禁止操作リスト」を Claude Code 標準機能のような語感で扱う (ch08) — 「本講座独自の設計パターン名・PreToolUse hook で実装」と明示</p>
+<p>📚 <strong>根拠</strong>: 公式に「ハーネス」「典型パターン」「禁止操作リスト」用語は存在しない。<strong>verify ID</strong>: v02, v37, v38</p>
+<hr />
+<h2>15. $ARGUMENTS / 引数置換仕様</h2>
+<p>✅ <strong>正典表現</strong>:<br />
+- <code>$ARGUMENTS</code> = 全引数<br />
+- <code>$ARGUMENTS[N]</code> または短縮形 <code>$N</code> = <strong>0 ベース</strong>・<code>$0</code> が<strong>第 1 引数</strong>・<code>$1</code> は第 2 引数<br />
+- frontmatter で <code>arguments: [name1, name2]</code> 宣言すれば <code>$name1</code> も可<br />
+- frontmatter 全フィールド任意・<code>description</code> のみ推奨<br />
+- <code>`!command`</code> で動的シェル注入は公式記載あり<br />
+- <code>@file</code> 参照記法は公式 commands/skills ページに<strong>記載なし</strong></p>
+<p>❌ <strong>避けるべき表現</strong>:<br />
+- <code>$1</code> を第 1 引数として書く (実際は <code>$0</code> が第 1 引数)<br />
+- <code>@file</code> を Claude Code 公式機能のように扱う</p>
+<p>📚 <strong>根拠</strong>: 公式仕様で 0 ベース明示。<strong>verify ID</strong>: v22</p>
+<hr />
+<h2>16. Advisor Tool</h2>
+<p>✅ <strong>正典表現</strong>:<br />
+- <code>type: "advisor_20260301"</code><br />
+- <code>anthropic-beta: advisor-tool-2026-03-01</code><br />
+- 公式 URL: <code>https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool</code><br />
+- <strong>ハイブリッド構造</strong>: executor は client/Claude Code 側で動き、advisor 部分のみ server-side で実行 (<code>server_tool_use</code> ブロックを emit)<br />
+- <strong>beta 機能</strong>: identifier が将来変わる可能性あり (一行注記推奨)</p>
+<p>📚 <strong>根拠</strong>: 公式ページに上記すべて明記。<strong>verify ID</strong>: v32, v33, v34</p>
+<hr />
+<h2>17. 5 タスク同時指示 / Context Rot (出典明示)</h2>
+<p>✅ <strong>正典表現</strong>:<br />
+- 「5 つ頼んで 3 つしか出来ない」等の<strong>具体数は経験談</strong>であり公式仕様/ベンチマークではない旨を明示。または「複数タスクをまとめると追従率が下がる場合がある」程度の控えめ表現に<br />
+- 「Context Rot」は<strong>コミュニティ/研究用語</strong> (Chroma 等提唱) であり Anthropic 公式制約ではない旨を注記<br />
+- 容量上限・Lost in the Middle と同格の「公式 3 大制約」として並べる構成は弱める</p>
+<p>❌ <strong>避けるべき表現</strong>:<br />
+- 経験談を公式ベンチマークのように断定<br />
+- Context Rot を公式制約として並列扱い</p>
+<p>📚 <strong>根拠</strong>: 公式に該当記述・用語ともになし。<strong>verify ID</strong>: v24, v26</p>
+<hr />
+<h2>18. instructions/ ディレクトリ命名 (本講座独自)</h2>
+<p>✅ <strong>正典表現</strong>:<br />
+- <code>instructions/email.md</code> <code>instructions/proposal.md</code> 等は<strong>講師独自の運用パターン</strong>である旨を明記<br />
+- 公式が推奨する分割先は ①<code>.claude/rules/</code> (パススコープ可能なルール) ②<code>.claude/skills/</code> (オンデマンド読込) ③<code>@path imports</code> (CLAUDE.md 内)<br />
+- 公式機能と誤認させない注釈を必ず追加</p>
+<p>❌ <strong>避けるべき表現</strong>:<br />
+- <code>instructions/</code> 配置を Claude Code 公式の標準のように扱う (ch05 L139-155 等)</p>
+<p>📚 <strong>根拠</strong>: 公式ドキュメントに <code>instructions/</code> への言及一切なし。<strong>verify ID</strong>: v29</p>
+<hr />
+<h2>19. PreToolUse BLOCK 制御プロトコル</h2>
+<p>✅ <strong>正典表現</strong>: PreToolUse hook で BLOCK するには以下のいずれか:<br />
+1. <strong>exit code 2</strong> で stderr にメッセージ出力<br />
+2. stdout に JSON を返す:</p>
+<pre><code class="language-json">{&quot;hookSpecificOutput&quot;:{&quot;hookEventName&quot;:&quot;PreToolUse&quot;,&quot;permissionDecision&quot;:&quot;deny&quot;,&quot;permissionDecisionReason&quot;:&quot;...&quot;}}
+</code></pre>
+<p>最小例を 1 スライド追加し、実装誘発リスクを回避せよ。</p>
+<p>📚 <strong>根拠</strong>: 公式 hook 仕様で明記。<strong>verify ID</strong>: v39</p>
+<hr />
+<h2>20. その他</h2>
+<ul>
+<li><strong>PostToolUse</strong>: 公式 hook (29 種類の 1 つ・「After a tool call succeeds」で発火・<code>decision:"block"</code> でフィードバック可)。ch07 で 29 種類全体像を提示しない場合は補足注釈推奨 (v41)</li>
+<li><strong>claude-mem UI</strong>: claude-mem 固有 UI の verify には別ソース (claude-mem 公式 README/GitHub) が必要。公式 MCP doc の範囲では「自然文入力で MCP サーバーを呼ぶ」こと自体は一般原則と整合 (v42)</li>
+<li><strong>L3 誕生時期</strong>: hook 機能の公式リリース年表は記載なし。「2024〜2025 にかけて」など幅を持たせる (v11)</li>
+</ul>
+<hr />
+<h2>修正時の運用ルール</h2>
+<ol>
+<li>
+<p><strong>章を編集する前に本ガイドを必ず参照せよ</strong>。記憶や事前知識で書き換えるな。各トピックの「✅正典表現」を引用する形で書け。</p>
+</li>
+<li>
+<p><strong>断定回避 5 原則</strong>: hook 種類数・Permission 段数・skill 配置・command 表記・MEMORY.md 格納場所の 5 領域は最優先で断定を避け、公式仕様に揃えよ。</p>
+</li>
+<li>
+<p><strong>「公式機能 vs 本講座独自」を必ず分離</strong>: <code>/handoff</code> <code>/advisor</code> <code>/senkyou</code> <code>instructions/</code> <code>ハーネスエンジニアリング</code> <code>禁止操作リスト</code> <code>done_gate.sh</code> 等を出す際は「本リポジトリ独自」注記を<strong>省略するな</strong>。</p>
+</li>
+<li>
+<p><strong>コピペで動くコードを書け</strong>: hook 引数受取は <code>INPUT=$(cat); ... | jq</code> 方式のみ。<code>$1</code> <code>$CLAUDE_TOOL_INPUT</code> <code>SubAgentStop</code> は<strong>コピペ動作不可の致命傷</strong>ゆえ全章 grep -r で殲滅せよ。</p>
+</li>
+<li>
+<p><strong>章間整合 grep チェック</strong>: 各章修正後、以下を grep して残存ゼロを確認:</p>
+</li>
+<li><code>SubAgentStop</code> (大文字 A)</li>
+<li><code>$CLAUDE_TOOL_INPUT</code></li>
+<li><code>/command</code> (空白付き単一コマンド扱い)</li>
+<li><code>\.claude/skills/\*\.md</code> (単一ファイル前提)</li>
+<li>
+<p>「Hook には [0-9]種類」「[0-9]つのフックを覚えれば」「全タイミングを網羅」</p>
+</li>
+<li>
+<p><strong>章間相互参照は本ガイドのトピック番号を引用</strong>: 「hook 種類数は本ガイド §2 参照」のように章を超えた参照は本ガイド経由で行い、章直接参照を避けよ (章番号変更耐性)。</p>
+</li>
+</ol>
+</body></html>

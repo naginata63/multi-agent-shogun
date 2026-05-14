@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Udemy 章別チートシート</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; line-height: 1.6; color: #1f2937; background: #fafafa; }
+h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 0.3em; font-size: 1.4em; }
+h2 { color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 0.2em; margin-top: 1.5em; font-size: 1.15em; }
+h3 { color: #4b5563; margin-top: 1.2em; font-size: 1.05em; }
+table { border-collapse: collapse; width: 100%; margin: 1em 0; font-size: 0.85em; }
+th { background: #1e3a8a; color: #fff; padding: 6px 8px; text-align: left; font-weight: 600; }
+td { padding: 6px 8px; border: 1px solid #d1d5db; vertical-align: top; }
+tr:nth-child(even) td { background: #f3f4f6; }
+code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+pre { background: #1e293b; color: #f1f5f9; padding: 0.8em; border-radius: 6px; overflow-x: auto; font-size: 0.85em; }
+pre code { background: transparent; color: inherit; padding: 0; }
+blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 0.4em 0.8em; color: #78350f; margin: 0.8em 0; }
+hr { border: none; border-top: 2px solid #cbd5e1; margin: 2em 0; }
+strong { color: #dc2626; }
+li { margin-bottom: 0.3em; }
+@media (max-width: 768px) { body { padding: 8px; font-size: 14px; } table { font-size: 0.78em; } th, td { padding: 4px; } }
+</style>
+</head><body>
+<nav style="background:#1e3a8a; color:#fff; padding:10px; border-radius:6px; margin-bottom:20px;">
+<a href="index.html" style="color:#fde68a; margin-right:15px;">← marp_html ハブ</a>
+<a href="verify_results.html" style="color:#fff; margin-right:15px; text-decoration:underline;">📋 指摘事項47件</a>
+<a href="by_chapter.html" style="color:#fff; margin-right:15px; text-decoration:underline;">📁 章別チートシート</a>
+<a href="terms_guide.html" style="color:#fff; text-decoration:underline;">📘 統一表記ガイド</a>
+</nav>
+<h1>Udemy 19章 修正フェーズ用 章別チートシート</h1>
+<p><strong>用途</strong>: Phase A 以降の章修正バッチで、各章を claude -p に渡す時の context として使用。<br />
+<strong>ペア</strong>: 全体ガイド <code>canonical_terms_guide_v1.md</code> (§1〜§20) と併用。本ファイルは章別の 「該当 verify 項目 + 適用ガイドセクション #」抜粋。<br />
+<strong>適用日</strong>: 2026-05-14</p>
+<hr />
+<h2>beginner_ch00_intro_v4</h2>
+<p><strong>修正項目数</strong>: 1 (中1)</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>優先度</th>
+<th>Verdict</th>
+<th>該当箇所</th>
+<th>適用ガイド</th>
+<th>修正内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v01</td>
+<td>中</td>
+<td>🟡部分一致</td>
+<td>スライド2 用語紹介、スライド11 講座の構成 第</td>
+<td>§1 hook 定義</td>
+<td>「hook = AIのライフサイクルイベント(セッション開始/プロンプト送信/ツール実行前後/圧縮前/終了等)に任意の処理を差し込む仕組み。安全装置はその代表的...</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>beginner_ch01_prompt_v4</h2>
+<p><strong>修正項目数</strong>: 1 (中1)</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>優先度</th>
+<th>Verdict</th>
+<th>該当箇所</th>
+<th>適用ガイド</th>
+<th>修正内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v02</td>
+<td>中</td>
+<td>🟡部分一致</td>
+<td>第3スライド (3階層テーブルのL3行)</td>
+<td>§14 ハーネス用語 / §1 hook定義</td>
+<td>L3行を「hooks/skills/sub-agentsで AI のライフサイクルを制御する層」など広義表現に。安全装置は代表例として補足。</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>beginner_ch02_claude_md_v4</h2>
+<p><strong>修正項目数</strong>: 2 (中2)</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>優先度</th>
+<th>Verdict</th>
+<th>該当箇所</th>
+<th>適用ガイド</th>
+<th>修正内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v03</td>
+<td>中</td>
+<td>🟡部分一致</td>
+<td>30行ミニマム例 slide 保存手順 (L122</td>
+<td>§6 CLAUDE.md 読込挙動</td>
+<td>「Claude Codeを再起動」→「新しい会話/セッションを開始すると」に修正。/clearや/compactの後も再注入される旨を補足するとより正確。</td>
+</tr>
+<tr>
+<td>v04</td>
+<td>中</td>
+<td>🟡部分一致</td>
+<td>CLAUDE.mdとは slide (L62-L6</td>
+<td>§6 CLAUDE.md 読込挙動</td>
+<td>「起動時に自動読込」は正しいが、最低限①ユーザー(~/.claude/CLAUDE.md)②プロジェクト(./CLAUDE.md)の2階層と、ディレクトリツリー...</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>beginner_ch03_md_family_v4</h2>
+<p><strong>修正項目数</strong>: 4 (中3 / 低1)</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>優先度</th>
+<th>Verdict</th>
+<th>該当箇所</th>
+<th>適用ガイド</th>
+<th>修正内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v05</td>
+<td>中</td>
+<td>🟡部分一致</td>
+<td>L95-L97 (注意ボックス全体)</td>
+<td>§7 Subagent 呼出方式</td>
+<td>注意ボックスに「呼出は自然言語/自動委譲/@-mention/<code>--agent</code> CLI フラグの4方式」と追記し、@-mention と <code>--agent</code> ...</td>
+</tr>
+<tr>
+<td>v06</td>
+<td>中</td>
+<td>🟡部分一致</td>
+<td>L181</td>
+<td>§5 Skill 配置と仕様</td>
+<td>配置場所『.claude/skills/』は正しいが、正式形式は『.claude/skills/<skill-name>/SKILL.md』ディレクトリ構造であ...</td>
+</tr>
+<tr>
+<td>v08</td>
+<td>中</td>
+<td>🟡部分一致</td>
+<td>L204-L218</td>
+<td>§20 その他</td>
+<td>「プロジェクトCLAUDE.mdがglobalより優先」は方向性は正しいが、厳密には「上書きではなく連結。プロジェクト指示が後に読まれるため、矛盾時はClaud...</td>
+</tr>
+<tr>
+<td>v07</td>
+<td>低</td>
+<td>✅一致</td>
+<td>L188-L201</td>
+<td>§8 imports / @path 構文</td>
+<td>修正不要。余裕があれば「最大5ホップの再帰インポート可」「相対パスはインポート元ファイル基準」を補足するとより精緻。</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>beginner_ch04_history_v4</h2>
+<p><strong>修正項目数</strong>: 3 (高1 / 中1 / 低1)</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>優先度</th>
+<th>Verdict</th>
+<th>該当箇所</th>
+<th>適用ガイド</th>
+<th>修正内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v09</td>
+<td>高</td>
+<td>❌齟齬</td>
+<td>L3誕生② (L159-169)</td>
+<td>§2 hook 種類数 (29種)</td>
+<td>「PreToolUse/PostToolUse/Stop等の主要タイミング(全29種類)」と書き換え、誕生時期の象徴例として3つを挙げるなら「代表例」と明示。</td>
+</tr>
+<tr>
+<td>v10</td>
+<td>中</td>
+<td>🟡部分一致</td>
+<td>L3誕生② (L159-169)</td>
+<td>§11 Permission モデル</td>
+<td>「許可・確認・禁止の3段」は Allow/Ask/Deny ルールとしては正しいが、これは2軸構造の片側のみ。Permission Mode (default/...</td>
+</tr>
+<tr>
+<td>v11</td>
+<td>低</td>
+<td>❓判定不能</td>
+<td>年表 (L71-87)</td>
+<td>§14 ハーネス用語 / §1 hook定義</td>
+<td>公式リリースノート/changelog を別途確認し、断定を避け「2024〜2025にかけて」など幅を持たせる。</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>beginner_ch05_hook_v4</h2>
+<p><strong>修正項目数</strong>: 3 (高3)</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>優先度</th>
+<th>Verdict</th>
+<th>該当箇所</th>
+<th>適用ガイド</th>
+<th>修正内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v12</td>
+<td>高</td>
+<td>❌齟齬</td>
+<td>L267-275 (pretool_check.s</td>
+<td>§3 hook 引数受取仕様 (★致命傷)</td>
+<td>pretool_check.sh を `INPUT=$(cat); COMMAND=$(echo "$INPUT" / jq -r '.tool_input.c...</td>
+</tr>
+<tr>
+<td>v13</td>
+<td>高</td>
+<td>❌齟齬</td>
+<td>L114, L117</td>
+<td>§2 hook 種類数 (29種)</td>
+<td>「Hookには29種類のイベント(代表的なものは以下7つ)」と表現を改め誇大断定を回避。</td>
+</tr>
+<tr>
+<td>v14</td>
+<td>高</td>
+<td>❌齟齬</td>
+<td>L117</td>
+<td>§4 SubagentStop 表記</td>
+<td>全章で SubAgentStop → SubagentStop に grep -r 一括置換。コピペ動作不可になる致命傷。</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>beginner_ch06_outro_v4</h2>
+<p><strong>修正項目数</strong>: 4 (高1 / 中2 / 低1)</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>優先度</th>
+<th>Verdict</th>
+<th>該当箇所</th>
+<th>適用ガイド</th>
+<th>修正内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v15</td>
+<td>高</td>
+<td>❌齟齬</td>
+<td>S8 L137-141付近(青色ブロックのMCP説</td>
+<td>§9 MCP 定義</td>
+<td>S8 L137-141 の MCP 定義を『LLM と外部ツール/データソース/API を繋ぐオープン標準プロトコル』に改め、記憶拡張は『claude-mem ...</td>
+</tr>
+<tr>
+<td>v17</td>
+<td>中</td>
+<td>❌齟齬</td>
+<td>S5 (L83-97付近 第3章再掲行)</td>
+<td>§5 Skill 配置と仕様</td>
+<td>「imports」を「.md仲間」と並列化するのは概念混同。「CLAUDE.md / skills / commands」の3つを並列にし、imports はC...</td>
+</tr>
+<tr>
+<td>v16</td>
+<td>中</td>
+<td>🟡部分一致</td>
+<td>S8 L116-122付近 L3行 / S9 (L</td>
+<td>§2 hook 種類数 (29種)</td>
+<td>「18本の実装例(主要hookイベントをカバー)」と表現を限定。「網羅」を避け「主要カテゴリの実装例」へ。</td>
+</tr>
+<tr>
+<td>v18</td>
+<td>低</td>
+<td>✅一致</td>
+<td>S6 L106-118付近</td>
+<td>§2 hook 種類数</td>
+<td>修正不要。「ライフサイクルイベント」は公式呼称と一致。</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>intermediate_v5_ch00_intro</h2>
+<p><strong>修正項目数</strong>: 3 (高2 / 中1)</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>優先度</th>
+<th>Verdict</th>
+<th>該当箇所</th>
+<th>適用ガイド</th>
+<th>修正内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v19</td>
+<td>高</td>
+<td>❌齟齬</td>
+<td>L177</td>
+<td>§14 ハーネス用語 / §1 hook定義</td>
+<td>「自動で動かす — 主要4つのhookを軸に(全29種類のうち代表)」と明示。断定を避け代表例として位置付け。</td>
+</tr>
+<tr>
+<td>v20</td>
+<td>高</td>
+<td>❌齟齬</td>
+<td>L188-L198</td>
+<td>§10 スラッシュコマンド階層</td>
+<td>「/command」という単一コマンド表記をやめ、「カスタムスラッシュコマンド (Skills または <code>.claude/commands/&lt;name&gt;.md</code>...</td>
+</tr>
+<tr>
+<td>v21</td>
+<td>中</td>
+<td>🟡部分一致</td>
+<td>L188-L198</td>
+<td>§5 Skill 配置と仕様</td>
+<td>『常駐道具』は誤解を招く。『再利用可能なワークフロー定義(プレイブック)で、必要時にオンデマンド読込される業務領域パッケージ』のような表現に修正推奨。</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>intermediate_v5_ch01_command</h2>
+<p><strong>修正項目数</strong>: 2 (高1 / 中1)</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>優先度</th>
+<th>Verdict</th>
+<th>該当箇所</th>
+<th>適用ガイド</th>
+<th>修正内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v23</td>
+<td>高</td>
+<td>🟡部分一致</td>
+<td>L154-165 (使い分け表)、L207-216</td>
+<td>§5 Skill 配置と仕様</td>
+<td>配置先表記を『.claude/skills/*.md』から『.claude/skills/<name>/SKILL.md』に修正。自律呼出の発火条件は『desc...</td>
+</tr>
+<tr>
+<td>v22</td>
+<td>中</td>
+<td>🟡部分一致</td>
+<td>L82-92 (仕組み)、L101-115 (実演</td>
+<td>§10 スラッシュコマンド階層</td>
+<td>(1) Skills 統合 (<code>.claude/skills/&lt;name&gt;/SKILL.md</code> 推奨・legacy <code>.claude/commands/</code> 併存...</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>intermediate_v5_ch02_failure_patterns</h2>
+<p><strong>修正項目数</strong>: 1 (中1)</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>優先度</th>
+<th>Verdict</th>
+<th>該当箇所</th>
+<th>適用ガイド</th>
+<th>修正内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v24</td>
+<td>中</td>
+<td>❓判定不能</td>
+<td>L48, L138</td>
+<td>§17 5タスク同時指示 / Context Rot</td>
+<td>『5つ頼んで3つしか出来ない』のような具体数は経験談であり公式仕様ではない旨を明示するか、あるいは『複数タスクをまとめると追従率が下がる場合がある』程度の控えめ...</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>intermediate_v5_ch03_lost_in_middle</h2>
+<p><strong>修正項目数</strong>: 2 (中2)</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>優先度</th>
+<th>Verdict</th>
+<th>該当箇所</th>
+<th>適用ガイド</th>
+<th>修正内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v25</td>
+<td>中</td>
+<td>❌齟齬</td>
+<td>「方向性③: 自動取得」スライド</td>
+<td>§1 hook定義</td>
+<td>「hook = AIのライフサイクルイベントに処理を差し込む仕組み。本章ではUserPromptSubmit hookで関連資料を自動注入する用法を紹介」と広義...</td>
+</tr>
+<tr>
+<td>v26</td>
+<td>中</td>
+<td>❓判定不能</td>
+<td>「制約③ Context Rot」スライド・「3つ</td>
+<td>§17 5タスク同時指示 / Context Rot</td>
+<td>『Context Rot』はコミュニティ/研究用語 (Chroma 等が提唱) である旨を明示し、容量上限・Lost in the Middle と同格の『公式...</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>intermediate_v5_ch04_long_text_solution</h2>
+<p><strong>修正項目数</strong>: 2 (高2)</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>優先度</th>
+<th>Verdict</th>
+<th>該当箇所</th>
+<th>適用ガイド</th>
+<th>修正内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v28</td>
+<td>高</td>
+<td>❌齟齬</td>
+<td>「本編4主役+附録の全体図」スライド</td>
+<td>§13 PreCompact/PostCompact</td>
+<td>PreCompactを「附録(公式機能ではない)」分類から「公式hookイベント」分類へ移動。「スクリプト実装は著者独自/イベント自体は公式」と明記。</td>
+</tr>
+<tr>
+<td>v27</td>
+<td>高</td>
+<td>🟡部分一致</td>
+<td>「実践: MEMORY.mdに書く」スライド</td>
+<td>§14 ハーネス用語 / §1 hook定義</td>
+<td>200行/25KBは公式正解。ただし「プロジェクト内のMEMORY.md」は誤り。正しくは「~/.claude/projects/<project>/memor...</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>intermediate_v5_ch05_role_files</h2>
+<p><strong>修正項目数</strong>: 3 (高1 / 中2)</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>優先度</th>
+<th>Verdict</th>
+<th>該当箇所</th>
+<th>適用ガイド</th>
+<th>修正内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v29</td>
+<td>高</td>
+<td>❌齟齬</td>
+<td>L139-L155, L323-L327, L34</td>
+<td>§18 instructions/ (本講座独自)</td>
+<td>「instructions/email.md」等は講師独自の運用パターンである旨を明記するか、公式機能である <code>.claude/rules/</code> または `ski...</td>
+</tr>
+<tr>
+<td>v30</td>
+<td>中</td>
+<td>🟡部分一致</td>
+<td>L221-L246, L280-L290</td>
+<td>§7 Subagent 呼出方式</td>
+<td>L221-L246 で <code>.claude/agents/&lt;name&gt;.md</code> への YAML フロントマター定義方法と Agent (旧 Task) ツール経由...</td>
+</tr>
+<tr>
+<td>v31</td>
+<td>中</td>
+<td>🟡部分一致</td>
+<td>L177-L186</td>
+<td>§6 CLAUDE.md 読込挙動</td>
+<td>「CLAUDE.md自動読込」はClaude Code固有である旨を明記。他ツール(Cursor=.cursorrules、Windsurf=.windsurf...</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>intermediate_v5_ch06_advisor</h2>
+<p><strong>修正項目数</strong>: 3 (低3)</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>優先度</th>
+<th>Verdict</th>
+<th>該当箇所</th>
+<th>適用ガイド</th>
+<th>修正内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v32</td>
+<td>低</td>
+<td>✅一致</td>
+<td>L158-L177 (JSON tools例)</td>
+<td>§16 Advisor Tool</td>
+<td>修正不要。ただし『beta』であり将来 identifier が変わる可能性がある旨を一行注記すると講座の耐用年数が伸びる。</td>
+</tr>
+<tr>
+<td>v33</td>
+<td>低</td>
+<td>✅一致</td>
+<td>L321-L336 (まとめスライド参考URL)</td>
+<td>§16 Advisor Tool</td>
+<td>修正不要。platform.claude.com は Anthropic の正式 Console/Docs ドメインとして稼働中 (Agent SDK ページか...</td>
+</tr>
+<tr>
+<td>v34</td>
+<td>低</td>
+<td>✅一致</td>
+<td>L158-L177, L181-L196</td>
+<td>§16 Advisor Tool</td>
+<td>修正不要。ただし『executor は client/Claude Code 側で動き、advisor 部分のみ server-side で実行』というハイブリ...</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>intermediate_v5_ch07_hooks</h2>
+<p><strong>修正項目数</strong>: 3 (高1 / 中1 / 低1)</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>優先度</th>
+<th>Verdict</th>
+<th>該当箇所</th>
+<th>適用ガイド</th>
+<th>修正内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v35</td>
+<td>高</td>
+<td>❌齟齬</td>
+<td>L120-L131 (4つのフック表) / L21</td>
+<td>§2 hook 種類数 (29種)</td>
+<td>「主要4つのhookでAIの動作の代表的タイミングをカバー(全29種類の中から実用度の高い4つを抜粋)」へ。「全タイミング網羅」は削除。</td>
+</tr>
+<tr>
+<td>v37</td>
+<td>中</td>
+<td>❓判定不能</td>
+<td>L246</td>
+<td>§14 ハーネス用語 / §1 hook定義</td>
+<td>『ハーネスエンジニアリングの典型パターン』は本講座 (multi-agent-shogun プロジェクト) 固有の概念整理である旨を明示し、Anthropic ...</td>
+</tr>
+<tr>
+<td>v36</td>
+<td>低</td>
+<td>✅一致</td>
+<td>L182</td>
+<td>§5 Skill 配置と仕様</td>
+<td>修正不要。ただし『上位互換』の根拠として『公式がスキルは追加機能を提供と明記』を脚注で補強するとより堅牢。</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>intermediate_v5_ch08_fail_safe</h2>
+<p><strong>修正項目数</strong>: 2 (中2)</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>優先度</th>
+<th>Verdict</th>
+<th>該当箇所</th>
+<th>適用ガイド</th>
+<th>修正内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v38</td>
+<td>中</td>
+<td>❌齟齬</td>
+<td>L186-L196 / L268</td>
+<td>§20 その他</td>
+<td>「禁止操作リスト(本講座独自の設計パターン名・PreToolUse hookで実装)」と明示し、Claude Code標準機能との誤認を防ぐ。</td>
+</tr>
+<tr>
+<td>v39</td>
+<td>中</td>
+<td>🟡部分一致</td>
+<td>L230-L252</td>
+<td>§19 PreToolUse BLOCK 制御</td>
+<td>BLOCK制御プロトコル(exit code 2 + stderr or JSON permissionDecision:deny)の最小例を1スライド追加。実...</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>intermediate_v5_ch09_business_integration</h2>
+<p><strong>修正項目数</strong>: 3 (高1 / 中1 / 低1)</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>優先度</th>
+<th>Verdict</th>
+<th>該当箇所</th>
+<th>適用ガイド</th>
+<th>修正内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v40</td>
+<td>高</td>
+<td>❌齟齬</td>
+<td>L100付近 (/handoff言及箇所)</td>
+<td>§5 Skill 配置と仕様</td>
+<td>「/handoff は本講座 (本リポジトリ) 独自のカスタムスラッシュコマンドであり、Claude Code 標準には含まれない」と注記を入れよ。受講者が自前...</td>
+</tr>
+<tr>
+<td>v42</td>
+<td>中</td>
+<td>❓判定不能</td>
+<td>L82付近</td>
+<td>§9 MCP 定義</td>
+<td>claude-mem 固有 UI の verify には別ソース(claude-mem 公式 README/GitHub)が必要。公式 MCP doc の範囲で...</td>
+</tr>
+<tr>
+<td>v41</td>
+<td>低</td>
+<td>✅一致</td>
+<td>L107付近</td>
+<td>§4 SubagentStop 表記</td>
+<td>PostToolUse自体は公式名と一致。ただし ch07 で29種類のhook全体像を提示しない場合は補足注釈推奨。</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>intermediate_v5_ch10_reference</h2>
+<p><strong>修正項目数</strong>: 3 (高2 / 中1)</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>優先度</th>
+<th>Verdict</th>
+<th>該当箇所</th>
+<th>適用ガイド</th>
+<th>修正内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v43</td>
+<td>高</td>
+<td>❌齟齬</td>
+<td>L102, L186, L210, L213, L</td>
+<td>§10 スラッシュコマンド階層 (独自カスタム)</td>
+<td>「/advisor は本リポジトリ独自スキルである」旨を明示。または公式の <code>/review</code>・<code>/security-review</code>・<code>/simplify</code> な...</td>
+</tr>
+<tr>
+<td>v44</td>
+<td>高</td>
+<td>❌齟齬</td>
+<td>L73, L173, L215, L210</td>
+<td>§10 スラッシュコマンド階層</td>
+<td>「/command」表記を全削除し、「カスタムスラッシュコマンド (<code>/&lt;任意名&gt;</code> を Skills で定義)」に統一せよ。L73, L173, L210, ...</td>
+</tr>
+<tr>
+<td>v45</td>
+<td>中</td>
+<td>🟡部分一致</td>
+<td>L92, L213, L217</td>
+<td>§12 MEMORY.md 自動メモリ機能</td>
+<td>「永続記憶」=公式「自動メモリ」(MEMORY.md+トピックファイル)であることを明示。「自動検索」は曖昧なので「Claudeが必要時にトピックファイルをオン...</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>intermediate_v5_ch11_skill</h2>
+<p><strong>修正項目数</strong>: 2 (高2)</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>優先度</th>
+<th>Verdict</th>
+<th>該当箇所</th>
+<th>適用ガイド</th>
+<th>修正内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v47</td>
+<td>高</td>
+<td>❌齟齬</td>
+<td>L96-L102 (構造), L137 (Step</td>
+<td>§5 Skill 配置と仕様</td>
+<td>講座記述を『.claude/skills/<name>/SKILL.md』ディレクトリ形式を標準として提示する形に修正。単一 .md は『.claude/com...</td>
+</tr>
+<tr>
+<td>v46</td>
+<td>高</td>
+<td>🟡部分一致</td>
+<td>L113-L116</td>
+<td>§5 Skill 配置と仕様</td>
+<td>description 例を公式に揃え『〇〇する。Use when ユーザーが××を尋ねるとき、××したいとき』形式に変更。日本語起動フレーズ列挙パターンはロー...</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>修正フェーズ運用 — 章別 claude -p 呼出時の context</h2>
+<p>各章を修正する時に claude -p に渡すもの:<br />
+1. <strong>章稿</strong>: <code>projects/udemy_course/drafts/lectures/&lt;chapter&gt;.md</code><br />
+2. <strong>本ファイルの該当章セクション</strong> (上の表)<br />
+3. <strong>全体ガイドの適用 §セクション抜粋</strong> (<code>canonical_terms_guide_v1.md</code> の該当節)<br />
+4. 修正プロンプト (「該当項目を § 正典表現で書き換え、章全体の整合性を保て」)</p>
+<p><strong>修正単位</strong>: 章ごと (同一章の全項目を 1 パスで)。<br />
+<strong>修正手段</strong>: 章稿全文を claude -p に渡し修正版全文を出力させ上書き。<br />
+<strong>バックアップ</strong>: <code>projects/udemy_course/drafts/lectures_backup_20260514_pre_verify_fix/</code></p>
+</body></html>
