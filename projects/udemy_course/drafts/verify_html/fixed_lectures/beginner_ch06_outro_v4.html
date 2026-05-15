@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>ch06</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;max-width:1200px;margin:0 auto;padding:16px;line-height:1.6;color:#1f2937;background:#fafafa}h1{color:#1e3a8a;border-bottom:3px solid #1e3a8a;padding-bottom:0.3em;font-size:1.3em}h2{color:#2563eb;border-bottom:1px solid #93c5fd;padding-bottom:0.2em;margin-top:1.5em;font-size:1.1em}table{border-collapse:collapse;width:100%;margin:.8em 0;font-size:.82em}th{background:#1e3a8a;color:#fff;padding:5px 7px}td{padding:5px 7px;border:1px solid #d1d5db;vertical-align:top}tr:nth-child(even) td{background:#f3f4f6}code{background:#f0f0f0;padding:1px 4px;border-radius:3px;font-size:.88em}pre{background:#1e293b;color:#f1f5f9;padding:.6em;border-radius:5px;overflow-x:auto;font-size:.82em}@media (max-width:768px){body{padding:8px;font-size:13.5px}table{font-size:.76em}}</style></head><body><nav style="background:#1e3a8a;color:#fff;padding:8px;border-radius:5px;margin-bottom:15px;font-size:.9em"><a href="../index.html" style="color:#fde68a;margin-right:10px">← ハブ</a><a href="index.html" style="color:#fff;text-decoration:underline">📂 修正版19章リスト</a></nav><h1>📝 beginner_ch06_outro_v4</h1><!-- _class: cover -->
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>beginner_ch06_outro_v4</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;max-width:1200px;margin:0 auto;padding:16px;line-height:1.6;color:#1f2937;background:#fafafa}h1{color:#1e3a8a;border-bottom:3px solid #1e3a8a;padding-bottom:0.3em;font-size:1.3em}h2{color:#2563eb;border-bottom:1px solid #93c5fd;padding-bottom:0.2em;margin-top:1.5em;font-size:1.1em}table{border-collapse:collapse;width:100%;margin:.8em 0;font-size:.82em}th{background:#1e3a8a;color:#fff;padding:5px 7px}td{padding:5px 7px;border:1px solid #d1d5db;vertical-align:top}tr:nth-child(even) td{background:#f3f4f6}code{background:#f0f0f0;padding:1px 4px;border-radius:3px;font-size:.88em}pre{background:#1e293b;color:#f1f5f9;padding:.6em;border-radius:5px;overflow-x:auto;font-size:.82em}@media (max-width:768px){body{padding:8px;font-size:13.5px}table{font-size:.76em}}</style></head><body><nav style="background:#1e3a8a;color:#fff;padding:8px;border-radius:5px;margin-bottom:15px;font-size:.9em"><a href="../index.html" style="color:#fde68a;margin-right:10px">← ハブ</a><a href="index.html" style="color:#fff;text-decoration:underline">📂 修正版19章リスト</a></nav><h1>📝 beginner_ch06_outro_v4</h1><!-- _class: cover -->
 
 <h1>3階層が揃ったあなたへ — 中級編で何が解禁されるか</h1>
 <h2>初級編を終えて — 中級編への橋渡し</h2>
@@ -56,7 +56,7 @@
 <td><strong>L3</strong></td>
 <td>ハーネス</td>
 <td>第5章</td>
-<td>hooks(イベント割込)/skills(オンデマンド業務道具)/sub-agents(専門役割を担う子エージェント) 等でAIの動作を制御・拡張する周辺基盤</td>
+<td>hooks (AI のイベントに割込み) / skills (必要なときだけ呼び出される業務道具) / sub-agents (専門役割を担う子エージェント) などで AI の動作を制御・拡張する周辺基盤</td>
 </tr>
 </tbody>
 </table>
@@ -65,7 +65,7 @@
 この 3 層が揃って、AI は「理解し・文脈を持ち・安全に動く」開発パートナーになる</p>
 </blockquote>
 <!--
-序章で「3 階層モデル」を preview してお伝えしました。ここまで全章を見ていただいた今、改めてこの表を見ると、それぞれの階層が何を意味しているかが実感として分かるはずです。L1 のプロンプトは第 1 章、L2 のコンテキストは第 2 章から第 4 章、L3 のハーネスは第 5 章で学びました。L3 ハーネスは「Agent = Model + Harness」という Anthropic 公式の業界標準定義の通り、hook だけでなく skill やサブエージェントなど AI モデルの周辺で動く実装基盤全体を指します。表の中で sub-agents という用語に「専門役割を担う子エージェント」と注釈を添えたのは、後の中級編で本格的に扱う概念の入口だからです。前章で実装した PreToolUse Hook は、その中でも最も基本となる入口でした。この 3 層が揃うことで、AI は単なるチャットツールから、あなたのプロジェクトを理解し安全に動く開発パートナーに変わります。
+序章で「3 階層モデル」を preview してお伝えしました。ここまで全章を見ていただいた今、改めてこの表を見ると、それぞれの階層が何を意味しているかが実感として分かるはずです。L1 のプロンプトは第 1 章、L2 のコンテキストは第 2 章から第 4 章、L3 のハーネスは第 5 章で学びました。L3 ハーネスは「Agent = Model + Harness」という Anthropic 公式の業界標準定義の通り、hook だけでなく skill やサブエージェントなど AI モデルの周辺で動く実装基盤全体を指します。表の中で skills は「常駐ではなく、必要なときだけ呼び出される業務道具」と明示し、sub-agents には「専門役割を担う子エージェント」と注釈を添えました。どちらも中級編で本格的に扱う概念の入口です。前章で実装した PreToolUse Hook は、その中でも最も基本となる入口でした。この 3 層が揃うことで、AI は単なるチャットツールから、あなたのプロジェクトを理解し安全に動く開発パートナーに変わります。
 -->
 
 <hr />
@@ -102,9 +102,12 @@
 <hr />
 <h1>到達点3: ハーネス [L3] — AIを制御・拡張する周辺基盤</h1>
 <p><strong>何を学んだか</strong>:<br />
-- hookの仕組み — AIの <strong>ライフサイクル(起動 → 指示受付 → ツール実行 → 終了までの一連の動作)</strong> 上のイベント (公式 29 種類) に任意の処理を発火させる仕組み<br />
+- hookの仕組み — AIの <strong>ライフサイクル(起動 → 指示受付 → ツール実行 → 終了までの一連の動作)</strong> 上のイベント (公式 29 種類) に任意の処理を<strong>自動で起動させる</strong>仕組み<br />
 - PreToolUse Hook でコマンド実行前に検査・ブロック<br />
-  - <strong>前章復習</strong>: <code>INPUT=$(cat)</code> で <strong>stdin (標準入力)</strong> から JSON を受取り、危険検知時は <strong><code>exit 2</code> + stderr (標準エラー出力)</strong> にブロック理由を出力すれば、AI が理由を理解して別案を出す</p>
+  - <strong>前章 (第 5 章) のシェルスクリプトのあの部分の復習</strong>:<br />
+    - <code>INPUT=$(cat)</code> で <strong>stdin (標準入力)</strong> から JSON を受け取る<br />
+    - 危険検知時は <strong><code>exit 2</code></strong> で終了する (<code>2</code> は「AI にブロック理由を伝えるための特別な終了コード」)<br />
+    - 同時に <strong>stderr (標準エラー出力)</strong> にブロック理由を出力すれば、AI が理由を読んで別案を出す</p>
 <p><strong>何が解決できたか</strong>:<br />
 - <code>rm -rf</code> や <code>sudo</code> 等の <strong>危険操作を自動検知</strong><br />
 - AIが勝手にファイルを消すリスクを <strong>排除</strong></p>
@@ -113,7 +116,7 @@
 安全装置はその中の代表的な一用途</p>
 </blockquote>
 <!--
-第 5 章で学んだ hook。3 階層の最上層、L3 にあたります。ここでこの章で初めて「ライフサイクル」という言葉を本格的に使うので、改めて括弧で「起動 → 指示受付 → ツール実行 → 終了までの一連の動作」と注釈を添えました。Hook はその一連の動作中の特定のイベント、公式 29 種類のタイミングに任意の処理を発火させる仕組みで、本章ではその中の最も基本となる PreToolUse を入口に体験しました。データの受け渡しは標準入力 (stdin) 経由の JSON、ブロックは exit 2 + 標準エラー出力 (stderr) のメッセージ、これがコピペで動く公式仕様の最小形でした。前章の用語が思い出せない方のために、ここでも要点を 1 行で再掲しています。L3 ハーネスは Anthropic 公式の業界標準概念で、hook だけでなく skill やサブエージェントなど、AI を「実際に仕事を完遂する work engine」に変える周辺基盤全体を指します。安全装置は、その中で最も初心者が体験しやすい代表用途のひとつです。プロンプトで指示し、コンテキストで文脈を与え、ハーネスで制御・拡張する。この 3 層が揃って初めて、AI は安全で頼れる開発パートナーになります。
+第 5 章で学んだ hook。3 階層の最上層、L3 にあたります。ここでこの章で初めて「ライフサイクル」という言葉を本格的に使うので、改めて括弧で「起動 → 指示受付 → ツール実行 → 終了までの一連の動作」と注釈を添えました。Hook はその一連の動作中の特定のイベント、公式 29 種類のタイミングに任意の処理を自動で起動させる仕組みで、本章ではその中の最も基本となる PreToolUse を入口に体験しました。前章の用語を覚えていない方のためにあえてここで再掲しています。データの受け渡しは標準入力 (stdin) 経由の JSON、ブロックは exit 2 で終了する形を取りました。この「2」は普通の正常終了 (0) でもエラー終了 (1) でもなく、「AI にブロック理由を伝えるための特別な終了コード」として Claude Code 側で特別扱いされる値です。同時に標準エラー出力 (stderr) に理由を書けば、AI がその理由を読んで別の案を出してくれる。これがコピペで動く公式仕様の最小形でした。L3 ハーネスは Anthropic 公式の業界標準概念で、hook だけでなく skill やサブエージェントなど、AI を「実際に仕事を完遂する work engine」に変える周辺基盤全体を指します。安全装置は、その中で最も初心者が体験しやすい代表用途のひとつです。プロンプトで指示し、コンテキストで文脈を与え、ハーネスで制御・拡張する。この 3 層が揃って初めて、AI は安全で頼れる開発パートナーになります。
 -->
 
 <hr />
@@ -187,7 +190,7 @@
 <tr>
 <td>L3 ハーネス</td>
 <td>1本の入門 PreToolUse Hook</td>
-<td>18本の実装例で主要カテゴリ (ファイル保護・コマンド検査・通知など) を学ぶ</td>
+<td>主要カテゴリ別に <strong>計 18 本</strong> の実装例 (ファイル保護・コマンド検査・通知など、各カテゴリ 3〜4 本ずつ) を学ぶ</td>
 </tr>
 <tr>
 <td><strong>MCP</strong></td>
@@ -200,7 +203,7 @@
 <p><strong>MCP</strong>（Model Context Protocol）= LLM と外部ツール・データソース・API を繋ぐ <strong>オープンソース標準プロトコル</strong>。Claude Code を数百の外部ツールに接続するための公式仕様。claude-mem のような「記憶を拡張する MCP サーバー」はその一用途例にすぎず、課題追跡・監視データ分析・DB クエリ・デザイン統合など幅広い領域で使われている</p>
 </blockquote>
 <!--
-初級編が各階層の「入り口」だったのに対し、中級編は「実戦」に踏み込みます。L3 ハーネスは入門の 1 本から 18 本の実装例へ広がります。「網羅する」とは言わず、あくまでファイル保護・コマンド検査・通知といった主要カテゴリの代表例として学ぶ位置付けです。特に注目してほしいのが MCP です。MCP は「Model Context Protocol」の略で、LLM と外部ツール・データソース・API を繋ぐオープンソース標準プロトコル、つまり業界標準の規格そのものです。「AI の記憶を拡張する仕組み」と狭く説明されることがありますが、それは claude-mem などの一用途例で、本来はもっと広い接続規格です。中級編では自前の MCP サーバーを構築して、その仕組み自体を体験します。プロンプト・コンテキスト・ハーネスの深化に加えて、この MCP が中級編の大きな柱です。
+初級編が各階層の「入り口」だったのに対し、中級編は「実戦」に踏み込みます。L3 ハーネスは入門の 1 本から、主要カテゴリ別に計 18 本の実装例に広がります。「網羅する」とは言わず、ファイル保護・コマンド検査・通知といった主要カテゴリそれぞれに 3〜4 本ずつ、合計で 18 本を体験する位置付けです。なぜこの数になるかというと、各カテゴリで「最小・典型・応用」程度の段階を踏むと、自然にこの本数に落ち着くからです。特に注目してほしいのが MCP です。MCP は「Model Context Protocol」の略で、LLM と外部ツール・データソース・API を繋ぐオープンソース標準プロトコル、つまり業界標準の規格そのものです。「AI の記憶を拡張する仕組み」と狭く説明されることがありますが、それは claude-mem などの一用途例で、本来はもっと広い接続規格です。中級編では自前の MCP サーバーを構築して、その仕組み自体を体験します。プロンプト・コンテキスト・ハーネスの深化に加えて、この MCP が中級編の大きな柱です。
 -->
 
 <hr />
@@ -210,14 +213,14 @@
 - CLAUDE.md 30行でAIに <strong>プロジェクトの文脈</strong> を与えられる<br />
 - PreToolUse Hook 1本で <strong>基本の安全装置</strong> を作れる</p>
 <p><strong>中級編修了のあなた</strong>:<br />
-- 18本のhook実装例で主要カテゴリを <strong>使い分け</strong> られる<br />
+- 主要カテゴリ別に計 18 本の hook 実装例を <strong>使い分け</strong> られる<br />
 - 自前のMCPサーバー（自分のPCで動くAI用の追加プログラム）を <strong>構築</strong> できる<br />
 - 1人+1AIで <strong>本格的な自動化パイプライン</strong>（テスト→ビルド→デプロイを自動でつなぐ仕組み）を構築できる</p>
 <blockquote>
 <p>初級編は「AI開発の運転免許」。中級編は「自分のプロジェクトを安心して任せられる相棒づくり」</p>
 </blockquote>
 <!--
-この違いを比べてみましょう。今日のあなたは、構造化プロンプトで AI に確実に伝えることができ、CLAUDE.md でプロジェクトの文脈を与えられ、PreToolUse Hook 1 本で基本的な安全装置を作れます。これは立派な基礎です。一方、中級編を修了したあなたは、18 本の hook 実装例を主要カテゴリで使い分け、自前の MCP サーバーを構築し、1 人 +1 AI で本格的な自動化パイプラインを構築できます。例えるなら、初級編で運転免許を取得し、中級編で自分のプロジェクトを安心して任せられる相棒を育てるイメージです。
+この違いを比べてみましょう。今日のあなたは、構造化プロンプトで AI に確実に伝えることができ、CLAUDE.md でプロジェクトの文脈を与えられ、PreToolUse Hook 1 本で基本的な安全装置を作れます。これは立派な基礎です。一方、中級編を修了したあなたは、主要カテゴリ別に計 18 本の hook 実装例を使い分け、自前の MCP サーバーを構築し、1 人 +1 AI で本格的な自動化パイプラインを構築できます。例えるなら、初級編で運転免許を取得し、中級編で自分のプロジェクトを安心して任せられる相棒を育てるイメージです。
 -->
 
 <hr />
@@ -228,10 +231,10 @@
 <li><strong>コミュニティに参加する</strong> — 他の受講生と知見を共有</li>
 </ol>
 <blockquote>
-<p>初級編の理解が深まれば、中級編のスピード感についていけます</p>
+<p>今日の 3 階層 (L1 プロンプト / L2 コンテキスト / L3 ハーネス) だけで、中級編に十分進めます</p>
 </blockquote>
 <!--
-次に取るべきステップは 3 つあります。一番おすすめなのは、中級編に進むこと。今日の基礎、特に前章の PreToolUse Hook の動作原理がしっかり身についていれば、中級編の内容もスムーズに理解できます。同時に、自分のプロジェクトで今日学んだ 3 階層を試してみてください。構造化プロンプト、CLAUDE.md、PreToolUse Hook — この 3 つを自分の環境で動かすことで理解が深まります。また、Udemy の Q&A セクションで他の受講生と交流することもおすすめです。
+次に取るべきステップは 3 つあります。一番おすすめなのは、中級編に進むこと。今日学んだ 3 階層、L1 プロンプト・L2 コンテキスト・L3 ハーネスの考え方が頭に入っていれば、中級編の内容にもそのまま入っていけます。完璧に覚えている必要はありません。「3 階層という地図」が頭の中にあるだけで十分です。同時に、自分のプロジェクトで今日学んだ 3 階層を試してみてください。構造化プロンプト、CLAUDE.md、PreToolUse Hook — この 3 つを自分の環境で動かすことで理解が深まります。また、Udemy の Q&A セクションで他の受講生と交流することもおすすめです。
 -->
 
 <hr />
