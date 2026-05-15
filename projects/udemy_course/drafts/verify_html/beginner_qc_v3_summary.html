@@ -1,0 +1,483 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>v3 QC結果</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;max-width:1200px;margin:0 auto;padding:16px;line-height:1.6;color:#1f2937;background:#fafafa}h1{color:#1e3a8a;border-bottom:3px solid #1e3a8a;padding-bottom:0.3em;font-size:1.3em}h2{color:#2563eb;border-bottom:1px solid #93c5fd;padding-bottom:0.2em;margin-top:1.5em;font-size:1.1em}h3{color:#4b5563;margin-top:1.2em;font-size:1.05em}table{border-collapse:collapse;width:100%;margin:.8em 0;font-size:.85em}th{background:#1e3a8a;color:#fff;padding:6px 8px}td{padding:6px 8px;border:1px solid #d1d5db;vertical-align:top}tr:nth-child(even) td{background:#f3f4f6}code{background:#f0f0f0;padding:1px 5px;border-radius:3px;font-size:.9em}strong{color:#dc2626}hr{border:none;border-top:2px dashed #cbd5e1;margin:2em 0}@media (max-width:768px){body{padding:8px;font-size:14px}table{font-size:.78em}}</style></head><body><nav style="background:#1e3a8a;color:#fff;padding:10px;border-radius:6px;margin-bottom:20px"><a href="index.html" style="color:#fde68a;margin-right:15px">← ハブ</a><a href="fixed_lectures/index.html" style="color:#fff;margin-right:12px">📝 修正版19章</a><a href="beginner_qc_summary.html" style="color:#fff;margin-right:12px">🔍 v1 QC</a><a href="beginner_qc_v3_summary.html" style="color:#fff;text-decoration:underline">🔍 v3 QC (NEW)</a></nav><h1>Udemy 初級編 v3 QC レビュー結果</h1>
+<p><strong>実施日</strong>: 2026-05-15<br />
+<strong>方式</strong>: claude --agent udemy-checker -p (新方針・退化解消修正後)  </p>
+<h2>📊 三段比較サマリ (v1→v2→v3)</h2>
+<table>
+<thead>
+<tr>
+<th>章</th>
+<th>v1</th>
+<th>v2</th>
+<th>v3</th>
+<th>トレンド</th>
+<th>v3 一行所感</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>beginner_ch00_intro_v4</td>
+<td>🟡</td>
+<td>🟡</td>
+<td><strong>🟢</strong></td>
+<td>⬆️</td>
+<td>「3つの壁」という切り口が自分ごとに感じられて、ここまでで一番入りやすかった。</td>
+</tr>
+<tr>
+<td>beginner_ch01_prompt_v4</td>
+<td>🟢</td>
+<td>🟢</td>
+<td><strong>🟡</strong></td>
+<td>⬇️</td>
+<td>3要素の整理は腑に落ちたが、例が全部コード系で「自分の仕事に使えるのか不安」なまま終わる。</td>
+</tr>
+<tr>
+<td>beginner_ch02_claude_md_v4</td>
+<td>🟡</td>
+<td>🟢</td>
+<td><strong>🟢</strong></td>
+<td>⬆️</td>
+<td>「README.md との比較」「ソフトな指示 vs 強制ブロック」の対比が分かりやすく、CLAUDE.md の価値が素直に伝わる章。</td>
+</tr>
+<tr>
+<td>beginner_ch03_md_family_v4</td>
+<td>🟡</td>
+<td>🟡</td>
+<td><strong>🟡</strong></td>
+<td>➖</td>
+<td>「commands と skills が同じって結局どういうこと？」で頭がいっぱいになり、hookとかleagcyとか横文字が重なってくる後</td>
+</tr>
+<tr>
+<td>beginner_ch04_history_v4</td>
+<td>🟡</td>
+<td>🟢</td>
+<td><strong>🟢</strong></td>
+<td>⬆️</td>
+<td>歴史を時系列で語る構成は流れが追いやすく、具体的な事故例や車の比喩があって9割は追えた。ただし L1 の締めで専門用語が3連発される一か所が</td>
+</tr>
+<tr>
+<td>beginner_ch05_hook_v4</td>
+<td>🟢</td>
+<td>🟡</td>
+<td><strong>🟢</strong></td>
+<td>➖</td>
+<td>事故例 → 概念 → プロンプト例 → 演習の流れは追いやすく、「シェルスクリプトは書かなくていい」の方針が一貫していてペルソナ的にありがた</td>
+</tr>
+<tr>
+<td>beginner_ch06_outro_v4</td>
+<td>🟢</td>
+<td>🟡</td>
+<td><strong>🟡</strong></td>
+<td>⬇️</td>
+<td>全体の構成は親切だが、「初級編の振り返り」のはずのスライドに習っていない概念が混入していて、「え、こんなの学んだっけ？」と首をかしげてしまう</td>
+</tr>
+</tbody>
+</table>
+<h2>📈 集計 (v3)</h2>
+<ul>
+<li>🟢 理解できた: <strong>4章</strong> (v1=3章 → v3=4章・+1)</li>
+<li>🟡 部分的にわかった: 3章</li>
+<li>🔴 ほぼわからなかった: <strong>0章</strong> (公開ブロッカーゼロ)</li>
+</ul>
+<hr />
+<h2>📝 v3 各章の詳細</h2>
+<hr />
+<h3>beginner_ch00_intro_v4</h3>
+<hr />
+<pre><code class="language-markdown"># Udemy 章レビュー (udemy-checker)
+
+## 対象
+- ファイル: drafts/lectures_fixed/beginner_ch00_intro_v4.md
+- 章: 序章「AIに開発を任せたい — でも、どうやって？」
+- 推定読了時間: 15 分（スライド記載通り）
+
+## 総合判定
+- ⭐ 評価: 🟢 理解できた
+- 一行所感: 「3つの壁」という切り口が自分ごとに感じられて、ここまでで一番入りやすかった。
+
+## A. わからない箇所
+
+- L.54: 「任意の処理を差し込む仕組み」— &quot;任意の処理&quot; って、具体的に何？安全装置が代表例とは書いてあるが、「任意」という言葉自体が曖昧。「たとえば◯◯するような処理」を1語添えるだけで一気にイメージできる。
+
+- L.55: 「Claude本体の周りにhookなどの仕組みを組み合わせて、AIの動きを信頼できる形に整える『層』」— &quot;信頼できる形に整える&quot; って何をどう整えるのか、序章時点ではまったくイメージできない。詳しくは後の章で…とは分かっているけど、ふわっとしすぎて記憶に残らない。
+
+## B. 論理破綻・飛躍
+
+- L.133「3つの壁それぞれに対策を1つずつ対応させていく」と言いながら、L.155-157の表ではL2が3章分（第2〜4章）ある。「1対1対応」と言ったのに実際は「1対3」。L.159で理由説明はあるが、先に「1つずつ」と断言してしまっているので読者が一瞬詰まる。
+
+## C. 詰まる箇所
+
+- L.175: 「インストール済みの環境を前提とします」と言われた瞬間、インストールしていない受講者は「え、準備できてないと受けられない？」となる。URLだけ提示されていて「詰まったらどうする？」の導線が薄い。社会人2年目の自分なら「そもそも自分のPCに入れられるの？」で少し不安になって次に進むのが億劫になる。
+
+## D. 良かった箇所
+
+- L.67-77:「こんな経験、ありませんか？」の3点が刺さった。特に「自分で書いた方が早いのでは」は完全に自分ごと。ここで「あ、この講座は自分向けだ」と感じた。
+
+- L.131-132: 「AIが古いライブラリを使う → 壁②」という具体例が◎。抽象的な3分類に血が通った。
+
+- L.47: 「ここは全部覚えなくてOKです」という一文は、用語が並んでいるスライドで脱落するのを防いでくれている。
+
+## E. 商品汎用性チェック
+
+- grep 結果: 0件確認（`queue/` `multi-agent-shogun` `ashigaru` `karo` `gunshi` いずれもヒットなし）
+
+## 改善提案
+
+1. **L.54 「任意の処理」を1語具体化**：「たとえばログ保存やテスト実行など、任意の処理を差し込む仕組み」とするだけで初学者のイメージが確定する。
+
+2. **L.133 「1つずつ」の断言を緩和**：「各壁に対策を対応させていく」程度の言い回しにして、L2が3章ある事実との矛盾を先に消す。
+
+3. **L.175 インストール未了者への一言**：「まだの方は先に公式URLからインストールを済ませてからお進みください」と明示するだけで、置き去り感がなくなる。
+</code></pre>
+<hr />
+<h3>beginner_ch01_prompt_v4</h3>
+<hr />
+<h1>Udemy 章レビュー (udemy-checker)</h1>
+<h2>対象</h2>
+<ul>
+<li>ファイル: <code>projects/udemy_course/drafts/lectures_fixed/beginner_ch01_prompt_v4.md</code></li>
+<li>章: 第1章「プロンプト3要素で同じ品質を10回引き出す」</li>
+<li>推定読了時間: 約 15 分 (スライド 11 枚)</li>
+</ul>
+<h2>総合判定</h2>
+<ul>
+<li>⭐ 評価: 🟡 部分的にわかった</li>
+<li>一行所感: 3要素の整理は腑に落ちたが、例が全部コード系で「自分の仕事に使えるのか不安」なまま終わる。</li>
+</ul>
+<hr />
+<h2>A. わからない箇所</h2>
+<ul>
+<li>
+<p><strong>L170-174</strong>: <code>vitest（JavaScriptのテストツール）</code> が出てくる。「自分はJavaScriptを触らないし、ユニットテストも書かない。この例は自分に関係ない」と感じて集中が切れる。括弧補足はあるが、<strong>なぜこの例を選んだか</strong> の前置きがなく唐突。</p>
+</li>
+<li>
+<p><strong>L144</strong>: <code>依存関係（どのライブラリを使っているか）</code> — 「ライブラリ」も説明なし。用語リスト（L46-55）にも未収録。前後で連続して専門語が来るため思考停止しかける。</p>
+</li>
+</ul>
+<hr />
+<h2>B. 論理破綻・飛躍</h2>
+<ul>
+<li><strong>L111-134（テクニック1全体）〜L228</strong>: テクニック1〜4の例が <code>@src/app.ts</code>・<code>@package.json</code>・<code>@src/utils.ts</code>・<code>@README.md</code> と<strong>全てコード系</strong>。序章で「営業やマーケでも使える」と謳われているなら、1つもビジネス文書系の例がない点は飛躍。「@ファイル参照 = 開発者向け機能」と誤認させるリスクがある。</li>
+</ul>
+<hr />
+<h2>C. 詰まる箇所</h2>
+<ul>
+<li><strong>L163-175（テクニック3）</strong>: <code>vitest</code> + <code>ユニットテスト</code> + <code>正常系・異常系・境界値</code> が畳み掛けられる。「これは開発者向けの講座だった」と思い込み、ここで読み続けるのを諦めると思う。</li>
+</ul>
+<hr />
+<h2>D. 良かった箇所</h2>
+<ul>
+<li><strong>L46-55</strong>: 章頭の用語リストは助かる。「そういう言葉が出るんだな」と事前に構えられる。</li>
+<li><strong>L96-100</strong>: 文脈・指示・形式の3要素表は視覚的に整理されていて一番腑に落ちた。</li>
+<li><strong>L210-229</strong>: Before/After の対比が具体的で「だから形式指定が必要なんだ」と納得できる。</li>
+</ul>
+<hr />
+<h2>E. 商品汎用性チェック</h2>
+<ul>
+<li>grep 結果: <strong>0件確認</strong> (<code>queue/</code>・<code>multi-agent-shogun</code>・<code>ashigaru</code>・<code>karo</code>・<code>gunshi</code> いずれもヒットなし)</li>
+</ul>
+<hr />
+<h2>改善提案</h2>
+<ol>
+<li>
+<p><strong>テクニック3の例をビジネス文書に差し替え or 追加</strong>: <code>vitest</code> + ユニットテスト例の直後に「企画書やメール文面でも同じ原則が使える」を一行添える。コード例は残してよいが、非開発者ペルソナが「自分にも使える」と思える例を1つ足す。</p>
+</li>
+<li>
+<p><strong>L144「ライブラリ」を用語リストに追加 or 括弧補足を統一</strong>: 章内で括弧補足があるものとないものが混在しており、なぜここだけ補足がないのかわからなくなる。</p>
+</li>
+</ol>
+<hr />
+<h3>beginner_ch02_claude_md_v4</h3>
+<hr />
+<pre><code class="language-markdown"># Udemy 章レビュー (udemy-checker)
+
+## 対象
+- ファイル: `projects/udemy_course/drafts/lectures_fixed/beginner_ch02_claude_md_v4.md`
+- 章: 第2章「毎回『このプロジェクトは…』を説明しない — 30行のCLAUDE.mdで AIに記憶させる」
+- 推定読了時間: 約30分 (スライド9枚)
+
+## 総合判定
+- ⭐ 評価: 🟢 理解できた
+- 一行所感: 「README.md との比較」「ソフトな指示 vs 強制ブロック」の対比が分かりやすく、CLAUDE.md の価値が素直に伝わる章。
+
+---
+
+## A. わからない箇所
+
+- **L98**: 「サブディレクトリの CLAUDE.md は**オンデマンド読込**」— 直前まで「4階層を連結して読む」と説明しておいて、急に「オンデマンド」が登場。「え、連結じゃないの? どっちが適用されるの?」と混乱する。「必要な時だけ読む = 起動時には読まない」と一言あれば十分。
+
+- **L172**: 「**Python 3.12 で追加された新しい書き方や型注釈の改善**を AI が使い分けてくれる」— 「型注釈」が何かを知らない人には「改善」が何の話かまったくわからない。直後に「バージョンまで書く価値がある」という結論だけが残り、根拠がぼんやりする。
+
+- **L264 (次章予告)**: 「**legacy 互換**として残り」— IT 用語に不慣れな層には「legacy = 使っちゃいけない古いもの?」と誤解しやすい。「旧形式として引き続き使える」程度の言い換えが欲しい。
+
+---
+
+## B. 論理破綻・飛躍
+
+- **L191**: 「100行超 → AI が重要な部分を見落とす」— なぜ100行超えると見落とすのか、根拠が示されていない。「AI はコンテキストが長くなると中間部分を読み飛ばしやすくなる特性がある」など一言あるだけで「なるほど」になる。現状は「30行以内」という数字に根拠なく見える。
+
+---
+
+## C. 詰まる箇所
+
+- **L95-97 (4階層スライド)**: 「連結」と「後勝ち」を同時に説明されると「つまり矛盾したらどっちが効くか分からないってこと?」と焦る。L100の「最初は③だけで十分」という一言が救いになっているが、その言葉がスライド下部にあるため見逃すと詰まる。この「③1つから始めよ」を先頭 or 強調位置に出すと脱落が減りそう。
+
+---
+
+## D. 良かった箇所
+
+- **L65-69**: 「新しいプロジェクトに入った時、最初に何を読みますか? → README.md。AI も同じ → CLAUDE.md」— この比喩で一瞬で用途が分かった。説明より先に「そうか、AI のための README か」となれる。
+
+- **L178**: 禁止事項は「**AI へのソフトな指示 (お願いレベル)・強制ブロックは L3 hook**」という補足— 「CLAUDE.md に書けば絶対守られる」という誤解を先回りして防いでいる。これがないと第5章まで誤解が続いていた。
+
+- **L130-131**: コードブロックの前に「中身が読めなくても構いません。**5 セクションという構造だけ見てください**」— コードを見て焦る初学者を先手で止めている。
+
+---
+
+## E. 商品汎用性チェック
+- grep 結果: **0件確認** (`queue/`, `multi-agent-shogun`, `ashigaru`, `karo`, `gunshi` いずれもヒットなし)
+- 固有記法: なし・外部販売対応済み
+
+---
+
+## 改善提案
+
+1. **L98 「オンデマンド」に注釈を**: 「サブディレクトリの CLAUDE.md は必要な時だけ読む (起動時には読み込まれない)」と言い換えるだけで、「連結」との整合性が取れて混乱が消える。
+
+2. **L191 「100行超」に根拠1行**: 「AI はコンテキストが長いと中間部分への注意が分散する傾向がある (Lost in the Middle 問題)」など一言添えると、30行制限が「感覚値」でなく「理由のある数字」に見える。
+
+3. **L264 「legacy」を平易化**: 「legacy 互換として残り」→「旧形式のまま今も動くが、新規に作るなら…」と書き換えると脱落なく読める。
+</code></pre>
+<hr />
+<h3>beginner_ch03_md_family_v4</h3>
+<hr />
+<h1>Udemy 章レビュー (udemy-checker)</h1>
+<h2>対象</h2>
+<ul>
+<li>ファイル: <code>projects/udemy_course/drafts/lectures_fixed/beginner_ch03_md_family_v4.md</code></li>
+<li>章: 第3章「コピペ地獄を抜ける — .md 仲間 4 つの使い分け早見表」</li>
+<li>推定読了時間: 30 min (スライド記載どおり)</li>
+</ul>
+<h2>総合判定</h2>
+<ul>
+<li>⭐ 評価: 🟡 部分的にわかった</li>
+<li>一行所感: 「commands と skills が同じって結局どういうこと？」で頭がいっぱいになり、hookとかleagcyとか横文字が重なってくる後半で集中力が切れた。</li>
+</ul>
+<h2>A. わからない箇所</h2>
+<ul>
+<li>
+<p><strong>L77</strong>: 「Claude Code は SKILL.md・<strong>hook</strong>・commands を <strong>プロンプト 1 つで生成可能</strong>」— <code>hook</code> が突然出てきた。第3章の時点でhookはまだ未習のはず（第5章以降）。「hookって何？」で一瞬止まる。理由説明のなかに未習語が混入している。</p>
+</li>
+<li>
+<p><strong>L265</strong>: 「<strong>Claude Code を再起動して確認</strong>」— 「再起動」の具体的な操作方法が無い。<code>/clear</code>？ターミナルを閉じる？ペルソナとしては詰まる。</p>
+</li>
+<li>
+<p><strong>L325</strong>: 「agents / <strong>skills</strong> / imports は project スコープで動く」— 前スライド（L95-100）では <code>commands</code> と <code>skills</code> を別枠で説明していたのに、ここで <code>commands</code> が消えている。「旧形式のcommandsはどうなった？projectスコープじゃないの？」と混乱する。</p>
+</li>
+</ul>
+<h2>B. 論理破綻・飛躍</h2>
+<ul>
+<li><strong>L53 vs L55</strong>: 「機能としては <strong>3 つ</strong> ですが…本章では <strong>4 つの名前を別個に覚える</strong>」→「<strong>② commands と skills が「同じ機能の 2 つの書き方」であることを理解</strong>がゴール」という流れ。「同じなのに別個に覚えろ」というメッセージが同一スライド内で共存しており、最初の読者は「え、どっちを目指せばいいの？」と迷子になる。後のスライドで解消されるが、冒頭でこの混乱が生じるのはつらい。</li>
+</ul>
+<h2>C. 詰まる箇所</h2>
+<ul>
+<li><strong>L77 (hookの件)</strong>: 「本章で学ぶスタンス」という最重要スライドの理由説明に未習語が混入している。「hookって何か分からないのに、hookが作れるから手書きしなくていいと言われても…」とスタンスへの納得感が薄れる。ここで「このスライド何の話してるんだろう」と感じて集中が切れる可能性が高い。</li>
+</ul>
+<h2>D. 良かった箇所</h2>
+<ul>
+<li><strong>L67-71「従来の発想 vs 本講座の発想」表</strong>: 「何をしなくていいか」が対比で明確。最初に不安を取り除いてくれる。</li>
+<li><strong>L196-198「description とは」定義ボックス</strong>: 比較表の直前に用語定義を置く構成が秀逸。ここがあるおかげでL200以降の表が読める。</li>
+<li><strong>L346-352「初心者の3段階拡張パス」</strong>: 「受講者がやること」列があり、自分がいつ・何をすればいいかが一目でわかる。</li>
+</ul>
+<h2>E. 商品汎用性チェック</h2>
+<ul>
+<li>grep 結果: <strong>0件確認</strong> (<code>queue/</code>・<code>multi-agent-shogun</code>・<code>ashigaru</code>・<code>karo</code>・<code>gunshi</code> すべてヒットなし)</li>
+</ul>
+<h2>改善提案</h2>
+<ol>
+<li><strong>L77の <code>hook</code> を削除または「（後の章で学ぶ概念）」と括弧補足</strong>: 理由説明に未習語を混入させない。代替案は「SKILL.md や commands などを <strong>プロンプト 1 つで生成可能</strong>」でhookを外す。</li>
+<li><strong>L325に <code>commands (旧形式)</code> を追記</strong>: 「agents / commands (旧形式) / skills / imports は project スコープで動く」と揃えると、前スライドとの整合が取れる。</li>
+<li><strong>L265に「<code>/clear</code> で再起動」等の一行補足</strong>: 「再起動＝Claude Codeを<code>/clear</code>で再開」など操作を明示すると初学者が詰まらない。</li>
+</ol>
+<hr />
+<h3>beginner_ch04_history_v4</h3>
+<hr />
+<h1>Udemy 章レビュー (udemy-checker)</h1>
+<h2>対象</h2>
+<ul>
+<li>ファイル: <code>projects/udemy_course/drafts/lectures_fixed/beginner_ch04_history_v4.md</code></li>
+<li>章: 第4章「なぜ「3階層」なのか — 5年で AI 開発が辿った道」</li>
+<li>推定読了時間: 約25分（表紙記載）</li>
+</ul>
+<hr />
+<h2>総合判定</h2>
+<ul>
+<li>⭐ 評価: 🟢 理解できた</li>
+<li>一行所感: 歴史を時系列で語る構成は流れが追いやすく、具体的な事故例や車の比喩があって9割は追えた。ただし L1 の締めで専門用語が3連発される一か所が引っかかる。</li>
+</ul>
+<hr />
+<h2>A. わからない箇所</h2>
+<ul>
+<li>
+<p><strong>L119</strong>: 「Few-shot（例示学習）、Chain-of-Thought（思考の連鎖 — 推論ステップを段階的に出力させる手法）、システムプロンプト等の技術が体系化」<br />
+  — 「Few-shot」は前スライドで一度出たが、Chain-of-Thought とシステムプロンプトはここが初出でかつ説明なし。3語まとめて「体系化」で終わると、ペルソナとしては「体系化って何を覚えればいい？自分には関係ない話？」と宙ぶらりんになる。</p>
+</li>
+<li>
+<p><strong>L149</strong>: 「外部ドキュメントを検索してプロンプトに埋め込む」<br />
+  — 「埋め込む」のイメージが湧かない。「質問に関係するマニュアルを自動で探してAIへの指示に貼り付ける」のような日常語の一文がスライド本文にあると助かる（スピーカーノートには説明があるが、動画を見ない受講者には届かない）。</p>
+</li>
+</ul>
+<hr />
+<h2>B. 論理破綻・飛躍</h2>
+<ul>
+<li>特になし。各層の「なぜ必要か」が直前スライドの「3つの壁」「暴走事故」と対応しており、因果の繋がりは明確。</li>
+</ul>
+<hr />
+<h2>C. 詰まる箇所</h2>
+<ul>
+<li><strong>L119</strong>: L1 誕生スライドの締めで専門用語3連発が来る。「Few-shot / Chain-of-Thought / システムプロンプト等」を列挙して「体系化された」で終わると、社会人2年目の私は「ここ、自分が覚えるべき話？それとも背景知識？」と迷って、次のスライドに進むのをためらう。</li>
+</ul>
+<hr />
+<h2>D. 良かった箇所</h2>
+<ul>
+<li>
+<p><strong>L204–208</strong>: 「L1だけ = 毎回ゼロから説明 / L2だけ = 危険な操作を止められない / L3だけ = 文脈がない」+ 車（ハンドル・ナビ・シャシー）の比喩。「3つ全部要る理由」がここで初めて腑に落ちた。この構造はわかりやすい。</p>
+</li>
+<li>
+<p><strong>L162–168</strong>: <code>rm -rf</code> やAPIコスト爆発という実害の具体例。抽象論ではなく「これが起きたら怖い」と実感できるので、L3の必要性が説得力を持って届く。</p>
+</li>
+</ul>
+<hr />
+<h2>E. 商品汎用性チェック</h2>
+<ul>
+<li>grep 結果: <strong>0件確認</strong>（<code>queue/</code>・<code>multi-agent-shogun</code>・<code>ashigaru</code>・<code>karo</code>・<code>gunshi</code> ともにヒットなし）</li>
+</ul>
+<hr />
+<h2>改善提案</h2>
+<ol>
+<li>
+<p><strong>L119 の3連発に1行の交通整理を追加</strong>: 「（これらの詳細は L1 を扱う章で解説。ここでは "名前だけ" 押さえてOK）」という一文を添えると、ペルソナが「覚えなくていいんだ」と安心して先に進める。</p>
+</li>
+<li>
+<p><strong>L149 のRAG説明にスライド本文で身近な例を一文追加</strong>: ノートの説明をスライドにも1行落とす（例：「社内マニュアルを自動検索してAIの指示に添付するイメージ」）。スピーカーノートだけだと動画未視聴の受講者に届かない。</p>
+</li>
+</ol>
+<hr />
+<h3>beginner_ch05_hook_v4</h3>
+<hr />
+<h1>Udemy 章レビュー (udemy-checker)</h1>
+<h2>対象</h2>
+<ul>
+<li>ファイル: <code>projects/udemy_course/drafts/lectures_fixed/beginner_ch05_hook_v4.md</code></li>
+<li>章: 第5章「気がついたら消されてた」を防ぐ — Hook で作る AI の最後の砦</li>
+<li>推定読了時間: 約 28〜32 分</li>
+</ul>
+<hr />
+<h2>総合判定</h2>
+<ul>
+<li>⭐ 評価: 🟢 理解できた</li>
+<li>一行所感: 事故例 → 概念 → プロンプト例 → 演習の流れは追いやすく、「シェルスクリプトは書かなくていい」の方針が一貫していてペルソナ的にありがたい。ただし「JSON <strong>ペイロード</strong>」の一語だけ一瞬置いてかれた。</li>
+</ul>
+<hr />
+<h2>A. わからない箇所 (具体・行番号 or 引用つき)</h2>
+<ul>
+<li>
+<p><strong>L138</strong>: 「スクリプトは <strong>stdin (標準入力) 経由で JSON ペイロードを受け取る</strong>」 — <code>stdin</code> と <code>JSON</code> は後のスライドで説明されるが、<strong>「ペイロード」</strong> は章内で一度も定義されない。英語のまま使われており「荷物?」レベルで止まる。「JSON で情報を受け取る」と書けば十分なのに、この 1 語だけ浮いている。</p>
+</li>
+<li>
+<p><strong>L53</strong>: 「AI のライフサイクルイベントに任意の処理を発火させる仕組みを説明できる」 — 学習目標として先出しされるが、定義は L84 まで来ない。「ライフサイクルイベント? 何それ」で学習目標スライドをスキップしがち。後でちゃんと説明されるので致命的ではないが、最初のスライドで「よくわからない言葉が目標に書いてある」と感じる。</p>
+</li>
+<li>
+<p><strong>L258</strong>: 「<code>.tool_input.command</code> を取り出して検査」 — 実行フローまとめの中に JSON ドット記法が突然登場。「受講者はこれを書く必要はない」と断ってはいるが、フローの説明文の中に技術記号が混ざるとペルソナは「これ理解しないとまずいのかな」と不安になる。</p>
+</li>
+</ul>
+<hr />
+<h2>B. 論理破綻・飛躍</h2>
+<p>特に検出なし。「なぜ必要か → 仕組み → 仕様 → 実装依頼 → 演習」の流れが整合している。</p>
+<hr />
+<h2>C. 詰まる箇所</h2>
+<ul>
+<li><strong>L138 付近</strong>: 「JSON ペイロード」で一瞬詰まる。表の右側に「コマンド情報を流す」と役割が書いてあるので読み進められるが、「ペイロードって何…まあいいか」で読み流す受講者が出る。意味を確認したい人はここで検索に走って離脱リスクがある。</li>
+</ul>
+<hr />
+<h2>D. 良かった箇所</h2>
+<ul>
+<li><strong>L99</strong>: 「ATM で大金を引き出す前に暗証番号を確認する」の比喩 — PreToolUse の「実行前に一旦止める」が一発で腑に落ちる。</li>
+<li><strong>L163-165</strong>: exit 2 の「なぜ 2?」への 1 行回答 — この素朴な疑問に答えてくれているのは親切。「他の数字では止まらない」も地味に重要な補足。</li>
+<li><strong>L295</strong>: <code>/clear</code> コマンドの意味を括弧内に補足している — 「会話をリセットして settings.json を再読込させる」と書いてあって「急に使えと言われて何それ」にならない。</li>
+<li><strong>L244</strong>: 「他のパターンには触らないで」のプロンプト tips — 「AI が親切に全部書き換えてしまう問題」を知っている人には「あるある！」で刺さる。</li>
+</ul>
+<hr />
+<h2>E. 商品汎用性チェック</h2>
+<ul>
+<li>grep 結果: <strong>0 件確認</strong> (<code>queue/</code>, <code>multi-agent-shogun</code>, <code>ashigaru</code>, <code>karo</code>, <code>gunshi</code> すべてヒットなし)</li>
+</ul>
+<hr />
+<h2>改善提案 (ペルソナ目線)</h2>
+<ol>
+<li><strong>L138「ペイロード」を置き換える</strong>: 「JSON ペイロード」→「JSON 形式の情報」に変更するだけで詰まりがなくなる。「ペイロード = データの中身」という脚注でも可。</li>
+<li><strong>L258 の <code>.tool_input.command</code> を隠す</strong>: 実行フロー図は「コマンドの中身を取り出して検査」とだけ書き、技術記法は外す。どうしても見せたいなら「（例: コマンドの文字列が入っているフィールド）」と一言添える。</li>
+</ol>
+<hr />
+<h3>beginner_ch06_outro_v4</h3>
+<hr />
+<pre><code class="language-markdown"># Udemy 章レビュー (udemy-checker)
+
+## 対象
+- ファイル: projects/udemy_course/drafts/lectures_fixed/beginner_ch06_outro_v4.md
+- 章: 第6章 終章「3階層が揃ったあなたへ — 中級編で何が解禁されるか」
+- 推定読了時間: 約 25 分
+
+## 総合判定
+- ⭐ 評価: 🟡 部分的にわかった
+- 一行所感: 全体の構成は親切だが、「初級編の振り返り」のはずのスライドに習っていない概念が混入していて、「え、こんなの学んだっけ？」と首をかしげてしまう箇所がある。
+
+---
+
+## A. わからない箇所
+
+- **L66**: 「hooks (AI のイベントに割込み) / skills (必要なときだけ呼び出される業務道具) / **sub-agents (専門役割を担う子エージェント)**」
+  — 第5章で学んだのは PreToolUse Hook だけのはず。なのに &quot;skills&quot; も &quot;sub-agents&quot; も振り返り表に並列で登場する。「子エージェント？AIが複数いるの？初級でそれ習ったっけ？」となる。スピーカーノート(L72)では補足されているが、スライド本文だけ見た受講者は混乱する。
+
+- **L99**: 「**Commands は Skills の旧形式・公式マージ済み**」
+  — 「公式マージ済み」が何を意味するのか初学者には不明。ソフトウェアのマージという言葉自体、「合体した？廃止された？」どちらなのかわからない。第3章で習ったことを第6章でこの一文に圧縮されても思い出せない。
+
+- **L117**: 「(公式 29 種類)」
+  — 第5章で PreToolUse だけを学んだのに、ここで突然「公式29種類」が登場する。「私が学んだのは何番目だったんだろう？残り28種類は何？」と不安になる。ここでの言及は疑問を誘発するだけで解消されない。
+
+---
+
+## B. 論理破綻・飛躍
+
+- **L64-66 (L3行)**: 振り返り表の前提として「これまで学んだことの整理」として提示されているのに、sub-agents は第5章で学習していない。「第5章で学んだL3 = hooks のみ」のはずが、skillsとsub-agentsが同列で並んでいる。「振り返り」に「まだ習っていないもの」が混入している構造矛盾。
+
+---
+
+## C. 詰まる箇所
+
+- **L99**: `.md仲間たち（第3章）` の振り返り文が1文に概念を3つ詰め込んでいる (CLAUDE.md二系統 / Commands-Skills関係 / @path構文)。初級2〜3年目ペルソナとして、ここで「第3章の内容ぜんぶ忘れたので追えない」と感じ、この振り返りを読み飛ばすと思う。
+
+---
+
+## D. 良かった箇所
+
+- **L117-122**: hookの説明で「ライフサイクル=(起動 → 指示受付 → ツール実行 → 終了)」「exit 2 = AI にブロック理由を伝えるための特別な終了コード」と括弧で言い換えを入れているのが丁寧。ここは腑に落ちた。
+
+- **L159**: 比較表に「1日30分×4週間程度」と具体的な学習量を書いているのが親切。「13時間」だけだと怯えるが、これがあると「続けられそう」と感じる。
+
+- **L186**: 「初級編は『AI開発の運転免許』。中級編は『自分のプロジェクトを安心して任せられる相棒づくり』」の比喩は綺麗に刺さった。
+
+---
+
+## E. 商品汎用性チェック
+- grep 結果: **0件確認** (`queue/|multi-agent-shogun|ashigaru|karo|gunshi` パターン、ヒットなし)
+
+---
+
+## 改善提案
+
+1. **L66のsub-agents行を削除か注記追加**: 振り返り表のL3セルから `sub-agents (専門役割を担う子エージェント)` を削除し、「中級編で追加で学ぶ: sub-agents / skills (中級編プレビュー)」を別行に分ける。「振り返り」と「先取り紹介」を混在させない。
+
+2. **L99の一文を2文に分割**: 「第3章では、CLAUDE.md と Skills の二系統を整理しました (Commands は Skills の旧形式として公式でもサポート継続)」+「また CLAUDE.md 内の `@path` 構文で他ファイルを取り込む方法も学びました」のように分けると追いやすい。
+
+3. **L117の「公式29種類」に一言補足**: 「(今回は1つだけ体験・残りは中級編で)」のような案内を添えれば「29種類も？」という不安が軽減する。
+</code></pre></body></html>
