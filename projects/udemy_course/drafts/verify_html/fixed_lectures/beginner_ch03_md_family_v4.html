@@ -9,7 +9,7 @@
 
 <!--
 スピーカーノート:
-こんにちは。第3章「.md 仲間たち」を始めます。質問させてください — 前章で書いた CLAUDE.md だけで、本当に AI を使いこなせていますか? 同じプロジェクトで AI に「フロントエンド専門家」と「コードレビュアー」を切り替えて動かしたいとき、毎回 1000 字のレビュー指示文をコピペしている定型操作をスラッシュ一発で起動したいとき、「テスト→ビルド→失敗時に止まる」のような条件分岐を含む自動化をしたいとき — CLAUDE.md だけでは届きません。さらに Claude Code は 2026 年 1 月に「カスタムコマンドはスキルにマージされました」という重要な仕様変更を公式アナウンスしました。本章はこのマージの実像も含め、CLAUDE.md を支える 6 機構のうち、新規に学ぶ 4 つの仲間たち — agents / commands / skills / imports — を 30 分で押さえます。タイトルの「6機構」と本文の「4 つの仲間」の数え方の違いは、次のスライドで真っ先に整理します。
+こんにちは。第3章「.md 仲間たち」を始めます。質問させてください — 前章で書いた CLAUDE.md だけで、本当に AI を使いこなせていますか? 同じプロジェクトで AI に「フロントエンド専門家」と「コードレビュアー」を切り替えて動かしたいとき、毎回 1000 字のレビュー指示文をコピペしている定型操作をスラッシュ一発で起動したいとき、「テスト→ビルド→失敗時に止まる」のような条件分岐を含む自動化をしたいとき — CLAUDE.md だけでは届きません。さらに Claude Code は 2026 年 1 月に「カスタムコマンドはスキルにマージされました」という重要な仕様変更を公式アナウンスしました。本章はこのマージの実像も含め、CLAUDE.md を支える 6 機構のうち、新規に学ぶ 4 つの仲間たち — agents / commands / skills / imports — を 30 分で押さえます。本章の最大のポイントは、これら設定ファイルを **皆さんが手書きで書く必要はない** ということ。実装は Claude に任せ、皆さんは「こう作って」と頼むプロンプト例を覚えてください。
 -->
 
 <hr />
@@ -23,9 +23,48 @@
 <blockquote>
 <p>📌 <strong>タイトル「6機構」の内訳</strong>: CLAUDE.md (前章) / agents / commands / skills / imports / global CLAUDE.md (前章のユーザー層) = <strong>計 6 個</strong>。ただし <strong>commands と skills は同じ機能の旧/新形式</strong> (2026 年 1 月公式マージ・後ほど詳解) → <strong>実質 5 種類</strong>。本章で <strong>新規に学ぶのは 4 つの仲間</strong></p>
 </blockquote>
-<p><strong>🎯 30 分のゴール</strong>: ① 4 つの仲間の役割を 1 行で説明できる ② <strong>commands と skills が「同じ機能の 2 つの書き方」(2026 年 1 月公式マージ)</strong> であることを理解 ③ 初心者がどの順番で導入すべきか判断できる</p>
+<p><strong>🎯 30 分のゴール</strong>: ① 4 つの仲間の役割を 1 行で説明できる ② <strong>commands と skills が「同じ機能の 2 つの書き方」(2026 年 1 月公式マージ)</strong> であることを理解 ③ <strong>各機構を「Claude にこう頼めば作ってくれる」プロンプト例で導入できる</strong></p>
 <!--
-前章では CLAUDE.md の役割と、4 階層構造で連結読み込みされる仕組みを学びました。本章はその周りにある仲間たちを広げます。最初に数の整理をしておきます。タイトルの「6機構」はCLAUDE.md・agents・commands・skills・imports・global CLAUDE.md の 6 つを個別に数えた数です。ただし commands と skills は実は「同じ機能の旧/新形式」なので、機能としては実質 5 種類。さらに前章で扱った CLAUDE.md と global は既習扱いとして、本章で新規に学ぶのは agents / commands / skills / imports の 4 つ。これを「4 つの仲間」と呼びます。 6 → 5 → 4 の数え方の階段、ここで一度押さえてから先へ進みます。3 つのゴールのうち最も重要なのが ② の commands と skills の関係です。
+前章では CLAUDE.md の役割と、4 階層構造で連結読み込みされる仕組みを学びました。本章はその周りにある仲間たちを広げます。最初に数の整理をしておきます。タイトルの「6機構」は CLAUDE.md・agents・commands・skills・imports・global CLAUDE.md の 6 つを個別に数えた数。ただし commands と skills は実は「同じ機能の旧/新形式」なので、機能としては実質 5 種類。さらに前章で扱った CLAUDE.md と global は既習扱いとして、本章で新規に学ぶのは agents / commands / skills / imports の 4 つ。これを「4 つの仲間」と呼びます。3 つのゴールのうち最も重要なのが ② の commands と skills の関係、そして ③ の「皆さんが手書きしない・Claude に作らせる」というスタンスです。
+-->
+
+<hr />
+<h1>🎯 本章のスタンス — 実装は Claude に書かせる前提</h1>
+<blockquote>
+<p>📌 <strong>重要な前提</strong>: agents / commands / skills / imports の <strong>実装ファイルは、皆さんが手書きで書きません</strong></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>従来の発想</th>
+<th>本講座の発想</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>YAML フロントマターの書式を覚えて手で書く</td>
+<td><strong>Claude に「こう作って」と頼む</strong></td>
+</tr>
+<tr>
+<td>SKILL.md の構造を写経して練習</td>
+<td><strong>Claude が生成・受講者は確認するだけ</strong></td>
+</tr>
+<tr>
+<td>シェルスクリプト / Markdown の文法に詰まる</td>
+<td><strong>文法は Claude の担当・受講者は要件を伝える</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>理由</strong>:<br />
+- 本講座は <strong>L1 プロンプト + L2 コンテキスト + L3 ハーネス</strong> が学習対象<br />
+- YAML / Markdown frontmatter の文法習得は L1〜L3 と直接関係なし<br />
+- AI 時代の正しいスキルは「<strong>AI に正確に指示できる力</strong>」 — 実装は AI に任せる<br />
+- Claude Code は SKILL.md・hook・commands を <strong>プロンプト 1 つで生成可能</strong> (公式仕様)</p>
+<blockquote>
+<p><strong>本章で覚えるもの</strong>: 各機構が何をするか / Claude にどう頼めば作ってくれるか / 出来上がりをどう確認するか</p>
+</blockquote>
+<!--
+本章の重要な前提を最初に置きます。agents / commands / skills / imports の実装ファイルを、皆さんが手書きで書く必要は一切ありません。従来の発想では YAML フロントマターの書式を暗記したり SKILL.md の構造を写経したりしますが、本講座は違います。実装は Claude に依頼して生成させ、皆さんは Claude に「こう作って」と頼むプロンプトを覚える、そして出来上がりを確認する — このスタイルです。理由はシンプルで、本講座のメインテーマは L1 プロンプトエンジニアリング、L2 コンテキストエンジニアリング、L3 ハーネスエンジニアリングの 3 階層であって、YAML や Markdown frontmatter の文法習得は直接関係ないからです。AI 時代の正しいスキルは「AI に正確に指示できる力」。実装は AI に任せ、受講者はプロンプトと検証のループだけを回す。これが本章のスタンスです。
 -->
 
 <hr />
@@ -88,12 +127,36 @@
   → Claude が .claude/agents/reviewer.md の指針に従って回答
 </code></pre>
 <p><strong>配置場所</strong>: <code>.claude/agents/&lt;name&gt;.md</code> (プロジェクト) / <code>~/.claude/agents/&lt;name&gt;.md</code> (ユーザー)<br />
-<strong>ファイル形式</strong>: <strong>YAML フロントマター (= ファイル冒頭にエージェント名や説明など付属情報を書く領域) 付き Markdown</strong>・<strong>1 ファイル = 1 エージェント</strong></p>
+<strong>1 ファイル = 1 エージェント</strong>・<strong>ファイルの中身は Claude に作らせる</strong> (次スライドでプロンプト例)</p>
 <blockquote>
-<p>1 つの CLAUDE.md + 複数の <code>.claude/agents/*.md</code> = プロジェクト内の役割分担</p>
+<p>1 つの CLAUDE.md + 複数のサブエージェント定義 = プロジェクト内の役割分担</p>
 </blockquote>
 <!--
-agents は AI に役割を切り替えさせる仕組みです。1 ファイル 1 エージェントで `.claude/agents/<名前>.md` に配置します。ファイル冒頭の YAML フロントマターという領域に、エージェント名や説明など付属情報を書きます。「メタ情報」と言うとデータについてのデータでピンとこないので、ここでは「付属情報」と覚えてください。フロントエンド専門、バックエンド専門、コードレビュー専門と役割別マニュアルを置けば、同じプロジェクト内で複数の専門家として動かせます。次のスライドで呼び出し方を整理します。
+agents は AI に役割を切り替えさせる仕組みです。1 ファイル 1 エージェントで `.claude/agents/<名前>.md` に配置します。配置パスと「これが何をするか」だけ押さえてください。ファイル中身は Claude に作らせるので、皆さんが手で書くことはありません。次のスライドで、Claude にこういうプロンプトを投げれば agents を作ってくれる、という具体例を示します。
+-->
+
+<hr />
+<h1>.claude/agents/ — Claude にこう頼めば作ってくれる</h1>
+<p><strong>プロンプト例 1: フロントエンド専門エージェント</strong>:</p>
+<pre><code>「フロントエンド専門のサブエージェントを作って:
+ - 名前: frontend
+ - 役割: React / CSS / アクセシビリティを優先する専門家
+ - 口調: 丁寧な日本語で・コード例は TypeScript で
+ - .claude/agents/frontend.md に保存して」
+</code></pre>
+<p><strong>プロンプト例 2: コードレビュアー</strong>:</p>
+<pre><code>「コードレビュアーのサブエージェントを作って:
+ - 名前: reviewer
+ - 着眼点: セキュリティ・パフォーマンス・可読性の 3 軸
+ - 出力: 各軸ごとに「OK / 改善余地あり / 致命」の 3 段階評価
+ - .claude/agents/reviewer.md に保存して」
+</code></pre>
+<p><strong>受講者がやること</strong>: ① 上記プロンプトを Claude に投げる ② Claude が生成したファイルの中身を確認 ③ 不足があれば「○○の指針も追加して」と追加依頼</p>
+<blockquote>
+<p><strong>要件を日本語で伝えるだけ・YAML 文法は覚えない</strong></p>
+</blockquote>
+<!--
+agents 作成のプロンプト例 2 つを並べました。注目してほしいのは、皆さんが書くのはこの「依頼文」だけだということ。YAML フロントマターの書式・項目名・改行ルール — どれも覚える必要なし。Claude が公式仕様に従って生成してくれます。受講者の仕事は ① 要件を日本語で伝える ② 出来たファイルを確認 ③ 不足を追加依頼する — この 3 ステップだけ。プロンプト例 1 では「役割」「口調」「コード例の言語」を、プロンプト例 2 では「着眼点」「出力形式」を伝えています。要件を漏れなく伝える、これが L1 プロンプトエンジニアリングです。
 -->
 
 <hr />
@@ -151,7 +214,7 @@ agents は AI に役割を切り替えさせる仕組みです。1 ファイル 
 </blockquote>
 <p>両者は <strong>カスタムスラッシュコマンドを定義する同じ機能</strong> の <strong>旧形式 / 新形式</strong> です。比較表を読む前に、後ほど何度も出てくる「<strong>description</strong>」という用語をひとつ押さえます:</p>
 <blockquote>
-<p>📘 <strong>description とは</strong>: スキル本体ファイル (SKILL.md) の冒頭 <strong>YAML フロントマター</strong> に書く <strong>「このスキルは何をするか」を 1-2 行で説明したテキスト</strong>。例: <code>description: テスト → ビルド → デプロイを順番に実行する</code>。Claude はユーザー発話とこの description を照合して、「今この skill を起動すべきか」を判断する (= <strong>キーワードマッチ</strong>)</p>
+<p>📘 <strong>description とは</strong>: スキル本体ファイル冒頭の <strong>「このスキルは何をするか」を 1-2 行で説明したテキスト</strong>。例: <code>description: テスト → ビルド → デプロイを順番に実行する</code>。Claude はユーザー発話とこの description を照合して、「今この skill を起動すべきか」を判断する (= <strong>キーワードマッチ</strong>)</p>
 </blockquote>
 <table>
 <thead>
@@ -193,33 +256,54 @@ agents は AI に役割を切り替えさせる仕組みです。1 ファイル 
 <p><strong>新規は skills 推奨</strong>・既存 commands は legacy として動作し続ける</p>
 </blockquote>
 <!--
-本章で最重要のスライドです。公式 docs の ja/skills ページに「カスタムコマンドはスキルにマージされました」と明記されています。意味するのは、commands と skills は別機能ではなく「カスタムスラッシュコマンドを定義する」同じ機能の旧形式と新形式だということです。比較表を読む前に description という用語を 1 つ押さえます。description は SKILL.md の冒頭 YAML フロントマターに書く 1-2 行の説明文で、「テスト→ビルド→デプロイを順番に実行する」のような短い説明です。Claude はユーザーの発話と各 skill の description を照合して「今この skill を起動すべきか」をキーワードマッチで判断します。これが分かれば表が読めます。旧形式 commands は単一の .md ファイル、新形式 skills はディレクトリの中に SKILL.md という起点ファイルを置く形式。skills が便利なのは、起動時に全 skills の description だけを事前にリスト化しておき、本体の手順書はそのスキルが呼ばれた時に初めて開くから — 「常駐」と言われるとピンと来ませんが、「説明文の一覧だけ持っておいて中身は使う時に開く」と理解してください。同名のスラッシュが両方にあれば Skills 側が優先。とはいえ既存 commands は legacy 互換で動作し続けるので、急に書き直す必要はありません。新規に作るときは skills、と覚えてください。
+本章で最重要のスライドです。公式 docs の ja/skills ページに「カスタムコマンドはスキルにマージされました」と明記されています。意味するのは、commands と skills は別機能ではなく「カスタムスラッシュコマンドを定義する」同じ機能の旧形式と新形式だということです。比較表を読む前に description という用語を 1 つ押さえます。description は SKILL.md の冒頭に書く 1-2 行の説明文で、「テスト→ビルド→デプロイを順番に実行する」のような短い説明です。Claude はユーザーの発話と各 skill の description を照合して「今この skill を起動すべきか」をキーワードマッチで判断します。これが分かれば表が読めます。旧形式 commands は単一の .md ファイル、新形式 skills はディレクトリの中に SKILL.md という起点ファイルを置く形式。skills が便利なのは、起動時に全 skills の description だけを事前にリスト化しておき、本体の手順書はそのスキルが呼ばれた時に初めて開くから — 「常駐」と言われるとピンと来ませんが、「説明文の一覧だけ持っておいて中身は使う時に開く」と理解してください。同名のスラッシュが両方にあれば Skills 側が優先。とはいえ既存 commands は legacy 互換で動作し続けるので、急に書き直す必要はありません。新規に作るときは skills、と覚えてください。
 -->
 
 <hr />
-<h1>commands / skills の具体例 — 旧形式 vs 新形式</h1>
-<p><strong>旧形式 commands</strong> — <code>.claude/commands/review.md</code> (単一ファイル):</p>
-<pre><code class="language-markdown">以下のファイルのコードレビューをお願いします。
-- セキュリティ上の問題がないか確認
-- パフォーマンスの改善点
-- 可読性
+<h1>skills を作る — Claude にこう頼めば作ってくれる</h1>
+<p><strong>プロンプト例 1: メール文面起草スキル</strong>:</p>
+<pre><code>「`/email-draft` という Skill を作って:
+ - description: 「メール文面を起草する Skill。メール作成・返信時に使用」
+ - 本体: 簡潔なビジネス日本語で・敬語・件名・宛名・本文の構造で
+ - .claude/skills/email-draft/SKILL.md に保存して」
 </code></pre>
-<p>→ <code>/review</code> と入力すると定型プロンプトが起動</p>
-<p><strong>新形式 skills</strong> — <code>.claude/skills/deploy/SKILL.md</code> (ディレクトリ + エントリポイント):</p>
-<pre><code class="language-markdown">1. テストを実行
-2. テストが成功したらビルド
-3. ビルドが成功したらデプロイ
-4. 失敗したらエラー内容を報告
+<p><strong>プロンプト例 2: デプロイ ワークフロー</strong>:</p>
+<pre><code>「`/deploy` という Skill を作って:
+ - description: 「テスト→ビルド→デプロイを順番に実行する」
+ - 本体:
+   1. テストを実行
+   2. テストが成功したらビルド
+   3. ビルドが成功したらデプロイ
+   4. 失敗したらエラー内容を報告
+ - 失敗時はその場で停止・エラーをユーザーに見せる
+ - .claude/skills/deploy/SKILL.md に保存して」
 </code></pre>
 <blockquote>
-<p>💡 <strong>これは Claude への指示文</strong> — 上記の Markdown を書くだけで Claude がこれを「指示」として上から順に読んで判断・実行する。「テストが成功したら」「失敗したら」の <strong>条件分岐は自然言語で書けば Claude が解釈</strong> (= スクリプトやプログラムを別途書く必要なし)</p>
-</blockquote>
-<p>→ <code>/deploy</code> 起動 + 「デプロイして」の自然言語でも description マッチで自律発動</p>
-<blockquote>
-<p><strong>本質的差</strong>: skills は <strong>条件分岐 (= 結果に応じて次の処理を変える書き方) を含むワークフロー</strong>、補助ファイル、自律発動が使える上位互換</p>
+<p>💡 <strong>条件分岐 (「失敗したら」「成功したら」) は自然言語で書けば Claude が解釈・実行</strong> — スクリプトを別途書く必要なし</p>
 </blockquote>
 <!--
-旧形式と新形式の具体例を並べました。commands は 1 つの .md ファイルに定型プロンプトを書くだけ。skills は <name> というディレクトリの中に SKILL.md を置き、中身は複数ステップのワークフロー、結果に応じて次の処理を変える条件分岐を含められます。例えばテスト→ビルド→デプロイで「失敗したらここで止まる」というのが条件分岐です。ここで「このテキストを書くだけで本当に動くの?」という疑問が出やすいので、コード例の下に注釈を追加しました — これは Claude への指示文で、Markdown のテキストを Claude が読んで上から順に判断して実行します。条件分岐も自然言語で書けば Claude が解釈してくれるので、皆さんがスクリプトやプログラムを別途書く必要はありません。さらに「デプロイして」のような自然言語でも description マッチで自律発動できるのが skills の強み。本質的に skills は commands の上位互換と理解してください。
+skills を作るプロンプト例 2 つです。最初の例はメール文面起草、2 つ目はデプロイ用ワークフロー。重要ポイント 2 つあります。1 つ目は、皆さんが書くのは「依頼文」だけだということ。SKILL.md の YAML frontmatter の書式や、Markdown のヘッダー階層 — どれも覚える必要なし。Claude が公式仕様に従って生成してくれます。2 つ目は、ワークフローの条件分岐 (「失敗したら止まる」「成功したらビルド」) は自然言語で書けば Claude が解釈して実行してくれるという点。皆さんがシェルスクリプトや if-else を書く必要は一切ありません。日本語で要件を伝える、それだけで動くワークフローが手に入る — これが新しい時代のソフトウェア作りです。
+-->
+
+<hr />
+<h1>既存の commands を skills に置き換える — Claude に頼む</h1>
+<p><strong>プロンプト例 3: 旧形式 commands を skills に変換</strong>:</p>
+<pre><code>「`.claude/commands/review.md` の中身を読んで、
+ それを新形式の Skill に変換して:
+ - 同じ機能を維持
+ - .claude/skills/review/SKILL.md に保存
+ - description は元の commands の用途から自動推測して書いて
+ - 変換後、旧ファイルは削除せず残しておいて (legacy 互換確認用)」
+</code></pre>
+<p><strong>チェックポイント (Claude 生成後の受講者の確認)</strong>:<br />
+1. <code>.claude/skills/review/SKILL.md</code> が出来ているか<br />
+2. description が「ユーザーがコードレビューを依頼したとき自動発動する」内容になっているか<br />
+3. <code>/review</code> で起動できるか (Claude Code を再起動 or <code>/refresh</code> で読み直し)</p>
+<blockquote>
+<p><strong>commands と skills の同名衝突時は Skills 優先</strong> — 旧 commands を残しても新 skills が動作する</p>
+</blockquote>
+<!--
+既存の commands を新形式の skills に置き換えるときも、Claude に依頼するだけです。「このファイルを読んで・新形式に変換して・保存して」と頼めば、旧ファイルの中身を読み取り、SKILL.md の構造に従って書き直してくれます。受講者の仕事は ① 新ファイルが正しい場所に出来ているか確認 ② description が適切な発動条件になっているか確認 ③ 実際にスラッシュコマンドで起動して動くか検証 — この 3 つだけ。前のスライドで触れた「同名衝突時は Skills 優先」のおかげで、旧ファイルを残したまま安全に検証できます。
 -->
 
 <hr />
@@ -234,11 +318,16 @@ agents は AI に役割を切り替えさせる仕組みです。1 ファイル 
 - <strong>相対パスはインポート元ファイル基準</strong>・絶対パスも可<br />
 - <strong>再帰的インポート可・最大 5 ホップ</strong> (= <code>@</code> で読まれたファイルから更に <code>@</code> で別ファイルを呼べる回数の上限)<br />
 - imports は <strong>CLAUDE.md 内部の構文機能</strong> であり、commands や skills のような独立した「.md ファイル種別」ではない</p>
+<p><strong>Claude にこう頼めば設定してくれる</strong>:</p>
+<pre><code>「複数プロジェクトで同じコーディング規約を使いたい。
+ ~/shared/coding_rules.md に規約を書いて、
+ 各プロジェクトの CLAUDE.md から @~/shared/coding_rules.md で読み込む構成にして」
+</code></pre>
 <blockquote>
 <p>「5 プロジェクトで同じルールをコピペしている」なら imports で統合せよ</p>
 </blockquote>
 <!--
-imports は CLAUDE.md の中から外部ファイルを取り込む仕組みです。`@パス` と書くだけで、そのファイルの中身が展開されて CLAUDE.md と一緒にコンテキストに読み込まれます。相対パスはインポート元ファイル基準、絶対パスも可、最大 5 ホップまで再帰的に辿れます。重要な注意点として、imports は CLAUDE.md 内部の構文機能であって、commands や skills のような独立したファイル種別ではありません。「ファイル仲間」ではなく「CLAUDE.md の書き方の 1 つ」と理解してください。
+imports は CLAUDE.md の中から外部ファイルを取り込む仕組みです。`@パス` と書くだけで、そのファイルの中身が展開されて CLAUDE.md と一緒にコンテキストに読み込まれます。相対パスはインポート元ファイル基準、絶対パスも可、最大 5 ホップまで再帰的に辿れます。重要な注意点として、imports は CLAUDE.md 内部の構文機能であって、commands や skills のような独立したファイル種別ではありません。「ファイル仲間」ではなく「CLAUDE.md の書き方の 1 つ」と理解してください。設定するときも Claude に「こういう構成にして」と頼めば、共通ルールファイルの配置と各プロジェクトの CLAUDE.md からの参照を一括で設定してくれます。
 -->
 
 <hr />
@@ -302,6 +391,7 @@ global CLAUDE.md は前章 4 階層構造のユーザー層に当たるファイ
 <th>段階</th>
 <th>導入する機構</th>
 <th>タイミング</th>
+<th>受講者がやること</th>
 </tr>
 </thead>
 <tbody>
@@ -309,21 +399,24 @@ global CLAUDE.md は前章 4 階層構造のユーザー層に当たるファイ
 <td><strong>Step 1</strong></td>
 <td>CLAUDE.md</td>
 <td>最初から (必須)</td>
+<td>Claude に「30 行 ミニマムで作って」と依頼</td>
 </tr>
 <tr>
 <td><strong>Step 2</strong></td>
 <td>skills (or commands) / global CLAUDE.md</td>
-<td>同じ指示を 3 回以上書いたら / PC 設定時に 1 回</td>
+<td>同じ指示を 3 回以上書いたら</td>
+<td>Claude に「/○○ という Skill を作って」と依頼</td>
 </tr>
 <tr>
 <td><strong>Step 3</strong></td>
 <td>.claude/agents/ / imports</td>
 <td>チーム開発・複雑化したら</td>
+<td>Claude に「○○専門エージェントを作って」と依頼</td>
 </tr>
 </tbody>
 </table>
 <!--
-レイヤー構造 — 層になった重なり構造 — として整理しました。上位ほど適用範囲が広く、下位ほど具体的な操作の自動化です。すべての層は前章で学んだ通り「連結」されて AI に渡されます。導入順序は 3 段階。Step 1 は CLAUDE.md だけ。Step 2 で skills (または legacy の commands) と global CLAUDE.md。Step 3 で agents と imports。「全部書かないといけないの?」という不安は無用です。同じ指示を 3 回以上書いたら skills 化するサイン、という具体的な判断基準を持ってください。
+レイヤー構造 — 層になった重なり構造 — として整理しました。上位ほど適用範囲が広く、下位ほど具体的な操作の自動化です。すべての層は前章で学んだ通り「連結」されて AI に渡されます。導入順序は 3 段階。Step 1 は CLAUDE.md だけ、Step 2 で skills と global CLAUDE.md、Step 3 で agents と imports。表の右端列に「受講者がやること」を追加しました — どの段階でも皆さんがやるのは「Claude にこう作ってと頼む」プロンプトを投げることだけ。同じ指示を 3 回以上書いたら skills 化するサイン、という具体的な判断基準を持ってください。
 -->
 
 <hr />
@@ -334,13 +427,13 @@ global CLAUDE.md は前章 4 階層構造のユーザー層に当たるファイ
 3. skills 配置は <strong><code>.claude/skills/&lt;name&gt;/SKILL.md</code></strong> ディレクトリ + エントリポイント (= 起点ファイル) 形式・<strong>description (説明文) マッチで自律発動</strong>・description だけ事前リスト化し本体はオンデマンド (必要時) 読込<br />
 4. .claude/agents/ 呼出は <strong>5 方式</strong> (自動委譲・自然言語・@-mention・CLI フラグ・Agent ツール)・<code>/agent &lt;name&gt;</code> は存在しない<br />
 5. imports は <strong>CLAUDE.md 内の <code>@path</code> 構文</strong> (最大 5 ホップ・独立ファイル種別ではない)<br />
-6. 導入は <strong>Step 1: CLAUDE.md → Step 2: skills/global → Step 3: agents/imports</strong> の順</p>
+6. <strong>実装は Claude に書かせる前提</strong> — 受講者は「こう作って」と頼むプロンプトを覚えるだけ</p>
 <p><strong>確認問題</strong>:<br />
 - <strong>Q1</strong>: commands と skills の関係は? <details><summary>解答</summary>同じカスタムスラッシュコマンド機能の旧形式・新形式 (2026 年 1 月公式マージ)。新規は skills 推奨・既存 commands は legacy 互換。同名衝突時は Skills 優先。</details><br />
 - <strong>Q2</strong>: skills の配置形式と読込挙動は? <details><summary>解答</summary><code>.claude/skills/&lt;name&gt;/SKILL.md</code> ディレクトリ + エントリポイント形式。description (説明文) だけ事前リスト化・本体の手順書はオンデマンド (呼ばれた時に開く) 読込。description キーワードマッチで自律発動。</details><br />
-- <strong>Q3</strong>: 5 プロジェクトで共通のコーディング規約を 1 箇所管理するには? <details><summary>解答</summary>imports または global CLAUDE.md。imports は CLAUDE.md 内 <code>@path</code> 構文・チーム共有向け / global は <code>~/.claude/CLAUDE.md</code>・個人の好み。</details></p>
+- <strong>Q3</strong>: 「メール文面起草の Skill」を作りたい。受講者が書くのは? <details><summary>解答</summary>Claude への依頼プロンプト 1 つ。例: 「<code>/email-draft</code> という Skill を作って・description は『メール文面起草』・本体は丁寧な日本語で・<code>.claude/skills/email-draft/SKILL.md</code> に保存して」。SKILL.md 自体は Claude が生成する。受講者は出来上がりを確認・不足を追加依頼するだけ。</details></p>
 <!--
-まとめと確認問題です。最重要は、commands と skills が「同じ機能の 2 つの書き方」であること。これさえ押さえれば、Claude Code 解説記事や OSS のリポジトリを読む時に「commands と skills どっち使うんだろう」と迷わなくなります。新規は skills、既存 commands は legacy として動作継続、と覚えてください。3 問の確認問題に答えられれば本章マスターです。
+まとめと確認問題です。最重要は 2 つ。1 つ目は commands と skills が「同じ機能の 2 つの書き方」であること。これさえ押さえれば、Claude Code 解説記事や OSS のリポジトリを読む時に「commands と skills どっち使うんだろう」と迷わなくなります。新規は skills、既存 commands は legacy として動作継続。2 つ目は本章の最重要スタンス — 実装は Claude に書かせる前提。皆さんが学ぶのは YAML や Markdown の文法ではなく、「Claude にこう作ってと頼む」プロンプトの書き方。3 問の確認問題に答えられれば本章マスターです。
 -->
 
 <hr />
@@ -355,11 +448,11 @@ global CLAUDE.md は前章 4 階層構造のユーザー層に当たるファイ
 ✅ description (説明文) だけ事前リスト化・本体はオンデマンド読込<br>
 ✅ .claude/agents/ 呼出 5 方式 (自動委譲・自然言語・@-mention・CLI フラグ・Agent ツール)<br>
 ✅ imports は CLAUDE.md 内の <code>@path</code> 構文 (最大 5 ホップ)<br>
-✅ レイヤー構造と 3 段階導入順序<br><br>
+✅ <b>実装は Claude に書かせる前提</b> — 受講者はプロンプトを書くだけ<br><br>
 🚀 <b>次章は 3 階層モデル (プロンプト/コンテキスト/ハーネス) の歴史と意義を学びます</b><br><br>
 <b>続けて第 4 章をお楽しみください</b>
 </div>
 
 <!--
-ご視聴ありがとうございました。この章では .md 仲間たち 4 つを学びました。最重要は commands と skills が「同じ機能の 2 つの書き方」であるという公式仕様。これを知っているだけで Claude Code の解説記事や OSS リポジトリを読む時に迷いがなくなります。新規は skills、既存 commands は legacy として動作継続。次の第 4 章では、なぜ 3 階層 (プロンプト・コンテキスト・ハーネス) という構造が必要なのか、歴史的な背景から解説します。
+ご視聴ありがとうございました。この章では .md 仲間たち 4 つを学びました。最重要は commands と skills が「同じ機能の 2 つの書き方」であるという公式仕様。これを知っているだけで Claude Code の解説記事や OSS リポジトリを読む時に迷いがなくなります。そして本章のもう 1 つの柱は、実装は Claude に書かせる前提。皆さんは YAML や Markdown の文法を覚えるのではなく、「Claude にこう作ってと頼むプロンプト」を覚えました。次の第 4 章では、なぜ 3 階層 (プロンプト・コンテキスト・ハーネス) という構造が必要なのか、歴史的な背景から解説します。
 --></body></html>
