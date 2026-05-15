@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>beginner_ch01_prompt_v4</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;max-width:1200px;margin:0 auto;padding:16px;line-height:1.6;color:#1f2937;background:#fafafa}h1{color:#1e3a8a;border-bottom:3px solid #1e3a8a;padding-bottom:0.3em;font-size:1.3em}h2{color:#2563eb;border-bottom:1px solid #93c5fd;padding-bottom:0.2em;margin-top:1.5em;font-size:1.1em}table{border-collapse:collapse;width:100%;margin:.8em 0;font-size:.82em}th{background:#1e3a8a;color:#fff;padding:5px 7px}td{padding:5px 7px;border:1px solid #d1d5db;vertical-align:top}tr:nth-child(even) td{background:#f3f4f6}code{background:#f0f0f0;padding:1px 4px;border-radius:3px;font-size:.88em}pre{background:#1e293b;color:#f1f5f9;padding:.6em;border-radius:5px;overflow-x:auto;font-size:.82em}@media (max-width:768px){body{padding:8px;font-size:13.5px}table{font-size:.76em}}</style></head><body><nav style="background:#1e3a8a;color:#fff;padding:8px;border-radius:5px;margin-bottom:15px;font-size:.9em"><a href="../index.html" style="color:#fde68a;margin-right:10px">← ハブ</a><a href="index.html" style="color:#fff;text-decoration:underline">📂 修正版19章リスト</a></nav><h1>📝 beginner_ch01_prompt_v4</h1><!-- _class: cover -->
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>ch01</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;max-width:1200px;margin:0 auto;padding:16px;line-height:1.6;color:#1f2937;background:#fafafa}h1{color:#1e3a8a;border-bottom:3px solid #1e3a8a;padding-bottom:0.3em;font-size:1.3em}h2{color:#2563eb;border-bottom:1px solid #93c5fd;padding-bottom:0.2em;margin-top:1.5em;font-size:1.1em}table{border-collapse:collapse;width:100%;margin:.8em 0;font-size:.82em}th{background:#1e3a8a;color:#fff;padding:5px 7px}td{padding:5px 7px;border:1px solid #d1d5db;vertical-align:top}tr:nth-child(even) td{background:#f3f4f6}code{background:#f0f0f0;padding:1px 4px;border-radius:3px;font-size:.88em}pre{background:#1e293b;color:#f1f5f9;padding:.6em;border-radius:5px;overflow-x:auto;font-size:.82em}@media (max-width:768px){body{padding:8px;font-size:13.5px}table{font-size:.76em}}</style></head><body><nav style="background:#1e3a8a;color:#fff;padding:8px;border-radius:5px;margin-bottom:15px;font-size:.9em"><a href="../index.html" style="color:#fde68a;margin-right:10px">← ハブ</a><a href="index.html" style="color:#fff;text-decoration:underline">📂 修正版19章リスト</a></nav><h1>📝 beginner_ch01_prompt_v4</h1><!-- _class: cover -->
 
 <h1>「いい感じに」をやめる日 — プロンプト3要素で同じ品質を10回引き出す</h1>
 <h2>L1: プロンプトエンジニアリング — AIに確実に伝える技術</h2>
@@ -20,7 +20,6 @@
 **この章で出てくる用語**
 - **プロンプト** — AIに出す指示文のこと
 - **@file参照** — `@ファイル名` と書くだけでAIがそのファイルを自動読み込みする機能
-- **スラッシュコマンド** — Claude Code内で `/` から始まる便利コマンド（`/init` など）
 - **再現性** — 同じ指示を出した時に、毎回同じ品質の結果が得られること
 - **バグ** — プログラムの間違い・不具合のこと
 - **ユニットテスト** — 関数が正しく動くか確認する小さなテストのこと
@@ -29,7 +28,7 @@
 
 <!--
 スピーカーノート:
-始める前に、この章で出てくる用語をざっと紹介します。「プロンプト」はAIに出す指示文のことです。この章のメインテーマです。「@file参照」はファイル名の前に@を付けるだけでAIが自動的に読み込んでくれる便利な機能。スラッシュコマンドは Claude Code の中で使える便利なショートカットで、序章でも「ターミナルではなくチャット画面の中で打つコマンドだ」と少し触れました。ここでは「そういう言葉が出てくるんだな」という程度で大丈夫です。すべてこの後のスライドで改めて説明します。
+始める前に、この章で出てくる用語をざっと紹介します。「プロンプト」はAIに出す指示文のことです。この章のメインテーマです。「@file参照」はファイル名の前に@を付けるだけでAIが自動的に読み込んでくれる便利な機能。ここでは「そういう言葉が出てくるんだな」という程度で大丈夫です。すべてこの後のスライドで改めて説明します。
 -->
 
 <hr />
@@ -198,21 +197,6 @@
 -->
 
 <hr />
-<h1>おまけ: slash command — 定型操作を一発実行</h1>
-<p><strong>Claude Code の中で</strong> <code>/</code> から始まるコマンドが打てます:</p>
-<pre><code>/init     → CLAUDE.md（設定ファイル）を自動生成
-/review   → PRレビュー（コード変更の確認）を実行
-/clear    → 会話をリセット
-</code></pre>
-<blockquote>
-<p>💡 ターミナルではなく <strong>Claude Code のチャット画面の中</strong> で打つコマンドです。<code>/init</code>・<code>/review</code>・<code>/clear</code> などは Claude Code 公式の組込コマンドで、ほかに公式同梱の <code>/security-review</code> <code>/simplify</code> などもあります。自分専用のコマンドも作れます (詳しくは第3章「.md 仲間たち」で解説)</p>
-</blockquote>
-<!--
-スピーカーノート:
-slash command は Claude Code の中で使える便利なコマンドです。ターミナルではなく、Claude Code のチャット画面で `/init` や `/review` と打つだけ。よく使う操作を一発で実行できます。`/init` `/review` `/clear` などは Claude Code 公式の組込コマンド、`/security-review` `/simplify` などは Anthropic が公式に同梱しているバンドルスキルです。自分専用のコマンドも作れますが、作り方や種類の詳細は第3章「.md 仲間たち」で扱います。本章では「便利な操作の入口がここにある」とだけ押さえてください。
--->
-
-<hr />
 <h1>Before / After で見る再現性</h1>
 <p><strong>Before（曖昧な指示）</strong>: 毎回違う形式で出力</p>
 <pre><code>1回目: 段落形式で要約
@@ -284,7 +268,7 @@ BeforeとAfterの違いを可視化しました。曖昧なプロンプトは、
 </code></pre>
 <p><strong>この章で学んだこと</strong>:<br />
 1. プロンプトを文脈・指示・形式の3要素で整理する<br />
-2. @file参照・段階分解・箇条書き・slash command の実践テクニック<br />
+2. @file参照・段階分解・箇条書き等の実践テクニック<br />
 3. 具体的に書くことで再現性を担保する</p>
 <!--
 スピーカーノート:
@@ -298,7 +282,7 @@ BeforeとAfterの違いを可視化しました。曖昧なプロンプトは、
 <h2>次は第2章「CLAUDE.md ミニマム」(3階層モデルの L2)</h2>
 <div class="meta">
 ✅ プロンプトの3要素 (文脈・指示・形式)<br>
-✅ @file参照・段階分解・箇条書き・slash command 等の実践テクニック<br>
+✅ @file参照・段階分解・箇条書き等の実践テクニック<br>
 ✅ 再現性のあるプロンプトの作成<br><br>
 🚀 <b>次章ではプロンプトを CLAUDE.md に保存して、AIに自動読み込みさせる仕組み</b>を学びます<br>
 - CLAUDE.md とは何か (AIに読ませる README)<br>
