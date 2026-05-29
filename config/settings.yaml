@@ -23,9 +23,9 @@ skill:
 cli:
   default: claude
   agents:
-    shogun: { type: claude, model: "opus-4-8[1m]", effort: high }  # 将軍=Opus 4.8 1M+effort high（殿命 2026-05-29 Opus 4.8 切替）
+    shogun: { type: claude, model: "claude-opus-4-8[1m]", effort: high }  # 将軍=Opus 4.8 1M+effort high（殿命 2026-05-29 Opus 4.8 切替）
     karo: { type: claude, model: sonnet, effort: low }  # 家老=Sonnet+effort low（コンパクション頻度低減・cmd_1670 殿命 2026-05-09）
-    gunshi: { type: claude, model: "opus-4-8[1m]" }  # 軍師=Opus 4.8 1M（殿命 2026-05-29）
+    gunshi: { type: claude, model: "claude-opus-4-8[1m]" }  # 軍師=Opus 4.8 1M（殿命 2026-05-29）
     ashigaru1: { type: glm, model: glm }
     ashigaru2: { type: glm, model: glm }
     ashigaru3: { type: glm, model: glm }
@@ -59,13 +59,13 @@ capability_tiers:
   "opus[1m]":             # Claude Opus 4.7 (1M context) — 後方互換用
     max_bloom: 6          # L5-L6: 分析・創造・戦略
     cost_group: claude_max
-  "opus-4-8[1m]":         # Claude Opus 4.8 (1M context) — 殿命 2026-05-29
+  "claude-opus-4-8[1m]":         # Claude Opus 4.8 (1M context) — 殿命 2026-05-29
     max_bloom: 6          # L5-L6: 分析・創造・戦略（4.8で品質向上・自律性向上）
     cost_group: claude_max
 
 bloom_model_preference:
   L1-L4: [glm]
-  L5-L6: ["opus-4-8[1m]"]
+  L5-L6: ["claude-opus-4-8[1m]"]
 
 # ntfy通知設定
 ntfy_topic: "shogun-962f817f20fadb36"
