@@ -696,7 +696,7 @@ if [ "$SETUP_ONLY" = false ]; then
 
     # 将軍: CLI Adapter経由でコマンド構築
     _shogun_cli_type="claude"
-    _shogun_cmd="claude --model 'opus[1m]' --effort high --dangerously-skip-permissions"
+    _shogun_cmd="claude --model 'opus-4-8[1m]' --effort high --dangerously-skip-permissions"
     if [ "$CLI_ADAPTER_LOADED" = true ]; then
         _shogun_cli_type=$(get_cli_type "shogun")
         _shogun_cmd=$(build_cli_command "shogun")
@@ -792,7 +792,7 @@ with open(f,'w') as fh: yaml.safe_dump(d, fh, default_flow_style=False, allow_un
     # 軍師（pane _ASHIGARU_COUNT+1）: Opus Thinking — 戦略立案・設計判断専任
     p=$((PANE_BASE + _ASHIGARU_COUNT + 1))
     _gunshi_cli_type="claude"
-    _gunshi_cmd="claude --model 'opus[1m]' --effort max --dangerously-skip-permissions"
+    _gunshi_cmd="claude --model 'opus-4-8[1m]' --effort max --dangerously-skip-permissions"
     if [ "$CLI_ADAPTER_LOADED" = true ]; then
         _gunshi_cli_type=$(get_cli_type "gunshi")
         _gunshi_cmd=$(build_cli_command "gunshi")
@@ -933,57 +933,46 @@ NINJA_EOF
     done
 
     # ═══════════════════════════════════════════════════════════════════
-    # STEP 6.6: inbox_watcher起動（全エージェント）
+    # STEP 6.6: inbox_watcher 廃止 + Monitor (足軽/軍師) 起動プロンプト送信
     # ═══════════════════════════════════════════════════════════════════
-    log_info "📬 メールボックス監視を起動中..."
+    # 旧仕様: inbox_watcher.sh (inotify+tmux send-keys) を全エージェント分起動
+    # 新仕様 (2026-05-12 殿命):
+    #   - inbox_watcher は起動せず (Monitor SSE に一本化)
+    #   - 将軍/家老: sessionstart_hook + CLAUDE.md Step 0 で自律 Monitor 起動
+    #   - 足軽/軍師: ペインに「Monitor起動せよ」プロンプトを明示送信して自律実行
+    # ═══════════════════════════════════════════════════════════════════
+    log_info "📬 inbox_watcher は廃止 — Monitor SSE 起動プロンプトを送信中..."
 
-    # inbox ディレクトリ初期化（シンボリックリンク先のLinux FSに作成）
+    # inbox YAML 初期化 (Monitor 配信元 SQLite 同期は dashboard API 側で担う)
     mkdir -p "$SCRIPT_DIR/logs"
     for agent in shogun karo $_ASHIGARU_IDS_STR gunshi; do
         [ -f "$SCRIPT_DIR/queue/inbox/${agent}.yaml" ] || echo "messages:" > "$SCRIPT_DIR/queue/inbox/${agent}.yaml"
     done
 
-    # 既存のwatcherと孤児inotifywait/fswatchをkill
+    # 既存の inbox_watcher / inotifywait / fswatch を kill (新規起動はしない)
     pkill -f "inbox_watcher.sh" 2>/dev/null || true
     pkill -f "inotifywait.*queue/inbox" 2>/dev/null || true
     pkill -f "fswatch.*queue/inbox" 2>/dev/null || true
     sleep 1
 
-    # 将軍のwatcher（ntfy受信の自動起床に必要）
-    # 安全モード: phase2/phase3エスカレーションは無効、timeout周期処理も無効（event-drivenのみ）
-    _shogun_watcher_cli=$(tmux show-options -p -t "shogun:main" -v @agent_cli 2>/dev/null || echo "claude")
-    nohup env ASW_DISABLE_ESCALATION=1 ASW_PROCESS_TIMEOUT=0 ASW_DISABLE_NORMAL_NUDGE=0 \
-        bash "$SCRIPT_DIR/scripts/inbox_watcher.sh" shogun "shogun:main" "$_shogun_watcher_cli" \
-        >> "$SCRIPT_DIR/logs/inbox_watcher_shogun.log" 2>&1 &
-    disown
+    # 足軽/軍師の Claude (or GLM) 起動完了を待つ
+    sleep 3
 
-    # 家老のwatcher
-    _karo_watcher_cli=$(tmux show-options -p -t "multiagent:agents.${PANE_BASE}" -v @agent_cli 2>/dev/null || echo "claude")
-    nohup bash "$SCRIPT_DIR/scripts/inbox_watcher.sh" karo "multiagent:agents.${PANE_BASE}" "$_karo_watcher_cli" \
-        >> "$SCRIPT_DIR/logs/inbox_watcher_karo.log" 2>&1 &
-    disown
-
-    # 足軽のwatcher
+    # 足軽1-N に Monitor 起動プロンプト送信
+    _monitor_prompt_count=0
     for i in $(seq 1 "$_ASHIGARU_COUNT"); do
         p=$((PANE_BASE + i))
-        _ashi_watcher_cli=$(tmux show-options -p -t "multiagent:agents.${p}" -v @agent_cli 2>/dev/null || echo "claude")
-        nohup bash "$SCRIPT_DIR/scripts/inbox_watcher.sh" "ashigaru${i}" "multiagent:agents.${p}" "$_ashi_watcher_cli" \
-            >> "$SCRIPT_DIR/logs/inbox_watcher_ashigaru${i}.log" 2>&1 &
-        disown
+        tmux send-keys -t "multiagent:agents.${p}" "Monitor起動せよ" Enter
+        _monitor_prompt_count=$((_monitor_prompt_count + 1))
     done
 
-    # 軍師のwatcher
+    # 軍師に Monitor 起動プロンプト送信
     p=$((PANE_BASE + _ASHIGARU_COUNT + 1))
-    _gunshi_watcher_cli=$(tmux show-options -p -t "multiagent:agents.${p}" -v @agent_cli 2>/dev/null || echo "claude")
-    nohup bash "$SCRIPT_DIR/scripts/inbox_watcher.sh" "gunshi" "multiagent:agents.${p}" "$_gunshi_watcher_cli" \
-        >> "$SCRIPT_DIR/logs/inbox_watcher_gunshi.log" 2>&1 &
-    disown
+    tmux send-keys -t "multiagent:agents.${p}" "Monitor起動せよ" Enter
+    _monitor_prompt_count=$((_monitor_prompt_count + 1))
 
-    log_success "  └─ $((_ASHIGARU_COUNT + 3))エージェント分のinbox_watcher起動完了（将軍+家老+足軽${_ASHIGARU_COUNT}+軍師）"
-
-    # STEP 6.6.1 (Phase 2 並走): poc_monitor_inbox.sh による Monitor tool 並走監視 (cmd_1642)
-    # 各エージェントの Claude セッション内で Session Start Step 7 が Monitor を起動する
-    # 本 STEP 6.6 の inbox_watcher.sh は物理的に継続稼働 (Phase 3 廃止予定・cmd_1643)
+    log_success "  └─ ${_monitor_prompt_count}エージェントに Monitor 起動プロンプト送信 (足軽${_ASHIGARU_COUNT}+軍師)"
+    log_info "  └─ 将軍/家老は sessionstart_hook + CLAUDE.md Step 0 で自律 Monitor 起動 (プロンプト送信不要)"
 
     # STEP 6.7 は廃止 — CLAUDE.md Session Start (step 1: tmux agent_id) で各自が自律的に
     # 自分のinstructions/*.mdを読み込む。検証済み (2026-02-08)。
