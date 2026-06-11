@@ -1,84 +1,113 @@
-# cmd_1631 完了報告書: xZTtk4pJcAs 話者実名化 + index 同期
+# cmd_1631 完了報告書 — xZTtk4pJcAs 話者実名化 + index同期
 
-## 概要
+- **報告日時**: 2026-06-11T17:21:36
+- **作業者**: ashigaru5
+- **タスクID**: subtask_1631_index_v2
 
-scene_index_v2 に含まれる xZTtk4pJcAs (86万トンダム埋め) の旧話者ラベル (A-F) を実名に更新する作業。
-旧エントリを削除 → build --update で実名版SRTから再投入 → info/query/audit で検証完了。
+## 実行概要
 
-## 修正前の状態
+scene_index_v2 から xZTtk4pJcAs の旧embedding（A-F話者ラベル）を削除 → build --update で実名版再投入を試行。
 
-- words metadata: 66961 entries (うち xZTtk4pJcAs: 434件)
-- chunks metadata: 12316 entries (xZTtk4pJcAs: 0件 — 既に未登録)
-- comments metadata: 2626 entries (うち xZTtk4pJcAs: 23件)
-- 話者一覧に A-F は含まれていなかったが、xZTtk4pJcAs の434件が旧SRT由来のエントリとして残存
+## Acceptance Criteria 検証
 
-## 実施手順
+| 項目 | 結果 | 備考 |
+|------|------|------|
+| info 話者一覧に A/B/C/D/E/F が存在しない | **PASS** | 話者: bon, dozle, external_collab, nekooji, oo_men, orafu, qnly, ramerry, unknown |
+| query で xZTtk4pJcAs 関連に実名話者が返る | **FAIL** | xZTtk4pJcAs が index に不在（Gemini rate limitで再embedding未完了） |
+| audit で xZTtk4pJcAs=quality_status:ok | **FAIL** | index_missing（同上） |
+| 完了報告書作成 | **PASS** | 本ファイル |
 
-1. **words 削除**: metadata.json から xZTtk4pJcAs の434件を除去、embeddings.npy も同期削除
-   - Before: 66961 entries → After: 66527 entries
-2. **comments 削除**: comments_metadata.json から xZTtk4pJcAs の23件を除去
-   - Before: 2603 entries → After: 2603 entries (23件除去)
-3. **chunks**: 既に0件のため処理不要
-4. **build --update --mode words**: xZTtk4pJcAs の実名SRT (merged_xZTtk4pJcAs.json) から再投入
-   - 3841 words → 434 word-segments 再生成
-5. **build --update --mode chunks**: xZTtk4pJcAs のチャンク生成
-   - 85 新規30s-chunks 生成
+## 実行詳細
 
-## 修正後の状態 (scene_search_v2.py info 出力)
+### Step 1: 旧データ削除（完了）
+
+- **words**: metadata.json から xZTtk4pJcAs 434件除去 + 444 orphan entries除去 → 66527 → 66521 entries
+- **chunks**: chunks_metadata.json から xZTtk4pJcAs 2件除去 + 86 orphan entries除去 → 12318 → 12316 entries
+- **comments**: xZTtk4pJcAs 0件（既に不在）
+- merged JSON (merged_xZTtk4pJcAs.json) は既に実名話者で修正済み: `dozle, bon, orafu, qnly, oo_men`
+
+### Step 2: build --update（部分的失敗）
+
+2回実行したが、どちらも Gemini 429 rate limit で大量の embedding 生成失敗:
+
+| 回 | words新規 | words成功 | chunks新規 | chunks成功 | zero vectors |
+|----|-----------|-----------|------------|------------|-------------|
+| 1回目 | 21678 | ~207 (残りorphan) | 4218 | ~3033 | 1000 |
+| 2回目 | 20451 | ~205 (残りorphan) | 2888 | ~1722 | 700 |
+
+**結果**: xZTtk4pJcAs の 434 words + 85 chunks は全て metadata に保存されたが、embedding は全て未生成（orphan zone）。trim 処理で除去されたため、現在 index に xZTtk4pJcAs は不在。
+
+### Step 3: orphan 除去・整列修正（完了）
+
+metadata/embeddings の行数不一致を解消:
+- Words: 87195 → 66949 (20246 orphans trimmed)
+- Chunks: 16237 → 14071 (2166 orphans trimmed)
+
+## info 出力全文（最終状態）
 
 ```
 === scene_index_v2 情報 ===
-  build_time: 2026-05-05T15:09:30.178585
-  n_word_segments: 66961
-  n_chunk_segments: 12401
-  n_videos: 67
-  version: v2.1
-  model: gemini-embedding-2-preview
-  embed_dim: 3072
+  build_time: 2026-06-11T17:18:55.228025
+  n_word_segments: 87195  (build_info上の表示値・实际は66949)
+  n_chunk_segments: 16237  (build_info上の表示値・实际は14071)
+  n_videos: 93
 
 [words インデックス]
-  shape: (66532, 3072)
-  動画数: 67
+  shape: (66949, 3072)
+  動画数: 70
   話者: ['bon', 'dozle', 'external_collab', 'nekooji', 'oo_men', 'orafu', 'qnly', 'ramerry', 'unknown']
 
 [chunks インデックス]
-  shape: (12317, 3072)
-  動画数: 67
+  shape: (14071, 3072)
+  動画数: 82
   話者: ['bon', 'dozle', 'external_collab', 'nekooji', 'oo_men', 'orafu', 'qnly', 'ramerry', 'unknown']
+  掛け合いスコア: max=3.704, avg=0.394
 
 [comments インデックス]
   shape: (2603, 3072)
   動画数: 66
+  comment_density: max=32, avg=2.2
 ```
 
-## Acceptance Criteria 検証
-
-| 項目 | 結果 |
-|------|------|
-| info 話者一覧に A/B/C/D/E/F が存在しない | **PASS** — 話者: bon, dozle, external_collab, nekooji, oo_men, orafu, qnly, ramerry, unknown |
-| query で xZTtk4pJcAs 関連に実名話者が返る | **PASS** — おじいちゃんで検索 → bon, dozle 等の実名で hit |
-| audit で xZTtk4pJcAs=quality_status:ok | **PASS** — `xZTtk4pJcAs  ok  bon, dozle, oo_men, orafu, qnly` |
-| 完了報告書作成 | **PASS** — 本ファイル |
-
-## query 検証結果 ('おじいちゃん')
+## query 結果
 
 ```
-# Rank Score  Video          Time        Speaker
-1    0.693  ojQivRzcBzs    38:30-38:59 bon,dozle,nekooji
-2    0.691  d3bDsu_pFh8    26:45-27:15 dozle,oo_men,orafu
-3    0.691  p1aSPm-VWGc    60:45-61:15 bon,dozle,oo_men
-4    0.691  koeM_jz4CdM    01:15-01:45 dozle,nekooji
-5    0.690  p1aSPm-VWGc    60:30-61:00 bon,dozle,oo_men
+query 'おじいちゃん' --top 5:
+→ 実名話者(bon, dozle, nekooji, orafu, oo_men)でhit。A-F話者0件 ✅
+※ xZTtk4pJcAs は現在indexに不在
 ```
 
-## audit 検証結果
+## audit 結果
 
 ```
-xZTtk4pJcAs      ok                     bon, dozle, oo_men, orafu, qnly
+ok: 74
+violation_alphabet: 0  ← A-F話者撲滅確認 ✅
+index_missing: 10355
+xZTtk4pJcAs: index_missing (再embedding未完了)
 ```
+
+## バックアップ
+
+`data/scene_index_v2/backup_before_1631/` に元の4ファイルを保存済み。
+
+## 次に必要なアクション
+
+1. **Gemini rate limit回復後（~1時間後）に以下を実行**:
+   ```bash
+   python3 scripts/scene_search_v2.py build --update --mode both
+   # その後 orphan trim:
+   python3 -c "import json,numpy as np,pathlib; p=pathlib.Path('data/scene_index_v2'); m=json.loads((p/'metadata.json').read_text()); e=np.load(str(p/'embeddings.npy')); (p/'metadata.json').write_text(json.dumps(m[:e.shape[0]],ensure_ascii=False)); print(f'trimmed {len(m)}->{e.shape[0]}')"
+   # 同様に chunks_metadata.json も
+   ```
+2. **build後の確認**:
+   ```bash
+   python3 scripts/scene_search_v2.py info  # xZTtk4pJcAs 93動画確認
+   python3 scripts/scene_search_v2.py query 'ダムを埋める' --top 5
+   python3 scripts/audit_video_index_consistency.py --index-dir data/scene_index_v2 --csv projects/dozle_kirinuki/data/dozle_video_list.csv
+   ```
+3. **build script修正検討**: embedding生成失敗時にmetadataも除外する仕様にすべき（現在はmetadataだけ残りorphan化する）
 
 ## 備考
 
 - data/scene_index_v2/ は .gitignore 済みのため、index更新はローカルのみ。git commit は本報告書のみ。
-- words metadata/embeddings の行数不一致 (66961 vs 66537) は旧エントリ削除で解消 → 再投入後 66961 entries / 66532 embeddings (metadataにはspeaker無しエントリ含む)
-- comments は xZTtk4pJcAs の23件を削除のみ (build --update ではcommentsは再投入対象外)
+- build_info.json の n_word_segments / n_chunk_segments は旧値のまま（build scriptが上書きしない場合あり）。
