@@ -45,6 +45,7 @@ SCOPES = [
     "https://www.googleapis.com/auth/youtube",
     "https://www.googleapis.com/auth/youtube.force-ssl",
     "https://www.googleapis.com/auth/yt-analytics.readonly",
+    "https://www.googleapis.com/auth/yt-analytics-monetary.readonly",
 ]
 
 # 注意: TODAY/DATE_STR/ANALYTICS_END/ANALYTICS_STARTはmain()内で再計算される。
@@ -54,6 +55,10 @@ DATE_STR = TODAY.strftime("%Y-%m-%d")
 # Analytics APIは1-2日遅延あり。直近14日分（2日前まで）
 ANALYTICS_END = (TODAY - datetime.timedelta(days=2)).strftime("%Y-%m-%d")
 ANALYTICS_START = (TODAY - datetime.timedelta(days=16)).strftime("%Y-%m-%d")
+# YPP収益化開始日(2026-06-02)。収益/RPMはこの日より前を含めると分母(再生数)が膨れRPMが希釈される
+# (収益は6/2以降しか発生せぬのに再生数だけ全期間カウントされるため・殿指摘 2026-06-09)。
+# 収益クエリのstartDateはこの日付以降にクランプ。窓が自然に6/2を過ぎれば max() で無効化され通常窓に戻る。
+MONETIZATION_START = "2026-06-02"
 
 
 def get_credentials():
@@ -76,6 +81,14 @@ def get_credentials():
         if not creds:
             if not CLIENT_SECRET_PATH.exists():
                 print(f"[analytics] エラー: {CLIENT_SECRET_PATH} が見つかりません")
+                sys.exit(1)
+            # cron/headless で run_local_server を呼ぶと対話認証待ちで無限ハングし、
+            # 以降の毎日のスナップショットが全滅する(2026-06-14〜15 実害)。
+            # 非対話(tty無し)では即エラー終了し、スマホ再認証(reauth_phone.py)を促す。
+            if not sys.stdin.isatty():
+                print("[analytics] エラー: token無効かつ非対話環境のため認証不可。")
+                print("  スマホ再認証してください: "
+                      "python3 projects/dozle_kirinuki/scripts/reauth_phone.py url")
                 sys.exit(1)
             print("[analytics] 新規認証が必要です（Analytics APIスコープ追加のため）")
             print("  以下URLをブラウザで開いてください:")
@@ -417,6 +430,66 @@ def get_content_type_stats(analytics):
             "subs_gained": int(row[3]),
         }
     return result
+
+
+def get_revenue_stats(analytics, videos):
+    """収益統計（収益スコープ yt-analytics-monetary.readonly 要）。
+    日別の推定収益/広告収益/Premium収益/CPM、コンテンツタイプ別収益、動画別収益を取得。
+    各サブクエリは個別 try/except（一部失敗でも取れた分は返す）。通貨=JPY。"""
+    CUR = "JPY"
+    # 収益/RPMは収益化開始日以降にクランプ(再生数希釈防止・殿指摘 2026-06-09)
+    REV_START = max(ANALYTICS_START, MONETIZATION_START)
+    out = {"currency": CUR, "period": {"start": REV_START, "end": ANALYTICS_END},
+           "daily": [], "by_content_type": {}, "by_video": [], "totals": {}}
+    # 日別収益
+    try:
+        res = analytics.reports().query(
+            ids=f"channel=={CHANNEL_ID}", startDate=REV_START, endDate=ANALYTICS_END, currency=CUR,
+            metrics="estimatedRevenue,estimatedAdRevenue,estimatedRedPartnerRevenue,cpm,playbackBasedCpm,monetizedPlaybacks,adImpressions",
+            dimensions="day", sort="day").execute()
+        for r in res.get("rows", []):
+            out["daily"].append({
+                "date": r[0], "est_revenue": float(r[1]), "ad_revenue": float(r[2]),
+                "premium_revenue": float(r[3]), "cpm": float(r[4]), "playback_cpm": float(r[5]),
+                "monetized_playbacks": int(r[6]), "ad_impressions": int(r[7]),
+            })
+        out["totals"] = {
+            "est_revenue": round(sum(d["est_revenue"] for d in out["daily"]), 2),
+            "ad_revenue": round(sum(d["ad_revenue"] for d in out["daily"]), 2),
+            "premium_revenue": round(sum(d["premium_revenue"] for d in out["daily"]), 2),
+            "monetized_playbacks": sum(d["monetized_playbacks"] for d in out["daily"]),
+            "ad_impressions": sum(d["ad_impressions"] for d in out["daily"]),
+        }
+    except Exception as e:
+        print(f"  [収益] 日別失敗: {e}")
+    # コンテンツタイプ別収益（ショート vs 長尺）
+    try:
+        res = analytics.reports().query(
+            ids=f"channel=={CHANNEL_ID}", startDate=REV_START, endDate=ANALYTICS_END, currency=CUR,
+            metrics="estimatedRevenue,views", dimensions="creatorContentType").execute()
+        for r in res.get("rows", []):
+            v = int(r[2]); rev = float(r[1])
+            out["by_content_type"][r[0]] = {"est_revenue": rev, "views": v,
+                                             "rpm": round(rev / v * 1000, 2) if v else 0.0}
+    except Exception as e:
+        print(f"  [収益] CT別失敗: {e}")
+    # 動画別収益 top15
+    try:
+        res = analytics.reports().query(
+            ids=f"channel=={CHANNEL_ID}", startDate=REV_START, endDate=ANALYTICS_END, currency=CUR,
+            metrics="estimatedRevenue,views,estimatedAdRevenue,estimatedRedPartnerRevenue",
+            dimensions="video", sort="-estimatedRevenue", maxResults=15).execute()
+        tmap = {v.get("id"): v.get("title", "") for v in (videos or [])}
+        for r in res.get("rows", []):
+            v = int(r[2]); rev = float(r[1])
+            out["by_video"].append({
+                "id": r[0], "title": tmap.get(r[0], r[0]),
+                "est_revenue": rev, "views": v, "ad_revenue": float(r[3]), "premium_revenue": float(r[4]),
+                "rpm": round(rev / v * 1000, 2) if v else 0.0,
+            })
+    except Exception as e:
+        print(f"  [収益] 動画別失敗: {e}")
+    return out
 
 
 def get_demographics(analytics):
@@ -774,7 +847,7 @@ def send_ntfy_if_needed(channel_stats, video_diffs, prev_raw, videos):
 
 def generate_report(channel_stats, videos, daily_stats, traffic_sources,
                     video_diffs, prev_raw, llm_analysis, per_video_analytics=None,
-                    shorts_feed_check=None):
+                    shorts_feed_check=None, revenue=None):
     """レポートMarkdown生成"""
     lines = []
     lines.append(f"# YouTube Analytics Snapshot — {DATE_STR}")
@@ -947,6 +1020,28 @@ def generate_report(channel_stats, videos, daily_stats, traffic_sources,
         lines.append("---")
         lines.append("")
 
+    # 収益・RPM（収益化後スコープ・殿指摘 2026-06-09で追加）
+    if revenue and revenue.get("by_content_type"):
+        per = revenue.get("period", {})
+        lines.append(f"## 💰 収益・RPM（収益化後: {per.get('start','')}〜{per.get('end','')}）")
+        lines.append("")
+        lines.append("> YPP収益化開始日(MONETIZATION_START)以降にスコープ。これより前を含めると収益ゼロの再生が分母に入りRPMが希釈されるため除外。")
+        lines.append("")
+        lines.append("| 区分 | 推定収益 | 再生数 | RPM | ¥/再生 |")
+        lines.append("|------|---------|--------|-----|--------|")
+        _ctja = {"videoOnDemand": "長尺", "shorts": "ショート", "liveStream": "ライブ"}
+        for _ct, _d in revenue["by_content_type"].items():
+            _pv = f"¥{_d['est_revenue']/_d['views']:.3f}" if _d['views'] else "—"
+            lines.append(f"| {_ctja.get(_ct, _ct)} | ¥{_d['est_revenue']:,.0f} | {_d['views']:,} | **¥{_d['rpm']}** | {_pv} |")
+        _t = revenue.get("totals", {})
+        if _t:
+            lines.append(f"| **合計** | **¥{_t.get('est_revenue',0):,.0f}** | — | — |")
+            lines.append("")
+            lines.append(f"- 内訳: 広告 ¥{_t.get('ad_revenue',0):,.0f} / Premium ¥{_t.get('premium_revenue',0):,.0f}")
+            lines.append(f"- 収益化再生 {_t.get('monetized_playbacks',0):,} / 広告表示 {_t.get('ad_impressions',0):,}")
+        lines.append("")
+        lines.append("---")
+        lines.append("")
     lines.append("## AI分析")
     lines.append("")
     lines.append("> **注意**: 以下はLLMによる自動生成分析です。数値の正確性は保証されません。判断の際は上記の実データと照合してください。")
@@ -1119,6 +1214,17 @@ def main():
         except Exception as e:
             print(f"  [警告] インプレッション取得失敗: {e}")
 
+    # 収益統計（収益スコープ yt-analytics-monetary.readonly 要・2026-06 YPP通過後）
+    revenue = {}
+    if analytics:
+        print("[analytics] 収益統計取得中...")
+        try:
+            revenue = get_revenue_stats(analytics, videos)
+            t = revenue.get("totals", {})
+            print(f"  期間収益: 推定{t.get('est_revenue')}円 / 広告{t.get('ad_revenue')} / Premium{t.get('premium_revenue')} / CT別:{list(revenue.get('by_content_type',{}).keys())}")
+        except Exception as e:
+            print(f"  [警告] 収益取得失敗: {e}")
+
     # 前日比計算
     prev_raw = load_prev_raw()
     if prev_raw:
@@ -1142,6 +1248,7 @@ def main():
         "retention_top5": retention_top5,
         "impressions_ctr": impressions_ctr,
         "shorts_feed_check": shorts_feed_check,
+        "revenue": revenue,
     }
     raw_path = ANALYTICS_DIR / f"{DATE_STR}_raw.json"
     with open(raw_path, "w", encoding="utf-8") as f:
@@ -1156,7 +1263,7 @@ def main():
     # レポート生成
     report = generate_report(channel_stats, videos, daily_stats, traffic_sources,
                              video_diffs, prev_raw, llm_analysis, per_video_analytics,
-                             shorts_feed_check)
+                             shorts_feed_check, revenue)
     report_path = ANALYTICS_DIR / f"{DATE_STR}_snapshot.md"
     with open(report_path, "w", encoding="utf-8") as f:
         f.write(report)
