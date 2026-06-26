@@ -1321,6 +1321,186 @@ def cmd_info(args):
                 print(f"  comment_density: max={max(densities)}, avg={sum(densities)/len(densities):.1f}")
 
 
+# ===== ローカルOSS embedding バックエンド (Ruri v3) =====
+# 既存のVertex経路(scene_index_v2)は無改変。localは別ディレクトリ(scene_index_local)に保存。
+LOCAL_INDEX_DIR = PROJECT_ROOT / "data" / "scene_index_local"
+LOCAL_CHUNKS_EMB = LOCAL_INDEX_DIR / "chunks_embeddings.npy"
+LOCAL_CHUNKS_META = LOCAL_INDEX_DIR / "chunks_metadata.json"
+LOCAL_BUILD_INFO = LOCAL_INDEX_DIR / "build_info.json"
+RURI_MODEL_NAME = "cl-nagoya/ruri-v3-310m"
+_ruri = None
+
+
+def get_ruri():
+    global _ruri
+    if _ruri is None:
+        from sentence_transformers import SentenceTransformer
+        import torch as _torch
+        dev = "cuda" if _torch.cuda.is_available() else "cpu"
+        print(f"  Ruri v3 ロード中 ({RURI_MODEL_NAME}, device={dev})...")
+        _ruri = SentenceTransformer(RURI_MODEL_NAME, device=dev)
+    return _ruri
+
+
+def embed_local(texts, is_query=False):
+    """Ruri v3 でローカルembedding。L2正規化済み np.float32 を返す。"""
+    model = get_ruri()
+    prefix = "検索クエリ: " if is_query else "検索文書: "
+    inputs = [prefix + t for t in texts]
+    emb = model.encode(inputs, normalize_embeddings=True, batch_size=64,
+                       show_progress_bar=True, convert_to_numpy=True)
+    return emb.astype(np.float32)
+
+
+_YTID_RE = _re.compile(r"^[A-Za-z0-9_-]{11}$")
+
+
+def _parse_merged_stem(stem):
+    """merged JSON の stem から (base_video_id, is_vocals, is_speaker_id) を返す。
+    不正(11桁YouTube IDでない)なら (None,...)。"""
+    s = stem
+    is_vocals = "vocals_" in s
+    s = s.replace("merged_vocals_", "").replace("merged_", "")
+    is_speaker_id = s.endswith("_speaker_id")
+    if is_speaker_id:
+        s = s[: -len("_speaker_id")]
+    return (s if _YTID_RE.match(s) else None), is_vocals, is_speaker_id
+
+
+def collect_merged_jsons_months(months):
+    """work/<YYYYMM>*/ 配下の merged_*.json を集約。
+    11桁YouTube IDのみ採用・dedup。優先順: speaker_id付き > 非vocals。"""
+    cands = []
+    for mo in months:
+        cands += list(WORK_DIR.glob(f"{mo}*/**/merged_*.json"))
+    best = {}  # vid -> (vid, path, rank) 高rankを優先
+    for f in sorted(set(cands)):
+        vid, is_vocals, is_spk = _parse_merged_stem(f.stem)
+        if not vid:
+            continue
+        rank = (2 if is_spk else 0) + (0 if is_vocals else 1)  # speaker_id最優先・非vocals加点
+        if vid not in best or rank > best[vid][2]:
+            best[vid] = (vid, f, rank)
+    return [(v, p) for (v, p, r) in best.values()]
+
+
+def cmd_build_local(args):
+    """Ruri v3 ローカルembeddingで chunks インデックス構築 (scene_index_local)。
+    --months 202601,202602,202603 で対象月を指定。"""
+    months = [m.strip() for m in args.months.split(",") if m.strip()]
+    update = getattr(args, "update", False)
+    print(f"=== build-local (Ruri v3, months={months}, update={update}) ===")
+    files = collect_merged_jsons_months(months)
+    print(f"対象動画(merged JSON): {len(files)}")
+
+    existing_emb, existing_meta, existing_vids = None, [], set()
+    if update and LOCAL_CHUNKS_EMB.exists() and LOCAL_CHUNKS_META.exists():
+        existing_emb = np.load(str(LOCAL_CHUNKS_EMB))
+        with open(LOCAL_CHUNKS_META, "r", encoding="utf-8") as fp:
+            existing_meta = json.load(fp)
+        existing_vids = {m["video_id"] for m in existing_meta}
+        print(f"  既存: {len(existing_meta)} chunks, {len(existing_vids)} 動画")
+
+    target = [(v, f) for v, f in files if v not in existing_vids]
+    print(f"  新規対象: {len(target)} 動画")
+    if not target:
+        print("追加対象なし。インデックスは最新です。")
+        return
+
+    all_chunks = []
+    for vid, path in target:
+        try:
+            with open(path, "r", encoding="utf-8") as fp:
+                data = json.load(fp)
+        except Exception as e:
+            print(f"  SKIP {vid}: {e}")
+            continue
+        if isinstance(data, list):
+            words = data
+        elif isinstance(data, dict):
+            words = data.get("words", [])
+        else:
+            words = []
+        if not words:
+            print(f"  SKIP {vid}: words空 (format={type(data).__name__})")
+            continue
+        rel = str(path.relative_to(PROJECT_ROOT))
+        chunks = create_chunks_from_words(words, vid, rel)
+        print(f"  {vid}: {len(words)} words → {len(chunks)} chunks")
+        all_chunks.extend(chunks)
+
+    if not all_chunks:
+        print("チャンク無し。")
+        return
+
+    print(f"\nRuri embedding: {len(all_chunks)} chunks ...")
+    texts = [c["text"] for c in all_chunks]
+    new_emb = embed_local(texts, is_query=False)
+
+    if existing_emb is not None and len(existing_meta) > 0:
+        merged_emb = np.concatenate([existing_emb, new_emb], axis=0)
+        merged_meta = existing_meta + all_chunks
+    else:
+        merged_emb, merged_meta = new_emb, all_chunks
+
+    print("  unique_phraseスコア計算中...")
+    compute_unique_phrase_scores(merged_meta)
+    print("  hotspot_scoreスコア計算中...")
+    compute_hotspot_scores(merged_meta)
+
+    LOCAL_INDEX_DIR.mkdir(parents=True, exist_ok=True)
+    np.save(str(LOCAL_CHUNKS_EMB), merged_emb)
+    with open(LOCAL_CHUNKS_META, "w", encoding="utf-8") as fp:
+        json.dump(merged_meta, fp, ensure_ascii=False, indent=2)
+    info = {
+        "build_time": datetime.now().isoformat(),
+        "n_chunks": len(merged_meta),
+        "n_videos": len({m["video_id"] for m in merged_meta}),
+        "model": RURI_MODEL_NAME,
+        "embed_dim": int(merged_emb.shape[1]),
+        "months": months,
+    }
+    with open(LOCAL_BUILD_INFO, "w", encoding="utf-8") as fp:
+        json.dump(info, fp, ensure_ascii=False, indent=2)
+    print(f"\n完了(local): chunks={len(merged_meta)}, 動画={info['n_videos']}, dim={info['embed_dim']}")
+
+
+def cmd_query_local(args):
+    """Ruri v3 ローカルインデックス(scene_index_local)に対するセマンティック検索。"""
+    if not (LOCAL_CHUNKS_EMB.exists() and LOCAL_CHUNKS_META.exists()):
+        print("ERROR: localインデックス未構築。先に build-local を実行してください。")
+        sys.exit(1)
+    embeddings = np.load(str(LOCAL_CHUNKS_EMB))
+    with open(LOCAL_CHUNKS_META, "r", encoding="utf-8") as fp:
+        metadata = json.load(fp)
+    title_map = build_title_map()
+    print(f'検索中 (local Ruri v3): "{args.query}"')
+    query_emb = embed_local([args.query], is_query=True)[0]
+    results = search(query_emb, embeddings, metadata, top_k=args.top,
+                     video_id=getattr(args, "video", None),
+                     speaker=getattr(args, "speaker", None))
+    if getattr(args, "json", False):
+        out = {"query": args.query, "backend": "ruri-v3-local", "results": [
+            {"rank": i + 1, "score": r["score"], "video_id": r["video_id"],
+             "title": title_map.get(r["video_id"], ""), "start_ms": r["start_ms"],
+             "end_ms": r["end_ms"], "speaker": r.get("speaker") or r.get("speakers"),
+             "text": r["text"]} for i, r in enumerate(results)]}
+        print(json.dumps(out, ensure_ascii=False, indent=2))
+        return
+    print(f"\n# {'Rank':<4} {'Score':<6} {'Video':<14} {'Time':<11} {'Speaker':<14} {'Title':<24} Text")
+    print("-" * 110)
+    for i, r in enumerate(results):
+        time_str = f"{ms_to_timestr(r['start_ms'])}-{ms_to_timestr(r['end_ms'])}"
+        spk_list = r.get("speakers", [])
+        speaker = ",".join(spk_list[:3]) if spk_list else "?"
+        title = title_map.get(r["video_id"], "")
+        title_short = title[:22] + ".." if len(title) > 24 else title
+        text = r["text"]
+        if len(text) > 40:
+            text = text[:37] + "..."
+        print(f"{i+1:<4} {r['score']:.3f}  {r['video_id']:<14} {time_str:<11} {speaker:<14} {title_short:<24} {text}")
+
+
 # ===== エントリポイント =====
 def main():
     parser = argparse.ArgumentParser(
@@ -1349,6 +1529,19 @@ def main():
                    help="検索モード (default: chunks)")
     q.add_argument("--source", choices=["srt", "comments", "all"], default="srt",
                    help="検索対象 (default: srt, comments: コメントのみ, all: 両方)")
+
+    # build-local (Ruri v3 ローカルembedding)
+    bl = sub.add_parser("build-local", help="Ruri v3でローカルembeddingインデックス構築 (scene_index_local)")
+    bl.add_argument("--months", required=True, help="対象月 カンマ区切り 例: 202601,202602,202603")
+    bl.add_argument("--update", action="store_true", help="既存localインデックスに新規動画のみ追加")
+
+    # query-local (Ruri v3 ローカル検索)
+    ql = sub.add_parser("query-local", help="Ruri v3 ローカルインデックスをセマンティック検索")
+    ql.add_argument("query", help="検索クエリ")
+    ql.add_argument("--top", type=int, default=10, help="上位N件 (default: 10)")
+    ql.add_argument("--video", help="動画IDでフィルタ")
+    ql.add_argument("--speaker", help="話者名でフィルタ")
+    ql.add_argument("--json", action="store_true", help="JSON形式で出力")
 
     # find-similar
     fs = sub.add_parser("find-similar", help="指定時刻に近いシーンと類似するシーンを検索")
@@ -1391,6 +1584,10 @@ def main():
         cmd_build(args)
     elif args.subcommand == "build-comments":
         cmd_build_comments(args)
+    elif args.subcommand == "build-local":
+        cmd_build_local(args)
+    elif args.subcommand == "query-local":
+        cmd_query_local(args)
     elif args.subcommand == "query":
         cmd_query(args)
     elif args.subcommand == "find-similar":
