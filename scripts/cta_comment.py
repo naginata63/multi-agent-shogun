@@ -32,10 +32,15 @@ PROJECT_DIR = os.path.join(
 TOKEN_PATH = os.path.join(PROJECT_DIR, "token.json")
 CLIENT_SECRET_PATH = os.path.join(PROJECT_DIR, "client_secret.json")
 
+# 共有 token.json を youtube_uploader / youtube_analytics_snapshot と同一スコープに揃える。
+# cta は refresh 時に token.json を書き戻すため、スコープが狭いと共有 token を narrow して
+# 翌朝の youtube_analytics_snapshot が invalid_scope で失敗する（2026-06-23 殿指摘・cmd_1702 M1）。
 SCOPES = [
     "https://www.googleapis.com/auth/youtube.upload",
     "https://www.googleapis.com/auth/youtube",
     "https://www.googleapis.com/auth/youtube.force-ssl",
+    "https://www.googleapis.com/auth/yt-analytics.readonly",
+    "https://www.googleapis.com/auth/yt-analytics-monetary.readonly",
 ]
 
 # 単一情報源: projects/dozle_kirinuki/context/youtube_channel.yaml
