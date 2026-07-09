@@ -58,7 +58,8 @@ def get_service():
         sys.exit(1)
 
     creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
-    if creds.expired and creds.refresh_token:
+    # null guard: token.json 破損等で creds が falsy の稀ケースの AttributeError 防止 (cmd_1702 M2)
+    if creds and creds.expired and creds.refresh_token:
         creds.refresh(Request())
         with open(TOKEN_PATH, "w") as f:
             f.write(creds.to_json())
