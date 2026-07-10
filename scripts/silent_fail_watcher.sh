@@ -31,7 +31,10 @@ WARN_BUFFER="$STATE_DIR/warn_buffer.log"
 OFFSET_DIR="$STATE_DIR/offsets"
 
 mkdir -p "$DEDUP_DIR" "$OFFSET_DIR" "$(dirname "$LOG_FILE")"
-: > "$WARN_BUFFER" 2>/dev/null || true
+# NOTE: WARN_BUFFER の起動時クリアは main() 内で flush_warn_buffer に一本化 (cmd_1706 H1)。
+# ここでの無条件 truncate は前回クラッシュ (kill -9/OOM) 時の未flush WARN を握り潰すため、
+# flush_warn_buffer (notify_ntfy → clear) より後へ移動した。併せて二重起動時の2本目が
+# flock 取得前に buffer を消す副作用も除去。
 
 # PID 記録・二重起動防止 (flock でアトミックロック)
 exec 200>"$PID_FILE"
@@ -284,6 +287,13 @@ handle_file_event() {
 #       main ループで read -t の timeout を使い定期 flush を実行する。
 main() {
     init_offsets
+
+    # cmd_1706 H1: 起動時の未flush WARN 救済
+    # kill -9/OOM で前回インスタンスが trap cleanup (flush_warn_buffer) を通らず終了した場合、
+    # WARN_BUFFER に未通知エントリが残る。ここで flush_warn_buffer を呼び通知してからクリアする
+    # (flush_warn_buffer 内で notify_ntfy → `: > "$WARN_BUFFER"` clear まで行う)。
+    # バッファ空なら [ -s ] 判定で早期 return し何もしない。
+    flush_warn_buffer
 
     cleanup() {
         log "shutting down"
