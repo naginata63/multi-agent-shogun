@@ -408,6 +408,9 @@ tests/specs/osato_lms_*
 !scripts/litestream_keepalive.sh
 !scripts/claude_mem_hook_guard.sh
 !scripts/chroma_mcp_health.sh
+# cmd_1706 N1: harness配線済 infra スクリプト git追跡化 (fresh clone での無音消失防止)
+!scripts/stop_karo_check.sh
+!scripts/litestream_health_check.sh
 !scripts/archive/
 !scripts/archive/gemini_transcription_task.py
 !scripts/archive/stt_merge.py.bak_1000
