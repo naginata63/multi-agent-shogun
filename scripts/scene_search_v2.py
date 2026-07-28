@@ -1367,18 +1367,32 @@ def _parse_merged_stem(stem):
     return (s if _YTID_RE.match(s) else None), is_vocals, is_speaker_id
 
 
-def collect_merged_jsons_months(months):
+def collect_merged_jsons_months(months, include_bulk=False):
     """work/<YYYYMM>*/ 配下の merged_*.json を集約。
-    11桁YouTube IDのみ採用・dedup。優先順: speaker_id付き > 非vocals。"""
+    11桁YouTube IDのみ採用・dedup。優先順: speaker_id付き > 非vocals。
+
+    include_bulk=True で work/_bulk_dl/<vid>/ 配下も対象に加える。
+    2026-07-28: 月フォルダしか見ていなかったため、素材の本体である _bulk_dl の
+    生動画(137本)が索引から丸ごと漏れていた。流行語検出が「不可能」に見えた
+    原因の一つがこれ (memory/project_dozle_local_semantic_stack)。
+    """
     cands = []
     for mo in months:
         cands += list(WORK_DIR.glob(f"{mo}*/**/merged_*.json"))
+    qwen_dir = WORK_DIR / "qwen_stt"
+    if include_bulk:
+        cands += list((WORK_DIR / "_bulk_dl").glob("*/merged_*.json"))
+        cands += list(qwen_dir.glob("merged_*.json"))
     best = {}  # vid -> (vid, path, rank) 高rankを優先
     for f in sorted(set(cands)):
         vid, is_vocals, is_spk = _parse_merged_stem(f.stem)
         if not vid:
             continue
         rank = (2 if is_spk else 0) + (0 if is_vocals else 1)  # speaker_id最優先・非vocals加点
+        # ローカル(Qwen)転写は同じ動画のクラウド転写より必ず優先する。
+        # 同一動画に AssemblyAI 版と Qwen 版が併存しても索引が混ざらないようにするため。
+        if f.parent == qwen_dir:
+            rank += 10
         if vid not in best or rank > best[vid][2]:
             best[vid] = (vid, f, rank)
     return [(v, p) for (v, p, r) in best.values()]
@@ -1387,10 +1401,14 @@ def collect_merged_jsons_months(months):
 def cmd_build_local(args):
     """Ruri v3 ローカルembeddingで chunks インデックス構築 (scene_index_local)。
     --months 202601,202602,202603 で対象月を指定。"""
-    months = [m.strip() for m in args.months.split(",") if m.strip()]
+    months = [m.strip() for m in (args.months or "").split(",") if m.strip()]
     update = getattr(args, "update", False)
-    print(f"=== build-local (Ruri v3, months={months}, update={update}) ===")
-    files = collect_merged_jsons_months(months)
+    include_bulk = getattr(args, "bulk", False)
+    if not months and not include_bulk:
+        print("ERROR: --months か --bulk のどちらかを指定してください。")
+        sys.exit(1)
+    print(f"=== build-local (Ruri v3, months={months}, bulk={include_bulk}, update={update}) ===")
+    files = collect_merged_jsons_months(months, include_bulk=include_bulk)
     print(f"対象動画(merged JSON): {len(files)}")
 
     existing_emb, existing_meta, existing_vids = None, [], set()
@@ -1426,7 +1444,12 @@ def cmd_build_local(args):
             continue
         rel = str(path.relative_to(PROJECT_ROOT))
         chunks = create_chunks_from_words(words, vid, rel)
-        print(f"  {vid}: {len(words)} words → {len(chunks)} chunks")
+        # どの転写でできたチャンクかを残す。AssemblyAI由来とQwen由来が
+        # 素性不明のまま同居した索引を二度と作らないため (2026-07-28)。
+        stt_name = data.get("stt") if isinstance(data, dict) else None
+        for c in chunks:
+            c["stt"] = stt_name or "unknown"
+        print(f"  {vid}: {len(words)} words → {len(chunks)} chunks [{stt_name or 'unknown'}]")
         all_chunks.extend(chunks)
 
     if not all_chunks:
@@ -1459,6 +1482,10 @@ def cmd_build_local(args):
         "model": RURI_MODEL_NAME,
         "embed_dim": int(merged_emb.shape[1]),
         "months": months,
+        "include_bulk": include_bulk,
+        # 索引の中身がどの転写由来か一目で分かるようにする
+        "stt_breakdown": {s: sum(1 for m in merged_meta if m.get("stt") == s)
+                          for s in sorted({m.get("stt", "unknown") for m in merged_meta})},
     }
     with open(LOCAL_BUILD_INFO, "w", encoding="utf-8") as fp:
         json.dump(info, fp, ensure_ascii=False, indent=2)
@@ -1532,7 +1559,9 @@ def main():
 
     # build-local (Ruri v3 ローカルembedding)
     bl = sub.add_parser("build-local", help="Ruri v3でローカルembeddingインデックス構築 (scene_index_local)")
-    bl.add_argument("--months", required=True, help="対象月 カンマ区切り 例: 202601,202602,202603")
+    bl.add_argument("--months", default="", help="対象月 カンマ区切り 例: 202601,202602,202603")
+    bl.add_argument("--bulk", action="store_true",
+                    help="work/_bulk_dl/<vid>/merged_*.json も対象に加える (素材本体137本)")
     bl.add_argument("--update", action="store_true", help="既存localインデックスに新規動画のみ追加")
 
     # query-local (Ruri v3 ローカル検索)

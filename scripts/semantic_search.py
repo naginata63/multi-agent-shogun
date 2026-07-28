@@ -75,9 +75,24 @@ def get_data_sources():
             sources.append(("tasks", str(f)))
 
     # 3. memory/*.md
-    mem_dir = BASE_DIR / ".claude" / "projects" / "-home-murakami-multi-agent-shogun" / "memory"
-    if mem_dir.exists():
-        for f in mem_dir.glob("*.md"):
+    # 2026-07-28: 旧実装は BASE_DIR 配下の .claude/... を見ており、孤児の4ファイルしか
+    # 拾えていなかった。実体は (a) Claude Code の memory (HOME配下・55件) と
+    # (b) リポジトリの memory/ (115件) の2箇所。両方を索引する。
+    # archive/ と note_c2_assets/ は過去物・素材ゆえ除外。
+    mem_seen = set()
+    mem_globs = [
+        (Path.home() / ".claude" / "projects" / "-home-murakami-multi-agent-shogun" / "memory", "*.md"),
+        (BASE_DIR / "memory", "*.md"),
+        (BASE_DIR / "memory" / "feedback", "*.md"),
+    ]
+    for mem_dir, pat in mem_globs:
+        if not mem_dir.exists():
+            continue
+        for f in sorted(mem_dir.glob(pat)):
+            rp = str(f.resolve())
+            if rp in mem_seen:
+                continue
+            mem_seen.add(rp)
             sources.append(("memory", str(f)))
 
     # 4. dozle context/*.md
@@ -537,10 +552,20 @@ def collect_chunks(source_filter: Optional[str] = None):
         all_chunks.extend(load_comments())
     if not source_filter or source_filter == "git":
         all_chunks.extend(load_git_commits())
-    if not source_filter or source_filter == "logs":
+    # logs は既定で索引しない (2026-07-28)。
+    # 理由: (1) 実測で検索結果の上位を advisor_proxy.log 等が占め、実用の妨げになっていた
+    #       (2) ログはローテートで消えるが台帳側は残り続け、26万件中の大半が
+    #           実体のない残骸になっていた。--source logs で明示した時のみ収集する。
+    if source_filter == "logs":
         all_chunks.extend(load_error_logs())
 
-    return all_chunks
+    # 空テキストは embedding API が 400 (No text parts found) を返すため除く。
+    # 旧バッチ実装では他チャンクと連結され表面化しなかった (2026-07-28)。
+    dropped = [c for c in all_chunks if not c["text"].strip()]
+    if dropped:
+        print(f"  空テキスト {len(dropped)} チャンクを除外: "
+              f"{', '.join(c['chunk_id'] for c in dropped[:3])}", file=sys.stderr)
+    return [c for c in all_chunks if c["text"].strip()]
 
 
 # ===== Embedding =====
@@ -553,47 +578,54 @@ class QuotaExhaustedError(Exception):
 
 
 def embed_texts(client, texts: list[str], task_type: str = "RETRIEVAL_DOCUMENT") -> np.ndarray:
-    """テキストリストのembedding取得（バッチ処理、429時は指数バックオフで再試行）"""
-    all_embeds = []
-    total_batches = (len(texts) + BATCH_SIZE - 1) // BATCH_SIZE
-    for i in range(0, len(texts), BATCH_SIZE):
-        batch = texts[i: i + BATCH_SIZE]
-        batch_idx = i // BATCH_SIZE + 1
-        print(f"  Embedding batch {batch_idx}/{total_batches} ({len(batch)} items)...", file=sys.stderr)
-        succeeded = False
+    """テキスト1件につき1ベクトルを取得する。
+
+    2026-07-28: 旧実装は 50件ずつ contents=[...] に渡していたが、この model の
+    embedContent API は content を一度に1つしか受け付けず、50件を連結した
+    「混ぜ物」のベクトルを1個だけ返していた。結果、索引には50件につき1本しか
+    入らず、台帳だけが50件ずつ伸びて対応が完全に崩れていた
+    (索引5,695 / 台帳268,825 = 約47倍)。検索は別の文書の中身を返していた。
+    以後、必ず1件ずつ呼び、入力数と出力数の一致を保証する。
+    """
+    out = []
+    n = len(texts)
+    for i, text in enumerate(texts):
+        vec = None
         for attempt in range(3):
             try:
                 response = client.models.embed_content(
                     model=EMBED_MODEL,
-                    contents=batch,
+                    contents=[text],
                     config=genai_types.EmbedContentConfig(
                         task_type=task_type,
                         output_dimensionality=EMBED_DIM,
                     ),
                 )
-                for emb in response.embeddings:
-                    all_embeds.append(emb.values)
-                time.sleep(BATCH_INTER_SLEEP_SEC)  # レート制限対策（成功時・cmd_1451で0.5→4s拡大）
-                succeeded = True
+                if len(response.embeddings) != 1:
+                    raise RuntimeError(
+                        f"expected 1 embedding, got {len(response.embeddings)}")
+                vec = response.embeddings[0].values
                 break
             except Exception as e:
                 err_s = str(e)
                 if "429" in err_s or "RESOURCE_EXHAUSTED" in err_s:
-                    wait = 60 * (attempt + 1)
-                    print(f"  [quota] batch {batch_idx} hit 429 quota; waiting {wait}s before retry {attempt+2}/3", flush=True, file=sys.stderr)
+                    wait = 30 * (attempt + 1)
+                    print(f"  [quota] item {i+1}/{n} throttled; waiting {wait}s "
+                          f"before retry {attempt+2}/3", flush=True, file=sys.stderr)
                     time.sleep(wait)
                     continue
-                # 非クォータ系エラーはそのまま上位へ
                 raise
-        if not succeeded:
-            # 3回 429 で諦め → アボート（ゼロベクトルで黙ってデータ汚染するのを避ける）
-            # メッセージに "error"/"fail"/"exception" 等の cron_health_check パターン語を
-            # 含めないこと (含むと C02 が false-positive で再発火する)。
+        if vec is None:
             raise QuotaExhaustedError(
-                f"batch {batch_idx}/{total_batches} hit quota ceiling after 3 retries; "
-                "skipping update until next cycle to avoid zero-vector data pollution"
-            )
-    return np.array(all_embeds, dtype=np.float32)
+                f"item {i+1}/{n} hit quota ceiling after 3 retries; "
+                "skipping update until next cycle to avoid partial index")
+        out.append(vec)
+        if (i + 1) % 200 == 0 or i + 1 == n:
+            print(f"  embedded {i+1}/{n}", flush=True, file=sys.stderr)
+
+    if len(out) != n:
+        raise RuntimeError(f"embedded {len(out)} != requested {n}")
+    return np.array(out, dtype=np.float32)
 
 
 # ===== インデックス操作 =====
@@ -657,9 +689,16 @@ def cmd_build(args):
     faiss.normalize_L2(embeds)
     index.add(embeds)
 
-    faiss.write_index(index, str(INDEX_FILE))
-    with open(META_FILE, "w", encoding="utf-8") as f:
+    if index.ntotal != len(chunks):
+        raise RuntimeError(
+            f"index.ntotal {index.ntotal} != chunks {len(chunks)}; aborting write")
+
+    tmp_idx, tmp_meta = str(INDEX_FILE) + ".tmp", str(META_FILE) + ".tmp"
+    faiss.write_index(index, tmp_idx)
+    with open(tmp_meta, "w", encoding="utf-8") as f:
         json.dump(chunks, f, ensure_ascii=False, indent=2)
+    os.replace(tmp_idx, str(INDEX_FILE))
+    os.replace(tmp_meta, str(META_FILE))
 
     hashes = {c["chunk_id"]: chunk_hash(c) for c in chunks}
     save_hashes(hashes)
@@ -706,12 +745,29 @@ def cmd_update(args):
         index = existing_index
         all_meta = existing_meta
 
+    # 索引と台帳は必ず 1:1 で対応していなければならない。
+    # 2026-07-28: この対応が崩れ (索引5,695 / 台帳268,825)、検索が「別の文書の中身」を
+    # 返し続けていた。埋め込み数と追加メタ数が食い違ったら書き込まず中断する。
+    if len(embeds) != len(to_add):
+        raise RuntimeError(
+            f"embedding count {len(embeds)} != chunk count {len(to_add)}; "
+            "aborting write to keep index and metadata aligned")
+
     index.add(embeds)
     all_meta.extend(to_add)
 
-    faiss.write_index(index, str(INDEX_FILE))
-    with open(META_FILE, "w", encoding="utf-8") as f:
+    if index.ntotal != len(all_meta):
+        raise RuntimeError(
+            f"index.ntotal {index.ntotal} != metadata {len(all_meta)}; "
+            "index and metadata are out of sync — run 'build' to rebuild from scratch")
+
+    # 一時ファイルに書いてから差し替える (途中で落ちても片方だけ新しくならないように)
+    tmp_idx, tmp_meta = str(INDEX_FILE) + ".tmp", str(META_FILE) + ".tmp"
+    faiss.write_index(index, tmp_idx)
+    with open(tmp_meta, "w", encoding="utf-8") as f:
         json.dump(all_meta, f, ensure_ascii=False, indent=2)
+    os.replace(tmp_idx, str(INDEX_FILE))
+    os.replace(tmp_meta, str(META_FILE))
 
     # ハッシュ更新
     for c in to_add:
