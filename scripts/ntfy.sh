@@ -81,7 +81,10 @@ _archive_old_done_cmds() {
 
     # done件数カウント
     local DONE_COUNT
-    DONE_COUNT=$(grep -c "status: done" "$YAML" 2>/dev/null || echo 0)
+    # grep -c は0件でも "0" を出しつつ exit 1 になるため、|| echo 0 を付けると
+    # "0\n0" となり数値比較が壊れる (2026-07-29 修正)。grep 自身の出力だけを使う。
+    DONE_COUNT=$(grep -c "status: done" "$YAML" 2>/dev/null)
+    DONE_COUNT=${DONE_COUNT:-0}
     if [ "$DONE_COUNT" -le "$THRESHOLD" ]; then
         return 0
     fi
