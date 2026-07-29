@@ -1364,6 +1364,11 @@ def _parse_merged_stem(stem):
     is_speaker_id = s.endswith("_speaker_id")
     if is_speaker_id:
         s = s[: -len("_speaker_id")]
+    # 高画質で取り直した動画は <id>_hd という名前で保存されている。
+    # 2026-07-28: これが11桁ID判定に落ちて索引から丸ごと漏れていた。
+    # 中身は同一動画ゆえ基底IDへ寄せ、_hd 版しか無い動画も拾えるようにする。
+    if s.endswith("_hd"):
+        s = s[: -len("_hd")]
     return (s if _YTID_RE.match(s) else None), is_vocals, is_speaker_id
 
 
