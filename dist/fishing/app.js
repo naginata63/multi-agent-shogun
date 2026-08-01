@@ -411,6 +411,40 @@ $('mTiles').onclick = async () => {
 // ---------- Wake Lock 手動トグル ----------
 $('mWake').onclick = () => { if (wakeLock) { wakeWanted = false; releaseWake(); } else { wakeWanted = true; acquireWake(); } };
 
+// ---------- 自己診断 (地図が出ない問題の切り分け用・位置情報は含めない) ----------
+const DIAG_URL = 'https://ntfy.sh/tsurilog-diag-7c31';
+async function runDiag(auto) {
+  const r = { v: '1.2', native: IS_NATIVE, ua: navigator.userAgent, online: navigator.onLine,
+              errs: window.__diagErrs || [], leaflet: typeof L !== 'undefined',
+              mapInit: typeof map !== 'undefined' && !!map, tileErrN, tests: {} };
+  const tile = 'https://tile.openstreetmap.org/11/1817/806.png';
+  // test1: <img> 読込 (Leafletと同じ経路)
+  r.tests.img = await new Promise(res => {
+    const im = new Image(); const t0 = Date.now();
+    const done = ok => res(ok + ' ' + (Date.now() - t0) + 'ms');
+    im.onload = () => done('OK'); im.onerror = () => done('FAIL');
+    setTimeout(() => done('TIMEOUT'), 8000);
+    im.src = tile + '?d=' + Date.now();
+  });
+  // test2: fetch 直
+  try { const f = await fetch(tile + '?f=' + Date.now(), { cache: 'no-store' });
+        r.tests.fetch = f.status + ' ' + f.type; }
+  catch (e) { r.tests.fetch = 'ERR: ' + e.message; }
+  // test3: 自サイト接続
+  try { const f = await fetch('https://genai-daily.pages.dev/fishing/manifest.webmanifest?d=' + Date.now(), { cache: 'no-store' });
+        r.tests.site = String(f.status); }
+  catch (e) { r.tests.site = 'ERR: ' + e.message; }
+  // test4: SW 状態
+  try { r.tests.sw = 'serviceWorker' in navigator ? (await navigator.serviceWorker.getRegistrations()).length : 'none'; }
+  catch (e) { r.tests.sw = 'ERR: ' + e.message; }
+  const body = JSON.stringify(r);
+  try { await fetch(DIAG_URL, { method: 'POST', body, headers: { Title: 'tsurilog-diag' } }); } catch (e) {}
+  const short = `img:${r.tests.img} / fetch:${r.tests.fetch} / site:${r.tests.site} / sw:${r.tests.sw} / err:${r.errs.length}`;
+  if (!auto) alert('診断結果(送信済)\n' + short + '\n' + r.errs.slice(0,3).join('\n'));
+  else toast('🔧 診断送信済: ' + short, 6000);
+}
+if (IS_NATIVE) setTimeout(() => runDiag(true), 6000);
+
 // ---------- 起動 ----------
 if (IS_NATIVE) $('wakeState').textContent = '不要(アプリ版は画面OFF可)';
 startWatch();

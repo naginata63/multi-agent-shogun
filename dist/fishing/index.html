@@ -120,6 +120,12 @@ small.note{color:var(--sub);display:block;margin-top:6px;line-height:1.5}
   </div>
 </div>
 
+<script>
+/* 診断: 最初期のJSエラーも取りこぼさず捕捉 */
+window.__diagErrs = [];
+window.addEventListener('error', e => window.__diagErrs.push((e.message||'?') + ' @' + (e.filename||'').split('/').pop() + ':' + e.lineno));
+window.addEventListener('unhandledrejection', e => window.__diagErrs.push('unhandled: ' + (e.reason && e.reason.message || e.reason)));
+</script>
 <script src="vendor/leaflet.js"></script>
 <script src="app.js"></script>
 </body>
