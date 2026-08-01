@@ -7,6 +7,13 @@
  */
 'use strict';
 
+// ---------- ネイティブ(Capacitor)検出 ----------
+// APK版では @capacitor-community/background-geolocation の Foreground Service で
+// 画面OFFでも記録継続。ブラウザ(PWA)では従来どおり watchPosition + WakeLock。
+const IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+const CapBG = IS_NATIVE ? window.Capacitor.registerPlugin('BackgroundGeolocation') : null;
+let bgWatcherId = null;
+
 // ---------- ユーティリティ ----------
 const $ = id => document.getElementById(id);
 const toast = (msg, ms = 2200) => {
@@ -137,6 +144,30 @@ function startWatch() {
   watching = navigator.geolocation.watchPosition(onPos, onPosErr,
     { enableHighAccuracy: true, maximumAge: 1000, timeout: 20000 });
 }
+function stopBrowserWatch() {
+  if (watching != null) { navigator.geolocation.clearWatch(watching); watching = null; }
+}
+// ネイティブ: Foreground Service 測位(画面OFFでも継続)
+function startNativeWatch() {
+  return CapBG.addWatcher({
+    backgroundTitle: '🎣 釣りログ',
+    backgroundMessage: 'GPS軌跡を記録中(タップで戻る)',
+    requestPermissions: true,
+    stale: false,
+    distanceFilter: 3
+  }, (loc, err) => {
+    if (err) {
+      if (err.code === 'NOT_AUTHORIZED' &&
+          confirm('位置情報の権限がありませぬ。設定を開きますか？')) CapBG.openSettings();
+      return;
+    }
+    onPos({ coords: { latitude: loc.latitude, longitude: loc.longitude,
+                      accuracy: loc.accuracy || 99, speed: loc.speed } });
+  }).then(id => { bgWatcherId = id; });
+}
+function stopNativeWatch() {
+  if (bgWatcherId) { CapBG.removeWatcher({ id: bgWatcherId }); bgWatcherId = null; }
+}
 
 // ---------- Wake Lock ----------
 let wakeLock = null, wakeWanted = false;
@@ -152,7 +183,11 @@ function releaseWake() { if (wakeLock) { wakeLock.release(); wakeLock = null; } 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
     if (wakeWanted) acquireWake();
-    if (S) toast('復帰いたした。バックグラウンド中は記録が止まりまする', 3000);
+    if (S && !IS_NATIVE) toast('復帰いたした。バックグラウンド中は記録が止まりまする', 3000);
+    if (S && IS_NATIVE && trackLine) {
+      // 画面OFF中に貯まった点を線に反映
+      trackLine.setLatLngs(S.points.map(p => [p[1], p[2]]));
+    }
   }
 });
 
@@ -168,7 +203,8 @@ function beginTracking(resume) {
     trackLine = L.polyline(S.points.map(p => [p[1], p[2]]), { color: '#2fa8ff', weight: 4, opacity: .9 }).addTo(map);
     S.hits.forEach((h, i) => drawHit(h, i + 1));
   }
-  wakeWanted = true; acquireWake();
+  if (IS_NATIVE) { stopBrowserWatch(); startNativeWatch(); }
+  else { wakeWanted = true; acquireWake(); }
   $('btnStart').textContent = '■ 停止'; $('btnStart').classList.add('stop');
   $('btnHit').style.display = 'block';
   $('recdot').style.display = 'flex';
@@ -182,6 +218,7 @@ function stopTracking() {
   S.end = Date.now(); persist();
   localStorage.removeItem('fl_active');
   clearInterval(tickTimer);
+  if (IS_NATIVE) { stopNativeWatch(); startWatch(); }
   wakeWanted = false; releaseWake();
   $('btnStart').textContent = '▶ 記録開始'; $('btnStart').classList.remove('stop');
   $('btnHit').style.display = 'none';
@@ -370,6 +407,7 @@ $('mTiles').onclick = async () => {
 $('mWake').onclick = () => { if (wakeLock) { wakeWanted = false; releaseWake(); } else { wakeWanted = true; acquireWake(); } };
 
 // ---------- 起動 ----------
+if (IS_NATIVE) $('wakeState').textContent = '不要(アプリ版は画面OFF可)';
 startWatch();
 // 中断からの復帰
 (() => {
