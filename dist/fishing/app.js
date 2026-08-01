@@ -10,8 +10,11 @@
 // ---------- ネイティブ(Capacitor)検出 ----------
 // APK版では @capacitor-community/background-geolocation の Foreground Service で
 // 画面OFFでも記録継続。ブラウザ(PWA)では従来どおり watchPosition + WakeLock。
-const IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
-const CapBG = IS_NATIVE ? window.Capacitor.registerPlugin('BackgroundGeolocation') : null;
+let IS_NATIVE = false, CapBG = null;
+try {
+  IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  if (IS_NATIVE && window.Capacitor.registerPlugin) CapBG = window.Capacitor.registerPlugin('BackgroundGeolocation');
+} catch (e) { if (window.__showErr) window.__showErr('plugin登録失敗: ' + e.message); }
 let bgWatcherId = null;
 
 // ---------- ユーティリティ ----------
@@ -208,8 +211,13 @@ function beginTracking(resume) {
     trackLine = L.polyline(S.points.map(p => [p[1], p[2]]), { color: '#2fa8ff', weight: 4, opacity: .9 }).addTo(map);
     S.hits.forEach((h, i) => drawHit(h, i + 1));
   }
-  if (IS_NATIVE) { stopBrowserWatch(); startNativeWatch(); }
-  else { wakeWanted = true; acquireWake(); }
+  if (IS_NATIVE && CapBG) {
+    stopBrowserWatch();
+    startNativeWatch().catch(e => {
+      if (window.__showErr) window.__showErr('BG測位失敗: ' + e.message);
+      startWatch(); wakeWanted = true; acquireWake();
+    });
+  } else { wakeWanted = true; acquireWake(); }
   $('btnStart').textContent = '■ 停止'; $('btnStart').classList.add('stop');
   $('btnHit').style.display = 'block';
   $('recdot').style.display = 'flex';
@@ -376,6 +384,7 @@ $('mHits').onclick = () => {
 
 // ---------- 圏外用タイル保存 ----------
 $('mTiles').onclick = async () => {
+  if (IS_NATIVE) { toast('アプリ版では不要でござる(一度表示した地図は端末が自動保持)', 3500); return; }
   if (!('caches' in window)) { toast('この環境ではタイル保存に非対応'); return; }
   const zooms = [];
   const zNow = Math.round(map.getZoom());
@@ -460,4 +469,5 @@ startWatch();
   } else localStorage.removeItem('fl_active');
 })();
 // Service Worker
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+// SWはブラウザ版のみ(APK版は資産が端末内蔵ゆえ不要・残留キャッシュ事故防止)
+if (!IS_NATIVE && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');

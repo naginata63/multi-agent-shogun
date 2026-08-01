@@ -121,10 +121,35 @@ small.note{color:var(--sub);display:block;margin-top:6px;line-height:1.5}
 </div>
 
 <script>
-/* 診断: 最初期のJSエラーも取りこぼさず捕捉 */
+/* APK版: 残留Service Worker/キャッシュを起動即破棄(旧シェル配信の根絶) */
+if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.getRegistrations()
+      .then(rs => rs.forEach(r => r.unregister()));
+    if (window.caches) caches.keys().then(ks => ks.forEach(k => caches.delete(k)));
+  } catch (e) {}
+}
+/* 診断: 最初期のJSエラーも取りこぼさず捕捉し、赤帯で画面表示(依存ゼロ) */
 window.__diagErrs = [];
-window.addEventListener('error', e => window.__diagErrs.push((e.message||'?') + ' @' + (e.filename||'').split('/').pop() + ':' + e.lineno));
-window.addEventListener('unhandledrejection', e => window.__diagErrs.push('unhandled: ' + (e.reason && e.reason.message || e.reason)));
+window.__showErr = function (msg) {
+  try {
+    var d = document.getElementById('errbanner');
+    if (!d) {
+      d = document.createElement('div'); d.id = 'errbanner';
+      d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#a11;color:#fff;font:12px/1.5 monospace;padding:8px;white-space:pre-wrap;word-break:break-all';
+      (document.body || document.documentElement).appendChild(d);
+    }
+    d.textContent += msg + '\n';
+  } catch (e) {}
+};
+window.addEventListener('error', function (e) {
+  var m = (e.message||'?') + ' @' + (e.filename||'').split('/').pop() + ':' + e.lineno;
+  window.__diagErrs.push(m); window.__showErr('⛔ ' + m);
+});
+window.addEventListener('unhandledrejection', function (e) {
+  var m = 'unhandled: ' + (e.reason && e.reason.message || e.reason);
+  window.__diagErrs.push(m); window.__showErr('⛔ ' + m);
+});
 </script>
 <script src="vendor/leaflet.js"></script>
 <script src="app.js"></script>
