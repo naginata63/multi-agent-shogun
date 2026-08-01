@@ -59,7 +59,12 @@ const store = {
 const map = L.map('map', { zoomControl: false, attributionControl: true }).setView([35.30, 139.48], 11);
 L.control.attribution({ prefix: false }).addAttribution('© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors');
 const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-L.tileLayer(TILE_URL, { maxZoom: 18, crossOrigin: 'anonymous' }).addTo(map);
+const tileLayer = L.tileLayer(TILE_URL, { maxZoom: 18 }).addTo(map);
+let tileErrN = 0;
+tileLayer.on('tileerror', () => {
+  tileErrN++;
+  if (tileErrN === 3) toast('⚠️ 地図タイルの読込に失敗しております(通信環境を確認)', 4000);
+});
 
 let posMarker = null, accCircle = null, trackLine = null;
 const hitLayer = L.layerGroup().addTo(map);

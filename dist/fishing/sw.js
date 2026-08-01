@@ -1,5 +1,5 @@
 /* 釣りログ SW — アプリ本体は事前キャッシュ、地図タイルは cache-first で貯める */
-const APP_CACHE = 'fl-app-v1';
+const APP_CACHE = 'fl-app-v2';
 const TILE_CACHE = 'fl-tiles-v1';
 const SHELL = ['./', './index.html', './app.js', './vendor/leaflet.js', './vendor/leaflet.css',
   './manifest.webmanifest', './icon-192.png', './icon-512.png'];
@@ -23,13 +23,10 @@ self.addEventListener('fetch', e => {
       const cache = await caches.open(TILE_CACHE);
       const hit = await cache.match(e.request);
       if (hit) return hit;
-      try {
-        const r = await fetch(e.request);
-        if (r.ok) cache.put(e.request, r.clone());
-        return r;
-      } catch (err) {
-        return new Response('', { status: 404 }); // 圏外&未保存タイルは空
-      }
+      // fetch失敗時は素通し(偽404を作らない — WebViewで地図が消える事故防止)
+      const r = await fetch(e.request);
+      try { if (r && (r.ok || r.type === 'opaque')) cache.put(e.request, r.clone()); } catch (_) {}
+      return r;
     })());
     return;
   }
