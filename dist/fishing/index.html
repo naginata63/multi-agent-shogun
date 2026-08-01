@@ -150,6 +150,38 @@ window.addEventListener('unhandledrejection', function (e) {
   var m = 'unhandled: ' + (e.reason && e.reason.message || e.reason);
   window.__diagErrs.push(m); window.__showErr('⛔ ' + m);
 });
+/* 資源(script/img等)の読込失敗は capture でのみ拾える */
+window.addEventListener('error', function (e) {
+  if (e && e.target && e.target !== window && (e.target.src || e.target.href)) {
+    var m = '読込失敗: ' + (e.target.src || e.target.href);
+    window.__diagErrs.push(m); window.__showErr('📛 ' + m);
+  }
+}, true);
+/* 内蔵フル診断: 外部スクリプトが全滅でも必ず走る */
+setTimeout(function () {
+  var out = [];
+  out.push('leaflet:' + (typeof L !== 'undefined' ? 'OK' : '未読込'));
+  out.push('app.js:' + (window.__appLoaded ? 'OK' : '未読込/途中死'));
+  out.push('capacitor:' + (window.Capacitor ? 'OK' : '無'));
+  out.push('online:' + navigator.onLine);
+  var done = 0, results = { boot: out.join(' / ') , errs: window.__diagErrs, ua: navigator.userAgent };
+  function finish() {
+    if (++done < 2) return;
+    var text = '🔧内蔵診断: ' + results.boot + ' / tile:' + results.tile + ' / site:' + results.site;
+    window.__showErr(text);
+    try { fetch('https://ntfy.sh/tsurilog-diag-7c31', { method: 'POST', body: JSON.stringify(results) }); } catch (e) {}
+  }
+  var im = new Image(); var t0 = Date.now();
+  im.onload = function () { results.tile = 'OK ' + (Date.now() - t0) + 'ms'; finish(); };
+  im.onerror = function () { results.tile = 'FAIL'; finish(); };
+  setTimeout(function () { if (!results.tile) { results.tile = 'TIMEOUT'; finish(); } }, 8000);
+  im.src = 'https://tile.openstreetmap.org/11/1817/806.png?d=' + Date.now();
+  try {
+    fetch('https://genai-daily.pages.dev/fishing/manifest.webmanifest?d=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { results.site = r.status; finish(); },
+            function (e) { results.site = 'ERR:' + e.message; finish(); });
+  } catch (e) { results.site = 'THROW:' + e.message; finish(); }
+}, 3000);
 </script>
 <script src="vendor/leaflet.js"></script>
 <script src="app.js"></script>

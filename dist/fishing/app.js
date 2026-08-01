@@ -471,3 +471,5 @@ startWatch();
 // Service Worker
 // SWはブラウザ版のみ(APK版は資産が端末内蔵ゆえ不要・残留キャッシュ事故防止)
 if (!IS_NATIVE && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+
+window.__appLoaded = true;
