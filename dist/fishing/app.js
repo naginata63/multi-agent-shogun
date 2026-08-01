@@ -15,7 +15,30 @@ try {
   IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
   if (IS_NATIVE && window.Capacitor.registerPlugin) CapBG = window.Capacitor.registerPlugin('BackgroundGeolocation');
 } catch (e) { if (window.__showErr) window.__showErr('plugin登録失敗: ' + e.message); }
+let CapBgLog = null;
+try { if (IS_NATIVE && window.Capacitor.registerPlugin) CapBgLog = window.Capacitor.registerPlugin('BgLog'); } catch (e) {}
 let bgWatcherId = null;
+let mergeTimer = null;
+// 画面OFF中にネイティブが直書きした位置ログを軌跡へ合流
+async function mergeNativeLog() {
+  if (!CapBgLog || !S) return;
+  try {
+    const res = await CapBgLog.read();
+    const locs = (res && res.locations) || [];
+    if (!locs.length) return;
+    locs.sort((a, b) => a.t - b.t);
+    const lastT = S.points.length ? S.points[S.points.length - 1][0] : 0;
+    let n = 0;
+    for (const l of locs) {
+      if (!l || l.t <= lastT) continue;
+      maybeRecord(l.t, l.lat, l.lng, l.acc == null ? 99 : l.acc, l.spd >= 0 ? l.spd * 3.6 : null);
+      n++;
+    }
+    await CapBgLog.clear();
+    if (n && trackLine) trackLine.setLatLngs(S.points.map(p => [p[1], p[2]]));
+    if (n) persist();
+  } catch (e) {}
+}
 
 // ---------- ユーティリティ ----------
 const $ = id => document.getElementById(id);
@@ -192,10 +215,7 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
     if (wakeWanted) acquireWake();
     if (S && !IS_NATIVE) toast('復帰いたした。バックグラウンド中は記録が止まりまする', 3000);
-    if (S && IS_NATIVE && trackLine) {
-      // 画面OFF中に貯まった点を線に反映
-      trackLine.setLatLngs(S.points.map(p => [p[1], p[2]]));
-    }
+    if (S && IS_NATIVE) mergeNativeLog();
   }
 });
 
@@ -212,6 +232,10 @@ function beginTracking(resume) {
     S.hits.forEach((h, i) => drawHit(h, i + 1));
   }
   if (IS_NATIVE && CapBG) {
+    if (!resume && CapBgLog) CapBgLog.clear().catch(() => {});
+    if (resume) mergeNativeLog();
+    clearInterval(mergeTimer);
+    mergeTimer = setInterval(mergeNativeLog, 15000);
     stopBrowserWatch();
     startNativeWatch().catch(e => {
       if (window.__showErr) window.__showErr('BG測位失敗: ' + e.message);
@@ -227,7 +251,9 @@ function beginTracking(resume) {
   }, 1000);
   toast(resume ? '記録を再開いたした' : '記録開始。良い釣りを！');
 }
-function stopTracking() {
+async function stopTracking() {
+  clearInterval(mergeTimer); mergeTimer = null;
+  if (IS_NATIVE) { try { await mergeNativeLog(); } catch (e) {} }
   S.end = Date.now(); persist();
   localStorage.removeItem('fl_active');
   clearInterval(tickTimer);
