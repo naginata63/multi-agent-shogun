@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0b1c2c">
+<title>釣りログ — GPS軌跡記録</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<style>
+:root{--bg:#0b1c2c;--panel:#12283c;--line:#1f3a55;--acc:#2fa8ff;--ok:#27c46a;--warn:#ffb52e;--bad:#ff5a5a;--fg:#eaf2fa;--sub:#8fa8bd}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;background:var(--bg);color:var(--fg);overflow:hidden;position:fixed;width:100%}
+#map{position:absolute;inset:0;background:#0a2030}
+/* 上部ステータスバー */
+#statbar{position:absolute;top:0;left:0;right:0;z-index:1000;display:flex;gap:2px;
+  padding:calc(env(safe-area-inset-top,0px) + 6px) 6px 6px;pointer-events:none}
+.stat{flex:1;background:rgba(11,28,44,.88);border-radius:10px;padding:6px 4px;text-align:center;backdrop-filter:blur(4px)}
+.stat .v{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat .l{font-size:10px;color:var(--sub);margin-top:1px}
+#accv.good{color:var(--ok)} #accv.mid{color:var(--warn)} #accv.bad{color:var(--bad)}
+/* 記録中インジケータ */
+#recdot{position:absolute;top:calc(env(safe-area-inset-top,0px) + 62px);left:10px;z-index:1000;
+  display:none;align-items:center;gap:6px;background:rgba(11,28,44,.85);padding:4px 10px;border-radius:14px;font-size:12px}
+#recdot .d{width:10px;height:10px;border-radius:50%;background:var(--bad);animation:bl 1.2s infinite}
+@keyframes bl{50%{opacity:.25}}
+/* 下部コントロール */
+#ctrl{position:absolute;left:0;right:0;bottom:0;z-index:1000;display:flex;gap:8px;align-items:flex-end;
+  padding:10px 10px calc(env(safe-area-inset-bottom,0px) + 12px)}
+button{border:0;border-radius:14px;font-family:inherit;font-weight:800;color:#fff;cursor:pointer}
+#btnStart{flex:1.2;height:64px;font-size:20px;background:var(--ok)}
+#btnStart.stop{background:var(--bad)}
+#btnHit{flex:1.6;height:64px;font-size:22px;background:var(--acc);display:none}
+#btnFollow{width:64px;height:64px;font-size:24px;background:var(--panel)}
+#btnFollow.on{background:#1c4e79}
+#btnMenu{width:64px;height:64px;font-size:24px;background:var(--panel)}
+/* トースト */
+#toast{position:absolute;left:50%;bottom:110px;transform:translateX(-50%);z-index:1200;background:rgba(20,40,60,.95);
+  padding:10px 18px;border-radius:12px;font-size:14px;display:none;max-width:86%;text-align:center}
+/* パネル(メニュー/一覧) */
+.sheet{position:absolute;inset:0;z-index:1500;background:rgba(4,10,16,.55);display:none}
+.sheet .body{position:absolute;left:0;right:0;bottom:0;max-height:82%;overflow:auto;background:var(--panel);
+  border-radius:18px 18px 0 0;padding:14px 14px calc(env(safe-area-inset-bottom,0px) + 14px)}
+.sheet h2{margin:2px 0 10px;font-size:16px}
+.row{display:flex;gap:8px;margin:8px 0}
+.row button{flex:1;height:46px;font-size:14px;background:#1c4160}
+.row button.warn{background:#7a2d2d}
+.card{background:#0e2236;border-radius:12px;padding:10px;margin:8px 0;font-size:13px}
+.card b{font-size:14px}
+.card .sub{color:var(--sub);font-size:12px;margin-top:2px}
+.card .ops{display:flex;gap:6px;margin-top:8px}
+.card .ops button{flex:1;height:38px;font-size:13px;background:#1c4160}
+.card .ops button.warn{background:#7a2d2d}
+input,textarea{width:100%;background:#0b1a29;border:1px solid #24455f;border-radius:8px;color:var(--fg);
+  font-family:inherit;font-size:14px;padding:8px;margin:4px 0}
+#hitform label{font-size:12px;color:var(--sub)}
+.x{position:absolute;top:10px;right:12px;font-size:22px;background:none;color:var(--sub)}
+.leaflet-control-attribution{background:rgba(11,28,44,.7)!important;color:#8fa8bd!important;font-size:9px!important}
+.leaflet-control-attribution a{color:#5f89a8!important}
+small.note{color:var(--sub);display:block;margin-top:6px;line-height:1.5}
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div id="statbar">
+  <div class="stat"><div class="v" id="tv">0:00</div><div class="l">経過</div></div>
+  <div class="stat"><div class="v" id="dv">0.00</div><div class="l">距離 km</div></div>
+  <div class="stat"><div class="v" id="sv">0.0</div><div class="l">速度 km/h</div></div>
+  <div class="stat"><div class="v" id="accv">--</div><div class="l">GPS精度 m</div></div>
+</div>
+<div id="recdot"><span class="d"></span><span id="reclabel">記録中</span></div>
+
+<div id="ctrl">
+  <button id="btnStart">▶ 記録開始</button>
+  <button id="btnHit">🎣 ヒット!</button>
+  <button id="btnFollow" class="on" title="現在地追尾">🧭</button>
+  <button id="btnMenu">☰</button>
+</div>
+<div id="toast"></div>
+
+<!-- メニュー -->
+<div class="sheet" id="menu">
+  <div class="body">
+    <button class="x" data-close="menu">✕</button>
+    <h2>メニュー</h2>
+    <div class="row"><button id="mExportGpx">GPX書き出し</button><button id="mExportCsv">CSV書き出し</button></div>
+    <div class="row"><button id="mSessions">記録一覧</button><button id="mHits">ヒット一覧</button></div>
+    <div class="row"><button id="mTiles">この画面の海域地図を保存(圏外用)</button></div>
+    <div class="row"><button id="mWake">画面を常時ON: <span id="wakeState">--</span></button></div>
+    <small class="note" id="storInfo"></small>
+    <small class="note">・記録データはこの端末のブラウザ内にのみ保存されまする(サーバー送信なし)。<br>
+    ・沖に出る前にこのページを一度開き、「海域地図を保存」を押しておくと圏外でも地図が出まする。<br>
+    ・記録中は画面を点けたままに(消灯するとブラウザのGPSが止まるため)。地図 © OpenStreetMap contributors</small>
+  </div>
+</div>
+
+<!-- ヒット入力 -->
+<div class="sheet" id="hitsheet">
+  <div class="body" id="hitform">
+    <button class="x" data-close="hitsheet">✕</button>
+    <h2>🎣 ヒット記録 <span id="hitTitle"></span></h2>
+    <label>魚種</label><input id="hFish" placeholder="例: マダイ">
+    <label>サイズ(cm)・重さ等</label><input id="hSize" placeholder="例: 45cm">
+    <label>メモ(ルアー・タナ・潮など)</label><textarea id="hMemo" rows="2" placeholder="例: ジグ赤金60g 着底から5巻き"></textarea>
+    <div class="row"><button id="hSave">保存</button></div>
+    <small class="note">位置と時刻は押した瞬間のものが自動記録済み。空欄のままでも保存できまする。</small>
+  </div>
+</div>
+
+<!-- 記録一覧 / ヒット一覧 -->
+<div class="sheet" id="listsheet">
+  <div class="body">
+    <button class="x" data-close="listsheet">✕</button>
+    <h2 id="listTitle">記録一覧</h2>
+    <div id="listBody"></div>
+  </div>
+</div>
+
+<script src="vendor/leaflet.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

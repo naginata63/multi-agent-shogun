@@ -248,6 +248,8 @@
 !dist/app.js
 !dist/stats.html
 !dist/ogp.png
+!dist/fishing/
+!dist/fishing/**
 
 # Screenshots (masked — no secrets)
 !images/
