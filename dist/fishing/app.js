@@ -7,6 +7,8 @@
  */
 'use strict';
 
+const APP_VER = '1.7';
+
 // ---------- ネイティブ(Capacitor)検出 ----------
 // APK版では @capacitor-community/background-geolocation の Foreground Service で
 // 画面OFFでも記録継続。ブラウザ(PWA)では従来どおり watchPosition + WakeLock。
@@ -19,13 +21,14 @@ let CapBgLog = null;
 try { if (IS_NATIVE && window.Capacitor.registerPlugin) CapBgLog = window.Capacitor.registerPlugin('BgLog'); } catch (e) {}
 let bgWatcherId = null;
 let mergeTimer = null;
+let lastMergeInfo = null;   // {t, n, raw} BG診断用
 // 画面OFF中にネイティブが直書きした位置ログを軌跡へ合流
 async function mergeNativeLog() {
   if (!CapBgLog || !S) return;
   try {
     const res = await CapBgLog.read();
     const locs = (res && res.locations) || [];
-    if (!locs.length) return;
+    if (!locs.length) { lastMergeInfo = { t: Date.now(), n: 0, raw: 0 }; return; }
     locs.sort((a, b) => a.t - b.t);
     const lastT = S.points.length ? S.points[S.points.length - 1][0] : 0;
     let n = 0;
@@ -35,8 +38,58 @@ async function mergeNativeLog() {
       n++;
     }
     await CapBgLog.clear();
+    lastMergeInfo = { t: Date.now(), n, raw: locs.length };
     if (n && trackLine) trackLine.setLatLngs(S.points.map(p => [p[1], p[2]]));
     if (n) persist();
+  } catch (e) {}
+}
+
+// 画面OFF記録の前提条件を検査し、欠けていれば許可を求める
+async function ensureBgPrereqs(interactive) {
+  if (!CapBgLog || !CapBgLog.status) return;
+  try {
+    let st = await CapBgLog.status();
+    if (!st.notifGranted) {
+      toast('⚠️ 通知が未許可ゆえ画面OFF記録が不安定になりまする。許可してくだされ', 5000);
+      await CapBgLog.requestNotify();
+      setTimeout(async () => {
+        try {
+          st = await CapBgLog.status();
+          if (!st.notifGranted && interactive &&
+              confirm('通知がまだ許可されておりませぬ。設定画面を開きますか？\n(画面OFF記録の安定に必要でござる)')) {
+            CapBgLog.openNotifySettings();
+          }
+        } catch (e) {}
+      }, 3000);
+    }
+    if (st.batteryUnrestricted === false && interactive) {
+      if (confirm('このアプリは電池最適化の対象になっており申す。\n「制限なし」にすると画面OFF記録が安定しまする。設定しますか？')) {
+        CapBgLog.requestBatteryUnrestricted();
+      }
+    }
+  } catch (e) {}
+}
+
+// BG診断: 画面表示 + 遠隔送信
+async function runBgDiag() {
+  let st = {};
+  try { st = CapBgLog && CapBgLog.status ? await CapBgLog.status() : { err: 'BgLog橋なし(ブラウザ版か旧APK)' }; }
+  catch (e) { st = { err: '' + e }; }
+  const fmt = t => t ? new Date(t).toLocaleString() : '--';
+  const lines = [
+    'アプリ版: v' + APP_VER + (IS_NATIVE ? ' (APK)' : ' (ブラウザ)'),
+    '通知許可: ' + (st.notifGranted == null ? '?' : st.notifGranted ? 'OK' : '❌ 未許可'),
+    '電池最適化: ' + (st.batteryUnrestricted == null ? '?' : st.batteryUnrestricted ? '制限なし(OK)' : '⚠️ 最適化対象'),
+    '未合流のBG記録: ' + (st.jsonlCount == null ? '?' : st.jsonlCount + '点'),
+    'BG最終記録: ' + fmt(st.jsonlLastT),
+    '最終合流: ' + (lastMergeInfo ? lastMergeInfo.n + '点採用/' + lastMergeInfo.raw + '点 @' + fmt(lastMergeInfo.t) : 'まだ'),
+    (st.err ? 'エラー: ' + st.err : ''),
+  ].filter(Boolean);
+  alert('🔧 BG診断\n' + lines.join('\n'));
+  try {
+    await fetch(DIAG_URL, { method: 'POST',
+      body: JSON.stringify({ v: APP_VER, bgdiag: st, merge: lastMergeInfo, ua: navigator.userAgent }),
+      headers: { Title: 'tsurilog-bgdiag' } });
   } catch (e) {}
 }
 
@@ -234,6 +287,7 @@ function beginTracking(resume) {
   if (IS_NATIVE && CapBG) {
     if (!resume && CapBgLog) CapBgLog.clear().catch(() => {});
     if (resume) mergeNativeLog();
+    ensureBgPrereqs(!resume);
     clearInterval(mergeTimer);
     mergeTimer = setInterval(mergeNativeLog, 15000);
     stopBrowserWatch();
@@ -311,8 +365,11 @@ document.querySelectorAll('.sheet').forEach(sh => sh.addEventListener('click', e
 $('btnMenu').onclick = () => {
   const kb = store.usage() / 1024;
   $('storInfo').textContent = `保存容量: ${kb < 1024 ? kb.toFixed(0) + 'KB' : (kb/1024).toFixed(2) + 'MB'} / 約5MB(端末内)`;
+  const vi = $('verInfo');
+  if (vi) vi.textContent = `釣りログ v${APP_VER}` + (IS_NATIVE ? ' (APK)' : ' (Web)');
   openSheet('menu');
 };
+{ const b = $('mBgDiag'); if (b) b.onclick = () => runBgDiag(); }
 
 // ---------- 書き出し ----------
 function latestSession() {
@@ -449,7 +506,7 @@ $('mWake').onclick = () => { if (wakeLock) { wakeWanted = false; releaseWake(); 
 // ---------- 自己診断 (地図が出ない問題の切り分け用・位置情報は含めない) ----------
 const DIAG_URL = 'https://ntfy.sh/tsurilog-diag-7c31';
 async function runDiag(auto) {
-  const r = { v: '1.2', native: IS_NATIVE, ua: navigator.userAgent, online: navigator.onLine,
+  const r = { v: APP_VER, native: IS_NATIVE, ua: navigator.userAgent, online: navigator.onLine,
               errs: window.__diagErrs || [], leaflet: typeof L !== 'undefined',
               mapInit: typeof map !== 'undefined' && !!map, tileErrN, tests: {} };
   const tile = 'https://tile.openstreetmap.org/11/1817/806.png';
