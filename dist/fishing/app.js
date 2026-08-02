@@ -7,7 +7,7 @@
  */
 'use strict';
 
-const APP_VER = '1.7';
+const APP_VER = '1.8';
 
 // ---------- ネイティブ(Capacitor)検出 ----------
 // APK版では @capacitor-community/background-geolocation の Foreground Service で
@@ -19,6 +19,15 @@ try {
 } catch (e) { if (window.__showErr) window.__showErr('plugin登録失敗: ' + e.message); }
 let CapBgLog = null;
 try { if (IS_NATIVE && window.Capacitor.registerPlugin) CapBgLog = window.Capacitor.registerPlugin('BgLog'); } catch (e) {}
+// v1.8: registerPlugin は @capacitor/core (vendor/capacitor-core.js) が供給する。
+// core 未搭載だと CapBG/CapBgLog が黙って null になり、ブラウザ測位に落ちて
+// 画面OFF記録が全滅する (v1.1〜v1.7 の真因)。二度と黙らせない:
+if (IS_NATIVE && (!CapBG || !CapBgLog)) {
+  const msg = 'ネイティブ測位プラグイン不通 (core:' +
+    (window.Capacitor && window.Capacitor.registerPlugin ? 'あり' : '無し') +
+    ' BG:' + (CapBG ? 'OK' : 'NG') + ' BgLog:' + (CapBgLog ? 'OK' : 'NG') + ')';
+  if (window.__showErr) window.__showErr(msg);
+}
 let bgWatcherId = null;
 let mergeTimer = null;
 let lastMergeInfo = null;   // {t, n, raw} BG診断用
