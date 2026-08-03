@@ -250,6 +250,8 @@
 !dist/ogp.png
 !dist/fishing/
 !dist/fishing/**
+!dist/kamiplay/
+!dist/kamiplay/**
 
 # Screenshots (masked — no secrets)
 !images/
