@@ -7,7 +7,7 @@
  */
 'use strict';
 
-const APP_VER = '1.8';
+const APP_VER = '1.9';
 
 // ---------- ネイティブ(Capacitor)検出 ----------
 // APK版では @capacitor-community/background-geolocation の Foreground Service で
@@ -92,6 +92,7 @@ async function runBgDiag() {
     '未合流のBG記録: ' + (st.jsonlCount == null ? '?' : st.jsonlCount + '点'),
     'BG最終記録: ' + fmt(st.jsonlLastT),
     '最終合流: ' + (lastMergeInfo ? lastMergeInfo.n + '点採用/' + lastMergeInfo.raw + '点 @' + fmt(lastMergeInfo.t) : 'まだ'),
+    '瞬間移動を除外: ' + jumpSkipped + '回',
     (st.err ? 'エラー: ' + st.err : ''),
   ].filter(Boolean);
   alert('🔧 BG診断\n' + lines.join('\n'));
@@ -191,12 +192,27 @@ function sessDist(points) {
 }
 
 // 点の採用判定: 前回採用点から 4m 以上 or 5秒以上、精度75m以内
+// 瞬間移動ガード: 釣り(船・徒歩)で出る速度をはるかに超える飛びは測位エラーとみなす。
+// 地下→地上復帰時に古い座標が混じると軌跡が数km巻き戻る (2026-08-06 殿報告)。
+// 海上の実速度(最大60km/h程度)では決して発動せぬ余裕をとる。
+const JUMP_KMH = 150;
+let jumpSkipped = 0;
+
 function maybeRecord(t, lat, lng, acc, spd) {
   if (acc > 75) return;
   const P = S.points;
   if (P.length) {
     const last = P[P.length - 1];
     if (t - last[0] < 5000 && distM(last[1], last[2], lat, lng) < 4) return;
+    const dt = (t - last[0]) / 1000;
+    if (dt > 0) {
+      const kmh = distM(last[1], last[2], lat, lng) / dt * 3.6;
+      // 200m超の飛びかつ異常速度のみ弾く(短距離のGPS揺れは通す)
+      if (kmh > JUMP_KMH && distM(last[1], last[2], lat, lng) > 200) {
+        jumpSkipped++;
+        return;
+      }
+    }
   }
   P.push([t, +lat.toFixed(6), +lng.toFixed(6), Math.round(acc), spd == null ? null : +spd.toFixed(1)]);
   if (trackLine) trackLine.addLatLng([lat, lng]);
