@@ -232,6 +232,7 @@ System manages ALL white-collar work, not just self-improvement. Project folders
 - Gemini 画像生成コスト → `shared_context/procedures/gemini_cost.md` (ガチャ3回・1パネル試打ち・cmd_28教訓)
 - 中間成果物保存 → `shared_context/procedures/intermediate_artifact.md` (1分+処理は必ずファイル化・cmd_597教訓)
 - 大量バッチ処理 → `shared_context/procedures/batch_processing.md` (batch1 QC gate必須)
+- ランキング動画 (順位カード/右上帯/BGM) → `shared_context/procedures/ranking_video_cards_bgm.md` (BGMはカードのみ・クリップでは鳴らすな)
 
 # Destructive Operation Safety (all agents)
 
