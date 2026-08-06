@@ -7,7 +7,7 @@
  */
 'use strict';
 
-const APP_VER = '1.9';
+const APP_VER = '1.11';
 
 // ---------- ネイティブ(Capacitor)検出 ----------
 // APK版では @capacitor-community/background-geolocation の Foreground Service で
@@ -93,6 +93,7 @@ async function runBgDiag() {
     'BG最終記録: ' + fmt(st.jsonlLastT),
     '最終合流: ' + (lastMergeInfo ? lastMergeInfo.n + '点採用/' + lastMergeInfo.raw + '点 @' + fmt(lastMergeInfo.t) : 'まだ'),
     '瞬間移動を除外: ' + jumpSkipped + '回',
+    '古い測位で除外: ' + (st.staleDropped == null ? '?' : st.staleDropped + '回'),
     (st.err ? 'エラー: ' + st.err : ''),
   ].filter(Boolean);
   alert('🔧 BG診断\n' + lines.join('\n'));
@@ -195,7 +196,7 @@ function sessDist(points) {
 // 瞬間移動ガード: 釣り(船・徒歩)で出る速度をはるかに超える飛びは測位エラーとみなす。
 // 地下→地上復帰時に古い座標が混じると軌跡が数km巻き戻る (2026-08-06 殿報告)。
 // 海上の実速度(最大60km/h程度)では決して発動せぬ余裕をとる。
-const JUMP_KMH = 150;
+const JUMP_KMH = 150;   // 釣り(船・徒歩)の実速度では決して届かぬ値 (殿確定 2026-08-06)
 let jumpSkipped = 0;
 
 function maybeRecord(t, lat, lng, acc, spd) {
