@@ -417,6 +417,8 @@ tests/specs/osato_lms_*
 !scripts/litestream_health_check.sh
 # cmd_1710 L1: easyocr preflight化済スクリプト git追跡化
 !scripts/blur_subtitles.py
+# cmd_1710 M3: REQUIRED_KEYS assert 追加済スクリプト git追跡化
+!scripts/china_shorts_compose.py
 !scripts/archive/
 !scripts/archive/gemini_transcription_task.py
 !scripts/archive/stt_merge.py.bak_1000
