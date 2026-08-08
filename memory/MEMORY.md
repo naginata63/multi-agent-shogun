@@ -164,6 +164,7 @@ mcp__memory__create_relations([{
 - [ntfyはcmd個別に送れ](feedback_ntfy_per_cmd.md) — まとめ報告禁止。自動done更新が効かなくなる [2026-04-05]
 - [note-edit.jsリンクはURL別行](feedback_note_link_url_only.md) — Ctrl+Kインラインリンク禁止。カーソル位置が壊れてH2/リスト全崩壊 [2026-04-06]
 - [MENゴーグル必須+デフォルメ禁止](feedback_men_goggle_required.md) — MENは目にゴーグル。全キャラSD禁止 [2026-04-06]
+- [漫画panel prompt メガネ記述禁止](feedback_manga_glasses_no_description.md) — メガネ・眼鏡の有無も形状も書くな。3views ref に従わせよ。書くたびに qnly メガネ抜けや誤形状を誘発 [2026-05-23殿確定]
 - [漫画生成--output指定必須](feedback_manga_output_dir_required.md) — デフォルトWORK_DIRが別ディレクトリ。SKIPバグの原因 [2026-04-06]
 - [note挿絵は横長1200x670](feedback_note_illustration_landscape.md) — noteの定石。縦長は間延びする [2026-04-06]
 - [UserPromptSubmitフックでntfy新着注入](feedback_userprompt_ntfy_hook.md) — 会話中のcmd完了を将軍に自動通知 [2026-04-06]
@@ -255,12 +256,13 @@ mcp__memory__create_relations([{
 - cmd_871で修正。listener再起動時に同一メッセージが4回記録される問題
 - 家老のntfy通知漏れも是正指示済み（cmd完了時・YouTubeアップ時に必ずntfy送信）
 
-## チャンネル実績（2026-04-12更新）
-- 登録者 **1,830人**
-- 総再生 **2,108,523回（210万回）**
-- トップ: ちゃかすMEN **285,716再生**
-- 動画数: 61本
-- **収益化条件は未達**（殿が複数回指摘。勝手に「クリア」と書くな）
+## チャンネル実績（2026-06-05更新）
+- 登録者 **3,810人**（前日比+10・伸長中）。推移: 1,830(4/12)→2,740(4/24)→**3,810(6/5)**
+- 総再生 **550万回超**（1登録あたり約1,451再生＝外部リーチ強・登録経由42%+ショート29%）
+- **YPP通過済（2026-06-02）＝収益化有効**（4/28・5/30の2度NG「再利用コンテンツ」を経て、再審査請求動画+漫画ショート量産で3度目通過。MEMORY上部の詳細参照）
+- **公認表示は2026年に全体改名で撤廃進行**（13公認chのうち11/13が「公認」外し→「ドズル社切り抜き」表記へ・殿狙い撃ちでない[2026-06-06確認]）
+- ※数字は古くなりやすい。最新は `analytics/<最新日>_snapshot.md` を見よ（毎日更新）
+- **[YouTube収益化分析ダッシュボード(murakami-pc:8080)](memory/feedback_youtube_revenue_dashboard.md)** [2026-06-06]: 収益タブ実装済(機能1-6)・契約分配ドズル20%/C&R15%/殿65%・収益スコープ要・長尺RPMはショートの36倍
 
 ## チャンネル成長ログ
 - [詳細: memory/project_channel_growth_log.md](memory/project_channel_growth_log.md)
@@ -275,8 +277,9 @@ mcp__memory__create_relations([{
 - OOB方式・PKCE無し。スマホでURL開く→コード送り返す→トークン交換
 - スコープは4つ全統一（upload+youtube+force-ssl+analytics）
 
-## 画像生成モデル決定（2026-03-31）
-- [gemini-3.1-flash-image-preview via Vertex API](memory/project_image_gen_model_decision.md) — $0.067/枚。Imagen4不採用、Midjourney棚上げ
+## 画像生成モデル決定
+- **【現行標準】漫画パネル・サムネは codex(gpt-image / ChatGPTサブスク)で生成** [詳細: memory/feedback_codex_japanese_strong.md] — **日本語テキストに強く・漫画は一度も文字直し無し・追加課金ゼロ**(殿 2026-06-04明言/2026-05-23確定)。文字も codex に描かせる(PIL後乗せ禁止)。一括=scripts/codex_manga_batch.sh・総集編サムネ実プロンプト=scripts/archive/generate_thumbnail.py の energetic
+- [gemini-3.1-flash-image-preview via Vertex API](memory/project_image_gen_model_decision.md) — $0.067/枚。**codex登場で代替扱い**(Vertex ADC要)。Imagen4不採用、Midjourney棚上げ [2026-03-31]
 - **gemini-2.5-flash-image使用禁止** [詳細: memory/feedback_gemini_25_image_banned.md] — 品質がダメ。3.1-preview一択 [2026-04-06]
 
 ## MBTI scene_4 漫画ショート原稿（殿確定 2026-03-31）
