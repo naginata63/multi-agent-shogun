@@ -16,7 +16,7 @@
 * * * * * /home/murakami/multi-agent-shogun/scripts/kill_orphan_chrome.sh
 */15 * * * * bash /home/murakami/multi-agent-shogun/scripts/automation/dedup_check.sh >> /home/murakami/multi-agent-shogun/logs/dedup.log 2>&1
 0 * * * * bash /home/murakami/multi-agent-shogun/scripts/dashboard_lifecycle.sh >> /home/murakami/multi-agent-shogun/logs/dashboard_lifecycle.log 2>&1
-0 * * * * source ~/.bashrc && cd /home/murakami/multi-agent-shogun && source /home/murakami/multi-agent-shogun/venv/bin/activate && python3 scripts/semantic_search.py update >> logs/semantic_update.log 2>&1
+0 * * * * /home/murakami/multi-agent-shogun/venv/bin/python3 scripts/semantic_search.py update >> logs/semantic_update.log 2>&1
 0 */6 * * * cd /home/murakami/multi-agent-shogun && bash scripts/backup_full.sh >> logs/backup_full.log 2>&1
 0 2 * * * bash /home/murakami/multi-agent-shogun/scripts/mcp_experiment.sh >> /home/murakami/multi-agent-shogun/logs/mcp_experiment_cron.log 2>&1
 0 3 * * * bash /home/murakami/multi-agent-shogun/scripts/slim_yaml_all.sh >> /home/murakami/multi-agent-shogun/logs/slim_yaml_cron.log 2>&1
