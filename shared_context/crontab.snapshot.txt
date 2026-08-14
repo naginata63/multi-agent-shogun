@@ -30,7 +30,7 @@
 57 5 * * * cd /home/murakami/multi-agent-shogun && venv/bin/python3 scripts/youtube_analytics_snapshot.py >> projects/dozle_kirinuki/analytics/cron.log 2>&1
 0 3 * * * /usr/sbin/logrotate -s /home/murakami/multi-agent-shogun/work/logrotate.state /home/murakami/multi-agent-shogun/config/logrotate.conf 2>&1 | logger -t logrotate-shogun
 0 3 * * * sqlite3 /home/murakami/multi-agent-shogun/queue/cmds.db .dump | gzip > /home/murakami/multi-agent-shogun/queue/backup/cmds_$(date +\%Y\%m\%d).sql.gz
-0 4 * * * source /home/murakami/multi-agent-shogun/venv/bin/activate && python3 /home/murakami/multi-agent-shogun/scripts/sqlite_yaml_audit.py --notify-on-fail >> /home/murakami/multi-agent-shogun/logs/sqlite_audit.log 2>&1
+0 4 * * * /home/murakami/multi-agent-shogun/venv/bin/python3 /home/murakami/multi-agent-shogun/scripts/sqlite_yaml_audit.py --notify-on-fail >> /home/murakami/multi-agent-shogun/logs/sqlite_audit.log 2>&1
 
 */5 * * * * /home/murakami/multi-agent-shogun/scripts/litestream_keepalive.sh
 
@@ -45,3 +45,6 @@
 # 8773 Udemy preview server (drafts/ root) — PC換装で消失したため永続化 (2026-05-04 殿命)
 @reboot sleep 30 && cd /home/murakami/multi-agent-shogun/projects/udemy_course/drafts && python3 -m http.server 8773 --bind 0.0.0.0 >> /home/murakami/multi-agent-shogun/logs/udemy_8773_server.log 2>&1
 
+
+# 流行りシーン検知 — 他chで伸びるシーンを毎夕殿へ候補提示 (2026-08-14 真似戦法)
+50 18 * * * cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki && /home/murakami/multi-agent-shogun/venv/bin/python3 scripts/trend_scan.py >> /home/murakami/multi-agent-shogun/logs/trend_scan.log 2>&1
