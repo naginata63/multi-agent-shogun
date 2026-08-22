@@ -1,11 +1,20 @@
 #!/usr/bin/env python3
 """
-セマンティック検索システム — Gemini Embedding 2 + FAISS
+セマンティック検索システム — ローカル Ruri v3 Embedding + FAISS
 使い方:
   python3 scripts/semantic_search.py build            # インデックス構築
   python3 scripts/semantic_search.py update           # 差分更新
   python3 scripts/semantic_search.py query "クエリ"   # 検索
   python3 scripts/semantic_search.py query "クエリ" --source scripts --top 5
+
+Embedding backend (2026-08-22 脱Gemini課金・cmd Ruri移行):
+  既定 = ローカル Ruri v3 (cl-nagoya/ruri-v3-310m, sentence-transformers, 768次元)。
+  dozle_kirinuki の comment_db.py / scene_search_v2 と同一モデル・同一プレフィックス
+  (「検索文書: 」/「検索クエリ: 」)・normalize_embeddings=True を踏襲。
+  索引ファイルは backend ごとに別名 (index_ruri_v3.faiss 等)。旧 Gemini 索引
+  (index.faiss / metadata.json / chunk_hashes.json) は削除せず共存。
+  復帰余地: SEMANTIC_EMBED_BACKEND=gemini で旧 Gemini Embedding 経路に戻せる。
+  デバイス: SEMANTIC_EMBED_DEVICE=cpu|cuda で強制。未指定は cuda 優先・失敗時 CPU fallback。
 注: SRT字幕検索はsubtitle_semantic_index.py (BigQuery) に統合済み。本スクリプトでは非対応。
 """
 
@@ -20,34 +29,50 @@ import time
 from pathlib import Path
 from typing import Optional
 
-# APIキー読み込み（ADC認証使用、環境変数不要）
-GEMINI_API_KEY = ""  # unused — ADC auth
+# ===== Embedding backend 選択 =====
+EMBED_BACKEND = os.environ.get("SEMANTIC_EMBED_BACKEND", "ruri").lower()
+
+# venv (sentence-transformers 未導入) から起動された場合はシステム python3 に
+# 自己 re-exec する。torch/sentence-transformers はユーザー site
+# (~/.local/lib/python3.12) に導入済みで /usr/bin/python3 から見える。
+# venv への torch 重複導入 (数GB) を避けるための恒久措置。cron 定義は不変更で済む。
+if EMBED_BACKEND == "ruri" and os.environ.get("SEMANTIC_REEXEC") != "1":
+    try:
+        import sentence_transformers  # noqa: F401
+    except ImportError:
+        os.environ["SEMANTIC_REEXEC"] = "1"
+        os.execv("/usr/bin/python3", ["/usr/bin/python3", os.path.abspath(__file__)] + sys.argv[1:])
 
 import faiss
 import numpy as np
 import yaml
 
-try:
-    from google import genai
-    from google.genai import types as genai_types
-except ImportError:
-    print("ERROR: google-genai not installed. Run: pip install google-genai")
-    sys.exit(1)
-
 # ===== 設定 =====
 BASE_DIR = Path(__file__).parent.parent
 INDEX_DIR = BASE_DIR / "data" / "semantic_index"
-INDEX_FILE = INDEX_DIR / "index.faiss"
-META_FILE = INDEX_DIR / "metadata.json"
-HASH_FILE = INDEX_DIR / "chunk_hashes.json"
 
-EMBED_MODEL = "gemini-embedding-2-preview"
-EMBED_DIM = 3072
-# BATCH_SIZE 100→50: embed_content_input_tokens_per_minute_per_base_model quota 対策 (cmd_1451)
-# 100 items/batch で 429 再発・50 に半減 + 成功時 sleep 延長で per-minute token quota 内に収める
+if EMBED_BACKEND == "ruri":
+    # 新索引 (Ruri v3)。旧 Gemini 索引とはベクトル空間が別物のため別名で構築。
+    INDEX_FILE = INDEX_DIR / "index_ruri_v3.faiss"
+    META_FILE = INDEX_DIR / "metadata_ruri_v3.json"
+    HASH_FILE = INDEX_DIR / "chunk_hashes_ruri_v3.json"
+    EMBED_MODEL = "cl-nagoya/ruri-v3-310m"
+    EMBED_DIM = 768
+else:
+    # 旧 Gemini 経路 (SEMANTIC_EMBED_BACKEND=gemini で復帰可)
+    INDEX_FILE = INDEX_DIR / "index.faiss"
+    META_FILE = INDEX_DIR / "metadata.json"
+    HASH_FILE = INDEX_DIR / "chunk_hashes.json"
+    EMBED_MODEL = "gemini-embedding-2-preview"
+    EMBED_DIM = 3072
+
+# (gemini backend 用) BATCH_SIZE 100→50: embed_content quota 対策 (cmd_1451)
 BATCH_SIZE = 50
-# 成功時の inter-batch sleep (cmd_1451): 0.5s → 4s に延長して token/min quota を十分回復させる
 BATCH_INTER_SLEEP_SEC = 4.0
+# (ruri backend 用) encode をこの件数ごとに区切って進捗を stderr へ出す
+RURI_PROGRESS_CHUNK = 512
+RURI_ENCODE_BATCH = 16
+RURI_MAX_SEQ = 2048  # チャンク上限4000字。attention二乗爆発と精度のバランス
 
 DOZLE_DIR = BASE_DIR / "projects" / "dozle_kirinuki"
 
@@ -565,11 +590,63 @@ def collect_chunks(source_filter: Optional[str] = None):
     if dropped:
         print(f"  空テキスト {len(dropped)} チャンクを除外: "
               f"{', '.join(c['chunk_id'] for c in dropped[:3])}", file=sys.stderr)
-    return [c for c in all_chunks if c["text"].strip()]
+    kept = [c for c in all_chunks if c["text"].strip()]
+
+    # chunk_id 重複の決定的リネーム (2026-08-22)。
+    # 同一 stem の memory ファイルが2ディレクトリに存在する等で chunk_id が衝突すると、
+    # hash台帳 (chunk_id キー) が1本しか持てず、毎 update で片方が「変更」と誤検出され
+    # 再埋め込み→metadata 無限成長する (旧Gemini索引 36,513 vs 台帳 6,248 の主因)。
+    # 収集順は固定 (ディレクトリ列挙順+sorted glob) ゆえ suffix は決定的。
+    seen_ids = {}
+    for c in kept:
+        cid = c["chunk_id"]
+        n = seen_ids.get(cid, 0) + 1
+        seen_ids[cid] = n
+        if n > 1:
+            c["chunk_id"] = f"{cid}#dup{n}"
+    return kept
 
 
 # ===== Embedding =====
+def _ruri_device() -> str:
+    """埋め込みデバイス決定。SEMANTIC_EMBED_DEVICE 指定 > cuda 自動検出 > cpu。
+    GPU は VLM 検査等が占有している場合があるため、失敗時は CPU fallback する。"""
+    dev = os.environ.get("SEMANTIC_EMBED_DEVICE", "").strip()
+    if dev:
+        return dev
+    try:
+        import torch
+        if torch.cuda.is_available():
+            return "cuda"
+    except Exception:
+        pass
+    return "cpu"
+
+
+def _load_ruri(device: str):
+    from sentence_transformers import SentenceTransformer
+    print(f"  [ruri] loading {EMBED_MODEL} on {device} ...", flush=True, file=sys.stderr)
+    t0 = time.time()
+    model = SentenceTransformer(EMBED_MODEL, device=device)
+    model.max_seq_length = RURI_MAX_SEQ
+    print(f"  [ruri] model loaded in {time.time() - t0:.1f}s", flush=True, file=sys.stderr)
+    return model
+
+
 def get_client():
+    """backend に応じた embedding クライアントを返す。
+    ruri: SentenceTransformer モデル / gemini: genai.Client"""
+    if EMBED_BACKEND == "ruri":
+        dev = _ruri_device()
+        try:
+            return _load_ruri(dev)
+        except Exception as e:
+            if dev != "cpu":
+                print(f"  [ruri] {dev} load failed ({e}); falling back to cpu",
+                      flush=True, file=sys.stderr)
+                return _load_ruri("cpu")
+            raise
+    from google import genai  # 旧経路のみ import (Gemini API 全停止中は使わない)
     return genai.Client(vertexai=True, project="gen-lang-client-0119911773", location="us-central1")
 
 
@@ -577,8 +654,55 @@ class QuotaExhaustedError(Exception):
     """Vertex AI Embedding の429 quota枯渇を示す専用例外。"""
 
 
+def _embed_texts_ruri(model, texts: list[str], task_type: str) -> np.ndarray:
+    """Ruri v3 ローカル埋め込み。comment_db.py (dozle_kirinuki) の呼び方を踏襲:
+    「検索文書: 」/「検索クエリ: 」プレフィックス + normalize_embeddings=True。
+    長さ順ソートでパディング無駄を削減し、元順序を復元して返す。"""
+    prefix = "検索クエリ: " if task_type == "RETRIEVAL_QUERY" else "検索文書: "
+    n = len(texts)
+    order = sorted(range(n), key=lambda i: len(texts[i]))
+    sorted_texts = [prefix + texts[i] for i in order]
+
+    def _encode_all(m):
+        parts = []
+        for s in range(0, n, RURI_PROGRESS_CHUNK):
+            batch = sorted_texts[s:s + RURI_PROGRESS_CHUNK]
+            parts.append(m.encode(batch, normalize_embeddings=True,
+                                  batch_size=RURI_ENCODE_BATCH,
+                                  convert_to_numpy=True, show_progress_bar=False))
+            done = min(s + RURI_PROGRESS_CHUNK, n)
+            if n > RURI_PROGRESS_CHUNK:
+                print(f"  embedded {done}/{n}", flush=True, file=sys.stderr)
+        return np.vstack(parts) if parts else np.zeros((0, EMBED_DIM), dtype=np.float32)
+
+    try:
+        emb_sorted = _encode_all(model)
+    except Exception as e:
+        # CUDA OOM 等 → CPU で作り直して再実行
+        if "cuda" in str(e).lower() or "out of memory" in str(e).lower():
+            print(f"  [ruri] GPU encode failed ({str(e)[:120]}); retrying on cpu",
+                  flush=True, file=sys.stderr)
+            emb_sorted = _encode_all(_load_ruri("cpu"))
+        else:
+            raise
+
+    out = np.empty_like(emb_sorted)
+    for pos, orig_i in enumerate(order):
+        out[orig_i] = emb_sorted[pos]
+    if len(out) != n:
+        raise RuntimeError(f"embedded {len(out)} != requested {n}")
+    return out.astype(np.float32)
+
+
 def embed_texts(client, texts: list[str], task_type: str = "RETRIEVAL_DOCUMENT") -> np.ndarray:
-    """テキスト1件につき1ベクトルを取得する。
+    """テキスト1件につき1ベクトルを取得する (backend dispatch)。"""
+    if EMBED_BACKEND == "ruri":
+        return _embed_texts_ruri(client, texts, task_type)
+    return _embed_texts_gemini(client, texts, task_type)
+
+
+def _embed_texts_gemini(client, texts: list[str], task_type: str = "RETRIEVAL_DOCUMENT") -> np.ndarray:
+    """(旧経路) Gemini でテキスト1件につき1ベクトルを取得する。
 
     2026-07-28: 旧実装は 50件ずつ contents=[...] に渡していたが、この model の
     embedContent API は content を一度に1つしか受け付けず、50件を連結した
@@ -587,6 +711,7 @@ def embed_texts(client, texts: list[str], task_type: str = "RETRIEVAL_DOCUMENT")
     (索引5,695 / 台帳268,825 = 約47倍)。検索は別の文書の中身を返していた。
     以後、必ず1件ずつ呼び、入力数と出力数の一致を保証する。
     """
+    from google.genai import types as genai_types
     out = []
     n = len(texts)
     for i, text in enumerate(texts):
@@ -847,7 +972,8 @@ def cmd_query(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Gemini Embedding 2 + FAISS セマンティック検索")
+    parser = argparse.ArgumentParser(
+        description=f"セマンティック検索 (backend={EMBED_BACKEND}: {EMBED_MODEL} + FAISS)")
     sub = parser.add_subparsers(dest="command")
 
     sub.add_parser("build", help="インデックスをフルビルド")
