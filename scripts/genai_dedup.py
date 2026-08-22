@@ -26,7 +26,7 @@ CACHE_DAYS = 7
 
 GEMINI_API_KEY = ""  # unused — ADC auth
 EMBED_MODEL = "text-embedding-005"  # stable Vertex AI embedding model (us-central1)
-SIMILARITY_THRESHOLD = 0.85
+SIMILARITY_THRESHOLD = 0.93  # 2026-08-23 Ruri v3移行に伴い再調整(真の重複≈0.95・同分野別ニュース≈0.86-0.92の実測)
 TITLE_OVERLAP_THRESHOLD = 0.6
 
 
@@ -93,17 +93,26 @@ def is_title_overlap(title1: str, title2: str) -> bool:
 
 # ===== Embedding取得 =====
 
+_RURI = None
+
 def get_embeddings(texts: list[str]) -> list[list[float]]:
-    """Gemini APIでembeddingを取得。失敗時は空リストで代替"""
+    """ローカルRuri v3でembedding取得 (2026-08-23 脱Gemini移行・CPU実行)。失敗時は空リストで代替"""
     if not texts:
         return []
-
+    global _RURI
     try:
-        from google import genai
-    except ImportError:
-        log("WARN: google-genai未インストール。Embeddingチェックをスキップ")
+        if _RURI is None:
+            from sentence_transformers import SentenceTransformer
+            _RURI = SentenceTransformer("cl-nagoya/ruri-v3-310m", device="cpu")
+        vecs = _RURI.encode([f"検索文書: {t}" for t in texts], normalize_embeddings=True)
+        return [list(map(float, v)) for v in vecs]
+    except Exception as e:
+        log(f"WARN: ローカルEmbedding失敗: {e}")
         return [[] for _ in texts]
 
+def _get_embeddings_gemini_legacy(texts: list[str]) -> list[list[float]]:
+    """旧Gemini経路(参照用・未使用)"""
+    from google import genai
     client = genai.Client(vertexai=True, project="gen-lang-client-0119911773", location="us-central1")
     results = []
     for i, text in enumerate(texts):
