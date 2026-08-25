@@ -4,7 +4,7 @@ description: |
   ドズル社漫画ショート動画の制作ワークフローを実行する。
   panels JSONからPNG生成→音声結合→縦型動画→YouTube非公開アップロード→説明欄設定まで一貫して担当。
   「漫画ショート制作」「manga-short」「パネルPNG生成」「ショート動画アップ」「/manga-short」で起動。
-  Do NOT use for: ハイライト動画制作（それはmain.py highlight modeを使え）。Do NOT use for: panels JSON自体の内容編集（panels JSONはGeminiが生成する）。
+  Do NOT use for: ハイライト動画制作（それはmain.py highlight modeを使え）。Do NOT use for: panels JSON自体の内容編集（panels JSONは殿と作るcomposition.mdから起こす）。
 argument-hint: "[panels_json_path] [output_dir] [--skip-gen]"
 allowed-tools: Bash, Read
 ---
@@ -24,38 +24,21 @@ panels JSONから縦型ショート動画を生成し、YouTubeに非公開ア�
 | PNG生成 | `projects/dozle_kirinuki/scripts/manga_poc/generate_manga_short.py` |
 | YouTubeアップロード | `projects/dozle_kirinuki/scripts/youtube_uploader.py` |
 | メンバープロファイル | `projects/dozle_kirinuki/context/member_profiles.yaml` |
-| シーン分析 | `projects/dozle_kirinuki/scripts/manga_poc/analyze_clip_scene.py` |
-| 構成提案 | `projects/dozle_kirinuki/scripts/manga_poc/manga_short_composer.py` |
+| パネルPNG生成(本番) | `projects/dozle_kirinuki/scripts/codex_manga_batch.sh` |
+| 話者判定 | `projects/dozle_kirinuki/scripts/speaker_id.py` (ECAPA・要 venv/bin/python) |
+| 語単位STT | `projects/dozle_kirinuki/scripts/qwen_stt.py` (Qwen3-ASR ローカル) |
 
-### analyze_clip_scene.py
+### 🚫 Gemini は使うな（2026-08-08/08-22 殿確定・脱Gemini）
 
-clip mp4 を Gemini Video Understanding で分析し、panels JSON の `scene_desc` を映像実態に合わせて更新する。
+| 用途 | ❌旧(Gemini) | ✅現行 |
+|------|-------------|--------|
+| パネル画像生成 | Gemini画像生成API | **codex CLI** (`codex_manga_batch.sh`・要 `unset OPENAI_API_KEY`) |
+| クリップの映像判定/シーン把握 | Gemini Video Understanding (`analyze_clip_scene.py`) | **ローカルVLM Qwen2.5-VL** (ollama / transformers) |
+| セリフ・話者の確定 | Gemini文字起こし | **Qwen3-ASR語単位STT + ECAPA話者判定**、YouTube字幕は当たり付けのみ |
+| 構成(panels)の起案 | Gemini自動提案 (`manga_short_composer.py`) | **殿とcomposition.mdを作って起こす**（AIに勝手に決めさせない） |
 
-```bash
-python3 projects/dozle_kirinuki/scripts/manga_poc/analyze_clip_scene.py \
-  --panels <panels.json> [--output <updated.json>]
-```
-
-- 各パネルの累積開始時間から該当区間を Gemini File API に問い合わせ
-- キャラクター識別（スキン色ベース）付きで映像内容を scene_desc に反映
-- アップロードキャッシュあり（同一ファイルの再アップロードを回避）
-
-### manga_short_composer.py
-
-Gemini 動画理解で漫画ショートの構成（panels.json）を自動提案する。
-
-```bash
-# クリップ単位モード（推奨）
-python3 projects/dozle_kirinuki/scripts/manga_poc/manga_short_composer.py \
-  --clips <clips_dir> --output <output_dir>
-
-# フル動画モード
-python3 projects/dozle_kirinuki/scripts/manga_poc/manga_short_composer.py
-```
-
-- クリップ単位モードでは各シーンのクリップを個別に Gemini にアップロードし核心区間を特定
-- panels JSON の雛形（speaker/line/characters/scene_desc 含む）を生成
-- SH-ID 単位で場面定義を管理
+`scripts/manga_poc/analyze_clip_scene.py` と `manga_short_composer.py` は **Gemini課金経路のため使用禁止**（退役・参照のみ）。
+根拠: memory `feedback_manga_images_use_codex_not_gemini.md` / `feedback_local_vlm_replace_gemini.md`
 
 ### panels JSON フォーマット
 
@@ -76,7 +59,7 @@ python3 projects/dozle_kirinuki/scripts/manga_poc/manga_short_composer.py
       "characters": ["dozle", "bon"],
       "start_sec": 3.6,
       "duration_sec": 5.0,
-      "scene_desc": "場面説明（Geminiへの画像生成プロンプト用）",
+      "scene_desc": "場面説明（codex画像生成プロンプト用）",
       "situation": "状況説明"
     }
   ]
@@ -203,7 +186,7 @@ grep -c "nekooji" <panels_json_path>
 1. **ffmpegはh264_nvenc必須** — libx264禁止。RTX 4060 Ti搭載、NVENCは常に利用可能
 2. **panels JSONは変更するな** — 読み取り専用。内容編集が必要な場合はKaroに報告
 3. **アップロードはprivate** — `--privacy private`。公開判断は殿が行う
-4. **Geminiプロンプト設計**: `skills/gemini-image-prompt/SKILL.md` 参照。situationや性格情報はsystem_instructionに入れよ（contentsに入れると画像内に文字として描画される）
+4. **画像生成は codex CLI 一本**（Gemini/Vertex禁止・2026-08-08殿）。実行前に `unset OPENAI_API_KEY`（APIキーだと別課金・ChatGPTサブスク枠を使う）。外見は三面図refに全面委任しプロンプトに書くな（メガネ/ゴーグル等は特に事故る）
 4. **旧動画削除は慎重に** — 新URLを確認してから削除。競合状態に注意（他足軽が同じ動画を操作中かもしれない）
 5. **動画編集スクリプトは1つずつ実行** — 同時並列実行禁止
 
