@@ -18,13 +18,26 @@ allowed-tools: Bash, Read, Edit, Write
 
 ```
 Phase 1: 候補選定 ──→ 殿OK
-Phase 2: 時間選定 ──→ 殿OK
+Phase 2: 時間選定 ──→ 【clip_editor_server】で殿が頭尻を詰める → 書き出し
 Phase 3: クリップ化 ─→ 殿OK
-Phase 4: 漫画作成 ──→ 殿OK
-Phase 5: 合成+公開 ─→ 完了
+Phase 4: 漫画作成 ──→ 殿OK (誤植は【serif-fix】)
+Phase 5: 合成+公開 ─→ 【panel_sync_editor】でコマ送り時刻を殿が調整 → 完了
 ```
 
 **鉄則: 各Phaseで殿OKを取ってから次に進む。戻りを最小化する。**
+
+## 🖥 殿が直接触る編集アプリ（必ずこれを使え・手作業で決め打つな）
+
+| アプリ | いつ | 起動 | 何ができる |
+|--------|------|------|-----------|
+| **clip_editor_server.py** | Phase 2-3 | `python3 scripts/clip_editor_server.py --project <名> --port 810X` | 元動画から**カットの頭尻を±0.1秒で詰める**・その場試聴・書き出し(NVENC)。設定は `work/editor/<名>.json` |
+| **panel_sync_editor.py** | Phase 5 | `python3 scripts/panel_sync_editor.py --port 8096 [--segs --panels --audio]` | 音を聞きながら**コマ送り時刻**を調整→segs.json書き戻し→再ビルド |
+| **/serif-fix** (skill) | Phase 4後 | スキル起動 | 吹き出し内**セリフの誤植差し替え**(flood fill→serif_replace→QCループ) |
+
+### clip_editor_server の要点
+- **`yt_mode: true` を設定JSONに入れる** → YouTube iframe再生になり端末が重い元動画を読まない（**入れ忘れると「再生できない」と言われる**・2026-08-26事故）
+- 設定JSON: `{"src":..., "outdir":..., "yt_mode":true, "cuts":[{"id","lo","hi","desc","on","yt":"<video_id>"}]}`
+- 殿が書き出すと `outdir/<project>_edit.mp4` ができる。**この書き出し結果がPhase 3の入力**（AIが時間を決め直すな）
 
 ---
 
@@ -43,6 +56,7 @@ Phase 5: 合成+公開 ─→ 完了
 
 ## Phase 2: 時間選定
 
+0. **時間の確定は `clip_editor_server` で殿が行う**（AIが秒を決め打つな）。初期カットだけ置いてURLをntfyで送り、殿が頭尻を詰めて書き出す
 1. **セリフ表は機械生成**: `qwen_stt.py`（Qwen3-ASR語単位）+ `speaker_id.py`（ECAPA話者判定・`venv/bin/python`で実行）。手書き転記禁止（振り/合いの手が落ちる）
 2. YouTube字幕は**粗い当たり付け専用**。語彙が怪しい箇所は画面の焼き込みテロップで裏を取る（STT誤変換の実例: 弓矢→「有明」/30本→「三十歩」）
 3. 殿と構成表（composition.md）を作成:
@@ -107,8 +121,9 @@ Phase 5: 合成+公開 ─→ 完了
    ffmpeg -loop 1 -i panel.png -i clip.mp4 -map 0:v -map 1:a -c:v h264_nvenc -preset p4 -pix_fmt yuv420p -shortest -y panel_video.mp4
    ```
 2. 全panel_video.mp4をconcat
-3. YouTube非公開アップ
-4. **殿確認** → OKなら説明欄+CTAコメント設定→公開
+3. **コマ送りのズレは `panel_sync_editor.py` で殿が調整** → segs.json書き戻し → 再ビルド（ffmpeg組み直しを待たずに合わせられる）
+4. YouTube非公開アップ
+5. **殿確認** → OKなら説明欄+CTAコメント設定→公開
 
 **アウトプット**: 最終動画 + YouTube URL
 
@@ -129,3 +144,5 @@ Phase 5: 合成+公開 ─→ 完了
 | テキストだけでキャラ説明 | 外見が一致しない | リファレンス画像を渡す |
 | composition.mdなしで開始 | 構成がブレる | 殿と構成表を先に確定 |
 | SEのURLを推測 | 間違ったSEがDLされる | WebFetchで確認 |
+| **編集アプリを使わずAIが秒を決める** | 殿の感覚とズレて何度も戻る | clip_editor(頭尻)・panel_sync_editor(コマ送り)を起動して殿に渡す |
+| clip_editorで`yt_mode`未設定 | 端末が1GB超の動画を読めず「再生できない」 | 設定JSONに`yt_mode:true`+各cutに`yt`(video_id) |
