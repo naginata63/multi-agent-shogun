@@ -18,7 +18,7 @@ allowed-tools: Bash, Read, Edit, Write
 
 ```
 Phase 1: 候補選定 ──→ 殿OK
-Phase 2: 時間選定 ──→ 【clip_editor_server】で殿が頭尻を詰める → 書き出し
+Phase 2: 時間選定 ──→ 【clip_editor_server】で殿が頭尻を詰める → 書き出し → 【telop_editor】で殿がセリフ・話者を直す
 Phase 3: クリップ化 ─→ 殿OK
 Phase 4: 漫画作成 ──→ 殿OK (誤植は【serif-fix】)
 Phase 5: 合成+公開 ─→ 【panel_sync_editor】でコマ送り時刻を殿が調整 → 完了
@@ -31,6 +31,7 @@ Phase 5: 合成+公開 ─→ 【panel_sync_editor】でコマ送り時刻を殿
 | アプリ | いつ | 起動 | 何ができる |
 |--------|------|------|-----------|
 | **clip_editor_server.py** | Phase 2-3 | `python3 scripts/clip_editor_server.py --project <名> --port 810X` | 元動画から**カットの頭尻を±0.1秒で詰める**・その場試聴・書き出し(NVENC)。設定は `work/editor/<名>.json` |
+| **telop_editor.py** | Phase 2(書き出し直後) | `python3 scripts/telop_editor.py --json work/<project>/telop_lines.json --port 810X` | 書き出しクリップを見ながら**セリフ文言と話者を殿が直す**(行タップ再生・話者ボタン・分割/削除・保存)。JSON: `{"video":..., "lines":[{start,end,text,speaker}]}`。初期値=焼き込み字幕+STT+ECAPA。**殿の保存分が構成表の唯一の入力**(2026-09-07 殿「セリフと話者調整は？」) |
 | **panel_sync_editor.py** | Phase 5 | `python3 scripts/panel_sync_editor.py --port 8096 [--segs --panels --audio]` | 音を聞きながら**コマ送り時刻**を調整→segs.json書き戻し→再ビルド |
 | **/serif-fix** (skill) | Phase 4後 | スキル起動 | 吹き出し内**セリフの誤植差し替え**(flood fill→serif_replace→QCループ) |
 
@@ -117,6 +118,7 @@ Phase 5: 合成+公開 ─→ 【panel_sync_editor】でコマ送り時刻を殿
 **鉄則**:
 - **新しいスクリプトを作るな**。`generate_manga_short.py` + panels JSONで動かす
 - 修正はpanels JSONだけ変える
+- **パネルは正方形 1024x1024**(`codex_manga_batch.sh <json> <out> 1024x1024` と第3引数で明示。既定の1024x1820は使うな)。動画も1:1(1080x1080)。memory: feedback_manga_aspect_follow_panels(2026-09-07 縦で作って殿指摘)
 - **生成は codex CLI 一本**（Gemini/Vertex禁止・2026-08-08殿）。実行前に `unset OPENAI_API_KEY`
 - キャラの**三面図**（`assets/dozle_jp/character/3views/{member}_3views.png`）を必ずrefに渡す。外見はプロンプトに書くな（三面図に全面委任）
 - member_profiles.yamlのappearanceを参照（ゴーグル/サングラス/メガネ区別）
