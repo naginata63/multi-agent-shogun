@@ -28,7 +28,9 @@ SEARCH_PY="${SCRIPT_DIR}/semantic_search.py"
 # D1 fix: timeout 30s (embedding model load takes ~10s)
 # 2026-09-19 fix: HF への版確認で数十秒固まる件は semantic_search.py 側で
 # offline 固定 (cache 済みの時のみ) して一元的に塞いだ。ここでは上限のみ持つ。
-RESULTS=$(source ~/.bashrc 2>/dev/null; timeout 100 python3 "$SEARCH_PY" query "$PROMPT" --top 5 --json 2>/dev/null || true)
+# 埋め込みは短文1件ゆえ GPU の利が無く (実測 cpu 7.6s / cuda 8.0s)、VLM の OCR と
+# GPU を奪い合って相手を OOM で殺す。フックは CPU に固定する。
+RESULTS=$(source ~/.bashrc 2>/dev/null; SEMANTIC_EMBED_DEVICE=cpu timeout 100 python3 "$SEARCH_PY" query "$PROMPT" --top 5 --json 2>/dev/null || true)
 
 [[ -z "$RESULTS" || "$RESULTS" == "[]" ]] && exit 0
 
