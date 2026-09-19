@@ -26,14 +26,9 @@ SEARCH_PY="${SCRIPT_DIR}/semantic_search.py"
 
 # D2 fix: search all sources (no --source filter, avoids faiss reconstruct error)
 # D1 fix: timeout 30s (embedding model load takes ~10s)
-# 2026-09-19 fix: 実行の度に huggingface.co へ HEAD を投げ read timeout 10s x retry で
-# 28.8s まで膨らみ UserPromptSubmit の上限を超えていた。モデルが cache 済みなら
-# offline 固定で 8.3s に短縮する。index 構築 cron を巻き込まぬようここでのみ設定。
-HF_OFFLINE_ENV=()
-if [[ -d "$HOME/.cache/huggingface/hub/models--cl-nagoya--ruri-v3-310m" ]]; then
-    HF_OFFLINE_ENV=(HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1)
-fi
-RESULTS=$(source ~/.bashrc 2>/dev/null; env "${HF_OFFLINE_ENV[@]}" timeout 100 python3 "$SEARCH_PY" query "$PROMPT" --top 5 --json 2>/dev/null || true)
+# 2026-09-19 fix: HF への版確認で数十秒固まる件は semantic_search.py 側で
+# offline 固定 (cache 済みの時のみ) して一元的に塞いだ。ここでは上限のみ持つ。
+RESULTS=$(source ~/.bashrc 2>/dev/null; timeout 100 python3 "$SEARCH_PY" query "$PROMPT" --top 5 --json 2>/dev/null || true)
 
 [[ -z "$RESULTS" || "$RESULTS" == "[]" ]] && exit 0
 

@@ -32,6 +32,36 @@ from typing import Optional
 # ===== Embedding backend 選択 =====
 EMBED_BACKEND = os.environ.get("SEMANTIC_EMBED_BACKEND", "ruri").lower()
 
+# ===== HF offline 固定 (2026-09-19) =====
+# sentence-transformers はモデル読込の度に huggingface.co へ HEAD を投げて版を確認する。
+# 回線が詰まると read timeout 10s x retry 5 で数十〜数百秒固まる
+# (cron 実績 78.7s / 278.7s、UserPromptSubmit フック実績 28.8s で 30s 上限超過)。
+# モデルが HF cache に在るなら offline 固定で回避する。
+# huggingface_hub は import 時に環境変数を定数へ焼くゆえ、sentence_transformers の
+# import より前に設定せねば効かぬ。SEMANTIC_HF_ONLINE=1 で従来の online 確認に戻せる。
+_HF_REPO = {"ruri": "cl-nagoya/ruri-v3-310m"}
+
+
+def _hf_model_cached(repo_id: str) -> bool:
+    """HF cache に当該モデルの snapshot が在るか"""
+    if os.environ.get("HF_HUB_CACHE"):
+        hub = Path(os.environ["HF_HUB_CACHE"])
+    elif os.environ.get("HF_HOME"):
+        hub = Path(os.environ["HF_HOME"]) / "hub"
+    else:
+        hub = Path.home() / ".cache" / "huggingface" / "hub"
+    snap = hub / ("models--" + repo_id.replace("/", "--")) / "snapshots"
+    return snap.is_dir() and any(snap.iterdir())
+
+
+if (
+    EMBED_BACKEND == "ruri"
+    and os.environ.get("SEMANTIC_HF_ONLINE") != "1"
+    and _hf_model_cached(_HF_REPO["ruri"])
+):
+    os.environ.setdefault("HF_HUB_OFFLINE", "1")
+    os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+
 # venv (sentence-transformers 未導入) から起動された場合はシステム python3 に
 # 自己 re-exec する。torch/sentence-transformers はユーザー site
 # (~/.local/lib/python3.12) に導入済みで /usr/bin/python3 から見える。
@@ -627,7 +657,21 @@ def _load_ruri(device: str):
     from sentence_transformers import SentenceTransformer
     print(f"  [ruri] loading {EMBED_MODEL} on {device} ...", flush=True, file=sys.stderr)
     t0 = time.time()
-    model = SentenceTransformer(EMBED_MODEL, device=device)
+    try:
+        model = SentenceTransformer(EMBED_MODEL, device=device)
+    except Exception as e:
+        if os.environ.get("HF_HUB_OFFLINE") != "1":
+            raise
+        # cache 欠損/破損時のみ: online へ戻して一度だけ再試行する
+        print(f"  [ruri] offline load failed ({e}); retrying online", flush=True, file=sys.stderr)
+        os.environ.pop("HF_HUB_OFFLINE", None)
+        os.environ.pop("TRANSFORMERS_OFFLINE", None)
+        try:
+            import huggingface_hub.constants as _hc
+            _hc.HF_HUB_OFFLINE = False
+        except Exception:
+            pass
+        model = SentenceTransformer(EMBED_MODEL, device=device)
     model.max_seq_length = RURI_MAX_SEQ
     print(f"  [ruri] model loaded in {time.time() - t0:.1f}s", flush=True, file=sys.stderr)
     return model
