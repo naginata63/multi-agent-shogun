@@ -138,7 +138,7 @@ footer{border-top:1px solid var(--line);margin-top:70px;padding-top:22px;
     <td>審査通過。<span class="note">「再利用されたコンテンツ」で2度不合格（4月・5月）→ 漫画化ショートの量産で独自性を立証し覆した</span></td>
     <td class="n">2026-06-02</td></tr>
 <tr><td><strong>生成AIニュース日刊サイト</strong></td>
-    <td>収集→重複除去→要約→静的サイト生成→CDNデプロイを<span class="proof">全自動・毎日</span>で運用中（無人で1年近く稼働）</td>
+    <td>収集→重複除去→要約→静的サイト生成→CDNデプロイを<span class="proof">全自動・毎日</span>で運用中（2026年3月開始・200日分以上を無人生成）</td>
     <td class="n">運用中</td></tr>
 <tr><td><strong>スプレッドシート型の業務自動化ツール</strong></td>
     <td>4種を製品化（EC商品説明文／ビジネスメール返信／口コミ返信／SNS投稿30日分）。<br>
@@ -148,8 +148,8 @@ footer{border-top:1px solid var(--line);margin-top:70px;padding-top:22px;
     <td>AIコーディング運用をテーマに初級・中級の全章を執筆。スライド→ナレーション→動画の生成を章単位で自動化</td>
     <td class="n">制作済</td></tr>
 <tr><td><strong>受託（クラウドワークス）</strong></td>
-    <td>動画編集トライアル案件／中国語ショート動画の翻訳・日本語ナレーション化パイプライン構築</td>
-    <td class="n">実施済</td></tr>
+    <td>動画編集トライアル案件に着手（2026-04に中断）／中国語ショート動画の翻訳・日本語ナレーション化パイプラインを設計・試作<br><span class="note">いずれも継続受注には至っていない。<strong>受託の実績は薄い</strong>——ここは伸びしろでもある</span></td>
+    <td class="n">未完</td></tr>
 <tr><td><strong>記事投稿の自動化</strong></td>
     <td>note.com の下書き作成・編集・公開・画像挿入・カバー設定を CLI 化（Playwright）</td>
     <td class="n">運用中</td></tr>
@@ -167,7 +167,7 @@ footer{border-top:1px solid var(--line);margin-top:70px;padding-top:22px;
 <dt>ローカルで動く<br>実績のあるもの</dt>
   <dd>画像・映像理解 Qwen2.5-VL 7B（4bit量子化・1フレーム0.32秒）／音声認識 Qwen3-ASR（語単位タイムスタンプ）／音声分離 Demucs／日本語埋め込み Ruri v3（意味検索）／話者判定 ECAPA／NVENC ハードウェアエンコード</dd>
 <dt>課金方針</dt><dd><strong>従量課金APIを常用しない。</strong>画像・映像解析の外部API課金が月1万円に達した時点で全面的にローカルOSSへ移行した（2026-08-22）。固定額のサブスク枠で完結する設計を強く選好する。</dd>
-<dt>使えるサブスク枠</dt><dd>AIコーディング環境（エージェント運用の主力）／画像生成CLI（追加課金ゼロで生成可能）／商用利用可のBGM・効果音ライブラリ</dd>
+<dt>使えるサブスク枠</dt><dd>AIコーディング契約 <strong>月110ドル</strong>（エージェント運用の主力・固定費の大半）／画像生成CLI（サブスク内・追加課金ゼロ）／商用利用可のBGM・効果音ライブラリ。<br><strong>固定費は月2万円前後。</strong>新規事業はこの枠内で回せること——追加の月額原価が積み上がる案は成立しない。</dd>
 <dt>言語・技術</dt><dd>Python と Bash が主力。ffmpeg・yt-dlp・Playwright・Google Apps Script。JS/TSは必要最小限（Remotion 等）。フロントは素のHTML+JSで組む。</dd>
 <dt>公開・配信</dt><dd>静的サイトのCDN配信（Cloudflare Pages）を自動デプロイで常用。スマホ通知（ntfy）とVPN（Tailscale）で外出先から進捗確認・承認操作ができる体制。</dd>
 <dt>不可・不得手</dt><dd>対人のリアルタイム稼働（コンサル・常駐・電話対応）／資格や免許を要する業務／在庫を抱える物販／初期投資の大きい案件</dd>
@@ -246,7 +246,7 @@ footer{border-top:1px solid var(--line);margin-top:70px;padding-top:22px;
 <dt>できること</dt><dd>複数ソースから毎日情報を集め、重複を除き、カテゴリ分けして要約し、リンクプレビュー（OGP）付きの静的HTMLを生成し、CDNへ自動デプロイし、上位3件をスマホに通知する——を無人で回している。</dd>
 <dt>裏の道具</dt><dd>定期実行（cron）／スクレイピングとAPI取得／重複判定／静的サイトビルド／Cloudflare Pages への自動デプロイ／ntfy・Discord への配信</dd>
 <dt>転用先</dt><dd>テーマを差し替えるだけで<strong>任意ジャンルの日刊・週刊メディアに複製できる</strong>。ニュースレター、業界動向レポート、比較サイト、求人まとめなど。このページ自体も同じ足回りで配信されている。</dd>
-<dt>実証</dt><dd class="proof">1年近く無人稼働。追加の人手コストはゼロ。</dd>
+<dt>実証</dt><dd class="proof">2026年3月開始・200日分以上を無人生成。追加の人手コストはゼロ。</dd>
 </dl>
 </div>
 
