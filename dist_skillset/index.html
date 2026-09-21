@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>個人開発スキル台帳 — AI向け副業提案用データシート</title>
+<meta name="description" content="1名・RTX 4060 Ti 8GB のローカル環境で運用している動画自動制作／AIエージェント／業務自動化のスキル棚卸し。他のAIに読ませて新しい副業候補を提案させるための構造化データシート。">
+<meta name="robots" content="index,follow">
+<meta property="og:title" content="個人開発スキル台帳 — AI向け副業提案用データシート">
+<meta property="og:description" content="動画自動制作・AIエージェント運用・業務自動化の実装スキルと、実績・制約・撤退記録をまとめた棚卸し。">
+<meta property="og:type" content="website">
+<style>
+:root{
+  --bg:#fbfaf7; --fg:#22201c; --muted:#6b6459; --line:#e2ddd2;
+  --card:#ffffff; --accent:#8a5a2b; --accent-soft:#f3ece1;
+  --warn:#8c2f2f; --warn-soft:#f8ecea; --ok:#2f6b4a; --ok-soft:#e9f2ec;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#16151a; --fg:#e9e5dd; --muted:#9d968a; --line:#2f2c33;
+    --card:#1e1d23; --accent:#d4a35f; --accent-soft:#2a2420;
+    --warn:#e08b84; --warn-soft:#2c2020; --ok:#7fc39a; --ok-soft:#1c2620;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16151a; --fg:#e9e5dd; --muted:#9d968a; --line:#2f2c33;
+  --card:#1e1d23; --accent:#d4a35f; --accent-soft:#2a2420;
+  --warn:#e08b84; --warn-soft:#2c2020; --ok:#7fc39a; --ok-soft:#1c2620;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;
+  line-height:1.8;font-size:16px;margin:0}
+.wrap{max-width:900px;margin:0 auto;padding:0 20px 100px}
+header.hero{border-bottom:1px solid var(--line);padding:56px 0 34px;margin-bottom:8px}
+h1{font-size:1.85rem;line-height:1.35;margin:0 0 12px;letter-spacing:.01em}
+.sub{color:var(--muted);font-size:.95rem;margin:0}
+.updated{display:inline-block;font-family:var(--mono);font-size:.78rem;color:var(--muted);
+  border:1px solid var(--line);border-radius:999px;padding:2px 11px;margin-bottom:16px}
+h2{font-size:1.3rem;margin:56px 0 6px;padding-top:14px;border-top:2px solid var(--fg);letter-spacing:.01em}
+h2 .num{font-family:var(--mono);color:var(--accent);font-size:.9rem;margin-right:.6em}
+h3{font-size:1.05rem;margin:30px 0 6px}
+h4{font-size:.92rem;margin:16px 0 4px;color:var(--muted);font-weight:600;letter-spacing:.04em}
+p{margin:.6em 0}
+ul{margin:.5em 0;padding-left:1.3em}
+li{margin:.3em 0}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);
+  padding:1px 5px;border-radius:4px}
+.lead{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);
+  border-radius:8px;padding:18px 22px;margin:26px 0}
+.lead p:first-child{margin-top:0}.lead p:last-child{margin-bottom:0}
+.tablewrap{overflow-x:auto;margin:14px 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:.9rem;background:var(--card)}
+th,td{text-align:left;padding:9px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--accent-soft);font-weight:600;white-space:nowrap;font-size:.84rem;letter-spacing:.03em}
+tr:last-child td{border-bottom:none}
+td.n{font-family:var(--mono);white-space:nowrap}
+.cap{background:var(--card);border:1px solid var(--line);border-radius:10px;
+  padding:18px 22px;margin:18px 0}
+.cap h3{margin-top:0;display:flex;gap:.55em;align-items:baseline;flex-wrap:wrap}
+.cap h3 .tag{font-family:var(--mono);font-size:.72rem;color:var(--bg);background:var(--accent);
+  padding:2px 8px;border-radius:4px;letter-spacing:.06em}
+.cap dl{margin:10px 0 0;display:grid;grid-template-columns:max-content 1fr;gap:6px 16px}
+.cap dt{color:var(--muted);font-size:.82rem;font-weight:600;white-space:nowrap;padding-top:2px}
+.cap dd{margin:0;font-size:.93rem}
+.dead{background:var(--warn-soft);border:1px solid var(--line);border-left:4px solid var(--warn);
+  border-radius:8px;padding:14px 20px;margin:14px 0}
+.dead h3{margin:0 0 4px;font-size:.98rem;color:var(--warn)}
+.dead p{margin:0;font-size:.9rem}
+.proof{color:var(--ok);font-weight:600}
+.kv{display:grid;grid-template-columns:max-content 1fr;gap:7px 18px;margin:16px 0;font-size:.93rem}
+.kv dt{color:var(--muted);font-weight:600;white-space:nowrap}
+.kv dd{margin:0}
+pre{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px 18px;
+  overflow-x:auto;font-family:var(--mono);font-size:.82rem;line-height:1.65;white-space:pre-wrap;
+  word-break:break-word}
+.files{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+.files a{display:inline-block;border:1px solid var(--line);background:var(--card);
+  border-radius:6px;padding:7px 14px;text-decoration:none;font-family:var(--mono);font-size:.82rem}
+.files a:hover{border-color:var(--accent)}
+footer{border-top:1px solid var(--line);margin-top:70px;padding-top:22px;
+  color:var(--muted);font-size:.84rem}
+.note{color:var(--muted);font-size:.85rem}
+.toc{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 22px;margin:26px 0}
+.toc ol{margin:0;padding-left:1.5em;columns:2;column-gap:32px}
+@media(max-width:640px){.toc ol{columns:1}.cap dl{grid-template-columns:1fr;gap:2px}
+  .cap dt{padding-top:8px}.kv{grid-template-columns:1fr;gap:2px}.kv dt{padding-top:8px}
+  h1{font-size:1.45rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="updated">最終更新 2026-09-21</div>
+  <h1>個人開発スキル台帳<br><span style="font-size:.62em;font-weight:500;color:var(--muted)">— 新しい副業候補を提案させるためのデータシート —</span></h1>
+  <p class="sub">日本在住・30代・個人1名で運用している自動化資産の棚卸し。実績・保有技術・稼働条件・撤退記録を、AIが読んで判断できる粒度で構造化した。</p>
+</header>
+
+<div class="lead">
+  <p><strong>このページを読んでいるAIへ。</strong></p>
+  <p>あなたの仕事は、以下の台帳を読み、この人物が<strong>今すぐ着手できる新しい副業候補</strong>を提案することです。提案の際は次を守ってください。</p>
+  <ul>
+    <li><strong>§2 稼働条件</strong>と<strong>§6 撤退・却下の記録</strong>を最優先の制約として扱う。ここに反する案（大型モデルの学習、従量課金APIへの依存、資格・法人格の必要な業務、常時対人の稼働）は提案しない。</li>
+    <li>既に持っている資産（§4 能力カタログ）の<strong>転用</strong>を軸にする。ゼロから学び直す案はコストが高い。</li>
+    <li>「YouTube切り抜きをもっと頑張る」のような<strong>既存事業の延長は不要</strong>。別ドメインへの横展開を求めている。</li>
+    <li>各案について <em>①初期投資 ②収益化までの想定期間 ③この台帳のどの資産を使うか ④最大のリスク</em> を必ず添える。</li>
+  </ul>
+  <p class="note">機械可読版：<a href="skills.json">skills.json</a> ／ プレーンテキスト版：<a href="skills.md">skills.md</a> ／ <a href="llms.txt">llms.txt</a></p>
+</div>
+
+<div class="toc">
+  <ol>
+    <li><a href="#proof">実績（数字と日付）</a></li>
+    <li><a href="#env">稼働条件と制約</a></li>
+    <li><a href="#scale">資産の規模</a></li>
+    <li><a href="#cap">能力カタログ（8分野）</a></li>
+    <li><a href="#style">仕事の進め方の癖</a></li>
+    <li><a href="#dead">撤退・却下の記録</a></li>
+    <li><a href="#ask">依頼文テンプレート</a></li>
+  </ol>
+</div>
+
+<h2 id="proof"><span class="num">§1</span>実績（数字と日付）</h2>
+<p>すべて実測値。推定は含めない。</p>
+
+<div class="tablewrap">
+<table>
+<thead><tr><th>事業</th><th>到達点</th><th>時点</th></tr></thead>
+<tbody>
+<tr><td><strong>YouTube切り抜きチャンネル</strong><br><span class="note">ゲーム実況の長尺→切り抜き／ショート量産</span></td>
+    <td>登録者 <span class="proof">6,370人</span>／総再生 <span class="proof">986万回</span>／公開 128本<br>
+        <span class="note">日次で 2〜3万再生・視聴時間 3〜10万分／日の規模で回っている</span></td>
+    <td class="n">2026-09-21</td></tr>
+<tr><td>同・収益化（YPP）</td>
+    <td>審査通過。<span class="note">「再利用されたコンテンツ」で2度不合格（4月・5月）→ 漫画化ショートの量産で独自性を立証し覆した</span></td>
+    <td class="n">2026-06-02</td></tr>
+<tr><td><strong>生成AIニュース日刊サイト</strong></td>
+    <td>収集→重複除去→要約→静的サイト生成→CDNデプロイを<span class="proof">全自動・毎日</span>で運用中（無人で1年近く稼働）</td>
+    <td class="n">運用中</td></tr>
+<tr><td><strong>スプレッドシート型の業務自動化ツール</strong></td>
+    <td>4種を製品化（EC商品説明文／ビジネスメール返信／口コミ返信／SNS投稿30日分）。<br>
+        <span class="note">GAS + 生成AI。マニュアルPDF・出品用説明文・QCレポートまで同梱の完成品</span></td>
+    <td class="n">制作済</td></tr>
+<tr><td><strong>オンライン講座（Udemy）</strong></td>
+    <td>AIコーディング運用をテーマに初級・中級の全章を執筆。スライド→ナレーション→動画の生成を章単位で自動化</td>
+    <td class="n">制作済</td></tr>
+<tr><td><strong>受託（クラウドワークス）</strong></td>
+    <td>動画編集トライアル案件／中国語ショート動画の翻訳・日本語ナレーション化パイプライン構築</td>
+    <td class="n">実施済</td></tr>
+<tr><td><strong>記事投稿の自動化</strong></td>
+    <td>note.com の下書き作成・編集・公開・画像挿入・カバー設定を CLI 化（Playwright）</td>
+    <td class="n">運用中</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2 id="env"><span class="num">§2</span>稼働条件と制約</h2>
+<p><strong>提案はこの枠の内側で行うこと。</strong>ここが候補を最も強く絞り込む。</p>
+
+<dl class="kv">
+<dt>人員</dt><dd>1名。外注・雇用なし。法人格なし。稼働は平日夜と週末が中心。</dd>
+<dt>計算機</dt><dd>Ryzen 7 5800X (8C/16T)／<strong>RTX 4060 Ti・VRAM 8GB</strong>／RAM 48GB／Ubuntu 24.04（WSL2併用）。クラウドGPUは常用しない。</dd>
+<dt>VRAM 8GB の壁</dt><dd>ローカルで実用になっているのは <em>7B級の量子化モデルまで</em>。大型モデルの学習・ファインチューニング、長尺の動画生成は実用速度に届かない（実測で断念済み）。</dd>
+<dt>ローカルで動く<br>実績のあるもの</dt>
+  <dd>画像・映像理解 Qwen2.5-VL 7B（4bit量子化・1フレーム0.32秒）／音声認識 Qwen3-ASR（語単位タイムスタンプ）／音声分離 Demucs／日本語埋め込み Ruri v3（意味検索）／話者判定 ECAPA／NVENC ハードウェアエンコード</dd>
+<dt>課金方針</dt><dd><strong>従量課金APIを常用しない。</strong>画像・映像解析の外部API課金が月1万円に達した時点で全面的にローカルOSSへ移行した（2026-08-22）。固定額のサブスク枠で完結する設計を強く選好する。</dd>
+<dt>使えるサブスク枠</dt><dd>AIコーディング環境（エージェント運用の主力）／画像生成CLI（追加課金ゼロで生成可能）／商用利用可のBGM・効果音ライブラリ</dd>
+<dt>言語・技術</dt><dd>Python と Bash が主力。ffmpeg・yt-dlp・Playwright・Google Apps Script。JS/TSは必要最小限（Remotion 等）。フロントは素のHTML+JSで組む。</dd>
+<dt>公開・配信</dt><dd>静的サイトのCDN配信（Cloudflare Pages）を自動デプロイで常用。スマホ通知（ntfy）とVPN（Tailscale）で外出先から進捗確認・承認操作ができる体制。</dd>
+<dt>不可・不得手</dt><dd>対人のリアルタイム稼働（コンサル・常駐・電話対応）／資格や免許を要する業務／在庫を抱える物販／初期投資の大きい案件</dd>
+</dl>
+
+<h2 id="scale"><span class="num">§3</span>資産の規模</h2>
+<p>「作れる」ではなく「すでに動いている」ものの数。</p>
+<div class="tablewrap">
+<table>
+<thead><tr><th>種別</th><th>数</th><th>中身</th></tr></thead>
+<tbody>
+<tr><td>自動化スクリプト</td><td class="n">約 400 本</td><td>共通基盤 126 本＋動画制作 273 本（Python / Bash）</td></tr>
+<tr><td>手順書（再現可能な作業定義）</td><td class="n">62 本</td><td>エンコード設定・バッチ処理・QC基準など、事故から起こした実務ルール</td></tr>
+<tr><td>AIエージェント用スキル定義</td><td class="n">35 本</td><td>1コマンドで多工程を走らせるワークフロー定義（後述）</td></tr>
+<tr><td>失敗・指摘の記録</td><td class="n">108 本</td><td>「なぜそれが駄目だったか」を理由つきで永続化したもの。同じ事故を二度起こさないための資産</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2 id="cap"><span class="num">§4</span>能力カタログ（8分野）</h2>
+<p class="note">各項目は「何ができるか／裏で動いている道具／実証」の順。</p>
+
+<div class="cap">
+<h3><span class="tag">A</span>長尺動画から切り抜き・ショートを量産するパイプライン</h3>
+<dl>
+<dt>できること</dt><dd>数時間の長尺動画を投入すると、ダウンロード → 音声分離 → 語単位の文字起こし → 盛り上がり箇所の検出 → 候補リスト化 → 人が選定 → クリップ切り出し → 結合 → 縦型/横型書き出し → 投稿・概要欄・チャプター設定までが繋がる。128本を実際にこれで出した。</dd>
+<dt>盛り上がりの検出</dt><dd>視聴者コメントの時刻言及を束ねて票数化／ライブチャットの密度を平常比の倍率で算出／音量Δによる絶叫の自動検出。<strong>「人がどこで反応したか」を一次データにする</strong>のが要点で、AIの主観で選ばせない。</dd>
+<dt>裏の道具</dt><dd>yt-dlp（レジューム・リトライ・IP対策込み）／Demucs／Qwen3-ASR／ffmpeg concat demuxer + NVENC（大量セグメントでもOOMしない組み方）／YouTube Data API・Analytics API</dd>
+<dt>実証</dt><dd class="proof">公開128本・総再生986万回。収益化審査通過。</dd>
+</dl>
+</div>
+
+<div class="cap">
+<h3><span class="tag">B</span>実写映像の「漫画化」（画像生成の実務運用）</h3>
+<dl>
+<dt>できること</dt><dd>実際の映像の一場面を、キャラクター画風を崩さずに漫画のコマへ描き起こす。実発話のセリフを縦書き吹き出しで載せ、音声と同期させてコマ送り動画にする。</dd>
+<dt>画風を崩さない手法</dt><dd>キャラの外見はプロンプトに一切書かず<strong>三面図（参照画像）に全面委任</strong>し、プロンプトでは表情・構図・状況だけを指示する。参照画像は4枚まで（増やすと参照が薄まり特徴が落ちることを実測済み）。生成後の吹き出し誤植は塗り潰し→縦書き差し替えで機械的に直す。</dd>
+<dt>裏の道具</dt><dd>画像生成CLI（サブスク枠内・追加課金ゼロ）／三面図アセット／セリフ差し替えスクリプト／コマ送り時刻の手動調整Webアプリ</dd>
+<dt>実証</dt><dd class="proof">この手法で量産した漫画化ショートが、収益化審査の「独自性」を立証する決め手になった。</dd>
+</dl>
+</div>
+
+<div class="cap">
+<h3><span class="tag">C</span>映像・音声を機械で読む（ローカルVLM／STT／意味検索）</h3>
+<dl>
+<dt>できること</dt><dd>大量の動画フレームを機械に読ませて分類・集計する。例：画面上の名前表示を読み取って「誰の視点か」を全動画分判定する、画面に焼き込まれたテロップ文字を読む、死亡ログを読んで人物別に集計する。48本の動画を色相判定＋名前読み取りの二重チェックで自動集計した実績がある。</dd>
+<dt>精度を出す作り方</dt><dd>まず低解像度（144p）で全数を粗く走らせ、外れ候補だけ高解像度＋VLMで裏を取る二段構え。<strong>AIの検出0件を「無い証明」に使わない</strong>——母数が小さい時は全数を人が見る検分ページを作って確定させる。</dd>
+<dt>裏の道具</dt><dd>Qwen2.5-VL 7B 4bit／Qwen3-ASR（語単位ms）／ECAPA話者判定／Ruri v3 日本語埋め込みによる字幕の意味検索（「あのシーン」を自然文で探せる）／HSV色相分類</dd>
+<dt>実証</dt><dd class="proof">外部API課金 月1万円 → 0円。1フレーム0.32秒で実用速度。</dd>
+</dl>
+</div>
+
+<div class="cap">
+<h3><span class="tag">D</span>人が判断するためのWeb編集アプリを即席で立てる</h3>
+<dl>
+<dt>できること</dt><dd>AIに決めさせてはいけない判断（どこを切るか、どのセリフか、どれを採用するか）を、<strong>人がスマホで触って決められるUIに落とす</strong>。単一ファイルのPythonサーバ＋素のHTMLで、必要になったその場で立てる。</dd>
+<dt>実装済みのもの</dt><dd>クリップの頭尻を±0.1秒で詰めて試聴・書き出しするエディタ（重い元動画を読まずYouTube埋め込みで再生する軽量モード付き）／セリフと話者を行ごとに直すエディタ／コマ送り時刻を音を聞きながら合わせるエディタ／候補一覧をボタンで採否選定して保存する検分ページ（1ページに300超のボタンを置いた実例あり）</dd>
+<dt>設計上の鉄則</dt><dd>人が入力した値は<strong>絶対に上書きしない</strong>。作り直す時は既存JSONを読み、ID一致で採用・区間・テロップを引き継ぎ、追加のみ行う。一度これを破って選定を消す事故を起こしたため、コードにも手順書にも固定した。</dd>
+<dt>裏の道具</dt><dd>Python 標準ライブラリのHTTPサーバ（Range対応・POST保存）／Tailscale経由の外部アクセス／ntfyでURL通知</dd>
+</dl>
+</div>
+
+<div class="cap">
+<h3><span class="tag">E</span>AIエージェントを長期運用する基盤づくり</h3>
+<dl>
+<dt>できること</dt><dd>AIコーディングエージェントを「その場のチャット」ではなく<strong>継続運用される作業員</strong>として扱うための足回りを、実運用の事故から積み上げて作ってある。</dd>
+<dt>中身</dt><dd>役割別の指示書と権限分離／破壊的操作の禁止リストとフック（コミット前の差分確認強制、危険コマンドのブロック）／タスクと報告をYAML＋SQLiteで永続化し状態を復元する仕組み／セッションが途切れても文脈を戻す記憶ファイル群（失敗の理由つきで108本）／進捗のダッシュボードとスマホ通知／1コマンドで多工程を走らせるスキル定義35本</dd>
+<dt>横展開できる形</dt><dd>この「事故から手順書を起こし、フックで強制し、記憶に残す」運用そのものが教材・記事・テンプレートとして売れる形になっている（実際にUdemy講座の題材にした）。</dd>
+<dt>実証</dt><dd class="proof">エージェントのプロンプト前処理が30秒上限を超えて出力を捨てられていた事故を、依存ライブラリのオフライン化で 28.8秒 → 7秒に短縮。原因を実測で特定して直す運用ができている。</dd>
+</dl>
+</div>
+
+<div class="cap">
+<h3><span class="tag">F</span>情報収集 → 要約 → 静的サイト配信の全自動化</h3>
+<dl>
+<dt>できること</dt><dd>複数ソースから毎日情報を集め、重複を除き、カテゴリ分けして要約し、リンクプレビュー（OGP）付きの静的HTMLを生成し、CDNへ自動デプロイし、上位3件をスマホに通知する——を無人で回している。</dd>
+<dt>裏の道具</dt><dd>定期実行（cron）／スクレイピングとAPI取得／重複判定／静的サイトビルド／Cloudflare Pages への自動デプロイ／ntfy・Discord への配信</dd>
+<dt>転用先</dt><dd>テーマを差し替えるだけで<strong>任意ジャンルの日刊・週刊メディアに複製できる</strong>。ニュースレター、業界動向レポート、比較サイト、求人まとめなど。このページ自体も同じ足回りで配信されている。</dd>
+<dt>実証</dt><dd class="proof">1年近く無人稼働。追加の人手コストはゼロ。</dd>
+</dl>
+</div>
+
+<div class="cap">
+<h3><span class="tag">G</span>非エンジニア向け業務自動化ツールの製品化</h3>
+<dl>
+<dt>できること</dt><dd>「スプレッドシートに入力 → ボタン → AIが文章を生成」という形の道具を、<strong>売り物として完成させる</strong>。コードだけでなく、操作マニュアル（HTML/PDF）・出品用の商品説明文・品質チェックレポートまでを一式で作る。</dd>
+<dt>製品化済み</dt><dd>EC商品説明文の自動生成／ビジネスメール返信（6種別・クレーム対応含む）／口コミ返信（星評価別）／SNS投稿30日分の一括生成</dd>
+<dt>裏の道具</dt><dd>Google Apps Script／生成AI API／PDFマニュアル自動生成／出品用文面のテンプレート化</dd>
+<dt>転用先</dt><dd>業種を変えるだけで横展開が効く。テンプレート販売、受託カスタマイズ、サブスク化のいずれも射程。</dd>
+</dl>
+</div>
+
+<div class="cap">
+<h3><span class="tag">H</span>教材・ドキュメントの制作パイプライン</h3>
+<dl>
+<dt>できること</dt><dd>本文（Markdown）から、スライド → 発表者ノート → 音声合成ナレーション → 動画までを章単位で自動生成する。品質チェック（ノート欠落・用語制限）も機械で回す。</dd>
+<dt>裏の道具</dt><dd>Marp系スライド生成／画像生成CLIによるスライド作図／音声合成（長文は5000字単位に分割するのが安定）／ffmpegによる無音挿入と結合／grepベースの自動QC</dd>
+<dt>実証</dt><dd class="proof">オンライン講座の初級・中級を全章この流れで制作。note記事の投稿もCLI化済み。</dd>
+</dl>
+</div>
+
+<h2 id="style"><span class="num">§5</span>仕事の進め方の癖</h2>
+<p>提案を設計する際の前提。この癖に合う仕事は続くし、合わない仕事は続かない。</p>
+<ul>
+<li><strong>判断は人間、候補出しは機械。</strong>採用・順位・公開可否といった価値判断をAIに委ねない。機械は候補を並べるところまでで止め、人がUIで決める。</li>
+<li><strong>数字は実測する。</strong>推定で断定しない。「原理的に不可能」と即断せず、前提が変わったら測り直す（実際にそれで不可能判定を覆した例が複数ある）。</li>
+<li><strong>事故は手順書とフックにする。</strong>失敗を反省文で終わらせず、機械が強制する形（コミット前の差分確認、危険コマンドのブロック、上書き禁止の実装）に落とす。</li>
+<li><strong>成果物は必ず「見られる形」で出す。</strong>ローカルに置いて終わりにせず、URLを発行してスマホに通知するところまでを1工程とみなす。</li>
+<li><strong>固定費で回す。</strong>従量課金の上に事業を積まない。ローカルGPUとサブスク枠に収める設計を選ぶ。</li>
+<li><strong>横展開を前提に作る。</strong>設定JSONを外に出し、スクリプトは使い回せる粒度で切る。「毎回新しいスクリプトを書く」ことを明確に禁じている。</li>
+</ul>
+
+<h2 id="dead"><span class="num">§6</span>撤退・却下の記録</h2>
+<p><strong>これらは既に検討・着手して駄目だったもの。再提案しないこと。</strong>理由の方が候補選びに効く。</p>
+
+<div class="dead">
+<h3>家計・資産管理アプリの自作 — 中止（2026-08-26）</h3>
+<p>自動取得が必須要件だが、金融機関のデータ取得は有料APIに依存する。<strong>「金を払うなら既製品でいい」</strong>という判断で凍結。→ <em>示唆：月額原価が立つ個人向けアプリは成立しない。</em></p>
+</div>
+
+<div class="dead">
+<h3>3D制作による既存映像の再現 — 打ち切り（2026-09-19）</h3>
+<p>3Dリグ・モーションキャプチャ変換・image-to-video まで一通り組んだが、VRAM 8GB では生成の当たり外れが大きく、再現品質に届かなかった。<strong>3Dは「元映像に無い画」を作る用途にのみ使う</strong>方針へ後退。→ <em>示唆：動画生成AIを主軸に据えた事業は現環境では立たない。</em></p>
+</div>
+
+<div class="dead">
+<h3>外部API従量課金を前提にした設計 — 全廃（2026-08-22）</h3>
+<p>画像・映像解析の課金が月1万円に達した時点で、ローカルVLM／ローカルSTTへ全面移行。<strong>従量課金APIを常用する案は原則すべて却下</strong>。→ <em>示唆：原価が利用量に比例する案は提案しない。</em></p>
+</div>
+
+<div class="dead">
+<h3>音声の定量指標による企画 — 一部却下</h3>
+<p>「声の長さ」を競う企画を検討したが、音声から機械的に差が出る指標は事実上<strong>音量だけ</strong>と判明し却下。音量ベースの企画のみ成立させた。→ <em>示唆：定量化できると思い込んだ指標は、先に実測して確かめる。</em></p>
+</div>
+
+<div class="dead">
+<h3>既製の表情差分ライブラリ方式 — 廃止</h3>
+<p>キャラの表情PNGを事前生成して組み合わせる方式は、生成ごとに画風が割れて破綻。参照画像は三面図1系統に固定し、表情はプロンプトで都度指示する方式へ変更。→ <em>示唆：生成AIの一貫性は「参照を1つに絞る」ことでしか担保できない。</em></p>
+</div>
+
+<div class="dead">
+<h3>ハンズオン形式の講座 — 非採用</h3>
+<p>受講者に手を動かさせる構成は環境差のサポート負荷が高く、読み物型で確定。→ <em>示唆：サポート工数が読めない商材は1人体制と相性が悪い。</em></p>
+</div>
+
+<h2 id="ask"><span class="num">§7</span>依頼文テンプレート</h2>
+<p>このページのURLと併せて他のAIに渡すための文面。</p>
+<pre>次のURLは、ある個人開発者のスキル・実績・制約をまとめた台帳です。
+https://murakami-skillset.pages.dev/
+
+これを読んだうえで、この人物が新しく着手できる副業候補を7案提案してください。
+
+条件：
+- 台帳の「§2 稼働条件」と「§6 撤退・却下の記録」を絶対の制約として扱うこと
+- 既存のYouTube切り抜き事業の延長・強化は提案しないこと（別ドメインへの横展開を求めている）
+- 台帳の「§4 能力カタログ」にある既存資産の転用を軸にすること
+- 従量課金APIに原価が比例する案、VRAM 8GB を超える計算資源を要する案は除外すること
+
+各案について必ず記載：
+1. 何を売るのか（顧客と対価の形）
+2. 台帳のどの資産（A〜H）をどう転用するか
+3. 初期投資と、収益が立つまでの想定期間
+4. 最大のリスクと、それが致命傷になる条件
+5. 最初の2週間でやる具体的な作業
+
+最後に、7案を「この人物の癖（§5）との相性」で順位づけし、
+1位を推す理由を3行で書いてください。</pre>
+
+<footer>
+  <p>この台帳は、実際に稼働しているリポジトリの内容（スクリプト約400本・手順書62本・スキル定義35本・失敗記録108本）を棚卸しして生成した。数字はすべて実測値で、時点を併記している。</p>
+  <p>機械可読版：<a href="skills.json">skills.json</a> ／ <a href="skills.md">skills.md</a> ／ <a href="llms.txt">llms.txt</a></p>
+</footer>
+
+</div>
+</body>
+</html>
