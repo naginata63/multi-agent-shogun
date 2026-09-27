@@ -247,8 +247,9 @@ def get_daily_stats(analytics):
 
 
 def get_per_video_analytics(analytics, videos):
-    """動画別平均視聴時間・周回率（Analytics API）- ショート動画対象"""
-    shorts = [v for v in videos if is_short(v)]
+    """動画別平均視聴時間・視聴維持率・周回率（Analytics API）- 公開中のショート＋横長
+    旧版はショートだけを取っており、方針で最重要とする横長の維持率が一度も取れていなかった (2026-09-27)"""
+    shorts = [v for v in videos if v.get("privacy_status", "public") == "public"]   # 名前は旧来のまま(横長も含む)
     if not shorts:
         return []
 
@@ -301,6 +302,9 @@ def get_per_video_analytics(analytics, videos):
         })
 
     return sorted(results, key=lambda x: x["views"], reverse=True)
+
+
+ANALYTICS_LAG_DAYS = 3   # YouTube Analytics の日別データが届くまでの遅れ(実測 約3日)
 
 
 def get_recent_shorts_feed_check(analytics, videos, days_lookback=7, threshold_pct=20):
@@ -372,12 +376,12 @@ def get_recent_shorts_feed_check(analytics, videos, days_lookback=7, threshold_p
             shorts_pct = -1
 
         elapsed_days = (today - pub_dt).days
-        is_warn = v.get("privacy_status") == "public" and (
-            (elapsed_days >= 2
-             and views > 0
-             and shorts_pct != -1
-             and shorts_pct < threshold_pct)
-            or (elapsed_days >= 2 and views == 0)
+        # YouTube Analytics は約3日遅れ。今日の日付で「公開2日」を数えると、データ未着の動画が
+        # views:0 → SHORTS 0% で毎朝誤警告された(喉/ゾクゾク 2026-09-27) → 集計に2日分揃ってから判定
+        covered_days = elapsed_days - ANALYTICS_LAG_DAYS
+        is_warn = v.get("privacy_status") == "public" and covered_days >= 2 and (
+            (views > 0 and shorts_pct != -1 and shorts_pct < threshold_pct)
+            or views == 0
         )
 
         results.append({
@@ -388,6 +392,7 @@ def get_recent_shorts_feed_check(analytics, videos, days_lookback=7, threshold_p
             "views": views, "avg_view_pct": avg_pct,
             "shorts_feed_pct": shorts_pct,
             "is_warning": is_warn,
+            **({"note": "集計待ち(Analyticsは約3日遅れ)"} if covered_days < 2 else {}),
         })
         time.sleep(0.3)
     return results
@@ -731,6 +736,8 @@ def save_analysis(date_str: str, content: str):
 def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, video_diffs, revenue=None,
                         shorts_feed_check=None, per_video_analytics=None):
     """Claude CLI (Opusの最新・別名 opus) でLLM分析（収益・視聴維持率・ショート露出・メンバー別込み）"""
+    # 非公開・限定公開(試作の上げ直し・ライブ枠)を「0再生の動画」として論じていた → 公開分だけ渡す (2026-09-27)
+    videos = [v for v in videos if v.get("privacy_status", "public") == "public"]
     top_videos = videos[:5]
     recent_daily = daily_stats[-5:] if daily_stats else []
 
@@ -746,12 +753,17 @@ def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, vid
             return f"  - 維持率{v['avg_view_pct']}% [{dur}] {d.get('title','')[:30]}"
         hi = "\n".join(_row(v) for v in pv_sorted[:3])
         lo = "\n".join(_row(v) for v in pv_sorted[-3:])
+        # 上位/下位がショート(100%超の周回)で埋まり横長が1本も入らなかった → 横長は別に全部出す
+        lv = sorted([v for v in pv if tmap.get(v["id"], {}).get("duration_sec", 0) > 180], key=lambda x: -x["avg_view_pct"])
+        long_rows = "\n".join(_row(v) for v in lv) or "  - (横長の維持率データなし)"
         ret_block = f"""
+横長(3分超)の視聴維持率（全本・高い順）:
+{long_rows}
 視聴維持率（★横長は再生数よりこれを最重視）:
 - 直近{len(_dpct)}日の平均視聴維持率: {', '.join(f'{p}%' for p in _dpct)}
-- 維持率 高い動画TOP3:
+- 維持率 高い動画TOP3（全種別・ショートは周回で100%超になる）:
 {hi}
-- 維持率 低い動画WORST3:
+- 維持率 低い動画WORST3（全種別）:
 {lo}"""
 
     # A. ショート露出低下
@@ -770,10 +782,10 @@ def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, vid
     tally = {}
     for v in videos:
         title = v.get("title", "")
-        for kw, name in MEM.items():
-            if kw in title:
-                tally.setdefault(name, {"views": 0, "n": 0})
-                tally[name]["views"] += v.get("views", 0); tally[name]["n"] += 1
+        # 「ぼんじゅうる」と「ぼん」、「おおはらMEN」と「おおはら」が同じタイトルに両方当たり二重計上していた → 1本1人1回 (2026-09-27)
+        for name in {name for kw, name in MEM.items() if kw in title}:
+            tally.setdefault(name, {"views": 0, "n": 0})
+            tally[name]["views"] += v.get("views", 0); tally[name]["n"] += 1
     if tally:
         ms = sorted(tally.items(), key=lambda x: -x[1]["views"])
         mem_block = "\nメンバー別 再生集計（タイトル言及ベース・誰が数字を持つか）:\n" + \
@@ -785,7 +797,7 @@ def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, vid
         t = revenue["totals"]; per = revenue.get("period", {})
         ct = revenue.get("by_content_type", {})
         bv = revenue.get("by_video", [])[:5]
-        _ctja = {"video_on_demand": "長尺/通常", "shorts": "ショート", "live_stream": "ライブ"}
+        _ctja = {"videoOnDemand": "長尺/通常", "video_on_demand": "長尺/通常", "shorts": "ショート", "liveStream": "ライブ", "live_stream": "ライブ"}
         ct_lines = "\n".join(
             f"  - {_ctja.get(k, k)}: 収益¥{v.get('est_revenue',0):,.0f} / RPM¥{v.get('rpm',0)}（再生{v.get('views',0):,}）"
             for k, v in ct.items())
@@ -794,7 +806,7 @@ def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, vid
         _daily = revenue.get("daily", [])[-7:]
         _dtrend = " ".join(f"{d['date'][5:]}¥{d.get('est_revenue',0):,.0f}" for d in _daily)
         rev_block = f"""
-収益（収益化{per.get('start','')}〜{per.get('end','')}・推定・通貨JPY）:
+収益（直近{per.get('start','')}〜{per.get('end','')}の推定・通貨JPY。動画別の上位だけは収益化6/2以降の累計）:
 - 日別収益トレンド(直近7日・増減傾向): {_dtrend}
 - 期間推定収益: ¥{est:,.0f}（うち広告¥{t.get('ad_revenue',0):,.0f} / Premium¥{t.get('premium_revenue',0):,.0f}）
 - 殿の手取り(契約65%): ¥{est*0.65:,.0f}
@@ -807,20 +819,62 @@ def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, vid
     # 前日比サマリー
     total_view_diff = sum(d["views"] for d in video_diffs.values())
     total_like_diff = sum(d["likes"] for d in video_diffs.values())
+    sg = lambda n: f"{n:+,}"   # 旧「+{n}」固定は減った日に「+-123」になった
+
+    def _kind(v):
+        if v.get("duration_sec", 0) > 180: return "横長"
+        return "漫画ショート" if (v.get("is_manga") or "#漫画" in v.get("title", "")) else "切り抜きショート"
+
+    # 前日に伸びた動画(累計TOP5は昔のショートばかりで日々の判断に効かぬ)
+    movers = sorted(videos, key=lambda v: -video_diffs.get(v["id"], {}).get("views", 0))[:6]
+    mover_block = "\n".join(f"  - {sg(video_diffs.get(v['id'], {}).get('views', 0))} [{_kind(v)}・{v.get('duration_str','')}・公開{v.get('published_at','')[:10]}] {v['title'][:34]}" for v in movers)
+    # 新作(直近14日公開)の出足
+    from datetime import date as _date
+    def _age(v):
+        try: return (_date.fromisoformat(DATE_STR) - _date.fromisoformat(v.get("published_at", "")[:10])).days
+        except Exception: return 999
+    new_v = sorted([v for v in videos if _age(v) <= 14], key=lambda v: v.get("published_at", ""), reverse=True)
+    new_block = "\n".join(f"  - 公開{_age(v)}日目 {v['views']:,}再生（前日比{sg(video_diffs.get(v['id'], {}).get('views', 0))}）[{_kind(v)}] {v['title'][:34]}" for v in new_v) or "  - なし"
+    # 種別ごとの本数と平均再生
+    kinds = {}
+    for v in videos:
+        kinds.setdefault(_kind(v), []).append(v.get("views", 0))
+    kind_block = "\n".join(f"  - {k}: {len(x)}本 / 平均{sum(x)//max(len(x),1):,}再生" for k, x in kinds.items())
+    # 前日の分析(同じ示唆の繰り返しを避けるため)
+    prev_note = ""
+    try:
+        _h = json.load(open(ANALYTICS_DIR / "analysis_history.json", encoding="utf-8"))
+        _p = [h for h in _h if h.get("date") != DATE_STR]
+        if _p:
+            _c = _p[0].get("content", "")
+            _i = _c.find("### 戦略示唆")
+            prev_note = f"\n前日({_p[0]['date']})の戦略示唆（同じことを繰り返すな。変化・新しい発見を優先）:\n{_c[_i:_i+1200] if _i >= 0 else _c[-800:]}\n"
+    except Exception:
+        pass
+    _last_day = recent_daily[-1]["date"] if recent_daily else "?"
 
     data_summary = f"""チャンネル: 毎日ドズル社切り抜き（ドズル社のマイクラ動画の切り抜きチャンネル）
 登録者数: {channel_stats.get('subscribers', 0)}
 総再生数: {channel_stats.get('total_views', 0)}
 動画数: {channel_stats.get('video_count', 0)}
 
-前日比:
-- 総再生数変化: +{total_view_diff}
-- 総いいね数変化: +{total_like_diff}
+前日比（動画別累計の差・今朝の取得値）:
+- 総再生数変化: {sg(total_view_diff)}
+- 総いいね数変化: {sg(total_like_diff)}
 
-直近日別統計（直近{len(recent_daily)}日）:
+前日に伸びた動画 上位:
+{mover_block}
+
+新作（直近14日に公開）の出足:
+{new_block}
+
+種別ごとの本数と平均再生（全公開動画）:
+{kind_block}
+
+直近日別統計（直近{len(recent_daily)}日・YouTubeの集計は約3日遅れで、最終日は{_last_day}。『昨日』ではない）:
 {json.dumps(recent_daily, ensure_ascii=False, indent=2)}
 
-トップ5動画（再生数順）:
+累計再生トップ5（参考・昔の動画が多い）:
 {json.dumps([{
     'title': v['title'],
     'views': v['views'],
@@ -835,7 +889,7 @@ def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, vid
 {ret_block}
 {sf_block}
 {mem_block}
-"""
+{prev_note}"""
 
     prompt = f"""あなたはYouTubeチャンネル「毎日ドズル社切り抜き」のアナリストです。
 以下の日次データ（再生・登録・収益・視聴維持率・ショート露出・メンバー別）を分析し、日本語で所感と戦略示唆を出してください。
@@ -846,6 +900,10 @@ def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, vid
 - 収益単価(RPM)は長尺>ショート。収益化は長尺重視。
 - YPP維持(チャンネルの独自性)が至上命題。
 - 収益データがある場合はRPM差・稼ぎ頭動画・収益効率を必ず考慮する。
+- ショートは「漫画ショート」(AI作画)と「切り抜きショート」を区別して語ること。
+- 企画の提案は「視聴者が知りたい問いを一言で書け、答えを聞いて『へえ』となるか」を満たすものだけ。数えられる軸や作りやすさだけで勧めるな。
+- 次は提案するな: 視聴者コメントへの返信（方針で返信しない）／ショートのサムネイル（付けない方針）／公開・非公開の判断（殿が決める）。
+- 日別の数字は約3日遅れ。最終日を『昨日』と書くな。
 
 {data_summary}
 
