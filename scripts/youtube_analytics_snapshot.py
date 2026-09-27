@@ -81,6 +81,7 @@ def get_credentials():
         if not creds:
             if not CLIENT_SECRET_PATH.exists():
                 print(f"[analytics] エラー: {CLIENT_SECRET_PATH} が見つかりません")
+                _notify_failure(f"client_secret.json が見つかりません: {CLIENT_SECRET_PATH}")
                 sys.exit(1)
             # cron/headless で run_local_server を呼ぶと対話認証待ちで無限ハングし、
             # 以降の毎日のスナップショットが全滅する(2026-06-14〜15 実害)。
@@ -89,6 +90,7 @@ def get_credentials():
                 print("[analytics] エラー: token無効かつ非対話環境のため認証不可。")
                 print("  スマホ再認証してください: "
                       "python3 projects/dozle_kirinuki/scripts/reauth_phone.py url")
+                _notify_failure("YouTubeトークンが失効しました（要スマホ再認証）")
                 sys.exit(1)
             print("[analytics] 新規認証が必要です（Analytics APIスコープ追加のため）")
             print("  以下URLをブラウザで開いてください:")
@@ -149,7 +151,8 @@ def get_all_video_ids(youtube, uploads_playlist_id):
         if not page_token:
             break
 
-    return video_ids
+    # 同じ動画IDが2回返ることがある(7-KgCLSwtXo 実例・2026-09-27) → 順序を保って重複除去
+    return list(dict.fromkeys(video_ids))
 
 
 def get_video_details(youtube, video_ids):
@@ -473,10 +476,11 @@ def get_revenue_stats(analytics, videos):
                                              "rpm": round(rev / v * 1000, 2) if v else 0.0}
     except Exception as e:
         print(f"  [収益] CT別失敗: {e}")
-    # 動画別収益 top15
+    # 動画別収益 top15（収益化開始6/2〜の累計。直近窓でなく投稿以降ほぼ全期間で稼いだ順・殿指摘 2026-06-30）
+    out["by_video_period"] = {"start": MONETIZATION_START, "end": ANALYTICS_END, "cumulative": True}
     try:
         res = analytics.reports().query(
-            ids=f"channel=={CHANNEL_ID}", startDate=REV_START, endDate=ANALYTICS_END, currency=CUR,
+            ids=f"channel=={CHANNEL_ID}", startDate=MONETIZATION_START, endDate=ANALYTICS_END, currency=CUR,
             metrics="estimatedRevenue,views,estimatedAdRevenue,estimatedRedPartnerRevenue",
             dimensions="video", sort="-estimatedRevenue", maxResults=15).execute()
         tmap = {v.get("id"): v.get("title", "") for v in (videos or [])}
@@ -710,7 +714,7 @@ def save_analysis(date_str: str, content: str):
     history = [h for h in history if h.get("date") != date_str]
     history.append({
         "date": date_str,
-        "model": "claude-opus-4-6",
+        "model": os.environ.get("CLAUDE_MODEL", "claude-opus-5-5"),   # 実際に使ったモデルを記録
         "content": content,
     })
     history.sort(key=lambda x: x["date"], reverse=True)
@@ -719,10 +723,81 @@ def save_analysis(date_str: str, content: str):
     print(f"[analytics] analysis_history.json 更新: {date_str}")
 
 
-def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, video_diffs):
-    """Claude CLI Opus 4.6でLLM分析"""
+def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, video_diffs, revenue=None,
+                        shorts_feed_check=None, per_video_analytics=None):
+    """Claude CLI Opus 4.6でLLM分析（収益・視聴維持率・ショート露出・メンバー別込み）"""
     top_videos = videos[:5]
     recent_daily = daily_stats[-5:] if daily_stats else []
+
+    # B. 視聴維持率（横長最重視指標）: 日別 + 動画別 top/bottom
+    ret_block = ""
+    _dpct = [d.get("avg_view_pct") for d in recent_daily if d.get("avg_view_pct") is not None]
+    if per_video_analytics:
+        pv = [v for v in per_video_analytics if v.get("avg_view_pct") is not None and v.get("views", 0) > 100]
+        pv_sorted = sorted(pv, key=lambda x: -x["avg_view_pct"])
+        tmap = {v["id"]: v for v in videos}
+        def _row(v):
+            d = tmap.get(v["id"], {}); dur = d.get("duration_str", "")
+            return f"  - 維持率{v['avg_view_pct']}% [{dur}] {d.get('title','')[:30]}"
+        hi = "\n".join(_row(v) for v in pv_sorted[:3])
+        lo = "\n".join(_row(v) for v in pv_sorted[-3:])
+        ret_block = f"""
+視聴維持率（★横長は再生数よりこれを最重視）:
+- 直近{len(_dpct)}日の平均視聴維持率: {', '.join(f'{p}%' for p in _dpct)}
+- 維持率 高い動画TOP3:
+{hi}
+- 維持率 低い動画WORST3:
+{lo}"""
+
+    # A. ショート露出低下
+    sf_block = ""
+    if shorts_feed_check:
+        low = [s for s in shorts_feed_check if s.get("shorts_feed_pct", 100) < 20][:6]
+        if low:
+            sf_block = "\nショートのフィード露出低下（SHORTS流入%が低い＝伸び悩み）:\n" + \
+                "\n".join(f"  - {s.get('title','')[:30]} SHORTS:{s.get('shorts_feed_pct')}% / views:{s.get('views',0):,}" for s in low)
+
+    # E. メンバー別 再生集計（タイトルのメンバー名で簡易集計）
+    mem_block = ""
+    MEM = {"ドズル": "ドズル", "ぼんじゅうる": "ぼんじゅうる", "ぼん": "ぼんじゅうる",
+           "おんりー": "おんりー", "おらふ": "おらふくん", "おおはらMEN": "おおはらMEN",
+           "おおはら": "おおはらMEN", "ネコおじ": "ネコおじ"}
+    tally = {}
+    for v in videos:
+        title = v.get("title", "")
+        for kw, name in MEM.items():
+            if kw in title:
+                tally.setdefault(name, {"views": 0, "n": 0})
+                tally[name]["views"] += v.get("views", 0); tally[name]["n"] += 1
+    if tally:
+        ms = sorted(tally.items(), key=lambda x: -x[1]["views"])
+        mem_block = "\nメンバー別 再生集計（タイトル言及ベース・誰が数字を持つか）:\n" + \
+            "\n".join(f"  - {n}: 計{d['views']:,}再生 / {d['n']}本（平均{d['views']//max(d['n'],1):,}）" for n, d in ms)
+
+    # 収益サマリ（収益化後・殿手取り65%）
+    rev_block = ""
+    if revenue and revenue.get("totals"):
+        t = revenue["totals"]; per = revenue.get("period", {})
+        ct = revenue.get("by_content_type", {})
+        bv = revenue.get("by_video", [])[:5]
+        _ctja = {"video_on_demand": "長尺/通常", "shorts": "ショート", "live_stream": "ライブ"}
+        ct_lines = "\n".join(
+            f"  - {_ctja.get(k, k)}: 収益¥{v.get('est_revenue',0):,.0f} / RPM¥{v.get('rpm',0)}（再生{v.get('views',0):,}）"
+            for k, v in ct.items())
+        bv_lines = "\n".join(f"  - ¥{v.get('est_revenue',0):,.0f} {v.get('title','')[:34]}" for v in bv)
+        est = t.get("est_revenue", 0)
+        _daily = revenue.get("daily", [])[-7:]
+        _dtrend = " ".join(f"{d['date'][5:]}¥{d.get('est_revenue',0):,.0f}" for d in _daily)
+        rev_block = f"""
+収益（収益化{per.get('start','')}〜{per.get('end','')}・推定・通貨JPY）:
+- 日別収益トレンド(直近7日・増減傾向): {_dtrend}
+- 期間推定収益: ¥{est:,.0f}（うち広告¥{t.get('ad_revenue',0):,.0f} / Premium¥{t.get('premium_revenue',0):,.0f}）
+- 殿の手取り(契約65%): ¥{est*0.65:,.0f}
+- コンテンツ種別RPM（1000再生あたり収益・単価指標）:
+{ct_lines}
+- 動画別 累計収益 上位（収益化6/2〜・どの動画が稼いだか）:
+{bv_lines}
+※RPM=収益効率。長尺とショートで単価が大きく異なる場合、どちらに注力すべきかの判断材料。"""
 
     # 前日比サマリー
     total_view_diff = sum(d["views"] for d in video_diffs.values())
@@ -751,10 +826,21 @@ def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, vid
 
 トラフィックソース（上位5件）:
 {json.dumps(traffic_sources[:5], ensure_ascii=False, indent=2)}
+{rev_block}
+{ret_block}
+{sf_block}
+{mem_block}
 """
 
     prompt = f"""あなたはYouTubeチャンネル「毎日ドズル社切り抜き」のアナリストです。
-以下の日次データを分析し、日本語で所感と戦略示唆を出してください。
+以下の日次データ（再生・登録・収益・視聴維持率・ショート露出・メンバー別）を分析し、日本語で所感と戦略示唆を出してください。
+
+【チャンネル方針（前提・必ず踏まえよ）】
+- ★横長(長尺)は「再生数」より【視聴維持率】を最重視する。維持率がおすすめ流入と広告単価に直結するため。長尺の評価・示唆は維持率を主軸に語ること。
+- おんりーを前面に出した切り抜き/ショートはバズりやすい傾向(2026-07観測)。
+- 収益単価(RPM)は長尺>ショート。収益化は長尺重視。
+- YPP維持(チャンネルの独自性)が至上命題。
+- 収益データがある場合はRPM差・稼ぎ頭動画・収益効率を必ず考慮する。
 
 {data_summary}
 
@@ -766,8 +852,14 @@ def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, vid
 ### 課題
 - (具体的な数値を引用しながら箇条書き)
 
+### 視聴維持率の所感（横長の最重要指標）
+- (維持率の高低動画・直近トレンドを数値で。横長は再生数でなく維持率で評価する)
+
+### 収益の所感
+- (RPM差・稼ぎ頭動画・収益効率・日別トレンドを数値で。収益データが無ければ「収益データ取得不可」と明記)
+
 ### 戦略示唆
-1. (番号付きリスト、具体的なアクション)
+1. (番号付きリスト・横長は維持率重視/ショートは露出/収益は単価、の観点で具体的アクション。おんりー起用やメンバー別の数字も活用)
 """
 
     claude_path = shutil.which("claude")
@@ -781,7 +873,7 @@ def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, vid
 
     try:
         # env var で model upgrade 容易化 (audit MEDIUM#5)
-        claude_model = os.environ.get("CLAUDE_MODEL", "claude-opus-4-6")
+        claude_model = os.environ.get("CLAUDE_MODEL", "claude-opus-5-5")
         result = subprocess.run(
             [claude_path, "-p", prompt, "--model", claude_model],
             capture_output=True, text=True, timeout=120
@@ -794,6 +886,21 @@ def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, vid
         return "[Claude CLI タイムアウト（120秒）]"
     except Exception as e:
         return f"[Claude CLI 実行失敗: {e}]"
+
+
+def _notify_failure(reason: str) -> None:
+    """認証失敗などで当日分が生成できないとき、殿へ即通知する。
+    2026-08-28: token失効(invalid_grant)で停止したが通知が無く、殿が気づくまで
+    丸1日分が欠測した。sys.exit(1) の前に必ずここを通せ。"""
+    msg = ("\U0001F6A8 YouTube Analytics 停止: 本日分のレポートが生成できません。\n"
+           f"{reason}\n"
+           "復旧: 将軍に『Analyticsが動いてない』とお伝えください"
+           "（スマホ再認証のURLをお送りします）")
+    try:
+        subprocess.run(["bash", str(NTFY_SCRIPT), msg], timeout=15, check=False)
+        print("[analytics] 失敗通知 ntfy 送信済")
+    except Exception as e:
+        print(f"[analytics] 失敗通知 ntfy 失敗: {e}")
 
 
 def send_ntfy_if_needed(channel_stats, video_diffs, prev_raw, videos):
@@ -1257,7 +1364,9 @@ def main():
 
     # LLM分析
     print("[analytics] Claude Opus 4.6でLLM分析中...")
-    llm_analysis = run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, video_diffs)
+    llm_analysis = run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, video_diffs,
+                                       revenue=revenue, shorts_feed_check=shorts_feed_check,
+                                       per_video_analytics=per_video_analytics)
     print("[analytics] LLM分析完了")
 
     # レポート生成
@@ -1297,9 +1406,12 @@ def main():
     # ダッシュボード生成
     print("[analytics] ダッシュボード生成中...")
     try:
+        # 新規動画の LLM 分析を含むため backlog 時は 60s で足りずスキップ→画面が古いまま
+        # になる(2026-06-13〜15 実害)。日次は新規 1-2 本ゆえ通常は数十秒だが、
+        # まとめ投稿/再分析の backlog に耐えるよう余裕を持たせる。
         subprocess.run(
             [sys.executable, str(BASE_DIR / "scripts" / "generate_dashboard.py")],
-            timeout=60,
+            timeout=600,
             check=True,
         )
     except Exception as e:

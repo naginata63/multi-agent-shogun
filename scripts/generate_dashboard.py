@@ -335,9 +335,71 @@ def latest_from_raw(raw_list: list[dict], key: str, default=None):
     return default if default is not None else {}
 
 
-def build_video_table(latest_raw: dict, prev_raw: dict | None) -> list[dict]:
-    """動画テーブルデータ構築（前日比・like_rate・loop_rate・avg_view_pct付き）"""
-    videos = latest_raw.get("videos", [])
+# 横長の企画の型 (上から順に最初に当たった型・正規表現。殿 2026-09-27「全部やれ」改善提案B7)
+HL_TYPES = [
+    ("全数集計・検証", r"全\d+[本件回]|数えた|事件簿|決算|検証"),
+    ("選手権・計測", r"選手権|決定戦|死亡王|計測|実測"),
+    ("総集編", r"総集編|ベストシーン|全部見せ"),
+    ("テーマ集め(図鑑・エピソード集)", r"図鑑|エピソード集|あいさつ"),
+    ("クイズまとめ", r"都道府県|全\d+問|クイズ"),
+    ("ランキング(視聴者・コメント)", r"ランキング|TOP\d+"),
+]
+
+
+def classify_kind(title: str, duration_sec: int) -> str:
+    """動画の種別: manga(漫画ショート) / short(切り抜きショート) / long(横長)"""
+    if duration_sec > 180:
+        return "long"
+    return "manga" if "#漫画動画" in title else "short"
+
+
+def classify_hl_type(title: str) -> str:
+    import re as _re
+    for name, pat in HL_TYPES:
+        if _re.search(pat, title):
+            return name
+    return "その他"
+
+
+def build_initial_views(raw_list: list[dict]) -> dict:
+    """動画ごとの「公開後7日の再生数」(初速)。日次スナップショットから公開+7日〜+9日の最初の値を取る。
+    スナップショットが無い古い動画・公開7日未満は None。"""
+    snaps = []   # (date, {id: views})
+    for raw in raw_list:
+        d = raw.get("date", "")
+        if d:
+            snaps.append((d, {v["id"]: v.get("views", 0) for v in raw.get("videos", [])}))
+    snaps.sort()
+    pub = {}
+    for raw in raw_list:
+        for v in raw.get("videos", []):
+            if v.get("published_at"):
+                pub[v["id"]] = v["published_at"][:10]
+    out = {}
+    for vid, p in pub.items():
+        try:
+            t7 = (datetime.strptime(p, "%Y-%m-%d") + timedelta(days=7)).strftime("%Y-%m-%d")
+            t9 = (datetime.strptime(p, "%Y-%m-%d") + timedelta(days=9)).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+        for d, m in snaps:
+            if t7 <= d <= t9 and vid in m:
+                out[vid] = m[vid]
+                break
+    return out
+
+
+def build_video_table(latest_raw: dict, prev_raw: dict | None, initial_views: dict | None = None,
+                      revenue_by_video: dict | None = None) -> list[dict]:
+    """動画テーブルデータ構築（前日比・like_rate・loop_rate・avg_view_pct・種別・初速7日付き）"""
+    # 同じ動画IDが2回入ることがある(アップロード一覧の取得で重複・7-KgCLSwtXo 実例) → 先勝ちで1本に
+    seen, videos = set(), []
+    for v in latest_raw.get("videos", []):
+        if v["id"] not in seen:
+            seen.add(v["id"]); videos.append(v)
+    initial_views = initial_views or {}
+    revenue_by_video = revenue_by_video or {}
+    today = datetime.now(timezone(timedelta(hours=9))).date()
 
     pva_map = {v["id"]: v for v in latest_raw.get("per_video_analytics", [])}
     prev_map = {}
@@ -376,7 +438,13 @@ def build_video_table(latest_raw: dict, prev_raw: dict | None) -> list[dict]:
             "avg_view_pct": pva.get("avg_view_pct"),
             "view_diff_1d": view_diff_1d,
             "view_growth_rate": view_growth_rate,
+            "kind": classify_kind(v.get("title", ""), duration_sec),
+            "age_days": (today - datetime.strptime(pub, "%Y-%m-%d").date()).days if len(pub) == 10 else None,
+            "views_7d": initial_views.get(v["id"]),
+            "revenue": revenue_by_video.get(v["id"]),
         }
+        if entry["kind"] == "long":
+            entry["hl_type"] = classify_hl_type(entry["title"])
         result.append(entry)
 
     return result
@@ -419,6 +487,55 @@ def build_video_history(raw_list: list[dict]) -> dict:
             h["avg_view_pcts"].append(pva.get("avg_view_pct"))
 
     return history
+
+
+def build_new_watch(videos: list[dict], history: dict, days: int = 14) -> list[dict]:
+    """直近 days 日に公開した動画の、公開からの日数ごとの累計再生(新作ウォッチ・改善提案B6)"""
+    out = []
+    for v in videos:
+        if v.get("age_days") is None or v["age_days"] > days:
+            continue
+        h = history.get(v["id"], {})
+        pts = []
+        for d, n in zip(h.get("dates", []), h.get("views", [])):
+            try:
+                k = (datetime.strptime(d, "%Y-%m-%d") - datetime.strptime(v["published_at"], "%Y-%m-%d")).days
+            except ValueError:
+                continue
+            if 0 <= k <= days:
+                pts.append([k, n])
+        out.append({"id": v["id"], "title": v["title"], "kind": v["kind"], "published_at": v["published_at"],
+                    "views": v["views"], "points": pts})
+    out.sort(key=lambda x: x["published_at"], reverse=True)
+    return out
+
+
+def build_hl_types(videos: list[dict]) -> list[dict]:
+    """横長を企画の型ごとに集計(改善提案B7)。収益は収益化(6/2)以降の累計・by_video に載る分のみ"""
+    groups: dict[str, list] = {}
+    for v in videos:
+        if v.get("kind") == "long":
+            groups.setdefault(v.get("hl_type", "その他"), []).append(v)
+    order = [n for n, _ in HL_TYPES] + ["その他"]
+    out = []
+    for name in order:
+        g = groups.get(name)
+        if not g:
+            continue
+        v7 = [x["views_7d"] for x in g if x.get("views_7d") is not None]
+        rev = [x for x in g if x.get("revenue")]
+        rv = sum(x["revenue"]["est_revenue"] for x in rev)
+        rviews = sum(x["revenue"]["views"] for x in rev)
+        out.append({
+            "type": name, "count": len(g),
+            "total_views": sum(x["views"] for x in g),
+            "avg_views": round(sum(x["views"] for x in g) / len(g)),
+            "avg_views_7d": round(sum(v7) / len(v7)) if v7 else None, "n_7d": len(v7),
+            "revenue": round(rv), "rpm": round(rv / rviews * 1000, 1) if rviews else None,
+            "videos": [{"id": x["id"], "title": x["title"], "views": x["views"], "views_7d": x.get("views_7d"),
+                        "published_at": x["published_at"]} for x in sorted(g, key=lambda x: -x["views"])],
+        })
+    return out
 
 
 def build_similar_videos(videos: list[dict]) -> dict:
@@ -484,6 +601,10 @@ def save_video_analysis(analysis: dict) -> None:
         print(f"[warn] video_analysis.json 保存失敗: {e}", file=sys.stderr)
 
 
+import os as _os
+CLAUDE_MODEL = _os.environ.get("CLAUDE_MODEL", "claude-opus-5-5")   # 旧 claude-opus-4-6 固定 → 最新へ (2026-09-27)
+
+
 def analyze_top_videos(videos: list[dict], n: int = 5) -> None:
     """再生数上位N本 + 前日比上位3本をClaude CLIで個別分析し保存"""
     targets: set[str] = set()
@@ -525,7 +646,7 @@ def analyze_top_videos(videos: list[dict], n: int = 5) -> None:
         print(f"[analyze] {vid}: {v['title'][:30]}...", file=sys.stderr)
         try:
             result = subprocess.run(
-                ["claude", "-p", prompt, "--model", "claude-opus-4-6"],
+                ["claude", "-p", prompt, "--model", CLAUDE_MODEL],
                 capture_output=True, text=True, timeout=60
             )
             content = result.stdout.strip()
@@ -540,7 +661,7 @@ def analyze_top_videos(videos: list[dict], n: int = 5) -> None:
             existing[vid] = {"title": v["title"], "analyses": []}
         existing[vid]["analyses"].append({
             "date": today,
-            "model": "claude-opus-4-6",
+            "model": CLAUDE_MODEL,
             "content": content,
         })
 
@@ -558,6 +679,91 @@ def load_analysis_history() -> list[dict]:
     except Exception as e:
         print(f"[warn] analysis_history.json 読み込み失敗: {e}", file=sys.stderr)
         return []
+
+
+def build_revenue(latest_raw: dict, raw_list: list = None) -> dict:
+    """収益タブ用データ。契約分配: ドズル社20%/C&R15%/殿65%（基礎=AdSense・推定）。"""
+    rev = latest_raw.get("revenue", {}) or {}
+    daily = rev.get("daily", []) or []
+    totals = rev.get("totals", {}) or {}
+    ct = rev.get("by_content_type", {}) or {}
+    by_video = rev.get("by_video", []) or []
+    est = float(totals.get("est_revenue", 0) or 0)
+    ndays = len(daily) or 1
+    TAKE = 0.65  # 殿の手取り（100%−ドズル20%−C&R15%）
+    daily_avg = est / ndays
+    period_views = sum(int(c.get("views", 0) or 0) for c in ct.values())
+    rpm = round(est / period_views * 1000, 2) if period_views else 0.0
+
+    # === 月末予測（当月着地見込み） ===
+    # 全raw.jsonの日別収益をマージ(同日は最新raw優先)→当月実績(確定)＋残り日数×直近平均で着地を推定。
+    # 単純な「14日×30」外挿は月初の立ち上がりや一時スパイクを定常化し過大に出るため廃止(殿指摘 2026-06-28)。
+    import calendar
+    rev_days = {}
+    for r in (raw_list or [latest_raw]):
+        for row in ((r.get("revenue", {}) or {}).get("daily", []) or []):
+            rev_days[row["date"]] = float(row.get("est_revenue", 0) or 0)
+    proj = {"daily_avg": round(daily_avg, 1)}
+    if rev_days:
+        last_date = max(rev_days)                       # 例 "2026-06-25"
+        yy, mm, dd = (int(x) for x in last_date.split("-"))
+        mkey = f"{yy:04d}-{mm:02d}"
+        month_days = sorted(d for d in rev_days if d.startswith(mkey))
+        mtd_actual = sum(rev_days[d] for d in month_days)          # 当月実績(確定)
+        dim = calendar.monthrange(yy, mm)[1]                       # 当月日数
+        days_remaining = dim - dd                                  # データ最終日〜月末の残り
+        recent = month_days[-7:]                                   # 直近最大7日(当月内)
+        rvals = [rev_days[d] for d in recent]
+        # スパイク除外: 中央値の2倍を超える日(一時的バズ)を残り日数の平均から除く(殿指摘 2026-06-28)
+        spike_excluded = 0
+        if len(rvals) >= 4:
+            import statistics
+            med = statistics.median(rvals)
+            kept = [v for v in rvals if v <= med * 2] or rvals
+            spike_excluded = len(rvals) - len(kept)
+            recent_avg = sum(kept) / len(kept)
+        else:
+            recent_avg = sum(rvals) / len(rvals) if rvals else daily_avg
+        month_end = mtd_actual + recent_avg * days_remaining       # 月末着地(額面)
+        proj.update({
+            "mtd_actual": round(mtd_actual), "mtd_last_date": last_date,
+            "days_remaining": days_remaining, "recent_avg": round(recent_avg),
+            "recent_window": len(rvals), "spike_excluded": spike_excluded,
+            "month_end": round(month_end), "month_end_take": round(month_end * TAKE),
+            "month": round(month_end), "month_take": round(month_end * TAKE),  # 後方互換
+        })
+    else:
+        month_end = daily_avg * 30
+        proj.update({"month": round(month_end), "month_take": round(month_end * TAKE),
+                     "month_end": round(month_end), "month_end_take": round(month_end * TAKE),
+                     "days_remaining": 0, "mtd_actual": 0, "recent_avg": round(daily_avg)})
+    # 月別の推定収益(全raw.jsonの日別をマージ・当月は途中まで)
+    months = {}
+    for d, val in rev_days.items():
+        months.setdefault(d[:7], [0.0, 0, d])
+        months[d[:7]][0] += val; months[d[:7]][1] += 1
+        months[d[:7]][2] = max(months[d[:7]][2], d)
+    monthly = [{"month": m, "est_revenue": round(v[0]), "take": round(v[0] * TAKE), "days": v[1], "last_date": v[2]}
+               for m, v in sorted(months.items()) if v[0] > 0]   # 収益化前(5月)の0円月は出さない
+    return {
+        "monthly": monthly,
+        "currency": rev.get("currency", "JPY"),
+        "period": rev.get("period", {}),
+        "ndays": ndays,
+        "est_revenue": round(est, 1),
+        "ad_revenue": round(float(totals.get("ad_revenue", 0) or 0), 1),
+        "premium_revenue": round(float(totals.get("premium_revenue", 0) or 0), 1),
+        "take_pct": int(TAKE * 100),
+        "take": round(est * TAKE, 1),
+        "split": {"dozle": 20, "cnr": 15, "you": 65},
+        "rpm": rpm,
+        "monetized_playbacks": int(totals.get("monetized_playbacks", 0) or 0),
+        "ad_impressions": int(totals.get("ad_impressions", 0) or 0),
+        "daily": daily,
+        "by_content_type": ct,
+        "by_video": by_video,
+        "projection": proj,
+    }
 
 
 def generate_data_json(raw_list: list[dict], analysis: list[dict]) -> dict:
@@ -591,7 +797,8 @@ def generate_data_json(raw_list: list[dict], analysis: list[dict]) -> dict:
 
     ch = latest_raw.get("channel", {})
     daily_series = build_daily_series(raw_list_filtered)
-    videos = build_video_table(latest_raw_filtered, prev_raw_filtered)
+    rev_by_video = {r["id"]: r for r in ((latest_raw.get("revenue") or {}).get("by_video") or [])}
+    videos = build_video_table(latest_raw_filtered, prev_raw_filtered, build_initial_views(raw_list_filtered), rev_by_video)
     traffic = latest_raw_filtered.get("traffic_sources", [])
 
     # 動画個別分析ページ用データ
@@ -609,8 +816,11 @@ def generate_data_json(raw_list: list[dict], analysis: list[dict]) -> dict:
     demographics = build_demographics(raw_list_filtered)
     retention_top5 = build_retention_top5(raw_list_filtered)
 
+    new_watch = build_new_watch(videos, video_history)
+    hl_types = build_hl_types(videos)
     predictions = build_predictions(raw_list_filtered)
     content_analysis = build_content_analysis(raw_list_filtered)
+    shorts_feed_check = latest_raw.get("shorts_feed_check", []) or []
 
     return {
         "generated_at": generated_at,
@@ -635,6 +845,10 @@ def generate_data_json(raw_list: list[dict], analysis: list[dict]) -> dict:
         "similar_videos": similar_videos,
         "video_analysis": video_analysis,
         "rankings": rankings,
+        "shorts_feed_check": shorts_feed_check,
+        "new_watch": new_watch,
+        "hl_types": hl_types,
+        "revenue": build_revenue(latest_raw, raw_list),
     }
 
 
@@ -719,6 +933,22 @@ def generate_html() -> str:
     .perf-table th { cursor: default; }
     .perf-table td, .perf-table th { text-align: right; }
     .perf-table td:first-child, .perf-table th:first-child { text-align: left; }
+    /* 2026-09-27 改善: ナビ・タブ・絞り込み */
+    .topnav { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; font-size: 0.85em; }
+    .topnav a { color: #9ab; background: #0f1a2e; border: 1px solid #2a2a4a; border-radius: 14px; padding: 4px 12px; text-decoration: none; }
+    .topnav a:hover { color: #fff; border-color: var(--accent); }
+    .navtabs { display: flex; gap: 6px; margin: 0 0 16px; position: sticky; top: 0; z-index: 20; background: var(--bg); padding: 8px 0; flex-wrap: wrap; }
+    .nav-tab { background: #333; color: var(--text); border: none; padding: 9px 18px; border-radius: 6px; cursor: pointer; font-size: 0.95em; }
+    .nav-tab.active { background: var(--accent); }
+    .filter-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; }
+    .filter-btn { background: #333; color: var(--text); border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em; }
+    .filter-btn.active { background: #0f3460; outline: 1px solid #5a8ad0; }
+    .filter-bar input { background: #0f1a2e; border: 1px solid #2a2a4a; color: var(--text); padding: 5px 10px; border-radius: 4px; min-width: 200px; }
+    .badge-manga { background: #7b3fa0; color: white; border-radius: 3px; padding: 1px 5px; font-size: 0.75em; margin-left: 4px; }
+    .note { font-size: 0.8em; color: #888; margin: 4px 0 10px; }
+    details.past summary { cursor: pointer; color: #9ab; padding: 8px 0; }
+    .hlt-list { font-size: 0.82em; color: #aaa; margin: 4px 0 8px 12px; }
+    .hlt-list a { color: #aaa; text-decoration: none; }
   </style>
 </head>
 <body>
@@ -727,15 +957,50 @@ def generate_html() -> str:
   <div id="dashboard-view">
     <h1>毎日ドズル社切り抜き Analytics</h1>
     <p id="last-updated">読み込み中...</p>
+    <nav class="topnav">
+      <a href="seisaku_board.html">📋 制作管理板</a>
+      <a href="trend_scan.html">🔥 流行りシーン</a>
+      <a href="kikaku_20260926.html">📝 企画会議(最新)</a>
+      <a href="pref_quiz.html">🗾 都道府県 問題集</a>
+      <a href="https://studio.youtube.com/channel/UCiyY9PX64Nat6sd2vUhrTDQ/analytics" target="_blank">YouTube Studio ↗</a>
+    </nav>
 
     <div class="kpi-grid" id="kpi-cards">
       <div class="kpi-card"><div class="kpi-label">登録者</div><div class="kpi-value" id="kpi-subs">-</div></div>
       <div class="kpi-card"><div class="kpi-label">総再生数</div><div class="kpi-value" id="kpi-views">-</div></div>
       <div class="kpi-card"><div class="kpi-label">動画数</div><div class="kpi-value" id="kpi-vcount">-</div></div>
-      <div class="kpi-card"><div class="kpi-label">前日再生増</div><div class="kpi-value" id="kpi-growth">-</div><div class="kpi-sub" id="kpi-growth-date"></div></div>
+      <div class="kpi-card"><div class="kpi-label">昨日の再生（<span id="kpi-growth-day">-</span>）</div><div class="kpi-value" id="kpi-growth">-</div><div class="kpi-sub" id="kpi-growth-date"></div></div>
+    </div>
+    <div class="note" id="kpi-lag"></div>
+
+    <div class="navtabs">
+      <button class="nav-tab" data-t="overview" onclick="showTab(\'overview\')">概要</button>
+      <button class="nav-tab" data-t="videos" onclick="showTab(\'videos\')">動画</button>
+      <button class="nav-tab" data-t="audience" onclick="showTab(\'audience\')">視聴者</button>
+      <button class="nav-tab" data-t="ai" onclick="showTab(\'ai\')">分析</button>
     </div>
 
-    <div class="card">
+    <div class="card" id="section-revenue" data-tab="overview">
+      <h2>💰 収益化分析 <span style="font-size:0.62em;color:#888">（直近<span id="rev-ndays">-</span>日・推定値・YPP通過後）</span></h2>
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-label">今月の推定収益</div><div class="kpi-value" id="rev-total">-</div><div class="kpi-sub" id="rev-total-sub">当月1日〜</div></div>
+        <div class="kpi-card"><div class="kpi-label">殿の取り分(65%)</div><div class="kpi-value" id="rev-take" style="color:#4caf50">-</div><div class="kpi-sub">今月・契約65%・概算</div></div>
+        <div class="kpi-card"><div class="kpi-label">月末着地予測</div><div class="kpi-value" id="rev-proj">-</div><div class="kpi-sub" id="rev-proj-take">参考値</div></div>
+        <div class="kpi-card"><div class="kpi-label">平均RPM</div><div class="kpi-value" id="rev-rpm">-</div><div class="kpi-sub">円/1000再生</div></div>
+      </div>
+      <div style="font-size:0.85em;color:#aaa;margin:6px 0 14px">分配: ドズル社20% / C&amp;R15% / <b style="color:#4caf50">殿65%</b>（基礎=AdSense・Premium含む概算）　｜　Premium収益: <span id="rev-premium">-</span></div>
+      <canvas id="revChart" style="max-height:240px"></canvas>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+        <div><h3 style="font-size:0.95em;color:#aaa;margin:0 0 6px">ショート vs 長尺（RPM）</h3><div id="rev-ct" style="font-size:0.9em;line-height:1.7"></div></div>
+        <div><h3 style="font-size:0.95em;color:#aaa;margin:0 0 6px">効率指標</h3><div id="rev-eff" style="font-size:0.9em;line-height:1.7"></div></div>
+      </div>
+      <h3 style="font-size:0.95em;color:#aaa;margin:16px 0 6px">月別の推定収益</h3>
+      <div class="table-wrap"><table class="perf-table"><thead><tr><th>月</th><th>推定収益</th><th>殿の取り分(65%)</th><th>日数</th></tr></thead><tbody id="rev-month-tbody"></tbody></table></div>
+      <h3 style="font-size:0.95em;color:#aaa;margin:16px 0 6px">動画別 収益ランキング <span style="font-size:0.8em;color:#888">（収益化6/2〜の累計）</span></h3>
+      <div class="table-wrap"><table><thead><tr><th>動画</th><th>収益</th><th>再生</th><th>RPM</th><th>¥/再生</th></tr></thead><tbody id="rev-video-tbody"></tbody></table></div>
+    </div>
+
+    <div class="card" data-tab="overview">
       <h2>日次推移</h2>
       <div class="tab-btns">
         <button class="tab-btn active" onclick="showChart(\'views\', this)">再生数</button>
@@ -746,13 +1011,29 @@ def generate_html() -> str:
       <canvas id="dailyChart"></canvas>
     </div>
 
-    <div class="card">
+    <div class="card" id="section-newwatch" data-tab="overview">
+      <h2>🆕 新作ウォッチ（直近14日に公開）</h2>
+      <div class="note">公開からの日数ごとの累計再生（毎朝の取得値）。線が立っている動画ほど初速が良い。</div>
+      <canvas id="newWatchChart" style="max-height:320px"></canvas>
+      <div class="table-wrap" style="margin-top:10px"><table class="perf-table"><thead><tr><th>動画</th><th>公開日</th><th>経過</th><th>再生</th><th>前日比</th></tr></thead><tbody id="newwatch-tbody"></tbody></table></div>
+    </div>
+
+    <div class="card" data-tab="audience">
       <h2>トラフィックソース（直近14日）</h2>
       <canvas id="trafficChart" style="max-height:280px; max-width:500px;"></canvas>
     </div>
 
-    <div class="card">
+    <div class="card" data-tab="videos">
       <h2>動画別パフォーマンス</h2>
+      <div class="filter-bar">
+        <button class="filter-btn active" data-k="all" onclick="setKind(\'all\')">全部</button>
+        <button class="filter-btn" data-k="manga" onclick="setKind(\'manga\')">漫画ショート</button>
+        <button class="filter-btn" data-k="short" onclick="setKind(\'short\')">切り抜きショート</button>
+        <button class="filter-btn" data-k="long" onclick="setKind(\'long\')">横長</button>
+        <input id="video-search" type="search" placeholder="タイトルで検索" oninput="applyFilter()">
+        <span id="video-count" style="color:#888;font-size:0.85em"></span>
+      </div>
+      <div class="note">初速7日 = 公開7〜9日後の朝に取得した累計再生（取得開始 2026-03-17 以降の公開分のみ）。</div>
       <div class="table-wrap">
         <table id="video-table">
           <thead>
@@ -764,8 +1045,10 @@ def generate_html() -> str:
               <th onclick="sortTable(\'loop_rate\')">周回率</th>
               <th onclick="sortTable(\'avg_view_pct\')">視聴率%</th>
               <th onclick="sortTable(\'view_diff_1d\')">前日比</th>
+              <th onclick="sortTable(\'views_7d\')">初速7日</th>
               <th>尺</th>
               <th onclick="sortTable(\'published_at\')">公開日</th>
+              <th onclick="sortTable(\'age_days\')">経過</th>
             </tr>
           </thead>
           <tbody id="video-tbody"></tbody>
@@ -773,7 +1056,13 @@ def generate_html() -> str:
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="section-hltypes" data-tab="videos">
+      <h2>🎬 横長 企画の型別の成績</h2>
+      <div class="note">タイトルの言葉で型を振り分け（型の名前を押すと中身の動画）。収益は収益化(6/2)以降の累計で、収益ランキングに載る動画の分。</div>
+      <div class="table-wrap"><table class="perf-table"><thead><tr><th>型</th><th>本数</th><th>平均再生</th><th>平均 初速7日</th><th>合計再生</th><th>収益(累計)</th><th>RPM</th></tr></thead><tbody id="hltypes-tbody"></tbody></table></div>
+    </div>
+
+    <div class="card" data-tab="videos">
       <h2>ランキング TOP10</h2>
       <div class="ranking-grid">
         <div class="ranking-card">
@@ -803,13 +1092,13 @@ def generate_html() -> str:
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" data-tab="ai">
       <h2>AI分析コメント</h2>
       <div id="analysis-list"><p id="no-data" style="display:none">分析コメントなし</p></div>
     </div>
 
     <!-- 3-B: 視聴者層グラフ -->
-    <div class="card" id="section-demographics">
+    <div class="card" id="section-demographics" data-tab="audience">
       <h2>視聴者層</h2>
       <div class="demo-grid">
         <div id="demo-age-wrap"><h3 style="font-size:0.95em;color:#aaa;margin:0 0 8px">年齢層</h3><canvas id="chart-age" style="max-height:250px"></canvas></div>
@@ -820,20 +1109,20 @@ def generate_html() -> str:
     </div>
 
     <!-- 3-C: Audience Retention -->
-    <div class="card" id="section-retention">
+    <div class="card" id="section-retention" data-tab="audience">
       <h2>Audience Retention（Top5動画）</h2>
       <div class="tab-btns" id="retention-tabs"></div>
       <canvas id="retentionChart" style="max-height:320px"></canvas>
     </div>
 
     <!-- 3-D: CTRトレンド -->
-    <div class="card" id="section-ctr">
+    <div class="card" id="section-ctr" data-tab="audience">
       <h2>CTRトレンド</h2>
       <canvas id="ctrChart" style="max-height:300px"></canvas>
     </div>
 
     <!-- 3-E: 尺別・キャラ別パフォーマンス -->
-    <div class="card" id="section-content-analysis">
+    <div class="card" id="section-content-analysis" data-tab="videos">
       <h2>尺別・キャラ別パフォーマンス</h2>
       <div class="demo-grid">
         <div>
@@ -847,8 +1136,20 @@ def generate_html() -> str:
       </div>
     </div>
 
+    <!-- 3-E2: 直近 Shorts feed 露出チェック (cmd_2026-05-10 殿命) -->
+    <div class="card" id="section-shorts-feed" data-tab="videos">
+      <h2>⚠️ 直近 Shorts feed 露出 (過去7日投稿)</h2>
+      <div style="font-size:0.85em;color:#aaa;margin-bottom:8px">SHORTS% が 20% 未満で投稿後 2 日経過すると⚠️警告。アルゴリズム推薦から外れている可能性。</div>
+      <div class="table-wrap">
+        <table class="perf-table" id="shorts-feed-table">
+          <thead><tr><th>投稿日</th><th>タイトル</th><th style="text-align:right">尺</th><th style="text-align:right">views</th><th style="text-align:right">avgPct</th><th style="text-align:right">SHORTS%</th><th>警告</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- 3-F: 予測セクション -->
-    <div class="card" id="section-predictions">
+    <div class="card" id="section-predictions" data-tab="ai">
       <h2>予測</h2>
       <div class="prediction-grid">
         <div class="kpi-card"><div class="kpi-label">3ヶ月後 登録者予測</div><div class="kpi-value" id="pred-subs-3mo">-</div></div>
@@ -1199,7 +1500,11 @@ function showChart(metric, btn) {
 function renderTraffic() {
   if (!data || !data.traffic_sources.length) return;
   if (trafficChartInstance) { trafficChartInstance.destroy(); trafficChartInstance = null; }
-  const labels = data.traffic_sources.map(s => s.source + \' (\' + s.pct + \'%)\');
+  const TS = {SUBSCRIBER: "登録者(ホーム等)", SHORTS: "ショートフィード", YT_SEARCH: "YouTube検索", YT_CHANNEL: "チャンネルページ",
+    RELATED_VIDEO: "関連動画", YT_OTHER_PAGE: "その他のYouTube内", SHORTS_CONTENT_LINKS: "ショートからのリンク", NOTIFICATION: "通知",
+    PLAYLIST: "再生リスト", NO_LINK_OTHER: "直接・不明", EXT_URL: "外部サイト", HASHTAGS: "ハッシュタグ", END_SCREEN: "終了画面",
+    ANNOTATION: "カード", YT_PLAYLIST_PAGE: "再生リストページ", CAMPAIGN_CARD: "キャンペーン", ADVERTISING: "広告", SOUND_PAGE: "サウンドページ"};
+  const labels = data.traffic_sources.map(s => (TS[s.source] || s.source) + " (" + s.pct + "%)");
   const values = data.traffic_sources.map(s => s.views);
   const colors = [\'#e94560\',\'#0f3460\',\'#533483\',\'#16aa6e\',\'#f9a825\',\'#2196f3\',\'#ff5722\',\'#9c27b0\',\'#00bcd4\',\'#607d8b\'];
   trafficChartInstance = new Chart(document.getElementById(\'trafficChart\'), {
@@ -1214,10 +1519,35 @@ function renderTraffic() {
   });
 }
 
+let kindFilter = "all";
+function kindBadge(v) {
+  if (v.kind === "manga") return "<span class=\\"badge-manga\\">漫画</span>";
+  return v.is_short ? "<span class=\\"badge-short\\">SHORT</span>" : "<span class=\\"badge-hl\\">HL</span>";
+}
+function filteredVideos(list) {
+  const q = (document.getElementById("video-search") || {}).value || "";
+  return list.filter(v => (kindFilter === "all" || v.kind === kindFilter) && (!q || v.title.toLowerCase().includes(q.toLowerCase())));
+}
+function setKind(k) {
+  kindFilter = k;
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.toggle("active", b.dataset.k === k));
+  applyFilter();
+}
+function applyFilter() {
+  const sorted = [...data.videos].sort((a, b) => {
+    const av = a[currentSort.key] ?? -Infinity, bv = b[currentSort.key] ?? -Infinity;
+    if (typeof av === "string") return av.localeCompare(bv) * currentSort.dir;
+    return (av - bv) * currentSort.dir;
+  });
+  renderTable(sorted);
+}
 function renderTable(videos) {
   const tbody = document.getElementById(\'video-tbody\');
+  videos = filteredVideos(videos);
+  const cnt = document.getElementById("video-count");
+  if (cnt) cnt.textContent = videos.length + "本";
   tbody.innerHTML = videos.map(v => {
-    const badge = v.is_short ? \'<span class="badge-short">SHORT</span>\' : \'<span class="badge-hl">HL</span>\';
+    const badge = kindBadge(v);
     const loopBadge = (v.loop_rate != null && v.loop_rate >= 1.0) ? \' <span class="loop-badge">🔁</span>\' : \'\';
     const diff = v.view_diff_1d;
     const diffStr = diff == null ? \'-\' : (diff >= 0 ? \'<span class="pos">+\' + fmt(diff) + \'</span>\' : \'<span class="neg">\' + fmt(diff) + \'</span>\');
@@ -1234,8 +1564,10 @@ function renderTable(videos) {
       <td>${fmtRate(v.loop_rate)}${loopBadge}</td>
       <td>${fmtPct(v.avg_view_pct)}</td>
       <td>${diffStr}</td>
+      <td>${v.views_7d == null ? (v.age_days != null && v.age_days < 7 ? "<span style=\\"color:#666\\">集計中</span>" : "-") : fmt(v.views_7d)}</td>
       <td>${v.duration_str || \'-\'}</td>
       <td>${v.published_at || \'-\'}</td>
+      <td>${v.age_days == null ? "-" : v.age_days + "日"}</td>
     </tr>`;
   }).join(\'\');
 }
@@ -1247,13 +1579,7 @@ function sortTable(key) {
   document.querySelectorAll(\'.sort-arrow\').forEach(el => el.textContent = \'\');
   const arrow = document.getElementById(\'sort-arrow-\' + key);
   if (arrow) arrow.textContent = currentSort.dir === -1 ? \'↓\' : \'↑\';
-  const sorted = [...data.videos].sort((a, b) => {
-    const av = a[key] ?? -Infinity;
-    const bv = b[key] ?? -Infinity;
-    if (typeof av === \'string\') return av.localeCompare(bv) * currentSort.dir;
-    return (av - bv) * currentSort.dir;
-  });
-  renderTable(sorted);
+  applyFilter();
 }
 
 function renderAnalysis() {
@@ -1263,16 +1589,25 @@ function renderAnalysis() {
     document.getElementById(\'no-data\').style.display = \'block\';
     return;
   }
-  list.innerHTML = history.map((entry, i) => {
+  const card = (entry, i) => {
     const isFirst = i === 0;
     return `<div class="analysis-entry">
       <div class="analysis-header" onclick="toggleAnalysis(${i})">
-        <span>${entry.date} ${entry.model ? \'(\' + entry.model + \')\' : \'\'}</span>
-        <span id="arrow-${i}">${isFirst ? \'▼\' : \'▶\'}</span>
+        <span>${entry.date} ${entry.model ? "(" + entry.model + ")" : ""}</span>
+        <span id="arrow-${i}">${isFirst ? "▼" : "▶"}</span>
       </div>
-      <div class="analysis-body ${isFirst ? \'open\' : \'\'}" id="body-${i}">${entry.content}</div>
+      <div class="analysis-body ${isFirst ? "open" : ""}" id="body-${i}">${mdLite(entry.content)}</div>
     </div>`;
-  }).join(\'\');
+  };
+  // 過去分を全部並べるとページ後半が日付見出しで埋まる(約110日分) → 最新のみ表示・過去は折りたたみ (2026-09-27)
+  list.innerHTML = card(history[0], 0) + (history.length > 1
+    ? `<details class="past"><summary>過去の分析 ${history.length - 1}件（${history[history.length - 1].date}〜${history[1].date}）</summary>${history.slice(1).map((e, i) => card(e, i + 1)).join("")}</details>`
+    : "");
+}
+
+// AI分析の本文は Markdown(###・**) → 見出しと太字だけ整える
+function mdLite(t) {
+  return escHtml(t || "").replace(/^#{1,4} (.*)$/gm, "<b style=\\"color:#e94560;font-size:1.05em\\">$1</b>").replace(/\\*\\*(.+?)\\*\\*/g, "<b style=\\"color:#fff\\">$1</b>");
 }
 
 function toggleAnalysis(i) {
@@ -1290,14 +1625,19 @@ function renderKPI() {
 
   const ds = data.daily_series;
   if (ds.views.length >= 2) {
+    // 旧「前日再生増」は日次再生の前日差(-48,571 等)で「再生が減った」と誤読された → 昨日の再生数そのものを出し、前日差は小さく (2026-09-27)
     const last = ds.views[ds.views.length - 1] || 0;
     const prev = ds.views[ds.views.length - 2] || 0;
     const diff = last - prev;
-    const el = document.getElementById(\'kpi-growth\');
-    el.textContent = (diff >= 0 ? \'+\' : \'\') + fmt(diff);
-    el.className = \'kpi-value \' + (diff >= 0 ? \'pos\' : \'neg\');
-    const date = ds.dates[ds.dates.length - 1] || \'\';
-    document.getElementById(\'kpi-growth-date\').textContent = date ? date.slice(5) : \'\';
+    const date = ds.dates[ds.dates.length - 1] || "";
+    document.getElementById("kpi-growth").textContent = fmt(last);
+    document.getElementById("kpi-growth-day").textContent = date ? date.slice(5).replace("-", "/") : "-";
+    document.getElementById("kpi-growth-date").innerHTML = "前日比 <span class=\\"" + (diff >= 0 ? "pos" : "neg") + "\\">" + (diff >= 0 ? "+" : "") + fmt(diff) + "</span>";
+    const gen = (data.generated_at || "").slice(0, 10);
+    if (date && gen) {
+      const lag = Math.round((new Date(gen) - new Date(date)) / 86400000);
+      document.getElementById("kpi-lag").textContent = "※ 日別の数字（再生・収益）は " + date.slice(5).replace("-", "/") + " まで。YouTubeの集計は約" + lag + "日遅れで届く。登録者・総再生・動画別の累計再生は " + gen.slice(5).replace("-", "/") + " 朝の値。";
+    }
   }
 }
 
@@ -1346,7 +1686,7 @@ function renderDemographics() {
     if (demoChartInstances.device) { demoChartInstances.device.destroy(); demoChartInstances.device = null; }
     demoChartInstances.device = new Chart(document.getElementById(\'chart-device\'), {
       type: \'doughnut\',
-      data: { labels: dt.map(d => d.type), datasets: [{ data: dt.map(d => d.views), backgroundColor: colors }] },
+      data: { labels: dt.map(d => ({MOBILE: "スマホ", TV: "テレビ", DESKTOP: "パソコン", TABLET: "タブレット", GAME_CONSOLE: "ゲーム機"}[d.type] || d.type)), datasets: [{ data: dt.map(d => d.views), backgroundColor: colors }] },
       options: { plugins: { legend: { position: \'right\', labels: { color: \'#ccc\', font: { size: 11 } } } } }
     });
   } else { hide(\'demo-device-wrap\'); }
@@ -1435,6 +1775,117 @@ function renderContentAnalysis() {
   } else { document.getElementById(\'perf-character-table\').parentElement.parentElement.style.display = \'none\'; }
 }
 
+function renderShortsFeedCheck() {
+  if (!data || !data.shorts_feed_check || !data.shorts_feed_check.length) { hide(\'section-shorts-feed\'); return; }
+  const sfc = data.shorts_feed_check;
+  const tbody = document.querySelector(\'#shorts-feed-table tbody\');
+  tbody.innerHTML = sfc.map(c => {
+    const pub = (c.published_at || \'\').substring(0, 10);
+    const title = escHtml((c.title || \'\').substring(0, 50));
+    const dur = c.duration_sec != null ? c.duration_sec + \'s\' : \'-\';
+    const views = c.views != null && c.views >= 0 ? fmt(c.views) : \'-\';
+    const avgPct = c.avg_view_pct != null ? fmtPct(c.avg_view_pct) : \'-\';
+    const shPct = c.shorts_feed_pct != null && c.shorts_feed_pct >= 0 ? c.shorts_feed_pct + \'%\' : \'-\';
+    const warn = c.is_warning ? \'<span style="color:#ff5555;font-weight:bold">⚠️</span>\' : \'\';
+    const rowStyle = c.is_warning ? \' style="background:rgba(255,85,85,0.08)"\' : \'\';
+    return `<tr${rowStyle}><td>${pub}</td><td>${title}</td><td style="text-align:right">${dur}</td><td style="text-align:right">${views}</td><td style="text-align:right">${avgPct}</td><td style="text-align:right;font-weight:${c.is_warning?\'bold\':\'normal\'}">${shPct}</td><td>${warn}</td></tr>`;
+  }).join(\'\');
+}
+
+function renderRevenue() {
+  const r = data.revenue;
+  const sec = document.getElementById("section-revenue");
+  if (!r || !r.daily || !r.daily.length) { if (sec) sec.style.display = "none"; return; }
+  const yen = n => "¥" + Math.round(n).toLocaleString();
+  document.getElementById("rev-ndays").textContent = r.ndays;
+  const _mtd = (r.projection && r.projection.mtd_actual != null) ? r.projection.mtd_actual : r.est_revenue;
+  document.getElementById("rev-total").textContent = yen(_mtd);
+  document.getElementById("rev-take").textContent = yen(_mtd * 0.65);
+  if (r.projection && r.projection.mtd_last_date) {
+    const d = r.projection.mtd_last_date.slice(5).replace("-", "/");
+    // 旧表記「6/1〜」は固定文字の誤り(値は当月1日からの合計) → 当月の範囲を正しく出す (2026-09-27)
+    document.getElementById("rev-total-sub").textContent = parseInt(r.projection.mtd_last_date.slice(5, 7)) + "/1〜" + d + "・AdSense+Premium";
+  }
+  document.getElementById("rev-proj").textContent = yen(r.projection.month_end);
+  document.getElementById("rev-proj-take").textContent =
+    "殿:" + yen(r.projection.month_end_take)
+    + (r.projection.mtd_actual != null
+        ? "（実績¥" + Math.round(r.projection.mtd_actual).toLocaleString()
+          + "＋残" + r.projection.days_remaining + "日×¥" + Math.round(r.projection.recent_avg).toLocaleString() + "/日"
+          + (r.projection.spike_excluded ? "・スパイク" + r.projection.spike_excluded + "日除外" : "") + "）"
+        : " ※参考");
+  document.getElementById("rev-rpm").textContent = r.rpm;
+  const mt = document.getElementById("rev-month-tbody");
+  if (mt) mt.innerHTML = (r.monthly || []).slice().reverse().map(m => {
+    const partial = m.last_date && m.last_date.slice(0, 7) === m.month && parseInt(m.last_date.slice(8)) < new Date(parseInt(m.month.slice(0, 4)), parseInt(m.month.slice(5, 7)), 0).getDate();
+    return `<tr><td>${m.month.replace("-", "年")}月${partial ? "（" + m.last_date.slice(5).replace("-", "/") + "まで）" : ""}</td><td>${yen(m.est_revenue)}</td><td style="color:#4caf50">${yen(m.take)}</td><td>${m.days}日</td></tr>`;
+  }).join("");
+  document.getElementById("rev-premium").textContent = yen(r.premium_revenue);
+  const ctName = {shorts:"ショート", videoOnDemand:"長尺", liveStream:"配信"};
+  document.getElementById("rev-ct").innerHTML = Object.entries(r.by_content_type || {}).map(([k,v]) =>
+    `<div>${ctName[k]||k}: <b style="color:#e94560">${yen(v.est_revenue)}</b> <span style="color:#888">(${(v.views||0).toLocaleString()}再生 / RPM ${v.rpm} / ${v.views?"¥"+(v.est_revenue/v.views).toFixed(3):"—"}/再生)</span></div>`).join("");
+  document.getElementById("rev-eff").innerHTML =
+    `<div>収益化再生: ${(r.monetized_playbacks||0).toLocaleString()}</div>` +
+    `<div>広告表示: ${(r.ad_impressions||0).toLocaleString()}</div>` +
+    `<div>広告収益(長尺系): ${yen(r.ad_revenue)}</div>`;
+  document.getElementById("rev-video-tbody").innerHTML = (r.by_video || []).map(v =>
+    `<tr><td>${(v.title||v.id).slice(0,32)}</td><td>${yen(v.est_revenue)}</td><td>${(v.views||0).toLocaleString()}</td><td>${v.rpm}</td><td>${v.views?"¥"+(v.est_revenue/v.views).toFixed(3):"—"}</td></tr>`).join("");
+  const ctx = document.getElementById("revChart");
+  if (ctx) new Chart(ctx, { type:"bar",
+    data:{ labels:r.daily.map(d => d.date.slice(5)),
+      datasets:[ {label:"推定収益", data:r.daily.map(d => d.est_revenue), backgroundColor:"#e94560"},
+                 {label:"殿の取り分(65%)", data:r.daily.map(d => Math.round(d.est_revenue*0.65*10)/10), backgroundColor:"#4caf50"} ] },
+    options:{ responsive:true, plugins:{legend:{labels:{color:"#ccc"}}}, scales:{x:{ticks:{color:"#888"}}, y:{ticks:{color:"#888"}}} } });
+}
+
+let newWatchChart = null;
+function renderNewWatch() {
+  const nw = data.new_watch || [];
+  if (!nw.length) { hide("section-newwatch"); return; }
+  const cols = ["#e94560","#f9a825","#2196f3","#16aa6e","#9c27b0","#00bcd4","#ff5722","#8bc34a","#e91e63","#607d8b","#ffc107","#3f51b5"];
+  const maxDay = Math.max(1, ...nw.flatMap(v => v.points.map(p => p[0])));
+  const labels = Array.from({length: maxDay + 1}, (_, i) => i + "日");
+  if (newWatchChart) newWatchChart.destroy();
+  newWatchChart = new Chart(document.getElementById("newWatchChart"), {
+    type: "line",
+    data: { labels, datasets: nw.slice(0, 12).map((v, i) => {
+      const arr = labels.map(() => null); v.points.forEach(p => { arr[p[0]] = p[1]; });
+      const t = v.title.replace(/【.*?】/g, "").replace(/@.*$/, "").replace(/#\\S+/g, "").trim().slice(0, 16);
+      return { label: t, data: arr, borderColor: cols[i % cols.length], backgroundColor: "transparent", tension: 0.25, spanGaps: true, pointRadius: 2 };
+    }) },
+    options: { responsive: true, plugins: { legend: { labels: { color: "#ccc", font: { size: 10 } } } },
+      scales: { x: { title: { display: true, text: "公開からの日数", color: "#888" }, ticks: { color: "#888" }, grid: { color: "#2a2a4a" } },
+                y: { ticks: { color: "#888" }, grid: { color: "#2a2a4a" } } } }
+  });
+  const vm = {}; data.videos.forEach(v => { vm[v.id] = v; });
+  document.getElementById("newwatch-tbody").innerHTML = nw.map(v => {
+    const x = vm[v.id] || {}; const d = x.view_diff_1d;
+    return `<tr><td style="text-align:left"><a href="#video=${v.id}" style="color:#aaa;text-decoration:none">${escHtml(v.title.replace(/【.*?】/g, "").replace(/@.*$/, "").trim().slice(0, 40))}</a>${kindBadge(x)}</td>
+      <td>${v.published_at}</td><td>${x.age_days != null ? x.age_days + "日" : "-"}</td><td>${fmt(v.views)}</td>
+      <td>${d == null ? "-" : (d >= 0 ? "<span class=\\"pos\\">+" + fmt(d) + "</span>" : "<span class=\\"neg\\">" + fmt(d) + "</span>")}</td></tr>`;
+  }).join("");
+}
+
+function renderHLTypes() {
+  const ht = data.hl_types || [];
+  if (!ht.length) { hide("section-hltypes"); return; }
+  const yen = n => n == null ? "-" : "¥" + Math.round(n).toLocaleString();
+  document.getElementById("hltypes-tbody").innerHTML = ht.map((t, i) => `
+    <tr><td style="cursor:pointer;color:#e94560" onclick="document.getElementById(\'hlt-${i}\').style.display = document.getElementById(\'hlt-${i}\').style.display === \'none\' ? \'table-row\' : \'none\'">▸ ${escHtml(t.type)}</td>
+      <td>${t.count}</td><td>${fmt(t.avg_views)}</td><td>${t.avg_views_7d == null ? "-" : fmt(t.avg_views_7d) + " <span style=\\"color:#666\\">(" + t.n_7d + "本)</span>"}</td>
+      <td>${fmt(t.total_views)}</td><td>${yen(t.revenue)}</td><td>${t.rpm == null ? "-" : t.rpm}</td></tr>
+    <tr id="hlt-${i}" style="display:none"><td colspan="7" style="white-space:normal"><div class="hlt-list">${t.videos.map(v =>
+      `<div><a href="#video=${v.id}">${escHtml(v.title.replace(/【ドズル社.*?】|【マイクラ.*?】/g, "").slice(0, 60))}</a> — ${fmt(v.views)}再生${v.views_7d != null ? "（初速7日 " + fmt(v.views_7d) + "）" : ""} ${v.published_at}</div>`).join("")}</div></td></tr>`).join("");
+}
+
+function showTab(name) {
+  document.querySelectorAll("#dashboard-view .card[data-tab]").forEach(c => { c.style.display = c.dataset.tab === name ? "" : "none"; });
+  document.querySelectorAll(".nav-tab").forEach(b => b.classList.toggle("active", b.dataset.t === name));
+  try { localStorage.setItem("dash_tab", name); } catch (e) {}
+  // 非表示中に作ったグラフは幅0のまま → 表示した瞬間に寸法を取り直す
+  setTimeout(() => { Object.values(Chart.instances || {}).forEach(c => { try { c.resize(); } catch (e) {} }); }, 30);
+}
+
 function renderPredictions() {
   if (!data || !data.predictions) { hide(\'section-predictions\'); return; }
   const p = data.predictions;
@@ -1448,7 +1899,7 @@ function hide(id) {
   if (el) el.classList.add(\'section-hidden\');
 }
 
-fetch(\'data.json\')
+fetch(\'data.json?t=\' + Date.now())
   .then(r => r.json())
   .then(d => {
     data = d;
@@ -1464,7 +1915,16 @@ fetch(\'data.json\')
     renderRetention();
     renderCTR();
     renderContentAnalysis();
+    renderShortsFeedCheck();
     renderPredictions();
+    renderRevenue();
+    renderNewWatch();
+    renderHLTypes();
+    let t0 = "overview";
+    try { t0 = localStorage.getItem("dash_tab") || "overview"; } catch (e) {}
+    const qt = new URLSearchParams(location.search).get("tab");   // ?tab=videos で開くタブを指定できる
+    if (qt) t0 = qt;
+    showTab(t0);
     // ロード後にハッシュが既にあればルーティング
     route();
   })
