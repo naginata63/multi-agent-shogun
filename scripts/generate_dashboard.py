@@ -962,7 +962,6 @@ def generate_html() -> str:
       <a href="seisaku_board.html">📋 制作管理板</a>
       <a href="trend_scan.html">🔥 流行りシーン</a>
       <a href="kikaku_20260926.html">📝 企画会議(最新)</a>
-      <a href="pref_quiz.html">🗾 都道府県 問題集</a>
       <a href="https://studio.youtube.com/channel/UCiyY9PX64Nat6sd2vUhrTDQ/analytics" target="_blank">YouTube Studio ↗</a>
     </nav>
 
