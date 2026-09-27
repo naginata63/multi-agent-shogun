@@ -181,6 +181,11 @@ def get_video_details(youtube, video_ids):
                 # dislikeCountはYouTube APIが2021年以降非公開のため常に0（削除済み）
                 "comments": int(stats.get("commentCount", 0)),
                 "privacy_status": item.get("status", {}).get("privacyStatus", "public"),
+                # 漫画ショート判定: タイトルに #漫画動画 を付け忘れた回がある(Tz8P-jTeSGM 等3本・2026-09-27) → 説明文・タグでも見る
+                "is_manga": bool("#漫画" in snippet["title"]
+                                 or re.search(r"漫画(パネル|パート)", snippet.get("description", ""))
+                                 or "#漫画" in snippet.get("description", "")
+                                 or any("漫画" in t for t in (snippet.get("tags") or []))),
             })
 
     return sorted(videos, key=lambda x: x["views"], reverse=True)

@@ -346,11 +346,12 @@ HL_TYPES = [
 ]
 
 
-def classify_kind(title: str, duration_sec: int) -> str:
-    """動画の種別: manga(漫画ショート) / short(切り抜きショート) / long(横長)"""
+def classify_kind(title: str, duration_sec: int, is_manga: bool | None = None) -> str:
+    """動画の種別: manga(漫画ショート) / short(切り抜きショート) / long(横長)
+    is_manga は取得時に説明文・タグから判定した値(youtube_analytics_snapshot.py)。無い古いrawはタイトルの #漫画 で判定"""
     if duration_sec > 180:
         return "long"
-    return "manga" if "#漫画動画" in title else "short"
+    return "manga" if (is_manga or "#漫画" in title) else "short"
 
 
 def classify_hl_type(title: str) -> str:
@@ -438,7 +439,7 @@ def build_video_table(latest_raw: dict, prev_raw: dict | None, initial_views: di
             "avg_view_pct": pva.get("avg_view_pct"),
             "view_diff_1d": view_diff_1d,
             "view_growth_rate": view_growth_rate,
-            "kind": classify_kind(v.get("title", ""), duration_sec),
+            "kind": classify_kind(v.get("title", ""), duration_sec, v.get("is_manga")),
             "age_days": (today - datetime.strptime(pub, "%Y-%m-%d").date()).days if len(pub) == 10 else None,
             "views_7d": initial_views.get(v["id"]),
             "revenue": revenue_by_video.get(v["id"]),
