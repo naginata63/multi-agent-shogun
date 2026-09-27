@@ -603,7 +603,7 @@ def save_video_analysis(analysis: dict) -> None:
 
 
 import os as _os
-CLAUDE_MODEL = _os.environ.get("CLAUDE_MODEL", "claude-opus-5-5")   # 旧 claude-opus-4-6 固定 → 最新へ (2026-09-27)
+CLAUDE_MODEL = _os.environ.get("CLAUDE_MODEL", "opus")   # 常にOpusの最新(CLIの別名 opus)。版番号を書くと次の版で古くなる (殿 2026-09-27「最新使うべき」)
 
 
 def analyze_top_videos(videos: list[dict], n: int = 5) -> None:

@@ -719,7 +719,7 @@ def save_analysis(date_str: str, content: str):
     history = [h for h in history if h.get("date") != date_str]
     history.append({
         "date": date_str,
-        "model": os.environ.get("CLAUDE_MODEL", "claude-opus-5-5"),   # 実際に使ったモデルを記録
+        "model": os.environ.get("CLAUDE_MODEL", "opus"),   # 実際に使ったモデルを記録
         "content": content,
     })
     history.sort(key=lambda x: x["date"], reverse=True)
@@ -730,7 +730,7 @@ def save_analysis(date_str: str, content: str):
 
 def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, video_diffs, revenue=None,
                         shorts_feed_check=None, per_video_analytics=None):
-    """Claude CLI Opus 4.6でLLM分析（収益・視聴維持率・ショート露出・メンバー別込み）"""
+    """Claude CLI (Opusの最新・別名 opus) でLLM分析（収益・視聴維持率・ショート露出・メンバー別込み）"""
     top_videos = videos[:5]
     recent_daily = daily_stats[-5:] if daily_stats else []
 
@@ -878,7 +878,7 @@ def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, vid
 
     try:
         # env var で model upgrade 容易化 (audit MEDIUM#5)
-        claude_model = os.environ.get("CLAUDE_MODEL", "claude-opus-5-5")
+        claude_model = os.environ.get("CLAUDE_MODEL", "opus")
         result = subprocess.run(
             [claude_path, "-p", prompt, "--model", claude_model],
             capture_output=True, text=True, timeout=120
