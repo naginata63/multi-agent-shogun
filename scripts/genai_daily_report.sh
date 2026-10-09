@@ -19,17 +19,7 @@ export PATH="$HOME/.local/bin:$PATH"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# cron環境でもAPIキーを取得（vertex_api_key.env → ~/.bashrcの順）
-VERTEX_ENV="$PROJECT_ROOT/config/vertex_api_key.env"
-if [[ -f "$VERTEX_ENV" ]]; then
-    source "$VERTEX_ENV"
-fi
-export VERTEX_API_KEY="${VERTEX_API_KEY:-}"
-GEMINI_API_KEY="${GEMINI_API_KEY:-$(grep -E '^export GEMINI_API_KEY=' ~/.bashrc 2>/dev/null | tail -1 | cut -d= -f2- | tr -d '"' || true)}"
-if [[ -z "$GEMINI_API_KEY" ]]; then
-    GEMINI_API_KEY="$VERTEX_API_KEY"
-fi
-export GEMINI_API_KEY
+# Gemini/Vertex は使わない(2026-10-10 殿「金かかるから禁止」で接続設定ごと撤去)。重複除去はローカル Ruri v3
 
 # 日付引数（省略時は今日）
 DATE_ARG="${1:-}"
@@ -154,6 +144,7 @@ ${YESTERDAY_TOPICS}
 
         log "claudeモード: Web検索+日本語レポート生成を開始..."
         if env -u CLAUDECODE claude -p "$PROMPT" --tools "WebSearch,WebFetch" --dangerously-skip-permissions > "$OUTPUT_FILE" 2>> "$LOG_FILE"; then
+            cp "$OUTPUT_FILE" "$OUTPUT_DIR/.raw_${DATE_STR}.md" 2>/dev/null || true   # 生の出力を残す(見出しだけになる原因調査用)
             log "claude コマンド完了"
         else
             log "WARN: claude コマンドが失敗しました（終了コード $?）。RSSモードにフォールバック"
@@ -173,7 +164,7 @@ ${YESTERDAY_TOPICS}
 
         # トピック数チェック（3件未満→RSSフォールバック）（P4）
         if [[ "$GENAI_MODE" == "claude" ]] && [[ -s "$OUTPUT_FILE" ]]; then
-            TOPIC_COUNT="$(grep -c '^## ' "$OUTPUT_FILE" 2>/dev/null || echo 0)"
+            TOPIC_COUNT="$(grep -c '^## ' "$OUTPUT_FILE" 2>/dev/null)"; TOPIC_COUNT="${TOPIC_COUNT:-0}"   # grep -c は0件でも"0"を出す(|| echo 0 だと"0\n0"になり判定が素通りした・2026-10-10)
             if [[ "$TOPIC_COUNT" -lt 3 ]]; then
                 log "WARN: claudeレポートのトピック数が少なすぎます（${TOPIC_COUNT}件 < 3件）。RSSモードにフォールバック"
                 GENAI_MODE="rss"
@@ -289,9 +280,7 @@ log "=== 完了 ==="
 
 # ---- 重複排除（URL一致+Embedding類似度3段階）--------------------------
 log "重複排除を開始..."
-DEDUP_API_KEY="${GEMINI_API_KEY:-AIzaSyBWlyApVA01J0DhfEDLojMajkWeARaB-d8}"
-source ~/.bashrc 2>/dev/null || true
-GEMINI_API_KEY="$DEDUP_API_KEY" python3 "$SCRIPT_DIR/genai_dedup.py" "$DATE_STR" 2>> "$LOG_FILE" || log "WARN: 重複排除失敗（メインレポートは生成済み）"
+python3 "$SCRIPT_DIR/genai_dedup.py" "$DATE_STR" 2>> "$LOG_FILE" || log "WARN: 重複排除失敗（メインレポートは生成済み）"
 
 # ---- スコアリング: 各トピック見出しにスコアを追記 --------------------
 # ※ スコアリングをntfy_top3より先に実行する（ntfy_top3がtopicsを読むため）
