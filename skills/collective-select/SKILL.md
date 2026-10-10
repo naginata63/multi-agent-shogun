@@ -1,9 +1,10 @@
 ---
 name: collective-select
 description: |
-  HL/SH候補の並列集合知選定スキル。足軽5人（Claude3+GPT1+Gemini1）で独立分析→結果を集約→投票で候補決定。
-  3社LLM混合で視点の多様性を確保。
-  「集合知」「候補選定」「HL/SH選定」「/collective-select」で起動。
+  HL/SH候補の並列集合知選定スキル。足軽5人(Claude系+GPT系)で独立分析→集約→投票で候補を決め、殿に出す。
+  視点の多様性で見落としを減らす。※Geminiは使うな(脱Gemini 2026-08-22殿)。
+  「集合知」「候補選定」「場面候補を出して」「シーン選定」「HL/SH選定」「どの場面がよい」「/collective-select」で起動。
+  Do NOT use for: 流行り検知から入る場合(それは /trend-scene)。確定済み候補の制作(それは /manga-short-workflow の Phase2以降)。
 argument-hint: "[work_dir] [video_id]"
 allowed-tools: Bash, Read, Edit, Write
 ---

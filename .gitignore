@@ -441,3 +441,5 @@ backups/queue/*.tar.gz
 # スキル台帳サイト(外部公開・murakami-skillset.pages.dev)
 !dist_skillset/
 !dist_skillset/**
+!skills/trend-scene/
+!skills/trend-scene/SKILL.md

@@ -1,9 +1,13 @@
 ---
 name: manga-short-workflow
 description: |
-  漫画ショート制作の全体ワークフロー。候補選定→時間選定→クリップ化→漫画作成→合成の5段階。
-  各段階で殿の確認を挟む。既存スキル（/collective-select, /manga-short）を活用する。
-  「漫画ショートワークフロー」「漫画制作フロー」「/manga-short-workflow」で起動。
+  ドズル社の切り抜きショートを「どの動画のどの場面にするか」から完成まで通す入口スキル。
+  Phase0 流行り検知(他chで伸びておる場面)→Phase1 場面候補を殿に提示→Phase2 clip_editorで殿が頭尻確定
+  +telop_editorでセリフ/話者確定→Phase3 クリップ化→Phase4 /manga-shortで漫画化→Phase5 合成・非公開アップ。
+  「ショート企画」「ショートの企画」「ショート考えて」「ショート作れ」「ショートにする」「場面選定」
+  「どの動画のどの場面」「ショート候補」「切り抜き候補」「漫画ショートワークフロー」「/manga-short-workflow」で起動。
+  Do NOT use for: 確定済みクリップを漫画にするだけ(それは /clip-to-manga)。panels JSONからの画像生成だけ(それは /manga-short)。
+  横長ハイライト(それは /highlight)。完成動画の縦クロップ＆アップだけ(それは /shorts-upload)。
 argument-hint: "[video_id]"
 allowed-tools: Bash, Read, Edit, Write
 ---
@@ -17,6 +21,7 @@ allowed-tools: Bash, Read, Edit, Write
 ## 全体フロー
 
 ```
+Phase 0: 流行り検知 ─→ 【/trend-scene】で追い風のある本家回を特定 → 殿が回を選ぶ
 Phase 1: 候補選定 ──→ 殿OK
 Phase 2: 時間選定 ──→ 【clip_editor_server】で殿が頭尻を詰める → 書き出し → 【telop_editor】で殿がセリフ・話者を直す
 Phase 3: クリップ化 ─→ 殿OK
@@ -42,9 +47,21 @@ Phase 5: 合成+公開 ─→ 【panel_sync_editor】でコマ送り時刻を殿
 
 ---
 
+## Phase 0: 流行り検知（ここから始めよ）
+
+**使うスキル**: `/trend-scene`
+
+古い回から探し始めるな。まず他chの実測(再生/日)で**いま追い風が吹いておる本家回**を特定し、殿に選んでもらう。
+追っておるch数が少ないほど空いておる。自chが既に出した回(`covered`)は除く。
+2026-10-10 の失敗: 流行りを見ずに7〜9月の古い回から候補を作り、殿「はやりは？」。
+
+**アウトプット**: 本家の video_id（＋その回を他chがどう切っておるか）
+
+---
+
 ## Phase 1: 候補選定
 
-**使うスキル**: `/collective-select`
+**使うスキル**: `/collective-select`（または `/trend-scene` 手順5の「視聴者の時刻つきコメント＋他ch実績」）
 
 1. 素材準備（STT+字幕+コメント）
 2. 集合知5人分析（Claude系+GPT系。**Geminiは使うな**=脱Gemini 2026-08-22殿。ローカルLLM/Claude/codexで代替）
