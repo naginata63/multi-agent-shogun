@@ -30,7 +30,7 @@ SEARCH_PY="${SCRIPT_DIR}/semantic_search.py"
 # offline 固定 (cache 済みの時のみ) して一元的に塞いだ。ここでは上限のみ持つ。
 # 埋め込みは短文1件ゆえ GPU の利が無く (実測 cpu 7.6s / cuda 8.0s)、VLM の OCR と
 # GPU を奪い合って相手を OOM で殺す。フックは CPU に固定する。
-RESULTS=$(source ~/.bashrc 2>/dev/null; SEMANTIC_EMBED_DEVICE=cpu timeout 100 python3 "$SEARCH_PY" query "$PROMPT" --top 5 --json 2>/dev/null || true)
+RESULTS=$(source ~/.bashrc 2>/dev/null; SEMANTIC_EMBED_DEVICE=cpu timeout 100 python3 "$SEARCH_PY" query "$PROMPT" --top 60 --json 2>/dev/null || true)
 
 [[ -z "$RESULTS" || "$RESULTS" == "[]" ]] && exit 0
 
@@ -45,6 +45,23 @@ hits = [r for r in results if r.get('score', 0) >= THRESHOLD]
 if not hits:
     sys.exit(0)
 
+# 2026-10-11 殿指摘: スキルが索引に無く『ショート企画けんとうせよ』でワークフローが自動発動しなかった。
+# 索引に skills を加えた上で、埋もれぬよう別枠で先に出す。手で作り始める前にスキルを検討させる。
+skills = [h for h in hits if '/skills/' in h.get('file', '')]
+seen, sk = set(), []
+for h in skills:
+    name = h['file'].split('/skills/')[-1].split('/')[0]
+    if name in seen:
+        continue
+    seen.add(name); sk.append((name, h.get('score', 0)))
+if sk:
+    print('🧰 関連スキル — 手で作り始める前に Skill ツールで起動を検討せよ:')
+    for name, sc in sk[:4]:
+        print(f'  -> /{name} (score={sc:.2f})')
+
+hits = [h for h in hits if '/skills/' not in h.get('file', '')]
+if not hits:
+    sys.exit(0)
 print('📚 関連 procedure/script (自動検索):')
 for h in hits[:5]:
     f = h.get('file', '')

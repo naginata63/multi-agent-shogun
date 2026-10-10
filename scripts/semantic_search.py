@@ -162,6 +162,14 @@ def get_data_sources():
         for f in proc_dir.glob("*.md"):
             sources.append(("procedures", str(f)))
 
+    # 4.6 skills/*/SKILL.md (2026-10-11 殿指摘: スキルが索引に無く、ワークフローが自動発動しなかった)
+    #     「ショート企画けんとうせよ」「どの動画のどの場面」「はやりは？」でどのスキルも挙がらなんだ因。
+    for sk_dir in (BASE_DIR / "skills", BASE_DIR / ".claude" / "skills"):
+        if not sk_dir.exists():
+            continue
+        for f in sk_dir.glob("*/SKILL.md"):
+            sources.append(("skills", str(f)))
+
     # 5. scripts (py/sh/js)
     for script_dir in SCRIPT_DIRS:
         if not script_dir.exists():
@@ -597,7 +605,7 @@ def collect_chunks(source_filter: Optional[str] = None):
             all_chunks.extend(chunk_shogun_to_karo(filepath))
         elif src_type == "tasks":
             all_chunks.extend(chunk_tasks_yaml(filepath))
-        elif src_type in ("memory", "context", "procedures"):
+        elif src_type in ("memory", "context", "procedures", "skills"):
             all_chunks.extend(chunk_markdown(filepath, src_type))
         elif src_type == "scripts":
             all_chunks.extend(chunk_scripts(filepath))
