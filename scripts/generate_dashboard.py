@@ -37,11 +37,14 @@ DASHBOARD_DIR = ANALYTICS_DIR / "dashboard"
 ANALYSIS_HISTORY_PATH = ANALYTICS_DIR / "analysis_history.json"
 VIDEO_ANALYSIS_PATH = ANALYTICS_DIR / "video_analysis.json"
 TOKEN_PATH = PROJECT_DIR / "token.json"
+# token.json は全YouTubeツールで共有ゆえ、スコープは canonical の5つで統一せよ
+# (2026-06-23 殿確定・2026-10-11 狭いまま残っていた5本を是正)
 _YOUTUBE_SCOPES = [
     "https://www.googleapis.com/auth/youtube.upload",
     "https://www.googleapis.com/auth/youtube",
     "https://www.googleapis.com/auth/youtube.force-ssl",
     "https://www.googleapis.com/auth/yt-analytics.readonly",
+    "https://www.googleapis.com/auth/yt-analytics-monetary.readonly",
 ]
 
 

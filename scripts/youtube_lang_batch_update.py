@@ -42,10 +42,14 @@ OUTPUT_DIR = PROJECT_DIR / "work" / "cmd_lang_batch"
 with open(PROJECT_DIR / "context" / "youtube_channel.yaml", "r", encoding="utf-8") as _f:
     CHANNEL_ID = yaml.safe_load(_f)["brand"]["channel_id"]
 
+# token.json は全YouTubeツールで共有ゆえ、スコープは canonical の5つで統一せよ
+# (2026-06-23 殿確定・2026-10-11 狭いまま残っていた5本を是正)
 SCOPES = [
+    "https://www.googleapis.com/auth/youtube.upload",
     "https://www.googleapis.com/auth/youtube",
     "https://www.googleapis.com/auth/youtube.force-ssl",
-    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/yt-analytics.readonly",
+    "https://www.googleapis.com/auth/yt-analytics-monetary.readonly",
 ]
 
 
