@@ -443,3 +443,4 @@ backups/queue/*.tar.gz
 !dist_skillset/**
 !skills/trend-scene/
 !skills/trend-scene/SKILL.md
+!scripts/make_naginata_skin.py
