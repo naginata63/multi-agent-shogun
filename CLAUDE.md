@@ -21,7 +21,7 @@ files:
   pending_tasks: queue/tasks/pending.yaml # Karo管理の保留タスク（blocked未割当）
   reports: "queue/reports/ashigaru{N}_report.yaml" # Ashigaru → Karo reports
   gunshi_report: queue/reports/gunshi_report.yaml  # Gunshi → Karo strategic reports
-  dashboard: "http://192.168.2.4:8770/"  # MCP dashboard (primary)
+  dashboard: "http://127.0.0.1:8770/"  # MCP dashboard (primary)
   ntfy_inbox: queue/ntfy_inbox.yaml    # Incoming ntfy messages from Lord's phone
   orders: orders/                      # Task instruction archive (private submodule: naginata63/multi-agent-orders)
 
@@ -73,6 +73,8 @@ language:
 
 ### Step 0: SSE Monitor Auto-Start (CRITICAL - MANDATORY BEFORE STEP 1)
 
+> **【将軍は不要・2026-10-11 殿「monitorやめてよい」】** 将軍システムは廃止済(`memory/feedback_shogun_system_deprecated`)ゆえ、家老・足軽・軍師が動いておらず、将軍宛 inbox に送り手がおらぬ。実測でも本日一日 Monitor が拾うた実メッセージは0件で、30分ごとの満了→張り直しが殿のお目を汚すだけであった。**将軍はこの Step 0 を飛ばせ。**殿のご指示は端末と ntfy から届くゆえ取りこぼさぬ。将軍システムを再開する時のみ復活させよ。他エージェント(karo/ashigaru/gunshi)の定めは従来どおり。
+
 **⚠️ WARNING - NEVER SKIP**: Monitor is the only inbox delivery mechanism. Monitor なし = メッセージ見落とし = 重大インシデント。ALWAYS execute before proceeding to Step 1.
 
 実行手順:
@@ -82,9 +84,9 @@ language:
    - 結果が 2 本以上: 古い PID を kill して 1 本に統一 (`kill <PID>` for duplicates, then verify 1 remains)
 2. **Monitor 起動** (Monitor 0本の場合のみ):
    ```
-   Monitor(command='curl -N -s "http://192.168.2.4:8770/api/inbox_stream?agent=<YOUR_ID>" | grep --line-buffered "^data:"', persistent=true)
+   Monitor(command='curl -N -s "http://127.0.0.1:8770/api/inbox_stream?agent=<YOUR_ID>" | grep --line-buffered "^data:"', persistent=true)
    ```
-3. **Catch-up inbox fetch**: `curl http://192.168.2.4:8770/api/inbox_messages?agent=<YOUR_ID>&unread=1`
+3. **Catch-up inbox fetch**: `curl http://127.0.0.1:8770/api/inbox_messages?agent=<YOUR_ID>&unread=1`
 
 **Auto-execution**: sessionstart_hook.sh が source=startup/compact 時に Monitor起動を試みるが、**必ず step 1 で Manual verify を実行せよ**. Hook失敗時の Fallback を備えよ。
 
@@ -98,7 +100,7 @@ language:
 
 **CRITICAL**: Steps 1-3を完了するまでinbox処理するな。`inboxN` nudgeが先に届いても無視し、自己識別→memory→instructions読み込みを必ず先に終わらせよ。Step 1をスキップすると自分の役割を誤認し、別エージェントのタスクを実行する事故が起きる（2026-02-13実例: 家老が足軽2と誤認）。
 
-**CRITICAL**: MCP dashboard (http://192.168.2.4:8770/) is secondary data (karo's summary). Primary data = YAML files. Always verify from YAML.
+**CRITICAL**: MCP dashboard (http://127.0.0.1:8770/) is secondary data (karo's summary). Primary data = YAML files. Always verify from YAML.
 
 ## /clear Recovery (ashigaru/gunshi only)
 
@@ -324,7 +326,7 @@ System manages ALL white-collar work, not just self-improvement. Project folders
 cmd/inbox/task 系の操作は **HTTP API 経由を第一選択**。YAML直読み・bash inbox_write.sh 直叩きは段階的廃止。
 背景: cmd_1488 で SQLite dual-path 完成・cmd_1494 で read 側も SQLite 切替。整合性は API が一元担保する。
 
-主な curl エントリ (LAN内・192.168.2.4:8770・認証なし):
+主な curl エントリ (同一マシン上・127.0.0.1:8770・認証なし。DHCPでLAN IPが変わっても壊れぬようlocalhost固定):
 
 | 動作 | エンドポイント |
 |------|----------------|

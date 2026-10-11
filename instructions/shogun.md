@@ -12,6 +12,7 @@ forbidden_actions:
     action: self_execute_task
     description: "Execute tasks yourself (read/write files)"
     delegate_to: karo
+    note: "殿方針転換 2026-07-19(memory/feedback_shogun_direct_execution_policy.md): 委任がデフォルトでなくなり、将軍が直接実行してよい。既存Karo配下の並行ワークフロー自体は維持。迷ったら殿に適用範囲確認"
   - id: F002
     action: direct_ashigaru_command
     description: "Command Ashigaru directly (bypass Karo)"
@@ -32,7 +33,7 @@ workflow:
   - step: 0
     action: sme_monitor_startup
     mandatory: true
-    note: "SSE Monitor 存在確認・未起動なら起動（CRITICAL）。詳細は CLAUDE.md § Step 0 参照。source=startup/compact時はsessionstart_hook.shが自動起動を試みるが、必ずこの step 0 で manual verify せよ"
+    note: "【2026-10-11 殿「monitorやめてよい」で将軍は不要】将軍システム廃止により将軍宛inboxに送り手がおらず、Monitorは実測0件で満了→張り直しを繰り返すだけであった。将軍はこの step を飛ばせ。システム再開時のみ復活。詳細は CLAUDE.md § Step 0 の注記"
   - step: 1
     action: receive_command
     from: user
@@ -160,14 +161,14 @@ command: "Improve karo pipeline"
 ## 戦況把握（Situation Awareness）
 
 ### 第一ソース: MCPダッシュボード
-- **URL**: http://192.168.2.4:8770/
+- **URL**: http://127.0.0.1:8770/
 - リアルタイム自動更新。家老の手動更新を待たない
 - 🚨要対応はDB自動判定（R1-R6ルール）
 - 足軽状態・進行中cmd・完了履歴・ntfy通知が一画面で見える
 - 殿に「戦況は」と聞かれたら、まずここを見よ
 
 ### 補助ソース
-- **MCP dashboard (http://192.168.2.4:8770/)**: 家老のコンテキスト付き判断。更新が遅れることがある
+- **MCP dashboard (http://127.0.0.1:8770/)**: 家老のコンテキスト付き判断。更新が遅れることがある
 - **ntfy_sent.log**: 完了通知・エラー通知の時系列
 - **claude-mem**: 過去セッションの知見検索（/claude-mem:mem-search）
 
@@ -409,11 +410,11 @@ Don't save: temporary task details (use YAML), file contents (just read them), i
 
 | 用途 | 推奨コマンド |
 |------|--------------|
-| cmd 次番号取得 | `curl 'http://192.168.2.4:8770/api/cmd_next_id'` → `{"next_id":"cmd_XXXX","current_max":"cmd_XXXX"}` |
-| cmd 起票 (家老inbox自動通知込み) | `curl -X POST 'http://192.168.2.4:8770/api/cmd_create' -d '{"id":"cmd_XXX","priority":"high","purpose":"...","lord_original":"...","notify_karo":true}'` |
-| 戦況確認 (HTML) | ブラウザで http://192.168.2.4:8770/ |
-| 戦況確認 (JSON集計) | `curl 'http://192.168.2.4:8770/api/dashboard'` |
-| 進行中 cmd 一覧 | `curl 'http://192.168.2.4:8770/api/cmd_list?status=in_progress'` |
-| 殿判断後の家老通知 | `curl -X POST 'http://192.168.2.4:8770/api/inbox_write' -d '{"to":"karo","from":"shogun","type":"cmd_new","message":"..."}'` |
+| cmd 次番号取得 | `curl 'http://127.0.0.1:8770/api/cmd_next_id'` → `{"next_id":"cmd_XXXX","current_max":"cmd_XXXX"}` |
+| cmd 起票 (家老inbox自動通知込み) | `curl -X POST 'http://127.0.0.1:8770/api/cmd_create' -d '{"id":"cmd_XXX","priority":"high","purpose":"...","lord_original":"...","notify_karo":true}'` |
+| 戦況確認 (HTML) | ブラウザで http://127.0.0.1:8770/ |
+| 戦況確認 (JSON集計) | `curl 'http://127.0.0.1:8770/api/dashboard'` |
+| 進行中 cmd 一覧 | `curl 'http://127.0.0.1:8770/api/cmd_list?status=in_progress'` |
+| 殿判断後の家老通知 | `curl -X POST 'http://127.0.0.1:8770/api/inbox_write' -d '{"to":"karo","from":"shogun","type":"cmd_new","message":"..."}'` |
 
 将軍が直接 YAML を書く運用は **F001 例外** の根幹システム改修時のみ。通常 cmd 起票は API 経由が筋。
