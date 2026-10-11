@@ -444,3 +444,4 @@ backups/queue/*.tar.gz
 !skills/trend-scene/
 !skills/trend-scene/SKILL.md
 !scripts/make_naginata_skin.py
+!scripts/render_skin_3d.py
