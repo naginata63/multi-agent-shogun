@@ -230,6 +230,19 @@
 | 状態 | active |
 | 備考 | cmd_1540 で新設。閾値は 2 以上 (通常は 1 プロセス)。誤検知時は pgrep パターン調整で対応。 |
 
+### C16 — 流行りシーン検知 ショート版/横長版 (2026-08-14 / 横長 2026-10-17 殿指示)
+
+| 項目 | 値 |
+|------|-----|
+| スケジュール | ショート版 `50 18 * * *` / 横長版 `55 18 * * *` (毎日 JST) |
+| コマンド | `cd projects/dozle_kirinuki && venv/bin/python3 scripts/trend_scan.py` (横長は `--long`) |
+| 目的 | 他の切り抜きchで伸びておる元動画を日割り再生で並べ、ntfyで殿に出す。横長版は他chの3分超の切り抜きを見る(本家・個人chは除外・まとめ動画は別枠) |
+| 所管 | 将軍 |
+| 停止影響 | 流行りに乗った題材選びができず、古い回から探し始める事故(2026-10-10)が再発 |
+| ログ | `logs/trend_scan.log` / `logs/trend_scan_long.log`。出力 `work/trend/latest.json` / `work/trend/long/latest.json`、ページ `analytics/dashboard/trend_scan.html` / `trend_scan_long.html` |
+| 状態 | active |
+| 備考 | 横長版のスナップショットは `work/trend/long/` に分け、ショート版の前回値と混ぜぬ。ページURLは tailscale `http://100.66.15.93:8103/` |
+
 ---
 
 ## 3. Disabled cron (コメントアウト行)
