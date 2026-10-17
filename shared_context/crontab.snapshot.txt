@@ -49,3 +49,6 @@
 # 流行りシーン検知 — 他chで伸びるシーンを毎夕殿へ候補提示 (2026-08-14 真似戦法)
 50 18 * * * cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki && /home/murakami/multi-agent-shogun/venv/bin/python3 scripts/trend_scan.py >> /home/murakami/multi-agent-shogun/logs/trend_scan.log 2>&1
 55 18 * * * cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki && /home/murakami/multi-agent-shogun/venv/bin/python3 scripts/trend_scan.py --long >> /home/murakami/multi-agent-shogun/logs/trend_scan_long.log 2>&1
+# 自走する工房 1週目(2026-10-18 殿「3」「番頭はClaudeで」): 夜の企画会議+note下書き+検分 → 朝の1通
+0 1 * * * cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki && PATH=/home/murakami/.local/bin:/usr/local/bin:/usr/bin:/bin bash scripts/autopilot/night.sh >> /home/murakami/multi-agent-shogun/logs/autopilot_night.log 2>&1
+30 6 * * * cd /home/murakami/multi-agent-shogun/projects/dozle_kirinuki && /usr/bin/python3 scripts/autopilot/morning.py >> /home/murakami/multi-agent-shogun/logs/autopilot_morning.log 2>&1

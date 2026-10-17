@@ -243,6 +243,19 @@
 | 状態 | active |
 | 備考 | 横長版のスナップショットは `work/trend/long/` に分け、ショート版の前回値と混ぜぬ。ページURLは tailscale `http://100.66.15.93:8103/` |
 
+### C17 — 自走する工房 夜の会議+朝の1通 (2026-10-18 殿指示)
+
+| 項目 | 値 |
+|------|-----|
+| スケジュール | 夜 `0 1 * * *` / 朝 `30 6 * * *` (毎日 JST) |
+| コマンド | 夜 `cd projects/dozle_kirinuki && bash scripts/autopilot/night.sh` / 朝 `python3 scripts/autopilot/morning.py` |
+| 目的 | 夜: 材料を1枚に(台本)→ 番頭=Claude Opus が提案3件 → note 下書き=GLM-5.3(Z.ai 直結 ~/.claude_glm_auto)→ 検分役=Claude Sonnet。朝: 検分を通った提案と note 下書きをページにし ntfy 1通 |
+| 所管 | 将軍 |
+| 停止影響 | 朝の提案と note 下書きが届かなくなる(殿の手で企画を始める元の形に戻るだけ) |
+| ログ | `logs/autopilot_night.log` / `logs/autopilot_morning.log`。工程ごとの成否と Claude の費用は `projects/dozle_kirinuki/work/autopilot/<日付>/STATUS`。ページ `analytics/dashboard/autopilot/<日付>.html` |
+| 状態 | active |
+| 備考 | 設計 `analytics/dashboard/autopilot_design.html`。公開・投稿はせぬ(note は Markdown の下書きまで)。Claude は Read のみ・最大ターンで上限。手で2回通した実費は1晩 約$0.84 |
+
 ---
 
 ## 3. Disabled cron (コメントアウト行)
