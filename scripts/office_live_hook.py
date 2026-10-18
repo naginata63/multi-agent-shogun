@@ -20,6 +20,7 @@ LAST = "/tmp/office_live_hook.last"
 RULES = [  # (正規表現, 役, 一言, 裏で長く走るか)
     (r"yt-dlp|dl_win|dozle-dl|fetch_dozle|comment_refetch|comment_db\.py", "取り込み係", "素材を取得", True),
     (r"demucs|qwen_stt|whisper|stt_all", "取り込み係", "文字起こし", True),
+    (r"codex_manga_batch", "手足", "漫画のコマを描く", True),   # 10-18 漏れ: バッチ起動は「codex exec」を含まず番頭「作業中」に化けていた
     (r"codex exec|thumbnail_codex|office_art/gen", "手足", "絵を描く", True),
     (r"youtube_uploader\.py upload", "番頭", "YouTubeにアップ", True),
     (r"youtube_uploader\.py (thumbnail|update)", "番頭", "YouTubeを整える", False),
