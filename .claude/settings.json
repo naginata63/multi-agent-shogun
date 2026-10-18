@@ -112,6 +112,16 @@
                         "timeout": 130
                     }
                 ]
+            },
+            {
+                "matcher": "Bash",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "python3 /home/murakami/multi-agent-shogun/scripts/office_live_hook.py post",
+                        "timeout": 5
+                    }
+                ]
             }
         ],
         "UserPromptSubmit": [
