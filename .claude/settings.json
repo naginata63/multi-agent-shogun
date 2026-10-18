@@ -83,6 +83,15 @@
                         "timeout": 5
                     }
                 ]
+            },
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "python3 /home/murakami/multi-agent-shogun/scripts/office_live_hook.py",
+                        "timeout": 5
+                    }
+                ]
             }
         ],
         "PostToolUse": [
