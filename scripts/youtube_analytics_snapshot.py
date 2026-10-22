@@ -934,21 +934,29 @@ def run_claude_analysis(channel_stats, videos, daily_stats, traffic_sources, vid
         else:
             return "[Claude CLI が見つかりません: `which claude` で確認してください]"
 
-    try:
-        # env var で model upgrade 容易化 (audit MEDIUM#5)
-        claude_model = os.environ.get("CLAUDE_MODEL", "opus")
-        result = subprocess.run(
-            [claude_path, "-p", prompt, "--model", claude_model],
-            capture_output=True, text=True, timeout=120
-        )
-        if result.returncode == 0:
-            return result.stdout.strip()
-        else:
-            return f"[Claude CLI エラー (return code {result.returncode})]\n{result.stderr[:500]}"
-    except subprocess.TimeoutExpired:
-        return "[Claude CLI タイムアウト（120秒）]"
-    except Exception as e:
-        return f"[Claude CLI 実行失敗: {e}]"
+    # 2026-10-23: 05:57 に Claude の利用上限に当たり return code 1 で落ち、その日の分析がエラー文だけになった
+    # (殿「毎日analysisの分析が更新されてない 提案が見えない」)。間を空けて3回まで試し、それでも駄目なら
+    # エラー文を返す(呼び出し側は保存せず、09:57/12:57 の --retry-if-failed で取り直す)。
+    import time as _time
+    claude_model = os.environ.get("CLAUDE_MODEL", "opus")   # env var で model upgrade 容易化 (audit MEDIUM#5)
+    last = ""
+    for wait in (0, 60, 300):
+        if wait:
+            _time.sleep(wait)
+        try:
+            result = subprocess.run(
+                [claude_path, "-p", prompt, "--model", claude_model],
+                capture_output=True, text=True, timeout=300
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                return result.stdout.strip()
+            last = f"[Claude CLI エラー (return code {result.returncode})]\n{(result.stdout or '')[-300:]}\n{result.stderr[:300]}"
+        except subprocess.TimeoutExpired:
+            last = "[Claude CLI タイムアウト（300秒）]"
+        except Exception as e:
+            last = f"[Claude CLI 実行失敗: {e}]"
+        print(f"[analytics] LLM分析失敗 → 取り直し: {last[:120]}")
+    return last
 
 
 def _notify_failure(reason: str) -> None:
@@ -1441,8 +1449,15 @@ def main():
         f.write(report)
     print(f"[analytics] レポート保存: {report_path}")
 
-    # LLM分析をanalysis_history.jsonに蓄積
-    save_analysis(DATE_STR, llm_analysis)
+    # LLM分析をanalysis_history.jsonに蓄積。失敗した時はエラー文で前日までの表示を潰さず、殿へ知らせて後で取り直す
+    if llm_analysis.startswith("[Claude CLI"):
+        try:   # 再認証の案内が付く _notify_failure は使わぬ(数字は取れており、AI分析だけの失敗)
+            subprocess.run(["bash", str(NTFY_SCRIPT), "⚠️ 日次のAI分析だけ失敗(数字は保存済み)。09:57/12:57 に自動で取り直す: "
+                            + llm_analysis[:80].replace("\n", " ")], timeout=15, check=False)
+        except Exception as e:
+            print(f"[analytics] 失敗通知 ntfy 失敗: {e}")
+    else:
+        save_analysis(DATE_STR, llm_analysis)
 
     # ntfy通知
     send_ntfy_if_needed(channel_stats, video_diffs, prev_raw, videos)
@@ -1485,5 +1500,20 @@ def main():
     print(f"  raw JSON: {raw_path}")
 
 
+def analysis_ok_today():
+    try:
+        h = json.load(open(ANALYTICS_DIR / "analysis_history.json", encoding="utf-8"))
+    except Exception:
+        return False
+    d = datetime.date.today().strftime("%Y-%m-%d")
+    return any(e.get("date") == d and not str(e.get("content", "")).startswith("[Claude CLI") for e in h)
+
+
 if __name__ == "__main__":
+    # --retry-if-failed: 今日のAI分析が無い/エラーの時だけ全体を取り直す(cron 09:57・12:57)
+    if "--retry-if-failed" in sys.argv:
+        if analysis_ok_today():
+            print("[analytics] 今日のAI分析は済んでいる → 取り直し不要")
+            sys.exit(0)
+        print("[analytics] 今日のAI分析が無い/エラー → 取り直す")
     main()
