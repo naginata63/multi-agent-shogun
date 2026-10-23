@@ -51,6 +51,7 @@ python3 -c "
 offset = 0
 clips = []  # (name, duration) のリスト
 for name, dur in clips:
+    # ※int() の切り捨ては前の部品の尻に章の頭が掛かる。新作は math.ceil で切り上げよ(yokonaga_cards_quiz_build.md §1)
     m, s = divmod(int(offset), 60)
     h, m = divmod(m, 60)
     ts = f'{m}:{s:02d}' if h == 0 else f'{h}:{m:02d}:{s:02d}'
