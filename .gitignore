@@ -27,6 +27,8 @@
 # Claude Code slash commands / skills (public OSS)
 !.claude/commands/
 !.claude/commands/*.md
+!.claude/workflows/
+!.claude/workflows/*.js
 
 # Instructions (core OSS)
 !instructions/
