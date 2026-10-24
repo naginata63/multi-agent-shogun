@@ -15,7 +15,8 @@ source ~/.bashrc
 FLAGS_DIR="$REPO_DIR/queue/.flags"
 mkdir -p "$FLAGS_DIR"
 LAST_CHECK="$FLAGS_DIR/dedup_last_check"
-REPORT_FILE="queue/reports/dedup_warnings.yaml"
+# YAML ではなく素の記録ゆえ logs/ へ(queue/*.yaml の解析検査 C09 が毎回落ちていた)
+REPORT_FILE="logs/dedup_warnings.log"
 
 # 前回チェック以降に変更があったファイルを検出
 CHANGED_FILES=""
