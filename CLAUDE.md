@@ -236,6 +236,7 @@ System manages ALL white-collar work, not just self-improvement. Project folders
 - 大量バッチ処理 → `shared_context/procedures/batch_processing.md` (batch1 QC gate必須)
 - ランキング動画 (順位カード/右上帯/BGM) → `shared_context/procedures/ranking_video_cards_bgm.md` (BGMはカードのみ・クリップでは鳴らすな)
 - 横長の札+本編区間+止め絵クイズ (読み上げ付き) → `shared_context/procedures/yokonaga_cards_quiz_build.md` (改行は台本に\n・札の音/区間の切り方/重ね物の禁止域/検査の台帳・合流縦断 v1〜v7 の教訓)
+- 横長の総点検 (アップの可否を伺う前) → `shared_context/procedures/yokonaga_total_qc.md` (機械の測り qc_machine.py 1本+Sonnet の目付け3人・重い処理は heavy.sh で1本ずつ・Opus 並列で OOM 全滅した 10-25 教訓)
 
 # Destructive Operation Safety (all agents)
 
