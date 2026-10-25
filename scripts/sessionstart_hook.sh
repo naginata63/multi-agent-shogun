@@ -66,6 +66,34 @@ ${NTFY_RECENT}"
     fi
 fi
 
+# 将軍システムは廃止(2026-08-21)・将軍は SSE Monitor を張らぬ(殿 2026-10-11「monitorやめてよい」)。
+# Step 0 の長い手順は旧システムの者(karo/ashigaru/gunshi)にだけ出す。将軍の会話の頭の費えを削る(殿 2026-10-25「コストかかるな」)
+STEP0=""
+if [[ "$AGENT_ID" != "shogun" ]]; then
+STEP0=$(cat <<'STEP0EOF'
+## Step 0: SSE Monitor auto-start (cmd_1669 D案・watcher補完)
+Session Start の Step 1 (self-identify) 直後・Step 2 以降より先に必ず実行せよ:
+  0-A. **PRECHECK**: Bash で \`pgrep -a curl | grep "agent=__AGENT__"\` を実行。
+       既に1本以上 hit するなら **既に Monitor 稼働中・新規起動するな**・Step 0 skip して Step 1 へ進め。
+       hit 0 件なら 0-B 以降を続行。これで重複起動を構造的に防止する。
+  0-B. ToolSearch(query="select:Monitor") で Monitor tool schema を取得
+  0-C. Monitor(command='curl -N -s "http://127.0.0.1:8770/api/inbox_stream?agent=__AGENT__" | grep --line-buffered "^data:"') を起動
+       ★ grep フィルタ必須: server 側 SSE keepalive (':keepalive' コメント行) を除外せねば
+         30秒毎に Monitor event 発火 → 毎回 turn 消費でコスト爆発する (cmd_1669γ実証で2026-05-09 軍師に発生)
+  0-D. 起動直後 1秒以内に発生したメッセージは race condition で取りこぼし可能性あり (cmd_1649 実証60%) →
+       直後に GET /api/inbox_messages?agent=__AGENT__&unread=1 で catch-up 取得
+  0-E. Monitor event の content は 'data: {"msg_id":...,"type":"...","content":"..."}' の JSON line。
+       parseable な inbox message でない event は無視 (応答せず idle 継続)。
+  0-F. Monitor stream 終了 (EOF) を受信した場合: 0-A の PRECHECK を **再実行** し
+       既存 Monitor が他に走っていないことを確認後、**1本だけ**再起動せよ。
+       既に他 Monitor が稼働中なら新規起動するな (重複防止)。1分超 EOF 継続なら殿/家老に inbox 報告。
+  0-G. SSE接続失敗 (connection refused 等) は fail-soft: 既存 inbox_watcher.sh 経路で配信継続するゆえ
+       エラーで halt せず Step 1 に進め
+STEP0EOF
+)
+STEP0="${STEP0//__AGENT__/$AGENT_ID}"
+fi
+
 CONTEXT=$(cat <<EOF
 SessionStart hook: current agent is '${AGENT_ID}' (source=${SOURCE}).
 Before any inbox/task handling, first run:
@@ -73,24 +101,7 @@ tmux display-message -t "\$TMUX_PANE" -p '#{@agent_id}'
 If mismatch, stop and recover. Then execute CLAUDE.md Session Start / Recovery in order.
 Env: ${GEMINI_STATUS}. When running scripts that need GEMINI_API_KEY, prepend: source ~/.bashrc &&
 
-## Step 0: SSE Monitor auto-start (cmd_1669 D案・watcher補完)
-Session Start の Step 1 (self-identify) 直後・Step 2 以降より先に必ず実行せよ:
-  0-A. **PRECHECK**: Bash で \`pgrep -a curl | grep "agent=${AGENT_ID}"\` を実行。
-       既に1本以上 hit するなら **既に Monitor 稼働中・新規起動するな**・Step 0 skip して Step 1 へ進め。
-       hit 0 件なら 0-B 以降を続行。これで重複起動を構造的に防止する。
-  0-B. ToolSearch(query="select:Monitor") で Monitor tool schema を取得
-  0-C. Monitor(command='curl -N -s "http://192.168.2.4:8770/api/inbox_stream?agent=${AGENT_ID}" | grep --line-buffered "^data:"') を起動
-       ★ grep フィルタ必須: server 側 SSE keepalive (':keepalive' コメント行) を除外せねば
-         30秒毎に Monitor event 発火 → 毎回 turn 消費でコスト爆発する (cmd_1669γ実証で2026-05-09 軍師に発生)
-  0-D. 起動直後 1秒以内に発生したメッセージは race condition で取りこぼし可能性あり (cmd_1649 実証60%) →
-       直後に GET /api/inbox_messages?agent=${AGENT_ID}&unread=1 で catch-up 取得
-  0-E. Monitor event の content は 'data: {"msg_id":...,"type":"...","content":"..."}' の JSON line。
-       parseable な inbox message でない event は無視 (応答せず idle 継続)。
-  0-F. Monitor stream 終了 (EOF) を受信した場合: 0-A の PRECHECK を **再実行** し
-       既存 Monitor が他に走っていないことを確認後、**1本だけ**再起動せよ。
-       既に他 Monitor が稼働中なら新規起動するな (重複防止)。1分超 EOF 継続なら殿/家老に inbox 報告。
-  0-G. SSE接続失敗 (connection refused 等) は fail-soft: 既存 inbox_watcher.sh 経路で配信継続するゆえ
-       エラーで halt せず Step 1 に進め${NTFY_CONTEXT}
+${STEP0}${NTFY_CONTEXT}
 EOF
 )
 
