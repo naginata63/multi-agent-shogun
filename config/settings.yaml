@@ -23,7 +23,7 @@ skill:
 cli:
   default: claude
   agents:
-    shogun: { type: claude, model: "claude-opus-5[1m]", effort: high }  # 将軍=Opus 5 1M+effort high（殿命 2026-07-25 Opus 5 リリース格上げ。旧: claude-sonnet-5[1m]／claude-opus-4-8[1m]）
+    shogun: { type: claude, model: "claude-opus-5-5[1m]", effort: high }  # 将軍=Opus 5.5 1M+effort high（殿「opus5.5にしたか？」2026-10-26。claude -p で実機確認済み。旧: claude-opus-5[1m]／claude-sonnet-5[1m]／claude-opus-4-8[1m]）
     karo: { type: claude, model: sonnet, effort: low }  # 家老=Sonnet+effort low（コンパクション頻度低減・cmd_1670 殿命 2026-05-09）
     gunshi: { type: claude, model: "claude-opus-5[1m]" }  # 軍師=Opus 5 1M（殿命 2026-07-25 Opus 5 リリース格上げ。旧: claude-opus-4-8[1m]）
     ashigaru1: { type: glm, model: glm }

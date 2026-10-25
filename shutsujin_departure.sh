@@ -708,7 +708,7 @@ if [ "$SETUP_ONLY" = false ]; then
 
     # 将軍: CLI Adapter経由でコマンド構築
     _shogun_cli_type="claude"
-    _shogun_cmd="claude --model 'claude-opus-4-8[1m]' --effort high --dangerously-skip-permissions"
+    _shogun_cmd="claude --model 'claude-opus-5-5[1m]' --effort high --dangerously-skip-permissions"
     if [ "$CLI_ADAPTER_LOADED" = true ]; then
         _shogun_cli_type=$(get_cli_type "shogun")
         _shogun_cmd=$(build_cli_command "shogun")
