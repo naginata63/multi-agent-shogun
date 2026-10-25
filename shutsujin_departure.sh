@@ -121,11 +121,19 @@ KESSEN_MODE=false
 SHOGUN_NO_THINKING=false
 SILENT_MODE=false
 SHELL_OVERRIDE=""
+# 将軍システム(家老・足軽・軍師)は 2026-08-21 廃止。既定では将軍だけを立ち上げる。
+# 9人が立つと各自が inbox の SSE 見張りを30分ごとに張り直し、軍師だけで1日約1800万トークンを使っていた(2026-10-25 cclens)。
+# 殿「みはりってshutsujinできどうするんじゃない？ そっちもなおさないと」→ 旧システムを再開する時だけ --with-agents
+WITH_AGENTS=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         -s|--setup-only)
             SETUP_ONLY=true
+            shift
+            ;;
+        --with-agents)
+            WITH_AGENTS=true
             shift
             ;;
         -c|--clean)
@@ -174,6 +182,7 @@ while [[ $# -gt 0 ]]; do
             echo "                      未指定時は config/settings.yaml の設定を使用"
             echo "  -S, --silent        サイレントモード（足軽の戦国echo表示を無効化・API節約）"
             echo "                      未指定時はshoutモード（タスク完了時に戦国風echo表示）"
+            echo "  --with-agents       旧将軍システムの家老・足軽・軍師も立ち上げる(既定は将軍だけ・2026-10-25)"
             echo "  -h, --help          このヘルプを表示"
             echo ""
             echo "例:"
@@ -528,6 +537,7 @@ echo ""
 # pane-base-index を取得（1 の環境ではペインは 1,2,... になる）
 PANE_BASE=$(tmux show-options -gv pane-base-index 2>/dev/null || echo 0)
 
+if [ "$WITH_AGENTS" = true ]; then   # 旧将軍システム(--with-agents の時だけ)
 # ═══════════════════════════════════════════════════════════════════════════════
 # STEP 5.1: multiagent セッション作成（9ペイン：karo + ashigaru1-8）
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -633,6 +643,8 @@ tmux set-option -t multiagent -w pane-border-format '#{?pane_active,#[reverse],}
 log_success "  └─ 家老・足軽・軍師の陣、構築完了"
 echo ""
 
+fi   # WITH_AGENTS (STEP 5.1)
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # STEP 5.9: Advisor Proxy起動（GLMエージェント用）
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -723,6 +735,7 @@ with open(f,'w') as fh: yaml.safe_dump(d, fh, default_flow_style=False, allow_un
     # 少し待機（安定のため）
     sleep 1
 
+    if [ "$WITH_AGENTS" = true ]; then   # 旧将軍システム(--with-agents の時だけ)
     # 家老（pane 0）: CLI Adapter経由でコマンド構築（デフォルト: Opus）
     p=$((PANE_BASE + 0))
     _karo_cli_type="claude"
@@ -850,6 +863,8 @@ with open(f,'w') as fh: yaml.safe_dump(d, fh, default_flow_style=False, allow_un
         fi
     fi
 
+    fi   # WITH_AGENTS (STEP 6 家老〜軍師)
+
     # ═══════════════════════════════════════════════════════════════════════════
     # STEP 6.5: 各エージェントに指示書を読み込ませる
     # ═══════════════════════════════════════════════════════════════════════════
@@ -932,6 +947,7 @@ NINJA_EOF
         sleep 1
     done
 
+    if [ "$WITH_AGENTS" = true ]; then   # 旧将軍システム(--with-agents の時だけ)
     # ═══════════════════════════════════════════════════════════════════
     # STEP 6.6: inbox_watcher 廃止 + Monitor (足軽/軍師) 起動プロンプト送信
     # ═══════════════════════════════════════════════════════════════════
@@ -973,6 +989,8 @@ NINJA_EOF
 
     log_success "  └─ ${_monitor_prompt_count}エージェントに Monitor 起動プロンプト送信 (足軽${_ASHIGARU_COUNT}+軍師)"
     log_info "  └─ 将軍/家老は sessionstart_hook + CLAUDE.md Step 0 で自律 Monitor 起動 (プロンプト送信不要)"
+
+    fi   # WITH_AGENTS (STEP 6.6)
 
     # STEP 6.7 は廃止 — CLAUDE.md Session Start (step 1: tmux agent_id) で各自が自律的に
     # 自分のinstructions/*.mdを読み込む。検証済み (2026-02-08)。
@@ -1059,9 +1077,9 @@ echo ""
 if systemctl --user is-enabled mcp-dashboard.service &>/dev/null; then
     if ! systemctl --user is-active --quiet mcp-dashboard.service; then
         systemctl --user start mcp-dashboard.service 2>/dev/null || true
-        log_info "📊 MCPダッシュボード起動: http://192.168.2.4:8770/"
+        log_info "📊 MCPダッシュボード起動: http://$(ip -4 -o addr show scope global 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | grep -E '^192\.168\.' | head -1):8770/"
     else
-        log_info "📊 MCPダッシュボード稼働中: http://192.168.2.4:8770/"
+        log_info "📊 MCPダッシュボード稼働中: http://$(ip -4 -o addr show scope global 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | grep -E '^192\.168\.' | head -1):8770/"
     fi
 else
     log_info "📊 MCPダッシュボード: systemdサービス未登録のためスキップ"
@@ -1087,6 +1105,7 @@ echo "     ┌──────────────────────
 echo "     │  Pane 0: 将軍 (SHOGUN)      │  ← 総大将・プロジェクト統括"
 echo "     └─────────────────────────────┘"
 echo ""
+if [ "$WITH_AGENTS" = true ]; then
 echo "     【multiagentセッション】家老・足軽・軍師の陣（3x3 = 9ペイン）"
 echo "     ┌─────────┬─────────┬─────────┐"
 echo "     │  karo   │ashigaru3│ashigaru6│"
@@ -1099,6 +1118,10 @@ echo "     │ashigaru2│ashigaru5│ gunshi  │"
 echo "     │ (足軽2) │ (足軽5) │ (軍師)  │"
 echo "     └─────────┴─────────┴─────────┘"
 echo ""
+else
+echo "     家老・足軽・軍師は立ち上げておらぬ(将軍システムは廃止・再開は --with-agents)"
+echo ""
+fi
 
 echo ""
 echo "  ╔══════════════════════════════════════════════════════════╗"
@@ -1129,9 +1152,11 @@ echo "  ┌───────────────────────
 echo "  │  将軍の本陣にアタッチして命令を開始:                      │"
 echo "  │     tmux attach-session -t shogun   (または: css)        │"
 echo "  │                                                          │"
+if [ "$WITH_AGENTS" = true ]; then
 echo "  │  家老・足軽の陣を確認する:                                │"
 echo "  │     tmux attach-session -t multiagent   (または: csm)    │"
 echo "  │                                                          │"
+fi
 echo "  │  ※ 各エージェントは指示書を読み込み済み。                 │"
 echo "  │    すぐに命令を開始できます。                             │"
 echo "  └──────────────────────────────────────────────────────────┘"
