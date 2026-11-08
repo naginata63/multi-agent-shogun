@@ -50,6 +50,7 @@ with open(_CHANNEL_YAML, "r", encoding="utf-8") as _f:
     _ch_cfg = yaml.safe_load(_f)
 CHANNEL_ID = _ch_cfg["brand"]["channel_id"]
 CTA_COMMENT = _ch_cfg["cta_comment"].rstrip("\n")
+SOURCE_COMMENT_HEAD = "📌 元動画"
 
 
 def get_service():
@@ -63,6 +64,7 @@ def get_service():
         creds.refresh(Request())
         with open(TOKEN_PATH, "w") as f:
             f.write(creds.to_json())
+            os.chmod(TOKEN_PATH, 0o600)  # 監査対応 2026-10-31: 認証情報を所有者のみ読み取り可に固定
         print("[cta] トークン更新完了")
 
     return build("youtube", "v3", credentials=creds)
@@ -125,6 +127,9 @@ def has_own_comment(youtube, video_id: str, my_channel_id: str) -> tuple:
             if author_id == my_channel_id:
                 comment_id = thread["snippet"]["topLevelComment"]["id"]
                 comment_text = thread["snippet"]["topLevelComment"]["snippet"]["textOriginal"]
+                # 元動画コメント(source_comment.py)は CTA と数えない。数えると CTA が付かず、--update で上書きされる
+                if comment_text.lstrip().startswith(SOURCE_COMMENT_HEAD):
+                    continue
                 return True, comment_id, comment_text
 
         page_token = res.get("nextPageToken")

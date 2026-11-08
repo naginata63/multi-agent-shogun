@@ -17,4 +17,7 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] cta_comment_cron.sh 開始"
 
 python3 "$SCRIPT"
 
+# 元動画コメント(殿 2026-11-08): CTA のあとに、新しい動画から1日30本まで「📌 元動画：題+URL」を付ける
+python3 "$REPO_DIR/scripts/source_comment.py" --max 30 || echo "[$(date '+%Y-%m-%d %H:%M:%S')] source_comment.py 失敗"
+
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] cta_comment_cron.sh 完了"
