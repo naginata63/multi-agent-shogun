@@ -23,10 +23,22 @@ while IFS= read -r line; do
 done < <(ntfy_get_auth_args "$SCRIPT_DIR/config/ntfy_auth.env")
 
 # ローカルIPをTailscale IPに自動置換（殿のスマホからアクセスできるように）
-MSG="${1//192.168.2.4/100.66.15.93}"
+# DHCPでLAN IPが変わっても効くよう、現在のIPを自動検出して置換する。
+# 旧IP(192.168.2.4)も残置分の救済として置換対象に含める。(2026-08-28 .4→.5 変更で取りこぼし発生)
+TS_IP="100.66.15.93"
+MSG="$1"
+while IFS= read -r _lan; do
+    [ -n "$_lan" ] && MSG="${MSG//$_lan/$TS_IP}"
+done < <(ip -4 -o addr show scope global 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | grep -E '^(192\.168\.|10\.)' )
+MSG="${MSG//192.168.2.4/$TS_IP}"
 
 # shellcheck disable=SC2086
-curl -s "${AUTH_ARGS[@]}" -H "Tags: outbound" -d "$MSG" "https://ntfy.sh/$TOPIC" > /dev/null
+# 優先度: NTFY_PRIORITY=high で鳴る強さにする(殿 2026-11-14「こうゆうせんでたのむ」。ふつうの優先度の完成の知らせがスマホに出ず、三度「届いてない」と言わせた)。
+# 無指定は従来どおり(cron の夜中の知らせを鳴らさぬため)。応答は捨てず、HTTP コードを標準エラーへ出す(200 以外は送れていない)。
+PRI_ARGS=()
+[ -n "${NTFY_PRIORITY:-}" ] && PRI_ARGS=(-H "Priority: ${NTFY_PRIORITY}")
+NTFY_HTTP=$(curl -s -m 20 "${AUTH_ARGS[@]}" -H "Tags: outbound" "${PRI_ARGS[@]}" -d "$MSG" -o /dev/null -w "%{http_code}" "https://ntfy.sh/$TOPIC")
+echo "ntfy HTTP ${NTFY_HTTP}${NTFY_PRIORITY:+ (priority ${NTFY_PRIORITY})}" >&2
 
 # === cmd完了時: 自動done更新 ===
 # メッセージが「✅ cmd_XXXX完了」パターンの場合、
