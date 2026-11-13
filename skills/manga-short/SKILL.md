@@ -25,7 +25,7 @@ panels JSONから縦型ショート動画を生成し、YouTubeに非公開ア�
 | YouTubeアップロード | `projects/dozle_kirinuki/scripts/youtube_uploader.py` |
 | メンバープロファイル | `projects/dozle_kirinuki/context/member_profiles.yaml` |
 | パネルPNG生成(本番) | `projects/dozle_kirinuki/scripts/codex_manga_batch.sh` |
-| 話者判定 | `projects/dozle_kirinuki/scripts/speaker_id.py` (ECAPA・要 venv/bin/python) |
+| 話者判定 | `projects/dozle_kirinuki/scripts/speaker_id_v2.py` (二代目・ReDimNet2・2026-11-13〜)。`scripts/heavy.sh venv/bin/python scripts/speaker_id_v2.py lines <clip.mp4> <telop_lines.json>` で行ごとの話者と「※要確認」の印が出る。初代 `speaker_id.py`(ECAPA)は予備 |
 | 語単位STT | `projects/dozle_kirinuki/scripts/qwen_stt.py` (Qwen3-ASR ローカル) |
 
 ### 🚫 Gemini は使うな（2026-08-08/08-22 殿確定・脱Gemini）
@@ -34,7 +34,7 @@ panels JSONから縦型ショート動画を生成し、YouTubeに非公開ア�
 |------|-------------|--------|
 | パネル画像生成 | Gemini画像生成API | **codex CLI** (`codex_manga_batch.sh`・要 `unset OPENAI_API_KEY`) |
 | クリップの映像判定/シーン把握 | Gemini Video Understanding (`analyze_clip_scene.py`) | **ローカルVLM Qwen2.5-VL** (ollama / transformers) |
-| セリフ・話者の確定 | Gemini文字起こし | **Qwen3-ASR語単位STT + ECAPA話者判定**、YouTube字幕は当たり付けのみ |
+| セリフ・話者の確定 | Gemini文字起こし | **Qwen3-ASR語単位STT + 話者判定機(speaker_id_v2)**、YouTube字幕は当たり付けのみ |
 | 構成(panels)の起案 | Gemini自動提案 (`manga_short_composer.py`) | **殿とcomposition.mdを作って起こす**（AIに勝手に決めさせない） |
 
 `scripts/manga_poc/analyze_clip_scene.py` と `manga_short_composer.py` は **Gemini課金経路のため使用禁止**（退役・参照のみ）。

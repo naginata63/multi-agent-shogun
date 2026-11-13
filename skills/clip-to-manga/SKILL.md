@@ -49,6 +49,7 @@ allowed-tools: Bash, Read, Edit, Write
   （ffmpegのvstackはJPEG多数でmalloc落ちする → PILを使え）
 - 本家テロップの**文言が正**。STTは時刻の当たり付けと、テロップ化されなかった口語の補いのみ
 - **話者はテロップ色/アイコンで判定**（赤=ドズル 紫=ぼん 黄=おんりー 水色=おらふ 桃=MEN）
+- **テロップの無い行は判定機で当てる**: `scripts/heavy.sh venv/bin/python scripts/speaker_id_v2.py lines <clip.mp4> <telop.json>`。「未定」のまま殿に出すな(2026-11-13 殿「判定機あるよね？」)。「※要確認」の行は話者を書かず印つきで出す
 - 行の隙間もフレーム抽出して取りこぼし検査。「確定行の外にSTT語ゼロ」を機械検証
 
 ## ④ 殿確定（telop_editor）
